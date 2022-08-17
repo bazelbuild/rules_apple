@@ -15,6 +15,10 @@
 """watchos_extension Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -132,7 +136,7 @@ def watchos_extension_test_suite(name):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "4.0",
+            "MinimumOSVersion": common.min_os_watchos.baseline,
             "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
             "NSExtension:NSExtensionPointIdentifier": "com.apple.watchkit",
             "UIDeviceFamily:0": "4",

@@ -16,7 +16,47 @@
 
 # Common tags that prevent the test fixtures from actually being built (i.e.,
 # their actions executed) when running `bazel test` to do analysis testing.
-FIXTURE_TAGS = [
+_fixture_tags = [
     "manual",
     "notap",
 ]
+
+# The current baseline for iOS is version 12.0, based on when the arm64e architecture was
+# introduced.
+_min_os_ios = struct(
+    appclip_support = "14.0",
+    arm_sim_support = "14.0",
+    baseline = "12.0",
+    oldest_supported = "11.0",
+    nplus1 = "13.0",
+    stable_swift_abi = "12.2",
+)
+
+_min_os_macos = struct(
+    arm64_support = "11.0",
+    baseline = "10.13",
+)
+
+# The current baseline for tvOS is version 12.0, based on when the arm64e architecture was
+# introduced.
+_min_os_tvos = struct(
+    arm_sim_support = "14.0",
+    baseline = "12.0",
+    oldest_supported = "11.0",
+    stable_swift_abi = "12.2",
+)
+
+_min_os_watchos = struct(
+    arm_sim_support = "7.0",
+    baseline = "4.0",
+    stable_swift_abi = "6.0",
+    test_runner_support = "7.4",
+)
+
+common = struct(
+    fixture_tags = _fixture_tags,
+    min_os_ios = _min_os_ios,
+    min_os_macos = _min_os_macos,
+    min_os_tvos = _min_os_tvos,
+    min_os_watchos = _min_os_watchos,
+)

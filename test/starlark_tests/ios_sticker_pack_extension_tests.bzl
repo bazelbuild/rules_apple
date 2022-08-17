@@ -15,6 +15,10 @@
 """ios_sticker_pack_extension Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -56,7 +60,7 @@ def ios_sticker_pack_extension_test_suite(name):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "LSApplicationIsStickerProvider": "YES",
-            "MinimumOSVersion": "12.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "NSExtension:NSExtensionPointIdentifier": "com.apple.message-payload-provider",
             "UIDeviceFamily:0": "1",
         },

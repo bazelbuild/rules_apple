@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -43,14 +47,14 @@ def apple_xcframework_test_suite(name):
     """
     infoplist_contents_test(
         name = "{}_ios_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         expected_values = {
             "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
-            "AvailableLibraries:0:LibraryPath": "ios_dynamic_xcframework_min_os_12.framework",
+            "AvailableLibraries:0:LibraryPath": "ios_dynamic_xcframework.framework",
             "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
             "AvailableLibraries:0:SupportedPlatform": "ios",
             "AvailableLibraries:1:LibraryIdentifier": "ios-x86_64-simulator",
-            "AvailableLibraries:1:LibraryPath": "ios_dynamic_xcframework_min_os_12.framework",
+            "AvailableLibraries:1:LibraryPath": "ios_dynamic_xcframework.framework",
             "AvailableLibraries:1:SupportedArchitectures:0": "x86_64",
             "AvailableLibraries:1:SupportedPlatform": "ios",
             "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
@@ -113,11 +117,11 @@ def apple_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_generated_modulemap_file_content_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/Modules/module.modulemap",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
         text_test_values = [
-            "framework module ios_dynamic_xcframework_min_os_12",
-            "header \"ios_dynamic_xcframework_min_os_12.h\"",
+            "framework module ios_dynamic_xcframework",
+            "header \"ios_dynamic_xcframework.h\"",
         ],
         tags = [name],
     )
@@ -125,15 +129,15 @@ def apple_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_arm64_device_archive_contents_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12 (offset 24)"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/Headers/shared.h",
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/Headers/ios_dynamic_xcframework_min_os_12.h",
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/Modules/module.modulemap",
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12",
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],
@@ -142,15 +146,15 @@ def apple_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_x86_64_sim_archive_contents_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12 (offset 24)"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
         contains = [
-            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/Headers/shared.h",
-            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/Headers/ios_dynamic_xcframework_min_os_12.h",
-            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/Modules/module.modulemap",
-            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12",
-            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],
@@ -223,9 +227,9 @@ def apple_xcframework_test_suite(name):
     #
     dsyms_test(
         name = "{}_device_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_min_os_12_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_min_os_12_ios_device.framework"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
         architectures = ["arm64"],
         check_public_provider = False,
         tags = [name],
@@ -233,9 +237,9 @@ def apple_xcframework_test_suite(name):
 
     dsyms_test(
         name = "{}_simulator_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_min_os_12_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_min_os_12_ios_simulator.framework"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
         architectures = ["x86_64"],
         check_public_provider = False,
         tags = [name],
@@ -263,16 +267,16 @@ def apple_xcframework_test_suite(name):
 
     linkmap_test(
         name = "{}_device_linkmap_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        expected_linkmap_names = ["ios_dynamic_xcframework_min_os_12_ios_device"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_linkmap_names = ["ios_dynamic_xcframework_ios_device"],
         architectures = ["arm64"],
         tags = [name],
     )
 
     linkmap_test(
         name = "{}_simulator_linkmap_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        expected_linkmap_names = ["ios_dynamic_xcframework_min_os_12_ios_simulator"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_linkmap_names = ["ios_dynamic_xcframework_ios_simulator"],
         architectures = ["x86_64"],
         tags = [name],
     )
@@ -297,10 +301,10 @@ def apple_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_minimum_os_versions_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
-        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_min_os_12.framework/Info.plist",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
         plist_test_values = {
-            "MinimumOSVersion": "12.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
         },
         tags = [name],
     )
@@ -488,9 +492,9 @@ def apple_xcframework_test_suite(name):
         name = "{}_ios_arm64_cc_include_scanning_test".format(name),
         build_type = "device",
         target_features = ["cc_include_scanning"],
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_min_os_12",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_min_os_12.framework/ios_dynamic_xcframework_min_os_12",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         ],
         tags = [name],
     )

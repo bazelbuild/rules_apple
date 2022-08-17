@@ -15,6 +15,10 @@
 """ios_ui_test Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -67,7 +71,7 @@ def ios_ui_test_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "12.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],

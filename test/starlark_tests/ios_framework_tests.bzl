@@ -15,6 +15,10 @@
 """ios_framework Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -47,7 +51,7 @@ def ios_framework_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "12.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
@@ -120,8 +124,8 @@ def ios_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_bundle_resources",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_13.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_13.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -135,10 +139,10 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_resources_in_framework_stays_in_framework_with_app_with_lower_min_os_version".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_12_0_minimum_and_13_0_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_13.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_13.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -150,10 +154,10 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_resources_in_framework_stays_in_framework_with_app_with_higher_min_os_version".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_13_0_minimum_and_12_0_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_min_os_and_baseline_fmwk",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12_with_bundle.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12_with_bundle.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -344,8 +348,8 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_symbols_present_in_framework".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_12",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12.framework/fmwk_min_os_12",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_baseline",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
@@ -354,8 +358,8 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_symbols_not_in_extension".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_12",
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_min_os_13.appex/ext_min_os_13",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_baseline",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_min_os_nplus1.appex/ext_min_os_nplus1",
         binary_test_architecture = "x86_64",
         binary_not_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
@@ -368,7 +372,7 @@ def ios_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_library_dep_with_ios_framework_runtime_dep",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12.framework/fmwk_min_os_12",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
         ],
         tags = [name],
     )
@@ -381,7 +385,7 @@ def ios_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12.framework/fmwk_min_os_12",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
         ],
         tags = [name],
@@ -395,7 +399,7 @@ def ios_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
         macho_load_commands_not_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
-            "name @rpath/fmwk_min_os_12.framework/fmwk_min_os_12 (offset 24)",
+            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
@@ -410,13 +414,13 @@ def ios_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/app_with_load_and_runtime_framework_dep",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_12.framework/fmwk_min_os_12",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
         ],
         macho_load_commands_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
         ],
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk_min_os_12.framework/fmwk_min_os_12 (offset 24)",
+            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_load_and_runtime_framework_dep",
         tags = [name],

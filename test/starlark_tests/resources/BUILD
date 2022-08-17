@@ -8,7 +8,10 @@ load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
-load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 load(
     "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
@@ -32,14 +35,14 @@ objc_library(
     name = "objc_common_lib",
     srcs = ["common.m"],
     hdrs = ["common.h"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
     name = "objc_shared_lib",
     srcs = ["shared.m"],
     hdrs = ["shared.h"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":objc_common_lib",
     ],
@@ -48,7 +51,7 @@ objc_library(
 objc_library(
     name = "objc_main_lib",
     srcs = ["main.m"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":objc_common_lib",
     ],
@@ -63,44 +66,44 @@ objc_library(
     data = [
         ":structured_resources",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "swift_main_lib",
     srcs = ["//test/testdata/sources:main.swift"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
     name = "objc_test_lib",
     srcs = ["test.m"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
     name = "objc_swift_depending_test_lib",
     srcs = ["test.m"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [":swift_uikit_appdelegate"],
 )
 
 swift_library(
     name = "swift_uikit_appdelegate",
     srcs = ["AppDelegate.swift"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_import(
     name = "settings_bundle_ios",
     bundle_imports = [":settings_bundle_ios_files"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -112,32 +115,32 @@ genrule(
     name = "generate_strings",
     outs = ["generated.strings"],
     cmd = "echo '\"generated_string\" = \"I like turtles!\";' > $@",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 dummy_apple_resource_info(
     name = "custom_apple_resource_info",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_bundle(
     name = "resource_bundle",
     infoplists = ["Another.plist"],
     resources = [":custom_apple_resource_info"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_bundle(
     name = "resource_bundle_with_structured_resource_group",
     resources = [":structured_resources"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_bundle(
@@ -146,7 +149,7 @@ apple_resource_bundle(
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -167,7 +170,7 @@ filegroup(
 apple_resource_group(
     name = "resources_with_resource_bundle",
     resources = [":resource_bundle"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_group(
@@ -175,7 +178,7 @@ apple_resource_group(
     structured_resources = [
         "Another.plist",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_group(
@@ -183,7 +186,7 @@ apple_resource_group(
     structured_resources = [
         "Another.plist",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_group(
@@ -191,7 +194,7 @@ apple_resource_group(
     structured_resources = [
         "Resources/some.file",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -200,7 +203,7 @@ objc_library(
     data = [
         ":structured_resources_in_resources",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_group(
@@ -243,7 +246,7 @@ objc_library(
     data = [
         ":launch_images_ios",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -251,7 +254,7 @@ objc_library(
     data = [
         ":launch_images_ios",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -294,13 +297,13 @@ objc_library(
     data = [
         ":sticker_pack_ios",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_import(
     name = "basic_bundle",
     bundle_imports = [":basic_bundle_files"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -309,13 +312,13 @@ objc_library(
     data = [
         ":basic_bundle",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_import(
     name = "nested_bundle",
     bundle_imports = glob(["nested_bundle/nested.bundle/**"]),
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -323,7 +326,7 @@ objc_library(
     data = [
         ":nested_bundle",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -340,7 +343,7 @@ objc_library(
         ":versioned_datamodel",
         ":view_ios.xib",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -353,7 +356,7 @@ objc_library(
         ":localized_strings",
         ":localized_xibs_ios",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -367,7 +370,7 @@ objc_library(
         ":unversioned_datamodel",
         ":versioned_datamodel",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -378,7 +381,7 @@ objc_library(
         ":localized_plists",
         ":localized_strings",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -386,7 +389,7 @@ objc_library(
     data = [
         "empty.strings",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_bundle(
@@ -417,7 +420,7 @@ apple_resource_bundle(
         ":generate_structured_strings",
         ":structured",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -425,7 +428,7 @@ objc_library(
     data = [
         ":bundle_library_ios",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_resource_bundle(
@@ -451,7 +454,7 @@ apple_resource_bundle(
         ":generate_structured_strings",
         ":structured",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -459,7 +462,7 @@ objc_library(
     data = [
         ":bundle_library_apple",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -497,7 +500,7 @@ objc_library(
     data = [
         "framework_resources/nonlocalized.plist",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -518,5 +521,5 @@ filegroup(
 cc_binary(
     name = "cc_test_binary",
     srcs = ["main.cc"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )

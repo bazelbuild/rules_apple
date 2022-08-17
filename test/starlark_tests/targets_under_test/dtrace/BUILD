@@ -2,6 +2,10 @@ load(
     "//apple:dtrace.bzl",
     "dtrace_compile",
 )
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 
 licenses(["notice"])
 
@@ -10,16 +14,11 @@ package(
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
-TARGETS_UNDER_TEST_TAGS = [
-    "manual",
-    "notap",
-]
-
 dtrace_compile(
     name = "dtrace",
     srcs = [
         "folder1/probes.d",
         "folder2/probes.d",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )

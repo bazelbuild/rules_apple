@@ -1,5 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 load(
     "//test/testdata/xcframeworks:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
@@ -16,8 +19,8 @@ generate_dynamic_xcframework(
     name = "generated_dynamic_xcframework",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
     },
     platforms = {
         "ios_simulator": [
@@ -33,8 +36,8 @@ generate_dynamic_xcframework(
     srcs = ["//test/testdata/fmwk:objc_source"],
     hdrs = ["//test/testdata/fmwk:objc_headers"],
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
     },
     platforms = {
         "ios_simulator": [
@@ -49,8 +52,8 @@ generate_static_xcframework(
     name = "generated_static_xcframework",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
     },
     platforms = {
         "ios_simulator": [
@@ -66,8 +69,8 @@ generate_static_xcframework(
     srcs = ["//test/testdata/fmwk:objc_source"],
     hdrs = ["//test/testdata/fmwk:objc_headers"],
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
     },
     platforms = {
         "ios_simulator": [
@@ -84,8 +87,8 @@ generate_static_xcframework(
     hdrs = ["//test/testdata/fmwk:objc_headers"],
     generate_modulemap = False,
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
     },
     platforms = {
         "ios_simulator": [
@@ -105,14 +108,14 @@ swift_library(
     ],
     generates_header = True,
     module_name = "generated_swift_static_xcframework",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 generate_static_xcframework(
     name = "generated_swift_static_xcframework",
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = ":swift_lib_for_static_xcframework",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 generate_static_xcframework(
@@ -120,7 +123,7 @@ generate_static_xcframework(
     include_module_interface_files = False,
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = ":swift_lib_for_static_xcframework",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 bzl_library(

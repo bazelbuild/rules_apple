@@ -15,6 +15,10 @@
 """macos_ui_test Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -73,7 +77,7 @@ def macos_ui_test_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.10",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
         tags = [name],

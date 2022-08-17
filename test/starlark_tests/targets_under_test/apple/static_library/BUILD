@@ -4,7 +4,7 @@ load(
 )
 load(
     "//test/starlark_tests:common.bzl",
-    "FIXTURE_TAGS",
+    "common",
 )
 
 licenses(["notice"])
@@ -17,50 +17,50 @@ package(
 objc_library(
     name = "main_lib",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 apple_static_library(
-    name = "example_library_os8",
-    minimum_os_version = "8.0",
+    name = "example_library_oldest_supported_ios",
+    minimum_os_version = common.min_os_ios.oldest_supported,
     platform_type = "ios",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [":main_lib"],
 )
 
 apple_static_library(
-    name = "example_library_os14",
-    minimum_os_version = "14.0",
+    name = "example_library_arm_sim_support",
+    minimum_os_version = common.min_os_ios.arm_sim_support,
     platform_type = "ios",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [":main_lib"],
 )
 
 apple_static_library(
-    name = "example_watch_library_os8",
-    minimum_os_version = "8.0",
+    name = "example_watch_library_arm_sim_support",
+    minimum_os_version = common.min_os_watchos.arm_sim_support,
     platform_type = "watchos",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [":main_lib"],
 )
 
 apple_static_library(
     name = "example_library_with_avoid_deps",
     avoid_deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkLowerLib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkUpperLib"],
 )
 
 apple_static_library(
     name = "example_library_with_cc_avoid_deps",
     avoid_deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcLowerLib"],
-    minimum_os_version = "12.0",
+    minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcUpperLib"],
 )

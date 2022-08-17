@@ -15,6 +15,10 @@
 """ios_app_clip Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -110,7 +114,7 @@ def ios_app_clip_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "14.0",
+            "MinimumOSVersion": common.min_os_ios.appclip_support,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
