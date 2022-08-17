@@ -25,6 +25,10 @@ load(
     "swift_library",
 )
 load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
+load(
     "//test/testdata/rules:dummy_test_runner.bzl",
     "dummy_test_runner",
 )
@@ -36,11 +40,6 @@ package(
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
-TARGETS_UNDER_TEST_TAGS = [
-    "manual",
-    "notap",
-]
-
 # This is a list of Apple targets to be used for Starlark unit tests. These may not build correctly
 # since most of them do not have any source dependencies, so they are all tagged as manual and
 # notap to avoid them being built/tested when testing the
@@ -50,30 +49,30 @@ apple_bundle_version(
     name = "manual_1_2_build_1_2_3_version",
     build_version = "1.2.3",
     short_version_string = "1.2",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "manual_1_2_build_1_2_3_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":manual_1_2_build_1_2_3_version",
 )
 
 apple_bundle_version(
     name = "only_build_version_1_2_3_version",
     build_version = "1.2.3",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "only_build_version_1_2_3_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":only_build_version_1_2_3_version",
 )
 
@@ -89,15 +88,15 @@ apple_bundle_version(
     },
     fallback_build_label = "MyApp_99.99_RC99",
     short_version_string = "{version}",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "build_label_substitution_from_fallback_label_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":build_label_substitution_from_fallback_label_version",
 )
 
@@ -110,15 +109,15 @@ apple_bundle_version(
         "candidate": "\\d+",
     },
     fallback_build_label = "MyApp_1.2_RC03",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "short_version_string_defaults_to_build_version_substitution_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":short_version_string_defaults_to_build_version_substitution_version",
 )
 
@@ -130,7 +129,7 @@ apple_bundle_version(
         "version": "\\d+",
     },
     fallback_build_label = "MyApp_1.2_RC03",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_version(
@@ -138,7 +137,7 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_RC0*{candidate}",
     build_version = "{version}.{candidate}",
     fallback_build_label = "MyApp_1.2_RC03",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_version(
@@ -148,14 +147,14 @@ apple_bundle_version(
         "foo": "bar",
     },
     fallback_build_label = "MyApp_1.2_RC03",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_version(
     name = "fallback_build_label_requires_build_label_pattern_fail",
     build_version = "1.2",
     fallback_build_label = "MyApp_1.2_RC03",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_bundle_version(
@@ -168,15 +167,15 @@ apple_bundle_version(
         "candidate": "[0-9]+",
     },
     short_version_string = "{version}",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "no_substitution_if_build_label_not_present_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":no_substitution_if_build_label_not_present_version",
 )
 
@@ -189,15 +188,15 @@ apple_bundle_version(
         "candidate": "[0-9]+",
     },
     short_version_string = "1.2",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 macos_bundle(
     name = "build_label_pattern_does_not_short_circuit_literal_bundle",
     bundle_id = "com.google.example",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = "10.10",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
     version = ":build_label_pattern_does_not_short_circuit_literal_version",
 )
 
@@ -245,7 +244,7 @@ objc_library(
         "//test/starlark_tests/resources:shared.h",
         "//test/starlark_tests/resources:shared.m",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -257,14 +256,14 @@ objc_library(
     linkopts = ["-lc++"],
     sdk_dylibs = ["libsqlite3"],
     sdk_frameworks = ["UIKit"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "swift_lib_for_static_xcfmwk",
     srcs = ["DummyFmwk.swift"],
     module_name = "ios_static_xcfmwk_with_swift",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -272,7 +271,7 @@ swift_library(
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
     module_name = "ios_static_xcfmwk_with_swift_generated_headers",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -280,7 +279,7 @@ swift_library(
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
     module_name = "ios_static_xcfmwk_with_custom_bundle_name",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -289,7 +288,7 @@ swift_library(
         "DummyFmwk.swift",
     ],
     module_name = "ios_dynamic_lipoed_swift_xcframework",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 dummy_test_runner(
@@ -297,7 +296,7 @@ dummy_test_runner(
 )
 
 apple_xcframework(
-    name = "ios_dynamic_xcframework_min_os_12",
+    name = "ios_dynamic_xcframework",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -307,12 +306,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -333,12 +332,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     umbrella_header = ":generate_umbrella_header",
     deps = [":fmwk_lib"],
 )
@@ -358,7 +357,7 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     umbrella_header = ":generate_umbrella_header",
     deps = [":fmwk_lib"],
 )
@@ -579,12 +578,12 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -604,9 +603,9 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":swift_fmwk_lib"],
 )
 
@@ -625,12 +624,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -646,12 +645,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -670,12 +669,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -690,12 +689,12 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":fmwk_lib",
         "//test/starlark_tests/resources:resource_bundle",
@@ -717,12 +716,12 @@ apple_xcframework(
     },
     linkopts = ["-x"],
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -742,12 +741,12 @@ apple_xcframework(
     },
     linkopts = ["-x"],
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -766,12 +765,12 @@ apple_xcframework(
     },
     linkopts = ["-dead_strip"],
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -792,12 +791,12 @@ apple_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":SwiftFmwkWithGenHeader"],
 )
 
@@ -813,18 +812,18 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
         "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
 apple_static_xcframework(
-    name = "ios_static_xcframework_min_os_8",
+    name = "ios_static_xcframework_oldest_supported",
     ios = {
         "simulator": [
             "x86_64",
@@ -833,12 +832,12 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": common.min_os_ios.oldest_supported,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -849,7 +848,7 @@ objc_library(
         "//test/starlark_tests/resources:shared.m",
     ],
     data = ["//test/starlark_tests/resources:resource_bundle"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_static_xcframework(
@@ -867,7 +866,7 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib_with_resources"],
 )
 
@@ -902,7 +901,7 @@ unzip -oqq $(execpath :ios_static_xcframework_with_resources.xcframework.zip) -d
 
 apple_static_xcframework_import(
     name = "ios_static_xcframework_with_resources_import",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_ios_static_xcframework_with_resources"],
 )
@@ -922,7 +921,7 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -944,7 +943,7 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -959,9 +958,9 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":StaticFmwkUpperLib"],
 )
 
@@ -971,12 +970,12 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":objc_lib_with_sdk_dylibs_and_sdk_framework"],
 )
 
@@ -990,9 +989,9 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk"],
 )
 
@@ -1007,9 +1006,9 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk_custom_bundle_name"],
 )
 
@@ -1023,17 +1022,17 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk_with_headers"],
 )
 
 apple_static_xcframework(
-    name = "ios_static_xcframework_min_os_12",
+    name = "ios_static_xcframework",
     ios = {
         "simulator": [
             "arm64",
@@ -1045,12 +1044,12 @@ apple_static_xcframework(
         ],
     },
     minimum_os_versions = {
-        "ios": "12.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
 
@@ -1096,7 +1095,7 @@ objc_library(
         "DummyFmwk.h",
         "DummyFmwk.m",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":StaticFmwkLowerLib"],
 )
 
@@ -1106,20 +1105,20 @@ objc_library(
         "DummyFmwk.c",
         "DummyFmwk.h",
     ],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     deps = [":StaticFmwkCcLowerLib"],
 )
 
 objc_library(
     name = "StaticFmwkLowerLib",
     srcs = ["DummyFmwkDependent.m"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 cc_library(
     name = "StaticFmwkCcLowerLib",
     srcs = ["DummyFmwkDependent.c"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -1127,15 +1126,15 @@ swift_library(
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
     module_name = "SwiftFmwkWithGenHeader",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_universal_binary(
     name = "multi_arch_cc_binary",
     binary = "//test/starlark_tests/resources:cc_test_binary",
-    minimum_os_version = "12.0",
+    minimum_os_version = common.min_os_macos.arm64_support,
     platform_type = "macos",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 apple_universal_binary(
@@ -1145,9 +1144,9 @@ apple_universal_binary(
         "x86_64",
         "arm64",
     ],
-    minimum_os_version = "12.0",
+    minimum_os_version = common.min_os_macos.arm64_support,
     platform_type = "macos",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1203,7 +1202,7 @@ apple_static_framework_import(
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     features = ["-swift.layering_check"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework_with_headers"],
 )
@@ -1211,7 +1210,7 @@ apple_dynamic_xcframework_import(
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework",
     features = ["-swift.layering_check"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
@@ -1219,7 +1218,7 @@ apple_dynamic_xcframework_import(
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework_without_swift_files",
     features = ["-swift.layering_check"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework_without_swiftmodule"],
 )
@@ -1266,7 +1265,7 @@ genrule(
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_with_libraries",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework"],
 )
@@ -1277,21 +1276,21 @@ apple_dynamic_xcframework_import(
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     features = ["-swift.layering_check"],
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_with_headers"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_xcframework_with_static_frameworks",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
 )
@@ -1299,20 +1298,20 @@ apple_static_xcframework_import(
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
     has_swift = True,
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework_without_swiftmodule"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework_base",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_base"],
 )
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework_depends_on_base",
-    tags = TARGETS_UNDER_TEST_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_depends_on_base"],
     deps = [":ios_imported_static_xcframework_base"],
