@@ -15,6 +15,10 @@
 """macos_bundle Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -65,7 +69,7 @@ def macos_bundle_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.10",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         tags = [name],

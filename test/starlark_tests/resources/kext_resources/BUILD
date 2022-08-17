@@ -1,4 +1,7 @@
-load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 
 licenses(["notice"])
 
@@ -26,6 +29,6 @@ cc_library(
         "-fapple-kext",
         "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/Headers",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     alwayslink = 1,
 )

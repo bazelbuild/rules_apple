@@ -15,6 +15,10 @@
 """macos_command_line_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -73,7 +77,7 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.11",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         tags = [name],
     )
@@ -98,7 +102,7 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.11",
+            "LSMinimumSystemVersion": "10.13",
         },
         tags = [name],
     )
