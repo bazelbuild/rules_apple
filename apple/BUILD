@@ -38,6 +38,7 @@ bzl_library(
         "//apple/internal:apple_framework_import",
         "//apple/internal:apple_universal_binary",
         "//apple/internal:apple_xcframework_import",
+        "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
     ],
 )
@@ -140,6 +141,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_bundle_import",
         "//apple/internal/resource_rules:apple_core_data_model",
         "//apple/internal/resource_rules:apple_core_ml_library",
+        "//apple/internal/resource_rules:apple_intent_library",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
     ],
