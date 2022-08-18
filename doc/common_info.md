@@ -465,3 +465,12 @@ work i.e. naming your tests something like `ModelsTests` residing at `src/Models
 runfiles will break. To fix this rename the test target to something like `ModelsUnitTests`
 
 This issue is tracked [here](https://github.com/bazelbuild/bazel/issues/12312)
+
+### Xcode's Issue navigator
+
+If integrating with Xcode, the relative paths in test binaries can prevent the
+Issue navigator from working for test failures. To work around this, you can
+have the paths made absolute via swizzling by enabling the
+`"apple.swizzle_absolute_xcttestsourcelocation"` feature. You'll also need to
+set the `BAZEL_WORKSPACE_DIRECTORY` environment variable in your scheme to the
+root of your workspace (i.e. `$(SRCROOT)`).

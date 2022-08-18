@@ -309,13 +309,33 @@ def _apple_test_bundle_impl(ctx):
     else:
         bundle_loader = None
 
+    extra_linkopts = ["-bundle"]
+    extra_link_inputs = []
+
+    if "apple.swizzle_absolute_xcttestsourcelocation" in features:
+        # `linking_support.register_binary_linking_action` uses
+        # `apple_common.link_multi_arch_binary`, which doesn't allow specifying
+        # dependencies (it reads them from `ctx.attr.deps`). So we have to
+        # manually link the `_swizzle_absolute_xcttestsourcelocation` library.
+        swizzle_lib = ctx.attr._swizzle_absolute_xcttestsourcelocation
+        for linker_input in swizzle_lib[CcInfo].linking_context.linker_inputs.to_list():
+            for library in linker_input.libraries:
+                static_library = library.static_library
+                extra_link_inputs.append(static_library)
+                extra_linkopts.append(
+                    "-Wl,-force_load,{}".format(static_library.path),
+                )
+            extra_link_inputs.extend(linker_input.additional_inputs)
+            extra_linkopts.extend(linker_input.user_link_flags)
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
-        extra_linkopts = ["-bundle"],
+        extra_linkopts = extra_linkopts,
+        extra_link_inputs = extra_link_inputs,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
