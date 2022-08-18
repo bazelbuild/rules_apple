@@ -3,6 +3,8 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+package(default_visibility = ["//visibility:public"])
+
 licenses(["notice"])
 
 # Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
