@@ -59,14 +59,14 @@ watchos_application(
 )
 
 watchos_application(
-    name = "app_os9",
+    name = "app_arm64_support",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
-    extension = ":ext_os9",
+    extension = ":ext_arm64_support",
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = common.min_os_watchos.arm64_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
 )
@@ -120,12 +120,12 @@ watchos_extension(
 )
 
 watchos_extension(
-    name = "ext_os9",
+    name = "ext_arm64_support",
     bundle_id = "com.google.example.ext",
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = common.min_os_watchos.arm64_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
