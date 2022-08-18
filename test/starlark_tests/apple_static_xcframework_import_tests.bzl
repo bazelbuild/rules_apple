@@ -120,7 +120,9 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         not_contains = ["$BUNDLE_ROOT/Frameworks/"],
-        target_features = ["apple.parse_xcframework_info_plist"],
+        build_settings = {
+            "//apple/build_settings:parse_xcframework_info_plist": "True",
+        },
         tags = [name],
     )
     archive_contents_test(
@@ -133,7 +135,9 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        target_features = ["apple.parse_xcframework_info_plist"],
+        build_settings = {
+            "//apple/build_settings:parse_xcframework_info_plist": "True",
+        },
         tags = [name],
     )
 
