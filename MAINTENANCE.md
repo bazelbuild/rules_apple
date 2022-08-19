@@ -104,6 +104,7 @@ is the recommended process:
   GitHub](https://github.com/bazelbuild/rules_apple/compare/0.21.1...HEAD),
   and collect the most notable user facing commits for the release
   notes.
+- Set the new version number in `MODULE.bazel`
 - Starting with `apple_support` create a new release with this template
   for the notes:
 
