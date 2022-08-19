@@ -14,38 +14,8 @@
 
 """apple_core_data_model Starlark tests."""
 
-load(
-    ":rules/analysis_target_outputs_test.bzl",
-    "analysis_target_outputs_test",
-)
-load(
-    "@bazel_skylib//lib:unittest.bzl",
-    "analysistest",
-    "asserts",
-)
-load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-
-def _analysis_registered_actions_and_mnemonic_impl(ctx):
-    """Tests registers one action per data model file and a single mnemonic."""
-    env = analysistest.begin(ctx)
-    target_under_test = analysistest.target_under_test(env)
-
-    target_actions = analysistest.target_actions(env)
-    target_files = target_under_test[DefaultInfo].files.to_list()
-    target_mnemonics_set = sets.make([a.mnemonic for a in target_actions])
-    target_mnemonics = sets.to_list(target_mnemonics_set)
-
-    asserts.equals(env, len(target_files), len(target_actions))
-    asserts.equals(env, 1, len(target_mnemonics))
-    asserts.equals(env, "MomGenerate", target_mnemonics[0])
-    return analysistest.end(env)
-
-_analysis_registered_actions_and_mnemonic_test = analysistest.make(
-    _analysis_registered_actions_and_mnemonic_impl,
-)
+load(":rules/analysis_target_actions_test.bzl", "analysis_target_actions_test")
+load(":rules/analysis_target_outputs_test.bzl", "analysis_target_outputs_test")
 
 def apple_core_data_model_test_suite(name):
     """Test suite for apple_bundle_version.
@@ -86,19 +56,44 @@ def apple_core_data_model_test_suite(name):
     )
 
     # Test registered actions and mnemonics for Obj-C and Swift data models.
-    _analysis_registered_actions_and_mnemonic_test(
+    analysis_target_actions_test(
         name = "{}_actions_swift_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:swift_data_model",
+        target_mnemonic = "MomGenerate",
+        expected_argv = [
+            "momc --action generate",
+            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
+        ],
         tags = [name],
     )
-    _analysis_registered_actions_and_mnemonic_test(
+    analysis_target_actions_test(
         name = "{}_actions_objc_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:objc_data_model",
+        target_mnemonic = "MomGenerate",
+        expected_argv = [
+            "momc --action generate",
+            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
+        ],
         tags = [name],
     )
-    _analysis_registered_actions_and_mnemonic_test(
-        name = "{}_actions_swift_and_objc_test".format(name),
+    analysis_target_actions_test(
+        name = "{}_actions_swift_and_objc_test_objc_mnemonic".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
+        target_mnemonic = "MomGenerate",
+        expected_argv = [
+            "momc --action generate",
+            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
+        ],
+        tags = [name],
+    )
+    analysis_target_actions_test(
+        name = "{}_actions_swift_and_objc_test_swift_mnemonic".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
+        target_mnemonic = "MomGenerate",
+        expected_argv = [
+            "momc --action generate",
+            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
+        ],
         tags = [name],
     )
 
