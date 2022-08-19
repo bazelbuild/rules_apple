@@ -185,7 +185,7 @@ def _group_link_outputs_by_library_identifier(
         uses_swift = False
         for link_output in link_outputs:
             split_attr_key = transition_support.xcframework_split_attr_key(
-                cpu = link_output.architecture,
+                arch = link_output.architecture,
                 environment = link_output.environment,
                 platform_type = link_output.platform,
             )
