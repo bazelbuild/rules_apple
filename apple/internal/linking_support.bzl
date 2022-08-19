@@ -107,6 +107,7 @@ def _register_binary_linking_action(
         bundle_loader = None,
         entitlements = None,
         extra_linkopts = [],
+        extra_link_inputs = [],
         platform_prerequisites,
         stamp):
     """Registers linking actions using the Starlark Apple binary linking API.
@@ -130,6 +131,7 @@ def _register_binary_linking_action(
             binary or bundle being built. The entitlements will be embedded in a special section
             of the binary.
         extra_linkopts: Extra linkopts to add to the linking action.
+        extra_link_inputs: Extra link inputs to add to the linking action.
         platform_prerequisites: The platform prerequisites.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
@@ -181,6 +183,7 @@ def _register_binary_linking_action(
         linkopts.extend(rule_descriptor.extra_linkopts)
 
     linkopts.extend(extra_linkopts)
+    link_inputs.extend(extra_link_inputs)
 
     all_avoid_deps = list(avoid_deps)
     if bundle_loader:
