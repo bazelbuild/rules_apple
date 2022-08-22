@@ -28,11 +28,8 @@ load(
     "analysis_runfiles_test",
 )
 load(
-    ":rules/analysis_symlink_test.bzl",
-    "analysis_symlink_test",
-)
-load(
     ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
     "make_analysis_target_actions_test",
 )
 load(
@@ -70,9 +67,11 @@ def apple_static_library_test_suite(name):
 
     # Test that the static library output generates a symlink action as one of its output actions
     # for single arch builds.
-    analysis_symlink_test(
+    analysis_target_actions_test(
         name = "{}_ios_symlink_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        target_mnemonic = "Symlink",
+        not_expected_mnemonic = ["AppleLipo"],
         tags = [name],
     )
 

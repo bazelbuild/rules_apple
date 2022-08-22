@@ -34,6 +34,13 @@ Expected action env: {expected_env}
 Actual action env: {actual_env}
 """
 
+_TARGET_CONTAINS_NOT_EXPECTED_MNEMONIC = """
+Expected target to not contain an action with mnemonic '{target_mnemonic}', but it did.
+Target: {target}
+Mnemonic: {target_mnemonic}
+Action argv: {action_argv}
+"""
+
 def _analysis_target_actions_test_impl(ctx):
     """Implementation of analysis_target_actions_test."""
     env = analysistest.begin(ctx)
@@ -98,6 +105,24 @@ def _analysis_target_actions_test_impl(ctx):
             )
             return analysistest.end(env)
 
+    for not_expected_mnemonic in ctx.attr.not_expected_mnemonic:
+        actual_mnemonics = {
+            action.mnemonic: action
+            for action in target_actions
+            if action.mnemonic == not_expected_mnemonic
+        }
+        if not_expected_mnemonic in actual_mnemonics:
+            action = actual_mnemonics[not_expected_mnemonic]
+            unittest.fail(
+                env,
+                _TARGET_CONTAINS_NOT_EXPECTED_MNEMONIC.format(
+                    target_mnemonic = not_expected_mnemonic,
+                    target = target_under_test,
+                    action_argv = getattr(action, "argv"),
+                ),
+            )
+            return analysistest.end(env)
+
     return analysistest.end(env)
 
 def make_analysis_target_actions_test(config_settings = {}):
@@ -131,6 +156,10 @@ space-delimited string.""",
                 doc = """
 A string dictionary representing expected environment values that should be
 present in the action environment values.""",
+            ),
+            "not_expected_mnemonic": attr.string_list(
+                doc = """
+List of action mnemonics not expected to be found on the target under test.""",
             ),
         },
         config_settings = config_settings,
