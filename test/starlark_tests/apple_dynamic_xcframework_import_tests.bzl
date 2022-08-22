@@ -15,6 +15,10 @@
 """apple_dynamic_xcframework_import Starlark tests."""
 
 load(":rules/analysis_failure_message_test.bzl", "analysis_failure_message_test")
+load(
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_contains_xcframework_processor_action_test",
+)
 load(":rules/apple_verification_test.bzl", "apple_verification_test")
 load(":rules/common_verification_tests.bzl", "archive_contents_test", "binary_contents_test")
 
@@ -202,6 +206,14 @@ def apple_dynamic_xcframework_import_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader (offset 24)",
         ],
+        tags = [name],
+    )
+
+    # Verify XCFramework processor tool action is registered via build setting.
+    analysis_contains_xcframework_processor_action_test(
+        name = "{}_imported_xcframework_framework_files_registers_action_with_xcframework_import_tool".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework",
+        target_mnemonic = "ProcessXCFrameworkFiles",
         tags = [name],
     )
 

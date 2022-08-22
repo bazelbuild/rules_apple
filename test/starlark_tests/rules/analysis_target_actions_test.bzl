@@ -14,6 +14,7 @@
 
 """Starlark analysis test inspecting target under test actions."""
 
+load("@build_bazel_rules_apple//apple/build_settings:attrs.bzl", "build_settings")
 load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
@@ -167,3 +168,10 @@ List of action mnemonics not expected to be found on the target under test.""",
 
 # Default analysis_target_actions_test without cfg.
 analysis_target_actions_test = make_analysis_target_actions_test()
+
+# The folowing test rules are used in more than one test suite and thus they are defined here.
+analysis_contains_xcframework_processor_action_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings.parse_xcframework_info_plist.label: True,
+    },
+)
