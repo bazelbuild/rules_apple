@@ -18,6 +18,7 @@ This rule is meant to be used only for rules_apple tests and are considered impl
 that may change at any time. Please do not depend on this rule.
 """
 
+load("@build_bazel_rules_apple//apple/build_settings:attrs.bzl", "build_settings")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
@@ -35,10 +36,6 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
-
-_TRANSITION_CONFIGURABLE_BUILD_SETTINGS = [
-    "@build_bazel_rules_apple//apple/build_settings:parse_xcframework_info_plist",
-]
 
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
@@ -93,7 +90,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary["//command_line_option:features"] = existing_features
 
     # Build settings
-    for build_setting in _TRANSITION_CONFIGURABLE_BUILD_SETTINGS:
+    for build_setting in build_settings.all_labels:
         if build_setting in getattr(attr, "build_settings", []):
             build_setting_value = attr.build_settings[build_setting]
             build_setting_type = type(settings[build_setting])
@@ -114,7 +111,7 @@ apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
     inputs = [
         "//command_line_option:features",
-    ] + _TRANSITION_CONFIGURABLE_BUILD_SETTINGS,
+    ] + build_settings.all_labels,
     outputs = [
         "//command_line_option:cpu",
         "//command_line_option:ios_signing_cert_name",
@@ -127,7 +124,7 @@ apple_verification_transition = transition(
         "//command_line_option:apple_generate_dsym",
         "//command_line_option:apple_platforms",
         "//command_line_option:incompatible_enable_apple_toolchain_resolution",
-    ] + _TRANSITION_CONFIGURABLE_BUILD_SETTINGS,
+    ] + build_settings.all_labels,
 )
 
 def _apple_verification_test_impl(ctx):

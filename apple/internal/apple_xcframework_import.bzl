@@ -646,7 +646,7 @@ through the `deps` attribute.
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        build_settings.attrs.parse_xcframework_info_plist,
+        build_settings.parse_xcframework_info_plist.attr,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "xcframework_imports": attr.label_list(
@@ -694,7 +694,7 @@ to library targets through the `deps` attribute.
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        build_settings.attrs.parse_xcframework_info_plist,
+        build_settings.parse_xcframework_info_plist.attr,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "alwayslink": attr.bool(
