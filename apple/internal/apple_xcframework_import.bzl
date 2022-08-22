@@ -701,7 +701,7 @@ objc_library(
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        build_settings.attrs.parse_xcframework_info_plist,
+        build_settings.parse_xcframework_info_plist.attr,
         swift_common.toolchain_attrs(),
         {
             "xcframework_imports": attr.label_list(
@@ -777,7 +777,7 @@ objc_library(
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        build_settings.attrs.parse_xcframework_info_plist,
+        build_settings.parse_xcframework_info_plist.attr,
         swift_common.toolchain_attrs(),
         {
             "alwayslink": attr.bool(

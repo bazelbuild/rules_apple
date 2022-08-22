@@ -14,17 +14,51 @@
 
 """Apple build settings attributes to be added to rules that read configuration settings."""
 
-_PARSE_XCFRAMEWORK_INFO_PLIST = {
-    "_parse_xcframework_info_plist": attr.label(
-        default = "@build_bazel_rules_apple//apple/build_settings:parse_xcframework_info_plist",
-        doc = """
-Boolean build setting to enable Info.plist file parsing using the xcframework_processor_tool.
-""",
-    ),
-}
+# List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
+_BUILD_SETTINGS = [
+    "parse_xcframework_info_plist",
+]
+
+# Build settings label template including label prefix.
+_BUILD_SETTING_LABEL_TEMPLATE = "@build_bazel_rules_apple//apple/build_settings:{name}"
 
 build_settings = struct(
-    attrs = struct(
-        parse_xcframework_info_plist = _PARSE_XCFRAMEWORK_INFO_PLIST,
-    ),
+    # A list of labels is shared for apple_verification_test transition to allow
+    # tests set these custom build settings.
+    all_labels = [
+        _BUILD_SETTING_LABEL_TEMPLATE.format(
+            name = build_setting,
+        )
+        for build_setting in _BUILD_SETTINGS
+    ],
+    # The following struct fields are dynamically generated using each build
+    # setting. Each build setting struct will have the following format:
+    #
+    #   struct(
+    #       build_setting_a = struct(
+    #           label = "rules_apple/apple/build_settings:build_setting_a"
+    #           attr = {
+    #               "_build_setting_a": attr.label(
+    #                   default = "rules_apple/apple/build_settings:build_setting_a",
+    #               )
+    #           }
+    #       )
+    #   )
+    **{
+        build_setting: struct(
+            label = _BUILD_SETTING_LABEL_TEMPLATE.format(
+                name = build_setting,
+            ),
+            attr = {
+                "_{build_setting_name}".format(
+                    build_setting_name = build_setting,
+                ): attr.label(
+                    default = _BUILD_SETTING_LABEL_TEMPLATE.format(
+                        name = build_setting,
+                    ),
+                ),
+            },
+        )
+        for build_setting in _BUILD_SETTINGS
+    }
 )
