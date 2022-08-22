@@ -24,10 +24,6 @@ load(
     "analysis_incoming_watchos_platform_mismatch_test",
 )
 load(
-    ":rules/analysis_lipo_test.bzl",
-    "analysis_lipo_test",
-)
-load(
     ":rules/analysis_runfiles_test.bzl",
     "analysis_runfiles_test",
 )
@@ -36,12 +32,25 @@ load(
     "analysis_symlink_test",
 )
 load(
+    ":rules/analysis_target_actions_test.bzl",
+    "make_analysis_target_actions_test",
+)
+load(
     ":rules/analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 load(
     ":rules/common_verification_tests.bzl",
     "binary_contents_test",
+)
+
+analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+    },
 )
 
 def apple_static_library_test_suite(name):
@@ -69,19 +78,25 @@ def apple_static_library_test_suite(name):
 
     # Test that the static library output generates a lipo action as one of its output actions for
     # multi arch iOS Simulator builds.
-    analysis_lipo_test(
+    analysis_target_actions_with_multi_cpus_test(
         name = "{}_ios_lipo_test".format(name),
-        expected_sdk_platform = "MacOSX",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        target_mnemonic = "AppleLipo",
+        expected_env = {
+            "APPLE_SDK_PLATFORM": "MacOSX",
+        },
         tags = [name],
     )
 
     # Test that the static library output generates a lipo action as one of its output actions for
     # multi arch watchOS builds.
-    analysis_lipo_test(
+    analysis_target_actions_with_multi_cpus_test(
         name = "{}_watchos_lipo_test".format(name),
-        expected_sdk_platform = "MacOSX",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
+        target_mnemonic = "AppleLipo",
+        expected_env = {
+            "APPLE_SDK_PLATFORM": "MacOSX",
+        },
         tags = [name],
     )
 
