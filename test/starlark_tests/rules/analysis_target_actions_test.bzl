@@ -71,21 +71,36 @@ def _analysis_target_actions_test_impl(ctx):
 
     return analysistest.end(env)
 
-analysis_target_actions_test = analysistest.make(
-    _analysis_target_actions_test_impl,
-    attrs = {
-        "target_mnemonic": attr.string(
-            mandatory = True,
-            doc = """
+def make_analysis_target_actions_test(config_settings = {}):
+    """Returns a new `analysis_target_actions_test`-like rule with custom configs.
+
+    Args:
+        config_settings: A dictionary of configuration settings and their values
+            that should be applied during tests.
+
+    Returns:
+        A rule returned by `analysistest.make` that has the
+        `analysis_target_actions_test` interface and the given config settings.
+    """
+    return analysistest.make(
+        _analysis_target_actions_test_impl,
+        attrs = {
+            "target_mnemonic": attr.string(
+                mandatory = True,
+                doc = """
 The mnemonic of the action to be inspected on the target under test.
 This will also assert at least one action exists with the given mnemonic.
 """,
-        ),
-        "expected_argv": attr.string_list(
-            doc = """
+            ),
+            "expected_argv": attr.string_list(
+                doc = """
 A list of strings representing substrings expected to appear in the action
 command line, after concatenating all command line arguments into a single
 space-delimited string.""",
-        ),
-    },
-)
+            ),
+        },
+        config_settings = config_settings,
+    )
+
+# Default analysis_target_actions_test without cfg.
+analysis_target_actions_test = make_analysis_target_actions_test()
