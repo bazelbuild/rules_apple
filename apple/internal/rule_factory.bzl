@@ -680,6 +680,11 @@ Info.plist under the key `UILaunchStoryboardName`.
                 mandatory = test_host_mandatory,
                 providers = required_providers,
             ),
+            "_swizzle_absolute_xcttestsourcelocation": attr.label(
+                default = Label(
+                    "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+                ),
+            ),
         })
 
     # TODO(kaipi): Once all platforms have framework rules, move this into
@@ -809,6 +814,11 @@ set, then the default extension is determined by the application's product_type.
                     [AppleBundleInfo, MacosExtensionBundleInfo],
                 ],
             ),
+            "_swizzle_absolute_xcttestsourcelocation": attr.label(
+                default = Label(
+                    "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+                ),
+            ),
         })
 
     return attrs
@@ -893,6 +903,11 @@ fashion, such as a Cocoapod.
                     [AppleBundleInfo, TvosApplicationBundleInfo],
                     [AppleBundleInfo, TvosExtensionBundleInfo],
                 ],
+            ),
+            "_swizzle_absolute_xcttestsourcelocation": attr.label(
+                default = Label(
+                    "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+                ),
             ),
         })
 
@@ -1020,6 +1035,11 @@ fashion, such as a Cocoapod.
                 aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [AppleBundleInfo, WatchosApplicationBundleInfo],
+            ),
+            "_swizzle_absolute_xcttestsourcelocation": attr.label(
+                default = Label(
+                    "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+                ),
             ),
         })
 
