@@ -39,8 +39,8 @@ load(
     "linkmap_test",
 )
 load(
-    ":rules/analysis_xcasset_argv_test.bzl",
-    "analysis_xcasset_argv_test",
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 
 def tvos_application_test_suite(name):
@@ -139,9 +139,16 @@ def tvos_application_test_suite(name):
     )
 
     # Tests xcasset tool is passed the correct arguments.
-    analysis_xcasset_argv_test(
+    analysis_target_actions_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--minimum-deployment-target " + common.min_os_tvos.baseline,
+            "--product-type com.apple.product-type.application",
+            "--platform appletvsimulator",
+        ],
         tags = [name],
     )
 

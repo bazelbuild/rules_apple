@@ -36,8 +36,8 @@ load(
     "infoplist_contents_test",
 )
 load(
-    ":rules/analysis_xcasset_argv_test.bzl",
-    "analysis_xcasset_argv_test",
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 
 def macos_application_test_suite(name):
@@ -212,9 +212,16 @@ def macos_application_test_suite(name):
     )
 
     # Tests xcasset tool is passed the correct arguments.
-    analysis_xcasset_argv_test(
+    analysis_target_actions_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--minimum-deployment-target " + common.min_os_macos.baseline,
+            "--product-type com.apple.product-type.application",
+            "--platform macosx",
+        ],
         tags = [name],
     )
 
