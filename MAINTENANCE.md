@@ -143,9 +143,6 @@ SHA-256 digest: `TBD`
 
 ### Notes
 
-- The rules aren't currently following true semantic versioning, but in
-  general the minor version should be bumped for most changes, and the
-  patch only for very small releases.
 - It's highly recommended that rules maintainers track more closely with
   the HEAD of the rules repos than with the releases.
 - In general before releasing the HEAD of the rules repos should be
