@@ -592,7 +592,11 @@ def _watchos_extension_impl(ctx):
     # TODO(min(Xcode) >= 11): Make this unconditional when the minimum supported Xcode is Xcode 11.
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
-        extra_linkopts = ["-e", "_WKExtensionMain"]
+        # watchOS application extensions have a different entry point.
+        if ctx.attr.application_extension:
+            extra_linkopts = ["-e", "_NSExtensionMain"]
+        else:
+            extra_linkopts = ["-e", "_WKExtensionMain"]
 
         # This is required when building with watchOS SDK 6.0 or higher but with a minimum
         # deployment version lower than 6.0. See

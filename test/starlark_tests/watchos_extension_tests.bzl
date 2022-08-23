@@ -198,16 +198,15 @@ def watchos_extension_test_suite(name):
     )
 
     entry_point_test(
-        name = "{}_entry_point_wkextensionmain_test".format(name),
+        name = "{}_entry_point_test".format(name),
         build_type = "simulator",
         entry_point = "_WKExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         tags = [name],
     )
 
-    # Extensions embedded in a watchOS extension are special.
     entry_point_test(
-        name = "{}_entry_point_app_extension_nsextensionmain_test".format(name),
+        name = "{}_entry_point_app_extension_test".format(name),
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:watchos_app_extension",

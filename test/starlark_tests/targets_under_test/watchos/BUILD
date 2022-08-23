@@ -181,6 +181,7 @@ ios_application(
 
 watchos_extension(
     name = "watchos_app_extension",
+    application_extension = True,
     bundle_id = "com.google.example.watchosext.nestedwatchosext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [

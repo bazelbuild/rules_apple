@@ -124,10 +124,10 @@ Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
 ## watchos_extension
 
 <pre>
-watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_extension-bundle_id">bundle_id</a>, <a href="#watchos_extension-bundle_name">bundle_name</a>, <a href="#watchos_extension-codesign_inputs">codesign_inputs</a>,
-                  <a href="#watchos_extension-codesignopts">codesignopts</a>, <a href="#watchos_extension-deps">deps</a>, <a href="#watchos_extension-entitlements">entitlements</a>, <a href="#watchos_extension-entitlements_validation">entitlements_validation</a>, <a href="#watchos_extension-executable_name">executable_name</a>,
-                  <a href="#watchos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_extension-extensions">extensions</a>, <a href="#watchos_extension-infoplists">infoplists</a>, <a href="#watchos_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#watchos_extension-linkopts">linkopts</a>,
-                  <a href="#watchos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_extension-minimum_os_version">minimum_os_version</a>, <a href="#watchos_extension-platform_type">platform_type</a>,
+watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_extension-application_extension">application_extension</a>, <a href="#watchos_extension-bundle_id">bundle_id</a>, <a href="#watchos_extension-bundle_name">bundle_name</a>,
+                  <a href="#watchos_extension-codesign_inputs">codesign_inputs</a>, <a href="#watchos_extension-codesignopts">codesignopts</a>, <a href="#watchos_extension-deps">deps</a>, <a href="#watchos_extension-entitlements">entitlements</a>, <a href="#watchos_extension-entitlements_validation">entitlements_validation</a>,
+                  <a href="#watchos_extension-executable_name">executable_name</a>, <a href="#watchos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_extension-extensions">extensions</a>, <a href="#watchos_extension-infoplists">infoplists</a>, <a href="#watchos_extension-ipa_post_processor">ipa_post_processor</a>,
+                  <a href="#watchos_extension-linkopts">linkopts</a>, <a href="#watchos_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_extension-minimum_os_version">minimum_os_version</a>, <a href="#watchos_extension-platform_type">platform_type</a>,
                   <a href="#watchos_extension-provisioning_profile">provisioning_profile</a>, <a href="#watchos_extension-resources">resources</a>, <a href="#watchos_extension-stamp">stamp</a>, <a href="#watchos_extension-strings">strings</a>, <a href="#watchos_extension-version">version</a>)
 </pre>
 
@@ -144,6 +144,7 @@ so these bundling rules do not support that version of the platform.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="watchos_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="watchos_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
+| <a id="watchos_extension-application_extension"></a>application_extension |  If true, links the extension with the right entry point. watchOS application extensions have a different entry point from watchOS applications.   | Boolean | optional | False |
 | <a id="watchos_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target.   | String | required |  |
 | <a id="watchos_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | "" |
 | <a id="watchos_extension-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by <code>codesign</code> (referenced with <code>codesignopts</code>).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |

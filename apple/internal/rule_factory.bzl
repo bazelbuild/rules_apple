@@ -959,12 +959,21 @@ def _get_watchos_attrs(rule_descriptor):
     attrs = []
 
     if rule_descriptor.product_type == apple_product_type.watch2_extension:
-        attrs.append({"extensions": attr.label_list(
-            providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
-            doc = """
+        attrs.append({
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+                doc = """
 A list of watchOS application extensions to include in the final watch extension bundle.
 """,
-        )})
+            ),
+            "application_extension": attr.bool(
+                default = False,
+                doc = """
+If true, links the extension with the right entry point. watchOS application extensions
+have a different entry point from watchOS applications.
+""",
+            ),
+        })
     if rule_descriptor.product_type == apple_product_type.watch2_application:
         attrs.append({
             "extension": attr.label(
