@@ -92,6 +92,28 @@ def tvos_extension_test_suite(name):
         tags = [name],
     )
 
+    # Verify that Swift dylibs are packaged with the application, not with the extension, when only
+    # an extension uses Swift. And to be safe, verify that they aren't packaged with the extension.
+    archive_contents_test(
+        name = "{}_device_swift_dylibs_present".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_dylibs_present".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
