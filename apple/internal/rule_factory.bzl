@@ -969,7 +969,7 @@ A list of watchOS application extensions to include in the final watch extension
             "application_extension": attr.bool(
                 default = False,
                 doc = """
-If `true`, this extension is an App Extension instead of a WatchKit Extension.
+If `True`, this extension is an App Extension instead of a WatchKit Extension.
 It links the extension with the application extension point (`_NSExtensionMain`)
 instead of the WatchKit extension point (`_WKExtensionMain`), and has the
 `app_extension` `product_type` instead of `watch2_extension`.
