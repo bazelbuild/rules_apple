@@ -15,13 +15,22 @@
 """watchos_extension Starlark tests."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "apple_product_type",
+)  # buildifier: disable=bzl-visibility
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
+)
+load(
+    ":rules/product_type_test.bzl",
+    "product_type_test",
 )
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
     "bitcode_symbol_map_test",
+    "entry_point_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -193,6 +202,36 @@ def watchos_extension_test_suite(name):
             "path @executable_path/../../Frameworks (offset 12)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_test".format(name),
+        build_type = "simulator",
+        entry_point = "_WKExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_app_extension_test".format(name),
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:watchos_app_extension",
+        tags = [name],
+    )
+
+    product_type_test(
+        name = "{}_product_type_watchkit_extension".format(name),
+        expected_product_type = apple_product_type.watch2_extension,
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    product_type_test(
+        name = "{}_product_type_app_extension".format(name),
+        expected_product_type = apple_product_type.app_extension,
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:watchos_app_extension",
         tags = [name],
     )
 

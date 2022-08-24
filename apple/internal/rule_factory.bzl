@@ -959,12 +959,23 @@ def _get_watchos_attrs(rule_descriptor):
     attrs = []
 
     if rule_descriptor.product_type == apple_product_type.watch2_extension:
-        attrs.append({"extensions": attr.label_list(
-            providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
-            doc = """
+        attrs.append({
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+                doc = """
 A list of watchOS application extensions to include in the final watch extension bundle.
 """,
-        )})
+            ),
+            "application_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an App Extension instead of a WatchKit Extension.
+It links the extension with the application extension point (`_NSExtensionMain`)
+instead of the WatchKit extension point (`_WKExtensionMain`), and has the
+`app_extension` `product_type` instead of `watch2_extension`.
+""",
+            ),
+        })
     if rule_descriptor.product_type == apple_product_type.watch2_application:
         attrs.append({
             "extension": attr.label(
