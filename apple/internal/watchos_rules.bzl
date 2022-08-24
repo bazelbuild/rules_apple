@@ -574,19 +574,6 @@ def _watchos_extension_impl(ctx):
             "resources",
         ],
     )
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        bundle_id = bundle_id,
-        entitlements_file = ctx.file.entitlements,
-        platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
-        provisioning_profile = provisioning_profile,
-        rule_label = label,
-        validation_mode = ctx.attr.entitlements_validation,
-    )
-
     product_type = rule_descriptor.product_type
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
@@ -619,6 +606,18 @@ def _watchos_extension_impl(ctx):
             )
     else:
         extra_linkopts = []
+
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
+    )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
