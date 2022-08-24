@@ -587,14 +587,17 @@ def _watchos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    product_type = rule_descriptor.product_type
+
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
     # TODO(min(Xcode) >= 11): Make this unconditional when the minimum supported Xcode is Xcode 11.
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_support.is_xcode_at_least_version(xcode_config, "11"):
-        # watchOS application extensions have a different entry point.
+        # This extension should be treated as an App Extension instead of a WatchKit Extension.
         if ctx.attr.application_extension:
             extra_linkopts = ["-e", "_NSExtensionMain"]
+            product_type = apple_product_type.app_extension
         else:
             extra_linkopts = ["-e", "_WKExtensionMain"]
 
@@ -648,7 +651,7 @@ def _watchos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
+            product_type = product_type,
         ),
         partials.binary_partial(
             actions = actions,
