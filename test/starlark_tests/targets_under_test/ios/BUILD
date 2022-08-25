@@ -351,6 +351,83 @@ ios_application(
 # ---------------------------------------------------------------------------------------
 
 ios_application(
+    name = "app_with_swift_library_scoped_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_resources",
+    ],
+)
+
+ios_application(
+    name = "app_with_transitive_swift_library_scoped_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_transitive_resources",
+    ],
+)
+
+ios_application(
+    name = "app_with_transitive_swift_libraries_with_storyboards",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_storyboard_a",
+    ],
+)
+
+ios_application(
+    name = "app_with_transitive_swift_libraries_with_asset_catalogs",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_asset_catalog_a",
+    ],
+)
+
+ios_application(
+    name = "app_with_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_lib_with_storyboard_copy",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+ios_application(
     name = "app_with_same_resource_names_as_framework",
     bundle_id = "com.google.example",
     families = ["iphone"],
@@ -2779,7 +2856,7 @@ ios_dynamic_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:swift_lib_with_resources",
+        "//test/starlark_tests/resources:swift_lib_with_structured_resources",
     ],
 )
 
