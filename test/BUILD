@@ -150,13 +150,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_extension_swift_test",
-    size = "medium",
-    src = "ios_extension_swift_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "ios_framework_test",
     size = "medium",
     src = "ios_framework_test.sh",
