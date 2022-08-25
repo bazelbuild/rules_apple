@@ -3054,6 +3054,12 @@ ios_static_framework(
     deps = [":shared_lib"],
 )
 
+ios_static_framework(
+    name = "static_framework_from_objc_library",
+    minimum_os_version = common.min_os_ios.baseline,
+    deps = [":objc_library_with_sdk_dylib_and_framework"],
+)
+
 genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
@@ -3112,6 +3118,17 @@ generate_import_framework(
     minimum_os_version = common.min_os_ios.baseline,
     sdk = "iphonesimulator",
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_library_with_sdk_dylib_and_framework",
+    linkopts = ["-lc++"],
+    sdk_dylibs = ["sqlite3"],
+    sdk_frameworks = ["UIKit"],
+    tags = common.fixture_tags,
+    deps = [
+        ":fmwk_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------

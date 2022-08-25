@@ -172,6 +172,48 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
 
+    # Tests that attempting to generate dSYMs does not cause the build to fail
+    # (apple_static_library does not generate dSYMs, and the bundler should not
+    # unconditionally assume that the provider will be present).
+    archive_contents_test(
+        name = "{}_builds_with_dsyms_enabled_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        apple_generate_dsym = True,
+        contains = ["$BUNDLE_ROOT/SwiftFmwk"],
+        tags = [name],
+    )
+
+    # Verifies that bundle_name attribute changes the embedded static library, Clang module map,
+    # and the name of the framework bundle.
+    archive_contents_test(
+        name = "{}_bundle_name_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
+        contains = [
+            "$ARCHIVE_ROOT/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+        ],
+        text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
+        text_test_values = [
+            "module SwiftFmwkWithGenHeader",
+            "header \"SwiftFmwkWithGenHeader.h\"",
+        ],
+        tags = [name],
+    )
+
+    # Tests sdk_dylib and sdk_framework attributes are captured into the modulemap.
+    archive_contents_test(
+        name = "{}_generated_modulemap_file_content_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_from_objc_library",
+        text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
+        text_test_values = [
+            "link \"c++\"",
+            "link \"sqlite3\"",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
