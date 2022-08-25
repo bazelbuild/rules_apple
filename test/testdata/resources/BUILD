@@ -120,6 +120,13 @@ genrule(
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
 )
 
+genrule(
+    name = "generate_storyboard_copy",
+    srcs = ["storyboard_ios.storyboard"],
+    outs = ["storyboard_ios_copy.storyboard"],
+    cmd = "cp $< $@",
+)
+
 apple_resource_bundle(
     name = "bundle_library_ios",
     infoplists = [

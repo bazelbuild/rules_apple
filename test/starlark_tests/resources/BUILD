@@ -465,6 +465,94 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+apple_resource_group(
+    name = "swift_structured_resources",
+    structured_resources = [
+        "//test/testdata/resources:structured",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_resources",
+    srcs = ["AppDelegate.swift"],
+    data = [
+        ":swift_structured_resources",
+        "//test/testdata/resources:assets_ios",
+        "//test/testdata/resources:localized_generic_resources",
+        "//test/testdata/resources:localized_storyboards_ios",
+        "//test/testdata/resources:localized_strings",
+        "//test/testdata/resources:localized_xibs_ios",
+        "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized_resource.txt",
+        "//test/testdata/resources:storyboard_ios.storyboard",
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+        "//test/testdata/resources:view_ios.xib",
+    ],
+    module_name = "EasyToSearchForModuleName",
+)
+
+swift_library(
+    name = "swift_lib_with_transitive_resources",
+    srcs = ["Dummy.swift"],
+    deps = [
+        ":swift_lib_with_resources",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_storyboard_a",
+    srcs = ["AppDelegate.swift"],
+    data = [
+        "//test/testdata/resources:localized_storyboards_ios",
+    ],
+    deps = [
+        ":swift_lib_with_storyboard_b",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_storyboard_b",
+    srcs = ["Dummy.swift"],
+    data = [
+        "//test/testdata/resources:storyboard_ios.storyboard",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_asset_catalog_a",
+    srcs = ["AppDelegate.swift"],
+    data = [
+        "//test/testdata/resources:assets_ios",
+    ],
+    deps = [
+        ":swift_lib_with_asset_catalog_b",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_asset_catalog_b",
+    srcs = ["Dummy.swift"],
+    data = [
+        "//test/testdata/resources:assets2_ios",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_storyboard_copy",
+    srcs = ["Dummy.swift"],
+    data = [
+        "//test/testdata/resources:generate_storyboard_copy",
+    ],
+    deps = [":swift_lib_with_resources"],
+)
+
+genrule(
+    name = "DummySwiftFile",
+    outs = ["Dummy.swift"],
+    cmd = "echo 'struct Dummy {}' > $@",
+)
+
 filegroup(
     name = "structured",
     srcs = glob(["structured/**"]),
