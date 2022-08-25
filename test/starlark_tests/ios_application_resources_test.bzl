@@ -23,12 +23,12 @@ load(
     "analysis_failure_message_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
-    "archive_contents_test",
-)
-load(
     ":rules/analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
+)
+load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
 )
 
 def ios_application_resources_test_suite(name):
@@ -595,6 +595,124 @@ def ios_application_resources_test_suite(name):
             "--product-type com.apple.product-type.application",
             "--platform iphonesimulator",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_resources_from_swift_library_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_library_scoped_resources",
+        contains = [
+            # Verify that nonlocalized processed resources are present.
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/view_ios.nib",
+            # Verify nonlocalized unprocessed resources are present.
+            "$BUNDLE_ROOT/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/structured/nested.txt",
+            # Verify localized resources are present.
+            "$BUNDLE_ROOT/it.lproj/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/it.lproj/view_ios.nib",
+            # Verify localized unprocessed resources are present.
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        # Verify that both image set names show up in the asset catalog. (The file
+        # format is a black box to us, but we can at a minimum grep the name out
+        # because it's visible in the raw bytes).
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = ["star_iphone"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_resources_from_transitive_swift_library_test".format(name),
+        build_type = "simulator",
+        contains = [
+            # Verify that nonlocalized processed resources are present.
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/view_ios.nib",
+            # Verify nonlocalized unprocessed resources are present.
+            "$BUNDLE_ROOT/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/structured/nested.txt",
+            # Verify localized resources are present.
+            "$BUNDLE_ROOT/it.lproj/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/it.lproj/view_ios.nib",
+            # Verify localized unprocessed resources are present.
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_library_scoped_resources",
+        tags = [name],
+    )
+
+    # Tests that swift_library targets have their intermediate compiled storyboards
+    # distinguished by module so that multiple link actions don't try to generate
+    # the same output.
+    archive_contents_test(
+        name = "{}_contains_compiled_storyboards_from_transitive_swift_library_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/it.lproj/storyboard_ios.storyboardc/",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_libraries_with_storyboards",
+        tags = [name],
+    )
+
+    # Tests that multiple swift_library targets can propagate asset catalogs and
+    # that they are all merged into a single Assets.car without conflicts.
+    archive_contents_test(
+        name = "{}_contains_merged_asset_catalog_from_transitive_swift_library_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/Assets.car"],
+        # Verify that both image set names show up in the asset catalog. (The file
+        # format is a black box to us, but we can at a minimum grep the name out
+        # because it's visible in the raw bytes).
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = ["star_iphone", "star2_iphone"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_libraries_with_asset_catalogs",
+        tags = [name],
+    )
+
+    # Test ios_application can compile multiple storyboards in bundle root from
+    # multiple Swift libraries.
+    archive_contents_test(
+        name = "{}_can_compile_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc",
+            "$BUNDLE_ROOT/storyboard_ios_copy.storyboardc",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries",
+        tags = [name],
+    )
+
+    # Test that storyboard compilation actions with ibtool are registered for applications with
+    # Swift library with resources, and transitive Swift library resources.
+    analysis_target_actions_test(
+        name = "{}_registers_action_for_storyboard_compilation_with_swift_library_scoped_resources".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_library_scoped_resources",
+        target_mnemonic = "StoryboardCompile",
+        expected_argv = ["--module EasyToSearchForModuleName"],
+        tags = [name],
+    )
+    analysis_target_actions_test(
+        name = "{}_registers_action_for_storyboard_compilation_with_transitive_swift_library_scoped_resources".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_library_scoped_resources",
+        target_mnemonic = "StoryboardCompile",
+        expected_argv = ["--module EasyToSearchForModuleName"],
         tags = [name],
     )
 
