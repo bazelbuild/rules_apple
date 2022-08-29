@@ -2491,6 +2491,36 @@ ios_static_framework(
     deps = [":objc_library_with_sdk_dylib_and_framework"],
 )
 
+ios_static_framework(
+    name = "static_framework_with_header_and_exclude_resources",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    avoid_deps = [":framework_dependent_lib_with_resource"],
+    exclude_resources = True,
+    minimum_os_version = common.min_os_ios.baseline,
+    deps = [":static_framework_lib_with_resources"],
+)
+
+ios_static_framework(
+    name = "static_framework_with_no_header_and_exclude_resources",
+    avoid_deps = [":framework_dependent_lib_with_resource"],
+    exclude_resources = True,
+    minimum_os_version = common.min_os_ios.baseline,
+    deps = [":static_framework_lib_with_resources"],
+)
+
+ios_static_framework(
+    name = "static_framework_with_transitive_resources",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    avoid_deps = [":framework_dependent_lib_with_resource"],
+    exclude_resources = False,
+    minimum_os_version = common.min_os_ios.baseline,
+    deps = [":static_framework_lib_with_resources"],
+)
+
 genrule(
     name = "dummy_swift_src",
     outs = ["Dummy.swift"],
@@ -2544,6 +2574,33 @@ objc_library(
     deps = [
         ":fmwk_lib",
     ],
+)
+
+objc_library(
+    name = "static_framework_lib_with_resources",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:assets_ios",
+        "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:storyboard_ios.storyboard",
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+        "//test/testdata/resources:view_ios.xib",
+    ],
+    tags = common.fixture_tags,
+    deps = [":framework_dependent_lib_with_resource"],
+    alwayslink = 1,
+)
+
+objc_library(
+    name = "framework_dependent_lib_with_resource",
+    data = [
+        "//test/testdata/resources:view_ios.xib",
+    ],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------

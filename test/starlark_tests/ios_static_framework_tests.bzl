@@ -198,6 +198,81 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
 
+    # Tests framework bundle does not contain resources when "exclude_resources = True",
+    # but does include headers set in the "hdrs" attribute.
+    archive_contents_test(
+        name = "{}_excludes_transitive_resources_and_contains_header_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_header_and_exclude_resources",
+        contains = [
+            "$BUNDLE_ROOT/static_framework_with_header_and_exclude_resources",
+            "$BUNDLE_ROOT/Headers/shared.h",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/view_ios.nib",
+        ],
+        tags = [name],
+    )
+
+    # Tests framework bundle does not contain resources and headers
+    # when "exclude_resources = True" and "hdrs" is not set.
+    archive_contents_test(
+        name = "{}_excludes_transitive_resources_and_header_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_no_header_and_exclude_resources",
+        contains = [
+            "$BUNDLE_ROOT/static_framework_with_no_header_and_exclude_resources",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Headers/shared.h",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/view_ios.nib",
+        ],
+        tags = [name],
+    )
+
+    # Tests framework bundle contains the expected transitive resources
+    # when "exclude_resources = False".
+    archive_contents_test(
+        name = "{}_includes_transitive_resources_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_transitive_resources",
+        contains = [
+            "$BUNDLE_ROOT/static_framework_with_transitive_resources",
+            "$BUNDLE_ROOT/Headers/shared.h",
+            "$BUNDLE_ROOT/Modules/module.modulemap",
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/view_ios.nib",
+        ],
+        not_contains = ["$BUNDLE_ROOT/Info.plist"],
+        asset_catalog_test_file = "$BUNDLE_ROOT/Assets.car",
+        asset_catalog_test_contains = ["star_iphone"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
