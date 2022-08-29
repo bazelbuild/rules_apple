@@ -403,10 +403,6 @@ build for a specific SDK version, use the `--ios_sdk_version` option. The
 To specify a minimum required iOS version, add the `minimum_os_version`
 parameter to the `ios_application` build rule in your `BUILD` file.
 
-You can also use
-[Tulsi](http://tulsi.bazel.build/docs/gettingstarted.html) to
-build your app using a GUI rather than the command line.
-
 Note: A more advanced integration for provisioning profiles can be achieved using
 the [`provisioning_profile_repository`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-apple.md#provisioning_profile_repository)
 and [`local_provisioning_profile`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-apple.md#local_provisioning_profile)
