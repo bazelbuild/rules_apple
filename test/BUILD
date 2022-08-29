@@ -156,18 +156,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_static_framework_resources_test",
-    size = "medium",
-    src = "ios_static_framework_resources_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-    ],
-    flaky = 1,
-)
-
-apple_multi_shell_test(
     name = "macos_application_test",
     size = "medium",
     src = "macos_application_test.sh",
