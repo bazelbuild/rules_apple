@@ -302,7 +302,7 @@ version and device will be used when launching the app.
 ### Generate an Xcode project
 
 There are a few community-provided solutions (such as [rules_xcodeproj](https://github.com/buildbuddy-io/rules_xcodeproj)
-and [Tulsi](https://github.com/bazelbuild/tulsi)) to help generating Xcode 
+and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode 
 projects. By doing so, you will be able to write, debug and test 
 iOS/macOS/watchOS/tvOS applications as if you were using the Xcode build system.
 
@@ -362,7 +362,7 @@ operations of building and testing in Xcode.
 
 ### Build the app for a device
 
-If you want to release your app to real users or install it on your personal device,
+If you want to distribute your app or install it on a physical device,
 you will need to correctly set up provisioning profiles and distribution certificates.
 Feel free to skip this section or come back to it at a later point.
 
