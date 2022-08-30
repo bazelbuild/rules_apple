@@ -102,8 +102,7 @@ This creates and opens the empty `WORKSPACE` file.
 To build applications for Apple devices, Bazel needs to pull the latest
 [Apple build rules](https://github.com/bazelbuild/rules_apple)
 from its GitHub repository. To enable this, add the following
-[`http_archive`](https://bazel.build/rules/lib/repo/http#http_archive)
-rules to your `WORKSPACE` file:
+statements to your `WORKSPACE` file:
 
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -145,7 +144,7 @@ apple_support_dependencies()
 
 Note: "Always use the
 [latest version of the Apple rules](https://github.com/bazelbuild/rules_apple/releases)
-in the `tag` attribute. Make sure to check the latest dependencies required in
+in the `url` attribute. Make sure to check the latest dependencies required in
 `rules_apple`'s [project](https://github.com/bazelbuild/rules_apple)."
 
 ## Review the source files
@@ -296,14 +295,14 @@ run the application:
 bazel run //ios-app:ios-app
 ```
 
-Note: `--ios_simulator_device` and `--ios_simulator_version` control which
+Note: [`--ios_simulator_device`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_device) and [`--ios_simulator_version`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_version) control which
 version and device will be used when launching the app.
 
 ### Generate an Xcode project
 
 There are a few community-provided solutions (such as [rules_xcodeproj](https://github.com/buildbuddy-io/rules_xcodeproj)
 and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode 
-projects. By doing so, you will be able to write, debug and test 
+projects. By doing so, you will be able to write, debug, and test 
 iOS/macOS/watchOS/tvOS applications as if you were using the Xcode build system.
 
 Let's see how to do so with `rules_xcodeproj`.
@@ -357,7 +356,7 @@ To generate the Xcode project, invoke this rule with the following command:
 bazel run //ios-app:xcodeproj
 ```
 
-You should be able to open the generated `"ios-app.xcodeproj` and do all the usual
+You should be able to open the generated `ios-app.xcodeproj` (e.g. `xed ios-app.xcodeproj`) and do all the usual
 operations of building and testing in Xcode.
 
 ### Build the app for a device
