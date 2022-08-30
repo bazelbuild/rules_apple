@@ -142,10 +142,10 @@ load(
 apple_support_dependencies()
 ```
 
-Note: "Always use the
+Note: Always use the
 [latest version of the Apple rules](https://github.com/bazelbuild/rules_apple/releases)
 in the `url` attribute. Make sure to check the latest dependencies required in
-`rules_apple`'s [project](https://github.com/bazelbuild/rules_apple)."
+`rules_apple`'s [project](https://github.com/bazelbuild/rules_apple).
 
 ## Review the source files
 
@@ -340,12 +340,12 @@ We can now define the rule that will generate the Xcode project:
 ```starlark
 xcodeproj(
     name = "xcodeproj",
+    archived_bundles_allowed = True,
+    build_mode = "bazel",
     project_name = "ios-app",
     tags = ["manual"],
-    build_mode = "bazel",
-    archived_bundles_allowed = True,
     top_level_targets = [
-        top_level_target(":ios-app"),
+        ":ios-app",
     ],
 )
 ```
@@ -401,6 +401,22 @@ build for a specific SDK version, use the `--ios_sdk_version` option. The
 
 To specify a minimum required iOS version, add the `minimum_os_version`
 parameter to the `ios_application` build rule in your `BUILD` file.
+
+You should also update the previously defined `xcodeproj` rule to specify
+support for building for a device:
+
+```starlark
+xcodeproj(
+    name = "xcodeproj",
+    project_name = "ios-app",
+    tags = ["manual"],
+    build_mode = "bazel",
+    archived_bundles_allowed = True,
+    top_level_targets = [
+        top_level_target(":ios-app", target_environments = ["device", "simulator"]),
+    ],
+)
+```
 
 Note: A more advanced integration for provisioning profiles can be achieved using
 the [`provisioning_profile_repository`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-apple.md#provisioning_profile_repository)
