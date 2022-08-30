@@ -472,5 +472,5 @@ If integrating with Xcode, the relative paths in test binaries can prevent the
 Issue navigator from working for test failures. To work around this, you can
 have the paths made absolute via swizzling by enabling the
 `"apple.swizzle_absolute_xcttestsourcelocation"` feature. You'll also need to
-set the `BAZEL_WORKSPACE_DIRECTORY` environment variable in your scheme to the
+set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
