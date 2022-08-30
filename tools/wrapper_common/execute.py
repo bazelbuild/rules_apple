@@ -125,15 +125,18 @@ def _trim_paths(stdout):
   """Trim the current working directory from any paths in "stdout"."""
   if not stdout:
     return None
-  CWD = os.getcwd() + "/"
+  current_working_dir = os.getcwd() + "/"
 
   def replace_path(m):
     path = m.group(0)
     # Some paths present in stdout may contain symlinks, which must be resolved
     # before we can reliably compare to current_working_dir.
     fullpath = os.path.realpath(path)
-    if fullpath.find(CWD) >= 0:
-      return fullpath.replace(CWD, "")
+    # realpath will remove terminating "/" so we must add it back.
+    if path.endswith("/") and not fullpath.endswith("/"):
+      fullpath = fullpath + "/"
+    if fullpath.find(current_working_dir) == 0:
+      return fullpath.replace(current_working_dir, "")
     else:
       return path
 
