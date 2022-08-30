@@ -33,12 +33,14 @@ from tools.wrapper_common import execute
 # * replacing existing signature
 # * using the deprecated --resource-rules flag
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r'('
-    r'signed.*Mach-O (universal|thin)|'
-    r'replacing existing signature|'
-    r'Warning: --resource-rules has been deprecated'
-    r')'
+    r"("
+    r"signed.*Mach-O (universal|thin)|"
+    r"replacing existing signature|"
+    r"Warning: --resource-rules has been deprecated"
+    r")"
 )
+
+DEFAULT_CODESIGN = "/usr/bin/codesign"
 
 
 def _find_codesign_allocate():
@@ -47,8 +49,8 @@ def _find_codesign_allocate():
   return stdout.strip()
 
 
-def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
-                     disable_timestamp, full_path_to_sign, extra):
+def invoke_codesign(*, codesign_path, identity, entitlements, force_signing,
+                    disable_timestamp, full_path_to_sign, extra):
   """Invokes the codesign tool on the given path to sign.
 
   Args:
@@ -58,6 +60,10 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
     force_signing: If true, replaces any existing signature on the path given.
     disable_timestamp: If true, disables the use of timestamp services.
     full_path_to_sign: Path to the bundle or binary to code sign as a string.
+
+  Raises:
+    subprocess.CalledProcessError: For any non-zero return codes reported from
+        invoking the codesign tool against the given inputs.
   """
   cmd = [codesign_path, "-v", "--sign", identity]
   if entitlements:
@@ -88,6 +94,64 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
     if filtered_stderr:
       print(filtered_stderr)
 
+
+def get_entitlements_der(*, codesign_path, full_path_to_signed_file):
+  """Reads the DER entitlements on the given path to a code signed file.
+
+  Args:
+    codesign_path: Path to the codesign tool as a string.
+    full_path_to_signed_file: Path to the file that was code signed as a string.
+
+  Returns:
+    The DER-encoded entitlements produced from the codesign tool as bytes.
+
+  Raises:
+    subprocess.CalledProcessError: For any non-zero return codes reported from
+        invoking the codesign tool against the given inputs.
+  """
+  cmd = [codesign_path, "--display", "--der", "--entitlements", "-"]
+  cmd.append(full_path_to_signed_file)
+
+  # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
+  # version.
+  custom_env = {"CODESIGN_ALLOCATE": _find_codesign_allocate()}
+  env = os.environ.copy()
+  env.update(custom_env)
+
+  # Using subprocess.Popen directly here as we don't want the output to be
+  # converted to UTF-8, we want raw bytes to save to the output file.
+  process = subprocess.Popen(
+      cmd,
+      stdin=subprocess.PIPE,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      env=env,
+  )
+  try:
+    stdout, stderr = process.communicate(timeout=execute.DEFAULT_TIMEOUT)
+  except subprocess.TimeoutExpired:
+    # Cleanup suggested by https://docs.python.org/3/library/subprocess.html
+    process.kill()
+    stdout, stderr = process.communicate()
+
+  if process.returncode:
+    print(
+        "ERROR: codesign --display --der failed :: "
+        "stdout:\n{stdout}\nstderr:\n{stderr}\n----".format(
+            stdout=stdout.decode("utf-8", "replace"),
+            stderr=stderr.decode("utf-8", "replace"),
+        )
+    )
+    raise subprocess.CalledProcessError(process.returncode, cmd)
+
+  if stderr:
+    # This will be a byte stream, so we need to convert it to a UTF-8 string
+    # before filtering its contents.
+    filtered_stderr = _filter_codesign_output(stderr.decode("utf-8", "replace"))
+    if filtered_stderr:
+      print(filtered_stderr)
+
+  return stdout
 
 def plist_from_bytes(byte_content):
   try:
@@ -292,7 +356,7 @@ def _filter_codesign_output(codesign_output):
 
 
 def _all_paths_to_sign(targets_to_sign, directories_to_sign):
-  """Returns a list of paths to sign from paths to targets and directories"""
+  """Returns a list of paths to sign from paths to targets and directories."""
   all_paths_to_sign = []
 
   if targets_to_sign:
@@ -409,8 +473,15 @@ def main(args):
                                                      signed_path)
 
   for path_to_sign in all_paths_to_sign:
-    _invoke_codesign(args.codesign, identity, args.entitlements, args.force,
-                     args.disable_timestamp, path_to_sign, extra)
+    invoke_codesign(
+        codesign_path=args.codesign,
+        identity=identity,
+        entitlements=args.entitlements,
+        force_signing=args.force,
+        disable_timestamp=args.disable_timestamp,
+        full_path_to_sign=path_to_sign,
+        extra=extra,
+    )
 
 
 if __name__ == "__main__":
