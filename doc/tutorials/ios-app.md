@@ -408,10 +408,10 @@ support for building for a device:
 ```starlark
 xcodeproj(
     name = "xcodeproj",
+    archived_bundles_allowed = True,
+    build_mode = "bazel",
     project_name = "ios-app",
     tags = ["manual"],
-    build_mode = "bazel",
-    archived_bundles_allowed = True,
     top_level_targets = [
         top_level_target(":ios-app", target_environments = ["device", "simulator"]),
     ],
