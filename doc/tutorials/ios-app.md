@@ -105,7 +105,7 @@ from its GitHub repository. To enable this, add the following
 [`http_archive`](https://bazel.build/rules/lib/repo/http#http_archive)
 rules to your `WORKSPACE` file:
 
-```python
+```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -144,7 +144,7 @@ apple_support_dependencies()
 ```
 
 Note: "Always use the
-[latest version of the build_apple rules](https://github.com/bazelbuild/rules_apple/releases)
+[latest version of the Apple rules](https://github.com/bazelbuild/rules_apple/releases)
 in the `tag` attribute. Make sure to check the latest dependencies required in
 `rules_apple`'s [project](https://github.com/bazelbuild/rules_apple)."
 
