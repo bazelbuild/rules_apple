@@ -5,10 +5,6 @@ py_binary(
     srcs = ["dertool.py"],
     python_version = "PY3",
     srcs_version = "PY3",
-    tags = ["requires-darwin"],
-    target_compatible_with = [
-        "@platforms//os:macos",
-    ],
     visibility = [
         "//apple/internal:__pkg__",
     ],
@@ -21,10 +17,6 @@ py_library(
         "dertool.py",
     ],
     srcs_version = "PY3",
-    tags = ["requires-darwin"],
-    target_compatible_with = [
-        "@platforms//os:macos",
-    ],
     deps = [
         "//tools/codesigningtool:codesigningtool_lib",
     ],
@@ -35,9 +27,6 @@ py_test(
     srcs = ["dertool_unittest.py"],
     python_version = "PY3",
     tags = ["requires-darwin"],
-    target_compatible_with = [
-        "@platforms//os:macos",
-    ],
     deps = [
         ":dertool_lib",
     ],
