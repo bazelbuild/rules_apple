@@ -54,6 +54,7 @@ def _apple_universal_binary_impl(ctx):
     return [
         AppleBinaryInfo(
             binary = fat_binary,
+            infoplist = None,
         ),
         DefaultInfo(
             executable = fat_binary,
