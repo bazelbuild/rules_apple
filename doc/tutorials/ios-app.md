@@ -102,44 +102,50 @@ This creates and opens the empty `WORKSPACE` file.
 To build applications for Apple devices, Bazel needs to pull the latest
 [Apple build rules](https://github.com/bazelbuild/rules_apple)
 from its GitHub repository. To enable this, add the following
-[`git_repository`](https://bazel.build/reference/be/workspace#git_repository)
-rules to your `WORKSPACE` file:
+statements to your `WORKSPACE` file:
 
-```python
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+```starlark
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-git_repository(
+http_archive(
     name = "build_bazel_rules_apple",
-    remote = "https://github.com/bazelbuild/rules_apple.git",
-    tag = "0.19.0",
+    sha256 = "f003875c248544009c8e8ae03906bbdacb970bc3e5931b40cd76cadeded99632",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/1.1.0/rules_apple.1.1.0.tar.gz",
 )
 
-git_repository(
-    name = "build_bazel_rules_swift",
-    remote = "https://github.com/bazelbuild/rules_swift.git",
-    tag = "0.13.0",
+load(
+    "@build_bazel_rules_apple//apple:repositories.bzl",
+    "apple_rules_dependencies",
 )
 
-git_repository(
-    name = "build_bazel_apple_support",
-    remote = "https://github.com/bazelbuild/apple_support.git",
-    tag = "0.7.2",
+apple_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
 )
 
-git_repository(
-    name = "bazel_skylib",
-    remote = "https://github.com/bazelbuild/bazel-skylib.git",
-    tag = "0.9.0",
+swift_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:extras.bzl",
+    "swift_rules_extra_dependencies",
 )
+
+swift_rules_extra_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
 ```
 
-Note: "Always use the
-[latest version of the build_apple rules](https://github.com/bazelbuild/rules_apple/releases)
-in the `tag` attribute. Make sure to check the latest dependencies required in
-`rules_apple`'s [project](https://github.com/bazelbuild/rules_apple)."
-
-Note: You **must** set the value of the `name` attribute in the
-`git_repository` rule to `build_bazel_rules_apple` or the build will fail.
+Note: Always use the
+[latest version of the Apple rules](https://github.com/bazelbuild/rules_apple/releases)
+in the `url` attribute. Make sure to check the latest dependencies required in
+`rules_apple`'s [project](https://github.com/bazelbuild/rules_apple).
 
 ## Review the source files
 
@@ -217,7 +223,7 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    minimum_os_version = "9.0",
+    minimum_os_version = "15.0",
     infoplists = [":UrlGet/UrlGet-Info.plist"],
     visibility = ["//visibility:public"],
     deps = [":UrlGetClasses"],
@@ -270,29 +276,94 @@ output will appear similar to the following:
 ```bash
 INFO: Found 1 target...
 Target //ios-app:ios-app up-to-date:
-  bazel-bin/ios-app/ios-app.ipa
-INFO: Elapsed time: 0.565s, Critical Path: 0.44s
+  bazel-out/applebin_ios-ios_sim_arm64-fastbuild-ST-4e6c2a19403f/bin/ios-app/ios-app.ipa
+INFO: Elapsed time: 0.141s, Critical Path: 0.00s
 ```
 
 ### Find the build outputs
 
 The `.ipa` file and other outputs are located in the
-`$WORKSPACE/bazel-bin/ios-app` directory.
+`$WORKSPACE/bazel-out/applebin_ios-ios_sim_arm64-fastbuild-ST-4e6c2a19403f/bin/ios-app/ios-app.ipa` directory.
 
-### Run and debug the app in the simulator
+### Build the app in the simulator
 
-You can now run the app from Xcode using the iOS Simulator. First,
-[generate an Xcode project using Tulsi](http://tulsi.bazel.build/).
+`rules_apple` supports running an app directly in the iOS Simulator.
+Replace `build` with `run` in the previous command to both build and
+run the application:
 
-Then, open the project in Xcode, choose an iOS Simulator as the runtime scheme,
-and click **Run**.
+```bash
+bazel run //ios-app:ios-app
+```
 
-Note: If you modify any project files in Xcode (for example, if you add or
-remove a file, or add or change a dependency), you must rebuild the app using
-Bazel, re-generate the Xcode project in Tulsi, and then re-open the project in
-Xcode.
+Note: [`--ios_simulator_device`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_device) and [`--ios_simulator_version`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_version) control which
+version and device will be used when launching the app.
+
+### Generate an Xcode project
+
+There are a few community-provided solutions (such as [rules_xcodeproj](https://github.com/buildbuddy-io/rules_xcodeproj)
+and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode 
+projects. By doing so, you will be able to write, debug, and test 
+iOS/macOS/watchOS/tvOS applications as if you were using the Xcode build system.
+
+Let's see how to do so with `rules_xcodeproj`.
+
+Open the `WORKSPACE` file again and add the following:
+
+```starlark
+http_archive(
+    name = "com_github_buildbuddy_io_rules_xcodeproj",
+    sha256 = "c76958e21b7ea48a40fe4130e57911670281f23be93965573b4e90be47d779b4",
+    strip_prefix = "rules_xcodeproj-47d9510b64878ae1893d355cbf134d6a4b6eb715",
+    url = "https://github.com/buildbuddy-io/rules_xcodeproj/archive/47d9510b64878ae1893d355cbf134d6a4b6eb715.tar.gz",
+)
+
+load(
+    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:repositories.bzl",
+    "xcodeproj_rules_dependencies",
+)
+
+xcodeproj_rules_dependencies()
+```
+
+Add the following import at the top of the `BUILD` file:
+
+```starlark
+load(
+    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:xcodeproj.bzl",
+    "top_level_target",
+    "xcodeproj",
+)
+```
+
+We can now define the rule that will generate the Xcode project:
+
+```starlark
+xcodeproj(
+    name = "xcodeproj",
+    archived_bundles_allowed = True,
+    build_mode = "bazel",
+    project_name = "ios-app",
+    tags = ["manual"],
+    top_level_targets = [
+        ":ios-app",
+    ],
+)
+```
+
+To generate the Xcode project, invoke this rule with the following command:
+
+```bash
+bazel run //ios-app:xcodeproj
+```
+
+You should be able to open the generated `ios-app.xcodeproj` (e.g. `xed ios-app.xcodeproj`) and do all the usual
+operations of building and testing in Xcode.
 
 ### Build the app for a device
+
+If you want to distribute your app or install it on a physical device,
+you will need to correctly set up provisioning profiles and distribution certificates.
+Feel free to skip this section or come back to it at a later point.
 
 To build your app so that it installs and launches on an iOS device, Bazel needs
 the appropriate provisioning profile for that device model. Do the following:
@@ -318,7 +389,7 @@ device.
 Now build the app for your device:
 
 ```bash
-bazel build //ios-app:ios-app --ios_multi_cpus=armv7,arm64
+bazel build //ios-app:ios-app --ios_multi_cpus=arm64
 ```
 
 This builds the app as a fat binary. To build for a specific device
@@ -331,9 +402,26 @@ build for a specific SDK version, use the `--ios_sdk_version` option. The
 To specify a minimum required iOS version, add the `minimum_os_version`
 parameter to the `ios_application` build rule in your `BUILD` file.
 
-You can also use
-[Tulsi](http://tulsi.bazel.build/docs/gettingstarted.html) to
-build your app using a GUI rather than the command line.
+You should also update the previously defined `xcodeproj` rule to specify
+support for building for a device:
+
+```starlark
+xcodeproj(
+    name = "xcodeproj",
+    archived_bundles_allowed = True,
+    build_mode = "bazel",
+    project_name = "ios-app",
+    tags = ["manual"],
+    top_level_targets = [
+        top_level_target(":ios-app", target_environments = ["device", "simulator"]),
+    ],
+)
+```
+
+Note: A more advanced integration for provisioning profiles can be achieved using
+the [`provisioning_profile_repository`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-apple.md#provisioning_profile_repository)
+and [`local_provisioning_profile`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-apple.md#local_provisioning_profile)
+rules.
 
 ### Install the app on a device
 
