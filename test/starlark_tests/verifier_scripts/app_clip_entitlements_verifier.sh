@@ -14,23 +14,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu
+set -euo pipefail
 
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
+
+# This key marks the application as an app clip.
+TEST_APP_CLIP_ENTITLEMENT_KEY="com.apple.developer.on-demand-install-capable"
 
 if [[ "$BUILD_TYPE" == "simulator" ]]; then
+  # First check the legacy xml plist section.
   xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
+
+  assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+
+  if [[ "$XCODE_VERSION_MAJOR" -ge "14" ]]; then
+    # Then check the new DER encoded section.
+    xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
+        sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
+        -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
+
+    assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
+  fi
+
 elif [[ "$BUILD_TYPE" == "device" ]]; then
-  codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT" || \
-    codesign -d --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
+  # First check the legacy xml plist section.
+  codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
+
+  assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+
+  # Then check the new DER encoded section.
+  codesign --display --der --entitlements "$TEMP_DER_OUTPUT" "$BUNDLE_ROOT"
+
+  assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
 else
   fail "Unsupported BUILD_TYPE = $BUILD_TYPE for this test"
 fi
 
-# This key marks the application as an app clip.
-assert_contains "<key>com.apple.developer.on-demand-install-capable</key>" \
-    "$TEMP_OUTPUT"
-
 rm -rf "$TEMP_OUTPUT"
+rm -rf "$TEMP_DER_OUTPUT"

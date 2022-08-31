@@ -19,6 +19,7 @@ apple_mac_tools_toolchain(
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
     codesigningtool = "//tools/codesigningtool",
+    dertool = "//tools/dertool",
     dossier_codesigningtool = "//tools/dossier_codesigningtool",
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",
@@ -307,6 +308,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":entitlements_support",
         ":rule_support",

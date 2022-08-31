@@ -387,6 +387,56 @@ def _process_entitlements(
         linking = final_entitlements,
     )
 
+def _generate_der_entitlements(
+        *,
+        actions,
+        apple_fragment,
+        entitlements,
+        label_name,
+        resolved_dertool,
+        xcode_version_config):
+    """Creates a DER formatted entitlements file given an existing entitlements plist.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      entitlements: The entitlements file to sign with.
+      label_name: The name of the target being built.
+      resolved_dertool: A struct referencing the resolved dertool.
+      xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+
+    Returns:
+      A `File` referencing the generated DER formatted entitlements.
+    """
+
+    der_entitlements = actions.declare_file(
+        "entitlements/%s.der" % label_name,
+    )
+    control_file = actions.declare_file(
+        "entitlements/%s.dertool-control" % label_name,
+    )
+    control = struct(
+        entitlements_plist_path = entitlements.path,
+        output_path = der_entitlements.path,
+    )
+    actions.write(
+        output = control_file,
+        content = control.to_json(),
+    )
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [control_file.path],
+        executable = resolved_dertool.executable,
+        inputs = depset([entitlements, control_file], transitive = [resolved_dertool.inputs]),
+        input_manifests = resolved_dertool.input_manifests,
+        mnemonic = "ProcessDEREntitlements",
+        outputs = [der_entitlements],
+        xcode_config = xcode_version_config,
+    )
+    return der_entitlements
+
 entitlements_support = struct(
+    generate_der_entitlements = _generate_der_entitlements,
     process_entitlements = _process_entitlements,
 )

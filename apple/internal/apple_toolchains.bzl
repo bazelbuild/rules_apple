@@ -48,6 +48,9 @@ binary.
 A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
 for Apple apps and Apple executable bundles.
 """,
+        "resolved_dertool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to generate Apple DER encoded outputs.
+""",
         "resolved_dossier_codesigningtool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
 """,
@@ -152,6 +155,10 @@ def _apple_mac_tools_toolchain_impl(ctx):
                 attr_name = "codesigningtool",
                 rule_ctx = ctx,
             ),
+            resolved_dertool = _resolve_tools_for_executable(
+                attr_name = "dertool",
+                rule_ctx = ctx,
+            ),
             resolved_dossier_codesigningtool = _resolve_tools_for_executable(
                 attr_name = "dossier_codesigningtool",
                 rule_ctx = ctx,
@@ -218,6 +225,11 @@ post-processing, and signing steps into a single action that eliminates the arch
             cfg = "target",
             executable = True,
             doc = "A `File` referencing a tool to assist in signing bundles.",
+        ),
+        "dertool": attr.label(
+            cfg = "target",
+            executable = True,
+            doc = "A `File` referencing a tool to generate Apple DER encoded outputs.",
         ),
         "dossier_codesigningtool": attr.label(
             cfg = "target",
