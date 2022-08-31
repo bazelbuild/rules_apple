@@ -195,9 +195,16 @@ def _apple_verification_test_impl(ctx):
         is_executable = True,
     )
 
+    # Apply knowledge of the Xcode version to the test environnment
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_version_split = str(xcode_config.xcode_version()).split(".")
+    xcode_versions_separated = len(xcode_version_split)
+
     # Extra test environment to set during the test.
     test_env = {
         "BUILD_TYPE": ctx.attr.build_type,
+        "XCODE_VERSION_MAJOR": xcode_version_split[0] if xcode_versions_separated >= 1 else 0,
+        "XCODE_VERSION_MINOR": xcode_version_split[1] if xcode_versions_separated >= 2 else 0,
     }
 
     # Create APPLE_TEST_ENV_# environmental variables for each `env` attribute that are transformed
@@ -207,8 +214,6 @@ def _apple_verification_test_impl(ctx):
     for key in ctx.attr.env:
         for num, value in enumerate(ctx.attr.env[key]):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
-
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),

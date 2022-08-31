@@ -16,6 +16,14 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -174,6 +182,29 @@ def _register_binary_linking_action(
         )
         link_inputs.append(entitlements)
 
+        xcode_version_config = platform_prerequisites.xcode_version_config
+        if xcode_version_config.xcode_version() >= apple_common.dotted_version("14.0"):
+            # Add the __ents_der section to all simulator builds that specify entitlements for Xcode
+            # 14 and later.
+            apple_mac_tools_toolchain = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+
+            der_entitlements = entitlements_support.generate_der_entitlements(
+                actions = ctx.actions,
+                apple_fragment = platform_prerequisites.apple_fragment,
+                entitlements = entitlements,
+                label_name = ctx.label.name,
+                resolved_dertool = apple_mac_tools_toolchain.resolved_dertool,
+                xcode_version_config = xcode_version_config,
+            )
+            linkopts.append(
+                "-Wl,-sectcreate,{segment},{section},{file}".format(
+                    segment = "__TEXT",
+                    section = "__ents_der",
+                    file = der_entitlements.path,
+                ),
+            )
+            link_inputs.append(der_entitlements)
+
     # Compatibility path for `apple_binary`, which does not have a product type.
     if hasattr(ctx.attr, "_product_type"):
         rule_descriptor = rule_support.rule_descriptor(ctx)
@@ -255,7 +286,7 @@ def _register_static_library_linking_action(ctx):
         output_groups = linking_outputs.output_groups,
     )
 
-def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
     """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
 
     Args:
