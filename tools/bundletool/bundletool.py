@@ -92,7 +92,7 @@ class Bundler(object):
 
     # Keep track of hashes of each entry; this will be faster than pulling the
     # data back out of the archive as it's written.
-    self._entry_hashes = {}
+    self._entry_datas = {}
 
   def run(self):
     """Performs the operations requested by the control struct."""
@@ -193,14 +193,13 @@ class Bundler(object):
       BundleToolError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
-    new_hash = hashlib.md5(data).digest()
-    existing_hash = self._entry_hashes.get(dest)
-    if existing_hash:
-      if existing_hash == new_hash:
+    existing_data = self._entry_datas.get(dest, None)
+    if existing_data is not None:
+      if hashlib.md5(existing_data).digest() == hashlib.md5(data).digest():
         return
       raise BundleToolError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
 
-    self._entry_hashes[dest] = new_hash
+    self._entry_datas[dest] = data
 
     zipinfo = zipfile.ZipInfo(dest)
     if compress:
