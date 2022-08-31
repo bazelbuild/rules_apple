@@ -44,7 +44,10 @@ generate_dynamic_xcframework(
             "x86_64",
             "arm64",
         ],
-        "ios": ["arm64"],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
     },
 )
 
@@ -77,7 +80,10 @@ generate_static_xcframework(
             "x86_64",
             "arm64",
         ],
-        "ios": ["arm64"],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
     },
 )
 

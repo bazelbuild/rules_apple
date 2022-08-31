@@ -12,6 +12,8 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
+    "apple_static_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -20,6 +22,11 @@ load(
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
+)
+load(
+    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+    "generate_static_xcframework",
 )
 load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
@@ -431,4 +438,138 @@ watchos_unit_test(
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
+)
+
+# -----------------------------------------------------------------------------------------
+# Targets for Apple dynamic XCFramework import tests.
+
+watchos_application(
+    name = "app_with_imported_xcframework",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    extension = ":ext_with_imported_xcframework",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+watchos_extension(
+    name = "ext_with_imported_xcframework",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":watchos_imported_dynamic_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "watchos_imported_dynamic_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_watchos_xcframework"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_watchos_xcframework",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.arm64_support,
+        "watchos_simulator": common.min_os_watchos.arm_sim_support,
+    },
+    platforms = {
+        "watchos": [
+            "armv7k",
+            "arm64_32",
+        ],
+        "watchos_simulator": [
+            "x86_64",
+            "arm64",
+            "i386",
+        ],
+    },
+)
+
+# -----------------------------------------------------------------------------------------
+# Targets for Apple static XCFramework import tests.
+
+watchos_application(
+    name = "app_with_imported_static_xcframework",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    extension = ":ext_with_imported_static_xcframework",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+watchos_extension(
+    name = "ext_with_imported_static_xcframework",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_depending_lib",
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [":watchos_imported_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "watchos_imported_static_xcframework",
+    features = ["-swift.layering_check"],
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_watchos_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_watchos_xcframework",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.arm64_support,
+        "watchos_simulator": common.min_os_watchos.arm_sim_support,
+    },
+    platforms = {
+        "watchos": [
+            "armv7k",
+            "arm64_32",
+        ],
+        "watchos_simulator": [
+            "x86_64",
+            "arm64",
+            "i386",
+        ],
+    },
 )
