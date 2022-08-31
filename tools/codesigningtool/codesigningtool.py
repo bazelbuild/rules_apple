@@ -25,19 +25,17 @@ from tools.wrapper_common import execute
 
 
 # Regex with benign codesign messages that can be safely ignored.
-# It matches the following bening outputs:
+# It matches the following benign outputs:
 # * signed Mach-O thin
 # * signed Mach-O universal
 # * signed app bundle with Mach-O universal
 # * signed bundle with Mach-O thin
 # * replacing existing signature
+# * signed generic
+# * Executable=/{path to signed target}
 # * using the deprecated --resource-rules flag
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r"("
-    r"signed.*Mach-O (universal|thin)|"
-    r"replacing existing signature|"
-    r"Warning: --resource-rules has been deprecated"
-    r")"
+    r"(signed.*Mach-O (universal|thin)|libswift.*\.dylib: replacing existing signature|signed generic|Executable=/|Warning: --resource-rules has been deprecated)"
 )
 
 DEFAULT_CODESIGN = "/usr/bin/codesign"
