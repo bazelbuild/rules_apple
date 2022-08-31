@@ -53,6 +53,7 @@ def _apple_static_library_impl(ctx):
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
         AppleBinaryInfo(
             binary = link_result.library,
+            infoplist = None,
         ),
         link_result.objc,
         link_result.output_groups,
