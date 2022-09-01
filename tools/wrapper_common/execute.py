@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 
-DEFAULT_TIMEOUT = 900
+_DEFAULT_TIMEOUT = 900
 
 
 def execute_and_filter_output(cmd_args,
@@ -29,7 +29,7 @@ def execute_and_filter_output(cmd_args,
                               inputstr=None,
                               print_output=False,
                               raise_on_failure=False,
-                              timeout=DEFAULT_TIMEOUT):
+                              timeout=_DEFAULT_TIMEOUT):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
