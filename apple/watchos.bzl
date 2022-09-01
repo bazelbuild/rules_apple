@@ -51,7 +51,6 @@ def watchos_unit_test(name, **kwargs):
         bundle_rule = _watchos_internal_unit_test_bundle,
         test_rule = _watchos_unit_test,
         runner = runner,
-        bundle_loader = kwargs.get("test_host"),
         **kwargs
     )
 
