@@ -10,7 +10,6 @@ filegroup(
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
         "//tools/codesigningtool:for_bazel_tests",
-        "//tools/dertool:for_bazel_tests",
         "//tools/dossier_codesigningtool:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",
         "//tools/imported_dynamic_framework_processor:for_bazel_tests",

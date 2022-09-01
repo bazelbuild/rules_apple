@@ -16,10 +16,6 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -183,14 +179,11 @@ def _register_binary_linking_action(
         if xcode_version_config.xcode_version() >= apple_common.dotted_version("14.0"):
             # Add the __ents_der section to all simulator builds that specify entitlements for Xcode
             # 14 and later.
-            apple_mac_tools_toolchain = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-
             der_entitlements = entitlements_support.generate_der_entitlements(
                 actions = ctx.actions,
                 apple_fragment = platform_prerequisites.apple_fragment,
                 entitlements = entitlements,
                 label_name = ctx.label.name,
-                resolved_dertool = apple_mac_tools_toolchain.resolved_dertool,
                 xcode_version_config = xcode_version_config,
             )
             linkopts.append(

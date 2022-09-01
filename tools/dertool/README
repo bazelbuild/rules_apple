@@ -1,5 +1,0 @@
-dertool converts an entitlements plist into a DER encoded representation
-identical to that of a provisioning profile's "Entitlements" section under the
-"DER-Encoded-Profile" plist property.
-
-See Apple's TN3125 for more details on this representation of DER.
