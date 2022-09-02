@@ -56,6 +56,13 @@ class ExecuteTest(unittest.TestCase):
         args, timeout=1, raise_on_failure=False)
     self.assertEqual(-signal.SIGKILL, result)
 
+  def test_execute_inputstr(self):
+    args = ['cat', '-']
+    result, stdout, stderr = execute.execute_and_filter_output(
+        args, inputstr=b'foo', raise_on_failure=False)
+    self.assertEqual(0, result)
+    self.assertEqual('foo', stdout)
+
   @contextlib.contextmanager
   def _mock_streams(self):
     orig_stdout = sys.stdout
