@@ -305,7 +305,7 @@ def _objc_provider_with_dependencies(
         objc_provider_fields["dynamic_framework_file"] = depset(dynamic_framework_file)
 
     if static_framework_file:
-        objc_provider_fields["static_framework_file"] = depset(static_framework_file)
+        objc_provider_fields["imported_library"] = depset(static_framework_file)
 
         if alwayslink:
             objc_provider_fields["force_load_library"] = depset(static_framework_file)
