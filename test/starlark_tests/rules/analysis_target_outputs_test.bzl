@@ -40,15 +40,31 @@ def _analysis_target_outputs_test_impl(ctx):
 
     return analysistest.end(env)
 
-analysis_target_outputs_test = analysistest.make(
-    _analysis_target_outputs_test_impl,
+def make_analysis_target_outputs_test(config_settings = {}):
+    """Returns a new `analysis_target_outputs_test`-like rule with custom configs.
+
+    Args:
+        config_settings: A dictionary of configuration settings and their values
+            that should be applied during tests.
+
+    Returns:
+        A rule returned by `analysistest.make` that has the
+        `analysis_target_outputs_test` interface and the given config settings.
+    """
+    return analysistest.make(
+        _analysis_target_outputs_test_impl,
+        config_settings = config_settings,
+        attrs = {
+            "expected_outputs": attr.string_list(
+                doc = "The outputs that are expected.",
+                default = [],
+            ),
+        },
+    )
+
+# Default analysis_target_actions_test.
+analysis_target_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
         "//command_line_option:compilation_mode": "opt",
-    },
-    attrs = {
-        "expected_outputs": attr.string_list(
-            doc = "The outputs that are expected.",
-            default = [],
-        ),
     },
 )
