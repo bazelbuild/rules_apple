@@ -25,7 +25,7 @@ _INVALID_UTF8 = b'\xa0\xa1'
 def _cmd_filter(cmd_result, stdout, stderr):
   # Concat the input to a native string literal, to make sure
   # it doesn't trigger a unicode encode/decode error
-  return stdout + ' filtered', stderr + ' filtered'
+  return cmd_result, stdout + ' filtered', stderr + ' filtered'
 
 
 class ExecuteTest(unittest.TestCase):

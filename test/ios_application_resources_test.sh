@@ -222,4 +222,132 @@ EOF
   assert_equals "2" "$atlasc_count"
 }
 
+# Verify that the warning about 76x76 icons doesn't get displayed.
+function test_actool_hides_warning_about_76x76_icons() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:app_icons_ios",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["ipad"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Assets.car"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/app_icon76x76@2x~ipad.png"
+  expect_not_log "76x76"
+}
+
+# Verify that we warn with unassigned children in an asset
+# TODO(b/80415817) - Update to an error.
+function test_actool_warns_with_unassigned_children_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_with_unassigned_child",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  expect_log "The image set \"star_universal\" has an unassigned child"
+}
+
+# Verify that we error with invalid json in an asset
+function test_actool_errors_with_invalid_json_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_with_invalid_json",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "The Contents.json describing the \"star_universal.imageset\" is not valid JSON."
+}
+# Verify that we error with missing children in an asset
+function test_actool_errors_with_missing_children_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_missing_child",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "error: The file \"star.png\" for the image set \"star_universal\" does not exist."
+}
+
 run_suite "ios_application bundling with resources tests"
