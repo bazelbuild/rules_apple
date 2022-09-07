@@ -115,7 +115,7 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     raw_stderr: This is the unmodified stderr captured from "xcrun ibtool".
 
   Returns:
-    A tuple of the filtered stdout and strerr.
+    A tuple of the filtered exit_status, stdout and strerr.
   """
 
   spurious_patterns = [
@@ -143,7 +143,7 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   if tool_exit_status == 0:
     raw_stderr = None
 
-  return ("".join(stdout), raw_stderr)
+  return (tool_exit_status, "".join(stdout), raw_stderr)
 
 
 def ibtool(_, toolargs):
@@ -181,7 +181,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     raw_stderr: This is the unmodified stderr captured from "xcrun actool".
 
   Returns:
-    A tuple of the filtered stdout and strerr.
+    A tuple of the filtered exit_status, stdout and strerr.
   """
   section_header = re.compile("^/\\* ([^ ]+) \\*/$")
 
@@ -189,10 +189,10 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   spurious_patterns = [
       re.compile(x) for x in [
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app "
-          r"icons only apply to iPad apps targeting releases of iOS prior to "
-          r"10\.0\.",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: \(null\)",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: 76x76@1x "
+          r"app icons only apply to iPad apps targeting releases of iOS prior "
+          r"to 10\.0\.",
       ]
   ]
 
@@ -203,29 +203,32 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         return True
     return False
 
-  output = []
+  def is_warning_as_error(line):
+    """Matches both "has an unassigned child" and "has unassigned children."""
+    # TODO(b/80415817): also handle " but should be " and " unassigned "
+    return "does not exist" in line or "is not valid JSON" in line
+
+  output = set()
   current_section = None
-  data_in_section = False
 
   for line in raw_stdout.splitlines():
     header_match = section_header.search(line)
 
     if header_match:
-      data_in_section = False
       current_section = header_match.group(1)
       continue
 
     if not current_section:
-      output.append(line + "\n")
+       output.add(line + "\n")
     elif current_section not in excluded_sections:
       if is_spurious_message(line):
         continue
 
-      if not data_in_section:
-        data_in_section = True
-        output.append("/* %s */\n" % current_section)
+      if is_warning_as_error(line):
+        line = line.replace(': warning: ', ': error: ')
+        tool_exit_status = 1
 
-      output.append(line + "\n")
+      output.add(line + "\n")
 
   # Some of the time, in a successful run, actool reports on stderr some
   # internal assertions and ask "Please file a bug report with Apple", but
@@ -235,7 +238,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   if tool_exit_status == 0:
     raw_stderr = None
 
-  return ("".join(output), raw_stderr)
+  return (tool_exit_status, "".join(output), raw_stderr)
 
 
 def actool(_, toolargs):

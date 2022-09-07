@@ -57,6 +57,9 @@ filegroup(
         ":app_icons_ios",
         ":assets2_ios",
         ":assets_ios",
+        ":imageset_missing_child",
+        ":imageset_with_invalid_json",
+        ":imageset_with_unassigned_child",
         ":launch_images_ios",
         ":localized_storyboards_ios",
         ":localized_xibs_ios",
@@ -270,6 +273,21 @@ filegroup(
 filegroup(
     name = "star_atlas_files",
     srcs = glob(["star.atlas/**"]),
+)
+
+filegroup(
+    name = "imageset_missing_child",
+    srcs = glob(["imageset_missing_child.xcassets/**"]),
+)
+
+filegroup(
+    name = "imageset_with_unassigned_child",
+    srcs = glob(["imageset_with_unassigned_child.xcassets/**"]),
+)
+
+filegroup(
+    name = "imageset_with_invalid_json",
+    srcs = glob(["imageset_with_invalid_json.xcassets/**"]),
 )
 
 filegroup(

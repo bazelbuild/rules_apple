@@ -39,7 +39,7 @@ class TestIBTOOL(unittest.TestCase):
     stderr = ""
     tool_exit_status = 0
 
-    (out, _) = xctoolrunner.ibtool_filtering(
+    (tool_exit_status, out, _) = xctoolrunner.ibtool_filtering(
         tool_exit_status,
         stdout,
         stderr)
