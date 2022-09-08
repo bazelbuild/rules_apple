@@ -729,6 +729,7 @@ _RULE_TYPE_DESCRIPTORS = {
     "watchos": {
         # watchos_application
         apple_product_type.watch2_application: _describe_rule_type(
+            additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
             allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
