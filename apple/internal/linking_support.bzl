@@ -82,28 +82,6 @@ def _sectcreate_objc_provider(segname, sectname, file):
         link_inputs = depset([file]),
     )
 
-def _parse_platform_key(key):
-    """Parses a string key from a `link_multi_arch_binary` result dictionary.
-
-    Args:
-        key: A string key from the `outputs_by_platform` dictionary of the
-            struct returned by `apple_common.link_multi_arch_binary`.
-
-    Returns:
-        A `struct` containing three fields:
-
-        *   `platform`: A string denoting the platform: `ios`, `macos`, `tvos`,
-            or `watchos`.
-        *   `arch`: The CPU architecture (e.g., `x86_64` or `arm64`).
-        *   `environment`: The target environment: `device` or `simulator`.
-    """
-    platform, _, rest = key.partition("_")
-    if platform == "darwin":
-        platform = "macos"
-
-    arch, _, environment = rest.rpartition("_")
-    return struct(platform = platform, arch = arch, environment = environment)
-
 def _register_binary_linking_action(
         ctx,
         *,
@@ -306,7 +284,6 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
-    parse_platform_key = _parse_platform_key,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_linking_action = _register_static_library_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
