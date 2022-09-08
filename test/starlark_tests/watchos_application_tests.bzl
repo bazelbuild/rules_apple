@@ -77,6 +77,7 @@ def watchos_application_test_suite(name):
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_watchos.baseline,
             "UIDeviceFamily:0": "4",
+            "WKWatchKitApp": "true",
         },
         tags = [name],
     )
