@@ -189,6 +189,48 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name, "manual"],  # TODO: Re-enable once CI is on Xcode 14.3+
     )
 
+    # Verify tvos_application links XCFramework library for device and simulator architectures.
+    archive_contents_test(
+        name = "{}_links_imported_tvos_xcframework_to_application_device_build".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_static_xcframework",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_imported_tvos_xcframework_to_application_simulator_arm64_build".format(name),
+        build_type = "simulator",
+        cpus = {"tvos_cpus": ["sim_arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_static_xcframework",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_imported_tvos_xcframework_to_application_simulator_x86_64_build".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_static_xcframework",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        tags = [name],
+    )
+
     # Verify ios_application bundles Framework files when using xcframework_processor_tool.
     archive_contents_test(
         name = "{}_ios_application_with_imported_static_xcframework_includes_symbols_with_xcframework_import_tool".format(name),
