@@ -50,6 +50,8 @@ def _generate_import_framework_impl(ctx):
     include_module_interface_files = ctx.attr.include_module_interface_files
     include_resource_bundle = ctx.attr.include_resource_bundle
 
+    target_os = _SDK_TO_OS[sdk]
+
     if swift_library_files and len(architectures) > 1:
         fail("Internal error: Can only generate a Swift " +
              "framework with a single architecture at this time")
@@ -126,7 +128,7 @@ def _generate_import_framework_impl(ctx):
                     label = label,
                     target_filename = "{arch}-apple-{os}{environment}.swiftinterface".format(
                         arch = architectures[0],
-                        os = _SDK_TO_OS[sdk],
+                        os = target_os,
                         environment = "-simulator" if sdk.endswith("simulator") else "",
                     ),
                 ),
@@ -141,6 +143,7 @@ def _generate_import_framework_impl(ctx):
         label = label,
         library = library,
         module_interfaces = module_interfaces,
+        target_os = target_os,
     )
 
     return [

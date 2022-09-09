@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Apple Frameworks and XCFramework generation support methods for testing."""
+"""Apple frameworks and XCFramework generation support methods for testing."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
@@ -249,24 +249,27 @@ def _create_framework(
         library,
         headers,
         include_resource_bundle = False,
-        module_interfaces = []):
+        module_interfaces = [],
+        target_os):
     """Creates an Apple platform framework bundle.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         base_path: Base path for the generated archive file (optional).
-        bundle_name: Name of the Framework bundle.
+        bundle_name: Name of the framework bundle.
         label: Label of the target being built.
-        library: The library for the Framework bundle.
-        headers: List of header files for the Framework bundle.
+        library: The library for the framework bundle.
+        headers: List of header files for the framework bundle.
         include_resource_bundle: Boolean to indicate if a resource bundle should be added to
             the framework bundle (optional).
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
+        target_os: The target Apple OS for the generated framework bundle.
     Returns:
         List of files for a .framework bundle.
     """
     framework_files = []
     framework_directory = paths.join(base_path, bundle_name + ".framework")
+    resources_directory = paths.join(framework_directory, "Resources")
 
     framework_binary = intermediates.file(
         actions = actions,
@@ -280,9 +283,10 @@ def _create_framework(
         target_file = library,
     )
 
+    infoplist_directory = resources_directory if target_os == "macos" else framework_directory
     framework_plist = intermediates.file(
         actions = actions,
-        file_name = paths.join(framework_directory, "Info.plist"),
+        file_name = paths.join(infoplist_directory, "Info.plist"),
         output_discriminator = None,
         target_name = label.name,
     )
@@ -339,7 +343,7 @@ def _create_framework(
         ])
 
     if include_resource_bundle:
-        resources_path = paths.join(framework_directory, "Resources", bundle_name + ".bundle")
+        resources_path = paths.join(resources_directory, bundle_name + ".bundle")
 
         resource_file = intermediates.file(
             actions = actions,
@@ -403,8 +407,8 @@ def _generate_umbrella_header(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        bundle_name: Name of the Framework/XCFramework bundle.
-        headers: List of header files for the Framework bundle.
+        bundle_name: Name of the framework/XCFramework bundle.
+        headers: List of header files for the framework bundle.
         headers_path: Base path for the generated umbrella header file.
         label: Label of the target being built.
         is_framework_umbrella_header: Boolean to indicate if the generated umbrella header is for an
@@ -444,7 +448,7 @@ def _generate_module_map(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        bundle_name: Name of the Framework/XCFramework bundle.
+        bundle_name: Name of the framework/XCFramework bundle.
         headers: List of header files to use for the generated modulemap file.
         label: Label of the target being built.
         is_framework_module: Boolean to indicate if the generated modulemap is for a framework.
