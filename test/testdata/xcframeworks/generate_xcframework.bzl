@@ -221,6 +221,7 @@ def _generate_dynamic_xcframework_impl(ctx):
             headers = hdrs,
             label = label,
             library = dynamic_library,
+            target_os = platform,
         )
 
         framework_path = paths.join(
@@ -467,6 +468,7 @@ def _generate_static_framework_xcframework_impl(ctx):
             headers = hdrs,
             label = label,
             library = static_library,
+            target_os = platform,
         )
 
         framework_path = paths.join(
