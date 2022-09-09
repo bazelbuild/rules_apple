@@ -321,6 +321,41 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify macos_application links XCFramework library for device and simulator architectures.
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_xcframework_to_application_x86_64_build".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        binary_test_architecture = "x86_64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_xcframework_to_application_arm64_build".format(name),
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_xcframework_to_application_arm64e_build".format(name),
+        build_type = "simulator",
+        cpus = {"macos_cpus": ["arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+
     # Verify importing XCFramework with dynamic libraries (i.e. not Apple frameworks) fails.
     analysis_failure_message_test(
         name = "{}_fails_importing_xcframework_with_libraries_test".format(name),

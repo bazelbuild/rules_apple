@@ -13,6 +13,7 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -21,6 +22,10 @@ load(
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
+)
+load(
+    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
 )
 
 licenses(["notice"])
@@ -184,6 +189,9 @@ macos_application(
     ],
 )
 
+# ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic framework import tests.
+
 macos_application(
     name = "app_with_imported_fmwk",
     bundle_id = "com.google.example",
@@ -198,8 +206,6 @@ macos_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
-
-# ---------------------------------------------------------------------------------------
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
@@ -220,6 +226,54 @@ generate_import_framework(
     minimum_os_version = common.min_os_macos.baseline,
     sdk = "macosx",
     tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic XCFramework import tests.
+
+macos_application(
+    name = "app_with_imported_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":macos_imported_dynamic_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "macos_imported_dynamic_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_macos_xcframework"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_macos_xcframework",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+        ],
+    },
 )
 
 # ---------------------------------------------------------------------------------------
