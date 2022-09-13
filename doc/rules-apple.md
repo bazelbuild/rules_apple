@@ -374,7 +374,7 @@ provisioning_profile_repository(<a href="#provisioning_profile_repository-name">
 
 
 This rule declares an external repository for discovering locally installed
-provisioning profiles. This is consumed by `ios_local_provisioning_profile`.
+provisioning profiles. This is consumed by `local_provisioning_profile`.
 You can optionally set 'fallback_profiles' to point at a stable location of
 profiles if a newer version of the desired profile does not exist on the local
 machine. This is useful for checking in the current version of the profile, but
