@@ -255,6 +255,12 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "watchkit_single_target_app_main_lib",
+    srcs = ["WatchKitAppMain.swift"],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "objc_test_lib",
     srcs = ["test.m"],

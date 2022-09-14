@@ -763,6 +763,23 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "watchos": {
+        # watchos_single_target_application
+        apple_product_type.application: _describe_rule_type(
+            additional_infoplist_values = {"WKApplication": True},
+            allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
+            bundle_extension = ".app",
+            bundle_package_type = bundle_package_type.application,
+            deps_cfg = apple_common.multi_arch_split,
+            product_type = apple_product_type.application,
+            requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                "@executable_path/Frameworks",
+            ],
+        ),
         # watchos_application
         apple_product_type.watch2_application: _describe_rule_type(
             additional_infoplist_values = {"WKWatchKitApp": True},
