@@ -80,6 +80,7 @@ load(
     "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
+    "WatchosSingleTargetApplicationBundleInfo",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -604,10 +605,14 @@ Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
             "watch_application": attr.label(
-                providers = [[AppleBundleInfo, WatchosApplicationBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, WatchosApplicationBundleInfo],
+                    [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
+                ],
                 doc = """
-A `watchos_application` target that represents an Apple Watch application that should be embedded in
-the application bundle.
+A `watchos_application` target that represents an Apple Watch application or a
+`watchos_single_target_application` target that represents a single-target Apple Watch application
+that should be embedded in the application bundle.
 """,
             ),
             "_runner_template": attr.label(
@@ -901,6 +906,17 @@ def _get_watchos_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for the watchOS platform."""
     attrs = []
 
+    if rule_descriptor.product_type == apple_product_type.application:
+        attrs.append({
+            "storyboards": attr.label_list(
+                allow_files = [".storyboard"],
+                doc = """
+A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
+the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
+which case it will be placed under a directory with the same name in the bundle.
+""",
+            ),
+        })
     if rule_descriptor.product_type == apple_product_type.watch2_extension:
         attrs.append({"extensions": attr.label_list(
             providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
@@ -941,7 +957,10 @@ ignored.
             "test_host": attr.label(
                 aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
-                providers = [AppleBundleInfo, WatchosApplicationBundleInfo],
+                providers = [
+                    [AppleBundleInfo, WatchosApplicationBundleInfo],
+                    [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
+                ],
             ),
         })
 

@@ -1,4 +1,4 @@
-# Copyright 2021 The Bazel Authors. All rights reserved.
+# Copyright 2022 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""watchos_ui_test Starlark tests leveraging watchos_application."""
+"""watchos_ui_test Starlark tests leveraging watchos_single_target_application."""
 
 load(
     ":common.bzl",
@@ -31,8 +31,8 @@ load(
     "infoplist_contents_test",
 )
 
-def watchos_ui_test_test_suite(name):
-    """Test suite for watchos_ui_test leveraging watchos_application.
+def watchos_single_target_ui_test_test_suite(name):
+    """Test suite for watchos_ui_test leveraging watchos_single_target_application.
 
     Args:
       name: the base name to be used in things created by this macro
@@ -40,27 +40,33 @@ def watchos_ui_test_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name],
+        tags = [
+            name,
+            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        ],
     )
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest"],
-        expected_transitive_dsyms = ["ui_test.xctest", "ext.appex"],
-        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
+        expected_direct_dsyms = ["single_target_ui_test.xctest"],
+        expected_transitive_dsyms = ["single_target_ui_test.xctest"],
+        tags = [
+            name,
+            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        ],
     )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
         expected_values = {
             "BuildMachineOSBuild": "*",
-            "CFBundleExecutable": "ui_test",
+            "CFBundleExecutable": "single_target_ui_test",
             "CFBundleIdentifier": "com.google.exampleTests",
-            "CFBundleName": "ui_test",
+            "CFBundleName": "single_target_ui_test",
             "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
@@ -74,10 +80,16 @@ def watchos_ui_test_test_suite(name):
             "MinimumOSVersion": common.min_os_watchos.test_runner_support,
             "UIDeviceFamily:0": "4",
         },
-        tags = [name],
+        tags = [
+            name,
+            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        ],
     )
 
     native.test_suite(
         name = name,
-        tags = [name],
+        tags = [
+            name,
+            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        ],
     )

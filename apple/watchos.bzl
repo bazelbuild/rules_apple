@@ -33,11 +33,13 @@ load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_extension = "watchos_extension",
+    _watchos_single_target_application = "watchos_single_target_application",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 watchos_application = _watchos_application
 watchos_extension = _watchos_extension
+watchos_single_target_application = _watchos_single_target_application
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
 
