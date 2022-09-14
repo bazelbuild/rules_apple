@@ -11,6 +11,7 @@ load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
+    "watchos_single_target_application",
 )
 
 licenses(["notice"])
@@ -34,18 +35,35 @@ objc_library(
 )
 
 objc_library(
-    name = "WatchSources",
+    name = "WatchSharedSources",
     srcs = [
-        "WatchSources/ExtensionDelegate.h",
-        "WatchSources/ExtensionDelegate.m",
-        "WatchSources/InterfaceController.h",
-        "WatchSources/InterfaceController.m",
+        "WatchSharedSources/InterfaceController.h",
+        "WatchSharedSources/InterfaceController.m",
     ],
     sdk_frameworks = [
         "WatchConnectivity",
         "WatchKit",
     ],
     tags = ["manual"],
+)
+
+objc_library(
+    name = "WatchApp2Sources",
+    srcs = [
+        "WatchApp2Sources/ExtensionDelegate.h",
+        "WatchApp2Sources/ExtensionDelegate.m",
+    ],
+    deps = [":WatchSharedSources"],
+)
+
+objc_library(
+    name = "SingleTargetWatchSources",
+    srcs = [
+        "SingleTargetWatchSources/AppDelegate.h",
+        "SingleTargetWatchSources/AppDelegate.m",
+        "SingleTargetWatchSources/main.m",
+    ],
+    deps = [":WatchSharedSources"],
 )
 
 apple_bundle_version(
@@ -88,7 +106,42 @@ watchos_extension(
     infoplists = [":WatchExt-Info.plist"],
     minimum_os_version = "4.0",
     version = ":HelloWorldVersion",
-    deps = [":WatchSources"],
+    deps = [":WatchApp2Sources"],
+)
+
+ios_application(
+    name = "HelloWorld-SingleTargetWatchHost",
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
+    bundle_id = "com.example.hello-world",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [":Phone-Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
+    minimum_os_version = "9.0",
+    tags = [
+        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+    ],
+    version = ":HelloWorldVersion",
+    watch_application = ":HelloWorld-SingleTargetWatchApplication",
+    deps = [":PhoneSources"],
+)
+
+watchos_single_target_application(
+    name = "HelloWorld-SingleTargetWatchApplication",
+    app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.example.hello-world.watch",
+    infoplists = [":WatchApp-Info.plist"],
+    minimum_os_version = "7.0",
+    storyboards = [
+        "WatchResources/Interface.storyboard",
+    ],
+    tags = [
+        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+    ],
+    version = ":HelloWorldVersion",
+    deps = [":SingleTargetWatchSources"],
 )
 
 # Not normally needed, just done for rules_apple's examples so a
@@ -99,5 +152,16 @@ build_test(
         ":HelloWorld",
         ":HelloWorld-WatchApplication",
         ":HelloWorld-WatchExtension",
+    ],
+)
+
+build_test(
+    name = "ExamplesBuildTest-LatestXcodeBeta",
+    tags = [
+        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+    ],
+    targets = [
+        ":HelloWorld-SingleTargetWatchHost",
+        ":HelloWorld-SingleTargetWatchApplication",
     ],
 )
