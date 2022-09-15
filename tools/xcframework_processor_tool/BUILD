@@ -24,6 +24,7 @@ py_test(
     name = "xcframework_processor_tool_test",
     srcs = ["xcframework_processor_tool_test.py"],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [":xcframework_processor_tool_lib"],
 )
 
