@@ -1,4 +1,3 @@
-load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Public only because these are used by the integration tests from generated
@@ -6,38 +5,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-filegroup(
-    name = "swift_source",
-    srcs = [
-        "SharedClass.swift",
-    ],
-)
-
-filegroup(
-    name = "objc_source",
-    srcs = [
-        "SharedClass.m",
-    ],
-)
-
-filegroup(
-    name = "objc_headers",
-    srcs = [
-        "SharedClass.h",
-    ],
-)
-
-swift_library(
-    name = "swift_framework_lib",
-    srcs = ["SharedClass.swift"],
-    features = [
-        "swift.emit_swiftinterface",
-        "swift.enable_library_evolution",
-    ],
-    generates_header = True,
-    module_name = "iOSSwiftStaticFramework",
-)
 
 bzl_library(
     name = "generate_framework_bzl",

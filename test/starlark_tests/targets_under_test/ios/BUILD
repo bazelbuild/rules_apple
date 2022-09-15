@@ -1660,7 +1660,7 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
-    swift_library = "//test/testdata/fmwk:swift_framework_lib",
+    swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
 )
 
 generate_import_framework(
@@ -1670,7 +1670,7 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
-    swift_library = "//test/testdata/fmwk:swift_framework_lib",
+    swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
 )
 
 # -----------------------------------------------------------------------------------------
