@@ -1,8 +1,6 @@
 load(
     "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
-    "apple_static_framework_import",
     "apple_static_xcframework",
     "apple_static_xcframework_import",
     "apple_universal_binary",
@@ -822,37 +820,6 @@ apple_universal_binary(
     minimum_os_version = common.min_os_macos.arm64_support,
     platform_type = "macos",
     tags = common.fixture_tags,
-)
-
-# ---------------------------------------------------------------------------------------
-# Targets for Apple dynamic framework import tests.
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFramework"],
-)
-
-# ---------------------------------------------------------------------------------------
-# Targets for Apple static framework import tests.
-
-apple_static_framework_import(
-    name = "iOSImportedStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
-    has_swift = True,
 )
 
 # ---------------------------------------------------------------------------------------

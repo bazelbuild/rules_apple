@@ -1,4 +1,9 @@
 load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+    "apple_static_framework_import",
+)
+load(
     "//apple:ios.bzl",
     "ios_app_clip",
     "ios_application",
@@ -9,6 +14,10 @@ load(
     "ios_sticker_pack_extension",
     "ios_ui_test",
     "ios_unit_test",
+)
+load(
+    "//test/testdata/fmwk:generate_framework.bzl",
+    "generate_import_framework",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -446,8 +455,8 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":iOSImportedDynamicFramework",
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework",
     ],
 )
 
@@ -482,9 +491,24 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":iOSImportedStaticFramework",
         "//test/starlark_tests/resources:objc_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework",
     ],
+)
+
+apple_static_framework_import(
+    name = "iOSImportedStaticFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSStaticFramework"],
+)
+
+generate_import_framework(
+    name = "iOSStaticFramework",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1383,7 +1407,7 @@ objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = [":dynamic_fmwk_depending_lib_file"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
+    deps = [":iOSImportedDynamicFramework"],
 )
 
 write_file(
@@ -1423,7 +1447,7 @@ ios_application(
 swift_library(
     name = "dynamic_fmwk_depending_swift_lib",
     srcs = [":dynamic_fmwk_depending_swift_lib_file"],
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
+    deps = [":iOSImportedDynamicFramework"],
 )
 
 write_file(
@@ -1438,6 +1462,21 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSDynamicFramework"],
+)
+
+generate_import_framework(
+    name = "iOSDynamicFramework",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -1465,7 +1504,7 @@ ios_application(
 objc_library(
     name = "static_fmwk_depending_lib",
     srcs = [":static_fmwk_depending_lib_file"],
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
+    deps = [":iOSImportedStaticFramework"],
 )
 
 write_file(
@@ -1506,7 +1545,7 @@ objc_library(
     name = "swift_static_fmwk_depending_lib",
     srcs = [":swift_static_fmwk_depending_lib_file"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFramework"],
+    deps = [":iOSImportedSwiftStaticFramework"],
 )
 
 write_file(
@@ -1544,7 +1583,7 @@ objc_library(
     name = "swift_static_without_module_interfaces_fmwk_depending_lib",
     srcs = [":swift_static_without_module_interfaces_fmwk_depending_lib_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
+    deps = [":iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
 )
 
 write_file(
@@ -1585,7 +1624,7 @@ swift_library(
     name = "swift_static_fmwk_depending_swift_lib",
     srcs = [":swift_static_fmwk_depending_swift_lib_file"],
     module_name = "swift_static_fmwk_depending_swift_lib",
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFramework"],
+    deps = [":iOSImportedSwiftStaticFramework"],
 )
 
 write_file(
@@ -1600,6 +1639,38 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSSwiftStaticFramework"],
+)
+
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
+    features = ["-swift.layering_check"],
+    framework_imports = [":iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
+    has_swift = True,
+)
+
+generate_import_framework(
+    name = "iOSSwiftStaticFramework",
+    archs = ["x86_64"],
+    libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+    swift_library = "//test/testdata/fmwk:swift_framework_lib",
+)
+
+generate_import_framework(
+    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    archs = ["x86_64"],
+    include_module_interface_files = False,
+    libtype = "static",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+    swift_library = "//test/testdata/fmwk:swift_framework_lib",
 )
 
 # -----------------------------------------------------------------------------------------
@@ -1793,7 +1864,7 @@ ios_application(
 swift_library(
     name = "static_fmwk_depending_swift_lib",
     srcs = [":static_fmwk_depending_swift_lib_file"],
-    deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
+    deps = [":iOSImportedStaticFramework"],
 )
 
 write_file(

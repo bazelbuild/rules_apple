@@ -1,7 +1,3 @@
-load(
-    "//test/testdata/fmwk:generate_framework.bzl",
-    "generate_import_framework",
-)
 load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
@@ -32,24 +28,6 @@ filegroup(
     ],
 )
 
-generate_import_framework(
-    name = "iOSDynamicFramework",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
-generate_import_framework(
-    name = "iOSStaticFramework",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
 swift_library(
     name = "swift_framework_lib",
     srcs = ["SharedClass.swift"],
@@ -59,25 +37,6 @@ swift_library(
     ],
     generates_header = True,
     module_name = "iOSSwiftStaticFramework",
-)
-
-generate_import_framework(
-    name = "iOSSwiftStaticFramework",
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-    swift_library = ":swift_framework_lib",
-)
-
-generate_import_framework(
-    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
-    archs = ["x86_64"],
-    include_module_interface_files = False,
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-    swift_library = ":swift_framework_lib",
 )
 
 bzl_library(
