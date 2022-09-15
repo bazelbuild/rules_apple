@@ -1550,7 +1550,7 @@ genrule(
     name = "swift_static_without_module_interfaces_fmwk_depending_lib_src",
     outs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
     cmd = """cat > $@ <<EOF
-#import <iOSSwiftStaticFramework/iOSSwiftStaticFramework.h>
+#import <iOSSwiftStaticFrameworkWithoutModuleInterfaces/iOSSwiftStaticFrameworkWithoutModuleInterfaces.h>
 
 int main() {
   SharedClass *sharedClass = [[SharedClass alloc] init];

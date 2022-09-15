@@ -851,7 +851,7 @@ apple_static_framework_import(
 apple_static_framework_import(
     name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
     features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFramework"],
+    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
     has_swift = True,
 )
 
