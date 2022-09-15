@@ -117,10 +117,11 @@ class XcframeworkProcessorToolTest(unittest.TestCase):
       xcframework_processor_tool._get_plist_dict(
           info_plist_path=info_plist_fp.name)
 
+  @mock.patch("os.chmod")
   @mock.patch("os.makedirs")
   @mock.patch("shutil.copy2")
   def test_copy_xcframework_files_filtering_and_mock_calls(
-      self, mock_copy, mock_mkdirs):
+      self, mock_copy, mock_mkdirs, mock_chmod):
     xcframework_processor_tool._copy_xcframework_files(
         library_identifier="ios-arm64",
         output_directories=["/path/to/bazel/declared/directory/"],

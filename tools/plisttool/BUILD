@@ -23,6 +23,7 @@ py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [
         ":plisttool_lib",
         "//:py_init_shim",

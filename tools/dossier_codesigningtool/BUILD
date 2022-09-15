@@ -25,6 +25,7 @@ py_test(
     name = "dossier_codesigningtool_test",
     srcs = ["dossier_codesigningtool_test.py"],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [
         ":dossier_codesigningtool_lib",
     ],

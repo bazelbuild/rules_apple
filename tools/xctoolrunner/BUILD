@@ -22,6 +22,7 @@ py_test(
     name = "xctoolrunner_test",
     srcs = ["xctoolrunner_test.py"],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [
         ":xctoolrunner_lib",
         "//:py_init_shim",
