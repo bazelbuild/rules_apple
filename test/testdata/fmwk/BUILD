@@ -39,15 +39,6 @@ filegroup(
 # ------------------------------- iOS Framework ------------------------------------------
 
 generate_import_framework(
-    name = "iOSDynamicFramework",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
-generate_import_framework(
     name = "iOSDynamicFrameworkWithDebugInfo",
     archs = ["x86_64"],
     embed_debug_info = True,
@@ -70,15 +61,6 @@ generate_import_framework(
     sdk = "iphonesimulator",
 )
 
-generate_import_framework(
-    name = "iOSStaticFramework",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
 swift_library(
     name = "swift_framework_lib",
     srcs = ["SharedClass.swift"],
@@ -88,25 +70,6 @@ swift_library(
     ],
     generates_header = True,
     module_name = "iOSSwiftStaticFramework",
-)
-
-generate_import_framework(
-    name = "iOSSwiftStaticFramework",
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-    swift_library = ":swift_framework_lib",
-)
-
-generate_import_framework(
-    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
-    archs = ["x86_64"],
-    include_module_interface_files = False,
-    libtype = "static",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-    swift_library = ":swift_framework_lib",
 )
 
 # ------------------------------- macOS Framework ------------------------------------------
