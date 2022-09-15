@@ -568,7 +568,7 @@ apple_static_framework_import(
 
 generate_import_framework(
     name = "macOSStaticFramework",
-    src = "//test/testdata/fmwk:objc_source",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
     archs = ["x86_64"],
     include_resource_bundle = True,
     libtype = "static",
@@ -2139,8 +2139,8 @@ apple_dynamic_xcframework_import(
 
 generate_dynamic_xcframework(
     name = "generated_dynamic_macos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "macos": common.min_os_macos.arm64_support,
     },
