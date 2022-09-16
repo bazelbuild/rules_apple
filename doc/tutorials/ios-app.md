@@ -301,8 +301,8 @@ version and device will be used when launching the app.
 ### Generate an Xcode project
 
 There are a few community-provided solutions (such as [rules_xcodeproj](https://github.com/buildbuddy-io/rules_xcodeproj)
-and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode 
-projects. By doing so, you will be able to write, debug, and test 
+and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode
+projects. By doing so, you will be able to write, debug, and test
 iOS/macOS/watchOS/tvOS applications as if you were using the Xcode build system.
 
 Let's see how to do so with `rules_xcodeproj`.
@@ -312,9 +312,8 @@ Open the `WORKSPACE` file again and add the following:
 ```starlark
 http_archive(
     name = "com_github_buildbuddy_io_rules_xcodeproj",
-    sha256 = "c76958e21b7ea48a40fe4130e57911670281f23be93965573b4e90be47d779b4",
-    strip_prefix = "rules_xcodeproj-47d9510b64878ae1893d355cbf134d6a4b6eb715",
-    url = "https://github.com/buildbuddy-io/rules_xcodeproj/archive/47d9510b64878ae1893d355cbf134d6a4b6eb715.tar.gz",
+    sha256 = "663bf83d8725f39694125d790eacd373e4c063bf80be4e6b5daa0a5dbe74df1f",
+    url = "https://github.com/buildbuddy-io/rules_xcodeproj/releases/download/0.8.0/release.tar.gz",
 )
 
 load(
@@ -443,4 +442,3 @@ Xcode may provide other information as to what has gone wrong.
 For more details, see
 [main branch](https://github.com/bazelbuild/examples/tree/main/tutorial)
 of the GitHub repo.
-
