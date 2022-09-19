@@ -130,7 +130,6 @@ watchos_application(
     infoplists = ["Info-WatchApp.plist"],
     minimum_os_version = "${MIN_OS_WATCHOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":watch_lib"],
 )
 
 watchos_extension(

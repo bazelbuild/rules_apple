@@ -940,16 +940,6 @@ the final application bundle, unless a file's immediate containing directory is 
 which case it will be placed under a directory with the same name in the bundle.
 """,
             ),
-            # TODO(b/121201268): Rename this attribute as it implies code dependencies, but they are
-            # not actually compiled and linked, since the watchOS application uses a stub binary.
-            "deps": attr.label_list(
-                aspects = [apple_resource_aspect],
-                doc = """
-A list of targets whose resources will be included in the final application. Since a watchOS
-application does not contain any code of its own, any code in the dependent libraries will be
-ignored.
-""",
-            ),
         })
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
