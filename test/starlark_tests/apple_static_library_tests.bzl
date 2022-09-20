@@ -19,25 +19,25 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_mismatched_platform_test.bzl",
+    "//test/starlark_tests/rules:analysis_mismatched_platform_test.bzl",
     "analysis_incoming_ios_platform_mismatch_test",
     "analysis_incoming_watchos_platform_mismatch_test",
 )
 load(
-    ":rules/analysis_runfiles_test.bzl",
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_test",
 )
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
     "make_analysis_target_actions_test",
 )
 load(
-    ":rules/analysis_target_outputs_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "binary_contents_test",
 )
 

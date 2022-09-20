@@ -15,23 +15,23 @@
 """macos_dylib Starlark tests."""
 
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "binary_contents_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
+    "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
-    ":rules/output_group_test.bzl",
+    "//test/starlark_tests/rules:output_group_test.bzl",
     "output_group_test",
 )
 

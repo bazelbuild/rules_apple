@@ -14,8 +14,14 @@
 
 """apple_core_data_model Starlark tests."""
 
-load(":rules/analysis_target_actions_test.bzl", "analysis_target_actions_test")
-load(":rules/analysis_target_outputs_test.bzl", "analysis_target_outputs_test")
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
+)
 
 def apple_core_data_model_test_suite(name):
     """Test suite for apple_bundle_version.

@@ -15,11 +15,11 @@
 """apple_universal_binary Starlark tests."""
 
 load(
-    ":rules/analysis_target_outputs_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "binary_contents_test",
 )
 
