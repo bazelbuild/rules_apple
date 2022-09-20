@@ -38,7 +38,7 @@ load(
 load("//test/starlark_tests/rules:generate_framework_dsym.bzl", "generate_import_framework_dsym")
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load(
-    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
 )
 
