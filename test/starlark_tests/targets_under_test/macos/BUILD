@@ -32,10 +32,10 @@ load(
     "common",
 )
 load(
-    "//test/testdata/fmwk:generate_framework.bzl",
+    "//test/starlark_tests/rules:generate_framework.bzl",
     "generate_import_framework",
 )
-load("//test/testdata/fmwk:generate_framework_dsym.bzl", "generate_import_framework_dsym")
+load("//test/starlark_tests/rules:generate_framework_dsym.bzl", "generate_import_framework_dsym")
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load(
     "//test/testdata/xcframeworks:generate_xcframework.bzl",
