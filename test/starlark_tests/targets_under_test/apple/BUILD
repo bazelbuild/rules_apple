@@ -7,6 +7,11 @@ load(
     "apple_xcframework",
 )
 load(
+    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+    "generate_static_xcframework",
+)
+load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
@@ -826,98 +831,48 @@ apple_universal_binary(
 # Targets for Apple dynamic XCFramework import tests.
 
 apple_dynamic_xcframework_import(
-    name = "ios_imported_dynamic_xcframework",
-    features = ["-swift.layering_check"],
-    visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework_with_headers"],
-)
-
-apple_dynamic_xcframework_import(
-    name = "ios_imported_swift_dynamic_xcframework",
-    features = ["-swift.layering_check"],
-    visibility = ["//visibility:public"],
-    xcframework_imports = [":ios_swift_dynamic_xcframework"],
-)
-
-apple_dynamic_xcframework_import(
-    name = "ios_imported_swift_dynamic_xcframework_without_swift_files",
-    features = ["-swift.layering_check"],
-    visibility = ["//visibility:public"],
-    xcframework_imports = [":ios_swift_dynamic_xcframework_without_swiftmodule"],
-)
-
-genrule(
-    name = "ios_swift_dynamic_xcframework",
-    srcs = [":ios_swift_xcframework_with_generated_header.xcframework.zip"],
-    outs = [
-        "SwiftFmwkWithGenHeader.xcframework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
-    ],
-    cmd = "unzip -qq $(execpath :ios_swift_xcframework_with_generated_header.xcframework.zip) -d $(RULEDIR)",
-)
-
-genrule(
-    name = "ios_swift_dynamic_xcframework_without_swiftmodule",
-    srcs = [":ios_swift_xcframework_with_generated_header.xcframework.zip"],
-    outs = [
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/Info.plist",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "ios_swift_dynamic_xcframework_without_swiftmodule/SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
-    ],
-    cmd = "unzip -qq $(execpath :ios_swift_xcframework_with_generated_header.xcframework.zip) -d $(RULEDIR)/ios_swift_dynamic_xcframework_without_swiftmodule",
-)
-
-apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_with_libraries",
     visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework"],
+    xcframework_imports = [":generated_static_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_xcframework",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+    },
 )
 
 # ---------------------------------------------------------------------------------------
 # Targets for Apple static XCFramework import tests.
 
 apple_static_xcframework_import(
-    name = "ios_imported_static_xcframework",
-    features = ["-swift.layering_check"],
-    visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_static_xcframework_with_headers"],
-)
-
-apple_static_xcframework_import(
     name = "ios_imported_xcframework_with_static_frameworks",
     visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_dynamic_xcframework"],
+    xcframework_imports = [":generated_dynamic_xcframework"],
 )
 
-apple_static_xcframework_import(
-    name = "ios_imported_swift_static_xcframework",
-    features = ["-swift.layering_check"],
-    visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework"],
-)
-
-apple_static_xcframework_import(
-    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
-    has_swift = True,
-    visibility = ["//visibility:public"],
-    xcframework_imports = ["//test/testdata/xcframeworks:generated_swift_static_xcframework_without_swiftmodule"],
+generate_dynamic_xcframework(
+    name = "generated_dynamic_xcframework",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+    },
 )
