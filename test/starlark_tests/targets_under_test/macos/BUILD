@@ -20,7 +20,7 @@ load(
     "common",
 )
 load(
-    "//test/testdata/fmwk:generate_framework.bzl",
+    "//test/starlark_tests/rules:generate_framework.bzl",
     "generate_import_framework",
 )
 load(
