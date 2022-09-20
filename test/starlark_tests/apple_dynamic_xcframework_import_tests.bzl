@@ -231,7 +231,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     # Verify XCFramework processor tool action is registered via build setting.
     analysis_contains_xcframework_processor_action_test(
         name = "{}_imported_xcframework_framework_files_registers_action_with_xcframework_import_tool".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework",
         target_mnemonic = "ProcessXCFrameworkFiles",
         tags = [name],
     )
