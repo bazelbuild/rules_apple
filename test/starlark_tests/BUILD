@@ -139,13 +139,6 @@ bzl_library(
     name = "starlark_tests_bzls",
     srcs = glob(["**/*.bzl"]),
     deps = [
-        "//apple:providers",
-        "//apple/build_settings:attrs",
-        "//apple/internal:apple_product_type",
-        "//tools/build_defs/golden_test:def",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_skylib//lib:new_sets",
-        "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:unittest",
+        "//test/starlark_tests/rules:test_rules",
     ],
 )

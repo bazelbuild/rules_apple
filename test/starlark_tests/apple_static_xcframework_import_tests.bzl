@@ -14,12 +14,18 @@
 
 """apple_static_xcframework_import Starlark tests."""
 
-load(":rules/analysis_failure_message_test.bzl", "analysis_failure_message_test")
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
 )
-load(":rules/common_verification_tests.bzl", "archive_contents_test")
+load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
+    "archive_contents_test",
+)
 
 def apple_static_xcframework_import_test_suite(name):
     """Test suite for apple_static_xcframework_import.

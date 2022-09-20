@@ -19,11 +19,11 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_failure_message_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 

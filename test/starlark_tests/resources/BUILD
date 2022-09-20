@@ -13,7 +13,7 @@ load(
     "common",
 )
 load(
-    "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
+    "//test/starlark_tests/rules:dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
 )
 
