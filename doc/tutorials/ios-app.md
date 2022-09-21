@@ -201,7 +201,6 @@ objc_library(
          "UrlGet/main.m",
     ],
     hdrs = glob(["UrlGet/*.h"]),
-    data = ["UrlGet/UrlGetViewController.xib"],
 )
 ```
 
@@ -223,8 +222,9 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    minimum_os_version = "15.0",
     infoplists = [":UrlGet/UrlGet-Info.plist"],
+    launch_storyboard = "UrlGet/UrlGetViewController.xib",
+    minimum_os_version = "15.0",
     visibility = ["//visibility:public"],
     deps = [":UrlGetClasses"],
 )
@@ -312,9 +312,9 @@ Open the `WORKSPACE` file again and add the following:
 ```starlark
 http_archive(
     name = "com_github_buildbuddy_io_rules_xcodeproj",
-    sha256 = "c76958e21b7ea48a40fe4130e57911670281f23be93965573b4e90be47d779b4",
-    strip_prefix = "rules_xcodeproj-47d9510b64878ae1893d355cbf134d6a4b6eb715",
-    url = "https://github.com/buildbuddy-io/rules_xcodeproj/archive/47d9510b64878ae1893d355cbf134d6a4b6eb715.tar.gz",
+    sha256 = "cb4ae95d86a1961734f17a1d4743010480a576214519ceb2ce9cec34b88da7b2",
+    strip_prefix = "rules_xcodeproj-0bad4f33c462f5a26e4c13861afd181e56729938",
+    url = "https://github.com/buildbuddy-io/rules_xcodeproj/archive/0bad4f33c462f5a26e4c13861afd181e56729938.tar.gz",
 )
 
 load(
@@ -329,7 +329,7 @@ Add the following import at the top of the `BUILD` file:
 
 ```starlark
 load(
-    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:xcodeproj.bzl",
+    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:defs.bzl",
     "top_level_target",
     "xcodeproj",
 )
@@ -340,7 +340,6 @@ We can now define the rule that will generate the Xcode project:
 ```starlark
 xcodeproj(
     name = "xcodeproj",
-    archived_bundles_allowed = True,
     build_mode = "bazel",
     project_name = "ios-app",
     tags = ["manual"],
@@ -408,7 +407,6 @@ support for building for a device:
 ```starlark
 xcodeproj(
     name = "xcodeproj",
-    archived_bundles_allowed = True,
     build_mode = "bazel",
     project_name = "ios-app",
     tags = ["manual"],
