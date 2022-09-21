@@ -449,6 +449,8 @@ function do_action() {
       # Explicitly pass these flags to ensure the external testing infrastructure
       # matches the internal one.
       "--incompatible_merge_genfiles_directory"
+      # TODO: Fix the tests that fail with this flag and remove this.
+      "--incompatible_unambiguous_label_stringification=false"
   )
 
   local bazel_version="$(bazel --version)"
