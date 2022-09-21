@@ -44,6 +44,7 @@ _SHARED_TEST_BUNDLE_ATTRS = {
         "minimum_os_version",
         "tags",
         "test_host",
+        "test_host_is_bundle_loader",
         "visibility",
     ]
 }

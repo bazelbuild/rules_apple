@@ -588,6 +588,13 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_linkopt_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    linkopts = ["-Wl,-framework,CoreMotion"],
+    tags = FIXTURE_TAGS,
+)
+
+objc_library(
     name = "ios_non_localized_assets_lib",
     data = [
         ":assets",

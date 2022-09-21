@@ -130,6 +130,7 @@ ios_application(
         "//test/starlark_tests/resources:ios_localized_assets_lib",
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:nested_bundle_lib",
+        "//test/starlark_tests/resources:objc_linkopt_lib",
         "//test/starlark_tests/resources:objc_main_lib",
         "//test/starlark_tests/resources:sticker_pack_ios_lib",
     ],
@@ -2944,6 +2945,28 @@ ios_unit_test(
     ],
     tags = common.fixture_tags,
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_no_bundle_loader",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "8.0",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = FIXTURE_TAGS,
+    test_host = ":app",
+    test_host_is_bundle_loader = False,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
