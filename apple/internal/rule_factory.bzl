@@ -725,6 +725,12 @@ desired Contents subdirectory.
 
     if rule_descriptor.product_type == apple_product_type.bundle:
         attrs.append({
+            "bundle_extension": attr.string(
+                doc = """
+The extension, without a leading dot, that will be used to name the bundle. If this attribute is not
+set, then the extension will be `.bundle`.
+""",
+            ),
             "bundle_loader": attr.label(
                 doc = """
 The target representing the executable that will be loading this bundle. Undefined symbols from the
@@ -732,19 +738,6 @@ bundle are checked against this execuable during linking as if it were one of th
 the bundle was linked with.
 """,
                 providers = [apple_common.AppleExecutableBinary],
-            ),
-        })
-
-    if rule_descriptor.product_type in [apple_product_type.application, apple_product_type.bundle]:
-        attrs.append({
-            # TODO(b/117886202): This should be part of the rule descriptor, once the new
-            # macos_kernel_extension, macos_spotlight_importer and macos_xpc_service rules are
-            # extracted from macos_application and macos_bundle.
-            "bundle_extension": attr.string(
-                doc = """
-The extension, without a leading dot, that will be used to name the bundle. If this attribute is not
-set, then the default extension is determined by the application's product_type.
-""",
             ),
         })
 
