@@ -744,7 +744,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
-        # watchos_application
+        # watchos_application (watchOS 2 app bundle)
         apple_product_type.watch2_application: _describe_rule_type(
             additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
@@ -758,7 +758,7 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_pkginfo = True,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
-        # watchos_extension
+        # watchos_extension (watchOS 2 app extension)
         apple_product_type.watch2_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
             allows_locale_trimming = True,
@@ -771,8 +771,8 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
-                # or Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks per
+                # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
                 "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
