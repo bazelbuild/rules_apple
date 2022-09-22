@@ -152,20 +152,6 @@ def macos_application_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_bundle_name_with_different_extension_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_different_extension",
-        compilation_mode = "opt",
-        contains = [
-            "$ARCHIVE_ROOT/app_with_different_extension.xpc",
-        ],
-        not_contains = [
-            "$ARCHIVE_ROOT/app_with_different_extension.app",
-        ],
-        tags = [name],
-    )
-
-    archive_contents_test(
         name = "{}_prebuilt_dynamic_framework_dependency_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
