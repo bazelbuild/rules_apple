@@ -1061,7 +1061,10 @@ binaries/libraries will be created combining all architectures specified by
         })
 
     if platform_type and product_type:
-        rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
+        rule_descriptor = rule_support.rule_descriptor(
+            platform_type = platform_type,
+            product_type = product_type,
+        )
         is_executable = rule_descriptor.is_executable
 
         if rule_descriptor.requires_deps:
@@ -1119,7 +1122,10 @@ def _create_apple_bundling_rule(
         },
     ]
 
-    rule_descriptor = rule_support.rule_descriptor_no_ctx(platform_type, product_type)
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = platform_type,
+        product_type = product_type,
+    )
 
     rule_attrs.extend(
         [

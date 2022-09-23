@@ -76,6 +76,10 @@ load(
     "stub_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -88,21 +92,42 @@ load(
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
+
+    # TODO(b/241001744): Set the product type as apple_product_type.application if the attrs set
+    # on the rule match a criteria appropriate for watchOS single target applications.
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.watch2_application,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = False,  # No binary deps to check.
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -286,21 +311,43 @@ def _watchos_application_impl(ctx):
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
+
+    # TODO(b/155313625): Set the product type as apple_product_type.extension if the attrs set on
+    # the rule match a criteria appropriate for watchOS extensions (i.e. SiriKit, Notification
+    # Center, WidgetKit).
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.watch2_extension,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -357,6 +404,7 @@ def _watchos_extension_impl(ctx):
         entitlements = entitlements,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -521,7 +569,6 @@ def _watchos_extension_impl(ctx):
 
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_single_target_application."""
-
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_version_config.xcode_version() < apple_common.dotted_version("14.0"):
         fail("""
@@ -534,22 +581,42 @@ Resolved Xcode is version {xcode_version}.
     if minimum_os < apple_common.dotted_version("7.0"):
         fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
 
+    # TODO(b/241001744): Fold this implementation into the watchos_application rule, removing the
+    # need for separate rules.
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.application,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     embeddable_targets = ctx.attr.deps
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -581,6 +648,7 @@ Resolved Xcode is version {xcode_version}.
         entitlements = entitlements,
         extra_linkopts = [],
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary

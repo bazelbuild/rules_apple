@@ -202,7 +202,7 @@ _DEFAULT_MACOS_BUNDLE_LOCATIONS = _describe_bundle_locations(
 )
 
 # Descriptors for all possible platform/product type combinations.
-# TODO(b/62481675): Migrate extra_linkopts to crosstool features instead.
+# TODO(b/248317958): Migrate extra_linkopts and rpaths to args on the linking_support methods.
 _RULE_TYPE_DESCRIPTORS = {
     "ios": {
         # ios_application
@@ -812,7 +812,7 @@ _RULE_TYPE_DESCRIPTORS = {
     },
 }
 
-def _rule_descriptor_no_ctx(platform_type, product_type):
+def _rule_descriptor(*, platform_type, product_type):
     """Returns the rule descriptor for the given platform and product types.
 
     This method fails if the platform and product combination is invalid.
@@ -834,17 +834,7 @@ def _rule_descriptor_no_ctx(platform_type, product_type):
         )
     return rule_descriptor
 
-def _rule_descriptor(ctx):
-    """Returns the rule descriptor for platform and product types derived from the rule context."""
-
-    # Check the attribute explicitly instead of using platform_support, since that creates a
-    # cyclical dependency on this file.
-    platform_type = getattr(apple_common.platform_type, ctx.attr.platform_type)
-    product_type = ctx.attr._product_type
-    return _rule_descriptor_no_ctx(str(platform_type), product_type)
-
 rule_support = struct(
     rule_descriptor = _rule_descriptor,
-    rule_descriptor_no_ctx = _rule_descriptor_no_ctx,
     codesigning_exceptions = _CODESIGNING_EXCEPTIONS,
 )

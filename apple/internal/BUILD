@@ -139,9 +139,6 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [
-        ":rule_support",
-    ],
 )
 
 bzl_library(
@@ -296,7 +293,6 @@ bzl_library(
     ],
     deps = [
         ":entitlements_support",
-        ":rule_support",
         "@build_bazel_apple_support//lib:lipo",
     ],
 )
@@ -344,6 +340,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":swift_support",
         ":transition_support",
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
@@ -400,10 +397,6 @@ bzl_library(
     srcs = ["platform_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
-    ],
-    deps = [
-        ":rule_support",
-        ":swift_support",
     ],
 )
 
@@ -605,6 +598,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":stub_support",
+        ":swift_support",
         "//apple:providers",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:xcode_support",

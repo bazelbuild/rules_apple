@@ -109,11 +109,20 @@ load("@bazel_skylib//lib:collections.bzl", "collections")
 
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     embeddable_targets = (
         ctx.attr.frameworks +
@@ -126,11 +135,20 @@ def _ios_application_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -170,6 +188,7 @@ def _ios_application_impl(ctx):
         entitlements = entitlements,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -410,22 +429,40 @@ def _ios_application_impl(ctx):
 
 def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     embeddable_targets = ctx.attr.frameworks
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -457,6 +494,7 @@ def _ios_app_clip_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -657,22 +695,40 @@ def _ios_app_clip_impl(ctx):
 
 def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     signed_frameworks = []
     if provisioning_profile:
         signed_frameworks = [
@@ -701,6 +757,7 @@ def _ios_framework_impl(ctx):
             ),
         ],
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -864,21 +921,39 @@ def _ios_framework_impl(ctx):
 
 def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -915,6 +990,7 @@ def _ios_extension_impl(ctx):
         entitlements = entitlements,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -1084,6 +1160,10 @@ def _ios_extension_impl(ctx):
 
 def _ios_static_framework_impl(ctx):
     """Implementation of ios_static_framework."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
@@ -1094,14 +1174,27 @@ def _ios_static_framework_impl(ctx):
     label = ctx.label
     predeclared_outputs = ctx.outputs
     split_deps = ctx.split_attr.deps
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
 
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
     binary_artifact = link_result.library
@@ -1196,11 +1289,20 @@ def _ios_static_framework_impl(ctx):
 
 def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1208,11 +1310,20 @@ def _ios_imessage_application_impl(ctx):
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
     embeddable_targets = [ctx.attr.extension]
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = False,  # No binary deps to check.
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -1367,21 +1478,39 @@ def _ios_imessage_application_impl(ctx):
 
 def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -1412,6 +1541,7 @@ def _ios_imessage_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -1575,21 +1705,39 @@ def _ios_imessage_extension_impl(ctx):
 
 def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = ctx.attr._product_type,
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = False,  # No binary deps to check.
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
