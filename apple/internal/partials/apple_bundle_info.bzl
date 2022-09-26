@@ -35,7 +35,7 @@ def _apple_bundle_info_partial_impl(
         bundle_name,
         entitlements,
         executable_name,
-        extension_safe = False,
+        extension_safe,
         label_name,
         output_discriminator,
         platform_prerequisites,
@@ -98,6 +98,7 @@ def apple_bundle_info_partial(
         bundle_extension,
         bundle_name,
         executable_name,
+        extension_safe = False,
         entitlements = None,
         label_name,
         output_discriminator = None,
@@ -113,8 +114,11 @@ def apple_bundle_info_partial(
       bundle_id: The bundle ID to configure for this target.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
-      executable_name: The name of the output executable.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      executable_name: The name of the output executable.
+      extension_safe: True if the target propagating this provider was compiled
+        and linked with -application-extension, restricting it to extension-safe
+        APIs only.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -132,6 +136,7 @@ def apple_bundle_info_partial(
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        extension_safe = extension_safe,
         entitlements = entitlements,
         label_name = label_name,
         output_discriminator = output_discriminator,
