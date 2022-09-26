@@ -122,6 +122,24 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
+    archive_contents_test(
+        name = "{}_contains_tsan_dylib_device_test".format(name),
+        build_type = "simulator",
+        cpus = {
+            # Thread sanitizer support does not exist for the 32 bit Intel simulator; force the
+            # build to be 64 bit to get around this issue.
+            "watchos_cpus": ["x86_64"],
+        },
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libclang_rt.tsan_watchossim_dynamic.dylib",
+        ],
+        sanitizer = "tsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

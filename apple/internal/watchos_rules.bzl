@@ -204,15 +204,6 @@ def _watchos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.clang_rt_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
