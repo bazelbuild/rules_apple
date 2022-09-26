@@ -95,6 +95,8 @@ class ClangRuntimeTool(object):
         if not rpath.startswith("@") and "lib/clang" in rpath:
           found_rpath = rpath
       elif line.endswith(" LC_LOAD_DYLIB"):
+        # TODO(b/249129510): Make sure we have test coverage for this case when
+        # LC_RPATH is absent from the objdump output.
         library_line = objdump_output[index + 2].strip()
         library_segments = library_line.split(" ")
         if len(library_segments) != 4:
@@ -103,7 +105,7 @@ class ClangRuntimeTool(object):
         if library.startswith("@rpath/libclang_rt"):
           libs.add(library[len("@rpath/"):])
 
-    return rpath, libs
+    return found_rpath, libs
 
   def run(self):
     objdump_args = [
