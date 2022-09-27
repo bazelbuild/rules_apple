@@ -1239,27 +1239,12 @@ EOF
       "Payload/app.app/Frameworks/outer_framework.framework/Frameworks/inner_framework.framework/resource.txt"
 }
 
-# Tests that a warning is shown when an extension depends on a framework which
+# Tests that a failure happens when an extension depends on a framework which
 # is not marked extension_safe.
-# TODO(cparsons): This should eventually cause failure instead of merely a
-# warning.
 function test_extension_depends_on_unsafe_framework() {
   create_minimal_tvos_framework_with_params False "9.0"
   create_minimal_tvos_application_and_extension
-  do_build tvos //app:app || fail "Should build"
-
-  expect_log "not marked extension-safe"
-
-  # Verify the application still builds, however.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
-
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/extension.appex/Frameworks/"
+  do_build tvos //app:app && fail "Should fail"
 }
 
 # Tests that an App->Framework->Framework dependency is handled properly. (That
