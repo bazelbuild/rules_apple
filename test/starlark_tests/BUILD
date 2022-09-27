@@ -150,7 +150,6 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal:apple_product_type",
-        "//tools/build_defs/golden_test:def",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:paths",
