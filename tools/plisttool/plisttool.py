@@ -294,6 +294,13 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
 
 _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'aps-environment',
+    'com.apple.developer.carplay-audio',
+    'com.apple.developer.carplay-charging',
+    'com.apple.developer.carplay-maps',
+    'com.apple.developer.carplay-messaging',
+    'com.apple.developer.carplay-parking',
+    'com.apple.developer.carplay-quick-ordering',
+    'com.apple.developer.playable-content',
     'com.apple.developer.networking.wifi-info',
     'com.apple.developer.passkit.pass-presentation-suppression',
     'com.apple.developer.payment-pass-provisioning',
