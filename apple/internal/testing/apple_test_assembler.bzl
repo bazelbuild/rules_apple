@@ -100,6 +100,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     if runner:
         test_rule(
             name = name,
+            minimum_os_version = bundle_attrs.get("minimum_os_version"),
             runner = runner,
             test_host = bundle_attrs.get("test_host"),
             deps = [":{}".format(test_bundle_name)],
@@ -112,6 +113,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             tests.append(":{}".format(test_name))
             test_rule(
                 name = test_name,
+                minimum_os_version = bundle_attrs.get("minimum_os_version"),
                 runner = runner,
                 test_host = bundle_attrs.get("test_host"),
                 deps = [":{}".format(test_bundle_name)],
