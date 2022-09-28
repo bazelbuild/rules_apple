@@ -795,6 +795,7 @@ apple_xcframework = rule(
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
             ),
             "bundle_id": attr.string(
+                mandatory = True,
                 doc = """
 The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. If
 present, this value will be embedded in an Info.plist within each framework bundle.
