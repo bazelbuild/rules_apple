@@ -859,6 +859,13 @@ If true, compiles and links this framework with `-application-extension`, restri
 use only extension-safe APIs.
 """,
             ),
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
@@ -1002,6 +1009,13 @@ use only extension-safe APIs.
 A list of framework targets (see
 [`watchos_dynamic_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_dynamic_framework))
 that this target depends on.
+""",
+                ),
+                "bundle_only": attr.bool(
+                    default = False,
+                    doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
 """,
                     **extra_args
                 ),
