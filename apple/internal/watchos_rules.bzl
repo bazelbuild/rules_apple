@@ -258,7 +258,7 @@ def _watchos_dynamic_framework_impl(ctx):
             bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
-            bundle_only = False,
+            bundle_only = ctx.attr.bundle_only,
             objc_provider = link_result.objc,
             rule_label = label,
         ),
