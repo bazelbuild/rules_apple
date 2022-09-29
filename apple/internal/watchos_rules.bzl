@@ -761,6 +761,15 @@ def _watchos_extension_impl(ctx):
             dependency_targets = ctx.attr.extensions,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.extensions,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if platform_prerequisites.platform.is_device:
