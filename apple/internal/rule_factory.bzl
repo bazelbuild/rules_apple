@@ -87,6 +87,7 @@ load(
     "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
+    "WatchosFrameworkBundleInfo",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -996,10 +997,10 @@ use only extension-safe APIs.
             extra_args = {}
             attrs.append({
                 "frameworks": attr.label_list(
-                    providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                    providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                     doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`watchos_dynamic_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_dynamic_framework))
 that this target depends on.
 """,
                     **extra_args
