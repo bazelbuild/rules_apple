@@ -136,6 +136,21 @@ watchos_static_framework(
     ],
 )
 
+watchos_static_framework(
+    name = "swift_static_fmwk",
+    bundle_name = "swift_static_fmwk",
+    minimum_os_version = "4.0",
+    tags = FIXTURE_TAGS,
+    deps = [":swift_fmwk_lib"],
+)
+
+swift_library(
+    name = "swift_fmwk_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    module_name = "swift_static_fmwk",
+    tags = FIXTURE_TAGS,
+)
+
 # ---------------------------------------------------------------------------------------
 
 objc_library(
