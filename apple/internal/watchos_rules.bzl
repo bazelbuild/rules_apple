@@ -89,9 +89,9 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "IosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
+    "WatchosFrameworkBundleInfo",
     "WatchosStaticFrameworkBundleInfo",
 )
 load(
@@ -326,7 +326,7 @@ def _watchos_dynamic_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        IosFrameworkBundleInfo(),
+        WatchosFrameworkBundleInfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
