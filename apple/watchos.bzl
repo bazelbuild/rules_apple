@@ -34,12 +34,14 @@ load(
     _watchos_application = "watchos_application",
     _watchos_dynamic_framework = "watchos_dynamic_framework",
     _watchos_extension = "watchos_extension",
+    _watchos_framework = "watchos_framework",
     _watchos_static_framework = "watchos_static_framework",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 watchos_application = _watchos_application
 watchos_dynamic_framework = _watchos_dynamic_framework
+watchos_framework = _watchos_framework
 watchos_extension = _watchos_extension
 watchos_static_framework = _watchos_static_framework
 
