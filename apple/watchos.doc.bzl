@@ -13,6 +13,7 @@ load(
     _watchos_application = "watchos_application",
     _watchos_dynamic_framework = "watchos_dynamic_framework",
     _watchos_extension = "watchos_extension",
+    _watchos_framework = "watchos_framework",
     _watchos_static_framework = "watchos_static_framework",
 )
 load(
@@ -23,6 +24,7 @@ load(
 watchos_application = _watchos_application
 watchos_dynamic_framework = _watchos_dynamic_framework
 watchos_extension = _watchos_extension
+watchos_framework = _watchos_framework
 watchos_static_framework = _watchos_static_framework
 watchos_ui_test = _watchos_ui_test
 watchos_unit_test = _watchos_unit_test
