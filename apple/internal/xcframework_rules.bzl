@@ -72,10 +72,6 @@ load(
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -761,7 +757,7 @@ def _apple_xcframework_impl(ctx):
 
 apple_xcframework = rule(
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
             extra_deps_aspects = [
@@ -1098,7 +1094,7 @@ apple_static_xcframework = rule(
     implementation = _apple_static_xcframework_impl,
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.static_library_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
         ),

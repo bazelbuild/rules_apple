@@ -107,6 +107,7 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
             is_mandatory = False,
@@ -126,7 +127,6 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
             is_mandatory = True,
             providers = _WATCHOS_TEST_HOST_PROVIDERS,
         ),
-        rule_factory.common_tool_attributes,
     ],
 )
 
@@ -157,6 +157,7 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
             is_mandatory = False,
@@ -175,7 +176,6 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
             aspects = rule_attrs.aspects.test_host_aspects,
             providers = _WATCHOS_TEST_HOST_PROVIDERS,
         ),
-        rule_factory.common_tool_attributes,
     ],
 )
 

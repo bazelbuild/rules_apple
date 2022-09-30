@@ -51,8 +51,8 @@ load(
     "SwiftUsageInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
@@ -462,7 +462,7 @@ apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
     fragments = ["cpp"],
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
@@ -532,7 +532,7 @@ apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
     fragments = ["cpp", "objc"],
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(

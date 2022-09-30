@@ -32,7 +32,7 @@ load(
     "framework_import_support",
 )
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
-load("@build_bazel_rules_apple//apple/internal:rule_factory.bzl", "rule_factory")
+load("@build_bazel_rules_apple//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
@@ -710,8 +710,8 @@ objc_library(
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
         build_settings.parse_xcframework_info_plist.attr,
+        rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(),
         {
             "xcframework_imports": attr.label_list(
@@ -786,8 +786,8 @@ objc_library(
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
         build_settings.parse_xcframework_info_plist.attr,
+        rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(),
         {
             "alwayslink": attr.bool(

@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -60,6 +64,13 @@ _COMMON_ATTRS = dicts.add(
         ),
     },
     apple_support.action_required_attrs(),
+)
+
+# Returns the common set of attributes to support rules that leverage rules_apple tools and their
+# associated toolchains.
+_COMMON_TOOL_ATTRS = dicts.add(
+    _COMMON_ATTRS,
+    apple_toolchain_utils.shared_attrs(),
 )
 
 def _common_linking_api_attrs(*, deps_cfg):
@@ -567,6 +578,7 @@ _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBun
 
 rule_attrs = struct(
     common_attrs = _COMMON_ATTRS,
+    common_tool_attrs = _COMMON_TOOL_ATTRS,
     static_library_linking_attrs = _static_library_linking_attrs,
     binary_linking_attrs = _binary_linking_attrs,
     platform_attrs = _platform_attrs,

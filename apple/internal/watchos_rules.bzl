@@ -1558,6 +1558,7 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1568,7 +1569,6 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "extension": attr.label(
                 providers = [
@@ -1613,6 +1613,7 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1623,7 +1624,6 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "application_extension": attr.bool(
                 default = False,
@@ -1673,7 +1673,7 @@ those `watchos_extension` rules.""",
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1732,7 +1732,7 @@ watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1792,7 +1792,7 @@ watchos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.common_bundle_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1865,6 +1865,7 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1875,7 +1876,6 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "storyboards": attr.label_list(
                 allow_files = [".storyboard"],
