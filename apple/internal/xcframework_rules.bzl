@@ -68,6 +68,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -758,8 +762,13 @@ def _apple_xcframework_impl(ctx):
 apple_xcframework = rule(
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_binary_attrs(
-            cfg = transition_support.xcframework_transition,
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.xcframework_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = False,
         ),
         {
             "_allowlist_function_transition": attr.label(
@@ -799,25 +808,6 @@ appropriate resources location within each of the embedded framework bundles.
 A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
 values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
 Currently, this only affects processing of `ios` resources.
-""",
-            ),
-            "exported_symbols_lists": attr.label_list(
-                allow_files = True,
-                doc = """
-A list of targets containing exported symbols lists files for the linker to control symbol
-resolution.
-
-Each file is expected to have a list of global symbol names that will remain as global symbols in
-the compiled binary owned by this framework. All other global symbols will be treated as if they
-were marked as `__private_extern__` (aka `visibility=hidden`) and will not be global in the output
-file.
-
-See the man page documentation for `ld(1)` on macOS for more details.
-""",
-            ),
-            "linkopts": attr.string_list(
-                doc = """
-A list of strings representing extra flags that should be passed to the linker.
 """,
             ),
             "infoplists": attr.label_list(
@@ -876,34 +866,11 @@ each of these embedded frameworks. These header files will be embedded within ea
 typically in a subdirectory such as `Headers`.
 """,
             ),
-            "stamp": attr.int(
-                default = -1,
-                doc = """
-Enable link stamping. Whether to encode build information into the binaries. Possible values:
-
-*   `stamp = 1`: Stamp the build information into the binaries. Stamped binaries are only rebuilt
-    when their dependencies change. Use this if there are tests that depend on the build
-    information.
-*   `stamp = 0`: Always replace build information by constant values. This gives good build
-    result caching.
-*   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.
-""",
-                values = [-1, 0, 1],
-            ),
             "version": attr.label(
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
-""",
-            ),
-            "deps": attr.label_list(
-                aspects = [apple_resource_aspect, swift_usage_aspect],
-                cfg = transition_support.xcframework_transition,
-                doc = """
-A list of dependencies targets that will be linked into this each of the framework target's
-individual binaries. Any resources, such as asset catalogs, that are referenced by those targets
-will also be transitively included in the framework bundles.
 """,
             ),
             "umbrella_header": attr.label(
@@ -1132,8 +1099,8 @@ apple_static_xcframework = rule(
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
-            cfg = transition_support.xcframework_transition,
+        rule_attrs.static_library_linking_attrs(
+            deps_cfg = transition_support.xcframework_transition,
         ),
         {
             "executable_name": attr.string(

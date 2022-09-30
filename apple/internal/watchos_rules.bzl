@@ -68,6 +68,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -88,6 +92,14 @@ load(
     "transition_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -97,6 +109,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "WatchosApplicationBundleInfo",
@@ -1535,22 +1548,78 @@ Resolved Xcode is version {xcode_version}.
         WatchosSingleTargetApplicationBundleInfo(),
     ] + processor_result.providers
 
-watchos_application = rule_factory.create_apple_bundling_rule(
+watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_application_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.watch2_application,
     doc = "Builds and bundles an watchOS Application.",
+    attrs = [
+        rule_attrs.app_icon_attrs(),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_factory.common_tool_attributes,
+        {
+            "extension": attr.label(
+                providers = [
+                    [AppleBundleInfo, WatchosExtensionBundleInfo],
+                ],
+                doc = "The `watchos_extension` that is bundled with the watch application.",
+            ),
+            "storyboards": attr.label_list(
+                allow_files = [".storyboard"],
+                doc = """
+A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
+the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
+which case it will be placed under a directory with the same name in the bundle.
+""",
+            ),
+        },
+    ],
 )
 
-watchos_extension = rule_factory.create_apple_bundling_rule(
+watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_extension_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.watch2_extension,
-    doc = """Builds and bundles an watchOS Extension.
-
-**This rule only supports watchOS 2.0 and higher.**
-Apple no longer supports or accepts submissions of apps written for watchOS 1.x,
-so these bundling rules do not support that version of the platform.""",
+    doc = "Builds and bundles an watchOS Extension.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_factory.common_tool_attributes,
+        {
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+                doc = """
+A list of watchOS application extensions to include in the final watch extension bundle.
+""",
+            ),
+        },
+    ],
 )
 
 watchos_framework = rule_factory.create_apple_bundling_rule(
