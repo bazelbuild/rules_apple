@@ -1023,9 +1023,9 @@ If true, compiles and links this framework with `-application-extension`, restri
 use only extension-safe APIs.
 """,
             ),
-                "bundle_only": attr.bool(
-                    default = False,
-                    doc = """
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
 Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
 to manually dlopen the framework at runtime.
 """,

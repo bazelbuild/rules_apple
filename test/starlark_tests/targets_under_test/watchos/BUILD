@@ -227,10 +227,10 @@ watchos_framework(
 watchos_framework(
     name = "fmwk_dead_stripped",
     bundle_id = "com.google.example.framework",
-    extension_safe = True,
     exported_symbols_lists = [
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
+    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

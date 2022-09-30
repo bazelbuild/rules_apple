@@ -1213,7 +1213,6 @@ To use this framework for your extensions, list it in the `frameworks` attribute
 those `watchos_extension` rules.""",
 )
 
-
 watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
     implementation = _watchos_dynamic_framework_impl,
     platform_type = "watchos",
