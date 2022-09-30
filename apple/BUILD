@@ -56,6 +56,7 @@ bzl_library(
     deps = [
         ":providers",
         "//apple/internal:linking_support",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
         "@bazel_skylib//lib:dicts",

@@ -453,6 +453,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "rule_attrs",
+    srcs = ["rule_attrs.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:common",
+        "//apple:providers",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/aspects:swift_usage_aspect",
+        "//apple/internal/testing:apple_test_bundle_support",
+        "@bazel_skylib//lib:dicts",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "rule_factory",
     srcs = ["rule_factory.bzl"],
     visibility = [
@@ -461,6 +479,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":apple_toolchains",
+        ":rule_attrs",
         ":rule_support",
         ":transition_support",
         "//apple:common",
@@ -600,6 +619,8 @@ bzl_library(
         ":stub_support",
         ":swift_support",
         "//apple:providers",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:xcode_support",
     ],
@@ -623,6 +644,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":resources",
+        ":rule_attrs",
         ":rule_factory",
         ":rule_support",
         ":swift_support",
