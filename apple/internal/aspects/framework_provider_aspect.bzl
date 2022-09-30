@@ -74,5 +74,6 @@ Framework targets supported are:
   - `apple_dynamic_framework_import`
   - `ios_framework`
   - `tvos_framework`
+  - `watchos_framework`
 """,
 )
