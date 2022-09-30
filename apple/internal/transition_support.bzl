@@ -256,10 +256,11 @@ def _xcframework_split_attr_key(*, cpu, environment, platform_type):
         platform_type = platform_type,
     ) + "_" + environment
 
-def _resolved_cpu_for_cpu(*, cpu, environment):
+def _resolved_cpu_for_cpu(*, cpu, environment, platform_type):
     # TODO(b/180572694): Remove cpu redirection after supporting platforms based toolchain
     # resolution.
-    if cpu == "arm64" and environment == "simulator":
+    # TODO: Remove `watchos` after https://github.com/bazelbuild/bazel/pull/16181
+    if cpu == "arm64" and environment == "simulator" and platform_type != "watchos":
         return "sim_arm64"
     return cpu
 
@@ -297,6 +298,7 @@ def _command_line_options_for_xcframework_platform(
             resolved_cpu = _resolved_cpu_for_cpu(
                 cpu = cpu,
                 environment = target_environment,
+                platform_type = platform_type,
             )
 
             # TODO(b/237320075): Check that the archs requested are valid for the indicated platform
@@ -549,6 +551,7 @@ def _apple_common_multi_arch_split_key(*, cpu, environment, platform_type):
     cpu = _resolved_cpu_for_cpu(
         cpu = cpu,
         environment = environment,
+        platform_type = platform_type,
     )
     return _cpu_string(
         cpu = cpu,
