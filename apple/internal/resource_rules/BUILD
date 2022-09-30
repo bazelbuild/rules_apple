@@ -48,7 +48,7 @@ bzl_library(
         "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
-        "//apple/internal:rule_factory",
+        "//apple/internal:rule_attrs",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",

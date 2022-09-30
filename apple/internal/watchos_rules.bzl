@@ -807,6 +807,7 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.app_icon_attrs(),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -817,7 +818,6 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "extension": attr.label(
                 providers = [
@@ -852,6 +852,7 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -862,7 +863,6 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
@@ -890,6 +890,7 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs,
+        rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -900,7 +901,6 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
             platform_type = "watchos",
         ),
         rule_attrs.provisioning_profile_attrs(),
-        rule_factory.common_tool_attributes,
         {
             "storyboards": attr.label_list(
                 allow_files = [".storyboard"],

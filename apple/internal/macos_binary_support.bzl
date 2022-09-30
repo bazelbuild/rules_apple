@@ -43,8 +43,8 @@ load(
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
@@ -146,7 +146,7 @@ def _macos_binary_infoplist_impl(ctx):
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         {
             "bundle_id": attr.string(mandatory = False),
             "infoplists": attr.label_list(
@@ -226,7 +226,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         {
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],

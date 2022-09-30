@@ -27,8 +27,8 @@ load(
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -102,7 +102,7 @@ def _apple_core_data_model_impl(ctx):
 apple_core_data_model = rule(
     implementation = _apple_core_data_model_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         apple_support.action_required_attrs(),
         {
             "srcs": attr.label_list(
