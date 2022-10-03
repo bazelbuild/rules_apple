@@ -58,9 +58,6 @@ load(
     "MacosApplicationBundleInfo",
     "MacosExtensionBundleInfo",
     "MacosXPCServiceBundleInfo",
-    "TvosApplicationBundleInfo",
-    "TvosExtensionBundleInfo",
-    "TvosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosSingleTargetApplicationBundleInfo",
 )
@@ -454,116 +451,6 @@ the bundle was linked with.
 
     return attrs
 
-def _get_tvos_attrs(rule_descriptor):
-    """Returns a list of dictionaries with attributes for the tvOS platform."""
-    attrs = []
-
-    if rule_descriptor.product_type == apple_product_type.application:
-        attrs.append({
-            "extensions": attr.label_list(
-                providers = [
-                    [AppleBundleInfo, TvosExtensionBundleInfo],
-                ],
-                doc = "A list of tvOS extensions to include in the final application bundle.",
-            ),
-            "_runner_template": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                # Currently using the iOS Simulator template for tvOS, as tvOS does not require
-                # significantly different sim runner logic from iOS.
-                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
-            ),
-        })
-    elif rule_descriptor.product_type == apple_product_type.framework:
-        attrs.append({
-            # TODO(kaipi): This attribute is not publicly documented, but it is tested in
-            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
-            # what to do with this.
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-            ),
-            "extension_safe": attr.bool(
-                default = False,
-                doc = """
-If true, compiles and links this framework with `-application-extension`, restricting the binary to
-use only extension-safe APIs.
-""",
-            ),
-        })
-    elif rule_descriptor.product_type == apple_product_type.static_framework:
-        attrs.append({
-            "_emitswiftinterface": attr.bool(
-                default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
-            ),
-            "_cc_toolchain_forwarder": attr.label(
-                cfg = transition_support.apple_platform_split_transition,
-                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-                default =
-                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
-            ),
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-                doc = """
-A list of `.h` files that will be publicly exposed by this framework. These headers should have
-framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
-be generated that imports all of the headers listed here.
-""",
-            ),
-            "umbrella_header": attr.label(
-                allow_single_file = [".h"],
-                doc = """
-An optional single .h file to use as the umbrella header for this framework. Usually, this header
-will have the same name as this target, so that clients can load the header using the #import
-<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
-umbrella header will be generated under the same name as this target.
-""",
-            ),
-            "avoid_deps": attr.label_list(
-                cfg = transition_support.apple_platform_split_transition,
-                doc = """
-A list of library targets on which this framework depends in order to compile, but the transitive
-closure of which will not be linked into the framework's binary.
-""",
-            ),
-            "exclude_resources": attr.bool(
-                default = False,
-                doc = """
-Indicates whether resources should be excluded from the bundle. This can be used to avoid
-unnecessarily bundling resources if the static framework is being distributed in a different
-fashion, such as a Cocoapod.
-""",
-            ),
-        })
-    elif _is_test_product_type(rule_descriptor.product_type):
-        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
-        attrs.append(
-            rule_attrs.test_host_attrs(
-                aspects = rule_attrs.aspects.test_host_aspects,
-                is_mandatory = test_host_mandatory,
-                providers = [AppleBundleInfo, TvosApplicationBundleInfo],
-            ),
-        )
-
-    if rule_descriptor.requires_deps:
-        extra_args = {}
-        if rule_descriptor.product_type == apple_product_type.application:
-            extra_args["aspects"] = [framework_provider_aspect]
-
-        attrs.append({
-            "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
-                doc = """
-A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
-that this target depends on.
-""",
-                **extra_args
-            ),
-        })
-
-    return attrs
-
 def _get_macos_binary_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for macOS binary rules."""
     attrs = []
@@ -736,8 +623,6 @@ def _create_apple_bundling_rule(
         attrs.extend(_get_ios_attrs(rule_descriptor))
     elif platform_type == "macos":
         attrs.extend(_get_macos_attrs(rule_descriptor))
-    elif platform_type == "tvos":
-        attrs.extend(_get_tvos_attrs(rule_descriptor))
     else:
         fail((
             "Internal Error: platform_type of \"{platform_type}\" is no longer supported by " +
