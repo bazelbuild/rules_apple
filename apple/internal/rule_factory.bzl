@@ -1013,6 +1013,9 @@ ignored.
         })
     elif rule_descriptor.product_type == apple_product_type.framework:
         attrs.append({
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
@@ -1020,28 +1023,14 @@ If true, compiles and links this framework with `-application-extension`, restri
 use only extension-safe APIs.
 """,
             ),
-        })
-
-        if rule_descriptor.requires_deps:
-            extra_args = {}
-            attrs.append({
-                "frameworks": attr.label_list(
-                    providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
-                    doc = """
-A list of framework targets (see
-[`watchos_dynamic_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_dynamic_framework))
-that this target depends on.
-""",
-                ),
-                "bundle_only": attr.bool(
-                    default = False,
-                    doc = """
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
 Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
 to manually dlopen the framework at runtime.
 """,
-                    **extra_args
-                ),
-            })
+            ),
+        })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
             "_emitswiftinterface": attr.bool(
@@ -1093,6 +1082,23 @@ fashion, such as a Cocoapod.
                 default = Label(
                     "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
                 ),
+            ),
+        })
+
+    if rule_descriptor.requires_deps:
+        extra_args = {}
+        if rule_descriptor.product_type == apple_product_type.watch2_extension:
+            extra_args["aspects"] = [framework_provider_aspect]
+
+        attrs.append({
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+                **extra_args
             ),
         })
 

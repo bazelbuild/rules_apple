@@ -61,6 +61,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top">
         <code><a href="rules-tvos.md#tvos_application">tvos_application</a></code><br/>
         <code><a href="rules-tvos.md#tvos_extension">tvos_extension</a></code><br/>
+        <code><a href="rules-tvos.md#tvos_framework">tvos_framework</a></code><br/>
         <code><a href="rules-tvos.md#tvos_static_framework">tvos_static_framework</a></code><br/>
         <code><a href="rules-tvos.md#tvos_dynamic_framework">tvos_dynamic_framework</a></code><br/>
       </td>
@@ -76,6 +77,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       <td valign="top">
         <code><a href="rules-watchos.md#watchos_application">watchos_application</a></code><br/>
         <code><a href="rules-watchos.md#watchos_extension">watchos_extension</a></code><br/>
+        <code><a href="rules-watchos.md#watchos_framework">watchos_framework</a></code><br/>
         <code><a href="rules-watchos.md#watchos_static_framework">watchos_static_framework</a></code><br/>
         <code><a href="rules-watchos.md#watchos_dynamic_framework">watchos_dynamic_framework</a></code><br/>
       </td>
