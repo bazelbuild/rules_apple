@@ -1239,14 +1239,6 @@ EOF
       "Payload/app.app/Frameworks/outer_framework.framework/Frameworks/inner_framework.framework/resource.txt"
 }
 
-# Tests that a failure happens when an extension depends on a framework which
-# is not marked extension_safe.
-function test_extension_depends_on_unsafe_framework() {
-  create_minimal_tvos_framework_with_params False "9.0"
-  create_minimal_tvos_application_and_extension
-  do_build tvos //app:app && fail "Should fail"
-}
-
 # Tests that an App->Framework->Framework dependency is handled properly. (That
 # a framework that is not directly depended on by the app is still pulled into
 # the app, and symbols end up in the correct binaries.)

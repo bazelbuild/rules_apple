@@ -214,12 +214,4 @@ EOF
 EOF
 }
 
-# Tests that a failure happens when an extension depends on a framework which
-# is not marked extension_safe.
-function test_extension_depends_on_unsafe_framework() {
-  create_minimal_ios_framework_with_params False "9.0" "[]"
-  create_minimal_ios_application_and_extension
-  do_build ios //app:app && fail "Should fail"
-}
-
 run_suite "ios_framework bundling tests"
