@@ -148,14 +148,10 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
-  xcrunargs = ["xcrun",
-               "ibtool",
-               "--errors",
-               "--warnings",
-               "--notices",
-               "--auto-activate-custom-fonts",
-               "--output-format",
-               "human-readable-text"]
+  xcrunargs = [
+      "xcrun", "ibtool", "--errors", "--warnings", "--notices",
+      "--auto-activate-custom-fonts", "--output-format", "human-readable-text"
+  ]
 
   _apply_realpath(toolargs)
 
@@ -203,10 +199,20 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         return True
     return False
 
-  def is_warning_as_error(line):
-    """Matches both "has an unassigned child" and "has unassigned children."""
-    # TODO(b/80415817): also handle " but should be " and " unassigned "
-    return "does not exist" in line or "is not valid JSON" in line
+  def is_warning_or_notice_an_error(line):
+    """Returns True if the warning/notice should be treated as an error."""
+
+    # Current things staying as warnings are launch image deprecations,
+    # requiring a 1024x1024 for appstore (b/246165573) and "foo" is used by
+    # multiple imagesets (b/139094648)
+    warnings = [
+        "is used by multiple", "1024x1024",
+        "Launch images are deprecated in iOS 13.0"
+    ]
+    for warning in warnings:
+      if warning in line:
+        return False
+    return True
 
   output = set()
   current_section = None
@@ -219,13 +225,14 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
       continue
 
     if not current_section:
-       output.add(line + "\n")
+      output.add(line + "\n")
     elif current_section not in excluded_sections:
       if is_spurious_message(line):
         continue
 
-      if is_warning_as_error(line):
-        line = line.replace(': warning: ', ': error: ')
+      if is_warning_or_notice_an_error(line):
+        line = line.replace(": warning: ", ": error: ")
+        line = line.replace(": notice: ", ": error: ")
         tool_exit_status = 1
 
       output.add(line + "\n")
@@ -243,13 +250,10 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
-  xcrunargs = ["xcrun",
-               "actool",
-               "--errors",
-               "--warnings",
-               "--notices",
-               "--output-format",
-               "human-readable-text"]
+  xcrunargs = [
+      "xcrun", "actool", "--errors", "--warnings", "--notices",
+      "--output-format", "human-readable-text"
+  ]
 
   _apply_realpath(toolargs)
 
@@ -285,8 +289,7 @@ def coremlc(_, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs, print_output=True)
   return return_code
 
 def intentbuilderc(args, toolargs):
@@ -353,8 +356,7 @@ def momc(args, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs, print_output=True)
 
   destination_dir = args.xctoolrunner_assert_nonempty_dir
   if args.xctoolrunner_assert_nonempty_dir and not os.listdir(destination_dir):
@@ -372,7 +374,7 @@ def mapc(_, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs)
+      xcrunargs, print_output=True)
   return return_code
 
 
