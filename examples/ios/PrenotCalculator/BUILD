@@ -27,7 +27,7 @@ ios_application(
     bundle_id = "com.example.prenot-calculator",
     families = ["iphone"],
     infoplists = ["PrenotCalculator-Info.plist"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "11.0",
     deps = [":PrenotCalculator_library"],
 )
 
@@ -69,7 +69,7 @@ objc_library(
 
 ios_unit_test(
     name = "PrenotCalculatorTests",
-    minimum_os_version = "8.0",
+    minimum_os_version = "11.0",
     deps = [":PrenotCalculatorTestsLib"],
 )
 

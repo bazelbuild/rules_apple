@@ -32,7 +32,7 @@ macos_application(
     app_icons = ["//examples/resources:MacAppIcon.xcassets"],
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

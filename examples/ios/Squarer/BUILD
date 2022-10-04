@@ -16,6 +16,6 @@ objc_library(
 
 ios_unit_test(
     name = "SquarerTests",
-    minimum_os_version = "8.0",
+    minimum_os_version = "11.0",
     deps = [":SquarerTestsLib"],
 )
