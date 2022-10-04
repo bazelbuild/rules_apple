@@ -598,6 +598,7 @@ rule_attrs = struct(
     ),
     defaults = struct(
         allowed_families = struct(
+            macos = ["mac"],
             tvos = ["tv"],
             watchos = ["watch"],
         ),

@@ -59,10 +59,6 @@ load(
     "IosImessageApplicationBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
-    "MacosApplicationBundleInfo",
-    "MacosExtensionBundleInfo",
-    "MacosFrameworkBundleInfo",
-    "MacosXPCServiceBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosSingleTargetApplicationBundleInfo",
 )
@@ -431,179 +427,6 @@ not in the top-level bundle.
 
     return attrs
 
-def _get_macos_attrs(rule_descriptor):
-    """Returns a list of dictionaries with attributes for the macOS platform."""
-    attrs = []
-
-    attrs.append({
-        "additional_contents": attr.label_keyed_string_dict(
-            allow_files = True,
-            doc = """
-Files that should be copied into specific subdirectories of the Contents folder in the bundle. The
-keys of this dictionary are labels pointing to single files, filegroups, or targets; the
-corresponding value is the name of the subdirectory of Contents where they should be placed.
-
-The relative directory structure of filegroup contents is preserved when they are copied into the
-desired Contents subdirectory.
-""",
-        ),
-    })
-
-    if rule_descriptor.product_type == apple_product_type.bundle:
-        attrs.append({
-            "bundle_extension": attr.string(
-                doc = """
-The extension, without a leading dot, that will be used to name the bundle. If this attribute is not
-set, then the extension will be `.bundle`.
-""",
-            ),
-            "bundle_loader": attr.label(
-                doc = """
-The target representing the executable that will be loading this bundle. Undefined symbols from the
-bundle are checked against this execuable during linking as if it were one of the dynamic libraries
-the bundle was linked with.
-""",
-                providers = [apple_common.AppleExecutableBinary],
-            ),
-        })
-
-    if rule_descriptor.product_type == apple_product_type.application:
-        attrs.append({
-            "extensions": attr.label_list(
-                providers = [
-                    [AppleBundleInfo, MacosExtensionBundleInfo],
-                ],
-                doc = "A list of macOS extensions to include in the final application bundle.",
-            ),
-            "xpc_services": attr.label_list(
-                providers = [
-                    [AppleBundleInfo, MacosXPCServiceBundleInfo],
-                ],
-                doc = "A list of macOS XPC Services to include in the final application bundle.",
-            ),
-            "_runner_template": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
-            ),
-            "include_symbols_in_bundle": attr.bool(
-                default = False,
-                doc = """
-    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
-    files from all `{binary: .dSYM, ...}` pairs for the application and its
-    dependencies, then packages them under the `Symbols/` directory in the
-    final application bundle.
-    """,
-            ),
-        })
-    elif rule_descriptor.product_type == apple_product_type.framework:
-        attrs.append({
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-            ),
-            "extension_safe": attr.bool(
-                default = False,
-                doc = """
-If true, compiles and links this framework with `-application-extension`, restricting the binary to
-use only extension-safe APIs.
-""",
-            ),
-            "bundle_only": attr.bool(
-                default = False,
-                doc = """
-Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
-to manually dlopen the framework at runtime.
-""",
-            ),
-        })
-    elif rule_descriptor.product_type == apple_product_type.static_framework:
-        attrs.append({
-            "_emitswiftinterface": attr.bool(
-                default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
-            ),
-            "_cc_toolchain_forwarder": attr.label(
-                cfg = transition_support.apple_platform_split_transition,
-                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-                default =
-                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
-            ),
-            "hdrs": attr.label_list(
-                allow_files = [".h"],
-                doc = """
-A list of `.h` files that will be publicly exposed by this framework. These headers should have
-framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
-be generated that imports all of the headers listed here.
-""",
-            ),
-            "umbrella_header": attr.label(
-                allow_single_file = [".h"],
-                doc = """
-An optional single .h file to use as the umbrella header for this framework. Usually, this header
-will have the same name as this target, so that clients can load the header using the #import
-<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
-umbrella header will be generated under the same name as this target.
-""",
-            ),
-            "avoid_deps": attr.label_list(
-                cfg = transition_support.apple_platform_split_transition,
-                doc = """
-A list of library targets on which this framework depends in order to compile, but the transitive
-closure of which will not be linked into the framework's binary.
-""",
-            ),
-            "exclude_resources": attr.bool(
-                default = False,
-                doc = """
-Indicates whether resources should be excluded from the bundle. This can be used to avoid
-unnecessarily bundling resources if the static framework is being distributed in a different
-fashion, such as CocoaPods.
-""",
-            ),
-        })
-    elif _is_test_product_type(rule_descriptor.product_type):
-        test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
-        attrs.append(
-            rule_attrs.test_host_attrs(
-                aspects = rule_attrs.aspects.test_host_aspects,
-                is_mandatory = test_host_mandatory,
-                providers = [
-                    [AppleBundleInfo, MacosApplicationBundleInfo],
-                    [AppleBundleInfo, MacosExtensionBundleInfo],
-                ],
-            ),
-        )
-
-        attrs.append({
-            "_swizzle_absolute_xcttestsourcelocation": attr.label(
-                default = Label(
-                    "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
-                ),
-            ),
-        })
-
-    # TODO(kaipi): Once all platforms have framework rules, move this into
-    # _common_binary_linking_attrs().
-    if rule_descriptor.requires_deps:
-        extra_args = {}
-        if (rule_descriptor.product_type == apple_product_type.application or
-            rule_descriptor.product_type == apple_product_type.app_clip):
-            extra_args["aspects"] = [framework_provider_aspect]
-
-        attrs.append({
-            "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
-                doc = """
-A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
-that this target depends on.
-""",
-                **extra_args
-            ),
-        })
-
-    return attrs
-
 def _get_macos_binary_attrs(rule_descriptor):
     """Returns a list of dictionaries with attributes for macOS binary rules."""
     attrs = []
@@ -621,10 +444,20 @@ required for device builds.
         })
 
     if rule_descriptor.product_type == apple_product_type.tool:
-        # TODO(kaipi): Document this attribute.
+        # TODO(b/250698827): Explicitly scope this attribute and its documentation exclusively to
+        # macos_command_line_application; there are internal macOS rules that set a product type of
+        # apple_product_type.tool.
         attrs.append({
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],
+                doc = """
+A list of system wide and per-user daemon/agent configuration files, as specified by the launch
+plist manual that can be found via `man launchd.plist`. These are XML files that can be loaded into
+launchd with launchctl, and are required of command line applications that are intended to be used
+as launch daemons and agents on macOS. All `launchd.plist`s referenced by this attribute will be
+merged into a single plist and written directly into the `__TEXT`,`__launchd_plist` section of the
+linked binary.
+""",
             ),
         })
 
@@ -784,8 +617,6 @@ def _create_apple_bundling_rule(
     # _create_apple_bundling_rule_with_attrs(...).
     if platform_type == "ios":
         attrs.extend(_get_ios_attrs(rule_descriptor))
-    elif platform_type == "macos":
-        attrs.extend(_get_macos_attrs(rule_descriptor))
     else:
         fail((
             "Internal Error: platform_type of \"{platform_type}\" is no longer supported by " +
