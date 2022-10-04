@@ -258,8 +258,7 @@ EOF
 }
 
 # Verify that we warn with unassigned children in an asset
-# TODO(b/80415817) - Update to an error.
-function test_actool_warns_with_unassigned_children_in_asset() {
+function test_actool_errors_with_unassigned_children_in_asset() {
   create_common_files
 
   cat > app/BUILD <<EOF
@@ -284,7 +283,7 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app && fail "Should fail"
 
   expect_log "The image set \"star_universal\" has an unassigned child"
 }
@@ -348,6 +347,37 @@ EOF
   do_build ios //app:app && fail "Should fail"
 
   expect_log "error: The file \"star.png\" for the image set \"star_universal\" does not exist."
+}
+
+# Verify that we error with badly sized assets in icons.
+function test_actool_errors_with_badly_sized_children_in_icon() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:app_icons_ios_with_bad_size",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "error: app_icon.appiconset/app_icon_40pt_3x.png is 120x121 but should be 120x120."
 }
 
 run_suite "ios_application bundling with resources tests"
