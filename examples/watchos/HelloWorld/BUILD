@@ -63,7 +63,7 @@ ios_application(
     ],
     infoplists = [":Phone-Info.plist"],
     launch_storyboard = "//examples/resources:Launch.storyboard",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     version = ":HelloWorldVersion",
     watch_application = ":HelloWorld-WatchApplication",
     deps = [":PhoneSources"],
@@ -75,7 +75,7 @@ watchos_application(
     bundle_id = "com.example.hello-world.watch",
     extension = ":HelloWorld-WatchExtension",
     infoplists = [":WatchApp-Info.plist"],
-    minimum_os_version = "2.0",
+    minimum_os_version = "4.0",
     storyboards = [
         "WatchResources/Interface.storyboard",
     ],
@@ -86,7 +86,7 @@ watchos_extension(
     name = "HelloWorld-WatchExtension",
     bundle_id = "com.example.hello-world.watch.extension",
     infoplists = [":WatchExt-Info.plist"],
-    minimum_os_version = "2.0",
+    minimum_os_version = "4.0",
     version = ":HelloWorldVersion",
     deps = [":WatchSources"],
 )

@@ -52,7 +52,7 @@ macos_application(
         ":TodayExtension",
     ],
     infoplists = [":App-Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloTodayVersion",
     deps = [":AppSources"],
 )
@@ -62,7 +62,7 @@ macos_extension(
     bundle_id = "com.example.hello-today.today-extension",
     entitlements = ":Ext-Entitlements.entitlements",
     infoplists = [":Ext-Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloTodayVersion",
     deps = [":ExtSources"],
 )

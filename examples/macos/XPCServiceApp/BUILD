@@ -42,7 +42,7 @@ macos_xpc_service(
     name = "XPCService",
     bundle_id = "com.example.xpc-service-app.xpc-service",
     infoplists = ["XPCServiceSources/Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":XPCServiceAppVersion",
     deps = [":XPCServiceLib"],
 )
@@ -52,7 +52,7 @@ macos_application(
     app_icons = ["//examples/resources:MacAppIcon.xcassets"],
     bundle_id = "com.example.xpc-service-app",
     infoplists = ["XPCServiceAppSources/Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":XPCServiceAppVersion",
     xpc_services = [":XPCService"],
     deps = [":XPCServiceAppLib"],
