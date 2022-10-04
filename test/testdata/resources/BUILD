@@ -55,6 +55,7 @@ filegroup(
         "storyboard_ios.storyboard",
         "view_ios.xib",
         ":app_icons_ios",
+        ":app_icons_ios_with_bad_size",
         ":assets2_ios",
         ":assets_ios",
         ":imageset_missing_child",
@@ -283,6 +284,11 @@ filegroup(
 filegroup(
     name = "imageset_with_unassigned_child",
     srcs = glob(["imageset_with_unassigned_child.xcassets/**"]),
+)
+
+filegroup(
+    name = "app_icons_ios_with_bad_size",
+    srcs = glob(["app_icons_ios_with_bad_size.xcassets/**"]),
 )
 
 filegroup(
