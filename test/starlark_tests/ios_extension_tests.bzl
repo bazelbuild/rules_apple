@@ -190,6 +190,39 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_with_imported_static_fmwk_contains_symbols_and_bundles_resources".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_fmwk_and_ext",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        is_not_binary_plist = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_imported_dynamic_fmwk_bundles_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_and_ext",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

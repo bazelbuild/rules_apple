@@ -32,10 +32,6 @@ function create_common_files() {
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application"
     )
-load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_dynamic_framework_import",
-     "apple_static_framework_import",
-    )
 load("@build_bazel_rules_apple//apple:resources.bzl",
      "apple_resource_bundle",
     )
@@ -94,81 +90,6 @@ EOF
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-EOF
-}
-
-# Creates a minimal iOS application target that depends on an imported
-# framework.
-#
-# This function takes a required parameter denoting whether the framework is
-# static or dynamic (corresponding to the framework's is_dynamic attribute).
-function create_minimal_ios_application_with_framework_import() {
-  readonly framework_type="$1"
-  readonly import_rule="$2"
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [
-        ":frameworkDependingLib",
-        ":lib",
-    ],
-)
-
-objc_library(
-    name = "frameworkDependingLib",
-    deps = [":fmwk"],
-)
-
-$import_rule(
-    name = "fmwk",
-    framework_imports = glob(["fmwk.framework/**"]),
-    features = ["-parse_headers"],
-)
-EOF
-
-  mkdir -p app/fmwk.framework
-  if [[ $framework_type == dynamic ]]; then
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin.dylib) \
-        app/fmwk.framework/fmwk
-  else
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/libdummy_lib.a) \
-        app/fmwk.framework/fmwk
-  fi
-
-  cat > app/fmwk.framework/Info.plist <<EOF
-Dummy plist
-EOF
-
-  cat > app/fmwk.framework/resource.txt <<EOF
-Dummy resource
-EOF
-
-  mkdir -p app/fmwk.framework/fmwk.bundle
-  cat > app/fmwk.framework/fmwk.bundle/Some.plist <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Foo</key>
-    <string>Bar</string>
-  </dict>
-</plist>
-EOF
-
-  mkdir -p app/fmwk.framework/Headers
-  cat > app/fmwk.framework/Headers/fmwk.h <<EOF
-This shouldn't get included
-EOF
-
-  mkdir -p app/fmwk.framework/Modules
-  cat > app/fmwk.framework/Headers/module.modulemap <<EOF
-This shouldn't get included
 EOF
 }
 
@@ -545,63 +466,6 @@ EOF
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/appResources.bundle/foo_sim.txt"
   fi
-}
-
-# Tests that a prebuilt static framework (i.e., apple_static_framework_import)
-# is not bundled with the application.
-function test_prebuilt_static_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import static apple_static_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that it's not bundled.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Tests that the resources in the bundle of the static framework are copied to
-# the final ipa, and that they are not re-processed
-function test_prebuilt_static_apple_static_framework_import_resources() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import static apple_static_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that it's not converted to binary.
-  assert_plist_is_text "test-bin/app/app.ipa" \
-      "Payload/app.app/fmwk.bundle/Some.plist"
-}
-
-# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
-# is bundled properly with the application.
-function test_prebuilt_dynamic_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import dynamic apple_dynamic_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that the binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-
-  # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
 }
 
 # Helper for empty segment build id failures.
