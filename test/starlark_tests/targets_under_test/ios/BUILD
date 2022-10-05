@@ -503,6 +503,23 @@ ios_framework(
     ],
 )
 
+ios_application(
+    name = "app_with_imported_static_fmwk_and_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSImportedStaticFramework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 apple_static_framework_import(
     name = "iOSImportedStaticFramework",
     features = ["-swift.layering_check"],
@@ -1469,6 +1486,23 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_imported_dynamic_fmwk_and_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSImportedDynamicFramework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 apple_dynamic_framework_import(

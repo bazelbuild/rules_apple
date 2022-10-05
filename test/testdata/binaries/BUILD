@@ -10,25 +10,11 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 apple_binary(
-    name = "empty_dylib",
-    binary_type = "dylib",
-    minimum_os_version = "11.0",
-    platform_type = "ios",
-    deps = [":dummy_lib"],
-)
-
-apple_binary(
     name = "empty_tvos_dylib",
     binary_type = "dylib",
     minimum_os_version = "11.0",
     platform_type = "tvos",
     deps = [":dummy_lib"],
-)
-
-filegroup(
-    name = "empty_staticlib",
-    srcs = ["dummy_lib"],
-    output_group = "archive",
 )
 
 cc_library(
