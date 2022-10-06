@@ -173,7 +173,7 @@ def _binary_linking_attrs(
     if requires_legacy_cc_toolchain:
         # This attribute is required by the Clang runtime libraries processing partial.
         # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
-        dicts.add(extra_attrs, {
+        extra_attrs = dicts.add(extra_attrs, {
             "_cc_toolchain": attr.label(
                 default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
             ),
