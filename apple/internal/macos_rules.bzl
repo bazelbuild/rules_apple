@@ -121,6 +121,7 @@ load(
     "AppleBinaryInfo",
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
+    "AppleBundleVersionInfo",
     "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "MacosApplicationBundleInfo",
@@ -133,7 +134,15 @@ load(
     "MacosStaticFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+    "use_cpp_toolchain",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -1758,7 +1767,7 @@ def _macos_command_line_application_impl(ctx):
     """Implementation of the macos_command_line_application rule."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.tool,
     )
 
     actions = ctx.actions
@@ -1890,7 +1899,7 @@ def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.dylib,
     )
 
     actions = ctx.actions
@@ -2406,14 +2415,9 @@ desired Contents subdirectory.
     ],
 )
 
-# TODO(b/246990309): Handle this special case through a pure rule definition, no special
-# rule_factory method based on create_apple_binary_rule.
-macos_command_line_application = rule_factory.create_apple_binary_rule(
+macos_command_line_application = rule(
     implementation = _macos_command_line_application_impl,
-    platform_type = "macos",
-    product_type = apple_product_type.tool,
     doc = """Builds a macOS Command Line Application binary.
-
 
 A command line application is a standalone binary file, rather than a `.app`
 bundle like those produced by [`macos_application`](#macos_application). Unlike
@@ -2423,18 +2427,113 @@ code-signed.
 
 Targets created with `macos_command_line_application` can be executed using
 `bazel run`.""",
-    additional_attrs = {
-        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
-    },
+    attrs = dicts.add(
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = False),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "macos",
+        ),
+        rule_attrs.provisioning_profile_attrs(
+            profile_extension = ".provisionprofile",
+        ),
+        {
+            # Required to use the Apple Starlark rule and split transitions.
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+            "infoplists": attr.label_list(
+                allow_files = [".plist"],
+                doc = """
+A list of .plist files that will be merged to form the Info.plist that represents the application
+and is embedded into the binary. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+for what is supported.
+""",
+            ),
+            "launchdplists": attr.label_list(
+                allow_files = [".plist"],
+                doc = """
+A list of system wide and per-user daemon/agent configuration files, as specified by the launch
+plist manual that can be found via `man launchd.plist`. These are XML files that can be loaded into
+launchd with launchctl, and are required of command line applications that are intended to be used
+as launch daemons and agents on macOS. All `launchd.plist`s referenced by this attribute will be
+merged into a single plist and written directly into the `__TEXT`,`__launchd_plist` section of the
+linked binary.
+""",
+            ),
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+""",
+            ),
+        },
+    ),
+    cfg = transition_support.apple_rule_transition,
+    executable = True,
+    fragments = ["apple", "cpp", "objc"],
+    toolchains = use_cpp_toolchain(),
 )
 
-# TODO(b/246990309): Handle this special case through a pure rule definition, no special
-# rule_factory method based on create_apple_binary_rule.
-macos_dylib = rule_factory.create_apple_binary_rule(
+macos_dylib = rule(
     implementation = _macos_dylib_impl,
-    platform_type = "macos",
-    product_type = apple_product_type.dylib,
+    attrs = dicts.add(
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = False),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "macos",
+        ),
+        rule_attrs.provisioning_profile_attrs(
+            profile_extension = ".provisionprofile",
+        ),
+        {
+            # Required to use the Apple Starlark rule and split transitions.
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+            "infoplists": attr.label_list(
+                allow_files = [".plist"],
+                doc = """
+A list of .plist files that will be merged to form the Info.plist that represents the application
+and is embedded into the binary. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+for what is supported.
+""",
+            ),
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+""",
+            ),
+        },
+    ),
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds a macOS Dylib binary.",
+    fragments = ["apple", "cpp", "objc"],
+    toolchains = use_cpp_toolchain(),
 )
 
 def _macos_framework_impl(ctx):
