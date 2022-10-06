@@ -76,7 +76,10 @@ bzl_library(
         ":apple_test_rule_support",
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
