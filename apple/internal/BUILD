@@ -76,9 +76,11 @@ bzl_library(
     ],
     deps = [
         ":linking_support",
-        ":rule_factory",
+        ":rule_attrs",
         ":transition_support",
         "//apple:providers",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_tools//tools/cpp:toolchain_utils",
     ],
 )
 
@@ -350,6 +352,8 @@ bzl_library(
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_tools//tools/cpp:toolchain_utils",
     ],
 )
 

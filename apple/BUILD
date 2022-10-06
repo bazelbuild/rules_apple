@@ -46,7 +46,10 @@ bzl_library(
     srcs = ["apple_binary.bzl"],
     deps = [
         "//apple/internal:linking_support",
-        "//apple/internal:rule_factory",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:transition_support",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_tools//tools/cpp:toolchain_utils",
     ],
 )
 
