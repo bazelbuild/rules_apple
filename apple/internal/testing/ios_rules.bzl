@@ -27,23 +27,45 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "IosApplicationBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageApplicationBundleInfo",
     "IosXcTestBundleInfo",
 )
 
 def _ios_ui_test_bundle_impl(ctx):
     """Implementation of ios_ui_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.ui_test_bundle,
+    ) + [
         IosXcTestBundleInfo(),
     ]
 
 def _ios_unit_test_bundle_impl(ctx):
     """Implementation of ios_unit_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.unit_test_bundle,
+    ) + [
         IosXcTestBundleInfo(),
     ]
 
@@ -60,11 +82,55 @@ def _ios_unit_test_impl(ctx):
     ]
 
 # Declare it with an underscore so it shows up that way in queries.
-_ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+_ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_ui_test_bundle_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.ui_test_bundle,
     doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = False),
+        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = False,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "ios",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.test_bundle_attrs,
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            is_mandatory = True,
+            providers = [
+                [AppleBundleInfo, IosApplicationBundleInfo],
+                [AppleBundleInfo, IosImessageApplicationBundleInfo],
+            ],
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
@@ -77,11 +143,51 @@ ios_ui_test = rule_factory.create_apple_test_rule(
 )
 
 # Declare it with an underscore so it shows up that way in queries.
-_ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
+_ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_unit_test_bundle_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.unit_test_bundle,
     doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = False),
+        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = False,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "ios",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.test_bundle_attrs,
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            providers = [[AppleBundleInfo, IosApplicationBundleInfo]],
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
