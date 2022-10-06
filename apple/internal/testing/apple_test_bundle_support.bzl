@@ -257,14 +257,8 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(ctx, product_type = ""):
+def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
-    inferred_product_type = product_type
-    if not inferred_product_type:
-        # TODO(b/246990309): Remove this fallback to ctx.attr._product_type when all test bundle
-        # rules use create_apple_bundling_rule_with_attrs(...) to compose the rule.
-        inferred_product_type = ctx.attr._product_type
-
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
     if ctx.attr.bundle_id:
@@ -279,7 +273,7 @@ def _apple_test_bundle_impl(ctx, product_type = ""):
 
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = inferred_product_type,
+        product_type = product_type,
     )
 
     actions = ctx.actions
