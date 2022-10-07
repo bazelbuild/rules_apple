@@ -55,6 +55,21 @@ def watchos_single_target_application_test_suite(name):
         ],
     )
 
+    analysis_failure_message_test(
+        name = "{}_unexpected_watch2_extension_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_watch2_ext",
+        expected_error = """
+Single-target watchOS applications do not support watchOS 2 extensions or their delegates.
+
+Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
+delegate is referenced in the single-target `watchos_application`'s `deps`.
+""",
+        tags = [
+            name,
+            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        ],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",

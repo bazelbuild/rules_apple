@@ -557,7 +557,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "watchos": {
-        # watchos_single_target_application
+        # watchos_application (single target application)
         apple_product_type.application: _describe_rule_type(
             additional_infoplist_values = {"WKApplication": True},
             allowed_device_families = ["watch"],
@@ -571,7 +571,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
-        # watchos_application (watchOS 2 app bundle)
+        # watchos_application (watchOS 2 extension-based app bundle)
         apple_product_type.watch2_application: _describe_rule_type(
             additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
