@@ -23,7 +23,7 @@ import re
 import tempfile
 import unittest
 
-from build_bazel_rules_apple.tools.plisttool import plisttool
+from tools.plisttool import plisttool
 
 # Used as the target name for all tests.
 _testing_target = '//plisttool:tests'

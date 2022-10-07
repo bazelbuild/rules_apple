@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 
 def invoke_lipo(binary_path, binary_slices, output_path):

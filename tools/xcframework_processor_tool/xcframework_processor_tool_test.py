@@ -19,7 +19,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from build_bazel_rules_apple.tools.xcframework_processor_tool import xcframework_processor_tool
+from tools.xcframework_processor_tool import xcframework_processor_tool
 
 
 _MOCK_XCFRAMEWORK_INFO_PLIST = {

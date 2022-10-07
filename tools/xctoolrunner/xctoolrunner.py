@@ -40,7 +40,7 @@ import re
 import shutil
 import sys
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 # This prefix is set for rules_apple rules in:
 # apple/internal/utils/xctoolrunner.bzl

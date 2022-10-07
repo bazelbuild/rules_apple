@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 
 # Regex with benign codesign messages that can be safely ignored.

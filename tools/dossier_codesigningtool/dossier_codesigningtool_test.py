@@ -19,7 +19,7 @@ import unittest
 
 from unittest import mock
 
-from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigningtool
+from tools.dossier_codesigningtool import dossier_codesigningtool
 
 _FAKE_MANIFEST = {
     'codesign_identity': '-',

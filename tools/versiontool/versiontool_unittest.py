@@ -19,7 +19,7 @@ import json
 import sys
 import unittest
 
-from build_bazel_rules_apple.tools.versiontool import versiontool
+from tools.versiontool import versiontool
 
 
 class VersionToolTest(unittest.TestCase):
