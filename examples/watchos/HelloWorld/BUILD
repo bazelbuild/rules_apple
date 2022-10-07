@@ -11,7 +11,6 @@ load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
-    "watchos_single_target_application",
 )
 
 licenses(["notice"])
@@ -128,7 +127,7 @@ ios_application(
     deps = [":PhoneSources"],
 )
 
-watchos_single_target_application(
+watchos_application(
     name = "HelloWorld-SingleTargetWatchApplication",
     app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",

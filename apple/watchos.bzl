@@ -35,7 +35,6 @@ load(
     _watchos_dynamic_framework = "watchos_dynamic_framework",
     _watchos_extension = "watchos_extension",
     _watchos_framework = "watchos_framework",
-    _watchos_single_target_application = "watchos_single_target_application",
     _watchos_static_framework = "watchos_static_framework",
 )
 
@@ -45,7 +44,6 @@ watchos_dynamic_framework = _watchos_dynamic_framework
 watchos_framework = _watchos_framework
 watchos_extension = _watchos_extension
 watchos_static_framework = _watchos_static_framework
-watchos_single_target_application = _watchos_single_target_application
 
 _DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
 
