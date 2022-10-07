@@ -54,24 +54,6 @@
             "orientation": "landscape",
             "scale": "2x",
             "size": "1024x768"
-        },
-        {
-            "extent": "full-screen",
-            "filename": "launch_image_1366x1024pt_2x.png",
-            "idiom": "ipad",
-            "minimum-system-version": "9.0",
-            "orientation": "landscape",
-            "scale": "2x",
-            "size": "1366x1024"
-        },
-        {
-            "extent": "full-screen",
-            "filename": "launch_image_1024x1366pt_2x.png",
-            "idiom": "ipad",
-            "minimum-system-version": "9.0",
-            "orientation": "portrait",
-            "scale": "2x",
-            "size": "1024x1366"
         }
     ],
     "info": {
