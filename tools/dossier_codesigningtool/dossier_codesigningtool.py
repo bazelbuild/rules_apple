@@ -29,7 +29,7 @@ import sys
 import tempfile
 import uuid
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 
 class DossierDirectory(object):

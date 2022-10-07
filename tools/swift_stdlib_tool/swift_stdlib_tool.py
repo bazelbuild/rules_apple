@@ -21,9 +21,9 @@ import shutil
 import sys
 import tempfile
 
-from build_bazel_rules_apple.tools.bitcode_strip import bitcode_strip
-from build_bazel_rules_apple.tools.wrapper_common import execute
-from build_bazel_rules_apple.tools.wrapper_common import lipo
+from tools.bitcode_strip import bitcode_strip
+from tools.wrapper_common import execute
+from tools.wrapper_common import lipo
 
 _OTOOL_MINIMUM_OS_VERSION_RE = re.compile(
     r"""

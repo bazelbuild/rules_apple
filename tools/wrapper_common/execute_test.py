@@ -18,7 +18,7 @@ import io
 import signal
 import unittest
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 _INVALID_UTF8 = b'\xa0\xa1'
 
