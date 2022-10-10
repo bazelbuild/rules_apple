@@ -73,10 +73,18 @@ def _sectcreate_objc_provider(segname, sectname, file):
     # linkopts get deduped, so use a single option to pass then through as a
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
-    return apple_common.new_objc_provider(
-        linkopt = depset(linkopts, order = "topological"),
-        link_inputs = depset([file]),
-    )
+    return [
+        apple_common.new_objc_provider(
+            linkopt = depset(linkopts, order = "topological"),
+            link_inputs = depset([file]),
+        ),
+        CcInfo(
+            linking_context = cc_common.create_linking_context(
+                user_link_flags = linkopts,
+                additional_inputs = [file],
+            ),
+        ),
+    ]
 
 def _register_binary_linking_action(
         ctx,
