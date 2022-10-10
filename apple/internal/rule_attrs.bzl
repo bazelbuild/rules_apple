@@ -73,6 +73,24 @@ _COMMON_TOOL_ATTRS = dicts.add(
     apple_toolchain_utils.shared_attrs(),
 )
 
+def _cc_toolchain_forwarder_attrs(*, deps_cfg):
+    """Returns dictionary with the cc_toolchain_forwarder attribute for toolchain and platform info.
+
+    Args:
+        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
+            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
+            use the same transition.
+    """
+
+    return {
+        "_cc_toolchain_forwarder": attr.label(
+            cfg = deps_cfg,
+            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+            default =
+                "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+        ),
+    }
+
 def _common_linking_api_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for Bazel Apple linking APIs.
 
@@ -86,6 +104,8 @@ def _common_linking_api_attrs(*, deps_cfg):
             use the same transition.
     """
     return dicts.add(_COMMON_ATTRS, {
+        # TODO(b/251837356): Replace with the _cc_toolchain_forwarder attr when native code doesn't
+        # require that this attr be called `_child_configuration_dummy` in Bazel linking APIs.
         "_child_configuration_dummy": attr.label(
             cfg = deps_cfg,
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
@@ -545,6 +565,7 @@ _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBun
 rule_attrs = struct(
     common_attrs = _COMMON_ATTRS,
     common_tool_attrs = _COMMON_TOOL_ATTRS,
+    cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
     static_library_linking_attrs = _static_library_linking_attrs,
     binary_linking_attrs = _binary_linking_attrs,
     platform_attrs = _platform_attrs,

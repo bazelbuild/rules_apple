@@ -98,8 +98,13 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "ApplePlatformInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
+)
+load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
 )
 
 def _watchos_application_impl(ctx):
@@ -127,6 +132,7 @@ def _watchos_extension_based_application_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -172,8 +178,22 @@ def _watchos_extension_based_application_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    # Collect all architectures found from the cc_toolchain forwarder.
+    # TODO(b/251911924): Consider sharing this trick with the swift stdlib tool, so we can= pass a
+    # list of archs instead of an entire binary dependency.
+    requested_archs = sets.make()
+    for cc_toolchain in cc_toolchain_forwarder.values():
+        requested_archs = sets.insert(requested_archs, cc_toolchain[ApplePlatformInfo].target_arch)
+
+    if sets.length(requested_archs) == 0:
+        fail("Internal Error: No architectures found for {label_name}. Please file an issue with a \
+reproducible error case.".format(
+            label_name = label.name,
+        ))
+
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
+        archs_for_lipo = sets.to_list(requested_archs),
         platform_prerequisites = platform_prerequisites,
         rule_label = label,
         xcode_stub_path = rule_descriptor.stub_binary_path,
@@ -827,6 +847,7 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.cc_toolchain_forwarder_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
