@@ -16,6 +16,10 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfoplistInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -73,10 +77,19 @@ def _sectcreate_objc_provider(segname, sectname, file):
     # linkopts get deduped, so use a single option to pass then through as a
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
-    return apple_common.new_objc_provider(
-        linkopt = depset(linkopts, order = "topological"),
-        link_inputs = depset([file]),
-    )
+    return [
+        apple_common.new_objc_provider(
+            linkopt = depset(linkopts, order = "topological"),
+            link_inputs = depset([file]),
+        ),
+        CcInfo(
+            linking_context = cc_common.create_linking_context(
+                user_link_flags = linkopts,
+                additional_inputs = [file],
+            ),
+        ),
+        AppleBinaryInfoplistInfo(infoplist = merged_infoplist),
+    ]
 
 def _parse_platform_key(key):
     """Parses a string key from a `link_multi_arch_binary` result dictionary.

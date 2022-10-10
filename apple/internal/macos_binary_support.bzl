@@ -52,7 +52,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfoplistInfo",
     "AppleBundleVersionInfo",
 )
 load(
@@ -120,14 +119,11 @@ def _macos_binary_infoplist_impl(ctx):
         version = ctx.attr.version,
     )
 
-    return [
-        linking_support.sectcreate_objc_provider(
-            "__TEXT",
-            "__info_plist",
-            merged_infoplist,
-        ),
-        AppleBinaryInfoplistInfo(infoplist = merged_infoplist),
-    ]
+    return linking_support.sectcreate_objc_provider(
+        "__TEXT",
+        "__info_plist",
+        merged_infoplist,
+    )
 
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
@@ -185,13 +181,11 @@ def _macos_command_line_launchdplist_impl(ctx):
         rule_label = rule_label,
     )
 
-    return [
-        linking_support.sectcreate_objc_provider(
-            "__TEXT",
-            "__launchd_plist",
-            merged_launchdplist,
-        ),
-    ]
+    return linking_support.sectcreate_objc_provider(
+        "__TEXT",
+        "__launchd_plist",
+        merged_launchdplist,
+    )
 
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
