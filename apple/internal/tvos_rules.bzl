@@ -1568,7 +1568,7 @@ i.e. `--features=-swift.no_generated_header`).
 """,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1576,8 +1576,11 @@ i.e. `--features=-swift.no_generated_header`).
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+        ),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
@@ -1591,12 +1594,6 @@ i.e. `--features=-swift.no_generated_header`).
             "_emitswiftinterface": attr.bool(
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
-            ),
-            "_cc_toolchain_forwarder": attr.label(
-                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
-                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-                default =
-                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
             ),
             "avoid_deps": attr.label_list(
                 cfg = _STATIC_FRAMEWORK_DEPS_CFG,

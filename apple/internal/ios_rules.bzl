@@ -2631,6 +2631,8 @@ that this target depends on.
     ],
 )
 
+_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
+
 ios_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_static_framework_impl,
     doc = """Builds and bundles an iOS static framework for third-party distribution.
@@ -2673,7 +2675,7 @@ i.e. `--features=-swift.no_generated_header`).""",
     cfg = transition_support.apple_platforms_rule_base_transition,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2681,7 +2683,12 @@ i.e. `--features=-swift.no_generated_header`).""",
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2692,18 +2699,12 @@ i.e. `--features=-swift.no_generated_header`).""",
             add_environment_plist = True,
         ),
         {
-            "_cc_toolchain_forwarder": attr.label(
-                cfg = transition_support.apple_platform_split_transition,
-                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-                default =
-                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
-            ),
             "_emitswiftinterface": attr.bool(
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
             "avoid_deps": attr.label_list(
-                cfg = transition_support.apple_platform_split_transition,
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
