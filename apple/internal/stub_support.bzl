@@ -56,15 +56,14 @@ def _create_stub_binary(
     )
 
     if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
-        apple_support.run_shell(
+        apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            command = "xcrun bitcode_strip -r \"$SDKROOT/{xcode_stub_path}\" -o {output_path}".format(
-                output_path = binary_artifact.path,
-                xcode_stub_path = xcode_stub_path,
-            ),
+            executable = "/usr/bin/xcrun",
+            arguments = ["bitcode_strip", "-r", "__BAZEL_XCODE_SDKROOT__/{}".format(xcode_stub_path), "-o", binary_artifact.path],
             mnemonic = "BitcodeStripStub",
             outputs = [binary_artifact],
+            xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
             progress_message = "Removing bitcode from stub executable for %s" % (rule_label),
             xcode_config = platform_prerequisites.xcode_version_config,
         )
