@@ -224,6 +224,7 @@ apple_verification_test = rule(
             doc = """
 A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
 """,
+        ),
         "apple_generate_dsym": attr.bool(
             default = False,
             doc = """
