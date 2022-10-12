@@ -87,9 +87,10 @@ def _watchos_unit_test_impl(ctx):
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
-_watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_ui_test_bundle_impl,
+_watchos_internal_ui_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS UI Test Bundle. Internal target not to be depended upon.",
+    implementation = _watchos_ui_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -141,15 +142,16 @@ that this target depends on.
 watchos_internal_ui_test_bundle = _watchos_internal_ui_test_bundle
 
 watchos_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _watchos_ui_test_impl,
     doc = "watchOS UI Test rule.",
+    implementation = _watchos_ui_test_impl,
     platform_type = "watchos",
 )
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
-_watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_unit_test_bundle_impl,
+_watchos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS Unit Test Bundle. Internal target not to be depended upon.",
+    implementation = _watchos_unit_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -200,7 +202,7 @@ that this target depends on.
 watchos_internal_unit_test_bundle = _watchos_internal_unit_test_bundle
 
 watchos_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _watchos_unit_test_impl,
     doc = "watchOS Unit Test rule.",
+    implementation = _watchos_unit_test_impl,
     platform_type = "watchos",
 )

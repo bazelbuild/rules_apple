@@ -91,9 +91,10 @@ def _tvos_unit_test_impl(ctx):
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
-_tvos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_ui_test_bundle_impl,
+_tvos_internal_ui_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an tvOS UI Test Bundle. Internal target not to be depended upon.",
+    implementation = _tvos_ui_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -145,7 +146,6 @@ that this target depends on.
 tvos_internal_ui_test_bundle = _tvos_internal_ui_test_bundle
 
 tvos_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _tvos_ui_test_impl,
     doc = """
 Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
@@ -158,13 +158,15 @@ The following is a list of the `tvos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
+    implementation = _tvos_ui_test_impl,
     platform_type = "tvos",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
-_tvos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_unit_test_bundle_impl,
+_tvos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
+    implementation = _tvos_unit_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -215,7 +217,6 @@ that this target depends on.
 tvos_internal_unit_test_bundle = _tvos_internal_unit_test_bundle
 
 tvos_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _tvos_unit_test_impl,
     doc = """
 Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
@@ -236,5 +237,6 @@ The following is a list of the `tvos_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
+    implementation = _tvos_unit_test_impl,
     platform_type = "tvos",
 )

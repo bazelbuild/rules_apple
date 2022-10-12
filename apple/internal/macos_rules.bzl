@@ -134,15 +134,7 @@ load(
     "MacosStaticFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
-load(
-    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
-    "find_cpp_toolchain",
-    "use_cpp_toolchain",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -2016,14 +2008,15 @@ def _macos_dylib_impl(ctx):
         link_result.debug_outputs_provider,
     ] + processor_result.providers
 
-macos_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_application_impl,
+macos_application = rule_factory.create_apple_rule(
     doc = """Builds and bundles a macOS Application.
 
 This rule creates an application that is a `.app` bundle. If you want to build a
 simple command line tool as a standalone binary, use
 [`macos_command_line_application`](#macos_command_line_application) instead.""",
+    implementation = _macos_application_impl,
     is_executable = True,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -2103,9 +2096,10 @@ If true and --output_groups=+dsyms is specified, generates `$UUID.symbols` files
     ],
 )
 
-macos_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_bundle_impl,
+macos_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Loadable Bundle.",
+    implementation = _macos_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -2165,14 +2159,15 @@ the bundle was linked with.
     ],
 )
 
-macos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_extension_impl,
+macos_extension = rule_factory.create_apple_rule(
     doc = """Builds and bundles a macOS Application Extension.
 
 Most macOS app extensions use a plug-in-based architecture where the
 executable's entry point is provided by a system framework. However, macOS 11
 introduced Widget Extensions that use a traditional `main` entry
 point (typically expressed through Swift's `@main` attribute).""",
+    implementation = _macos_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -2226,9 +2221,10 @@ that this target depends on.
     ],
 )
 
-macos_quick_look_plugin = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_quick_look_plugin_impl,
+macos_quick_look_plugin = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Quick Look Plugin.",
+    implementation = _macos_quick_look_plugin_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2273,10 +2269,11 @@ desired Contents subdirectory.
     ],
 )
 
-macos_kernel_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_kernel_extension_impl,
-    doc = "Builds and bundles a macOS Kernel Extension.",
+macos_kernel_extension = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_arm64_as_arm64e_transition,
+    doc = "Builds and bundles a macOS Kernel Extension.",
+    implementation = _macos_kernel_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2321,9 +2318,10 @@ desired Contents subdirectory.
     ],
 )
 
-macos_spotlight_importer = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_spotlight_importer_impl,
+macos_spotlight_importer = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Spotlight Importer.",
+    implementation = _macos_spotlight_importer_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2368,9 +2366,10 @@ desired Contents subdirectory.
     ],
 )
 
-macos_xpc_service = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_xpc_service_impl,
+macos_xpc_service = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS XPC Service.",
+    implementation = _macos_xpc_service_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2415,8 +2414,7 @@ desired Contents subdirectory.
     ],
 )
 
-macos_command_line_application = rule(
-    implementation = _macos_command_line_application_impl,
+macos_command_line_application = rule_factory.create_apple_rule(
     doc = """Builds a macOS Command Line Application binary.
 
 A command line application is a standalone binary file, rather than a `.app`
@@ -2427,7 +2425,9 @@ code-signed.
 
 Targets created with `macos_command_line_application` can be executed using
 `bazel run`.""",
-    attrs = dicts.add(
+    implementation = _macos_command_line_application_impl,
+    is_executable = True,
+    attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2479,16 +2479,13 @@ An `apple_bundle_version` target that represents the version for this target. Se
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_rule_transition,
-    executable = True,
-    fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )
 
-macos_dylib = rule(
+macos_dylib = rule_factory.create_apple_rule(
+    doc = "Builds a macOS Dylib binary.",
     implementation = _macos_dylib_impl,
-    attrs = dicts.add(
+    attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2529,11 +2526,7 @@ An `apple_bundle_version` target that represents the version for this target. Se
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_rule_transition,
-    doc = "Builds a macOS Dylib binary.",
-    fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )
 
 def _macos_framework_impl(ctx):
@@ -2794,7 +2787,7 @@ def _macos_dynamic_framework_impl(ctx):
     if len(swiftdeps) != 1 or len(ctx.attr.deps) > 1:
         fail(
             """\
-    error: Swift dynamic frameworks expect a single swift_library dependency.
+                    error: Swift dynamic frameworks expect a single swift_library dependency.
     """,
         )
 
@@ -3205,12 +3198,13 @@ def _macos_static_framework_impl(ctx):
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
-macos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_framework_impl,
+macos_framework = rule_factory.create_apple_rule(
     doc = """Builds and bundles an macOS Dynamic Framework.
 
 To use this framework for your app and extensions, list it in the `frameworks` attributes
 of those `macos_application` and/or `macos_extension` rules.""",
+    implementation = _macos_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -3266,9 +3260,10 @@ that this target depends on.
     ],
 )
 
-macos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_dynamic_framework_impl,
+macos_dynamic_framework = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS dynamic framework that is consumable by Xcode.",
+    implementation = _macos_dynamic_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -3327,8 +3322,7 @@ that this target depends on.
 
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
-macos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_static_framework_impl,
+macos_static_framework = rule_factory.create_apple_rule(
     cfg = transition_support.apple_platforms_rule_base_transition,
     doc = """Builds and bundles a macOS static framework for third-party distribution.
 
@@ -3367,6 +3361,8 @@ target. Finally, it also bundles a `module.modulemap` file pointing to the
 umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).""",
+    implementation = _macos_static_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
