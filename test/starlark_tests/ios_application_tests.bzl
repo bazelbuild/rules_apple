@@ -473,7 +473,7 @@ def ios_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_bitcode",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/iOSDynamicFrameworkWithBitcode.framework/iOSDynamicFrameworkWithBitcode",
-        macho_load_commands_not_contain = ["__LLVM"],
+        macho_load_commands_not_contain = ["segname __LLVM"],
         tags = [name],
     )
 
@@ -484,7 +484,7 @@ def ios_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_dep",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
-        macho_load_commands_not_contain = ["__LLVM"],
+        macho_load_commands_not_contain = ["segname __LLVM"],
         tags = [name],
     )
 
