@@ -81,28 +81,35 @@ AppleTestRunnerInfo provider.
     ),
 }
 
-def _create_apple_bundling_rule_with_attrs(
+def _create_apple_rule(
         *,
-        archive_extension = ".zip",
-        attrs,
         cfg = transition_support.apple_rule_transition,
         doc,
         implementation,
-        is_executable = False):
+        is_executable = False,
+        predeclared_outputs = {},
+        toolchains = use_cpp_toolchain(),
+        attrs):
     """Creates an Apple bundling rule with additional control of the set of rule attributes.
 
     Args:
-        archive_extension: An extension to be applied to the generated archive file. Optional. This
-            will be `.zip` by default.
-        attrs: A list of dictionaries of attributes to be applied to the generated rule.
         cfg: The rule transition to be applied directly on the generated rule. Optional. This will
             be the Starlark Apple rule transition `transition_support.apple_rule_transition` by
             default.
         doc: The documentation string for the rule itself.
-        implementation: The method to handle the implementation of the given rule.
+        implementation: The method to handle the implementation of the given rule. Optional. True
+            by default.
+        toolchains: List. A list of toolchains that this rule requires. Optional. If not set, adds
+            the cpp toolchain to the rule definition as its sole requirement.
         is_executable: Boolean. If set to True, marks the rule as executable. Optional. False by
             default.
+        predeclared_outputs: A dictionary of any predeclared outputs that the rule is expected to
+            have. Optional. An empty dictionary by default.
+        attrs: A list of dictionaries of attributes to be applied to the generated rule.
     """
+    extra_args = {}
+    if predeclared_outputs:
+        extra_args["outputs"] = predeclared_outputs
 
     return rule(
         implementation = implementation,
@@ -119,11 +126,11 @@ def _create_apple_bundling_rule_with_attrs(
         doc = doc,
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
-        outputs = {"archive": "%{name}" + archive_extension},
-        toolchains = use_cpp_toolchain(),
+        toolchains = toolchains,
+        **extra_args
     )
 
-def _create_apple_test_rule(implementation, doc, platform_type):
+def _create_apple_test_rule(*, doc, implementation, platform_type):
     """Creates an Apple test rule."""
 
     # These attrs are exposed for IDE experiences via `bazel query` as long as these test rules are
@@ -153,6 +160,6 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     )
 
 rule_factory = struct(
-    create_apple_bundling_rule_with_attrs = _create_apple_bundling_rule_with_attrs,
+    create_apple_rule = _create_apple_rule,
     create_apple_test_rule = _create_apple_test_rule,
 )

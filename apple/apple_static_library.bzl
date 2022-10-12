@@ -27,15 +27,14 @@ load(
     "rule_attrs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "ApplePlatformInfo",
 )
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _apple_static_library_impl(ctx):
     # Most validation of the platform type and minimum version OS currently happens in
@@ -71,9 +70,26 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
         link_result.output_groups,
     ]
 
-apple_static_library = rule(
+apple_static_library = rule_factory.create_apple_rule(
+    cfg = None,
+    doc = """
+This rule produces single- or multi-architecture ("fat") static libraries targeting
+Apple platforms.
+
+The `lipo` tool is used to combine files of multiple architectures. One of
+several flags may control which architectures are included in the output,
+depending on the value of the `platform_type` attribute.
+
+NOTE: In most situations, users should prefer the platform- and
+product-type-specific rules, such as `apple_static_xcframework`. This
+rule is being provided for the purpose of transitioning users from the built-in
+implementation of `apple_static_library` in Bazel core so that it can be removed.
+""",
     implementation = _apple_static_library_impl,
-    attrs = dicts.add(
+    predeclared_outputs = {
+        "lipo_archive": "%{name}_lipo.a",
+    },
+    attrs = [
         rule_attrs.common_tool_attrs,
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -175,14 +191,6 @@ framework dependencies in the library targets where that framework is used,
 not in the top-level bundle.
 """,
             ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
         },
-    ),
-    outputs = {
-        "lipo_archive": "%{name}_lipo.a",
-    },
-    fragments = ["objc", "apple", "cpp"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )

@@ -23,14 +23,9 @@ load(
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
 )
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _linker_flag_for_sdk_dylib(dylib):
     """Returns a linker flag suitable for linking the given `sdk_dylib` value.
@@ -115,9 +110,26 @@ def _apple_binary_impl(ctx):
 
     return providers
 
-apple_binary = rule(
+apple_binary = rule_factory.create_apple_rule(
+    doc = """
+This rule produces single- or multi-architecture ("fat") binaries targeting
+Apple platforms.
+
+The `lipo` tool is used to combine files of multiple architectures. One of
+several flags may control which architectures are included in the output,
+depending on the value of the `platform_type` attribute.
+
+NOTE: In most situations, users should prefer the platform- and
+product-type-specific rules, such as `macos_command_line_application`. This
+rule is being provided for the purpose of transitioning users from the built-in
+implementation of `apple_binary` in Bazel core so that it can be removed.
+""",
     implementation = _apple_binary_impl,
-    attrs = dicts.add(
+    predeclared_outputs = {
+        # Provided for compatibility with built-in `apple_binary` only.
+        "lipobin": "%{name}_lipobin",
+    },
+    attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
             is_test_supporting_rule = False,
@@ -125,10 +137,6 @@ apple_binary = rule(
         ),
         rule_attrs.platform_attrs(),
         {
-            # Required to use the Apple Starlark rule and split transitions.
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
             "binary_type": attr.string(
                 default = "executable",
                 doc = """
@@ -190,25 +198,5 @@ not in the top-level bundle.
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_rule_transition,
-    doc = """
-This rule produces single- or multi-architecture ("fat") binaries targeting
-Apple platforms.
-
-The `lipo` tool is used to combine files of multiple architectures. One of
-several flags may control which architectures are included in the output,
-depending on the value of the `platform_type` attribute.
-
-NOTE: In most situations, users should prefer the platform- and
-product-type-specific rules, such as `macos_command_line_application`. This
-rule is being provided for the purpose of transitioning users from the built-in
-implementation of `apple_binary` in Bazel core so that it can be removed.
-""",
-    fragments = ["apple", "cpp", "objc"],
-    outputs = {
-        # Provided for compatibility with built-in `apple_binary` only.
-        "lipobin": "%{name}_lipobin",
-    },
-    toolchains = use_cpp_toolchain(),
+    ],
 )

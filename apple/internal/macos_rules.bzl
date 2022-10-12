@@ -112,11 +112,6 @@ load(
     "MacosSpotlightImporterBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -1840,10 +1835,11 @@ def _macos_dylib_impl(ctx):
         link_result.debug_outputs_provider,
     ] + processor_result.providers
 
-macos_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_application_impl,
+macos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Application.",
+    implementation = _macos_application_impl,
     is_executable = True,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -1912,9 +1908,10 @@ If true and --output_groups=+dsyms is specified, generates `$UUID.symbols` files
     ],
 )
 
-macos_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_bundle_impl,
+macos_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Loadable Bundle.",
+    implementation = _macos_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -1972,9 +1969,10 @@ the bundle was linked with.
     ],
 )
 
-macos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_extension_impl,
+macos_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Application Extension.",
+    implementation = _macos_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -2018,9 +2016,10 @@ desired Contents subdirectory.
     ],
 )
 
-macos_quick_look_plugin = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_quick_look_plugin_impl,
+macos_quick_look_plugin = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Quick Look Plugin.",
+    implementation = _macos_quick_look_plugin_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2063,10 +2062,11 @@ desired Contents subdirectory.
     ],
 )
 
-macos_kernel_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_kernel_extension_impl,
-    doc = "Builds and bundles a macOS Kernel Extension.",
+macos_kernel_extension = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_arm64_as_arm64e_transition,
+    doc = "Builds and bundles a macOS Kernel Extension.",
+    implementation = _macos_kernel_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2109,9 +2109,10 @@ desired Contents subdirectory.
     ],
 )
 
-macos_spotlight_importer = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_spotlight_importer_impl,
+macos_spotlight_importer = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS Spotlight Importer.",
+    implementation = _macos_spotlight_importer_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2154,9 +2155,10 @@ desired Contents subdirectory.
     ],
 )
 
-macos_xpc_service = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_xpc_service_impl,
+macos_xpc_service = rule_factory.create_apple_rule(
     doc = "Builds and bundles a macOS XPC Service.",
+    implementation = _macos_xpc_service_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2199,9 +2201,11 @@ desired Contents subdirectory.
     ],
 )
 
-macos_command_line_application = rule(
+macos_command_line_application = rule_factory.create_apple_rule(
+    doc = "Builds a macOS Command Line Application binary.",
     implementation = _macos_command_line_application_impl,
-    attrs = dicts.add(
+    is_executable = True,
+    attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
             extra_deps_aspects = [
@@ -2253,17 +2257,13 @@ An `apple_bundle_version` target that represents the version for this target. Se
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_rule_transition,
-    doc = "Builds a macOS Command Line Application binary.",
-    executable = True,
-    fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )
 
-macos_dylib = rule(
+macos_dylib = rule_factory.create_apple_rule(
+    doc = "Builds a macOS Dylib binary.",
     implementation = _macos_dylib_impl,
-    attrs = dicts.add(
+    attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
             extra_deps_aspects = [
@@ -2304,9 +2304,5 @@ An `apple_bundle_version` target that represents the version for this target. Se
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_rule_transition,
-    doc = "Builds a macOS Dylib binary.",
-    fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )

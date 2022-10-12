@@ -1893,11 +1893,11 @@ def _ios_sticker_pack_extension_impl(ctx):
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
-ios_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_application_impl,
-    archive_extension = ".ipa",
+ios_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Application.",
+    implementation = _ios_application_impl,
     is_executable = True,
+    predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
@@ -2002,11 +2002,11 @@ that should be embedded in the application bundle.
     ],
 )
 
-ios_app_clip = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_app_clip_impl,
-    archive_extension = ".ipa",
+ios_app_clip = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS App Clip.",
+    implementation = _ios_app_clip_impl,
     is_executable = True,
+    predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
@@ -2063,9 +2063,10 @@ Info.plist under the key `UILaunchStoryboardName`.
     ],
 )
 
-ios_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_extension_impl,
+ios_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Application Extension.",
+    implementation = _ios_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
@@ -2124,9 +2125,10 @@ not in the top-level bundle.
     ],
 )
 
-ios_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_framework_impl,
+ios_framework = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Dynamic Framework.",
+    implementation = _ios_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2177,10 +2179,11 @@ use only extension-safe APIs.
 
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
-ios_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_static_framework_impl,
-    doc = "Builds and bundles an iOS Static Framework.",
+ios_static_framework = rule_factory.create_apple_rule(
     cfg = transition_support.apple_platforms_rule_base_transition,
+    doc = "Builds and bundles an iOS Static Framework.",
+    implementation = _ios_static_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
@@ -2245,10 +2248,10 @@ umbrella header will be generated under the same name as this target.
     ],
 )
 
-ios_imessage_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_imessage_application_impl,
-    archive_extension = ".ipa",
+ios_imessage_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS iMessage Application.",
+    implementation = _ios_imessage_application_impl,
+    predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
@@ -2284,9 +2287,10 @@ Required.
     ],
 )
 
-ios_imessage_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_imessage_extension_impl,
+ios_imessage_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS iMessage Extension.",
+    implementation = _ios_imessage_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
@@ -2328,9 +2332,10 @@ that this target depends on.
     ],
 )
 
-ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_sticker_pack_extension_impl,
+ios_sticker_pack_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Sticker Pack Extension.",
+    implementation = _ios_sticker_pack_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".stickersiconset",

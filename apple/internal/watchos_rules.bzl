@@ -832,9 +832,10 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
-watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_application_impl,
+watchos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS Application.",
+    implementation = _watchos_application_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -888,9 +889,10 @@ which case it will be placed under a directory with the same name in the bundle.
     ],
 )
 
-watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_extension_impl,
+watchos_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS Extension.",
+    implementation = _watchos_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,

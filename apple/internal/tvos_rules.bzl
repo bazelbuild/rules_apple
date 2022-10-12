@@ -936,11 +936,11 @@ def _tvos_static_framework_impl(ctx):
         TvosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 
-tvos_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_application_impl,
-    archive_extension = ".ipa",
+tvos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles a tvOS Application.",
+    implementation = _tvos_application_impl,
     is_executable = True,
+    predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -992,9 +992,10 @@ that this target depends on.
     ],
 )
 
-tvos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_extension_impl,
+tvos_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles a tvOS Extension.",
+    implementation = _tvos_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -1031,9 +1032,10 @@ that this target depends on.
     ],
 )
 
-tvos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_framework_impl,
+tvos_framework = rule_factory.create_apple_rule(
     doc = "Builds and bundles a tvOS Dynamic Framework.",
+    implementation = _tvos_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -1082,10 +1084,11 @@ that this target depends on.
 
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
-tvos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _tvos_static_framework_impl,
+tvos_static_framework = rule_factory.create_apple_rule(
     cfg = transition_support.apple_platforms_rule_base_transition,
     doc = "Builds and bundles a tvOS Static Framework.",
+    implementation = _tvos_static_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,

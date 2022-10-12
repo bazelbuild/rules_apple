@@ -82,9 +82,10 @@ def _macos_unit_test_impl(ctx):
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
-_macos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_ui_test_bundle_impl,
+_macos_internal_ui_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an macOS UI Test Bundle. Internal target not to be depended upon.",
+    implementation = _macos_ui_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -139,15 +140,16 @@ desired Contents subdirectory.
 macos_internal_ui_test_bundle = _macos_internal_ui_test_bundle
 
 macos_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _macos_ui_test_impl,
     doc = "macOS UI Test rule.",
+    implementation = _macos_ui_test_impl,
     platform_type = "macos",
 )
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
-_macos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _macos_unit_test_bundle_impl,
+_macos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an macOS Unit Test Bundle. Internal target not to be depended upon.",
+    implementation = _macos_unit_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -201,7 +203,7 @@ desired Contents subdirectory.
 macos_internal_unit_test_bundle = _macos_internal_unit_test_bundle
 
 macos_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _macos_unit_test_impl,
     doc = "macOS Unit Test rule.",
+    implementation = _macos_unit_test_impl,
     platform_type = "macos",
 )
