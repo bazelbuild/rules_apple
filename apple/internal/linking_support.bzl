@@ -88,7 +88,6 @@ def _sectcreate_objc_provider(segname, sectname, file):
                 additional_inputs = [file],
             ),
         ),
-        AppleBinaryInfoplistInfo(infoplist = merged_infoplist),
     ]
 
 def _parse_platform_key(key):

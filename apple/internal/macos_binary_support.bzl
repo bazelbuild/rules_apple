@@ -52,6 +52,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfoplistInfo",
     "AppleBundleVersionInfo",
 )
 load(
@@ -123,7 +124,7 @@ def _macos_binary_infoplist_impl(ctx):
         "__TEXT",
         "__info_plist",
         merged_infoplist,
-    )
+    ) + [AppleBinaryInfoplistInfo(infoplist = merged_infoplist)]
 
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
