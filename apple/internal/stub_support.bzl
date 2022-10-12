@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
+    "bitcode_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -51,19 +55,33 @@ def _create_stub_binary(
         file_name = "StubBinary",
     )
 
-    # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
-    apple_support.run_shell(
-        actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
-        command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
-            output_path = binary_artifact.path,
-            xcode_stub_path = xcode_stub_path,
-        ),
-        mnemonic = "CopyStubExecutable",
-        outputs = [binary_artifact],
-        progress_message = "Copying stub executable for %s" % (rule_label),
-        xcode_config = platform_prerequisites.xcode_version_config,
-    )
+    if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
+        apple_support.run_shell(
+            actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            command = "xcrun bitcode_strip -r \"$SDKROOT/{xcode_stub_path}\" -o {output_path}".format(
+                output_path = binary_artifact.path,
+                xcode_stub_path = xcode_stub_path,
+            ),
+            mnemonic = "CopyStubExecutable",
+            outputs = [binary_artifact],
+            progress_message = "Copying stub executable for %s" % (rule_label),
+            xcode_config = platform_prerequisites.xcode_version_config,
+        )
+    else:
+        # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
+        apple_support.run_shell(
+            actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
+                output_path = binary_artifact.path,
+                xcode_stub_path = xcode_stub_path,
+            ),
+            mnemonic = "CopyStubExecutable",
+            outputs = [binary_artifact],
+            progress_message = "Copying stub executable for %s" % (rule_label),
+            xcode_config = platform_prerequisites.xcode_version_config,
+        )
     return binary_artifact
 
 stub_support = struct(
