@@ -1534,6 +1534,7 @@ ios_imessage_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "10.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = FIXTURE_TAGS,
 )
 
@@ -1548,6 +1549,7 @@ ios_sticker_pack_extension(
         "//test/starlark_tests/resources:StickerPackInfo.plist",
     ],
     minimum_os_version = "10.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     sticker_assets = [],
     tags = FIXTURE_TAGS,
 )
