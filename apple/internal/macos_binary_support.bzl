@@ -121,6 +121,7 @@ def _macos_binary_infoplist_impl(ctx):
     )
 
     return linking_support.sectcreate_objc_provider(
+        rule_label,
         "__TEXT",
         "__info_plist",
         merged_infoplist,
@@ -183,6 +184,7 @@ def _macos_command_line_launchdplist_impl(ctx):
     )
 
     return linking_support.sectcreate_objc_provider(
+        rule_label,
         "__TEXT",
         "__launchd_plist",
         merged_launchdplist,

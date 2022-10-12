@@ -16,10 +16,6 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfoplistInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -56,7 +52,7 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _sectcreate_objc_provider(segname, sectname, file):
+def _sectcreate_objc_provider(label, segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
     This function creates a new objc provider that contains the necessary linkopts
@@ -66,6 +62,9 @@ def _sectcreate_objc_provider(segname, sectname, file):
     they are not applied during code signing).
 
     Args:
+
+      label: The `Label` of the target being built. This is used as the owner
+             of the linker inputs created
       segname: The name of the segment in which the section will be created.
       sectname: The name of the section to create.
       file: The file whose contents will be used as the content of the section.
@@ -84,8 +83,13 @@ def _sectcreate_objc_provider(segname, sectname, file):
         ),
         CcInfo(
             linking_context = cc_common.create_linking_context(
-                user_link_flags = linkopts,
-                additional_inputs = [file],
+                linker_inputs = depset([
+                    cc_common.create_linker_input(
+                        owner = label,
+                        user_link_flags = depset(linkopts),
+                        additional_inputs = depset([file]),
+                    ),
+                ]),
             ),
         ),
     ]
