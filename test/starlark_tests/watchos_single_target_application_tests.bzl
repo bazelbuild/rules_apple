@@ -77,6 +77,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [
             name,
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
             "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
@@ -88,6 +89,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         verifier_script = "verifier_scripts/no_custom_fmwks_verifier.sh",
         tags = [
             name,
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
             "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
@@ -116,6 +118,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         },
         tags = [
             name,
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
             "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
@@ -151,6 +154,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_single_target_watchos_with_swift_stable_abi",
         tags = [
             name,
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
             "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )

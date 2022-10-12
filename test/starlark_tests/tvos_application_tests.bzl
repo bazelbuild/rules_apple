@@ -94,7 +94,10 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     apple_verification_test(
@@ -102,7 +105,10 @@ def tvos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     archive_contents_test(
@@ -113,7 +119,10 @@ def tvos_application_test_suite(name):
             "$BUNDLE_ROOT/Another.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     archive_contents_test(
@@ -124,7 +133,10 @@ def tvos_application_test_suite(name):
             "$BUNDLE_ROOT/Another.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     archive_contents_test(
@@ -135,7 +147,10 @@ def tvos_application_test_suite(name):
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
         ],
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Tests xcasset tool is passed the correct arguments.
@@ -189,7 +204,10 @@ def tvos_application_test_suite(name):
             "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
         },
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     infoplist_contents_test(
@@ -218,7 +236,10 @@ def tvos_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     native.test_suite(

@@ -43,7 +43,10 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_no_swift",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Pre-ABI stability, simulator build, iOS companion app does not use
@@ -63,7 +66,10 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_no_swift_watchos_with_swift",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Pre-ABI stability, simulator build, iOS companion app and watchOS app
@@ -83,7 +89,10 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Pre-ABI stability, device build, iOS companion app and watchOS app
@@ -103,7 +112,10 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Post-ABI stability, Swift should not be bundled at all.
@@ -118,7 +130,10 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift_stable_abi",
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     native.test_suite(

@@ -145,6 +145,9 @@ watchos_application(
 # 'bazel test examples/...' ensures all Examples still build.
 build_test(
     name = "ExamplesBuildTest",
+    tags = [
+        "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+    ],
     targets = [
         ":HelloWorld",
         ":HelloWorld-WatchApplication",
@@ -156,6 +159,7 @@ build_test(
     name = "ExamplesBuildTest-LatestXcodeBeta",
     tags = [
         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+        "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
     ],
     targets = [
         ":HelloWorld-SingleTargetWatchHost",

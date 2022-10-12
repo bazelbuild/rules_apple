@@ -277,7 +277,10 @@ def apple_dynamic_xcframework_import_test_suite(name):
         binary_test_architecture = "arm64",
         cpus = {"watchos_cpus": ["arm64"]},
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
     archive_contents_test(
         name = "{}_links_watchos_arm64_32_macho_load_cmd_for_device_test".format(name),
@@ -286,7 +289,10 @@ def apple_dynamic_xcframework_import_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_xcframework.appex/Frameworks/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
-        tags = [name],
+        tags = [
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
+            name,
+        ],
     )
 
     # Verify tvos_application bundles XCFramework library for device and simulator architectures.
