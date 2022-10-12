@@ -63,9 +63,9 @@ def _create_stub_binary(
                 output_path = binary_artifact.path,
                 xcode_stub_path = xcode_stub_path,
             ),
-            mnemonic = "CopyStubExecutable",
+            mnemonic = "BitcodeStripStub",
             outputs = [binary_artifact],
-            progress_message = "Copying stub executable for %s" % (rule_label),
+            progress_message = "Removing bitcode from stub executable for %s" % (rule_label),
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
