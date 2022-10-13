@@ -54,6 +54,8 @@ def _get_sdk_frameworks(*, deps, split_deps_keys = []):
             for index, user_link_flag in enumerate(linker_input.user_link_flags):
                 if user_link_flag == "-framework":
                     sdk_frameworks.append(linker_input.user_link_flags[index + 1])
+                elif user_link_flag.startswith("-Wl,-framework,"):
+                    sdk_frameworks.append(user_link_flag.split(",")[-1])
 
     return depset(sdk_frameworks)
 
