@@ -170,7 +170,7 @@ def macos_command_line_application_test_suite(name):
             "DTPlatformName": "macosx",
             "DTSDKBuild": "*",
             "DTSDKName": "macosx*",
-            "LSMinimumSystemVersion": "10.11",
+            "LSMinimumSystemVersion": "10.13",
         },
         tags = [name],
     )

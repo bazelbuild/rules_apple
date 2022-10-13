@@ -68,7 +68,7 @@ def tvos_dynamic_framework_test_suite(name):
             "DTSDKName": "appletv*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "14.0",
+            "MinimumOSVersion": "12.0",
             "UIDeviceFamily:0": "3",
         },
         tags = [name],
