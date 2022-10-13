@@ -226,48 +226,6 @@ This shouldn't get included
 EOF
 }
 
-# Test that the extension can be a bundle loader
-function test_bundle_loader() {
-  create_common_files
-  create_minimal_ios_application_extension
-
-  cat >> app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:ios.bzl",
-     "ios_unit_test",
-)
-
-objc_library(
-    name = "unit_test_lib",
-    hdrs = ["Foo.h"],
-    srcs = ["UnitTest.m"],
-)
-
-ios_unit_test(
-    name = "unit_tests",
-    deps = [":unit_test_lib"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    test_host = ":ext",
-)
-EOF
-
-  cat > app/UnitTest.m <<EOF
-#import <XCTest/XCTest.h>
-#import "app/Foo.h"
-@interface UnitTest: XCTestCase
-@end
-
-@implementation UnitTest
-- (void)testAssertNil {
-  // Call something in test host to ensure bundle loading works.
-  [[[Foo alloc] init] doSomething];
-  XCTAssertNil(nil);
-}
-@end
-EOF
-
-  do_build ios //app:unit_tests || fail "Should build"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_common_files
