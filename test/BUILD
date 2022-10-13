@@ -250,13 +250,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "tvos_extension_swift_test",
-    size = "medium",
-    src = "tvos_extension_swift_test.sh",
-    configurations = TVOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "tvos_framework_test",
     size = "large",
     src = "tvos_framework_test.sh",
