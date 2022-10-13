@@ -590,7 +590,7 @@ def _watchos_application_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
-    resource_deps = ctx.attr.deps + ctx.attr.resources
+    resource_deps = ctx.attr.resources
     rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,

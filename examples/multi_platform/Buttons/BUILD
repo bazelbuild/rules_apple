@@ -165,13 +165,6 @@ swift_library(
     module_name = "ButtonsWatchExtension",
 )
 
-## Resources
-
-objc_library(
-    name = "ButtonsWatchResources",
-    data = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
-)
-
 ## Packaging
 
 watchos_application(
@@ -180,9 +173,7 @@ watchos_application(
     extension = ":ButtonsWatchExtension",
     infoplists = ["ButtonsWatch/Info.plist"],
     minimum_os_version = "3.0",
-    deps = [
-        ":ButtonsWatchResources",
-    ],
+    resources = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
 )
 
 watchos_extension(
