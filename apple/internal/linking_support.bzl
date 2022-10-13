@@ -52,7 +52,7 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _sectcreate_objc_provider(segname, sectname, file):
+def _sectcreate_objc_provider(label, segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
     This function creates a new objc provider that contains the necessary linkopts
@@ -62,6 +62,9 @@ def _sectcreate_objc_provider(segname, sectname, file):
     they are not applied during code signing).
 
     Args:
+
+      label: The `Label` of the target being built. This is used as the owner
+             of the linker inputs created
       segname: The name of the segment in which the section will be created.
       sectname: The name of the section to create.
       file: The file whose contents will be used as the content of the section.
@@ -73,10 +76,23 @@ def _sectcreate_objc_provider(segname, sectname, file):
     # linkopts get deduped, so use a single option to pass then through as a
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
-    return apple_common.new_objc_provider(
-        linkopt = depset(linkopts, order = "topological"),
-        link_inputs = depset([file]),
-    )
+    return [
+        apple_common.new_objc_provider(
+            linkopt = depset(linkopts, order = "topological"),
+            link_inputs = depset([file]),
+        ),
+        CcInfo(
+            linking_context = cc_common.create_linking_context(
+                linker_inputs = depset([
+                    cc_common.create_linker_input(
+                        owner = label,
+                        user_link_flags = depset(linkopts),
+                        additional_inputs = depset([file]),
+                    ),
+                ]),
+            ),
+        ),
+    ]
 
 def _parse_platform_key(key):
     """Parses a string key from a `link_multi_arch_binary` result dictionary.
