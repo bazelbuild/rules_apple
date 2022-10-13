@@ -104,17 +104,6 @@ function create_minimal_ios_application_extension() {
   product_type="${1:-}"
 
   cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    extensions = [":ext"],
-    families = ["iphone"],
-    infoplists = ["Info-App.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-
 ios_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
@@ -604,20 +593,6 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function test_linkmaps_generated() {
-  create_common_files
-  create_minimal_ios_application_with_extension
-  do_build ios --objc_generate_linkmap \
-      //app:ext || fail "Should build"
-
-  declare -a archs=( $(current_archs ios) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/ext_${arch}.linkmap"
-  done
 }
 
 # Tests that ios_extension cannot be a depenency of objc_library.
