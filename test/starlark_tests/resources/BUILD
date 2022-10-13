@@ -39,6 +39,14 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_common_test_lib",
+    srcs = [
+        "//test/starlark_tests/resources:common.h",
+        "//test/starlark_tests/resources:common_test.m",
+    ],
+)
+
+objc_library(
     name = "objc_shared_lib",
     srcs = ["shared.m"],
     hdrs = ["shared.h"],

@@ -3273,3 +3273,35 @@ ios_application(
         "//test/starlark_tests/resources:swift_lib_importing_imported_static_xcfw",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+
+ios_extension(
+    name = "ext_for_bundle_loader",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_bundle_loader",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":ext_for_bundle_loader",
+    deps = [
+        "//test/starlark_tests/resources:objc_common_test_lib",
+    ],
+)

@@ -200,6 +200,20 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_bundle_loader_reference_main".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_bundle_loader",
+        binary_test_file = "$BUNDLE_ROOT/unit_test_with_bundle_loader",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_OBJC_CLASS_$_CommonTests"],
+        cpus = {
+            "ios_multi_cpus": ["x86_64"],
+        },
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

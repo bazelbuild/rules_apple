@@ -106,47 +106,6 @@ EOF
 EOF
 }
 
-# Test that the extension can be a bundle loader
-function test_bundle_loader() {
-  create_minimal_tvos_application_with_extension
-
-  cat >> app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:tvos.bzl",
-     "tvos_unit_test",
-)
-
-objc_library(
-    name = "unit_test_lib",
-    hdrs = ["Foo.h"],
-    srcs = ["UnitTest.m"],
-)
-
-tvos_unit_test(
-    name = "unit_tests",
-    deps = [":unit_test_lib"],
-    minimum_os_version = "${MIN_OS_TVOS}",
-    test_host = ":ext",
-)
-EOF
-
-  cat > app/UnitTest.m <<EOF
-#import <XCTest/XCTest.h>
-#import "app/Foo.h"
-@interface UnitTest: XCTestCase
-@end
-
-@implementation UnitTest
-- (void)testAssertNil {
-  // Call something in test host to ensure bundle loading works.
-  [[[Foo alloc] init] doSomething];
-  XCTAssertNil(nil);
-}
-@end
-EOF
-
-  do_build tvos //app:unit_tests || fail "Should build"
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_minimal_tvos_application_with_extension
