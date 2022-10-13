@@ -62,7 +62,7 @@ def apple_core_data_model_test_suite(name):
         target_mnemonic = "MomGenerate",
         expected_argv = [
             "momc --action generate",
-            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
+            "[ABSOLUTE]test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
         ],
         tags = [name],
     )
@@ -72,7 +72,7 @@ def apple_core_data_model_test_suite(name):
         target_mnemonic = "MomGenerate",
         expected_argv = [
             "momc --action generate",
-            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
+            "[ABSOLUTE]test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
         ],
         tags = [name],
     )
@@ -82,7 +82,7 @@ def apple_core_data_model_test_suite(name):
         target_mnemonic = "MomGenerate",
         expected_argv = [
             "momc --action generate",
-            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
+            "[ABSOLUTE]test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
         ],
         tags = [name],
     )
@@ -92,7 +92,7 @@ def apple_core_data_model_test_suite(name):
         target_mnemonic = "MomGenerate",
         expected_argv = [
             "momc --action generate",
-            "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
+            "[ABSOLUTE]test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
         ],
         tags = [name],
     )
