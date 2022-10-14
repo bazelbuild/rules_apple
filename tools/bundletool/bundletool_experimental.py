@@ -55,6 +55,7 @@ import zipfile
 from ctypes import cdll, c_char_p, c_int
 
 _CLONEFILE = None
+_USE_CLONEFILE = sys.platform == "darwin"
 def _load_clonefile():
   global _CLONEFILE
   if _CLONEFILE:
@@ -212,10 +213,14 @@ class Bundler(object):
       raise BundleConflictError(dest)
 
     self._makedirs_safely(os.path.dirname(full_dest))
-    if sys.platform == "darwin":
+    global _USE_CLONEFILE
+    if _USE_CLONEFILE:
       clonefile = _load_clonefile()
       result = clonefile(src.encode(), full_dest.encode(), 0)
-      if result != 0:
+      if result == 18: # EXDEV, clonefile doesn't work across multiple filesystems
+        _USE_CLONEFILE = False
+        shutil.copy(src, full_dest)
+      elif result != 0:
         raise Exception(f"failed to clonefile {src} to {full_dest}")
     else:
       shutil.copy(src, full_dest)
