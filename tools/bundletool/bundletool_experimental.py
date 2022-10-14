@@ -46,7 +46,6 @@ following keys:
       bundle is complete but before it is signed.
 """
 
-import ctypes
 import errno
 import filecmp
 import json
@@ -54,7 +53,7 @@ import os
 import shutil
 import sys
 import zipfile
-from ctypes import cdll, c_char_p, c_int
+from ctypes import CDLL, c_char_p, c_int, get_errno
 
 _CLONEFILE = None
 _USE_CLONEFILE = sys.platform == "darwin"
@@ -63,7 +62,7 @@ def _load_clonefile():
   if _CLONEFILE:
     return _CLONEFILE
 
-  system = cdll.LoadLibrary('/usr/lib/libSystem.dylib')
+  system = CDLL('/usr/lib/libSystem.dylib', use_errno=True)
   _CLONEFILE = system.clonefile
   _CLONEFILE.argtypes = [c_char_p, c_char_p, c_int] # src, dest, flags
   _CLONEFILE.restype = c_int  # 0 on success
@@ -220,7 +219,7 @@ class Bundler(object):
       clonefile = _load_clonefile()
       result = clonefile(src.encode(), full_dest.encode(), 0)
       if result != 0:
-        if ctypes.get_errno() in (errno.EXDEV, errno.ENOTSUP):
+        if get_errno() in (errno.EXDEV, errno.ENOTSUP):
           _USE_CLONEFILE = False
           shutil.copy(src, full_dest)
         else:
