@@ -46,6 +46,7 @@ following keys:
       bundle is complete but before it is signed.
 """
 
+import ctypes
 import errno
 import filecmp
 import json
@@ -218,11 +219,12 @@ class Bundler(object):
     if _USE_CLONEFILE:
       clonefile = _load_clonefile()
       result = clonefile(src.encode(), full_dest.encode(), 0)
-      if result in (errno.EXDEV, errno.ENOTSUP):
-        _USE_CLONEFILE = False
-        shutil.copy(src, full_dest)
-      elif result != 0:
-        raise Exception(f"failed to clonefile {src} to {full_dest}")
+      if result != 0:
+        if ctypes.get_errno() in (errno.EXDEV, errno.ENOTSUP):
+          _USE_CLONEFILE = False
+          shutil.copy(src, full_dest)
+        else:
+          raise Exception(f"failed to clonefile {src} to {full_dest}")
     else:
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
