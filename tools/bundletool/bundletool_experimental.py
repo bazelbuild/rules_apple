@@ -46,6 +46,7 @@ following keys:
       bundle is complete but before it is signed.
 """
 
+import errno
 import filecmp
 import json
 import os
@@ -217,7 +218,7 @@ class Bundler(object):
     if _USE_CLONEFILE:
       clonefile = _load_clonefile()
       result = clonefile(src.encode(), full_dest.encode(), 0)
-      if result == 18: # EXDEV, clonefile doesn't work across multiple filesystems
+      if result in (errno.EXDEV, errno.ENOTSUP):
         _USE_CLONEFILE = False
         shutil.copy(src, full_dest)
       elif result != 0:
