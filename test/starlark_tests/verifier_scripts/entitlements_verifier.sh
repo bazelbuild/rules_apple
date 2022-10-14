@@ -44,7 +44,8 @@ if [[ "$BUILD_TYPE" == "simulator" ]]; then
 
 elif [[ "$BUILD_TYPE" == "device" ]]; then
   # First check the legacy xml plist section.
-  codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
+  codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT" || \
+    codesign --display --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
 
   assert_contains "<key>$TEST_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
 
