@@ -131,6 +131,37 @@ tvos_extension(
     ],
 )
 
+tvos_application(
+    name = "app_with_ext_with_fmwk_not_extension_safe",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_fmwk_not_extension_safe"],
+    frameworks = [":fmwk_not_extension_safe"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_extension(
+    name = "ext_with_fmwk_not_extension_safe",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk_not_extension_safe"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 tvos_application(
@@ -350,6 +381,20 @@ tvos_framework(
     tags = common.fixture_tags,
     deps = [
         ":static_fmwk_depending_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_not_extension_safe",
+    bundle_id = "com.google.example.framework",
+    extension_safe = False,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
