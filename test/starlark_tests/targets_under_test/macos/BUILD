@@ -61,7 +61,7 @@ macos_application(
         "//test/starlark_tests/resources:bundle_library_apple_lib",
         "//test/starlark_tests/resources:empty_strings_file_lib",
         "//test/starlark_tests/resources:nested_bundle_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
     ],
 )
 
@@ -369,7 +369,7 @@ macos_command_line_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
     ],
 )
 

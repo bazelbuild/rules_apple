@@ -261,6 +261,300 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that if a tvos_framework target depends on a prebuilt framework (i.e.,
+    # apple_dynamic_framework_import), that the inner framework is propagated up
+    # to the application and not nested in the outer framework.
+    archive_contents_test(
+        name = "{}_contains_framework_depends_on_prebuilt_apple_framework_import".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_runtime_framework_using_import_framework_dep",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_dynamic_framework.framework/fmwk_with_imported_dynamic_framework",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_dynamic_framework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/Resources/generated_tvos_dynamic_fmwk.bundle/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/generated_tvos_dynamic_fmwk",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_tvos_dynamic_fmwk.framework/Frameworks/fmwk_with_imported_dynamic_framework.framework/",
+        ],
+        tags = [name],
+    )
+
+    # Tests that the bundled application contains the framework but that the
+    # extension inside it does *not* contain another copy.
+    archive_contents_test(
+        name = "{}_contains_framework_and_framework_depending_extension_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_and_framework_depending_ext",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/Info.plist",
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/ext_with_framework",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/Frameworks/",
+        ],
+        tags = [name],
+    )
+
+    # Tests that resources that both apps and frameworks depend on are present
+    # in the .framework directory and that the symbols are only present in the
+    # framework binary.
+    archive_contents_test(
+        name = "{}_with_resources_and_framework_resources_contains_files_only_on_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_transitive_structured_resources",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_transitive_structured_resources.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_transitive_structured_resources.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_transitive_structured_resources.framework/fmwk_with_transitive_structured_resources",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Images/foo.png",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_transitive_structured_resources.framework/fmwk_with_transitive_structured_resources",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = [
+            "_dontCallMeShared",
+            "_anotherFunctionShared",
+            "_anticipatedDeadCode",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_with_resources_and_framework_resources_app_binary_not_contains_symbols".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_transitive_structured_resources",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_with_transitive_structured_resources",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = [
+            "_dontCallMeShared",
+            "_anotherFunctionShared",
+            "_anticipatedDeadCode",
+        ],
+        tags = [name],
+    )
+
+    # Tests that a framework is present in the top level application
+    # bundle in the case that only extensions depend on the framework
+    # and the application itself does not.
+    archive_contents_test(
+        name = "{}_propagates_framework_from_tvos_extension_and_not_bundles_framework_on_extension".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_depending_ext",
+        contains = [
+            # The main bundle should contain the framework...
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/Info.plist",
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/ext_with_framework",
+        ],
+        not_contains = [
+            # The extension bundle should be intact, but have no inner framework.
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework.appex/Frameworks/",
+        ],
+        tags = [name],
+    )
+
+    # Tests that resource bundles that are dependencies of a framework are
+    # bundled with the framework if no deduplication is happening.
+    archive_contents_test(
+        name = "{}_contains_resource_bundles_in_framework_and_not_in_app".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_resource_bundles",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle/generated.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        tags = [name],
+    )
+
+    # Tests that an App->Framework->Framework dependency is handled properly. (That
+    # a framework that is not directly depended on by the app is still pulled into
+    # the app, and symbols end up in the correct binaries.)
+    archive_contents_test(
+        name = "{}_contains_shared_framework_resource_files_only_in_inner_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        contains = [
+            # Contains expected framework files...
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Info.plist",
+            # Contains expected shared framework resource file...
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/Images/foo.png",
+        ],
+        not_contains = [
+            # Doesn't contains shared framework resource file...
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Images/foo.png",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_shared_lib_symbols_in_inner_framework_binary".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_shared_lib_symbols_not_in_outer_framework_binary".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_shared_lib_symbols_not_in_app_binary".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_with_fmwk",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
+        tags = [name],
+    )
+
+    # They all have Info.plists with the right bundle ids (even though the
+    # frameworks share a comment infoplists entry for it).
+    # They also all share a common file to add a custom key, ensure that
+    # isn't duped away because of the overlap.
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_app_plist_content".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "AnotherKey": "AnotherValue",
+        },
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_outer_framework_plist_content".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        plist_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.google.example.framework",
+            "AnotherKey": "AnotherValue",
+        },
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_depending_fmwk_with_fmwk_inner_framework_plist_content".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
+        plist_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.google.example.frameworkception",
+            "AnotherKey": "AnotherValue",
+        },
+        tags = [name],
+    )
+
+    # Verifies that, when an extension depends on a framework with different
+    # minimum_os, symbol subtraction still occurs.
+    archive_contents_test(
+        name = "{}_with_ext_min_os_nplus1_extension_binary_not_contains_lib_symbols".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_min_os_nplus1",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_min_os_nplus1.appex/ext_min_os_nplus1",
+        binary_test_architecture = "x86_64",
+        binary_not_contains_symbols = ["_anotherFunctionShared"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_with_ext_min_os_nplus1_framework_binary_contains_lib_symbols".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_min_os_nplus1",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_anotherFunctionShared"],
+        tags = [name],
+    )
+
+    # Tests that different root-level resources with the same name are not
+    # deduped between framework and app.
+    archive_contents_test(
+        name = "{}_does_not_dedup_structured_resources_from_framework_and_app".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_structured_resources_and_fmwk_with_structured_resources",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Images/foo.png",
+        ],
+        tags = [name],
+    )
+
+    # Tests that root-level resources depended on by both an application and its
+    # framework end up in both bundles given that both bundles have explicit owners
+    # on the resources
+    archive_contents_test(
+        name = "{}_contains_root_level_resource_smart_dedupe_resources".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_and_fmwk_with_common_structured_resources",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/PlugIns/ext_with_framework_with_structured_resources.appex/Images/foo.png",
+        ],
+        tags = [name],
+    )
+
+    # Verifies that resource bundles that are dependencies of a framework are
+    # bundled with the framework if no deduplication is happening.
+    # tvOS application and framework have the same minimum os version.
+    archive_contents_test(
+        name = "{}_does_not_contain_common_resource_bundle_from_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_resource_bundles_and_fmwk_with_resource_bundles",
+        # Assert that the framework contains the bundled files...
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
+        ],
+        # ...and that the application doesn't.
+        not_contains = [
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        tags = [name],
+    )
+
+    # Verifies that resource bundles that are dependencies of a framework are
+    # bundled with the framework if no deduplication is happening.
+    # tvOS application has baseline minimum os version and framework has baseline plus one.
+    archive_contents_test(
+        name = "{}_does_not_contain_common_resource_bundle_from_framework_nplus1".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_resource_bundles_and_fmwk_with_resource_bundles_nplus1",
+        # Assert that the framework contains the bundled files...
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles_nplus1.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles_nplus1.framework/simple_bundle_library.bundle",
+        ],
+        # ...and that the application doesn't.
+        not_contains = [
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

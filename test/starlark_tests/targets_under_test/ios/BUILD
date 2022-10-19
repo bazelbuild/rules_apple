@@ -463,7 +463,7 @@ ios_framework(
     tags = common.fixture_tags,
     deps = [
         ":iOSImportedDynamicFramework",
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -499,7 +499,7 @@ ios_framework(
     tags = common.fixture_tags,
     deps = [
         ":iOSImportedStaticFramework",
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -683,8 +683,8 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -702,7 +702,7 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 

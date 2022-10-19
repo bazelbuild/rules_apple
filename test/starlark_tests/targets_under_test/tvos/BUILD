@@ -161,6 +161,113 @@ tvos_extension(
     ],
 )
 
+tvos_application(
+    name = "app_with_framework_depending_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_framework"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_framework_and_framework_depending_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_framework"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_extension(
+    name = "ext_with_framework",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_ext_min_os_nplus1",
+    bundle_id = "com.google.example",
+    extensions = [":ext_min_os_nplus1"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_extension(
+    name = "ext_min_os_nplus1",
+    bundle_id = "com.google.example.ext",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_ext_and_fmwk_with_common_structured_resources",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_framework_with_structured_resources"],
+    frameworks = [":fmwk_with_structured_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_structured_images",
+    ],
+)
+
+tvos_extension(
+    name = "ext_with_framework_with_structured_resources",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk_with_structured_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_structured_images",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 tvos_application(
@@ -174,6 +281,76 @@ tvos_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_structured_resources_and_fmwk_with_structured_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_structured_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_structured_images",
+    ],
+)
+
+tvos_application(
+    name = "app_with_fmwk_with_transitive_structured_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_transitive_structured_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_transitive_structured_images",
+    ],
+)
+
+tvos_application(
+    name = "app_with_fmwk_with_resource_bundles",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_resource_bundles"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_resource_bundles_and_fmwk_with_resource_bundles",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_resource_bundles"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_transitive_resource_bundles",
+    ],
+)
+
+tvos_application(
+    name = "app_with_resource_bundles_and_fmwk_with_resource_bundles_nplus1",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_resource_bundles_nplus1"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_transitive_resource_bundles",
     ],
 )
 
@@ -216,6 +393,7 @@ tvos_application(
     frameworks = [":fmwk_with_fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Another.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
@@ -254,8 +432,69 @@ tvos_application(
     ],
 )
 
+tvos_application(
+    name = "app_with_runtime_framework_using_import_framework_dep",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_imported_dynamic_framework"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 tvos_framework(
     name = "fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Another.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_transitive_resources",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_no_version",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-noversion.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_structured_resources",
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-application_extension"],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib_with_structured_images",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_transitive_structured_resources",
     bundle_id = "com.google.example.framework",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -263,7 +502,35 @@ tvos_framework(
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_shared_lib",
+        "//test/starlark_tests/resources:objc_shared_lib_with_transitive_structured_resources",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_resource_bundles",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    resources = [],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_resource_bundles",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_resource_bundles_nplus1",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.nplus1,
+    resources = [],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_resource_bundles",
     ],
 )
 
@@ -318,11 +585,12 @@ tvos_framework(
     frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Another.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_shared_lib",
+        "//test/starlark_tests/resources:another_objc_shared_lib_with_transitive_resources",
     ],
 )
 
@@ -368,6 +636,19 @@ tvos_framework(
     ],
 )
 
+tvos_framework(
+    name = "fmwk_with_imported_dynamic_framework",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_fmwk_depending_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic framework import tests.
 
@@ -384,6 +665,7 @@ apple_dynamic_framework_import(
 generate_import_framework(
     name = "generated_tvos_dynamic_fmwk",
     archs = ["x86_64"],
+    include_resource_bundle = True,
     libtype = "dynamic",
     minimum_os_version = common.min_os_tvos.baseline,
     sdk = "appletvsimulator",

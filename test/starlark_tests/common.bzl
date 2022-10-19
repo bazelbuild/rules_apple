@@ -42,6 +42,7 @@ _min_os_macos = struct(
 _min_os_tvos = struct(
     arm_sim_support = "14.0",
     baseline = "12.0",
+    nplus1 = "13.0",
     oldest_supported = "11.0",
     stable_swift_abi = "12.2",
 )

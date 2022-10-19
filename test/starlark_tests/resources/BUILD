@@ -31,12 +31,35 @@ exports_files(
     visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
+# --------------------------------------------------------------------------------
+# Objective-C common.h libraries
+
 objc_library(
     name = "objc_common_lib",
     srcs = ["common.m"],
     hdrs = ["common.h"],
     tags = common.fixture_tags,
 )
+
+objc_library(
+    name = "objc_common_lib_with_structured_resources",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    data = [":structured_image_resources"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_common_lib_with_structured_images",
+    srcs = [
+        ":common.h",
+        ":common.m",
+    ],
+    data = [":structured_image_resources"],
+)
+
+# --------------------------------------------------------------------------------
+# Objective-C shared.h libraries
 
 objc_library(
     name = "objc_shared_lib",
@@ -49,16 +72,7 @@ objc_library(
 )
 
 objc_library(
-    name = "objc_main_lib",
-    srcs = ["main.m"],
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_common_lib",
-    ],
-)
-
-objc_library(
-    name = "objc_lib_with_resources",
+    name = "objc_shared_lib_with_resources",
     srcs = [
         "shared.h",
         "shared.m",
@@ -67,6 +81,89 @@ objc_library(
         ":structured_resources",
     ],
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_shared_lib_with_transitive_resources",
+    srcs = ["shared.m"],
+    hdrs = ["shared.h"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_common_lib_with_structured_resources",
+    ],
+)
+
+objc_library(
+    name = "another_objc_shared_lib_with_transitive_resources",
+    srcs = ["shared.m"],
+    hdrs = ["shared.h"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_common_lib_with_structured_resources",
+    ],
+)
+
+objc_library(
+    name = "objc_shared_lib_with_transitive_structured_resources",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    deps = [":objc_common_lib_with_structured_images"],
+    alwayslink = 1,
+)
+
+objc_library(
+    name = "objc_shared_lib_with_resource_bundles",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:basic_bundle",
+        "//test/testdata/resources:simple_bundle_library",
+    ],
+)
+
+# --------------------------------------------------------------------------------
+# Objective-C main.m libraries
+
+objc_library(
+    name = "objc_main_lib",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_main_lib_with_common_lib",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_common_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_main_lib_with_structured_images",
+    srcs = ["main.m"],
+    data = [":structured_image_resources"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_structured_images",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [":objc_common_lib_with_structured_images"],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_resource_bundles",
+    ],
 )
 
 swift_library(
@@ -595,6 +692,19 @@ objc_library(
         "framework_resources/nonlocalized.plist",
     ],
     tags = common.fixture_tags,
+)
+
+genrule(
+    name = "generate_structured_image",
+    srcs = [":sample.png"],
+    outs = ["Images/foo.png"],
+    cmd = "cp $(location :sample.png) $@",
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "structured_image_resources",
+    structured_resources = [":generate_structured_image"],
 )
 
 filegroup(
