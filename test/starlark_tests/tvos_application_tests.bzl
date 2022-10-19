@@ -119,8 +119,9 @@ def tvos_application_test_suite(name):
         name = "{}_resources_simulator_test".format(name),
         build_type = "simulator",
         contains = [
-            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/launch_screen_tvos.storyboardc/",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         tags = [
@@ -133,8 +134,9 @@ def tvos_application_test_suite(name):
         name = "{}_resources_device_test".format(name),
         build_type = "device",
         contains = [
-            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/launch_screen_tvos.storyboardc/",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         tags = [
@@ -207,6 +209,7 @@ def tvos_application_test_suite(name):
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
+            "UILaunchStoryboardName": "launch_screen_tvos",
         },
         tags = [
             "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.

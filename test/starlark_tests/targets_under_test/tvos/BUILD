@@ -47,6 +47,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    launch_storyboard = "//test/starlark_tests/resources:launch_screen_tvos.storyboard",
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
@@ -56,7 +57,7 @@ tvos_application(
     ],
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
     ],
 )
 
