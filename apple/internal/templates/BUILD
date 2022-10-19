@@ -10,8 +10,8 @@ filegroup(
 )
 
 filegroup(
-    name = "ios_sim_template",
-    srcs = ["ios_sim.template.py"],
+    name = "apple_simulator_template",
+    srcs = ["apple_simulator.template.py"],
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.

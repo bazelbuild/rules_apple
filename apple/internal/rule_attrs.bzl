@@ -528,6 +528,18 @@ bundle in a directory named `Settings.bundle`.
     ),
 }
 
+# Returns the attribute required to launch a *_application target using
+# an Apple simulator (through apple_simulator.template.py) with `bazel run`.
+_SIMULATOR_RUNNER_TEMPLATE_ATTR = {
+    "_runner_template": attr.label(
+        cfg = "exec",
+        allow_single_file = True,
+        default = Label(
+            "@build_bazel_rules_apple//apple/internal/templates:apple_simulator_template",
+        ),
+    ),
+}
+
 # Returns the attributes required to support entitlements for a given target.
 _ENTITLEMENTS_ATTRS = {
     "entitlements": attr.label(
@@ -579,6 +591,7 @@ rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,
     launch_images_attrs = _LAUNCH_IMAGES_ATTRS,
     settings_bundle_attrs = _SETTINGS_BUNDLE_ATTRS,
+    simulator_runner_template_attr = _SIMULATOR_RUNNER_TEMPLATE_ATTR,
     entitlements_attrs = _ENTITLEMENTS_ATTRS,
     aspects = struct(
         test_host_aspects = _TEST_HOST_ASPECTS,
