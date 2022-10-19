@@ -361,6 +361,8 @@ def _tvos_application_impl(ctx):
         actions = actions,
         label_name = label.name,
     )
+
+    # TODO(b/254511920): Consider creating a custom build config for tvOS simulator device/version.
     run_support.register_simulator_executable(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -1345,6 +1347,7 @@ tvos_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.provisioning_profile_attrs(),
         rule_attrs.settings_bundle_attrs,
+        rule_attrs.simulator_runner_template_attr,
         {
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
@@ -1367,13 +1370,6 @@ file will be compiled into the appropriate format (`.storyboardc`) and placed in
 final bundle. The generated file will also be registered in the bundle's Info.plist under the key
 `UILaunchStoryboardName`.
 """,
-            ),
-            "_runner_template": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                # Currently using the iOS Simulator template for tvOS, as tvOS does not require
-                # significantly different sim runner logic from iOS.
-                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         },
     ],
