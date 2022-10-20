@@ -202,6 +202,12 @@ AppleTestRunnerInfo provider.
     "test_host": attr.label(
         providers = [AppleBundleInfo],
     ),
+    "test_filter": attr.string(
+        doc = """
+Test filter string that will be passed into the test runner to select which tests will run.
+""",
+        default = "",
+    ),
     "_apple_coverage_support": attr.label(
         cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
