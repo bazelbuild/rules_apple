@@ -128,9 +128,8 @@ def _register_binary_linking_action(
         extra_link_inputs: Extra link inputs to add to the linking action.
         platform_prerequisites: The platform prerequisites.
         rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
-            will define additional parameters required for linking, such as `rpaths` and
-            `extra_linkopts`. If `None`, these additional parameters will not be set on the linked
-            binary.
+            will define additional parameters required for linking, such as `rpaths`. If `None`,
+            these additional parameters will not be set on the linked binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
@@ -196,11 +195,10 @@ def _register_binary_linking_action(
             )
             link_inputs.append(der_entitlements)
 
-    # TODO(b/248317958): Migrate rule_descriptor.rpaths and rule_descriptor.extra_linkopts as direct
-    # inputs of the extra_linkopts arg on this method.
+    # TODO(b/248317958): Migrate rule_descriptor.rpaths as direct inputs of the extra_linkopts arg
+    # on this method.
     if rule_descriptor:
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
-        linkopts.extend(rule_descriptor.extra_linkopts)
 
     linkopts.extend(extra_linkopts)
     link_inputs.extend(extra_link_inputs)

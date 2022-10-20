@@ -334,7 +334,11 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     else:
         bundle_loader = None
 
-    extra_linkopts = ["-bundle"]
+    extra_linkopts = [
+        "-framework",
+        "XCTest",
+        "-bundle",
+    ]
     extra_link_inputs = []
 
     if "apple.swizzle_absolute_xcttestsourcelocation" in features:
@@ -359,8 +363,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
-        extra_linkopts = extra_linkopts,
         extra_link_inputs = extra_link_inputs,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

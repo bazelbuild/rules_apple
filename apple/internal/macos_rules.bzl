@@ -697,10 +697,17 @@ def _macos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    extra_linkopts = [
+        "-fapplication-extension",
+        "-e",
+        "_NSExtensionMain",
+    ]
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1158,9 +1165,18 @@ def _macos_kernel_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    # This was added for b/122473338, and should be removed eventually once symbol stripping is
+    # better-handled. It's redundant with an option added in the CROSSTOOL for the
+    # "kernel_extension" feature, but for now it's necessary to detect kext linking so
+    # CompilationSupport.java can apply the correct type of symbol stripping.
+    extra_linkopts = [
+        "-Wl,-kext",
+    ]
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
