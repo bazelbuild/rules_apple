@@ -327,13 +327,19 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     else:
         bundle_loader = None
 
+    extra_linkopts = [
+        "-framework",
+        "XCTest",
+        "-bundle",
+    ]
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
-        extra_linkopts = ["-bundle"],
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

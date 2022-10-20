@@ -634,7 +634,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:sets",
-        "@build_bazel_apple_support//lib:xcode_support",
     ],
 )
 
