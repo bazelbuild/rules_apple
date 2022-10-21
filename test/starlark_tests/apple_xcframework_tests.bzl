@@ -131,7 +131,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
@@ -148,7 +152,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
@@ -165,7 +173,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/Headers/ios_dynamic_lipoed_xcframework.h",
@@ -182,7 +194,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/ios_dynamic_lipoed_xcframework.h",
@@ -527,6 +543,44 @@ def apple_xcframework_test_suite(name):
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOS"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        tags = [name],
+    )
+
+    # Test tvOS XCFramework binaries have the correct rpaths.
+    archive_contents_test(
+        name = "{}_tvos_simulator_binary_contains_arm64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_simulator_binary_contains_x86_64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_device_binary_contains_rpaths_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         tags = [name],
     )
 
