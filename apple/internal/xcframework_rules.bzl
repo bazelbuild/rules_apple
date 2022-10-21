@@ -485,6 +485,20 @@ def _apple_xcframework_impl(ctx):
         # Frameworks do not have entitlements.
         entitlements = None,
         extra_linkopts = [
+            # iOS, tvOS and watchOS single target app framework binaries live in
+            # Application.app/Frameworks/Framework.framework/Framework
+            # watchOS 2 extension-dependent app framework binaries live in
+            # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
+            #
+            # iOS, tvOS and watchOS single target app frameworks are packaged in executable as
+            # Application.app/Frameworks
+            # watchOS 2 extension-dependent app frameworks are packaged in executable as
+            # Application.app/PlugIns/Extension.appex/Frameworks
+            #
+            # While different, these resolve to the same paths relative to their respective
+            # executables. Only macOS (which is not yet supported) is an outlier; this will require
+            # changes to native Bazel linking logic for Apple binary targets.
+            "-Wl,-rpath,@executable_path/Frameworks",
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
                 extension = nested_bundle_extension,
