@@ -304,6 +304,7 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.networking.wifi-info',
     'com.apple.developer.passkit.pass-presentation-suppression',
     'com.apple.developer.payment-pass-provisioning',
+    'com.apple.developer.proximity-reader.payment.acceptance',
     'com.apple.developer.siri',
     'com.apple.developer.usernotifications.critical-alerts',
     'com.apple.developer.usernotifications.time-sensitive',
