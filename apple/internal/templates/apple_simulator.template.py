@@ -52,13 +52,20 @@ import os.path
 import platform
 import plistlib
 import subprocess
+import sys
 import tempfile
 import time
-from typing import Optional
+from typing import Dict, Generator, Optional
 import zipfile
 
+
 # Custom type for methods yielding an Apple simulator UDID.
-AppleSimulatorUDID = collections.abc.Generator[str, None, None]
+# TODO(b/256029048): Remove once Xcode 14 is the minimum supported version.
+if sys.version_info >= (3, 9):
+  AppleSimulatorUDID = collections.abc.Generator[str, None, None]
+else:
+  AppleSimulatorUDID = Generator[str, None, None]
+
 
 logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(message)s",
@@ -526,7 +533,7 @@ def bundle_id(bundle_path: str) -> str:
     return plist["CFBundleIdentifier"]
 
 
-def simctl_launch_environ() -> dict[str, str]:
+def simctl_launch_environ() -> Dict[str, str]:
   """Calculates an environment dictionary for running `simctl launch`."""
   # Pass environment variables prefixed with "IOS_" to the simulator, replace
   # the prefix with "SIMCTL_CHILD_". bazel adds "IOS_" to the env vars which
@@ -658,7 +665,7 @@ def main(
 
 if __name__ == "__main__":
   try:
-    # Tempate values filled in by rules_apple/apple/internal/run_support.bzl.
+    # Template values filled in by rules_apple/apple/internal/run_support.bzl.
     main(
         app_name="%app_name%",
         application_output_path="%ipa_file%",
