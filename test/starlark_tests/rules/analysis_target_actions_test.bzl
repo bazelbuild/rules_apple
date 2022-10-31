@@ -27,6 +27,20 @@ Expected action argv: {expected_argv}
 Actual action argv: {actual_argv}
 """
 
+_TARGET_CONTAINS_ACTION_WITH_ENV_FAIL_MSG = """
+Expected env could not be found on actual action env list for target mnemonic '{target_mnemonic}'.
+Target: {target}
+Expected action env: {expected_env}
+Actual action env: {actual_env}
+"""
+
+_TARGET_CONTAINS_NOT_EXPECTED_MNEMONIC = """
+Expected target to not contain an action with mnemonic '{target_mnemonic}', but it did.
+Target: {target}
+Mnemonic: {target_mnemonic}
+Action argv: {action_argv}
+"""
+
 def _analysis_target_actions_test_impl(ctx):
     """Implementation of analysis_target_actions_test."""
     env = analysistest.begin(ctx)
@@ -69,6 +83,46 @@ def _analysis_target_actions_test_impl(ctx):
             )
             return analysistest.end(env)
 
+    for expected_env_key, expected_env_value in ctx.attr.expected_env.items():
+        target_mnemonic_actions_env = [a.env for a in target_mnemonic_actions]
+
+        matched_expected_env = False
+        for action_env in target_mnemonic_actions_env:
+            if expected_env_key not in action_env:
+                continue
+            if action_env[expected_env_key] == expected_env_value:
+                matched_expected_env = True
+                break
+        if not matched_expected_env:
+            unittest.fail(
+                env,
+                _TARGET_CONTAINS_ACTION_WITH_ENV_FAIL_MSG.format(
+                    target_mnemonic = target_mnemonic,
+                    target = target_under_test,
+                    expected_env = {expected_env_key: expected_env_value},
+                    actual_env = target_mnemonic_actions_env,
+                ),
+            )
+            return analysistest.end(env)
+
+    for not_expected_mnemonic in ctx.attr.not_expected_mnemonic:
+        actual_mnemonics = {
+            action.mnemonic: action
+            for action in target_actions
+            if action.mnemonic == not_expected_mnemonic
+        }
+        if not_expected_mnemonic in actual_mnemonics:
+            action = actual_mnemonics[not_expected_mnemonic]
+            unittest.fail(
+                env,
+                _TARGET_CONTAINS_NOT_EXPECTED_MNEMONIC.format(
+                    target_mnemonic = not_expected_mnemonic,
+                    target = target_under_test,
+                    action_argv = getattr(action, "argv"),
+                ),
+            )
+            return analysistest.end(env)
+
     return analysistest.end(env)
 
 def make_analysis_target_actions_test(config_settings = {}):
@@ -97,6 +151,15 @@ This will also assert at least one action exists with the given mnemonic.
 A list of strings representing substrings expected to appear in the action
 command line, after concatenating all command line arguments into a single
 space-delimited string.""",
+            ),
+            "expected_env": attr.string_dict(
+                doc = """
+A string dictionary representing expected environment values that should be
+present in the action environment values.""",
+            ),
+            "not_expected_mnemonic": attr.string_list(
+                doc = """
+List of action mnemonics not expected to be found on the target under test.""",
             ),
         },
         config_settings = config_settings,
