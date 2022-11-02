@@ -880,12 +880,13 @@ def _deduplicate_field(
 
     return deduped_tuples
 
-def _deduplicate(*, resources_provider, avoid_providers, field_handler):
+def _deduplicate(*, resources_provider, avoid_providers, field_handler, default_owner = None):
     avoid_provider = None
     if avoid_providers:
         # Call merge_providers with validate_all_resources_owned set, to ensure that all the
         # resources from dependency bundles have an owner.
         avoid_provider = _merge_providers(
+            default_owner = default_owner,
             providers = avoid_providers,
             validate_all_resources_owned = True,
         )

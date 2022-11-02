@@ -203,7 +203,6 @@ def _resources_partial_impl(
         for x in targets_to_avoid
         if AppleResourceInfo in x
     ]
-
     # Map of resource provider fields to a tuple that contains the method to use to process those
     # resources and a boolean indicating whether the Swift module is required for that processing.
     provider_field_to_action = {
@@ -266,6 +265,7 @@ def _resources_partial_impl(
                 infoplists.extend(result.infoplists)
 
     resources.deduplicate(
+        default_owner = str(rule_label),
         resources_provider = final_provider,
         avoid_providers = avoid_providers,
         field_handler = _deduplicated_field_handler,

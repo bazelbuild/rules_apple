@@ -123,7 +123,6 @@ def _apple_resource_aspect_impl(target, ctx):
     elif ctx.rule.kind == "apple_resource_group":
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
-        owner = str(ctx.label)
 
     elif ctx.rule.kind == "apple_resource_bundle":
         collect_infoplists_args["res_attrs"] = ["infoplists"]
@@ -131,7 +130,6 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_structured_args["res_attrs"] = ["structured_resources"]
         process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
-        owner = str(ctx.label)
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:
