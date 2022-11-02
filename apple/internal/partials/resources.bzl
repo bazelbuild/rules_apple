@@ -266,6 +266,7 @@ def _resources_partial_impl(
                 infoplists.extend(result.infoplists)
 
     resources.deduplicate(
+        default_owner = str(rule_label),
         resources_provider = final_provider,
         avoid_providers = avoid_providers,
         field_handler = _deduplicated_field_handler,

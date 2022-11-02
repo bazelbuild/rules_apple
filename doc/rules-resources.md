@@ -378,7 +378,7 @@ A list with all the collected resources for the target represented by attr.
 ## resources_common.deduplicate
 
 <pre>
-resources_common.deduplicate(<a href="#resources_common.deduplicate-resources_provider">resources_provider</a>, <a href="#resources_common.deduplicate-avoid_providers">avoid_providers</a>, <a href="#resources_common.deduplicate-field_handler">field_handler</a>)
+resources_common.deduplicate(<a href="#resources_common.deduplicate-resources_provider">resources_provider</a>, <a href="#resources_common.deduplicate-avoid_providers">avoid_providers</a>, <a href="#resources_common.deduplicate-field_handler">field_handler</a>, <a href="#resources_common.deduplicate-default_owner">default_owner</a>)
 </pre>
 
 
@@ -391,6 +391,7 @@ resources_common.deduplicate(<a href="#resources_common.deduplicate-resources_pr
 | <a id="resources_common.deduplicate-resources_provider"></a>resources_provider |  <p align="center"> - </p>   |  none |
 | <a id="resources_common.deduplicate-avoid_providers"></a>avoid_providers |  <p align="center"> - </p>   |  none |
 | <a id="resources_common.deduplicate-field_handler"></a>field_handler |  <p align="center"> - </p>   |  none |
+| <a id="resources_common.deduplicate-default_owner"></a>default_owner |  <p align="center"> - </p>   |  <code>None</code> |
 
 
 <a id="resources_common.merge_providers"></a>
