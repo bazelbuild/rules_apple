@@ -74,12 +74,6 @@ new_local_repository(
     path = '$PWD/../external/bazel_skylib',
 )
 
-new_local_repository(
-    name = "subpar",
-    build_file_content = '',
-    path = '$PWD/../external/subpar',
-)
-
 local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',

@@ -133,17 +133,6 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
 
     _maybe(
         http_archive,
-        name = "subpar",
-        urls = [
-            "https://github.com/google/subpar/archive/2.0.0.tar.gz",
-        ],
-        strip_prefix = "subpar-2.0.0",
-        sha256 = "b80297a1b8d38027a86836dbadc22f55dc3ecad56728175381aa6330705ac10f",
-        ignore_version_differences = ignore_version_differences,
-    )
-
-    _maybe(
-        http_archive,
         name = "xctestrunner",
         urls = [
             "https://github.com/google/xctestrunner/archive/c9eac2841ab74fa109ea3cf2786646e616994d45.tar.gz",
