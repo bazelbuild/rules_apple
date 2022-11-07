@@ -44,7 +44,7 @@ def watchos_single_target_ui_test_test_suite(name):
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [
             name,
-            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
         ],
     )
 
@@ -55,7 +55,6 @@ def watchos_single_target_ui_test_test_suite(name):
         expected_transitive_dsyms = ["single_target_ui_test.__internal__.__test_bundle_dsyms/single_target_ui_test.xctest"],
         tags = [
             name,
-            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
 
@@ -82,7 +81,6 @@ def watchos_single_target_ui_test_test_suite(name):
         },
         tags = [
             name,
-            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
 
@@ -90,6 +88,5 @@ def watchos_single_target_ui_test_test_suite(name):
         name = name,
         tags = [
             name,
-            "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
         ],
     )
