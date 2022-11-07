@@ -79,7 +79,6 @@ WATCHOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
 ]
 
 WATCHOS_CONFIGURATIONS = {
-    # TODO(b/251910608): Re-enable when platform_mappings are exposed to the test runner.
-    #"device": WATCHOS_DEVICE_OPTIONS,
+    "device": WATCHOS_DEVICE_OPTIONS,
     "simulator": WATCHOS_SIMULATOR_OPTIONS,
 }
