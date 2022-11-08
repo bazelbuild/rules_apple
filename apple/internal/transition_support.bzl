@@ -285,6 +285,7 @@ def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
 
 def _command_line_options_for_xcframework_platform(
         *,
+        attr,
         minimum_os_version,
         platform_attr,
         platform_type,
@@ -293,6 +294,7 @@ def _command_line_options_for_xcframework_platform(
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
 
     Args:
+        attr: The attributes passed to the transition function.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_attr: The attribute for the apple platform specifying in dictionary form which
@@ -326,7 +328,10 @@ def _command_line_options_for_xcframework_platform(
                     environment = target_environment,
                     platform_type = platform_type,
                 ): _command_line_options(
-                    emit_swiftinterface = True,
+                    emit_swiftinterface = _should_emit_swiftinterface(
+                        attr,
+                        is_xcframework = True,
+                    ),
                     environment_arch = resolved_environment_arch,
                     minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
@@ -337,11 +342,30 @@ def _command_line_options_for_xcframework_platform(
 
     return output_dictionary
 
+def _should_emit_swiftinterface(attr, is_xcframework = False):
+    """Whether a .swiftinterface file should be emitted for Swift dependencies.
+
+    This is temporary while we migrate users of the framework rules to enable
+    library evolution on specific targets instead of having it automatically
+    applied to the entire dependency subgraph.
+    """
+
+    # TODO(b/239957001): Delete all this when everyone is migrated to the new
+    # `library_evolution` attribute on `swift_library`.
+    features = getattr(attr, "features", [])
+    if "apple.no_legacy_swiftinterface" in features:
+        return False
+
+    # iOS and tvOS static frameworks require underlying swift_library targets generate a Swift
+    # interface file. These rules define a private attribute called `_emitswiftinterface` that
+    # let's this transition flip rules_swift config down the build graph.
+    return is_xcframework or hasattr(attr, "_emitswiftinterface")
+
 def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
     platform_type = attr.platform_type
     return _command_line_options(
-        emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        emit_swiftinterface = _should_emit_swiftinterface(attr),
         environment_arch = _environment_archs(platform_type, settings)[0],
         minimum_os_version = attr.minimum_os_version,
         platform_type = platform_type,
@@ -408,7 +432,7 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
         environment_arch = _environment_archs(platform_type, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
-        emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        emit_swiftinterface = _should_emit_swiftinterface(attr),
         environment_arch = environment_arch,
         minimum_os_version = attr.minimum_os_version,
         platform_type = platform_type,
@@ -482,10 +506,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     output_dictionary = {}
     invalid_requested_archs = []
 
-    # iOS and tvOS static frameworks require underlying swift_library targets generate a Swift
-    # interface file. These rules define a private attribute called `_emitswiftinterface` that
-    # let's this transition flip rules_swift config down the build graph.
-    emit_swiftinterface = hasattr(attr, "_emitswiftinterface")
+    emit_swiftinterface = _should_emit_swiftinterface(attr)
 
     if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         platforms = (
@@ -599,6 +620,7 @@ def _xcframework_transition_impl(settings, attr):
             target_environments.append("simulator")
 
         command_line_options = _command_line_options_for_xcframework_platform(
+            attr = attr,
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             platform_attr = getattr(attr, platform_type),
             platform_type = platform_type,
