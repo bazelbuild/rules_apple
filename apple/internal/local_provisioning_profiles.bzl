@@ -104,6 +104,7 @@ def _local_provisioning_profile(ctx):
         arguments = [args],
         inputs = ctx.files._local_srcs + ctx.files._fallback_srcs,
         outputs = [selected_profile],
+        mnemonic = "FindProvisioningProfile",
         execution_requirements = {"no-sandbox": "1", "no-remote-exec": "1"},
         progress_message = "Finding provisioning profile %{label}",
     )
