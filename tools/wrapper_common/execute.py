@@ -18,6 +18,7 @@ import re
 import subprocess
 import sys
 
+# LINT.IfChange
 _DEFAULT_TIMEOUT = 900
 
 
@@ -141,3 +142,4 @@ def _trim_paths(stdout):
 
   pattern = r"(/\w+)+/"
   return re.sub(pattern, replace_path, stdout)
+# LINT.ThenChange(../dossier_codesigningtool/dossier_codesigning_reader.py)
