@@ -2740,6 +2740,9 @@ ios_unit_test(
 ios_static_framework(
     name = "swift_ios_static_framework",
     bundle_name = "SwiftFmwk",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [":SwiftFmwk"],
@@ -2749,6 +2752,9 @@ ios_static_framework(
     name = "static_fmwk_with_swift_and_avoid_deps",
     avoid_deps = [":SwiftFmwkLowerLib"],
     bundle_name = "SwiftFmwkUpperLib",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [":SwiftFmwkUpperLib"],
@@ -2757,6 +2763,9 @@ ios_static_framework(
 ios_static_framework(
     name = "static_framework_with_generated_header",
     bundle_name = "SwiftFmwkWithGenHeader",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [":SwiftFmwkWithGenHeader"],
@@ -2769,6 +2778,9 @@ ios_static_framework(
         "//test/starlark_tests/resources:shared.h",
     ],
     bundle_name = "UmbrellaHeaderConflict",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [":shared_lib"],
@@ -2776,6 +2788,9 @@ ios_static_framework(
 
 ios_static_framework(
     name = "static_framework_from_objc_library",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     deps = [":objc_library_with_sdk_dylib_and_framework"],
 )
@@ -2787,6 +2802,9 @@ ios_static_framework(
     ],
     avoid_deps = [":framework_dependent_lib_with_resource"],
     exclude_resources = True,
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     deps = [":static_framework_lib_with_resources"],
 )
@@ -2795,6 +2813,9 @@ ios_static_framework(
     name = "static_framework_with_no_header_and_exclude_resources",
     avoid_deps = [":framework_dependent_lib_with_resource"],
     exclude_resources = True,
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     deps = [":static_framework_lib_with_resources"],
 )
@@ -2806,6 +2827,9 @@ ios_static_framework(
     ],
     avoid_deps = [":framework_dependent_lib_with_resource"],
     exclude_resources = False,
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     deps = [":static_framework_lib_with_resources"],
 )
@@ -2820,6 +2844,7 @@ write_file(
 swift_library(
     name = "SwiftFmwk",
     srcs = [":dummy_swift"],
+    library_evolution = True,
     module_name = "SwiftFmwk",
     tags = common.fixture_tags,
 )
@@ -2827,6 +2852,7 @@ swift_library(
 swift_library(
     name = "SwiftFmwkUpperLib",
     srcs = [":dummy_swift"],
+    library_evolution = True,
     module_name = "SwiftFmwkUpperLib",
     tags = common.fixture_tags,
     deps = [":SwiftFmwkLowerLib"],
@@ -2851,6 +2877,7 @@ swift_library(
     name = "SwiftFmwkWithGenHeader",
     srcs = [":dummy_swift"],
     generates_header = True,
+    library_evolution = True,
     module_name = "SwiftFmwkWithGenHeader",
     tags = common.fixture_tags,
 )

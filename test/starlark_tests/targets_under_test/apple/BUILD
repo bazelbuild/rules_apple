@@ -264,6 +264,7 @@ objc_library(
 swift_library(
     name = "swift_lib_for_static_xcfmwk",
     srcs = ["DummyFmwk.swift"],
+    library_evolution = True,
     module_name = "ios_static_xcfmwk_with_swift",
     tags = common.fixture_tags,
 )
@@ -272,6 +273,7 @@ swift_library(
     name = "swift_lib_for_static_xcfmwk_with_headers",
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
+    library_evolution = True,
     module_name = "ios_static_xcfmwk_with_swift_generated_headers",
     tags = common.fixture_tags,
 )
@@ -280,6 +282,7 @@ swift_library(
     name = "swift_lib_for_static_xcfmwk_custom_bundle_name",
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
+    library_evolution = True,
     module_name = "ios_static_xcfmwk_with_custom_bundle_name",
     tags = common.fixture_tags,
 )
@@ -289,6 +292,7 @@ swift_library(
     srcs = [
         "DummyFmwk.swift",
     ],
+    library_evolution = True,
     module_name = "ios_dynamic_lipoed_swift_xcframework",
     tags = common.fixture_tags,
 )
@@ -300,6 +304,9 @@ dummy_test_runner(
 apple_xcframework(
     name = "ios_dynamic_xcframework",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -320,6 +327,9 @@ apple_xcframework(
 apple_xcframework(
     name = "tvos_dynamic_xcframework",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -348,6 +358,9 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -374,6 +387,9 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_lipoed_swift_xcframework",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -399,6 +415,9 @@ apple_xcframework(
     families_required = {
         "ios": ["ipad"],
     },
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
@@ -420,6 +439,9 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_multiple_infoplists",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
@@ -445,6 +467,9 @@ apple_xcframework(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:resource_bundle",
     ],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -465,6 +490,9 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_with_deps_resource_bundle",
     bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -491,6 +519,9 @@ apple_xcframework(
     exported_symbols_lists = [
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -516,6 +547,9 @@ apple_xcframework(
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
         "//test/starlark_tests/resources:ExportDontCallMeShared.exp",
     ],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -540,6 +574,9 @@ apple_xcframework(
     exported_symbols_lists = [
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -562,6 +599,9 @@ apple_xcframework(
     name = "ios_swift_xcframework_with_generated_header",
     bundle_id = "com.google.example",
     bundle_name = "SwiftFmwkWithGenHeader",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -588,6 +628,9 @@ apple_xcframework(
     name = "ios_dynamic_xcframework_with_umbrella_header_conflict",
     bundle_id = "com.google.example",
     bundle_name = "UmbrellaHeaderConflict",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -608,6 +651,9 @@ apple_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcframework_oldest_supported",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "simulator": [
             "x86_64",
@@ -628,6 +674,9 @@ apple_static_xcframework(
 apple_static_xcframework(
     name = "ios_static_xcfmwk_with_avoid_deps",
     avoid_deps = [":StaticFmwkLowerLib"],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "simulator": [
             "x86_64",
@@ -644,6 +693,9 @@ apple_static_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcfmwk_with_objc_sdk_dylibs_and_and_sdk_frameworks",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "device": ["arm64"],
     },
@@ -659,6 +711,9 @@ apple_static_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcfmwk_with_swift",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "device": ["arm64"],
         "simulator": [
@@ -676,6 +731,9 @@ apple_static_xcframework(
 apple_static_xcframework(
     name = "ios_static_xcfmwk_with_swift_and_bundle_name",
     bundle_name = "ios_static_xcfmwk_with_custom_bundle_name",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "device": ["arm64"],
         "simulator": [
@@ -692,6 +750,9 @@ apple_static_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcfmwk_with_swift_generated_headers",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "device": ["arm64"],
         "simulator": [
@@ -711,6 +772,9 @@ apple_static_xcframework(
 
 apple_static_xcframework(
     name = "ios_static_xcframework",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     ios = {
         "simulator": [
             "arm64",
@@ -803,6 +867,7 @@ swift_library(
     name = "SwiftFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
+    library_evolution = True,
     module_name = "SwiftFmwkWithGenHeader",
     tags = common.fixture_tags,
 )
