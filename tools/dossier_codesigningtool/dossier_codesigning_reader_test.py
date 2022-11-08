@@ -19,7 +19,7 @@ import unittest
 
 from unittest import mock
 
-from tools.dossier_codesigningtool import dossier_codesigningtool
+from tools.dossier_codesigningtool import dossier_codesigning_reader
 
 _FAKE_MANIFEST = {
     'codesign_identity': '-',
@@ -57,12 +57,12 @@ _FAKE_MANIFEST = {
 }
 
 
-class DossierCodesigningtoolTest(unittest.TestCase):
+class DossierCodesigningReaderTest(unittest.TestCase):
 
-  @mock.patch.object(dossier_codesigningtool, '_invoke_codesign')
+  @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
   def test_sign_bundle_with_manifest_codesign_invocations(self, mock_codesign):
     mock.patch('shutil.copy').start()
-    dossier_codesigningtool._sign_bundle_with_manifest(
+    dossier_codesigning_reader._sign_bundle_with_manifest(
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_MANIFEST,
         dossier_directory='/tmp/dossier/',
@@ -107,24 +107,24 @@ class DossierCodesigningtoolTest(unittest.TestCase):
         actual_paths.index('/tmp/fake.app/'))
 
   @mock.patch.object(
-      dossier_codesigningtool, '_fetch_preferred_signing_identity')
+      dossier_codesigning_reader, '_fetch_preferred_signing_identity')
   def test_sign_bundle_with_manifest_raises_identity_infer_error(
       self, mock_fetch_preferred_signing_identity):
     fake_manifest = {'provisioning_profile': 'fake.mobileprovision'}
     mock_fetch_preferred_signing_identity.return_value = None
 
     with self.assertRaisesRegex(SystemExit, 'unable to infer identity'):
-      dossier_codesigningtool._sign_bundle_with_manifest(
+      dossier_codesigning_reader._sign_bundle_with_manifest(
           root_bundle_path='/tmp/fake.app/',
           manifest=fake_manifest,
           dossier_directory='/tmp/dossier/',
           codesign_path='/usr/bin/fake_codesign')
 
-  @mock.patch.object(dossier_codesigningtool, '_sign_bundle_with_manifest')
+  @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
   def test_sign_embedded_bundles_with_manifest(self, mock_sign_bundle):
     mock_sign_bundle.return_value = concurrent.futures.Future()
     executor = concurrent.futures.ThreadPoolExecutor()
-    futures = dossier_codesigningtool._sign_embedded_bundles_with_manifest(
+    futures = dossier_codesigning_reader._sign_embedded_bundles_with_manifest(
         manifest=_FAKE_MANIFEST,
         root_bundle_path='/tmp/fake.app/',
         dossier_directory='/tmp/dossier/',
@@ -177,13 +177,13 @@ class DossierCodesigningtoolTest(unittest.TestCase):
   @mock.patch('os.path.exists')
   def test_copy_embedded_provisioning_profile(self, mock_exists, mock_copy):
     mock_exists.return_value = False
-    dossier_codesigningtool._copy_embedded_provisioning_profile(
+    dossier_codesigning_reader._copy_embedded_provisioning_profile(
         provisioning_profile_file_path='/tmp/fake.mobileprovision',
         root_bundle_path='/tmp/fake.app/')
     mock_copy.assert_called_with(
         '/tmp/fake.mobileprovision', '/tmp/fake.app/embedded.mobileprovision')
 
-    dossier_codesigningtool._copy_embedded_provisioning_profile(
+    dossier_codesigning_reader._copy_embedded_provisioning_profile(
         provisioning_profile_file_path='/tmp/fake.mobile',
         root_bundle_path='/tmp/fake.app/')
     mock_copy.assert_called_with(
@@ -199,7 +199,7 @@ class DossierCodesigningtoolTest(unittest.TestCase):
 
     with self.assertRaisesRegex(
         SystemExit, 'Signing failed.*codesign tasks failed'):
-      dossier_codesigningtool._wait_embedded_manifest_futures(futures)
+      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
 
   def test_wait_embedded_manifest_futures_does_not_raises_exception(self):
     futures = []
@@ -207,7 +207,7 @@ class DossierCodesigningtoolTest(unittest.TestCase):
       future = concurrent.futures.Future()
       future.set_result(None)
       futures.append(future)
-    dossier_codesigningtool._wait_embedded_manifest_futures(futures)
+    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
 
   @mock.patch('concurrent.futures.wait')
   def test_wait_embedded_manifest_futures_cancel_futures(self, mock_wait):
@@ -224,7 +224,7 @@ class DossierCodesigningtoolTest(unittest.TestCase):
 
     with self.assertRaisesRegex(
         SystemExit, 'Signing failed.*codesign tasks failed'):
-      dossier_codesigningtool._wait_embedded_manifest_futures(futures)
+      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
 
     mock_future_not_done.cancel.assert_called()
     mock_future_exception.cancel.assert_not_called()
