@@ -61,6 +61,7 @@ def _platform_prerequisites(
         explicit_minimum_os = None,
         objc_fragment = None,
         platform_type_string,
+        signing_certificate_name = None,
         uses_swift,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
@@ -73,6 +74,9 @@ def _platform_prerequisites(
       explicit_minimum_os: A dotted version string indicating minimum OS desired. Optional.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       platform_type_string: The platform type for the current target as a string.
+      signing_certificate_name: The name of the code signing identity to use for signing. If this
+        is expected to be inferred from an assigned provisioning profile or if code signing does not
+        apply to this part of the rule logic, set this to None. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
 
@@ -88,6 +92,14 @@ def _platform_prerequisites(
         # TODO(b/38006810): Use the SDK version instead of the flag value as a soft default.
         minimum_os = str(xcode_version_config.minimum_os_for_platform_type(platform_type_attr))
 
+    if objc_fragment:
+        # TODO(b/252873771): Remove this fallback when the native Bazel flag ios_signing_cert_name
+        # is removed.
+        preferred_signing_cert_name = (signing_certificate_name or
+                                       objc_fragment.signing_certificate_name)
+    else:
+        preferred_signing_cert_name = signing_certificate_name
+
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
@@ -100,6 +112,7 @@ def _platform_prerequisites(
         platform_type = platform_type_attr,
         objc_fragment = objc_fragment,
         sdk_version = sdk_version,
+        signing_certificate_name = preferred_signing_cert_name,
         uses_swift = uses_swift,
         xcode_version_config = xcode_version_config,
     )

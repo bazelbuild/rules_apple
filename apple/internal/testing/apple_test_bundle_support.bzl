@@ -85,6 +85,7 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.
@@ -300,6 +301,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )

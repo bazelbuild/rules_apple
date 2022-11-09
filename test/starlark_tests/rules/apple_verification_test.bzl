@@ -56,11 +56,11 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
         "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
-        "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
+        "@build_bazel_rules_apple//apple/build_settings:signing_certificate_name": "-",
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -117,7 +117,6 @@ apple_verification_transition = transition(
     ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
         "//command_line_option:cpu",
-        "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",

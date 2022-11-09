@@ -281,10 +281,12 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
+        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
+        "@bazel_skylib//rules:common_settings",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
@@ -348,9 +350,11 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
+        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//rules:common_settings",
     ],
 )
 
@@ -599,9 +603,11 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
+        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//rules:common_settings",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
@@ -630,10 +636,12 @@ bzl_library(
         ":stub_support",
         ":swift_support",
         "//apple:providers",
+        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:sets",
+        "@bazel_skylib//rules:common_settings",
     ],
 )
 
