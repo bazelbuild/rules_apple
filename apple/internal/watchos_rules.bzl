@@ -15,6 +15,10 @@
 """Implementation of watchOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:attrs.bzl",
+    "build_settings",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -131,6 +135,7 @@ load(
     "@bazel_skylib//lib:new_sets.bzl",
     "sets",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _watchos_framework_impl(ctx):
     """Experimental implementation of watchos_framework."""
@@ -704,6 +709,7 @@ def _watchos_extension_based_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -946,6 +952,7 @@ def _watchos_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1398,6 +1405,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1599,6 +1607,7 @@ watchos_application = rule_factory.create_apple_rule(
     implementation = _watchos_application_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1666,6 +1675,7 @@ watchos_extension = rule_factory.create_apple_rule(
     implementation = _watchos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

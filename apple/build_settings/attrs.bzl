@@ -17,6 +17,7 @@
 # List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
 _BUILD_SETTINGS = [
     "parse_xcframework_info_plist",
+    "signing_certificate_name",
 ]
 
 # Build settings label template including label prefix.

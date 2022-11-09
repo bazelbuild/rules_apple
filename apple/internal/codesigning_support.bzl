@@ -114,7 +114,7 @@ def _codesign_args_for_path(
 
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
     # use an ad hoc identity.
-    identity = platform_prerequisites.objc_fragment.signing_certificate_name if is_device else "-"
+    identity = platform_prerequisites.signing_certificate_name if is_device else "-"
     if not identity:
         if provisioning_profile:
             cmd_codesigning.extend([
@@ -501,8 +501,10 @@ def _generate_codesigning_dossier_action(
     }
 
     is_device = platform_prerequisites.platform.is_device
-    fragment = platform_prerequisites.objc_fragment
-    codesign_identity = fragment.signing_certificate_name if is_device else "-"
+
+    # Try to use the identity passed on the command line, if any. If it's a simulator build, use an
+    # ad hoc identity.
+    codesign_identity = platform_prerequisites.signing_certificate_name if is_device else "-"
     if not codesign_identity and not provisioning_profile:
         codesign_identity = "-"
     if codesign_identity:

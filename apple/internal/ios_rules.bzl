@@ -15,6 +15,10 @@
 """Implementation of iOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:attrs.bzl",
+    "build_settings",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -134,6 +138,7 @@ load(
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
@@ -174,6 +179,7 @@ def _ios_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -501,6 +507,7 @@ def _ios_app_clip_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -787,6 +794,7 @@ def _ios_framework_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1025,6 +1033,7 @@ def _ios_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1703,6 +1712,7 @@ def _ios_imessage_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1897,6 +1907,7 @@ def _ios_imessage_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2136,6 +2147,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
+        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2295,6 +2307,7 @@ ios_application = rule_factory.create_apple_rule(
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
@@ -2407,6 +2420,7 @@ ios_app_clip = rule_factory.create_apple_rule(
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
@@ -2468,6 +2482,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
     implementation = _ios_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
@@ -2533,6 +2548,7 @@ of those `ios_application` and/or `ios_extension` rules.""",
     implementation = _ios_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2764,6 +2780,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
     implementation = _ios_imessage_application_impl,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
@@ -2803,6 +2820,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
     implementation = _ios_imessage_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
@@ -2848,6 +2866,7 @@ ios_sticker_pack_extension = rule_factory.create_apple_rule(
     implementation = _ios_sticker_pack_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(
             icon_extension = ".stickersiconset",
             icon_parent_extension = ".xcstickers",
