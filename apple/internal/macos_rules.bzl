@@ -330,6 +330,7 @@ def _macos_application_impl(ctx):
         ),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
@@ -1632,6 +1633,7 @@ def _macos_command_line_application_impl(ctx):
         ),
         apple_common.new_executable_binary_provider(
             binary = output_file,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.

@@ -365,6 +365,7 @@ def _tvos_application_impl(ctx):
         TvosApplicationBundleInfo(),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
@@ -526,6 +527,7 @@ def _tvos_dynamic_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
+            cc_info = link_result.cc_info,
             objc_provider = link_result.objc,
             rule_label = label,
         ),
@@ -748,6 +750,7 @@ def _tvos_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
+            cc_info = link_result.cc_info,
             objc_provider = link_result.objc,
             rule_label = label,
         ),

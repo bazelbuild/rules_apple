@@ -461,6 +461,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     # Create AppleDynamicFrameworkInfo provider
     apple_dynamic_framework_info = apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
+        cc_info = cc_info,
         framework_dirs = depset(xcframework_library.framework_dirs),
         framework_files = depset(xcframework_library.framework_files),
     )
