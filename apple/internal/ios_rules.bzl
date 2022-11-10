@@ -115,6 +115,7 @@ load(
     "IosStickerPackExtensionBundleInfo",
 )
 load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
@@ -690,6 +691,14 @@ def _ios_framework_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_features = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -828,7 +837,9 @@ def _ios_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
+            cc_features = cc_features,
             cc_info = link_result.cc_info,
+            cc_toolchain = cc_toolchain,
             objc_provider = link_result.objc,
             rule_label = label,
         ),
@@ -1158,6 +1169,14 @@ def _ios_dynamic_framework_impl(ctx):
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_features = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1300,7 +1319,9 @@ def _ios_dynamic_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             bundle_only = False,
+            cc_features = cc_features,
             cc_info = link_result.cc_info,
+            cc_toolchain = cc_toolchain,
             objc_provider = link_result.objc,
             rule_label = label,
         ),
