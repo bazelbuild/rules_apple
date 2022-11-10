@@ -29,7 +29,9 @@ def _framework_provider_partial_impl(
         bin_root_path,
         binary_artifact,
         bundle_name,
+        cc_features,
         cc_info,
+        cc_toolchain,
         objc_provider,
         rule_label):
     """Implementation for the framework provider partial."""
@@ -60,9 +62,30 @@ def _framework_provider_partial_impl(
         providers = [objc_provider],
     )
 
+    library_to_link = cc_common.create_library_to_link(
+        actions = actions,
+        cc_toolchain = cc_toolchain,
+        feature_configuration = cc_features,
+        dynamic_library = binary_artifact,
+    )
+    linker_input = cc_common.create_linker_input(
+        owner = rule_label,
+        libraries = depset([library_to_link]),
+    )
+    wrapper_cc_info = cc_common.merge_cc_infos(
+        cc_infos = [
+            CcInfo(
+                linking_context = cc_common.create_linking_context(
+                    linker_inputs = depset(direct = [linker_input]),
+                ),
+            ),
+            cc_info,
+        ],
+    )
+
     framework_provider = apple_common.new_dynamic_framework_provider(
         binary = binary_artifact,
-        cc_info = cc_info,
+        cc_info = wrapper_cc_info,
         framework_dirs = depset([absolute_framework_dir]),
         framework_files = depset([framework_file]),
         objc = legacy_objc_provider,
@@ -78,7 +101,9 @@ def framework_provider_partial(
         bin_root_path,
         binary_artifact,
         bundle_name,
+        cc_features,
         cc_info,
+        cc_toolchain,
         objc_provider,
         rule_label):
     """Constructor for the framework provider partial.
@@ -93,8 +118,10 @@ def framework_provider_partial(
       bin_root_path: The path to the root `-bin` directory.
       binary_artifact: The linked dynamic framework binary.
       bundle_name: The name of the output bundle.
+      cc_features: List of enabled C++ features.
       cc_info: The CcInfo provider containing information about the
           targets linked into the dynamic framework.
+      cc_toolchain: The C++ toolchain to use.
       objc_provider: The `apple_common.Objc` provider containing information
           about the targets linked into the dynamic framework.
       rule_label: The label of the target being analyzed.
@@ -110,7 +137,9 @@ def framework_provider_partial(
         bin_root_path = bin_root_path,
         binary_artifact = binary_artifact,
         bundle_name = bundle_name,
+        cc_features = cc_features,
         cc_info = cc_info,
+        cc_toolchain = cc_toolchain,
         objc_provider = objc_provider,
         rule_label = rule_label,
     )

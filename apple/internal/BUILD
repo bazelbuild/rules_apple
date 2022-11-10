@@ -287,6 +287,7 @@ bzl_library(
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//rules:common_settings",
+        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
@@ -608,6 +609,7 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//rules:common_settings",
+        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
