@@ -494,7 +494,9 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         framework_includes = xcframework_library.framework_includes,
         grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
+        kind = "dynamic",
         label = label,
+        libraries = [xcframework_library.binary],
     )
     providers.append(cc_info)
 
@@ -610,6 +612,7 @@ def _apple_static_xcframework_import_impl(ctx):
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         additional_cc_infos = additional_cc_infos,
+        alwayslink = alwayslink,
         cc_toolchain = cc_toolchain,
         ctx = ctx,
         deps = deps,
@@ -617,7 +620,9 @@ def _apple_static_xcframework_import_impl(ctx):
         features = features,
         grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
+        kind = "static",
         label = label,
+        libraries = [xcframework_library.binary],
         linkopts = linkopts,
         includes = xcframework_library.includes,
     )
