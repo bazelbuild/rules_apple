@@ -433,6 +433,7 @@ A list of targets that are dependencies of the target being built, which will be
 target.
 """,
                 providers = [
+                    [CcInfo],
                     [apple_common.Objc, CcInfo],
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
@@ -525,6 +526,7 @@ A list of targets that are dependencies of the target being built, which will pr
 linked into that target.
 """,
                 providers = [
+                    [CcInfo],
                     [apple_common.Objc, CcInfo],
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
