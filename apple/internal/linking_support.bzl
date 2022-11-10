@@ -136,6 +136,8 @@ def _register_binary_linking_action(
         *   `binary`: The final binary `File` that was linked. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
             is a new universal (fat) binary obtained by invoking `lipo`.
+        *   `cc_info`: The CcInfo provider containing information about the targets that were
+            linked.
         *   `objc`: The `apple_common.Objc` provider containing information about the targets
             that were linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
@@ -218,6 +220,7 @@ def _register_binary_linking_action(
 
     return struct(
         binary = fat_binary,
+        cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
         objc = linking_outputs.objc,
         outputs = linking_outputs.outputs,

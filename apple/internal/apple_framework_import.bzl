@@ -164,6 +164,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     framework_dirs_set = depset(framework_groups.keys())
     providers.append(apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
+        cc_info = cc_info,
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),
     ))

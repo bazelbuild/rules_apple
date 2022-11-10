@@ -29,6 +29,7 @@ def _framework_provider_partial_impl(
         bin_root_path,
         binary_artifact,
         bundle_name,
+        cc_info,
         objc_provider,
         rule_label):
     """Implementation for the framework provider partial."""
@@ -61,6 +62,7 @@ def _framework_provider_partial_impl(
 
     framework_provider = apple_common.new_dynamic_framework_provider(
         binary = binary_artifact,
+        cc_info = cc_info,
         framework_dirs = depset([absolute_framework_dir]),
         framework_files = depset([framework_file]),
         objc = legacy_objc_provider,
@@ -76,6 +78,7 @@ def framework_provider_partial(
         bin_root_path,
         binary_artifact,
         bundle_name,
+        cc_info,
         objc_provider,
         rule_label):
     """Constructor for the framework provider partial.
@@ -90,6 +93,8 @@ def framework_provider_partial(
       bin_root_path: The path to the root `-bin` directory.
       binary_artifact: The linked dynamic framework binary.
       bundle_name: The name of the output bundle.
+      cc_info: The CcInfo provider containing information about the
+          targets linked into the dynamic framework.
       objc_provider: The `apple_common.Objc` provider containing information
           about the targets linked into the dynamic framework.
       rule_label: The label of the target being analyzed.
@@ -97,6 +102,7 @@ def framework_provider_partial(
     Returns:
       A partial that returns the AppleDynamicFrameworkInfo provider used to link
       this framework into the final binary.
+
     """
     return partial.make(
         _framework_provider_partial_impl,
@@ -104,6 +110,7 @@ def framework_provider_partial(
         bin_root_path = bin_root_path,
         binary_artifact = binary_artifact,
         bundle_name = bundle_name,
+        cc_info = cc_info,
         objc_provider = objc_provider,
         rule_label = rule_label,
     )
