@@ -25,7 +25,6 @@ def _cc_info_with_dependencies(
         *,
         actions,
         additional_cc_infos = [],
-        alwayslink = False,
         cc_toolchain,
         ctx,
         deps,
@@ -34,9 +33,7 @@ def _cc_info_with_dependencies(
         framework_includes = [],
         grep_includes,
         header_imports,
-        kind,
         label,
-        libraries,
         linkopts = [],
         includes = []):
     """Returns a new CcInfo which includes transitive Cc dependencies.
@@ -44,7 +41,6 @@ def _cc_info_with_dependencies(
     Args:
         actions: The actions provider from `ctx.actions`.
         additional_cc_infos: List of additinal CcInfo providers to use for a merged compilation contexts.
-        alwayslink: Boolean to indicate if force_load_library should be set for static frameworks.
         cc_toolchain: CcToolchainInfo provider for current target.
         ctx: The Starlark context for a rule target being built.
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
@@ -54,9 +50,7 @@ def _cc_info_with_dependencies(
         grep_includes: File reference to grep_includes binary required by cc_common APIs.
         header_imports: List of imported header files.
         includes: List of included headers search paths (defaults to: []).
-        kind: whether the framework is "static" or "dynamic".
         label: Label of the target being built.
-        libraries: The list of framework libraries.
         linkopts: List of linker flags strings to propagate as linker input.
     Returns:
         CcInfo provider.
@@ -87,30 +81,17 @@ def _cc_info_with_dependencies(
 
     linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]
 
-    if kind == "static":
-        libraries_to_link = _libraries_to_link_for_static_framework(
-            actions = actions,
-            alwayslink = alwayslink,
-            libraries = libraries,
+    if linkopts:
+        linking_contexts.append(
+            cc_common.create_linking_context(
+                linker_inputs = depset([
+                    cc_common.create_linker_input(
+                        owner = label,
+                        user_link_flags = linkopts,
+                    ),
+                ]),
+            ),
         )
-    else:
-        libraries_to_link = _libraries_to_link_for_dynamic_framework(
-            actions = actions,
-            cc_toolchain = cc_toolchain,
-            feature_configuration = feature_configuration,
-            libraries = libraries,
-        )
-    linking_contexts.append(
-        cc_common.create_linking_context(
-            linker_inputs = depset([
-                cc_common.create_linker_input(
-                    owner = label,
-                    libraries = depset(libraries_to_link),
-                    user_link_flags = linkopts,
-                ),
-            ]),
-        ),
-    )
 
     linking_context = cc_common.merge_linking_contexts(
         linking_contexts = linking_contexts,
@@ -221,61 +202,6 @@ def _classify_framework_imports(framework_imports):
         module_map_imports = framework_imports_by_category.module_map_imports,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
-
-def _libraries_to_link_for_dynamic_framework(
-        *,
-        actions,
-        cc_toolchain,
-        feature_configuration,
-        libraries):
-    """Return a list of library_to_link's for a dynamic framework.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        cc_toolchain: CcToolchainInfo provider for current target.
-        feature_configuration: The cc enabled features.
-        libraries: List of dynamic libraries.
-
-    Returns:
-        A list of library_to_link's.
-    """
-    libraries_to_link = []
-    for library in libraries:
-        library_to_link = cc_common.create_library_to_link(
-            actions = actions,
-            cc_toolchain = cc_toolchain,
-            feature_configuration = feature_configuration,
-            dynamic_library = library,
-        )
-        libraries_to_link.append(library_to_link)
-
-    return libraries_to_link
-
-def _libraries_to_link_for_static_framework(
-        *,
-        actions,
-        alwayslink,
-        libraries):
-    """Return a list of library_to_link's for a static framework.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        alwayslink: Whather the libraries should be always linked.
-        libraries: List of static libraries.
-
-    Returns:
-        A list of library_to_link's.
-    """
-    libraries_to_link = []
-    for library in libraries:
-        library_to_link = cc_common.create_library_to_link(
-            actions = actions,
-            alwayslink = alwayslink,
-            static_library = library,
-        )
-        libraries_to_link.append(library_to_link)
-
-    return libraries_to_link
 
 def _framework_import_info_with_dependencies(
         *,
