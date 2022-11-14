@@ -208,6 +208,7 @@ def _objc_provider_with_dependencies(deps, objc_provider_fields, additional_objc
     objc_provider_fields["providers"] = [
         dep[apple_common.Objc]
         for dep in deps
+        if apple_common.Objc in dep
     ] + additional_objc_infos
     return apple_common.new_objc_provider(**objc_provider_fields)
 
