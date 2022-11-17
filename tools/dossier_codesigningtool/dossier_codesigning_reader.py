@@ -479,10 +479,11 @@ def _wait_embedded_manifest_futures(
     not_done_future.cancel()
 
   if any(exceptions):
-    errors = '\n\n'.join(
-        f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1))
+    errors = '\n\n'.join('\t{0}) {1}'.format(i, repr(e))
+                         for i, e in enumerate(exceptions, start=1))
     raise SystemExit(
-        f'Signing failed - one or more codesign tasks failed:\n{errors}')
+        'Signing failed - one or more codesign tasks failed:\n{0}'.format(
+            errors))
 
 
 def _extract_zipped_dossier(zipped_dossier_path):
