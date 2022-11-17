@@ -56,13 +56,14 @@ import hashlib
 import json
 import os
 import sys
+from typing import Optional, Union
 import zipfile
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the archive')
 
 
-class BundleToolError(ValueError):
+class BundleConflictError(ValueError):
   """Raised for all errors.
 
   Custom ValueError used to allow catching (and logging) just the bundletool
@@ -98,7 +99,7 @@ class Bundler(object):
     """Performs the operations requested by the control struct."""
     output_path = self._control.get('output')
     if not output_path:
-      raise BundleToolError('No output file specified.')
+      raise BundleConflictError('No output file specified.')
 
     bundle_path = self._control.get('bundle_path', '')
     bundle_merge_files = self._control.get('bundle_merge_files', [])
@@ -146,11 +147,13 @@ class Bundler(object):
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
           fexec = executable or os.access(fsrc, os.X_OK)
           with open(fsrc, 'rb') as f:
-            self._write_entry(fdest, f.read(), fexec, out_zip)
+            self._write_entry(
+                dest=fdest, data=f.read(), is_executable=fexec, out_zip=out_zip)
     elif os.path.isfile(src):
       fexec = executable or os.access(src, os.X_OK)
       with open(src, 'rb') as f:
-        self._write_entry(dest, f.read(), fexec, out_zip)
+        self._write_entry(
+            dest=dest, data=f.read(), is_executable=fexec, out_zip=out_zip)
 
   def _add_zip_contents(self, src, dest, out_zip):
     """Adds the contents of another ZIP file to the output ZIP archive.
@@ -171,22 +174,32 @@ class Bundler(object):
         if src_zipinfo.filename.endswith('/'):
           file_dest += '/'
 
-        # Check for Unix --x--x--x permissions.
-        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
-        data = src_zip.read(src_zipinfo)
-        self._write_entry(file_dest, data, executable, out_zip)
+        self._write_entry(
+            dest=file_dest,
+            data=src_zip.read(src_zipinfo),
+            external_attr=src_zipinfo.external_attr,
+            out_zip=out_zip)
 
-  def _write_entry(self, dest, data, executable, out_zip):
+  def _write_entry(
+      self,
+      *,
+      data: Union[str, bytes],
+      dest: str,
+      external_attr: Optional[int] = None,
+      is_executable: Optional[bool] = False,
+      out_zip: zipfile.ZipFile):
     """Writes the given data as a file in the output ZIP archive.
 
     Args:
-      dest: The path inside the archive where the data should be written.
       data: The data to be written in the archive.
-      executable: A Boolean value indicating whether or not the file should be
-          made executable.
+      dest: The path inside the archive where the data should be written.
+      external_attr: The external_attr from an existing ZipInfo, ignores
+        is_executable if specified.
+      is_executable: A Boolean value indicating whether or not the file should
+          be made executable.
       out_zip: The `ZipFile` into which the files should be added.
     Raises:
-      BundleToolError: If two files with different content would be placed
+      BundleConflictError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
     new_hash = hashlib.md5(data).digest()
@@ -194,35 +207,39 @@ class Bundler(object):
     if existing_hash:
       if existing_hash == new_hash:
         return
-      raise BundleToolError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
+      raise BundleConflictError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
 
     self._entry_hashes[dest] = new_hash
 
     zipinfo = zipfile.ZipInfo(dest)
     zipinfo.compress_type = zipfile.ZIP_STORED
 
-    if dest.endswith('/'):
-      # Unix rwxr-xr-x permissions and S_IFDIR (directory) on the left side of
-      # the bitwise-OR; MS-DOS directory flag on the right.
-      zipinfo.external_attr = 0o040755 << 16 | 0x10
+    if external_attr:
+      zipinfo.external_attr = external_attr
     else:
-      # Unix rw-r--r-- permissions and S_IFREG (regular file).
-      zipinfo.external_attr = 0o100644 << 16
-      if executable:
-        # Add Unix --x--x--x permissions.
-        zipinfo.external_attr |= 0o111 << 16
+      if dest.endswith('/'):
+        # Unix rwxr-xr-x permissions and S_IFDIR (directory) on the left side of
+        # the bitwise-OR; MS-DOS directory flag on the right.
+        zipinfo.external_attr = 0o040755 << 16 | 0x10
+      else:
+        # Unix rw-r--r-- permissions and S_IFREG (regular file).
+        zipinfo.external_attr = 0o100644 << 16
+        if is_executable:
+          # Add Unix --x--x--x permissions.
+          zipinfo.external_attr |= 0o111 << 16
 
     out_zip.writestr(zipinfo, data)
 
 
 def _main(control_path):
+  """Loads JSON parameters file and runs Bundler."""
   with open(control_path) as control_file:
     control = json.load(control_file)
 
   bundler = Bundler(control)
   try:
     bundler.run()
-  except BundleToolError as e:
+  except BundleConflictError as e:
     # Log tools errors cleanly for build output.
     sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)

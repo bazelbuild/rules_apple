@@ -53,6 +53,12 @@ def _apple_verification_transition_impl(settings, attr):
 Internal Error: A verification test should only specify `apple_platforms` or `cpus`, but not both.
 """)
 
+    # TODO(b/256647656): Fix macOS app w/ imported versioned framework adhoc codesign verification.
+    signing_certificate_name = "-"
+    use_adhoc_signing_identity = getattr(attr, "use_adhoc_signing_identity", True)
+    if not use_adhoc_signing_identity:
+        signing_certificate_name = settings[build_settings.signing_certificate_name.label]
+
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
         "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
@@ -60,7 +66,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
-        "@build_bazel_rules_apple//apple/build_settings:signing_certificate_name": "-",
+        build_settings.signing_certificate_name.label: signing_certificate_name,
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -324,6 +330,15 @@ variables to exist:
 The environmental variables to pass to the verifier script. The list of strings will be transformed
 into a bash array.
 """,
+        ),
+        "use_adhoc_signing_identity": attr.bool(
+            doc = """
+Boolean to indicate if rules_apple custom build setting for 'signing_certificate_name' should be set
+to use ad-hoc signing identity. Defaults to False, which does not update build setting and resolves
+to use either a previously set rules_apple's 'signing_certificate_name' or Bazel's Objc fragment
+'signing_certificate_name' (see platform_support.bzl).
+""",
+            default = True,
         ),
         "_runner_script": attr.label(
             allow_single_file = True,
