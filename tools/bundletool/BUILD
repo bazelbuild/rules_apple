@@ -28,8 +28,8 @@ py_binary(
 )
 
 py_test(
-    name = "bundletool_test",
-    srcs = ["bundletool_test.py"],
+    name = "bundletool_unittest",
+    srcs = ["bundletool_unittest.py"],
     python_version = "PY3",
     deps = [
         ":bundletool_lib",

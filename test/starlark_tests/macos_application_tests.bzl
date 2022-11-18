@@ -54,13 +54,11 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
-    # TODO(b/256647656): Fix macOS app w/ imported versioned framework adhoc codesign verification.
     apple_verification_test(
         name = "{}_imported_fmwk_codesign_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        use_adhoc_signing_identity = False,
         tags = [name],
     )
 

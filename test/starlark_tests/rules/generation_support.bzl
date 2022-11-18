@@ -243,7 +243,6 @@ def _create_dynamic_library(
 def _create_framework(
         *,
         actions,
-        apple_fragment,
         base_path = "",
         bundle_name,
         label,
@@ -251,13 +250,11 @@ def _create_framework(
         headers,
         include_resource_bundle = False,
         module_interfaces = [],
-        target_os,
-        xcode_config):
+        target_os):
     """Creates an Apple platform framework bundle.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         base_path: Base path for the generated archive file (optional).
         bundle_name: Name of the framework bundle.
         label: Label of the target being built.
@@ -267,135 +264,13 @@ def _create_framework(
             the framework bundle (optional).
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
         target_os: The target Apple OS for the generated framework bundle.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         List of files for a .framework bundle.
     """
     framework_files = []
-    bundle_directory = paths.join(base_path, bundle_name + ".framework")
+    framework_directory = paths.join(base_path, bundle_name + ".framework")
+    resources_directory = paths.join(framework_directory, "Resources")
 
-    is_macos_framework = target_os == "macos"
-
-    # macOS frameworks can include multiple framework versions under:
-    #     MyFramework.framework/Versions
-    #
-    # This directory can contain N framework versions, and special
-    # Current version whose contents are symlinks to the effective
-    # current framework version files (e.g. Versions/A). Finally,
-    # all top-level bundle files, are symlinks to the special
-    # Versions/Current directory.
-    framework_directories = [bundle_directory]
-    versions_directory = paths.join(bundle_directory, "Versions")
-    if is_macos_framework:
-        framework_directories = [
-            paths.join(versions_directory, "A"),
-            paths.join(versions_directory, "B"),
-        ]
-
-    for framework_directory in framework_directories:
-        framework_files.append(
-            _copy_framework_library(
-                actions = actions,
-                apple_fragment = apple_fragment,
-                bundle_name = bundle_name,
-                framework_directory = framework_directory,
-                label = label,
-                library = library,
-                xcode_config = xcode_config,
-            ),
-        )
-
-    for framework_directory in framework_directories:
-        resources_directory = paths.join(framework_directory, "Resources")
-        infoplist_directory = resources_directory if is_macos_framework else framework_directory
-        framework_plist = intermediates.file(
-            actions = actions,
-            file_name = paths.join(infoplist_directory, "Info.plist"),
-            output_discriminator = None,
-            target_name = label.name,
-        )
-        actions.write(
-            output = framework_plist,
-            content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
-        )
-        framework_files.append(framework_plist)
-
-    if headers:
-        for framework_directory in framework_directories:
-            framework_files.extend(
-                _copy_framework_headers_and_modulemap(
-                    actions = actions,
-                    headers = headers,
-                    bundle_name = bundle_name,
-                    framework_directory = framework_directory,
-                    label = label,
-                ),
-            )
-
-    if module_interfaces:
-        for framework_directory in framework_directories:
-            modules_path = paths.join(framework_directory, "Modules", bundle_name + ".swiftmodule")
-            framework_files.extend([
-                _copy_file(
-                    actions = actions,
-                    base_path = modules_path,
-                    file = interface_file,
-                    label = label,
-                )
-                for interface_file in module_interfaces
-            ])
-
-    if include_resource_bundle:
-        for framework_directory in framework_directories:
-            resources_directory = paths.join(framework_directory, "Resources")
-            resources_path = paths.join(resources_directory, bundle_name + ".bundle")
-
-            resource_file = intermediates.file(
-                actions = actions,
-                file_name = paths.join(resources_path, "Info.plist"),
-                output_discriminator = None,
-                target_name = label.name,
-            )
-            actions.write(output = resource_file, content = "Mock resource bundle")
-            framework_files.append(resource_file)
-
-    if is_macos_framework:
-        framework_files.extend(
-            _create_macos_framework_symlinks(
-                actions = actions,
-                bundle_directory = bundle_directory,
-                framework_files = framework_files,
-                label = label,
-                versions_directory = versions_directory,
-            ),
-        )
-
-    return framework_files
-
-def _copy_framework_library(
-        *,
-        actions,
-        apple_fragment,
-        bundle_name,
-        framework_directory,
-        label,
-        library,
-        xcode_config):
-    """Copies a framework library into a target framework directory.
-
-    For macOS frameworks this requires updating the rpath to add the version path.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
-        bundle_name: Name of the framework/XCFramework bundle.
-        framework_directory: Target .framework directory to copy files to.
-        label: Label of the target being built.
-        library: The library for the framework bundle.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
-    Returns:
-        File referencing copied framework library.
-    """
     framework_binary = intermediates.file(
         actions = actions,
         file_name = paths.join(framework_directory, bundle_name),
@@ -403,148 +278,83 @@ def _copy_framework_library(
         target_name = label.name,
     )
 
-    # Copy and modify binary rpath for macOS versioned framework.
-    # For all other platforms, symlink the framework binary as is.
-    if ".framework/Versions/" in framework_directory:
-        cp_command = "cp {src} {dest}".format(
-            src = library.path,
-            dest = framework_binary.path,
-        )
-        install_name_tool_command = "install_name_tool -id {name} {file}".format(
-            name = "@rpath/{name}.framework/Versions/{version}/{name}".format(
-                name = bundle_name,
-                version = paths.basename(framework_directory),
-            ),
-            file = framework_binary.path,
-        )
-        apple_support.run_shell(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            xcode_config = xcode_config,
-            outputs = [framework_binary],
-            inputs = [library],
-            command = "{cp_command} && {install_name_tool_command}".format(
-                cp_command = cp_command,
-                install_name_tool_command = install_name_tool_command,
-            ),
-        )
-    else:
-        actions.symlink(
-            output = framework_binary,
-            target_file = library,
-        )
-
-    return framework_binary
-
-def _copy_framework_headers_and_modulemap(
-        *,
-        actions,
-        bundle_name,
-        framework_directory,
-        headers,
-        label):
-    """Copies headers and generates umbrella header and modulemap for a framework bundle.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        bundle_name: Name of the framework/XCFramework bundle.
-        framework_directory: Target .framework directory to copy files to.
-        headers: List of files referencing Objective-C(++) headers for the framework.
-        label: Label of the target being built.
-    Returns:
-        List of files referencing headers and modulemap for the framework bundle.
-    """
-    headers_path = paths.join(framework_directory, "Headers")
-    framework_headers = [
-        _copy_file(
-            actions = actions,
-            base_path = headers_path,
-            file = header,
-            label = label,
-        )
-        for header in headers
-    ]
-    umbrella_header = _generate_umbrella_header(
-        actions = actions,
-        bundle_name = bundle_name,
-        headers = headers,
-        headers_path = headers_path,
-        label = label,
-        is_framework_umbrella_header = True,
+    actions.symlink(
+        output = framework_binary,
+        target_file = library,
     )
-    framework_headers.append(umbrella_header)
 
-    module_map_path = paths.join(framework_directory, "Modules")
-    framework_headers.append(
-        _generate_module_map(
+    infoplist_directory = resources_directory if target_os == "macos" else framework_directory
+    framework_plist = intermediates.file(
+        actions = actions,
+        file_name = paths.join(infoplist_directory, "Info.plist"),
+        output_discriminator = None,
+        target_name = label.name,
+    )
+    actions.write(
+        output = framework_plist,
+        content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
+    )
+
+    framework_files.extend([framework_binary, framework_plist])
+
+    if headers:
+        headers_path = paths.join(framework_directory, "Headers")
+        framework_files.extend([
+            _copy_file(
+                actions = actions,
+                base_path = headers_path,
+                file = header,
+                label = label,
+            )
+            for header in headers
+        ])
+        umbrella_header = _generate_umbrella_header(
             actions = actions,
             bundle_name = bundle_name,
-            is_framework_module = True,
+            headers = headers,
+            headers_path = headers_path,
             label = label,
-            module_map_path = module_map_path,
-            umbrella_header = umbrella_header,
-        ),
-    )
-
-    return framework_headers
-
-def _create_macos_framework_symlinks(
-        *,
-        actions,
-        bundle_directory,
-        framework_files,
-        label,
-        versions_directory):
-    """Creates macOS framework symlinks for top-level and Current files.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        bundle_directory: Top-level directory for the target framework/XCFramework bundle.
-        framework_files: Target .framework directory to copy files to.
-        label: Label of the target being built.
-        versions_directory: 'Versions' directory for the target framework/XCFramework bundle.
-
-    Returns:
-        List of files referencing framework symlinks.
-    """
-    framework_symlinks = []
-    version_prefix = ".framework/Versions/A/"
-
-    current_framework_files = [f for f in framework_files if version_prefix in f.short_path]
-    current_version_dir = paths.join(versions_directory, "Current")
-
-    # We currently symlink each framework file into Versions/Current/<file_relpath>,
-    # instead of only symlinking Versions/Current -> Versions/A, due to Bazel limitations
-    # to create symlinks for a given path instead of a file. Once symlinking to a target
-    # path is out of experimental, this can be revisited to symlink directories.
-    for framework_file in current_framework_files:
-        rfind_index = framework_file.short_path.rfind(version_prefix)
-        file_relpath = framework_file.short_path[rfind_index + len(version_prefix):]
-        file_relpath_dir = paths.dirname(file_relpath)
-
-        versions_current_file = _copy_file(
-            actions = actions,
-            base_path = paths.join(
-                current_version_dir,
-                file_relpath_dir,
-            ),
-            file = framework_file,
-            label = label,
+            is_framework_umbrella_header = True,
         )
-        top_level_file = _copy_file(
-            actions = actions,
-            base_path = paths.join(
-                bundle_directory,
-                file_relpath_dir,
+        framework_files.append(umbrella_header)
+
+        module_map_path = paths.join(framework_directory, "Modules")
+        framework_files.append(
+            _generate_module_map(
+                actions = actions,
+                bundle_name = bundle_name,
+                is_framework_module = True,
+                label = label,
+                module_map_path = module_map_path,
+                umbrella_header = umbrella_header,
             ),
-            file = versions_current_file,
-            label = label,
         )
 
-        framework_symlinks.append(versions_current_file)
-        framework_symlinks.append(top_level_file)
+    if module_interfaces:
+        modules_path = paths.join(framework_directory, "Modules", bundle_name + ".swiftmodule")
+        framework_files.extend([
+            _copy_file(
+                actions = actions,
+                base_path = modules_path,
+                file = interface_file,
+                label = label,
+            )
+            for interface_file in module_interfaces
+        ])
 
-    return framework_symlinks
+    if include_resource_bundle:
+        resources_path = paths.join(resources_directory, bundle_name + ".bundle")
+
+        resource_file = intermediates.file(
+            actions = actions,
+            file_name = paths.join(resources_path, "Info.plist"),
+            output_discriminator = None,
+            target_name = label.name,
+        )
+        actions.write(output = resource_file, content = "Mock resource bundle")
+        framework_files.append(resource_file)
+
+    return framework_files
 
 def _copy_file(*, actions, base_path = "", file, label, target_filename = None):
     """Copies file to a target directory.

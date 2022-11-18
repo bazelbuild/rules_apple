@@ -216,14 +216,12 @@ def _generate_dynamic_xcframework_impl(ctx):
         # Create (dynamic) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
-            apple_fragment = apple_fragment,
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
             label = label,
             library = dynamic_library,
             target_os = platform,
-            xcode_config = xcode_config,
         )
 
         framework_path = paths.join(

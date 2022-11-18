@@ -15,6 +15,7 @@
 """Tests for Bundler."""
 
 import io
+import json
 import os
 import re
 import shutil
@@ -51,11 +52,9 @@ def _run_bundler(control):
 class BundlerTest(unittest.TestCase):
 
   def setUp(self):
-    super().setUp()
     self._scratch_dir = tempfile.mkdtemp('bundlerTestScratch')
 
   def tearDown(self):
-    super().tearDown()
     shutil.rmtree(self._scratch_dir)
 
   def _scratch_file(self, name, content='', executable=False):
@@ -67,7 +66,6 @@ class BundlerTest(unittest.TestCase):
     Args:
       name: The name of the file.
       content: The content to write into the file. The default is empty.
-      executable: True if the file should be executable, False otherwise.
     Returns:
       The absolute path to the file.
     """
@@ -128,11 +126,11 @@ class BundlerTest(unittest.TestCase):
     try:
       zipinfo = zip_file.getinfo(entry)
       if executable:
-        self.assertEqual(
+        self.assertEquals(
             0o111, zipinfo.external_attr >> 16 & 0o111,
             'Expected %r to be executable, but it was not' % entry)
       else:
-        self.assertEqual(
+        self.assertEquals(
             0, zipinfo.external_attr >> 16 & 0o111,
             'Expected %r not to be executable, but it was' % entry)
     except KeyError:
@@ -266,10 +264,10 @@ class BundlerTest(unittest.TestCase):
   def test_duplicate_files_with_different_content_raise_error(self):
     foo_txt = self._scratch_file('foo.txt', 'foo')
     bar_txt = self._scratch_file('bar.txt', 'bar')
-    with self.assertRaisesRegex(
-        bundletool.BundleConflictError,
+    with self.assertRaisesRegexp(
+        bundletool.BundleToolError,
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
-                  'Payload/foo.app/renamed')):
+            'Payload/foo.app/renamed')):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_files': [
@@ -294,10 +292,10 @@ class BundlerTest(unittest.TestCase):
   def test_zips_with_duplicate_files_and_different_content_raise_error(self):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:bar')
-    with self.assertRaisesRegex(
-        bundletool.BundleConflictError,
+    with self.assertRaisesRegexp(
+        bundletool.BundleToolError,
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
-                  'Payload/foo.app/some.dylib')):
+            'Payload/foo.app/some.dylib')):
       _run_bundler({
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_zips': [

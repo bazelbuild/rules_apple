@@ -8,7 +8,6 @@ py_library(
         "//tools/codesigningtool:__pkg__",
         "//tools/dertool:__pkg__",
         "//tools/dossier_codesigningtool:__pkg__",
-        "//tools/imported_dynamic_framework_processor:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
         "//tools/xctoolrunner:__pkg__",
     ],
