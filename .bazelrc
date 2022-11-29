@@ -7,6 +7,8 @@ common --incompatible_allow_tags_propagation
 # TODO: Fix cases that relied on the old behavior and remove this flag.
 common --incompatible_unambiguous_label_stringification=false
 
+build --incompatible_strict_conflict_checks=false
+
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 build --test_env=PATH
