@@ -1,0 +1,38 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The new version to tag, ex: 1.0.5'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Create Release
+        run: |
+          set -euo pipefail
+
+          git config user.name "Automatic version bump"
+          git config user.email "noreply@github.com"
+
+          ./.github/update-module-version.sh "$TAG"
+          tmp_branch="$(uuidgen)"
+          git checkout -b "$tmp_branch"
+          git add MODULE.bazel
+          msg="Update MODULE.bazel to $TAG"
+          git commit -m "$msg"
+          git push -u origin "$tmp_branch"
+          gh pr create --title "$msg" --body ""
+
+          COPYFILE_DISABLE=1 tar czvf "rules_swift.$TAG.tar.gz" ./*
+          ./.github/generate-notes.sh "$TAG" | tee notes.md
+          gh release create "$TAG" --title "$TAG" --target "$GITHUB_REF_NAME" --notes-file notes.md "rules_swift.$TAG.tar.gz"
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
