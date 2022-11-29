@@ -137,8 +137,6 @@ def _get_xcframework_library(
     Returns:
         A struct containing processed XCFramework files:
             binary: File referencing the XCFramework library binary.
-            framework_dirs: List of strings referencing framework (.framework) directories.
-            framework_files: List of File referencing all XCFramework framework files.
             framework_imports: List of File referencing XCFramework library files to be bundled
                 by a top-level target (ios_application) consuming the target being built.
             framework_includes: List of strings referencing parent directories for framework
@@ -205,20 +203,15 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         target_triplet = target_triplet,
     )
 
-    framework_dirs = [f.dirname for f in binaries]
-    framework_files = filter_by_library_identifier(xcframework.files)
-
     includes = []
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_includes = [paths.dirname(f) for f in framework_dirs]
+        framework_includes = [paths.dirname(f.dirname) for f in binaries]
     else:
         includes = [h.dirname for h in headers]
 
     return struct(
         binary = binaries[0],
-        framework_dirs = framework_dirs,
-        framework_files = framework_files,
         framework_imports = framework_imports,
         framework_includes = framework_includes,
         headers = headers,
@@ -261,7 +254,6 @@ def _get_xcframework_library_with_xcframework_processor(
     library_suffix = ".framework" if xcframework.bundle_type == _BUNDLE_TYPE.frameworks else ""
     library_path = xcframework.bundle_name + library_suffix
 
-    library_dir = intermediates.directory(dir_name = library_path, **intermediates_common)
     framework_imports_dir = intermediates.directory(
         dir_name = paths.join("framework_imports", library_path),
         **intermediates_common
@@ -300,7 +292,7 @@ def _get_xcframework_library_with_xcframework_processor(
     args.add_all(files_by_category.module_map_imports, before_each = "--modulemap_file")
 
     args.add("--binary", binary.path)
-    args.add("--library_dir", library_dir.path)
+    args.add("--library_dir", binary.dirname)
     args.add("--framework_imports_dir", framework_imports_dir.path)
 
     inputs = []
@@ -311,7 +303,6 @@ def _get_xcframework_library_with_xcframework_processor(
         binary,
         framework_imports_dir,
         headers_dir,
-        library_dir,
         module_map_file,
     ]
 
@@ -359,14 +350,12 @@ def _get_xcframework_library_with_xcframework_processor(
     includes = []
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_includes = [library_dir.dirname]
+        framework_includes = [paths.dirname(binary.dirname)]
     else:
         includes = [headers_dir.path]
 
     return struct(
         binary = binary,
-        framework_dirs = [library_dir.path],
-        framework_files = [library_dir],
         framework_imports = [framework_imports_dir],
         framework_includes = framework_includes,
         headers = [headers_dir],
@@ -502,8 +491,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_dynamic_framework_info = apple_common.new_dynamic_framework_provider(
         objc = objc_provider,
         cc_info = cc_info,
-        framework_dirs = depset(xcframework_library.framework_dirs),
-        framework_files = depset(xcframework_library.framework_files),
     )
     providers.append(apple_dynamic_framework_info)
 
