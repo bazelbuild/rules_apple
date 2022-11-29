@@ -19,7 +19,7 @@ jobs:
           set -euo pipefail
 
           git config user.name "Automatic version bump"
-          git config user.email "keithbsmiley@gmail.com"
+          git config user.email "noreply@github.com"
 
           ./.github/update-module-version.sh "$TAG"
           tmp_branch="$(uuidgen)"
