@@ -163,6 +163,11 @@ def macos_application_test_suite(name):
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Headers/SharedClass.h",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Modules/module.modulemap",
         ],
+        assert_file_permissions = {
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources": "755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk": "755",
+        },
         tags = [name],
     )
 
