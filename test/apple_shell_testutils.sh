@@ -678,3 +678,43 @@ function assert_strings_is_text() {
   local path_in_archive="$2"
   assert_plist_is_text "$archive" "$path_in_archive"
 }
+
+
+# Usage: assert_permissions_equal <file> <expected_permissions>
+#
+# Asserts a file (numerical) permissions from `file` are equal to an
+# expected (numerical) permissions.
+#
+# This functions allows two types of assertions:
+#
+#   1) Test using 'user', 'group', and 'other' permissions bits.
+#
+#     Example: 755 -> rwxr-xr-x
+#
+#   2) Test using all permissions bits:
+#     - file type bits.
+#     - sticky bit.
+#     - (user, group, and other) permissions bits.
+#
+#     Examples:
+#       120755 -> lrwxr-xr-x (symbolic link)
+#       100755 -> -rwxr-xr-x (regular file)
+#       40755 -> drwxr-xr-x (directory)
+function assert_permissions_equal() {
+  local file="$1"
+  local expected_permissions="$2"
+
+  local actual_permissions
+  # Check if the expected permissions string has 3 digits.
+  # If true, assertion will use user/group/other permissions bits.
+  # Otherwise assertion will use all permissions bits.
+  if [[ ${#expected_permissions} == 3 ]]; then
+    # Test using 'user', 'group', and 'other' permissions bits.
+    actual_permissions=$(stat -f "%Lp" "$file")
+  else
+    # Test using all permissions bits.
+    actual_permissions=$(stat -f "%p" "$file")
+  fi
+
+  assert_equals "$expected_permissions" "$actual_permissions"
+}

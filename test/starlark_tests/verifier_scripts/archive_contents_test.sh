@@ -23,36 +23,64 @@ newline=$'\n'
 # variables.
 #
 # Supported operations:
-#  CONTAINS: takes a list of files to test for existance. The filename will be
+#
+#  Archive contents tests:
+#
+#  - CONTAINS: takes a list of files to test for existance. The filename will be
 #      expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
-#  NOT_CONTAINS: takes a list of files to test for non-existance. The filename
+#  - NOT_CONTAINS: takes a list of files to test for non-existance. The filename
 #      will be expanded with bash and can contain variables (e.g. $BUNDLE_ROOT)
-#  IS_BINARY_PLIST: takes a list of paths to plist files and checks that they
+#
+#  Binary plist tests:
+#
+#  - IS_BINARY_PLIST: takes a list of paths to plist files and checks that they
 #      are `binary` format. Filenames are expanded with bash.
-#  IS_NOT_BINARY_PLIST: takes a list of paths to plist files and checks that
+#  - IS_NOT_BINARY_PLIST: takes a list of paths to plist files and checks that
 #      they are not `binary` format. Filenames are expanded with bash.
+#
+#  Property list (.plist) file tests:
+#
 #  PLIST_TEST_FILE: The plist file to test with `PLIST_TEST_VALUES`.
 #  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
 #      the key is in PlistBuddy format(which can't contain spaces), followed by
 #      by a single space, followed by the value to test. * can be used as a
 #      wildcard value.
-#  ASSET_CATALOG_FILE: The Asset.car file to test with `ASSET_CATALOG_CONTAINS`.
-#  ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
-#  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
-#  TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
-#  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
+#
+#  Asset catalog file tests:
+#
+#  - ASSET_CATALOG_FILE: The Asset.car file to test against.
+#  - ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
+#  - ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
+#
+#  Text file tests:
+#
+#  - TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
+#  - TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
 #      text file with. Regular expressions must follow POSIX Basic Regular
 #      Expression (BRE) syntax.
-#  BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in the
-#      assembled binary.
-#  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
-#  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
-#  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
-#  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
-#  MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
+#
+#  Linked binary file tests:
+#
+#  - BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in
+#      the assembled binary.
+#  - BINARY_TEST_FILE: The binary file to test against.
+#  - BINARY_TEST_ARCHITECTURE: Architecture to use with `BINARY_TEST_SYMBOLS`.
+#  - BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
+#  - BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#
+#  Mach-O file tests:
+#
+#  - MACHO_LOAD_COMMANDS_CONTAIN: Array of Mach-O load commands that should
 #      be present.
-#  MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
+#  - MACHO_LOAD_COMMANDS_NOT_CONTAIN: Array of Mach-O load commands that should
 #      not be present.
+#
+#  Archive file permissions tests:
+#  - ASSERT_FILE_PERMISSIONS: Array of "KEY VALUE" formatted strings where key
+#      specifies a bundle file path, and value is the expected numerical file
+#      permissions bits. See apple_shell_testutils' assert_permissions_equal
+#      for supported formats.
+
 
 something_tested=false
 
@@ -327,6 +355,18 @@ if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
     if [[ "$value" != $expected_value ]]; then
       fail "Expected plist value \"$value\" at key \"$key\" to be \"$expected_value\""
     fi
+  done
+fi
+
+if [[ -n "${ASSERT_FILE_PERMISSIONS-}" ]]; then
+  for test_values in "${ASSERT_FILE_PERMISSIONS[@]}"
+  do
+    something_tested=true
+    # Keys and expected-values are in the format "KEY VALUE".
+    IFS=':' read -r path expected_permissions <<< "$test_values"
+
+    expanded_path=$(eval echo "$path")
+    assert_permissions_equal "$expanded_path" "$expected_permissions"
   done
 fi
 
