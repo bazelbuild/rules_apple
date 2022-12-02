@@ -156,17 +156,28 @@ def macos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
         contains = [
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/A/generated_macos_dynamic_fmwk",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/B/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/B/generated_macos_dynamic_fmwk",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
         ],
         not_contains = [
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Headers/SharedClass.h",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Modules/module.modulemap",
         ],
         assert_file_permissions = {
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources": "755",
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist": "644",
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk": "755",
+            # regular files
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/A/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/A/generated_macos_dynamic_fmwk": "755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/B/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/B/generated_macos_dynamic_fmwk": "755",
+            # symbolic links
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Versions/Current": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk": "120755",
         },
         tags = [name],
     )
