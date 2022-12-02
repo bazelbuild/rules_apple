@@ -104,42 +104,20 @@ is the recommended process:
   GitHub](https://github.com/bazelbuild/rules_apple/compare/0.21.1...HEAD),
   and collect the most notable user facing commits for the release
   notes.
-- Set the new version number in `MODULE.bazel`
-- Starting with `apple_support` create a new release with this template
-  for the notes:
-
-```
-- NOTABLE CHANGE 1
-- NOTABLE CHANGE 2
-- This release is tested with Bazel N.N.N
-
-Please use the release asset from your Bazel WORKSPACE instead of
-GitHub's asset to reduce download size and improve reproducibility.
-
-SHA-256 digest: `TBD`
-```
-
-- Download the source archive GitHub produced with the release,
-  unarchive it, and create a release archive with this command:
-  `COPYFILE_DISABLE=1 tar czvf REPO_NAME.RELEASE_VERSION.tar.gz *` (ideally
-  this would be scripted in the future and more artifacts would be excluded to
-  reduce download size, but this method avoids potentially gitignored artifacts
-  in the archives).
-- Update the release with the archive, and update the sha256 with the
-  output of `shasum -a 256 ARCHIVE`.
-- Update the `apple_support` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
+- Starting with `apple_support` run the `Create Release` GitHub action
+  where the only input is the release's version number. This
+  automatically creates the release on GitHub.
+- Edit the release to fill in the release notes and supported bazel
+  versions.
 - Update the `swift/repositories.bzl` file in `rules_swift` with the new
   `apple_support` release.
 - Repeat the steps above to create a release on `rules_swift`.
-- Update the `rules_swift` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
 - Update the `apple/repositories.bzl` file in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
-- Update the `rules_apple` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
 - Update the `Tulsi` `WORKSPACE` with the new version of `rules_apple`.
+- Merge the automatically submitted PRs that update the `MODULE.bazel`
+  versions.
 
 ### Notes
 
