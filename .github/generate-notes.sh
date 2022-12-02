@@ -3,7 +3,7 @@
 set -euo pipefail
 
 readonly new_version=$1
-readonly release_archive="rules_swift.$new_version.tar.gz"
+readonly release_archive="rules_apple.$new_version.tar.gz"
 
 sha=$(shasum -a 256 "$release_archive" | cut -d " " -f1)
 
