@@ -1,0 +1,30 @@
+{
+    "homepage": "https://github.com/bazelbuild/rules_apple",
+    "maintainers": [
+        {
+            "email": "keithbsmiley@gmail.com",
+            "github": "keith",
+            "name": "Keith Smiley"
+        },
+        {
+            "email": "me@patrickbalestra.com",
+            "github": "BalestraPatrick",
+            "name": "Patrick Balestra"
+        },
+        {
+            "email": "github@brentleyjones.com",
+            "github": "brentleyjones",
+            "name": "Jones Brentley"
+        },
+        {
+            "email": "t@thi.im",
+            "github": "thii",
+            "name": "Thi Doãn"
+        }
+    ],
+    "repository": [
+        "github:bazelbuild/rules_apple"
+    ],
+    "versions": [],
+    "yanked_versions": {}
+}

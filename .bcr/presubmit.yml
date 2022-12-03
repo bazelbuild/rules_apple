@@ -1,0 +1,12 @@
+tasks:
+  verify_targets:
+    name: Verify build targets
+    platform: macos
+    test_targets:
+    - '@rules_apple//examples/...'
+    # TODO(balestrapatrick): Re-enable these tests as soon as xctestrunner is bzlmod-compatible.
+    - '-@rules_apple//examples/ios/Squarer:SquarerTests'
+    - '-@rules_apple//examples/ios/PrenotCalculator:PrenotCalculatorTests'
+    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsUITests'
+    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsTests'
+    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsLogicTests'
