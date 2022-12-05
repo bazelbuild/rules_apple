@@ -263,14 +263,6 @@ def _bundle_partial_outputs_files(
         define_name = "apple.trim_lproj_locales",
     ) and rule_descriptor.allows_locale_trimming and requested_locales_flag == None
 
-    # TODO(b/258492867): Let experimental bundling run remote once remote symlinks are supported.
-    # By default, the experimental tree artifact bundling action will run either remote or local.
-    # However, if the target platform is macOS, and the application bundles frameworks (i.e. has
-    # symbolic links), we configure the action to run locally because symlinks are not supported
-    # for remote actions producing tree artifacts with relative symbolic links.
-    is_macos_platform = platform_prerequisites.platform_type == apple_common.platform_type.macos
-    bundletool_experimental_action_run_local = False
-
     control_files = []
     control_zips = []
     input_files = []
@@ -347,12 +339,6 @@ def _bundle_partial_outputs_files(
             if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
                 # Skip bundling archive related files, as we're only building the bundle directory.
                 continue
-
-            if (is_macos_platform and
-                tree_artifact_is_enabled and
-                location == _LOCATION_ENUM.framework):
-                # Force bundletool_experimental to run locally due macOS framework symbolic links.
-                bundletool_experimental_action_run_local = True
 
             parent_dir_is_valid = _is_parent_dir_valid(
                 invalid_top_level_dirs = invalid_top_level_dirs,
@@ -431,7 +417,6 @@ def _bundle_partial_outputs_files(
                 "no-remote": "1",
                 # Unsure, but may be needed for keychain access, especially for files that live in
                 # $HOME.
-                "local": "1" if bundletool_experimental_action_run_local else "0",
                 "no-sandbox": "1",
             },
             inputs = depset(bundletool_inputs, transitive = [

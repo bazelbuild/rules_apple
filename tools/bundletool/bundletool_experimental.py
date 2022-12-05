@@ -50,9 +50,7 @@ import filecmp
 import json
 import os
 import shutil
-import stat
 import sys
-from typing import List, Tuple
 import zipfile
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
@@ -61,7 +59,6 @@ BUNDLE_CONFLICT_MSG_TEMPLATE = (
 CODE_SIGN_ERROR_MSG_TEMPLATE = 'Code signing failed with exit code %d'
 
 POST_PROCESSOR_ERROR_MSG_TEMPLATE = 'Post processor failed with exit code %d'
-
 
 class BundleConflictError(ValueError):
   """Raised when two different files would be bundled in the same location."""
@@ -104,7 +101,6 @@ class Bundler(object):
           the moduledoc for a description of the format of this dictionary.
     """
     self._control = control
-    self._deferred_symlinks = []
 
   def run(self):
     """Performs the operations requested by the control struct."""
@@ -171,7 +167,6 @@ class Bundler(object):
       bundle_root: The bundle root directory into which the files should be
           added.
     """
-    deferred_symlinks = []
     with zipfile.ZipFile(src, 'r') as src_zip:
       for src_zipinfo in src_zip.infolist():
         # Normalize the destination path to remove any extraneous internal
@@ -181,25 +176,10 @@ class Bundler(object):
         if src_zipinfo.filename.endswith('/'):
           continue
 
-        # Check for Unix permissions.
-        unix_permissions = src_zipinfo.external_attr >> 16
-        is_executable = unix_permissions & 0o111 != 0
-        is_symlink = stat.S_ISLNK(unix_permissions) != 0
+        # Check for Unix --x--x--x permissions.
+        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
         data = src_zip.read(src_zipinfo)
-
-        if is_symlink:
-          deferred_symlinks.append((data, file_dest))
-          continue
-
-        self._write_entry(
-            dest=file_dest,
-            data=data,
-            is_executable=is_executable,
-            bundle_root=bundle_root)
-
-    self._create_deferred_symlinks(
-        bundle_root=bundle_root,
-        deferred_symlinks=deferred_symlinks)
+        self._write_entry(file_dest, data, executable, bundle_root)
 
   def _copy_file(self, src, dest, executable, bundle_root):
     """Copies a file into the bundle.
@@ -212,8 +192,6 @@ class Bundler(object):
           be made executable.
       bundle_root: The bundle root directory into which the files should be
           added.
-    Raises:
-      BundleConflictError: if same bundle file already exists.
     """
     full_dest = os.path.join(bundle_root, dest)
     if (os.path.isfile(full_dest) and
@@ -224,16 +202,15 @@ class Bundler(object):
     shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
 
-  def _write_entry(self, *, dest, data, is_executable, bundle_root):
+  def _write_entry(self, dest, data, executable, bundle_root):
     """Writes the given data as a file in the output ZIP archive.
 
     Args:
+      data: The data to be written in a file in the bundle.
       dest: The path relative to the bundle root where the data should be
           written.
-      data: The data to be written in a file in the bundle. For symbolic links,
-        this will be the relative path to link.
-      is_executable: A Boolean value indicating whether or not the file should
-          be made executable.
+      executable: A Boolean value indicating whether or not the file should be
+          made executable.
       bundle_root: The bundle root directory into which the files should be
           added.
     Raises:
@@ -242,45 +219,14 @@ class Bundler(object):
     """
     full_dest = os.path.join(bundle_root, dest)
     if os.path.isfile(full_dest):
-      with open(full_dest, 'rb') as f:
+      with open(full_dest, "rb") as f:
         if f.read() != data:
           raise BundleConflictError(dest)
 
     self._makedirs_safely(os.path.dirname(full_dest))
     with open(full_dest, 'wb') as f:
       f.write(data)
-    os.chmod(full_dest, 0o755 if is_executable else 0o644)
-
-  def _create_deferred_symlinks(
-      self,
-      *,
-      bundle_root: str,
-      deferred_symlinks: List[Tuple[str, str]]):
-    """Creates deferred symbolic links from a given tuple list.
-
-    Args:
-      bundle_root: The bundle root directory into which the files should be
-          added.
-      deferred_symlinks: List of (src, dest) tuples referencing symbolic links
-          that will be created.
-    Raises:
-      BundleConflictError: If two symbolic links with different references would
-          be placed at the same location in the ZIP file.
-    """
-    while deferred_symlinks:
-      src, dest = deferred_symlinks.pop()
-      full_dest = os.path.join(bundle_root, dest)
-
-      if os.path.islink(full_dest):
-        existing_link = os.readlink(full_dest)
-        if existing_link != src:
-          raise BundleConflictError(dest)
-
-      try:
-        os.symlink(src, full_dest)
-        os.chmod(path=full_dest, mode=0o755, follow_symlinks=False)
-      except FileNotFoundError:
-        deferred_symlinks.append((src, dest))
+    os.chmod(full_dest, 0o755 if executable else 0o644)
 
   def _makedirs_safely(self, path):
     """Creates a new directory, silently succeeding if it already exists.
@@ -299,8 +245,6 @@ class Bundler(object):
       bundle_root: The path to the bundle.
       post_processor: The path to the tool or script that should be executed on
           the bundle before it is signed.
-    Raises:
-      PostProcessorError: if post processing tool exit code is non-zero.
     """
     work_dir = os.path.dirname(bundle_root)
     # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
@@ -318,8 +262,6 @@ class Bundler(object):
       bundle_root: The path to the bundle.
       command_lines: A newline-separated list of command lines that should be
           executed in the bundle to sign it.
-    Raises:
-      CodeSignError: code signing commands returned non-zero exit status.
     """
     exit_code = os.system('WORK_DIR=%s\n%s' % (bundle_root, command_lines))
     if exit_code:

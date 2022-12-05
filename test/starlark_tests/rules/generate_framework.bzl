@@ -137,7 +137,6 @@ def _generate_import_framework_impl(ctx):
     # Create framework bundle
     framework_files = generation_support.create_framework(
         actions = actions,
-        apple_fragment = apple_fragment,
         bundle_name = label.name,
         headers = headers,
         include_resource_bundle = include_resource_bundle,
@@ -145,7 +144,6 @@ def _generate_import_framework_impl(ctx):
         library = library,
         module_interfaces = module_interfaces,
         target_os = target_os,
-        xcode_config = xcode_config,
     )
 
     return [
