@@ -19,6 +19,7 @@ load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo"
 load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
+load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _cc_info_with_dependencies(
@@ -372,7 +373,7 @@ def _swift_info_from_module_interface(
         swift_toolchain = swift_toolchain,
     )
 
-    return swift_common.create_swift_info(
+    return SwiftInfo(
         modules = [module_context],
         swift_infos = swift_infos,
     )
@@ -385,7 +386,7 @@ def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports)
     # Assume that there is only a single module map file (the legacy
     # implementation that read from the Objc provider made the same
     # assumption).
-    return swift_common.create_swift_interop_info(
+    return create_swift_interop_info(
         module_map = module_map_imports[0],
         module_name = module_name,
         swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],

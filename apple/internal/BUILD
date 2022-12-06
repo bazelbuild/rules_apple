@@ -239,6 +239,7 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@build_bazel_rules_swift//swift:providers",
         "@build_bazel_rules_swift//swift:swift_common",
+        "@build_bazel_rules_swift//swift:swift_interop_info",
     ],
 )
 
