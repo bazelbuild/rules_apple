@@ -39,7 +39,7 @@ def _extension_safe_validation_partial_impl(
                 fail(
                     ("The target {current_label} is for an extension but its framework " +
                      "dependency {target_label} is not marked extension-safe. Specify " +
-                     "'extension_safe = 1' on the framework target.").format(
+                     "'extension_safe = True' on the framework target.").format(
                         current_label = rule_label,
                         target_label = target.label,
                     ),
