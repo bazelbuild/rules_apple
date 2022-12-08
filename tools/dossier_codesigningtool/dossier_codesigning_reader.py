@@ -26,7 +26,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import traceback
 
 
 # LINT.IfChange
@@ -141,7 +140,7 @@ class DossierDirectory(object):
   def __enter__(self):
     return self
 
-  def __exit__(self, exception_type, exception_value, traceback_value):
+  def __exit__(self, exception_type, exception_value, traceback):
     if self.unzipped:
       shutil.rmtree(self.path)
 
@@ -169,7 +168,6 @@ MANIFEST_FILENAME = 'manifest.json'
 
 def generate_arg_parser():
   """Generates an argument parser for this tool."""
-
   parser = argparse.ArgumentParser(
       description='Tool for signing iOS bundles using dossiers.',
       fromfile_prefix_chars='@')
@@ -182,17 +180,7 @@ def generate_arg_parser():
       help='Path to input dossier location. Can be a directory or .zip file.')
   sign_parser.add_argument(
       '--codesign', required=True, type=str, help='Path to codesign binary')
-  sign_parser.add_argument(
-      '--allow_entitlement',
-      action='append',
-      type=str,
-      help='Entitlement to allow. If none are specified, the entitlements found'
-      ' in the dossier will be used without additional processing')
   sign_parser.add_argument('bundle', help='Path to the bundle')
-  # TODO(b/259274067): Add additional arguments to allow for an IPA to be used
-  # as a source for signing instead of a bundle, as well as for a future
-  # combined zip file that provides both the bundle and the dossier in one
-  # archive.
   sign_parser.set_defaults(func=_sign_bundle)
 
   return parser
@@ -297,14 +285,14 @@ def _filter_codesign_tool_output(exit_status, codesign_stdout, codesign_stderr):
           _filter_codesign_output(codesign_stderr))
 
 
-def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
+def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
                      disable_timestamp, full_path_to_sign):
   """Invokes the codesign tool on the given path to sign.
 
   Args:
     codesign_path: Path to the codesign tool as a string.
     identity: The unique identifier string to identify code signatures.
-    entitlements_path: Path to the file with entitlement data. Optional.
+    entitlements: Path to the file with entitlement data. Optional.
     force_signing: If true, replaces any existing signature on the path given.
     disable_timestamp: If true, disables the use of timestamp services.
     full_path_to_sign: Path to the bundle or binary to code sign as a string.
@@ -313,7 +301,7 @@ def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
   if entitlements:
     cmd.extend([
         '--entitlements',
-        entitlements_path,
+        entitlements,
         '--generate-entitlement-der',
     ])
   if force_signing:
@@ -355,44 +343,11 @@ def _fetch_preferred_signing_identity(manifest,
   return codesign_identity
 
 
-def _generate_entitlements_for_signing(*, src, allowed_entitlements, dest):
-  """Generate entitlements based on the filtered set of allowed entitlements.
-
-  Args:
-    src: A path to the entitlements to source for dossier signing.
-    allowed_entitlements: A list of strings indicating keys that are valid for
-      entitlements. Only the strings listed here will be transferred to the
-      generated entitlements.
-    dest: A path to indicate where the generated entitlements should be placed.
-  """
-
-  try:
-    with open(src, 'rb') as f:
-      original_entitlements = plistlib.load(f)
-  except InvalidFileException as exc:
-    orig_traceback = traceback.format_exc()
-    raise OSError('Unable to read override entitlements: %s\n'
-                  'Original Exception:\n%s' % (src, orig_traceback)) from exc
-
-  new_entitlements = {}
-  for key in original_entitlements:
-    if key in allowed_entitlements:
-      new_entitlements[key] = original_entitlements[key]
-    else:
-      print('WARNING: Invalid entitlement key found: %s' % key)
-
-  # log the entitlements for debug purpose
-  print('Dumping entitlements to %s: %s' % (dest, new_entitlements))
-  with open(dest, 'wb') as f:
-    plistlib.dump(new_entitlements, f)
-
-
 def _sign_bundle_with_manifest(
     root_bundle_path,
     manifest,
     dossier_directory,
     codesign_path,
-    allowed_entitlements,
     override_codesign_identity=None,
     executor=concurrent.futures.ThreadPoolExecutor()):
   """Signs a bundle with a dossier.
@@ -405,10 +360,6 @@ def _sign_bundle_with_manifest(
     manifest: The contents of the manifest in this dossier.
     dossier_directory: Directory of dossier to be used for signing.
     codesign_path: Path to the codesign tool as a string.
-    allowed_entitlements: A list of strings indicating keys that are valid for
-      entitlements. If not None, only the strings listed here will be
-      transferred to the generated entitlements. If None, the entitlements found
-      with the dossier will be used directly for code signing.
     override_codesign_identity: If set, this will override the identity
       specified in the manifest. This is primarily useful when signing an
       embedded bundle, as all bundles must use the same codesigning identity,
@@ -432,43 +383,26 @@ def _sign_bundle_with_manifest(
         'and unable to infer identity.')
 
   entitlements_filename = manifest.get(ENTITLEMENTS_KEY)
-  entitlements_source_path = os.path.join(dossier_directory,
-                                          entitlements_filename)
+  entitlements_file_path = os.path.join(dossier_directory,
+                                        entitlements_filename)
 
-  try:
-    working_dir = tempfile.mkdtemp()
-    print('Working dir for temp signing artifacts created: %s' % working_dir)
-    if allowed_entitlements:
-      _, entitlements_for_signing_path = tempfile.mkstemp(
-          dir=working_dir, suffix='.plist')
+  # submit each embedded manifest to sign concurrently
+  codesign_futures = _sign_embedded_bundles_with_manifest(
+      manifest, root_bundle_path, dossier_directory, codesign_path,
+      codesign_identity, executor)
+  _wait_embedded_manifest_futures(codesign_futures)
 
-      _generate_entitlements_for_signing(
-          src=entitlements_source_path,
-          allowed_entitlements=allowed_entitlements,
-          dest=entitlements_for_signing_path)
-    else:
-      entitlements_for_signing_path = entitlements_source_path
+  if provisioning_profile_file_path:
+    _copy_embedded_provisioning_profile(
+        provisioning_profile_file_path, root_bundle_path)
 
-    # submit each embedded manifest to sign concurrently
-    codesign_futures = _sign_embedded_bundles_with_manifest(
-        manifest, root_bundle_path, dossier_directory, codesign_path,
-        allowed_entitlements, codesign_identity, executor)
-    _wait_embedded_manifest_futures(codesign_futures)
-
-    if provisioning_profile_file_path:
-      _copy_embedded_provisioning_profile(
-          provisioning_profile_file_path, root_bundle_path)
-
-    _invoke_codesign(
-        codesign_path=codesign_path,
-        identity=codesign_identity,
-        entitlements_path=entitlements_for_signing_path,
-        force_signing=True,
-        disable_timestamp=False,
-        full_path_to_sign=root_bundle_path)
-
-  finally:
-    shutil.rmtree(working_dir)
+  _invoke_codesign(
+      codesign_path=codesign_path,
+      identity=codesign_identity,
+      entitlements=entitlements_file_path,
+      force_signing=True,
+      disable_timestamp=False,
+      full_path_to_sign=root_bundle_path)
 
 
 def _sign_embedded_bundles_with_manifest(
@@ -476,7 +410,6 @@ def _sign_embedded_bundles_with_manifest(
     root_bundle_path,
     dossier_directory,
     codesign_path,
-    allowed_entitlements,
     codesign_identity,
     executor):
   """Signs embedded bundles concurrently and returns futures list.
@@ -486,10 +419,6 @@ def _sign_embedded_bundles_with_manifest(
     root_bundle_path: The absolute path to the bundle that will be signed.
     dossier_directory: Directory of dossier to be used for signing.
     codesign_path: Path to the codesign tool as a string.
-    allowed_entitlements: A list of strings indicating keys that are valid for
-      entitlements. If not None, only the strings listed here will be
-      transferred to the generated entitlements. If None, the entitlements found
-      with the dossier will be used directly for code signing.
     codesign_identity: The codesign identity to use for codesigning.
     executor: Asynchronous jobs Executor from concurrent.futures.
 
@@ -504,8 +433,7 @@ def _sign_embedded_bundles_with_manifest(
     codesign_future = executor.submit(_sign_bundle_with_manifest,
                                       embedded_bundle_path, embedded_manifest,
                                       dossier_directory, codesign_path,
-                                      allowed_entitlements, codesign_identity,
-                                      executor)
+                                      codesign_identity, executor)
     codesign_futures.append(codesign_future)
 
   return codesign_futures
@@ -609,13 +537,12 @@ def _sign_bundle(args):
   """
   bundle_path = args.bundle
   codesign_path = args.codesign
-  allowed_entitlements = args.allow_entitlement
   with extract_zipped_dossier_if_required(args.dossier) as dossier_directory:
     if not os.path.exists(bundle_path):
       raise OSError('Bundle doest not exist at path %s' % bundle_path)
     manifest = read_manifest_from_dossier(dossier_directory.path)
     _sign_bundle_with_manifest(bundle_path, manifest, dossier_directory.path,
-                               codesign_path, allowed_entitlements)
+                               codesign_path)
 
 
 def read_manifest_from_dossier(dossier_directory):
