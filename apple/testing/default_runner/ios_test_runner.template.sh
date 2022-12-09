@@ -52,6 +52,11 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 
+PRODUCT_MODULE_NAME="%(product_module_name)s"
+if [[ -n "$PRODUCT_MODULE_NAME" ]]; then
+  runner_flags+=("--product_module_name=${PRODUCT_MODULE_NAME}")
+fi
+
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
 
 if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
