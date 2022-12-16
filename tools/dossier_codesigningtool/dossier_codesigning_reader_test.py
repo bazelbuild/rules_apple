@@ -15,8 +15,10 @@
 """Tests for dossier_codesigningtool."""
 
 import concurrent.futures
+import pathlib
+import shutil
+import tempfile
 import unittest
-
 from unittest import mock
 
 from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigning_reader
@@ -55,6 +57,8 @@ _FAKE_MANIFEST = {
     'entitlements': 'fake.entitlements',
     'provisioning_profile': 'fake.mobileprovision'
 }
+
+_IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
 
 
 class DossierCodesigningReaderTest(unittest.TestCase):
@@ -301,6 +305,134 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     mock_future_not_done.cancel.assert_called()
     mock_future_exception.cancel.assert_not_called()
     mock_future_done.cancel.assert_not_called()
+
+  @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
+  @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
+  @mock.patch.object(dossier_codesigning_reader,
+                     'extract_zipped_dossier_if_required')
+  def test_app_bundle_args(
+      self,
+      mock_extract_dossier,
+      mock_read_manifest,
+      mock_sign_bundle):
+    with tempfile.NamedTemporaryFile() as tmp_fake_codesign, \
+        tempfile.NamedTemporaryFile(suffix='.zip') as tmp_dossier_zip, \
+            tempfile.TemporaryDirectory(suffix='.app') as tmp_app_bundle:
+
+      dossier_dir = (
+          dossier_codesigning_reader.DossierDirectory('/tmp/dossier/', False)
+      )
+
+      mock_read_manifest.return_value = _FAKE_MANIFEST
+      mock_extract_dossier.return_value = dossier_dir
+
+      required_args = [
+          'sign',
+          '--codesign', tmp_fake_codesign.name,
+          '--dossier', tmp_dossier_zip.name,
+          tmp_app_bundle,
+      ]
+
+      args = dossier_codesigning_reader.generate_arg_parser().parse_args(
+          required_args
+      )
+      args.func(args)
+
+      mock_sign_bundle.assert_called_with(
+          tmp_app_bundle,
+          _FAKE_MANIFEST,
+          dossier_dir.path,
+          tmp_fake_codesign.name,
+          None,
+      )
+
+  @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
+  @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
+  @mock.patch.object(dossier_codesigning_reader, '_extract_ipa')
+  @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
+  @mock.patch.object(dossier_codesigning_reader,
+                     'extract_zipped_dossier_if_required')
+  def test_ipa_args(
+      self,
+      mock_extract_dossier,
+      mock_read_manifest,
+      mock_extract_ipa,
+      mock_sign_bundle,
+      mock_package):
+    with tempfile.NamedTemporaryFile() as tmp_fake_codesign, \
+        tempfile.NamedTemporaryFile(suffix='.zip') as tmp_dossier_zip, \
+            tempfile.NamedTemporaryFile(suffix='.ipa') as tmp_ipa_archive:
+
+      dossier_dir = (
+          dossier_codesigning_reader.DossierDirectory('/tmp/dossier/', False)
+      )
+
+      tmp_app_bundle = tempfile.TemporaryDirectory(suffix='.app')
+
+      mock_read_manifest.return_value = _FAKE_MANIFEST
+      mock_extract_dossier.return_value = dossier_dir
+      mock_extract_ipa.return_value = tmp_app_bundle
+
+      required_args = [
+          'sign',
+          '--codesign', tmp_fake_codesign.name,
+          '--dossier', tmp_dossier_zip.name,
+          '--output_artifact', '/tmp/dossier_output/output.ipa',
+          tmp_ipa_archive.name,
+      ]
+
+      args = dossier_codesigning_reader.generate_arg_parser().parse_args(
+          required_args
+      )
+      args.func(args)
+
+      mock_sign_bundle.assert_called_with(
+          tmp_app_bundle,
+          _FAKE_MANIFEST,
+          dossier_dir.path,
+          tmp_fake_codesign.name,
+          None,
+      )
+      mock_package.assert_called_once()
+
+  def test_combined_zip_args(self):
+    required_args = [
+        'sign',
+        '--codesign', '/usr/bin/codesign',
+        '--output_artifact', '/tmp/dossier_output/output.zip',
+        'input.zip',
+    ]
+
+    args = dossier_codesigning_reader.generate_arg_parser().parse_args(
+        required_args
+    )
+    with self.assertRaises(OSError):
+      args.func(args)
+
+  def test_ipa_extract_and_package_flow(self):
+    try:
+      working_dir = tempfile.mkdtemp()
+
+      extracted_bundle = dossier_codesigning_reader._extract_ipa(
+          working_dir, _IPA_WORKSPACE_PATH
+      )
+      extracted_bundle_path = pathlib.Path(extracted_bundle)
+      self.assertListEqual(
+          ['Payload', 'app.app'], list(extracted_bundle_path.parts)[-2:]
+      )
+      try:
+        output_dir = tempfile.mkdtemp()
+        output_ipa_path = pathlib.Path(output_dir, 'output.ipa')
+        dossier_codesigning_reader._package_ipa(
+            working_dir, str(output_ipa_path)
+        )
+        if not output_ipa_path.is_file():
+          self.fail('output ipa was not created!')
+      finally:
+        shutil.rmtree(output_dir)
+    finally:
+      shutil.rmtree(working_dir)
+
 
 if __name__ == '__main__':
   unittest.main()

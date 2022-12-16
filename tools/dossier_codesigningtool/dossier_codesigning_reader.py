@@ -17,9 +17,10 @@ Provides functionality to sign bundles using codesigning dossiers.
 
 import argparse
 import concurrent.futures
+import glob
 import json
 import os
-import os.path
+import pathlib
 import plistlib
 import re
 import shutil
@@ -166,6 +167,16 @@ EMBEDDED_RELATIVE_PATH_KEY = 'embedded_relative_path'
 # The filename for a manifest within a manifest
 MANIFEST_FILENAME = 'manifest.json'
 
+# Allowed ipa subdirectories by Apple.
+IPA_SUBDIRS = [
+    'Payload',
+    'SwiftSupport',
+    'WatchKitSupport2',
+    'MessagesApplicationExtensionSupport',
+    'BCSymbolMaps',
+    'Symbols',
+]
+
 
 def generate_arg_parser():
   """Generates an argument parser for this tool."""
@@ -188,11 +199,16 @@ def generate_arg_parser():
       type=str,
       help='Entitlement to allow. If none are specified, the entitlements found'
       ' in the dossier will be used without additional processing')
-  sign_parser.add_argument('bundle', help='Path to the bundle')
-  # TODO(b/259274067): Add additional arguments to allow for an IPA to be used
-  # as a source for signing instead of a bundle, as well as for a future
-  # combined zip file that provides both the bundle and the dossier in one
-  # archive.
+  sign_parser.add_argument(
+      'input_artifact',
+      help='Path to the bundle, ipa or combined zip.')
+  sign_parser.add_argument(
+      '--output_artifact',
+      help='''
+If the input artifact is an ipa or combined zip, placed the signed result in the
+given output artifact specified location. Required for ipa or combined zip
+inputs.
+''')
   sign_parser.set_defaults(func=_sign_bundle)
 
   return parser
@@ -310,7 +326,7 @@ def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
     full_path_to_sign: Path to the bundle or binary to code sign as a string.
   """
   cmd = [codesign_path, '-v', '--sign', identity]
-  if entitlements:
+  if entitlements_path:
     cmd.extend([
         '--entitlements',
         entitlements_path,
@@ -369,7 +385,7 @@ def _generate_entitlements_for_signing(*, src, allowed_entitlements, dest):
   try:
     with open(src, 'rb') as f:
       original_entitlements = plistlib.load(f)
-  except InvalidFileException as exc:
+  except plistlib.InvalidFileException as exc:
     orig_traceback = traceback.format_exc()
     raise OSError('Unable to read override entitlements: %s\n'
                   'Original Exception:\n%s' % (src, orig_traceback)) from exc
@@ -385,6 +401,50 @@ def _generate_entitlements_for_signing(*, src, allowed_entitlements, dest):
   print('Dumping entitlements to %s: %s' % (dest, new_entitlements))
   with open(dest, 'wb') as f:
     plistlib.dump(new_entitlements, f)
+
+
+def _extract_ipa(working_dir, unsigned_ipa_path):
+  """Create a temp directory and extract unsigned IPA archive there.
+
+  Args:
+    working_dir: String, the path to unzip the IPA file into.
+    unsigned_ipa_path: String, the full path to a unsigned IPA archive.
+
+  Returns:
+    extracted_bundle: String, the path to extracted bundle, which is
+      {working_dir}/Payload/*.app
+
+  Raises:
+    OSError: when app bundle is not found in extracted IPA.
+  """
+  # The Python zipfile extractall method silently removes file permission bits.
+  # See https://bugs.python.org/issue15795. As workaround, use shell command
+  # unzip to support legacy usage.
+  # TODO(b/262610182): Consider replacing the `unzip` command with `ditto``.
+  subprocess.check_call(
+      ['unzip', '-q', '-o', unsigned_ipa_path, '-d', working_dir])
+
+  extracted_bundles = glob.glob('%s/Payload/*.app' % working_dir)
+  if len(extracted_bundles) != 1:
+    raise OSError('IPA file broken, no app found within the bundle.')
+
+  return extracted_bundles[0]
+
+
+def _package_ipa(working_dir, output_ipa):
+  """Package signed bundle into the target location.
+
+  Args:
+    working_dir: String, the path to the folder which contains contents suitable
+      for an unzipped IPA archive.
+    output_ipa: String, a path to where the zipped IPA file should be placed.
+  """
+  print('Archiving IPA package %s.' % output_ipa)
+  # TODO(b/262610182): Consider replacing the `zip` command with `ditto``.
+  subprocess.check_call(
+      ['zip', '--symlinks', '--quiet', '--recurse-paths', output_ipa] +
+      IPA_SUBDIRS,
+      cwd=working_dir)
 
 
 def _sign_bundle_with_manifest(
@@ -459,6 +519,7 @@ def _sign_bundle_with_manifest(
       _copy_embedded_provisioning_profile(
           provisioning_profile_file_path, root_bundle_path)
 
+    print('Signing bundle at: %s' % root_bundle_path)
     _invoke_codesign(
         codesign_path=codesign_path,
         identity=codesign_identity,
@@ -595,27 +656,77 @@ def extract_zipped_dossier_if_required(dossier_path):
   return DossierDirectory(dossier_path, False)
 
 
-def _sign_bundle(args):
+def _sign_bundle(parsed_args):
   """Signs a bundle with a dossier.
 
   Provided a set of args from sign sub-command, signs a bundle.
 
   Args:
-    args: A struct of arguments required for signing that were generated from
-      an instance of argparse.ArgumentParser(...).
+    parsed_args: A struct of arguments required for signing that were generated
+      from an instance of argparse.ArgumentParser(...).
 
   Raises:
-    OSError: If bundle or manifest dossier can not be found.
+    OSError: If the arguments do not fulfill the necessary requirements for the
+      tasks at hand, or requested functionality has not yet been implemented.
   """
-  bundle_path = args.bundle
-  codesign_path = args.codesign
-  allowed_entitlements = args.allow_entitlement
-  with extract_zipped_dossier_if_required(args.dossier) as dossier_directory:
-    if not os.path.exists(bundle_path):
-      raise OSError('Bundle doest not exist at path %s' % bundle_path)
+  input_path = parsed_args.input_artifact
+  codesign_path = parsed_args.codesign
+  allowed_entitlements = parsed_args.allow_entitlement
+  output_artifact = parsed_args.output_artifact
+
+  # Handle trailing slash inputs (such as .app and .app/) with "suffix".
+  input_path_suffix = pathlib.Path(input_path).suffix.lower()
+  if input_path_suffix == '.zip':
+    # TODO(b/259274067): Implement support for combined zips as inputs.
+    raise OSError('Handling a combined zip as input is not yet implemented!')
+
+  # TODO(b/259274067): If a combined zip is an input, then "dossier" shouldn't
+  # be a required input (it's coming from the combined zip). Switch around the
+  # validation to account for this case.
+  with extract_zipped_dossier_if_required(
+      parsed_args.dossier
+  ) as dossier_directory:
+    if not os.path.exists(input_path):
+      raise OSError('Specified input does not exist at path %s' % input_path)
+
     manifest = read_manifest_from_dossier(dossier_directory.path)
-    _sign_bundle_with_manifest(bundle_path, manifest, dossier_directory.path,
-                               codesign_path, allowed_entitlements)
+    if input_path_suffix == '.app':
+      if output_artifact:
+        raise OSError(
+            'output_artifact support for app bundles has not yet been'
+            ' implemented!'
+        )
+      # TODO(b/259274067): Support output_artifact usage for signing app
+      # bundles. In that case, copy the app bundle contents to the output
+      # artifact specified location and sign or (safer) sign in a temp directory
+      # and copy the contents to the output artifact specified location.
+      _sign_bundle_with_manifest(input_path, manifest, dossier_directory.path,
+                                 codesign_path, allowed_entitlements)
+    elif input_path_suffix == '.ipa':
+      if not output_artifact:
+        raise OSError(
+            'Missing output_artifact, which is required for IPA signing.'
+        )
+      if pathlib.Path(output_artifact).suffix != '.ipa':
+        raise OSError(
+            'output_artifact must have an .ipa extension if the input is an IPA'
+            ' archive. Received: %s.' % output_artifact
+        )
+      try:
+        working_dir = tempfile.mkdtemp()
+        print('Working directory for ipa extraction created: %s' % working_dir)
+        extracted_bundle = _extract_ipa(working_dir, input_path)
+        print('Extracted bundle: %s' % extracted_bundle)
+        _sign_bundle_with_manifest(extracted_bundle, manifest,
+                                   dossier_directory.path, codesign_path,
+                                   allowed_entitlements)
+        _package_ipa(working_dir, output_artifact)
+        print('Output artifact is: %s' % output_artifact)
+      finally:
+        shutil.rmtree(working_dir)
+    else:
+      raise OSError('Specified input path does not have a recognized extension.'
+                    ' Expected one of; ".ipa", ".app", ".zip".')
 
 
 def read_manifest_from_dossier(dossier_directory):
@@ -637,6 +748,16 @@ def read_manifest_from_dossier(dossier_directory):
     return json.load(fp)
 
 
-if __name__ == '__main__':
-  args = generate_arg_parser().parse_args()
+def _main():
+  """Main method intended to route top level command line arguments."""
+  parser = generate_arg_parser()
+  args = parser.parse_args()
+  if not vars(args):
+    print('No additional args for dossier signing were found.')
+    parser.print_help()
+    sys.exit(1)
   sys.exit(args.func(args))
+
+
+if __name__ == '__main__':
+  _main()
