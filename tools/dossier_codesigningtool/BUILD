@@ -42,6 +42,9 @@ py_library(
 py_test(
     name = "dossier_codesigning_reader_test",
     srcs = ["dossier_codesigning_reader_test.py"],
+    data = [
+        "//test/starlark_tests/targets_under_test/ios:app",
+    ],
     python_version = "PY3",
     tags = ["requires-darwin"],
     deps = [
