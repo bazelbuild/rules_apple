@@ -119,6 +119,10 @@ ios_application(
     ],
     settings_bundle = "//test/starlark_tests/resources:settings_bundle_ios",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",
         "//test/starlark_tests/resources:bundle_library_ios_lib",
