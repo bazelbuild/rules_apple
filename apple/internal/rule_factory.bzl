@@ -580,6 +580,13 @@ Avoid linking the dynamic framework, but still include it in the app. This is us
 to manually dlopen the framework at runtime.
 """,
             ),
+            "package_for_distribution": attr.bool(
+                default = True,
+                doc = """
+If true, generates the Modules and Headers folder for proper distribution of an
+ios_dynamic_framework for use in Xcode
+""",
+            ),
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
