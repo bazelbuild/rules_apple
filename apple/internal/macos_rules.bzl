@@ -2273,11 +2273,8 @@ macos_command_line_application = rule_factory.create_apple_rule(
         rule_attrs.provisioning_profile_attrs(
             profile_extension = ".provisionprofile",
         ),
+        rule_attrs.custom_transition_allowlist_attr,
         {
-            # Required to use the Apple Starlark rule and split transitions.
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 doc = """
@@ -2325,6 +2322,7 @@ macos_dylib = rule_factory.create_apple_rule(
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_transition_allowlist_attr,
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2333,10 +2331,6 @@ macos_dylib = rule_factory.create_apple_rule(
             profile_extension = ".provisionprofile",
         ),
         {
-            # Required to use the Apple Starlark rule and split transitions.
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 doc = """
