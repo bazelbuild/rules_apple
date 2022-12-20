@@ -341,6 +341,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,

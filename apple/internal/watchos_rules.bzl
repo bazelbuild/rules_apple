@@ -431,6 +431,7 @@ def _watchos_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -683,6 +684,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,

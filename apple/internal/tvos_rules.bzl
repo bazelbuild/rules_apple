@@ -189,6 +189,7 @@ def _tvos_application_impl(ctx):
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -450,6 +451,7 @@ def _tvos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
             "-dynamiclib",
             "-install_name",
@@ -686,6 +688,7 @@ def _tvos_extension_impl(ctx):
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
