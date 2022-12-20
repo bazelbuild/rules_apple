@@ -78,6 +78,7 @@ def _apple_binary_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         bundle_loader = bundle_loader,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
         rule_descriptor = None,

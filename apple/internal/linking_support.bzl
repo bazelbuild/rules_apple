@@ -99,6 +99,7 @@ def _register_binary_linking_action(
         avoid_deps = [],
         bundle_loader = None,
         entitlements = None,
+        exported_symbols_lists = [],
         extra_linkopts = [],
         extra_link_inputs = [],
         platform_prerequisites,
@@ -122,8 +123,12 @@ def _register_binary_linking_action(
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
         entitlements: An optional `File` that provides the processed entitlements for the
-            binary or bundle being built. The entitlements will be embedded in a special section
-            of the binary.
+            binary or bundle being built. If the build is targeting a simulator environment,
+            the entitlements will be embedded in a special section of the binary; when
+            targeting non-simulator environments, this file is ignored (it is assumed that
+            the entitlements will be provided during code signing).
+        exported_symbols_lists: List of `File`s containing exported symbols lists for the linker
+            to control symbol resolution.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
         platform_prerequisites: The platform prerequisites.
@@ -157,7 +162,7 @@ def _register_binary_linking_action(
     link_inputs = []
 
     # Add linkopts/linker inputs that are common to all the rules.
-    for exported_symbols_list in ctx.files.exported_symbols_lists:
+    for exported_symbols_list in exported_symbols_lists:
         linkopts.append(
             "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
         )
