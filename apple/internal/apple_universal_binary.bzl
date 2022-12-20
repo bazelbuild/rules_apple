@@ -77,10 +77,6 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
         rule_attrs.common_attrs,
         rule_attrs.platform_attrs(),
         {
-            # Required to use the Apple Starlark rule and split transitions.
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
             "binary": attr.label(
                 mandatory = True,
                 cfg = transition_support.apple_platform_split_transition,
