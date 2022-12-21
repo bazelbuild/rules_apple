@@ -274,6 +274,10 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   lcov_args+=("-arch=$arch")
 done
 
+if [[ -n "${COVERAGE_IGNORE_GENERATED_FILES:-}" ]]; then
+  lcov_args+=(-ignore-filename-regex='.*bazel-out/.+')
+fi
+
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
