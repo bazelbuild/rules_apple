@@ -60,11 +60,18 @@ def _create_stub_binary(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             executable = "/usr/bin/xcrun",
-            arguments = ["bitcode_strip", "-r", "__BAZEL_XCODE_SDKROOT__/{}".format(xcode_stub_path), "-o", binary_artifact.path],
-            mnemonic = "BitcodeStripStub",
+            arguments = [
+                "lipo",
+                "__BAZEL_XCODE_SDKROOT__/{}".format(xcode_stub_path),
+                "-output",
+                binary_artifact.path,
+                "-extract",
+                platform_prerequisites.apple_fragment.single_arch_cpu,
+            ],
+            mnemonic = "LipoStub",
             outputs = [binary_artifact],
             xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
-            progress_message = "Removing bitcode from stub executable for %s" % (rule_label),
+            progress_message = "Removing unused architectures from stub executable for %s" % (rule_label),
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:

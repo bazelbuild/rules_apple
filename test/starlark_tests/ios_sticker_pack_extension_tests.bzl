@@ -82,12 +82,12 @@ def ios_sticker_pack_extension_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_strip_bitcode_test".format(name),
+        name = "{}_bitcode_off_test".format(name),
         build_type = "device",
         apple_bitcode = "none",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext",
         binary_test_file = "$BUNDLE_ROOT/sticker_ext",
-        macho_load_commands_not_contain = ["segname __LLVM"],
+        macho_load_commands_contain = ["segname __LLVM"],
         tags = [name],
     )
 
