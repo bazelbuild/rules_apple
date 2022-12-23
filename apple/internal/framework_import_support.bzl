@@ -171,7 +171,8 @@ def _classify_file_imports(config_vars, import_files):
             continue
 
         # Path matching
-        if "Headers/" in file.short_path:
+        framework_relative_path = file.short_path.split(".framework/")[-1]
+        if framework_relative_path.startswith("Headers/"):
             header_imports.append(file)
             continue
 
