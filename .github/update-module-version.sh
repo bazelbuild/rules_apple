@@ -16,4 +16,16 @@ module(
 EOF
 
 grep bazel_dep MODULE.bazel >> MODULE.bazel.new
+
+cat >> MODULE.bazel.new <<EOF
+
+non_module_deps = use_extension("//apple:extensions.bzl", "non_module_deps")
+
+use_repo(
+    non_module_deps,
+    "subpar",
+    "xctestrunner",
+)
+EOF
+
 mv MODULE.bazel.new MODULE.bazel
