@@ -494,6 +494,42 @@ Builds and bundles an iOS Sticker Pack Extension.
 | <a id="ios_sticker_pack_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
 
+<a id="ios_test_runner"></a>
+
+## ios_test_runner
+
+<pre>
+ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
+</pre>
+
+
+Rule to identify an iOS runner that runs tests for iOS.
+
+The runner will create a new simulator according to the given arguments to run
+tests.
+
+Outputs:
+  AppleTestRunnerInfo:
+    test_runner_template: Template file that contains the specific mechanism
+        with which the tests will be performed.
+    execution_requirements: Dictionary that represents the specific hardware
+        requirements for this test.
+  Runfiles:
+    files: The files needed during runtime for the test to be performed.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_test_runner-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="ios_test_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of <code>xcrun simctl list devicetypes</code>. E.g., iPhone 6, iPad Air. By default, it is the latest supported iPhone type.'   | String | optional | "" |
+| <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {"requires-darwin": ""} |
+| <a id="ios_test_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of <code>xcrun simctl list runtimes</code>. ' 'E.g., 11.2, 9.3. By default, it is the latest supported version of the device type.'   | String | optional | "" |
+| <a id="ios_test_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
+
+
 <a id="ios_ui_test"></a>
 
 ## ios_ui_test
@@ -577,6 +613,63 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="ios_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="ios_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
+
+
+<a id="ios_xctestrun_runner"></a>
+
+## ios_xctestrun_runner
+
+<pre>
+ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-random">random</a>)
+</pre>
+
+
+This rule creates a test runner for iOS tests that uses xctestrun files to run
+hosted tests, and uses xctest directly to run logic tests.
+
+You can use this rule directly if you need to override 'device_type' or
+'os_version', otherwise you can use the predefined runners:
+
+```
+"@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner"
+```
+
+or:
+
+```
+"@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner"
+```
+
+Depending on if you want random test ordering or not. Set these as the `runner`
+attribute on your `ios_unit_test` target:
+
+```bzl
+ios_unit_test(
+    name = "Tests",
+    minimum_os_version = "15.5",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+    deps = [":TestsLib"],
+)
+```
+
+If you would like this test runner to generate xcresult bundles for your tests,
+pass `--test_env=CREATE_XCRESULT_BUNDLE=1`
+
+This rule automatically handles running x86_64 tests on arm64 hosts. The only
+exception is that if you want to generate xcresult bundles or run tests in
+random order, the test must have a test host. This is because of a limitation
+in Xcode.
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_xctestrun_runner-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="ios_xctestrun_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of <code>xcrun simctl list devicetypes</code>. E.g., iPhone X, iPad Air. By default, it reads from --ios_simulator_device or falls back to some device.   | String | optional | "" |
+| <a id="ios_xctestrun_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of <code>xcrun simctl list runtimes</code>. E.g., 15.5. By default, it reads --ios_simulator_version and then falls back to the latest supported version.   | String | optional | "" |
+| <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional | False |
 
 
 <a id="ios_ui_test_suite"></a>
