@@ -10,6 +10,10 @@ load(
     "apple_mac_tools_toolchain",
     "apple_xplat_tools_toolchain",
 )
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 licenses(["notice"])
 
@@ -37,6 +41,7 @@ apple_mac_tools_toolchain(
 
 apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
+    build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
     versiontool = "//tools/versiontool",
     # Used by the rule implementations, so it needs to be public; but
@@ -112,6 +117,9 @@ bzl_library(
         "//apple:__subpackages__",
         "//test/starlark_tests:__subpackages__",
     ],
+    deps = [
+        "@bazel_skylib//rules:common_settings",
+    ],
 )
 
 bzl_library(
@@ -127,11 +135,9 @@ bzl_library(
         ":intermediates",
         ":rule_attrs",
         "//apple:providers",
-        "//apple/build_settings:attrs",
         "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
@@ -292,12 +298,10 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
-        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
-        "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@build_bazel_rules_swift//swift",
     ],
@@ -366,11 +370,9 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
-        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_skylib//rules:common_settings",
     ],
 )
 
@@ -630,11 +632,9 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
-        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@build_bazel_rules_swift//swift",
     ],
@@ -664,12 +664,10 @@ bzl_library(
         ":stub_support",
         ":swift_support",
         "//apple:providers",
-        "//apple/build_settings:attrs",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:sets",
-        "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )

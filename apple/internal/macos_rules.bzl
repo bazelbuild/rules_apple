@@ -15,10 +15,6 @@
 """Implementation of macOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:attrs.bzl",
-    "build_settings",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -139,7 +135,6 @@ load(
     "MacosXPCServiceBundleInfo",
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -185,7 +180,7 @@ def _macos_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -455,7 +450,7 @@ def _macos_bundle_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -675,7 +670,7 @@ def _macos_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -919,7 +914,7 @@ def _macos_quick_look_plugin_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1151,7 +1146,7 @@ def _macos_kernel_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1384,7 +1379,7 @@ def _macos_spotlight_importer_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1603,7 +1598,7 @@ def _macos_xpc_service_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1820,7 +1815,7 @@ def _macos_command_line_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1954,7 +1949,7 @@ def _macos_dylib_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2057,7 +2052,6 @@ simple command line tool as a standalone binary, use
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2141,7 +2135,6 @@ macos_bundle = rule_factory.create_apple_rule(
     implementation = _macos_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2210,7 +2203,6 @@ point (typically expressed through Swift's `@main` attribute).""",
     implementation = _macos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2268,7 +2260,6 @@ macos_quick_look_plugin = rule_factory.create_apple_rule(
     implementation = _macos_quick_look_plugin_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2318,7 +2309,6 @@ macos_kernel_extension = rule_factory.create_apple_rule(
     implementation = _macos_kernel_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2367,7 +2357,6 @@ macos_spotlight_importer = rule_factory.create_apple_rule(
     implementation = _macos_spotlight_importer_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2416,7 +2405,6 @@ macos_xpc_service = rule_factory.create_apple_rule(
     implementation = _macos_xpc_service_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2474,7 +2462,6 @@ Targets created with `macos_command_line_application` can be executed using
     implementation = _macos_command_line_application_impl,
     is_executable = True,
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2530,7 +2517,6 @@ macos_dylib = rule_factory.create_apple_rule(
     doc = "Builds a macOS Dylib binary.",
     implementation = _macos_dylib_impl,
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

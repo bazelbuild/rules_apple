@@ -20,10 +20,6 @@ load(
     "swift_dynamic_framework_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/build_settings:attrs.bzl",
-    "build_settings",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -126,12 +122,11 @@ load(
     "TvosFrameworkBundleInfo",
     "TvosStaticFrameworkBundleInfo",
 )
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
@@ -167,7 +162,7 @@ def _tvos_application_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -738,7 +733,7 @@ def _tvos_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -973,7 +968,7 @@ def _tvos_extension_impl(ctx):
         features = features,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = ctx.attr._signing_certificate_name[BuildSettingInfo].value,
+        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1332,7 +1327,6 @@ tvos_application = rule_factory.create_apple_rule(
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1453,7 +1447,6 @@ tvos_extension = rule_factory.create_apple_rule(
     implementation = _tvos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -1500,7 +1493,6 @@ To use this framework for your app and extensions, list it in the frameworks att
     implementation = _tvos_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        build_settings.signing_certificate_name.attr,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
