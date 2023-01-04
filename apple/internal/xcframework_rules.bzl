@@ -973,10 +973,19 @@ def _apple_static_xcframework_impl(ctx):
                 sdk_dylibs = sdk_dylibs,
             ))
 
+        # An XCFramework with static libraries can include Objective-C(++) headers from
+        # the `public_hdrs` rule attribute or generated headers from a Swift module.
+        # This boolean is required to add/omit headers from the Info.plist accordingly,
+        # through the inspection of the partial outputs for both Objective-C(++)/Swift.
+        found_header_files = False
+
         # Bundle headers & modulemaps (and swiftmodules if available)
         for _, bundle_relative_path, files in interface_artifacts.bundle_files:
             framework_archive_files.append(files)
             for file in files.to_list():
+                if not found_header_files and file.extension == "h":
+                    found_header_files = True
+
                 # For Swift based static XCFrameworks, Xcode requires .swiftmodule files to be
                 # located under each library identifier directory. While headers and modulemap
                 # files need to be under a Headers/ directory. Thus, we default all interface
@@ -1005,7 +1014,7 @@ def _apple_static_xcframework_impl(ctx):
                 architectures = link_output.architectures,
                 bitcode_symbol_maps = {},
                 environment = link_output.environment,
-                headers_path = "Headers",
+                headers_path = "Headers" if found_header_files else None,
                 library_identifier = library_identifier,
                 library_path = binary_name,
                 platform = link_output.platform,
