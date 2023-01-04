@@ -10,7 +10,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/build_settings:attrs",
+        "//apple/build_settings",
         "//apple/internal:apple_product_type",
         "//apple/internal:intermediates",
         "@bazel_skylib//lib:dicts",

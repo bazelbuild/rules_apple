@@ -18,7 +18,10 @@ This rule is meant to be used only for rules_apple tests and are considered impl
 that may change at any time. Please do not depend on this rule.
 """
 
-load("@build_bazel_rules_apple//apple/build_settings:attrs.bzl", "build_settings")
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
@@ -37,7 +40,7 @@ load(
     "paths",
 )
 
-_CUSTOM_BUILD_SETTINGS = build_settings.all_labels + [
+_CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
 def _apple_verification_transition_impl(settings, attr):

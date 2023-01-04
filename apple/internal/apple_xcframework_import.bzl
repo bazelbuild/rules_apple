@@ -16,12 +16,9 @@
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
-    "@build_bazel_rules_apple//apple/build_settings:attrs.bzl",
-    "build_settings",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
@@ -45,7 +42,6 @@ load(
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.
@@ -423,13 +419,13 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
     grep_includes = ctx.file._grep_includes
     label = ctx.label
-    parse_xcframework_info_plist = ctx.attr._parse_xcframework_info_plist[BuildSettingInfo].value
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
@@ -444,7 +440,9 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         label = label,
-        parse_xcframework_info_plist = parse_xcframework_info_plist,
+        parse_xcframework_info_plist = (
+            apple_xplat_toolchain_info.build_settings.parse_xcframework_info_plist
+        ),
         target_triplet = target_triplet,
         xcframework = xcframework,
         xcode_config = xcode_config,
@@ -529,6 +527,7 @@ def _apple_static_xcframework_import_impl(ctx):
     alwayslink = ctx.attr.alwayslink
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -537,7 +536,6 @@ def _apple_static_xcframework_import_impl(ctx):
     has_swift = ctx.attr.has_swift
     label = ctx.label
     linkopts = ctx.attr.linkopts
-    parse_xcframework_info_plist = ctx.attr._parse_xcframework_info_plist[BuildSettingInfo].value
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
@@ -552,7 +550,9 @@ def _apple_static_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         label = label,
-        parse_xcframework_info_plist = parse_xcframework_info_plist,
+        parse_xcframework_info_plist = (
+            apple_xplat_toolchain_info.build_settings.parse_xcframework_info_plist
+        ),
         target_triplet = target_triplet,
         xcframework = xcframework,
         xcode_config = xcode_config,
@@ -650,7 +650,6 @@ through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
-        build_settings.parse_xcframework_info_plist.attr,
         rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
@@ -698,7 +697,6 @@ to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
-        build_settings.parse_xcframework_info_plist.attr,
         rule_attrs.common_tool_attrs,
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {

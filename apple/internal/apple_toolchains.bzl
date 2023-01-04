@@ -14,6 +14,8 @@
 
 """Shared toolchain required for processing Apple bundling rules."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+
 AppleMacToolsToolchainInfo = provider(
     doc = """
 Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
@@ -90,6 +92,12 @@ This toolchain is for the tools (and support files) for actions that can run on 
 i.e. - they do *not* have to run on a Mac.
 """,
     fields = {
+        "build_settings": """\
+A `struct` containing custom build settings values, where fields are the name of the build setting
+target name and values are retrieved from the BuildSettingInfo provider for each label provided.
+
+e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
+""",
         "resolved_bundletool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
 files/ZIPs and destinations paths to build the directory structure for those files.
@@ -277,6 +285,12 @@ triplet.
 def _apple_xplat_tools_toolchain_impl(ctx):
     return [
         AppleXPlatToolsToolchainInfo(
+            build_settings = struct(
+                **{
+                    build_setting.label.name: build_setting[BuildSettingInfo].value
+                    for build_setting in ctx.attr.build_settings
+                }
+            ),
             resolved_bundletool = _resolve_tools_for_executable(
                 attr_name = "bundletool",
                 rule_ctx = ctx,
@@ -291,6 +305,13 @@ def _apple_xplat_tools_toolchain_impl(ctx):
 
 apple_xplat_tools_toolchain = rule(
     attrs = {
+        "build_settings": attr.label_list(
+            providers = [BuildSettingInfo],
+            mandatory = True,
+            doc = """
+List of `Label`s referencing custom build settings for all Apple rules.
+""",
+        ),
         "bundletool": attr.label(
             cfg = "target",
             executable = True,
