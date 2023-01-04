@@ -1002,6 +1002,25 @@ apple_static_xcframework(
 )
 
 apple_static_xcframework(
+    name = "ios_static_xcframework_objc_with_no_public_headers",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.oldest_supported,
+    },
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
     name = "ios_static_xcfmwk_with_avoid_deps",
     avoid_deps = [":StaticFmwkLowerLib"],
     ios = {
@@ -1078,9 +1097,6 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk_with_headers"],
 )
