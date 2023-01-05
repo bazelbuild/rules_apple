@@ -44,7 +44,6 @@ def watchos_single_target_ui_test_test_suite(name):
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [
             name,
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
         ],
     )
 

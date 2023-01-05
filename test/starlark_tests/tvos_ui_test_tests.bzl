@@ -46,10 +46,7 @@ def tvos_ui_test_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     dsyms_test(

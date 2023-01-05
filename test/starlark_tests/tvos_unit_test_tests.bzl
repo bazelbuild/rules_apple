@@ -50,10 +50,7 @@ def tvos_unit_test_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     dsyms_test(
@@ -184,10 +181,7 @@ def tvos_unit_test_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform TVOSSIMULATOR"],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     native.test_suite(

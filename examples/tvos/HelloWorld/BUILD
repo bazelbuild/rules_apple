@@ -41,8 +41,5 @@ tvos_application(
 # 'bazel test examples/...' ensures all Examples still build.
 build_test(
     name = "ExamplesBuildTest",
-    tags = [
-        "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-    ],
     targets = [":HelloWorld"],
 )

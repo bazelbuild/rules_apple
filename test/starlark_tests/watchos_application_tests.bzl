@@ -47,10 +47,7 @@ def watchos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     apple_verification_test(
@@ -58,10 +55,7 @@ def watchos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_imported_fmwk",
         verifier_script = "verifier_scripts/no_custom_fmwks_verifier.sh",
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     infoplist_contents_test(
@@ -86,10 +80,7 @@ def watchos_application_test_suite(name):
             "UIDeviceFamily:0": "4",
             "WKWatchKitApp": "true",
         },
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Tests xcasset tool is passed the correct arguments.
@@ -118,10 +109,7 @@ def watchos_application_test_suite(name):
             "$ARCHIVE_ROOT/WatchKitSupport2/WK",
             "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
         ],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Test that the output multi-arch stub binary is identified as watchOS simulator via the Mach-O
@@ -138,10 +126,7 @@ def watchos_application_test_suite(name):
         binary_test_architecture = "arm64",
         binary_not_contains_architectures = ["i386", "arm64e"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Test that the output multi-arch stub binary is identified as watchOS device via the Mach-O
@@ -158,10 +143,7 @@ def watchos_application_test_suite(name):
         binary_not_contains_architectures = ["arm64e", "arm64"],
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Test that the output binary for a single arch build is identified as watchOS device via the
@@ -178,10 +160,7 @@ def watchos_application_test_suite(name):
         binary_not_contains_architectures = ["armv7k", "arm64e", "arm64"],
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Tests inclusion of extensions within Watch extensions
@@ -192,10 +171,7 @@ def watchos_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
         ],
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
@@ -213,10 +189,7 @@ def watchos_application_test_suite(name):
         ],
         sanitizer = "tsan",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",
-        tags = [
-            "never-on-beta",  # TODO(b/249829891): Remove once internal beta testing issue is fixed.
-            name,
-        ],
+        tags = [name],
     )
 
     native.test_suite(
