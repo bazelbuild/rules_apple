@@ -19,8 +19,13 @@ load(
     "common",
 )
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -37,6 +42,12 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+
+analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
+    },
 )
 
 def apple_xcframework_test_suite(name):
@@ -581,6 +592,13 @@ def apple_xcframework_test_suite(name):
             "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
         ],
+        tags = [name],
+    )
+
+    analysis_failure_message_with_tree_artifact_outputs_test(
+        name = "{}_fails_with_tree_artifact_outputs".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_error = "The apple_xcframework rule does not yet support the experimental tree artifact.",
         tags = [name],
     )
 
