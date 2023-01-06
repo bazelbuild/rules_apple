@@ -85,7 +85,7 @@ run into compatibility issues. To silence this warning, pass \
 
     repo_rule(name = name, **kwargs)
 
-def apple_rules_dependencies(ignore_version_differences = False):
+def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_ready_dependencies = True):
     """Fetches repositories that are dependencies of the `rules_apple` workspace.
 
     Users should call this macro in their `WORKSPACE` to ensure that all of the
@@ -95,37 +95,41 @@ def apple_rules_dependencies(ignore_version_differences = False):
     Args:
       ignore_version_differences: If `True`, warnings about potentially
           incompatible versions of depended-upon repositories will be silenced.
+      include_bzlmod_ready_dependencies: Whether or not bzlmod-ready
+             dependencies should be included.
     """
-    _maybe(
-        http_archive,
-        name = "bazel_skylib",
-        urls = [
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
-        ],
-        sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
-        ignore_version_differences = ignore_version_differences,
-    )
 
-    _maybe(
-        http_archive,
-        name = "build_bazel_apple_support",
-        sha256 = "2e3dc4d0000e8c2f5782ea7bb53162f37c485b5d8dc62bb3d7d7fc7c276f0d00",
-        urls = [
-            "https://github.com/bazelbuild/apple_support/releases/download/1.3.2/apple_support.1.3.2.tar.gz",
-        ],
-        ignore_version_differences = ignore_version_differences,
-    )
+    if include_bzlmod_ready_dependencies:
+        _maybe(
+            http_archive,
+            name = "bazel_skylib",
+            urls = [
+                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+            ],
+            sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+            ignore_version_differences = ignore_version_differences,
+        )
 
-    _maybe(
-        http_archive,
-        name = "build_bazel_rules_swift",
-        urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/1.5.0/rules_swift.1.5.0.tar.gz",
-        ],
-        sha256 = "32f95dbe6a88eb298aaa790f05065434f32a662c65ec0a6aabdaf6881e4f169f",
-        ignore_version_differences = ignore_version_differences,
-    )
+        _maybe(
+            http_archive,
+            name = "build_bazel_apple_support",
+            sha256 = "2e3dc4d0000e8c2f5782ea7bb53162f37c485b5d8dc62bb3d7d7fc7c276f0d00",
+            urls = [
+                "https://github.com/bazelbuild/apple_support/releases/download/1.3.2/apple_support.1.3.2.tar.gz",
+            ],
+            ignore_version_differences = ignore_version_differences,
+        )
+
+        _maybe(
+            http_archive,
+            name = "build_bazel_rules_swift",
+            urls = [
+                "https://github.com/bazelbuild/rules_swift/releases/download/1.5.0/rules_swift.1.5.0.tar.gz",
+            ],
+            sha256 = "32f95dbe6a88eb298aaa790f05065434f32a662c65ec0a6aabdaf6881e4f169f",
+            ignore_version_differences = ignore_version_differences,
+        )
 
     _maybe(
         http_archive,
