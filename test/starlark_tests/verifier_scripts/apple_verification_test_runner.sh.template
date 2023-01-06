@@ -30,7 +30,12 @@ if [[ -n "$ARCHIVE_PATH" ]]; then
   trap 'chmod -R u+w "${ARCHIVE_ROOT}"
     rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 
-  unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
+  if [ -d "$ARCHIVE_PATH/" ];
+  then
+    cp -rf "$ARCHIVE_PATH" "$ARCHIVE_ROOT"
+  else
+    unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
+  fi
 
   # Define common bundle locations to be used by the verifier scripts.
   BINARY="$ARCHIVE_ROOT/%{archive_relative_binary}s"

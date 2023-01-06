@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
@@ -56,6 +57,7 @@ def _apple_core_data_model_impl(ctx):
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -63,6 +65,7 @@ def _apple_core_data_model_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_deployment_os = None,

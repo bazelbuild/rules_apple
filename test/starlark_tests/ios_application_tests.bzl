@@ -19,12 +19,21 @@ load(
     "common",
 )
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_tree_artifacts_outputs_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
+    "analysis_target_tree_artifacts_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -62,6 +71,35 @@ def ios_application_test_suite(name):
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         expected_outputs = ["app.ipa"],
+        tags = [name],
+    )
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_tree_artifact_outputs_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        expected_outputs = ["app_minimal.app"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_tree_artifact_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app_minimal",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_test(
+        name = "{}_registers_action_for_tree_artifact_bundling_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleTreeApp",
+        not_expected_mnemonic = ["BundleApp"],
         tags = [name],
     )
 

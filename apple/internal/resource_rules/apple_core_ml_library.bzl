@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -34,6 +35,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
@@ -51,6 +56,7 @@ load(
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
     is_swift = ctx.attr.language == "Swift"
@@ -84,6 +90,7 @@ def _apple_core_ml_library_impl(ctx):
     # portable platform information.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_deployment_os = None,
@@ -137,6 +144,7 @@ apple_core_ml_library = rule(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
+        rule_attrs.common_tool_attrs,
         {
             "mlmodel": attr.label(
                 allow_single_file = ["mlmodel", "mlpackage"],
