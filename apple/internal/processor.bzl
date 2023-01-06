@@ -280,7 +280,7 @@ def _bundle_partial_outputs_files(
                             base_locales.append(locale)
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
 
     location_to_paths = _archive_paths(
@@ -484,7 +484,7 @@ def _bundle_post_process_and_sign(
         rule_label: The label of the target being analyzed.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,

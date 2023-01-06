@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -54,6 +55,7 @@ load(
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
+    apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
@@ -62,6 +64,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     # rule_descriptor.
     return platform_support.platform_prerequisites(
         apple_fragment = aspect_ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
         device_families = None,
         explicit_minimum_os = None,

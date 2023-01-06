@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -29,6 +30,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
@@ -46,6 +51,7 @@ load(
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
     deps = getattr(ctx.attr, "deps", None)
@@ -63,6 +69,7 @@ def _apple_core_ml_library_impl(ctx):
     # portable platform information.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
         objc_fragment = None,
@@ -104,23 +111,23 @@ def _apple_core_ml_library_impl(ctx):
 
 apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
-        "mlmodel": attr.label(
-            allow_single_file = ["mlmodel"],
-            mandatory = True,
-            doc = """
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        rule_attrs.common_tool_attrs,
+        {
+            "mlmodel": attr.label(
+                allow_single_file = ["mlmodel"],
+                mandatory = True,
+                doc = """
 Label to a single mlmodel file from which to generate sources and compile into mlmodelc files.
 """,
-        ),
-        "header_name": attr.string(
-            mandatory = True,
-            doc = "Private attribute to configure the ObjC header name to be exported.",
-        ),
-        "_mac_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
-            providers = [[AppleMacToolsToolchainInfo]],
-        ),
-    }),
+            ),
+            "header_name": attr.string(
+                mandatory = True,
+                doc = "Private attribute to configure the ObjC header name to be exported.",
+            ),
+        },
+    ),
     output_to_genfiles = True,
     fragments = ["apple"],
     outputs = {

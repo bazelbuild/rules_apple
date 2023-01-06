@@ -553,6 +553,7 @@ def _apple_xcframework_impl(ctx):
 
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(

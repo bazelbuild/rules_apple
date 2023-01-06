@@ -42,7 +42,7 @@ def _archive(
     bundle_name_with_extension = bundle_name + bundle_extension
 
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
         return actions.declare_directory(bundle_name_with_extension)
@@ -99,11 +99,14 @@ def _infoplist(*, actions, label_name, output_discriminator):
 def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
         return False
-    return rule_descriptor.bundle_locations.archive_relative != "" and rule_descriptor.expose_non_archive_relative_output
+    return (
+        rule_descriptor.bundle_locations.archive_relative != "" and
+        rule_descriptor.expose_non_archive_relative_output
+    )
 
 def _merge_output_groups(*output_groups_list):
     """Merges a list of output group dictionaries into a single dictionary.

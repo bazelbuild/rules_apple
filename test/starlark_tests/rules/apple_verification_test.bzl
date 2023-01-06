@@ -63,7 +63,6 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
-        "@build_bazel_rules_apple//apple/build_settings:signing_certificate_name": "-",
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -96,9 +95,13 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary["//command_line_option:features"] = existing_features
 
     # Build settings
+    test_build_settings = {
+        build_settings_labels.signing_certificate_name: "-",
+    }
+    test_build_settings.update(getattr(attr, "build_settings", {}))
     for build_setting in _CUSTOM_BUILD_SETTINGS:
-        if build_setting in getattr(attr, "build_settings", []):
-            build_setting_value = attr.build_settings[build_setting]
+        if build_setting in test_build_settings:
+            build_setting_value = test_build_settings[build_setting]
             build_setting_type = type(settings[build_setting])
 
             # The `build_settings` rule attribute requires string values. However, build
@@ -151,7 +154,7 @@ def _apple_verification_test_impl(ctx):
             apple_product_type.application,
             apple_product_type.app_clip,
             apple_product_type.messages_application,
-        ]:
+        ] and not archive.is_directory:
             archive_relative_bundle = paths.join("Payload", bundle_with_extension)
         else:
             archive_relative_bundle = bundle_with_extension

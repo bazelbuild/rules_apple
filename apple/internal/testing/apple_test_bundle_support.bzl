@@ -284,7 +284,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    config_vars = ctx.var
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -292,6 +291,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         # iOS test bundles set `families` as a mandatory attr, other Apple OS test bundles do not
@@ -497,7 +497,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         output = ctx.outputs.test_bundle_output,
     )
 
-    if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+    if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
         test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output

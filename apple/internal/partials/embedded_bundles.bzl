@@ -56,17 +56,20 @@ def _embedded_bundles_partial_impl(
         "xpc_services": processor.location.xpc_service,
     }
 
-    config_vars = platform_prerequisites.config_vars
     transitive_bundles = dict()
     bundles_to_embed = []
     embeddedable_info_fields = {}
+
+    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
+        platform_prerequisites = platform_prerequisites,
+    )
 
     for bundle_type, bundle_location in bundle_type_to_location.items():
         for provider in embeddable_providers:
             if hasattr(provider, bundle_type):
                 transitive_bundles.setdefault(
                     bundle_type,
-                    default = [],
+                    [],
                 ).append(getattr(provider, bundle_type))
 
         if bundle_embedded_bundles:
@@ -78,7 +81,7 @@ def _embedded_bundles_partial_impl(
                 # With tree artifacts, we need to set the parent_dir of the file to be the basename
                 # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
                 # be too many embedded targets per top-level bundle.
-                if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+                if tree_artifact_enabled:
                     for bundle in transitive_depset.to_list():
                         bundles_to_embed.append(
                             (bundle_location, bundle.basename, depset([bundle])),
@@ -103,7 +106,7 @@ def _embedded_bundles_partial_impl(
     # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
     # extracted.
     partial_output_fields = {}
-    if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+    if tree_artifact_enabled:
         partial_output_fields["bundle_files"] = bundles_to_embed
     else:
         partial_output_fields["bundle_zips"] = bundles_to_embed

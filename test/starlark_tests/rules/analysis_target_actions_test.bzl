@@ -178,3 +178,8 @@ analysis_contains_xcframework_processor_action_test = make_analysis_target_actio
         build_settings_labels.parse_xcframework_info_plist: True,
     },
 )
+analysis_target_actions_tree_artifacts_outputs_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
+    },
+)

@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
@@ -80,6 +81,7 @@ def _macos_binary_infoplist_impl(ctx):
     )
 
     actions = ctx.actions
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
@@ -89,6 +91,7 @@ def _macos_binary_infoplist_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
@@ -173,6 +176,7 @@ def _macos_command_line_launchdplist_impl(ctx):
     )
 
     actions = ctx.actions
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
@@ -182,6 +186,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
