@@ -33,6 +33,13 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
+    # TODO(b/261618401): Adopt tree artifacts build setting on all remaining Apple rules.
+    "use_tree_artifacts_outputs": struct(
+        doc = """
+Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
+""",
+        default = False,
+    ),
 }
 
 build_settings_labels = struct(
