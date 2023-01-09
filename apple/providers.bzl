@@ -28,20 +28,17 @@ relevant information that they need.
 
 AppleBundleInfo = provider(
     doc = """
-Provides information about an Apple bundle target.
-
 This provider propagates general information about an Apple bundle that is not
-specific to any particular bundle type.
-It is propagated by most bundling rules—applications, extensions, frameworks, test bundles, and so forth.
+specific to any particular bundle type. It is propagated by most bundling
+rules (applications, extensions, frameworks, test bundles, and so forth).
 """,
     fields = {
-        "archive": "`File`. The archive that contains the built application.",
+        "archive": "`File`. The archive that contains the built bundle.",
         "archive_root": """
-`string`. The file system path (relative to the workspace root)
-where the signed bundle was constructed (before archiving). Other rules
-*should not* depend on this field; it is intended to support IDEs that
-want to read that path from the provider to avoid unzipping the output
-archive.
+`String`. The file system path (relative to the workspace root) where the signed
+bundle was constructed (before archiving). Other rules **should not** depend on
+this field; it is intended to support IDEs that want to read that path from the
+provider to avoid performance issues from unzipping the output archive.
 """,
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) that was bundled. The
@@ -51,21 +48,21 @@ output bundle. The primary purpose of this field is to provide a way to access
 the binary directly at analysis time; for example, for code coverage.
 """,
         "bundle_extension": """
-`string`. The bundle extension.
+`String`. The bundle extension.
 """,
         "bundle_id": """
-`string`. The bundle identifier (i.e., `CFBundleIdentifier` in
+`String`. The bundle identifier (i.e., `CFBundleIdentifier` in
 `Info.plist`) of the bundle.
 """,
         "bundle_name": """
-`string`. The name of the bundle, without the extension.
+`String`. The name of the bundle, without the extension.
 """,
         "executable_name": """
 `string`. The name of the executable that was bundled.
 """,
         "entitlements": "`File`. Entitlements file used, if any.",
         "extension_safe": """
-Boolean. True if the target propagating this provider was
+`Boolean`. True if the target propagating this provider was
 compiled and linked with -application-extension, restricting it to
 extension-safe APIs only.
 """,
@@ -79,14 +76,14 @@ number like "9.0") that this bundle was built to support. This is different from
 specific APIs are guarded with `available` clauses.
 """,
         "minimum_os_version": """
-`string`. The minimum OS version (as a dotted version
+`String`. The minimum OS version (as a dotted version
 number like "9.0") that this bundle was built to support.
 """,
         "platform_type": """
-`string`. The platform type for the bundle (i.e. `ios` for iOS bundles).
+`String`. The platform type for the bundle (i.e. `ios` for iOS bundles).
 """,
         "product_type": """
-`string`. The dot-separated product type identifier associated
+`String`. The dot-separated product type identifier associated
 with the bundle (for example, `com.apple.product-type.application`).
 """,
         "uses_swift": """
@@ -113,7 +110,7 @@ specific to any particular binary type.
 `File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
 """,
         "product_type": """
-`string`. The dot-separated product type identifier associated with the binary (for example,
+`String`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).
 """,
     },
@@ -136,9 +133,13 @@ AppleBundleVersionInfo = provider(
     fields = {
         "version_file": """
 A `File` containing JSON-formatted text describing the version
-number information propagated by the target. It contains two keys:
-`build_version`, which corresponds to `CFBundleVersion`; and
-`short_version_string`, which corresponds to `CFBundleShortVersionString`.
+number information propagated by the target.
+
+It contains two keys:
+
+*   `build_version`, which corresponds to `CFBundleVersion`.
+
+*   `short_version_string`, which corresponds to `CFBundleShortVersionString`.
 """,
     },
 )
@@ -151,7 +152,7 @@ AppleDsymBundleInfo = provider(
 the given target if any were generated.
 """,
         "transitive_dsyms": """
-`Depset` containing `File` references to each of the dSYM bundles that act as transitive
+`depset` containing `File` references to each of the dSYM bundles that act as transitive
 dependencies of the given target if any were generated.
 """,
     },
@@ -198,7 +199,7 @@ Propagated by framework and XCFramework import rules: `apple_dynamic_framework_i
 """,
     fields = {
         "framework_imports": """
-Depset of Files that represent framework imports that need to be bundled in the top level
+`depset` of `File`s that represent framework imports that need to be bundled in the top level
 application bundle under the Frameworks directory.
 """,
         "dsym_imports": """
@@ -207,7 +208,7 @@ provide .symbols files for packaging into the .ipa file if requested in the
 build with --define=apple.package_symbols=(yes|true|1).
 """,
         "build_archs": """
-Depset of strings that represent binary architectures reported from the current build.
+`depset` of `String`s that represent binary architectures reported from the current build.
 """,
         "debug_info_binaries": """
 Depset of Files that represent framework binaries and dSYM binaries that
@@ -232,8 +233,7 @@ ApplePlatformInfo = provider(
 )
 
 def merge_apple_framework_import_info(apple_framework_import_infos):
-    """
-    Merges multiple `AppleFrameworkImportInfo` into one.
+    """Merges multiple `AppleFrameworkImportInfo` into one.
 
     Args:
         apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
@@ -300,9 +300,9 @@ and bundled at the top level.""",
         "texture_atlases": "Texture atlas files.",
         "unprocessed": "Generic resources not mapped to the other types.",
         "xibs": "XIB Interface files.",
-        "owners": """Depset of (resource, owner) pairs.""",
-        "processed_origins": """Depset of (processed resource, resource list) pairs.""",
-        "unowned_resources": """Depset of unowned resources.""",
+        "owners": """`depset` of (resource, owner) pairs.""",
+        "processed_origins": """`depset` of (processed resource, resource list) pairs.""",
+        "unowned_resources": """`depset` of unowned resources.""",
     },
 )
 
@@ -330,7 +330,7 @@ target.
 """,
     fields = {
         "includes": """
-`depset` of `string`s representing transitive include paths which are needed by
+`depset` of `String`s representing transitive include paths which are needed by
 IDEs to be used for indexing the test sources.
 """,
         "module_maps": """
@@ -338,7 +338,7 @@ IDEs to be used for indexing the test sources.
 for indexing the test sources.
 """,
         "module_name": """
-`string` representing the module name used by the test's sources. This is only
+`String` representing the module name used by the test's sources. This is only
 set if the test only contains a single top-level Swift dependency. This may be
 used by an IDE to identify the Swift module (if any) used by the test's sources.
 """,
@@ -358,7 +358,7 @@ IDEs to be used for indexing the test sources.
 The artifact representing the test host for the test target, if the test requires a test host.
 """,
         "deps": """
-`depset` of `string`s representing the labels of all immediate deps of the test.
+`depset` of `String`s representing the labels of all immediate deps of the test.
 Only source files from these deps will be present in `sources`. This may be used
 by IDEs to differentiate a test target's transitive module maps from its direct
 module maps, as including the direct module maps may break indexing for the
@@ -685,7 +685,7 @@ that requirement.
 
 TvosStaticFrameworkBundleInfo = provider(
     doc = """
-Denotes that a target is an tvOS static framework.
+Denotes that a target is a tvOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a tvOS static framework
