@@ -103,7 +103,7 @@ def group_files_by_directory(files, extensions, attr):
             if after_index != -1:
                 not_matched = False
                 container = path[:after_index]
-                contained_files = grouped_files.setdefault(container, default = [])
+                contained_files = grouped_files.setdefault(container, [])
                 contained_files.append(f)
 
                 # No need to check other extensions

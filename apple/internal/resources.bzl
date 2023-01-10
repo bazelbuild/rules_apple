@@ -277,7 +277,7 @@ def _bucketize_data(
 
         buckets.setdefault(
             bucket_name,
-            default = [],
+            [],
         ).append((parent, resource_swift_module, resource_depset))
 
     return (
@@ -483,7 +483,7 @@ def _process_bucketized_data(
             for _, _, processed_file in result.files:
                 processed_field.setdefault(
                     parent_dir if parent_dir else "",
-                    default = [],
+                    [],
                 ).append(processed_file)
 
             # Save files to the "processed" field for copying in the bundling phase.
@@ -607,7 +607,7 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
         for field in fields:
             buckets.setdefault(
                 field,
-                default = [],
+                [],
             ).extend(getattr(provider, field))
 
     # unowned_resources is a depset of resource paths.
@@ -677,7 +677,7 @@ def _minimize(*, bucket):
 
         resources_by_key.setdefault(
             key,
-            default = [],
+            [],
         ).append(resources)
 
     return [
@@ -757,7 +757,7 @@ def _expand_owners(*, owners):
     dict = {}
     for resource, owner in owners.to_list():
         if owner:
-            dict.setdefault(resource, default = {})[owner] = None
+            dict.setdefault(resource, {})[owner] = None
     return dict
 
 def _expand_processed_origins(*, processed_origins):

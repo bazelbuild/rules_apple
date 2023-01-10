@@ -66,7 +66,7 @@ def _embedded_bundles_partial_impl(
             if hasattr(provider, bundle_type):
                 transitive_bundles.setdefault(
                     bundle_type,
-                    default = [],
+                    [],
                 ).append(getattr(provider, bundle_type))
 
         if bundle_embedded_bundles:
