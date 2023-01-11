@@ -61,7 +61,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
-        "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
+        "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
     }
     if attr.build_type == "simulator":

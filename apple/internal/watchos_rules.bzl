@@ -243,6 +243,7 @@ reproducible error case.".format(
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -251,6 +252,7 @@ reproducible error case.".format(
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
@@ -485,6 +487,7 @@ def _watchos_extension_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
@@ -493,6 +496,7 @@ def _watchos_extension_impl(ctx):
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
@@ -729,6 +733,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -737,6 +742,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
