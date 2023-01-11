@@ -84,6 +84,9 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:codesigning_support",
+        "//apple/internal:experimental",
+        "//apple/internal:intermediates",
+        "//apple/internal:outputs",
         "//apple/internal:processor",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",

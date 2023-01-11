@@ -23,6 +23,18 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -83,23 +95,23 @@ def _location_map(rule_descriptor):
         processor.location.xpc_service: resolved.contents_relative_xpc_service,
     }
 
-def _codesigning_dossier_info(codesigning_dossier, bundle_name, bundle_extension, bundle_location):
+def _codesigning_dossier_info(codesigning_dossier, bundle_extension, bundle_location, bundle_name):
     """Creates a struct containing information for a codesigning dossier.
 
     Args:
       codesigning_dossier: The rule descriptor to build lookup for.
-      bundle_name: The name of the output bundle.
       bundle_extension: The extension for the bundle.
       bundle_location: Location of this bundle when embedded.
+      bundle_name: The name of the output bundle.
 
     Returns:
       Struct representing the codesigning dossier for use in _AppleCodesigningDossierInfo.
     """
     return struct(
         codesigning_dossier = codesigning_dossier,
-        bundle_name = bundle_name,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
+        bundle_name = bundle_name,
     )
 
 def _embedded_codesign_dossiers_from_dossier_infos(
@@ -134,10 +146,97 @@ def _embedded_codesign_dossiers_from_dossier_infos(
             embedded_codesign_dossiers.append(dossier)
     return embedded_codesign_dossiers
 
+def _create_combined_zip_artifact(
+        *,
+        actions,
+        dossier_merge_zip,
+        input_archive,
+        label_name,
+        output_combined_zip,
+        output_discriminator,
+        platform_prerequisites,
+        resolved_bundletool):
+    """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
+
+     Args:
+      actions: The actions provider from `ctx.actions`.
+      dossier_merge_zip: A File referencing the generated code sign dossier zip.
+      input_archive: A File referencing the rule's output archive (IPA or zipped app).
+      label_name: Name of the target being built.
+      output_combined_zip: A File referencing where the combined dossier zip should be written to.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_bundletool: A struct referencing the resolved bundle tool.
+    """
+    bundletool_control_file = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "combined_zip_bundletool_control.json",
+    )
+
+    combined_zip_archive_zips = [
+        struct(src = input_archive.path, dest = "bundle"),
+        struct(src = dossier_merge_zip.path, dest = "dossier"),
+    ]
+
+    bundletool_control = struct(
+        bundle_merge_zips = combined_zip_archive_zips,
+        output = output_combined_zip.path,
+    )
+
+    actions.write(
+        output = bundletool_control_file,
+        content = json.encode(bundletool_control),
+    )
+
+    common_combined_dossier_zip_args = {
+        "mnemonic": "CreateCombinedDossierZip",
+        "outputs": [output_combined_zip],
+        "progress_message": "Creating combined dossier zip for %s" % label_name,
+    }
+
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
+        platform_prerequisites = platform_prerequisites,
+    )
+
+    if tree_artifact_is_enabled:
+        # Run a shell command to report an error when attempting to build the combined zip with the
+        # tree artifact output. We aren't supposed to know when an output_group has been requested
+        # in a rule implementation, so this error in the execution phase will have to suffice.
+        actions.run_shell(
+            command = "echo '{error_message}' 1>&2 && exit 1".format(
+                error_message = (
+                    "ERROR: The combined dossier zip output group does not yet support the " +
+                    "experimental tree artifact. Please ensure that the " +
+                    "`apple.experimental.tree_artifact_outputs` variable is not set to 1 on " +
+                    "the command line or in your active build " +
+                    "configuration."
+                ),
+            ),
+            **common_combined_dossier_zip_args
+        )
+    else:
+        actions.run(
+            arguments = [bundletool_control_file.path],
+            executable = resolved_bundletool.executable,
+            inputs = depset(
+                direct = [bundletool_control_file],
+                transitive = [
+                    resolved_bundletool.inputs,
+                    depset([input_archive, dossier_merge_zip]),
+                ],
+            ),
+            input_manifests = resolved_bundletool.input_manifests,
+            **common_combined_dossier_zip_args
+        )
+
 def _codesigning_dossier_partial_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -147,6 +246,7 @@ def _codesigning_dossier_partial_impl(
         label_name,
         output_discriminator,
         platform_prerequisites,
+        predeclared_outputs,
         provisioning_profile = None,
         rule_descriptor):
     """Implementation of codesigning_dossier_partial"""
@@ -170,9 +270,9 @@ def _codesigning_dossier_partial_impl(
 
     dossier_info = _codesigning_dossier_info(
         codesigning_dossier = output_dossier,
-        bundle_name = bundle_name,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
+        bundle_name = bundle_name,
     ) if bundle_location else None
 
     codesigning_support.generate_codesigning_dossier_action(
@@ -205,8 +305,32 @@ def _codesigning_dossier_partial_impl(
         embedded_dossiers = embedded_dossier_depset,
     )] if embedded_dossier_depset else []
 
+    output_archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
+    )
+
+    output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
+
+    _create_combined_zip_artifact(
+        actions = actions,
+        dossier_merge_zip = output_dossier,
+        input_archive = output_archive,
+        label_name = label_name,
+        output_combined_zip = output_combined_zip,
+        output_discriminator = output_discriminator,
+        platform_prerequisites = platform_prerequisites,
+        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
+    )
+
     return struct(
         output_groups = {
+            "combined_dossier_zip": depset([output_combined_zip]),
             "dossier": depset([output_dossier]),
         },
         providers = providers,
@@ -216,6 +340,7 @@ def codesigning_dossier_partial(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -225,6 +350,7 @@ def codesigning_dossier_partial(
         label_name,
         output_discriminator = None,
         platform_prerequisites,
+        predeclared_outputs,
         provisioning_profile = None,
         rule_descriptor):
     """Creates a struct containing information for a codesigning dossier.
@@ -232,6 +358,7 @@ def codesigning_dossier_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
@@ -245,6 +372,7 @@ def codesigning_dossier_partial(
       label_name: Name of the target being built
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: Optional File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
@@ -257,6 +385,7 @@ def codesigning_dossier_partial(
         _codesigning_dossier_partial_impl,
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,
@@ -266,6 +395,7 @@ def codesigning_dossier_partial(
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
     )

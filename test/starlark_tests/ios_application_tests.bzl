@@ -53,6 +53,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
+    "output_group_zip_contents_test",
+)
+load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
 )
@@ -662,6 +666,20 @@ def ios_application_test_suite(name):
         ).format(
             package = "//test/starlark_tests/targets_under_test/ios",
         ),
+        tags = [name],
+    )
+
+    output_group_zip_contents_test(
+        name = "{}_has_combined_zip_output_group".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        output_group_name = "combined_dossier_zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/app_dossier_with_bundle.zip",
+        contains = [
+            "bundle/Payload/app.app/Info.plist",
+            "bundle/Payload/app.app/app",
+            "dossier/manifest.json",
+        ],
         tags = [name],
     )
 
