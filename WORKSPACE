@@ -1,5 +1,7 @@
 workspace(name = "build_bazel_rules_apple")
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
 git_repository(
     name = "build_bazel_apple_support",
     branch = "ks/add-example-toolchains-setup",
