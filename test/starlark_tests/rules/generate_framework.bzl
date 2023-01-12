@@ -49,6 +49,7 @@ def _generate_import_framework_impl(ctx):
 
     include_module_interface_files = ctx.attr.include_module_interface_files
     include_resource_bundle = ctx.attr.include_resource_bundle
+    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
 
     target_os = _SDK_TO_OS[sdk]
 
@@ -137,13 +138,16 @@ def _generate_import_framework_impl(ctx):
     # Create framework bundle
     framework_files = generation_support.create_framework(
         actions = actions,
+        apple_fragment = apple_fragment,
         bundle_name = label.name,
         headers = headers,
         include_resource_bundle = include_resource_bundle,
+        include_versioned_frameworks = include_versioned_frameworks,
         label = label,
         library = library,
         module_interfaces = module_interfaces,
         target_os = target_os,
+        xcode_config = xcode_config,
     )
 
     return [
@@ -217,6 +221,16 @@ Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` direct
 `swift_library` target should be included in the XCFramework bundle or discarded for testing
 purposes.
 """,
+        ),
+        # TODO(b/158696451): Remove attr and generate versioned frameworks for macOS/Catalyst by
+        # default when importing versioned frameworks is supported by both framework and XCFramework
+        # import rules.
+        "include_versioned_frameworks": attr.bool(
+            default = False,
+            doc = """
+Flag to indicate if the framework should include additional versions of the framework under the
+Versions directory. This is only supported for macOS platform.
+                """,
         ),
     }),
     fragments = ["apple"],

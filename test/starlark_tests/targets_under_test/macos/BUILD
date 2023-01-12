@@ -214,6 +214,16 @@ generate_import_framework(
     tags = common.fixture_tags,
 )
 
+generate_import_framework(
+    name = "generated_macos_dynamic_versioned_fmwk",
+    archs = ["x86_64"],
+    include_versioned_frameworks = True,
+    libtype = "dynamic",
+    minimum_os_version = common.min_os_macos.baseline,
+    sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic XCFramework import tests.
 
@@ -258,6 +268,21 @@ generate_dynamic_xcframework(
             "arm64",
             "arm64e",
             "x86_64",
+        ],
+    },
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_macos_versioned_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    include_versioned_frameworks = True,
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
         ],
     },
 )

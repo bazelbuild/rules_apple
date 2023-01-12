@@ -8,6 +8,8 @@ load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite
 load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
+load(":generate_dynamic_xcframework_tests.bzl", "generate_dynamic_xcframework_test_suite")
+load(":generate_import_framework_tests.bzl", "generate_import_framework_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
@@ -62,6 +64,10 @@ apple_universal_binary_test_suite(name = "apple_universal_binary")
 apple_xcframework_test_suite(name = "apple_xcframework")
 
 dtrace_compile_test_suite(name = "dtrace_compile")
+
+generate_dynamic_xcframework_test_suite(name = "generate_dynamic_xcframework")
+
+generate_import_framework_test_suite(name = "generate_import_framework")
 
 ios_application_resources_test_suite(name = "ios_application_resources")
 
@@ -131,9 +137,7 @@ watchos_ui_test_test_suite(name = "watchos_ui_test")
 
 watchos_unit_test_test_suite(name = "watchos_unit_test")
 
-test_suite(
-    name = "all_tests",
-)
+test_suite(name = "all_tests")
 
 bzl_library(
     name = "starlark_tests_bzls",
