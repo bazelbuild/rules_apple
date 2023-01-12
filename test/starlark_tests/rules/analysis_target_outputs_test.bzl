@@ -20,6 +20,10 @@ load(
     "asserts",
 )
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@bazel_skylib//lib:new_sets.bzl",
     "sets",
 )
@@ -27,8 +31,12 @@ load(
 def _analysis_target_outputs_test_impl(ctx):
     env = analysistest.begin(ctx)
     expected_outputs = sets.make(ctx.attr.expected_outputs)
-    target_files = analysistest.target_under_test(env).files.to_list()
-    all_outputs = sets.make([file.basename for file in target_files])
+    target_under_test = analysistest.target_under_test(env)
+    target_files = target_under_test.files.to_list()
+    all_outputs = sets.make([
+        paths.relativize(file.short_path, target_under_test.label.package)
+        for file in target_files
+    ])
 
     # Test that the expected outputs are contained within actual outputs
     asserts.new_set_equals(
