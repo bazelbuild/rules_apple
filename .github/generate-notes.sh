@@ -14,7 +14,13 @@ TODO
 
 This release is compatible with: TODO
 
-## Workspace Snippet
+### MODULE.bazel Snippet
+
+\`\`\`bzl
+bazel_dep(name = "rules_apple", version = "$new_version", repo_name = "build_bazel_rules_apple")
+\`\`\`
+
+### Workspace Snippet
 
 \`\`\`bzl
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
