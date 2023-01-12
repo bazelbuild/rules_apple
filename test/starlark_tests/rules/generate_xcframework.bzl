@@ -174,6 +174,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     hdrs = ctx.files.hdrs
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
+    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
 
     if platforms.keys() != minimum_os_versions.keys():
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
@@ -216,12 +217,15 @@ def _generate_dynamic_xcframework_impl(ctx):
         # Create (dynamic) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
+            apple_fragment = apple_fragment,
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
+            include_versioned_frameworks = include_versioned_frameworks,
             label = label,
             library = dynamic_library,
             target_os = platform,
+            xcode_config = xcode_config,
         )
 
         framework_path = paths.join(
@@ -463,12 +467,14 @@ def _generate_static_framework_xcframework_impl(ctx):
         # Create (static) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
+            apple_fragment = apple_fragment,
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
             label = label,
             library = static_library,
             target_os = platform,
+            xcode_config = xcode_config,
         )
 
         framework_path = paths.join(
@@ -545,6 +551,13 @@ represented as a dotted version number as values.
                 mandatory = False,
                 default = True,
             ),
+            "include_versioned_frameworks": attr.bool(
+                default = False,
+                doc = """
+Flag to indicate if the framework should include additional versions of the framework under the
+Versions directory. This is only supported for macOS platform.
+                """,
+            ),
         },
     ),
     fragments = ["apple"],
@@ -612,6 +625,9 @@ attribute. This means that if you're building using `bazel build --config=ios_x8
 `platforms` attribute must define the following dictionary: {"ios_simulator": ["x86_64"]}.
 """,
             ),
+            # TODO(b/158696451): Remove attr and generate versioned frameworks for macOS/Catalyst by
+            # default when importing versioned frameworks is supported by both framework and
+            # XCFramework import rules.
             "include_module_interface_files": attr.bool(
                 default = True,
                 doc = """
