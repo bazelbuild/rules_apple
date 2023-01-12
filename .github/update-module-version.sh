@@ -9,6 +9,7 @@ cat > MODULE.bazel.new <<EOF
 module(
     name = "rules_apple",
     version = "$new_version",
+    bazel_compatibility = [">=6.0.0"],
     compatibility_level = 1,
     repo_name = "build_bazel_rules_apple",
 )
