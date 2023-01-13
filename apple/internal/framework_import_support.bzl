@@ -350,6 +350,19 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
 
     return filtered_files
 
+def _has_versioned_framework_files(framework_files):
+    """Returns True if there are any versioned framework files (i.e. under Versions/ directory).
+
+    Args:
+        framework_files: List of File references for imported framework or XCFramework files.
+    Returns:
+        True if framework files include any versioned frameworks. False otherwise.
+    """
+    for f in framework_files:
+        if ".framework/Versions/" in f.short_path:
+            return True
+    return False
+
 def _objc_provider_with_dependencies(
         *,
         additional_objc_provider_fields = {},
@@ -472,6 +485,7 @@ framework_import_support = struct(
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
+    has_versioned_framework_files = _has_versioned_framework_files,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,

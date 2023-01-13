@@ -429,9 +429,15 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    xcframework = _classify_xcframework_imports(xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
+    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
+        xcframework_imports,
+    )
+    if target_triplet.os == "macos" and has_versioned_framework_files:
+        # TODO(b/158696451): Add support to import XCFrameworks with macOS versioned frameworks.
+        fail("apple_dynamic_xcframework_import rule does not yet support macOS versioned frameworks.")
 
+    xcframework = _classify_xcframework_imports(xcframework_imports)
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
         fail("Importing XCFrameworks with dynamic libraries is not supported.")
 

@@ -374,6 +374,14 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify importing XCFramework with versioned frameworks fails.
+    analysis_failure_message_test(
+        name = "{}_fails_with_versioned_frameworks_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        expected_error = "apple_dynamic_xcframework_import rule does not yet support macOS versioned frameworks.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

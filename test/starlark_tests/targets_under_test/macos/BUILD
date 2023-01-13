@@ -214,6 +214,33 @@ generate_import_framework(
     tags = common.fixture_tags,
 )
 
+macos_application(
+    name = "app_with_imported_versioned_fmwk",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_versioned_fmwk_depending_lib",
+    tags = common.fixture_tags,
+    deps = [":imported_dynamic_versioned_fmwk"],
+)
+
+apple_dynamic_framework_import(
+    name = "imported_dynamic_versioned_fmwk",
+    framework_imports = [":generated_macos_dynamic_versioned_fmwk"],
+    tags = common.fixture_tags,
+)
+
 generate_import_framework(
     name = "generated_macos_dynamic_versioned_fmwk",
     archs = ["x86_64"],
@@ -270,6 +297,35 @@ generate_dynamic_xcframework(
             "x86_64",
         ],
     },
+)
+
+macos_application(
+    name = "app_with_imported_dynamic_versioned_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_versioned_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":imported_dynamic_versioned_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "imported_dynamic_versioned_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
 )
 
 generate_dynamic_xcframework(

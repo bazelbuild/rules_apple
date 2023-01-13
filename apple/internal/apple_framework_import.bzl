@@ -118,11 +118,18 @@ def _apple_dynamic_framework_import_impl(ctx):
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
 
+    target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
+    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
+        framework_imports,
+    )
+    if target_triplet.os == "macos" and has_versioned_framework_files:
+        # TODO(b/158696451): Add support to import macOS versioned frameworks.
+        fail("apple_dynamic_framework_import rule does not yet support macOS versioned frameworks.")
+
     providers = []
     framework = framework_import_support.classify_framework_imports(framework_imports)
 
     # Create AppleFrameworkImportInfo provider.
-    target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
         deps = deps,
