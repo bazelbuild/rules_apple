@@ -20,11 +20,16 @@ import time
 
 from tools.bitcode_strip import bitcode_strip
 from tools.codesigningtool import codesigningtool
+from tools.wrapper_common import execute
 from tools.wrapper_common import lipo
 
 
-def _zip_framework(framework_temp_path, output_zip_path):
-  """Saves the framework as a zip file for caching."""
+def _update_modified_timestamps(framework_temp_path: str) -> None:
+  """Updates framework files modified timestamp before creating the zip file.
+
+  Args:
+    framework_temp_path: Directory filepath holding framework files.
+  """
   zip_epoch_timestamp = 946684800  # 2000-01-01 00:00
   timestamp = zip_epoch_timestamp + time.timezone
   if os.path.exists(framework_temp_path):
@@ -38,9 +43,6 @@ def _zip_framework(framework_temp_path, output_zip_path):
         file_path = os.path.join(root, file_name)
         os.utime(file_path, (timestamp, timestamp))
     os.utime(framework_temp_path, (timestamp, timestamp))
-  shutil.make_archive(os.path.splitext(output_zip_path)[0], "zip",
-                      os.path.dirname(framework_temp_path),
-                      os.path.basename(framework_temp_path))
 
 
 def _relpath_from_framework(framework_absolute_path):
@@ -173,7 +175,24 @@ def main():
   if status_code:
     return status_code
 
-  _zip_framework(args.temp_path, args.output_zip)
+  # Update modified timestamps and create archive using ditto.
+  _update_modified_timestamps(args.temp_path)
+
+  # TODO(b/158696451): Consider preserving extended attrs for macOS frameworks.
+  # Previous implementation of creating the processed framework archive
+  # using shutil/zip already stripped the extended attributes of the bundle.
+  execute.execute_and_filter_output(
+      cmd_args=[
+          "/usr/bin/ditto",
+          "-c",
+          "-k",  # use PKZip format for bundletool compatibility.
+          "--keepParent",  # preserves the .framework directory.
+          "--norsrc",  # strip resource forks and HFS metadata.
+          "--noextattr",  # strip extended attributes.
+          args.temp_path,
+          args.output_zip
+      ],
+      raise_on_failure=True)
 
 
 if __name__ == "__main__":
