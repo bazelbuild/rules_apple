@@ -93,10 +93,11 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
 
 
-def main():
+def _get_parser():
+  """Returns command line arguments parser extending codesigningtool parser."""
   parser = codesigningtool.generate_arg_parser()
   parser.add_argument(
-      "--framework_binary", type=str, required=True, action="append",
+      "--framework_binary", type=str, required=True,
       help="path to a binary file scoped to one of the imported frameworks"
   )
   parser.add_argument(
@@ -104,8 +105,12 @@ def main():
       "expected to represent the target architectures"
   )
   parser.add_argument(
-      "--framework_file", type=str, action="append", help="path to a file "
-      "scoped to one of the imported frameworks, distinct from the binary files"
+      "--framework_file",
+      type=str,
+      default=[],
+      action="append",
+      help=("path to a file scoped to one of the imported"
+            " frameworks, distinct from the binary files")
   )
   parser.add_argument(
       "--temp_path", type=str, required=True, help="temporary path to copy "
@@ -115,10 +120,17 @@ def main():
       "--output_zip", type=str, required=True, help="path to save the zip file "
       "containing a codesigned, lipoed version of the imported framework"
   )
+
+  return parser
+
+
+def main() -> None:
+  """Copies/link framework files and copy/thin framework binaries."""
+  parser = _get_parser()
   args = parser.parse_args()
 
   all_binary_archs = args.slice
-  framework_archs, _ = lipo.find_archs_for_binaries(args.framework_binary)
+  framework_archs, _ = lipo.find_archs_for_binaries([args.framework_binary])
 
   if not framework_archs:
     return 1
@@ -130,26 +142,25 @@ def main():
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  for framework_binary in args.framework_binary:
-    # If the imported framework is single architecture, and therefore assumed
-    # that it doesn't need to be lipoed, or if the binary architectures match
-    # the framework architectures perfectly, treat as a copy instead of a lipo
-    # operation.
-    if len(framework_archs) == 1 or all_binary_archs == framework_archs:
-      status_code = _copy_framework_file(framework_binary,
-                                         executable=True,
-                                         output_path=args.temp_path)
-    else:
-      slices_needed = framework_archs.intersection(all_binary_archs)
-      if not slices_needed:
-        print("Error: Precompiled framework does not share any binary "
-              "architectures with the binaries that were built.")
-        return 1
-      status_code = _strip_framework_binary(framework_binary,
-                                            args.temp_path,
-                                            slices_needed)
-    if status_code:
+  # If the imported framework is single architecture, and therefore assumed
+  # that it doesn't need to be lipoed, or if the binary architectures match
+  # the framework architectures perfectly, treat as a copy instead of a lipo
+  # operation.
+  if len(framework_archs) == 1 or all_binary_archs == framework_archs:
+    status_code = _copy_framework_file(args.framework_binary,
+                                       executable=True,
+                                       output_path=args.temp_path)
+  else:
+    slices_needed = framework_archs.intersection(all_binary_archs)
+    if not slices_needed:
+      print("Error: Precompiled framework does not share any binary "
+            "architectures with the binaries that were built.")
       return 1
+    status_code = _strip_framework_binary(args.framework_binary,
+                                          args.temp_path,
+                                          slices_needed)
+  if status_code:
+    return 1
 
   if args.framework_file:
     for framework_file in args.framework_file:
