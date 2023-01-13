@@ -10,6 +10,7 @@ py_binary(
     ],
     deps = [
         "//tools/codesigningtool:codesigningtool_lib",
+        "//tools/wrapper_common:execute",
         "//tools/wrapper_common:lipo",
     ],
 )
