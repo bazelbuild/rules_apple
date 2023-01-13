@@ -17,6 +17,7 @@ import os
 import shutil
 import sys
 import time
+from typing import List
 
 from tools.bitcode_strip import bitcode_strip
 from tools.codesigningtool import codesigningtool
@@ -92,6 +93,57 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
 
 
+def _strip_or_copy_binary(
+    *,
+    framework_binary: str,
+    output_path: str,
+    strip_bitcode: bool,
+    requested_archs: List[str]) -> None:
+  """Copies and strips (if necessary) a framework binary.
+
+  Args:
+    framework_binary: Filepath to the framework binary to copy/thin.
+    output_path: Target filepath for the copied binary.
+    strip_bitcode: Whether to strip bitcode from the final binary
+    requested_archs: List of requested binary architectures to preserve.
+  """
+  binary_archs, _ = lipo.find_archs_for_binaries([framework_binary])
+  if not binary_archs:
+    raise ValueError(
+        "Could not find binary architectures for binaries using lipo."
+        f"\n{framework_binary}")
+
+  slices_needed = binary_archs.intersection(requested_archs)
+  if not slices_needed:
+    raise ValueError(
+        "Error: Precompiled framework does not share any binary "
+        "architectures with the binaries that were built.\n"
+        f"Binary architectures: {binary_archs}\n"
+        f"Build architectures: {requested_archs}\n")
+
+  # If the imported framework is single architecture, and therefore assumed
+  # that it doesn't need to be lipoed, or if the binary architectures match
+  # the framework architectures perfectly, treat as a copy instead of a lipo
+  # operation.
+  should_skip_lipo = (
+      len(binary_archs) == 1 or
+      binary_archs == set(requested_archs)
+  )
+
+  if should_skip_lipo:
+    _copy_framework_file(framework_binary,
+                         executable=True,
+                         output_path=output_path)
+  else:
+    _strip_framework_binary(framework_binary,
+                            output_path,
+                            slices_needed)
+
+  if strip_bitcode:
+    output_binary = os.path.join(output_path, os.path.basename(framework_binary))
+    bitcode_strip.invoke(output_binary, output_binary)
+
+
 def _get_parser():
   """Returns command line arguments parser extending codesigningtool parser."""
   parser = codesigningtool.generate_arg_parser()
@@ -132,12 +184,6 @@ def main() -> None:
   parser = _get_parser()
   args = parser.parse_args()
 
-  all_binary_archs = args.slice
-  framework_archs, _ = lipo.find_archs_for_binaries([args.framework_binary])
-
-  if not framework_archs:
-    return 1
-
   # Delete any existing stale framework files, if any exist.
   if os.path.exists(args.temp_path):
     shutil.rmtree(args.temp_path)
@@ -145,39 +191,16 @@ def main() -> None:
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  # If the imported framework is single architecture, and therefore assumed
-  # that it doesn't need to be lipoed, or if the binary architectures match
-  # the framework architectures perfectly, treat as a copy instead of a lipo
-  # operation.
-  if len(framework_archs) == 1 or all_binary_archs == framework_archs:
-    status_code = _copy_framework_file(args.framework_binary,
-                                       executable=True,
-                                       output_path=args.temp_path)
-  else:
-    slices_needed = framework_archs.intersection(all_binary_archs)
-    if not slices_needed:
-      print("Error: Precompiled framework does not share any binary "
-            "architectures with the binaries that were built.")
-      return 1
-    status_code = _strip_framework_binary(args.framework_binary,
-                                          args.temp_path,
-                                          slices_needed)
-  if status_code:
-    return 1
+  _strip_or_copy_binary(
+      framework_binary=args.framework_binary,
+      strip_bitcode=args.strip_bitcode,
+      output_path=args.temp_path,
+      requested_archs=args.slice)
 
-    # Strip bitcode from the output framework binary
-    if args.strip_bitcode:
-      output_binary = os.path.join(args.temp_path,
-                                   os.path.basename(framework_binary))
-      bitcode_strip.invoke(output_binary, output_binary)
-
-  if args.framework_file:
-    for framework_file in args.framework_file:
-      status_code = _copy_framework_file(framework_file,
-                                         executable=False,
-                                         output_path=args.temp_path)
-      if status_code:
-        return 1
+  for framework_file in args.framework_file:
+    _copy_framework_file(framework_file,
+                         executable=False,
+                         output_path=args.temp_path)
 
   # Attempt to sign the framework, check for an error when signing.
   status_code = codesigningtool.main(args)
