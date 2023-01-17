@@ -180,7 +180,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -242,7 +242,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -311,7 +311,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,

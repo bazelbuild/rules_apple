@@ -502,7 +502,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -577,7 +577,7 @@ def _apple_static_xcframework_import_impl(ctx):
     additional_cc_infos = []
     additional_objc_providers = []
     if xcframework.files_by_category.swift_interface_imports or has_swift:
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -623,7 +623,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
