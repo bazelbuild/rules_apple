@@ -382,6 +382,18 @@ not having to update it every time a new device or certificate is added.
 
 ## Example
 
+### In your `MODULE.bazel` file:
+
+You only need this in the case you want to setup fallback profiles, otherwise
+it can be ommitted when using bzlmod.
+
+```bzl
+provisioning_profile_repository = use_extension("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository_extension")
+provisioning_profile_repository.setup(
+    fallback_profiles = "//path/to/some:filegroup", # Profiles to use if one isn't found locally
+)
+```
+
 ### In your `WORKSPACE` file:
 
 ```starlark

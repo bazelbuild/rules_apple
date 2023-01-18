@@ -122,6 +122,7 @@ below.
         <code><a href="rules-apple.md#apple_xcframework">apple_xcframework</a></code><br/>
         <code><a href="rules-apple.md#local_provisioning_profile">local_provisioning_profile</a></code><br/>
         <code><a href="rules-apple.md#provisioning_profile_repository">provisioning_profile_repository</a></code><br/>
+        <code><a href="rules-apple.md#provisioning_profile_repository_extension">provisioning_profile_repository_extension</a></code><br/>
       </td>
     </tr>
     <tr>
