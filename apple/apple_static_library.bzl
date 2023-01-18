@@ -170,5 +170,4 @@ not in the top-level bundle.
     },
     fragments = ["objc", "apple", "cpp"],
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
-    incompatible_use_toolchain_transition = True,
 )
