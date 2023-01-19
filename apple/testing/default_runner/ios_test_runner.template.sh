@@ -130,7 +130,7 @@ fi
 TEST_ENV=$(echo "$TEST_ENV" | awk -F ',' '{for (i=1; i <=NF; i++) { d = index($i, "="); print substr($i, 1, d-1) "\":\"" substr($i, d+1); }}')
 TEST_ENV=${TEST_ENV//$'\n'/\",\"}
 TEST_ENV="{\"${TEST_ENV}\"}"
-LAUNCH_OPTIONS_JSON_STR="\"startup_timeout_sec\": ${STARTUP_TIMEOUT_SEC:150}, \"env_vars\":${TEST_ENV}"
+LAUNCH_OPTIONS_JSON_STR="\"startup_timeout_sec\": ${STARTUP_TIMEOUT_SEC:-150}, \"env_vars\":${TEST_ENV}"
 
 if [[ -n "${command_line_args}" ]]; then
   if [[ -n "${LAUNCH_OPTIONS_JSON_STR}" ]]; then
