@@ -23,6 +23,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
+    "app_intents_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -47,6 +51,10 @@ load(
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "AppleResourceBundleInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -79,6 +87,23 @@ _CUSTOM_TRANSITION_ALLOWLIST_ATTR = {
         default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
     ),
 }
+
+def _app_intents_attrs(*, deps_cfg):
+    """Returns a dictionary with the attribute for Apple platform rules supporting AppIntents.
+
+    Args:
+        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
+            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
+            use the same transition.
+    """
+    return {
+        "app_intents": attr.label_list(
+            doc = "List of dependencies implementing the AppIntents protocol.",
+            cfg = deps_cfg,
+            aspects = [app_intents_aspect],
+            providers = [SwiftInfo],
+        ),
+    }
 
 def _cc_toolchain_forwarder_attrs(*, deps_cfg):
     """Returns dictionary with the cc_toolchain_forwarder attribute for toolchain and platform info.
@@ -616,28 +641,27 @@ _TEST_HOST_ASPECTS = [framework_provider_aspect]
 _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"
 
 rule_attrs = struct(
+    app_icon_attrs = _app_icon_attrs,
+    app_intents_attrs = _app_intents_attrs,
+    aspects = struct(test_host_aspects = _TEST_HOST_ASPECTS),
+    binary_linking_attrs = _binary_linking_attrs,
+    bundle_id_attrs = _bundle_id_attrs,
+    cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
     common_attrs = _COMMON_ATTRS,
+    common_bundle_attrs = _common_bundle_attrs,
     common_tool_attrs = _COMMON_TOOL_ATTRS,
     custom_transition_allowlist_attr = _CUSTOM_TRANSITION_ALLOWLIST_ATTR,
-    cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
-    static_library_linking_attrs = _static_library_linking_attrs,
-    binary_linking_attrs = _binary_linking_attrs,
-    platform_attrs = _platform_attrs,
-    test_bundle_attrs = _TEST_BUNDLE_ATTRS,
-    test_host_attrs = _test_host_attrs,
-    bundle_id_attrs = _bundle_id_attrs,
-    infoplist_attrs = _infoplist_attrs,
-    provisioning_profile_attrs = _provisioning_profile_attrs,
-    common_bundle_attrs = _common_bundle_attrs,
     device_family_attrs = _device_family_attrs,
-    app_icon_attrs = _app_icon_attrs,
+    entitlements_attrs = _ENTITLEMENTS_ATTRS,
+    infoplist_attrs = _infoplist_attrs,
     launch_images_attrs = _LAUNCH_IMAGES_ATTRS,
+    platform_attrs = _platform_attrs,
+    provisioning_profile_attrs = _provisioning_profile_attrs,
     settings_bundle_attrs = _SETTINGS_BUNDLE_ATTRS,
     simulator_runner_template_attr = _SIMULATOR_RUNNER_TEMPLATE_ATTR,
-    entitlements_attrs = _ENTITLEMENTS_ATTRS,
-    aspects = struct(
-        test_host_aspects = _TEST_HOST_ASPECTS,
-    ),
+    static_library_linking_attrs = _static_library_linking_attrs,
+    test_bundle_attrs = _TEST_BUNDLE_ATTRS,
+    test_host_attrs = _test_host_attrs,
     defaults = struct(
         allowed_families = struct(
             ios = ["iphone", "ipad"],

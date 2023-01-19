@@ -54,10 +54,15 @@ newline=$'\n'
 #
 #  Text file tests:
 #
-#  - TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
-#  - TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
-#      text file with. Regular expressions must follow POSIX Basic Regular
-#      Expression (BRE) syntax.
+#  Regular expressions for these tests must follow POSIX Basic Regular
+#  Expression (BRE) syntax.
+#
+#  - TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES` or
+#      `TEXT_FILE_NOT_CONTAINS`.
+#  - TEXT_TEST_VALUES: Array for regular expressions expected to match against
+#      the contents of the text file.
+#  - TEXT_FILE_NOT_CONTAINS: Array for regular expressions not expected to match
+#      against the contents of the text file.
 #
 #  Linked binary file tests:
 #
@@ -109,6 +114,7 @@ if [[ -n "${TEXT_TEST_FILE-}" ]]; then
     fail "Archive did not contain text file at \"$path\"" \
       "contents were:$newline$(find $ARCHIVE_ROOT)"
   fi
+  # TODO(b/237302518): Rename `TEXT_TEST_VALUES` to `TEXT_FILE_CONTAINS`.
   for test_regexp in "${TEXT_TEST_VALUES[@]}"
   do
     something_tested=true
@@ -117,8 +123,16 @@ if [[ -n "${TEXT_TEST_FILE-}" ]]; then
         "contents of text file at \"$path\""
     fi
   done
+  for test_regexp in "${TEXT_FILE_NOT_CONTAINS[@]}"
+  do
+    something_tested=true
+    if grep -q "$test_regexp" "$path"
+    then
+      fail "Expected file '$file' to not match regexp: $regexp, but it did."
+    fi
+  done
 else
-  if [[ -n "${TEXT_TEST_VALUES-}" ]]; then
+  if [[ -n "${TEXT_TEST_VALUES-}" || -n "${TEXT_FILE_NOT_CONTAINS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for values in a file," \
         "but no file was set to check: ${TEXT_TEST_VALUES[@]}"
   fi

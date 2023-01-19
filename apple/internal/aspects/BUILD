@@ -8,6 +8,18 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 bzl_library(
+    name = "app_intents_aspect",
+    srcs = ["app_intents_aspect.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:cc_info_support",
+        "//apple/internal/providers:app_intents_info",
+    ],
+)
+
+bzl_library(
     name = "framework_provider_aspect",
     srcs = ["framework_provider_aspect.bzl"],
     visibility = [

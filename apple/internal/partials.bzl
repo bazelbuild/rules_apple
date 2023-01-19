@@ -19,6 +19,10 @@ load(
     _app_assets_validation_partial = "app_assets_validation_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:app_intents_metadata_bundle.bzl",
+    _app_intents_metadata_bundle_partial = "app_intents_metadata_bundle_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:apple_bundle_info.bzl",
     _apple_bundle_info_partial = "apple_bundle_info_partial",
 )
@@ -105,6 +109,7 @@ load(
 
 partials = struct(
     app_assets_validation_partial = _app_assets_validation_partial,
+    app_intents_metadata_bundle_partial = _app_intents_metadata_bundle_partial,
     apple_bundle_info_partial = _apple_bundle_info_partial,
     binary_partial = _binary_partial,
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
