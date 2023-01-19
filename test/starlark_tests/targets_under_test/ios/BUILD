@@ -2985,3 +2985,25 @@ objc_library(
     srcs = ["//test/starlark_tests/resources:main.m"],
     runtime_deps = [":fmwk_min_os_baseline"],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for AppIntents
+
+ios_application(
+    name = "app_with_app_intents",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)

@@ -384,6 +384,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/partials:app_assets_validation",
+        "//apple/internal/partials:app_intents_metadata_bundle",
         "//apple/internal/partials:apple_bundle_info",
         "//apple/internal/partials:apple_symbols_file",
         "//apple/internal/partials:binary",
@@ -478,12 +479,14 @@ bzl_library(
         ":apple_toolchains",
         "//apple:common",
         "//apple:providers",
+        "//apple/internal/aspects:app_intents_aspect",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 

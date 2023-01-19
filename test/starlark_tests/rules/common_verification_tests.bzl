@@ -57,6 +57,7 @@ def archive_contents_test(
         asset_catalog_test_not_contains = [],
         text_test_file = "",
         text_test_values = [],
+        text_file_not_contains = [],
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
@@ -101,6 +102,9 @@ def archive_contents_test(
         text_test_values: Optional, A list of regular expressions that should be tested against
             the contents of `text_test_file`. Regular expressions must follow POSIX Basic Regular
             Expression (BRE) syntax.
+        text_file_not_contains: Optional, A list of regular expressions that should not match
+            against the contents of `text_test_file`. Regular expressions must follow POSIX Basic
+            Regular Expression (BRE) syntax.
         binary_test_file: Optional, The binary file to test (see next three Args).
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
             symbol tests (see next two Args).
@@ -130,8 +134,10 @@ def archive_contents_test(
         fail("Need asset_catalog_test_file along with " +
              "asset_catalog_test_contains and/or asset_catalog_test_not_contains")
 
-    if any([text_test_file, text_test_values]) and not all([text_test_file, text_test_values]):
-        fail("Need both text_test_file and text_test_values")
+    if (any([text_test_file, text_test_values, text_file_not_contains]) and
+        not (text_test_file and (text_test_values or text_file_not_contains))):
+        fail("Need either both text_test_file and text_test_values" +
+             " or text_test_file and text_file_not_contains")
 
     if binary_test_file:
         if any([
@@ -202,6 +208,7 @@ def archive_contents_test(
             "PLIST_TEST_VALUES": plist_test_values_list,
             "TEXT_TEST_FILE": [text_test_file],
             "TEXT_TEST_VALUES": text_test_values,
+            "TEXT_FILE_NOT_CONTAINS": text_file_not_contains,
         },
         target_under_test = target_under_test,
         verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/archive_contents_test.sh",

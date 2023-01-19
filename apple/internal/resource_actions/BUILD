@@ -25,6 +25,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "app_intents",
+    srcs = ["app_intents.bzl"],
+    visibility = [
+        "//apple/internal/partials:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "datamodel",
     srcs = ["datamodel.bzl"],
     visibility = [

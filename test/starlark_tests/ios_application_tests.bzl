@@ -509,6 +509,57 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test Metadata.appintents bundle contents for simulator and device.
+    archive_contents_test(
+        name = "{}_metadata_appintents_bundle_contents_for_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*IntelIntent.*",
+            ".*iOSIntent.*",
+        ],
+        text_file_not_contains = [
+            ".*ArmIntent.*",
+            ".*macOSIntent.*",
+            ".*tvOSIntent.*",
+            ".*watchOSIntent.*",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_metadata_appintents_bundle_contents_for_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*ArmIntent.*",
+            ".*iOSIntent.*",
+        ],
+        text_file_not_contains = [
+            ".*IntelIntent.*",
+            ".*macOSIntent.*",
+            ".*tvOSIntent.*",
+            ".*watchOSIntent.*",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

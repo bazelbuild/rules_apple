@@ -727,3 +727,9 @@ cc_binary(
     srcs = ["main.cc"],
     tags = common.fixture_tags,
 )
+
+swift_library(
+    name = "app_intent",
+    srcs = ["app_intent.swift"],
+    tags = common.fixture_tags,
+)
