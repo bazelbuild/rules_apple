@@ -336,6 +336,19 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_contains_app_intents_metadata_bundle".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intents",
+        contains = [
+            "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$RESOURCE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+            "$RESOURCE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

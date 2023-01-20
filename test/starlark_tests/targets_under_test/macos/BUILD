@@ -820,3 +820,22 @@ filegroup(
     data = ["runfile2.txt"],
     tags = common.fixture_tags,
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for AppIntents
+
+macos_application(
+    name = "app_with_app_intents",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
+    ],
+)
