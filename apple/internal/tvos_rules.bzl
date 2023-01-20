@@ -131,6 +131,7 @@ def _tvos_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -199,6 +200,17 @@ def _tvos_application_impl(ctx):
             launch_images = ctx.files.launch_images,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
+        ),
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            grep_includes = ctx.file._grep_includes,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -984,6 +996,9 @@ tvos_application = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(),
+        rule_attrs.app_intents_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
             extra_deps_aspects = [
@@ -994,6 +1009,9 @@ tvos_application = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
