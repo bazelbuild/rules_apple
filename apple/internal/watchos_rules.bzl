@@ -799,6 +799,17 @@ reproducible error case.".format(
             product_type = rule_descriptor.product_type,
             rule_descriptor = rule_descriptor,
         ),
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            grep_includes = ctx.file._grep_includes,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
@@ -936,6 +947,7 @@ def _watchos_extension_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = (
         ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
     )
@@ -1053,6 +1065,17 @@ def _watchos_extension_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = product_type,
             rule_descriptor = rule_descriptor,
+        ),
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            grep_includes = ctx.file._grep_includes,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.binary_partial(
             actions = actions,
@@ -1394,8 +1417,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    executable_name = ctx.attr.executable_name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.deps
+    executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1481,6 +1505,17 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
             rule_descriptor = rule_descriptor,
+        ),
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            grep_includes = ctx.file._grep_includes,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.binary_partial(
             actions = actions,
@@ -1616,6 +1651,9 @@ watchos_application = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
+        rule_attrs.app_intents_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -1626,7 +1664,9 @@ watchos_application = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.cc_toolchain_forwarder_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
@@ -1682,6 +1722,9 @@ watchos_extension = rule_factory.create_apple_rule(
     implementation = _watchos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        rule_attrs.app_intents_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -1692,6 +1735,9 @@ watchos_extension = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
