@@ -339,6 +339,8 @@ generate_dynamic_xcframework(
     platforms = {
         "macos": [
             "arm64",
+            "arm64e",
+            "x86_64",
         ],
     },
 )
