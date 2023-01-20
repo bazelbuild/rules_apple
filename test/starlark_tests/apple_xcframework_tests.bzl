@@ -19,13 +19,9 @@ load(
     "common",
 )
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
-    "make_analysis_failure_message_test",
+    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -42,12 +38,6 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
-)
-
-analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
-    config_settings = {
-        build_settings_labels._use_tree_artifacts_outputs_skylib_workaround: True,
-    },
 )
 
 def apple_xcframework_test_suite(name):

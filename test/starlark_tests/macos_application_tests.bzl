@@ -20,7 +20,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
+    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -71,6 +71,22 @@ def macos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_imported_versioned_fmwk_codesign_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_imported_versioned_xcframework_codesign_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
 
@@ -175,6 +191,72 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_prebuilt_dynamic_versioned_framework_dependency_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/generated_macos_dynamic_versioned_fmwk",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/B/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/B/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/B/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/B/generated_macos_dynamic_versioned_fmwk",
+        ],
+        assert_file_permissions = {
+            # regular files
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/generated_macos_dynamic_versioned_fmwk": "755",
+            # symbolic links
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk": "120755",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_prebuilt_dynamic_versioned_xcframework_dependency_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/B/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/B/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/B/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/B/generated_dynamic_macos_versioned_xcframework",
+        ],
+        assert_file_permissions = {
+            # regular files
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework": "755",
+            # symbolic links
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework": "120755",
+        },
+        tags = [name],
+    )
+
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
@@ -252,11 +334,14 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing macOS versioned framework fails.
-    analysis_failure_message_test(
-        name = "{}_fails_with_versioned_framework_test".format(name),
+    # Verify importing versioned framework with tree artifacts enabled fails.
+    analysis_failure_message_with_tree_artifact_outputs_test(
+        name = "{}_fails_with_imported_versioned_framework_and_tree_artifact_outputs".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
-        expected_error = "apple_dynamic_framework_import rule does not yet support macOS versioned frameworks.",
+        expected_error = (
+            "The apple_dynamic_framework_import rule does not yet support versioned " +
+            "frameworks with the experimental tree artifact feature/build setting."
+        ),
         tags = [name],
     )
 
