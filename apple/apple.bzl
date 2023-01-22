@@ -24,6 +24,10 @@ load(
     _apple_static_framework_import = "apple_static_framework_import",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_library.bzl",
+    _apple_library = "apple_library",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_xcframework_import.bzl",
     _apple_dynamic_xcframework_import = "apple_dynamic_xcframework_import",
     _apple_static_xcframework_import = "apple_static_xcframework_import",
@@ -46,6 +50,7 @@ load(
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
+apple_library = _apple_library
 apple_static_framework_import = _apple_static_framework_import
 apple_static_library = _apple_static_library
 apple_static_xcframework = _apple_static_xcframework
