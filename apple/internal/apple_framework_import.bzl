@@ -445,8 +445,7 @@ target.
 """,
                 providers = [
                     [CcInfo],
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
             "dsym_imports": attr.label_list(
@@ -538,8 +537,7 @@ linked into that target.
 """,
                 providers = [
                     [CcInfo],
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
             "data": attr.label_list(
