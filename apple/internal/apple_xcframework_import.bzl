@@ -433,7 +433,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    # TODO(b/158696451): Add tree artifacts support when Bazel can handle remote actions with
+    # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(

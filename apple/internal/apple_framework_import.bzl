@@ -127,7 +127,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
 
-    # TODO(b/158696451): Add tree artifacts support when Bazel can handle remote actions with
+    # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(

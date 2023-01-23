@@ -208,6 +208,7 @@ apple_dynamic_framework_import(
 generate_import_framework(
     name = "generated_macos_dynamic_fmwk",
     archs = ["x86_64"],
+    include_versioned_frameworks = False,
     libtype = "dynamic",
     minimum_os_version = common.min_os_macos.baseline,
     sdk = "macosx",
@@ -244,7 +245,6 @@ apple_dynamic_framework_import(
 generate_import_framework(
     name = "generated_macos_dynamic_versioned_fmwk",
     archs = ["x86_64"],
-    include_versioned_frameworks = True,
     libtype = "dynamic",
     minimum_os_version = common.min_os_macos.baseline,
     sdk = "macosx",
@@ -287,6 +287,7 @@ generate_dynamic_xcframework(
     name = "generated_dynamic_macos_xcframework",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    include_versioned_frameworks = False,
     minimum_os_versions = {
         "macos": common.min_os_macos.arm64_support,
     },
@@ -332,7 +333,6 @@ generate_dynamic_xcframework(
     name = "generated_dynamic_macos_versioned_xcframework",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    include_versioned_frameworks = True,
     minimum_os_versions = {
         "macos": common.min_os_macos.arm64_support,
     },
