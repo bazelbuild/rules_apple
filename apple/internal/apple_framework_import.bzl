@@ -394,8 +394,8 @@ A list of targets that are dependencies of the target being built, which will be
 target.
 """,
                 providers = [
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
             "_cc_toolchain": attr.label(
@@ -457,8 +457,8 @@ A list of targets that are dependencies of the target being built, which will pr
 linked into that target.
 """,
                 providers = [
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
             "alwayslink": attr.bool(

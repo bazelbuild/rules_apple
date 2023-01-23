@@ -685,8 +685,8 @@ List of targets that are dependencies of the target being built, which will prov
 linked into that target.
 """,
                 providers = [
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
                 aspects = [swift_clang_module_aspect],
             ),
@@ -733,8 +733,8 @@ List of targets that are dependencies of the target being built, which will prov
 linked into that target.
 """,
                 providers = [
-                    [apple_common.Objc, CcInfo],
-                    [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
+                    [CcInfo],
+                    [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
             "has_swift": attr.bool(
