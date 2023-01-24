@@ -30,6 +30,9 @@ if [[ -n "$ARCHIVE_PATH" ]]; then
 
   trap 'rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 
+  # Check if the archive path is a directory, if it is, this means the
+  # build rule output is a tree artifact and not an archive, therefore
+  # copying the directory recursively is enough.
   if [ -d "$ARCHIVE_PATH/" ];
   then
     cp -rf "$ARCHIVE_PATH" "$ARCHIVE_ROOT"
