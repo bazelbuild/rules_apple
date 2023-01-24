@@ -19,7 +19,7 @@ load(
     "defines",
 )
 
-# TODO(b/261618401): Remove helper method once users of define flag have been migrated.
+# TODO(b/266604130): Remove helper method once users of define flag have been migrated.
 def is_experimental_tree_artifact_enabled(
         *,
         config_vars = None,
