@@ -250,6 +250,13 @@ If the input artifact is an ipa or combined zip, placed the signed result in the
 given output artifact specified location. Required for ipa or combined zip
 inputs.
 ''')
+  sign_parser.add_argument(
+      '--keychain',
+      help='''
+If specified, during signing, only search for the signing identity in the
+keychain file specified. This is equivalent to the --keychain argument on
+/usr/bin/codesign itself.
+''')
   sign_parser.set_defaults(func=_sign_bundle)
 
   return parser
@@ -355,7 +362,7 @@ def _filter_codesign_tool_output(exit_status, codesign_stdout, codesign_stderr):
 
 
 def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
-                     disable_timestamp, full_path_to_sign):
+                     disable_timestamp, full_path_to_sign, signing_keychain):
   """Invokes the codesign tool on the given path to sign.
 
   Args:
@@ -365,6 +372,9 @@ def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
     force_signing: If true, replaces any existing signature on the path given.
     disable_timestamp: If true, disables the use of timestamp services.
     full_path_to_sign: Path to the bundle or binary to code sign as a string.
+    signing_keychain: If not None, this will only search for the signing
+      identity in the keychain file specified, forwarding the path directly to
+      the /usr/bin/codesign invocation via its --keychain argument.
   """
   cmd = [codesign_path, '-v', '--sign', identity]
   if entitlements_path:
@@ -377,6 +387,11 @@ def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
     cmd.append('--force')
   if disable_timestamp:
     cmd.append('--timestamp=none')
+  if signing_keychain:
+    cmd.extend([
+        '--keychain',
+        signing_keychain,
+    ])
   cmd.append(full_path_to_sign)
 
   # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
@@ -517,6 +532,7 @@ def _sign_bundle_with_manifest(
     dossier_directory_path,
     codesign_path,
     allowed_entitlements,
+    signing_keychain,
     override_codesign_identity=None,
     executor=concurrent.futures.ThreadPoolExecutor()):
   """Signs a bundle with a dossier.
@@ -533,6 +549,9 @@ def _sign_bundle_with_manifest(
       entitlements. If not None, only the strings listed here will be
       transferred to the generated entitlements. If None, the entitlements found
       with the dossier will be used directly for code signing.
+    signing_keychain: If not None, this will only search for the signing
+      identity in the keychain file specified, forwarding the path directly to
+      the /usr/bin/codesign invocation via its --keychain argument.
     override_codesign_identity: If set, this will override the identity
       specified in the manifest. This is primarily useful when signing an
       embedded bundle, as all bundles must use the same codesigning identity,
@@ -575,7 +594,7 @@ def _sign_bundle_with_manifest(
     # submit each embedded manifest to sign concurrently
     codesign_futures = _sign_embedded_bundles_with_manifest(
         manifest, root_bundle_path, dossier_directory_path, codesign_path,
-        allowed_entitlements, codesign_identity, executor)
+        allowed_entitlements, signing_keychain, codesign_identity, executor)
     _wait_embedded_manifest_futures(codesign_futures)
 
     if provisioning_profile_file_path:
@@ -589,7 +608,8 @@ def _sign_bundle_with_manifest(
         entitlements_path=entitlements_for_signing_path,
         force_signing=True,
         disable_timestamp=False,
-        full_path_to_sign=root_bundle_path)
+        full_path_to_sign=root_bundle_path,
+        signing_keychain=signing_keychain)
 
 
 def _sign_embedded_bundles_with_manifest(
@@ -598,6 +618,7 @@ def _sign_embedded_bundles_with_manifest(
     dossier_directory_path,
     codesign_path,
     allowed_entitlements,
+    signing_keychain,
     codesign_identity,
     executor):
   """Signs embedded bundles concurrently and returns futures list.
@@ -611,6 +632,9 @@ def _sign_embedded_bundles_with_manifest(
       entitlements. If not None, only the strings listed here will be
       transferred to the generated entitlements. If None, the entitlements found
       with the dossier will be used directly for code signing.
+    signing_keychain: If not None, this will only search for the signing
+      identity in the keychain file specified, forwarding the path directly to
+      the /usr/bin/codesign invocation via its --keychain argument.
     codesign_identity: The codesign identity to use for codesigning.
     executor: Asynchronous jobs Executor from concurrent.futures.
 
@@ -625,8 +649,8 @@ def _sign_embedded_bundles_with_manifest(
     codesign_future = executor.submit(_sign_bundle_with_manifest,
                                       embedded_bundle_path, embedded_manifest,
                                       dossier_directory_path, codesign_path,
-                                      allowed_entitlements, codesign_identity,
-                                      executor)
+                                      allowed_entitlements, signing_keychain,
+                                      codesign_identity, executor)
     codesign_futures.append(codesign_future)
 
   return codesign_futures
@@ -744,6 +768,7 @@ def _sign_archived_bundle(
     codesign_path,
     dossier_directory_path,
     output_ipa,
+    signing_keychain,
     working_dir,
     unsigned_archive_path):
   """Signs the bundle and packages it as an IPA to output_artifact.
@@ -756,6 +781,9 @@ def _sign_archived_bundle(
     codesign_path: Path to the codesign tool as a string.
     dossier_directory_path: Directory of dossier to be used for signing.
     output_ipa: String, a path to where the zipped IPA file should be placed.
+    signing_keychain: If not None, this will only search for the signing
+      identity in the keychain file specified, forwarding the path directly to
+      the /usr/bin/codesign invocation via its --keychain argument.
     working_dir: String, the path to unzip the archive file into.
     unsigned_archive_path: String, the full path to a unsigned archive.
   """
@@ -767,7 +795,7 @@ def _sign_archived_bundle(
   manifest = read_manifest_from_dossier(dossier_directory_path)
   _sign_bundle_with_manifest(extracted_bundle, manifest,
                              dossier_directory_path, codesign_path,
-                             allowed_entitlements)
+                             allowed_entitlements, signing_keychain)
   _package_ipa(
       app_bundle_subdir=app_bundle_subdir,
       working_dir=working_dir,
@@ -794,6 +822,7 @@ def _sign_bundle(parsed_args):
       parsed_args.input_artifact))
   codesign_path = parsed_args.codesign
   allowed_entitlements = parsed_args.allow_entitlement
+  signing_keychain = parsed_args.keychain
   output_artifact = parsed_args.output_artifact
 
   if not os.path.exists(input_fullpath):
@@ -828,6 +857,7 @@ def _sign_bundle(parsed_args):
           codesign_path=codesign_path,
           dossier_directory_path=dossier_directory_path,
           output_ipa=output_artifact,
+          signing_keychain=signing_keychain,
           working_dir=working_dir,
           unsigned_archive_path=input_fullpath,
       )
@@ -845,7 +875,7 @@ def _sign_bundle(parsed_args):
         manifest = read_manifest_from_dossier(dossier_directory.path)
         _sign_bundle_with_manifest(input_fullpath, manifest,
                                    dossier_directory.path, codesign_path,
-                                   allowed_entitlements)
+                                   allowed_entitlements, signing_keychain)
       elif input_path_suffix == '.ipa':
         _check_common_archived_bundle_args(
             output_artifact=output_artifact,
@@ -859,6 +889,7 @@ def _sign_bundle(parsed_args):
             codesign_path=codesign_path,
             dossier_directory_path=dossier_directory.path,
             output_ipa=output_artifact,
+            signing_keychain=signing_keychain,
             working_dir=working_dir,
             unsigned_archive_path=input_fullpath,
         )
