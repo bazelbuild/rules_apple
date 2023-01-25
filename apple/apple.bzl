@@ -24,10 +24,6 @@ load(
     _apple_static_framework_import = "apple_static_framework_import",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_library.bzl",
-    _apple_library = "apple_library",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_xcframework_import.bzl",
     _apple_dynamic_xcframework_import = "apple_dynamic_xcframework_import",
     _apple_static_xcframework_import = "apple_static_xcframework_import",
@@ -42,6 +38,10 @@ load(
     _apple_xcframework = "apple_xcframework",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental_mixed_language_library.bzl",
+    _experimental_mixed_language_library = "experimental_mixed_language_library",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:local_provisioning_profiles.bzl",
     _local_provisioning_profile = "local_provisioning_profile",
     _provisioning_profile_repository = "provisioning_profile_repository",
@@ -50,13 +50,13 @@ load(
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
-apple_library = _apple_library
 apple_static_framework_import = _apple_static_framework_import
 apple_static_library = _apple_static_library
 apple_static_xcframework = _apple_static_xcframework
 apple_static_xcframework_import = _apple_static_xcframework_import
 apple_universal_binary = _apple_universal_binary
 apple_xcframework = _apple_xcframework
+experimental_mixed_language_library = _experimental_mixed_language_library
 local_provisioning_profile = _local_provisioning_profile
 provisioning_profile_repository = _provisioning_profile_repository
 provisioning_profile_repository_extension = _provisioning_profile_repository_extension

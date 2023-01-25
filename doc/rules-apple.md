@@ -434,12 +434,12 @@ ios_application(
 | <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.&lt;p&gt;For example, an entry <code>"@foo": "@bar"</code> declares that, for any time this repository depends on <code>@foo</code> (such as a dependency on <code>@foo//some:target</code>, it should actually resolve that dependency within globally-declared <code>@bar</code> (<code>@bar//some:target</code>).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | required |  |
 
 
-<a id="apple_library"></a>
+<a id="experimental_mixed_language_library"></a>
 
-## apple_library
+## experimental_mixed_language_library
 
 <pre>
-apple_library(<a href="#apple_library-kwargs">kwargs</a>)
+experimental_mixed_language_library(<a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
 </pre>
 
 Compiles and links Objective-C and Swift code into a static library.
@@ -449,6 +449,6 @@ Compiles and links Objective-C and Swift code into a static library.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="apple_library-kwargs"></a>kwargs |  Other arguments are passed directly to <code>apple_library</code>.   |  none |
+| <a id="experimental_mixed_language_library-kwargs"></a>kwargs |  Other arguments are passed directly to <code>experimental_mixed_language_library</code>.   |  none |
 
 

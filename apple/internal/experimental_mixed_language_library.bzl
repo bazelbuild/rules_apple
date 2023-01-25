@@ -1,4 +1,4 @@
-"""apple_library macro implementation."""
+"""experimental_mixed_language_library macro implementation."""
 
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -188,12 +188,12 @@ generated if non-empty.
     ],
 )
 
-# TODO: Document the apple_library macro
-def apple_library(**kwargs):
+# TODO: Document the experimental_mixed_language_library macro
+def experimental_mixed_language_library(**kwargs):
     """Compiles and links Objective-C and Swift code into a static library.
 
     Args:
-      **kwargs: Other arguments are passed directly to `apple_library`.
+      **kwargs: Other arguments are passed directly to `experimental_mixed_language_library`.
     """
 
     hdrs = kwargs.pop("hdrs", [])

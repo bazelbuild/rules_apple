@@ -69,8 +69,8 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_library",
-    srcs = ["apple_library.bzl"],
+    name = "experimental_mixed_language_library",
+    srcs = ["experimental_mixed_language_library.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],

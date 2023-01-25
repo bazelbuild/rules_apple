@@ -1,10 +1,10 @@
-load("//apple:apple.bzl", "apple_library")
+load("//apple:apple.bzl", "experimental_mixed_language_library")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
 
-apple_library(
+experimental_mixed_language_library(
     name = "MixedAnswer",
     srcs = [
         "MixedAnswer.m",
