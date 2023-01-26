@@ -121,7 +121,7 @@ def _module_map_impl(ctx):
         )
         outputs.append(umbrella_header)
 
-    module_map = ctx.actions.declare_file(ctx.attr.name + "-module.modulemap")
+    module_map = ctx.actions.declare_file(ctx.attr.name + ".modulemap")
     outputs.append(module_map)
 
     ctx.actions.write(
@@ -225,7 +225,7 @@ target only contains Objective-C files.""")
 
     name = kwargs.get("name", None)
     module_name = kwargs.pop("module_name", name)
-    swift_library_name = name + "_swift"
+    swift_library_name = name + ".internal.swift"
 
     deps = kwargs.pop("deps", [])
     objc_deps = []
@@ -251,21 +251,21 @@ target only contains Objective-C files.""")
         ]
 
     # Generate module map for the underlying Obj-C module
+    objc_module_map_name = name + ".internal.objc"
     textual_hdrs = kwargs.get("textual_hdrs", [])
     _module_map(
-        name = name + "_objc_module",
+        name = objc_module_map_name,
         hdrs = hdrs,
         module_name = module_name,
         textual_hdrs = textual_hdrs,
     )
 
-    objc_module_map = ":" + name + "_objc_module"
     swiftc_inputs = kwargs.pop("swiftc_inputs", [])
-    swiftc_inputs = swiftc_inputs + hdrs + textual_hdrs + private_hdrs + [objc_module_map]
+    swiftc_inputs = swiftc_inputs + hdrs + textual_hdrs + private_hdrs + [":" + objc_module_map_name]
 
     swift_copts += [
         "-Xcc",
-        "-fmodule-map-file=$(execpath {})".format(objc_module_map),
+        "-fmodule-map-file=$(execpath :{})".format(objc_module_map_name),
     ]
 
     features = kwargs.pop("features", [])
@@ -283,7 +283,7 @@ target only contains Objective-C files.""")
         swiftc_inputs = swiftc_inputs,
     )
 
-    umbrella_module_map = name + "_umbrella_module"
+    umbrella_module_map = name + ".internal.umbrella"
     _module_map(
         name = umbrella_module_map,
         deps = [":" + swift_library_name],
