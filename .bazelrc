@@ -4,7 +4,7 @@
 # https://github.com/bazelbuild/stardoc/issues/112
 common --incompatible_allow_tags_propagation
 
-# TODO: Fix cases that relied on the old behavior and remove these flags.
+# TODO: Fix cases that relied on the old behavior and remove this flag.
 common --incompatible_unambiguous_label_stringification=false
 
 # Add the PATH to the test environment so that common macOS tools can be found
