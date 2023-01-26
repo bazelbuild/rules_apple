@@ -188,16 +188,38 @@ generated if non-empty.
     ],
 )
 
-# TODO: Document the experimental_mixed_language_library macro
-def experimental_mixed_language_library(**kwargs):
+def experimental_mixed_language_library(
+        *,
+        name,
+        srcs,
+        deps = [],
+        module_name = None,
+        objc_copts = [],
+        swift_copts = [],
+        swiftc_inputs = [],
+        **kwargs):
     """Compiles and links Objective-C and Swift code into a static library.
 
     Args:
-      **kwargs: Other arguments are passed directly to `experimental_mixed_language_library`.
+        name: A unique name for this target.
+        deps: A list of targets that are dependencies of the target being
+            built, which will be linked into that target.
+        module_name: The name of the mixed language module being built.
+            If left unspecified, the module name will be the name of the
+            target.
+        objc_copts: Additional compiler options that should be passed to
+            `clang`.
+        srcs: The list of Objective-C and Swift source files to compile.
+        swift_copts: Additional compiler options that should be passed to
+            `swiftc`. These strings are subject to `$(location ...)` and "Make"
+            variable expansion.
+        swiftc_inputs: Additional files that are referenced using
+            `$(location...)` in `swift_copts`.
+        **kwargs: Other arguments to pass through to the underlying
+            `objc_library`.
     """
 
     hdrs = kwargs.pop("hdrs", [])
-    srcs = kwargs.pop("srcs", [])
 
     if not srcs:
         fail("'srcs' must be non-empty")
@@ -223,15 +245,13 @@ target only contains Swift files.""")
 'srcs' must contain Swift source files. Use 'objc_library' if this
 target only contains Objective-C files.""")
 
-    name = kwargs.get("name", None)
-    module_name = kwargs.pop("module_name", name)
+    if not module_name:
+        module_name = name
     swift_library_name = name + ".internal.swift"
 
-    deps = kwargs.pop("deps", [])
     objc_deps = []
     swift_deps = [] + deps
 
-    swift_copts = kwargs.pop("swift_copts", [])
     swift_copts = swift_copts + [
         "-Xfrontend",
         "-enable-objc-interop",
@@ -260,7 +280,6 @@ target only contains Objective-C files.""")
         textual_hdrs = textual_hdrs,
     )
 
-    swiftc_inputs = kwargs.pop("swiftc_inputs", [])
     swiftc_inputs = swiftc_inputs + hdrs + textual_hdrs + private_hdrs + [":" + objc_module_map_name]
 
     swift_copts += [
@@ -292,9 +311,8 @@ target only contains Objective-C files.""")
     )
     objc_deps.append(":" + umbrella_module_map)
 
-    objc_copts = kwargs.pop("objc_copts", [])
-
     native.objc_library(
+        name = name,
         copts = objc_copts,
         deps = objc_deps,
         hdrs = hdrs + [

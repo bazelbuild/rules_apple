@@ -439,7 +439,8 @@ ios_application(
 ## experimental_mixed_language_library
 
 <pre>
-experimental_mixed_language_library(<a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
+experimental_mixed_language_library(<a href="#experimental_mixed_language_library-name">name</a>, <a href="#experimental_mixed_language_library-srcs">srcs</a>, <a href="#experimental_mixed_language_library-deps">deps</a>, <a href="#experimental_mixed_language_library-module_name">module_name</a>, <a href="#experimental_mixed_language_library-objc_copts">objc_copts</a>, <a href="#experimental_mixed_language_library-swift_copts">swift_copts</a>,
+                                    <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
 </pre>
 
 Compiles and links Objective-C and Swift code into a static library.
@@ -449,6 +450,13 @@ Compiles and links Objective-C and Swift code into a static library.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="experimental_mixed_language_library-kwargs"></a>kwargs |  Other arguments are passed directly to <code>experimental_mixed_language_library</code>.   |  none |
+| <a id="experimental_mixed_language_library-name"></a>name |  A unique name for this target.   |  none |
+| <a id="experimental_mixed_language_library-srcs"></a>srcs |  The list of Objective-C and Swift source files to compile.   |  none |
+| <a id="experimental_mixed_language_library-deps"></a>deps |  A list of targets that are dependencies of the target being built, which will be linked into that target.   |  <code>[]</code> |
+| <a id="experimental_mixed_language_library-module_name"></a>module_name |  The name of the mixed language module being built. If left unspecified, the module name will be the name of the target.   |  <code>None</code> |
+| <a id="experimental_mixed_language_library-objc_copts"></a>objc_copts |  Additional compiler options that should be passed to <code>clang</code>.   |  <code>[]</code> |
+| <a id="experimental_mixed_language_library-swift_copts"></a>swift_copts |  Additional compiler options that should be passed to <code>swiftc</code>. These strings are subject to <code>$(location ...)</code> and "Make" variable expansion.   |  <code>[]</code> |
+| <a id="experimental_mixed_language_library-swiftc_inputs"></a>swiftc_inputs |  Additional files that are referenced using <code>$(location...)</code> in <code>swift_copts</code>.   |  <code>[]</code> |
+| <a id="experimental_mixed_language_library-kwargs"></a>kwargs |  Other arguments to pass through to the underlying <code>objc_library</code>.   |  none |
 
 
