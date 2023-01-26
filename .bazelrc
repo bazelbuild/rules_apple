@@ -6,8 +6,6 @@ common --incompatible_allow_tags_propagation
 
 # TODO: Fix cases that relied on the old behavior and remove these flags.
 common --incompatible_unambiguous_label_stringification=false
-# https://github.com/bazelbuild/bazel/issues/16939
-build --incompatible_objc_linking_info_migration=false
 
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.

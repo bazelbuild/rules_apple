@@ -11,6 +11,10 @@ x_defaults:
     - "tools/..."
     - "test/..."
     - "examples/..."
+  common_last_green: &common_last_green
+    build_flags:
+      # https://github.com/bazelbuild/bazel/issues/16939
+      - --incompatible_objc_linking_info_migration=false
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
@@ -33,6 +37,7 @@ tasks:
     name: "Last Green Bazel"
     bazel: last_green
     <<: *common
+    <<: *common_last_green
 
   macos_last_green_head_deps:
     name: "Last Green Bazel with Head Deps"
@@ -42,6 +47,7 @@ tasks:
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
+    <<: *common_last_green
 
   doc_tests:
     name: "Doc tests"
@@ -49,5 +55,6 @@ tasks:
     platform: ubuntu2004
     test_targets:
     - "doc/..."
+    <<: *common_last_green
 
 buildifier: latest
