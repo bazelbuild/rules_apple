@@ -20,6 +20,42 @@ from unittest import mock
 
 from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigningtool
 
+_FAKE_CODESIGN_STDERR_WITH_ADHOC_SIGNING = """\
+Executable=/tmp/app_minimal.app/app_minimal
+Identifier=com.google.example
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20400 size=747 flags=0x2(adhoc) hashes=13+7 location=embedded
+Signature=adhoc
+Info.plist entries=18
+TeamIdentifier=not set
+Sealed Resources version=2 rules=10 files=1
+Internal requirements count=0 size=12"""
+
+_FAKE_CODESIGN_STDERR_WITH_SIGNING_AUTHORITY = """\
+Executable=/tmp/app_minimal.app/app_minimal
+Identifier=com.google.example
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20400 size=758 flags=0x0(none) hashes=13+7 location=embedded
+Signature size=4785
+Authority=Apple Development: Bazel Development (XXXXXXXXXX)
+Authority=Apple Worldwide Developer Relations Certification Authority
+Authority=Apple Root CA
+Signed Time=Jan 25, 2023 at 4:02:00 PM
+Info.plist entries=18
+TeamIdentifier=YYYYYYYYYY
+Sealed Resources version=2 rules=10 files=1
+Internal requirements count=1 size=188"""
+
+_FAKE_APP_XML_PLIST = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.get-task-allow</key>
+    <true/>
+</dict>
+</plist>"""
+
 
 class DossierCodesigningtoolLibTest(unittest.TestCase):
 
@@ -135,6 +171,202 @@ class DossierCodesigningtoolLibTest(unittest.TestCase):
           tmp_dir_path, '/path/to/output_directory', 'my_unique_id')
       mock_copy_provisioning_profile.assert_called_with(
           embedded_pp_file_path, '/path/to/output_directory', 'my_unique_id')
+
+
+class DossierCodesigningtoolGenerateTest(unittest.TestCase):
+
+  @mock.patch.object(
+      dossier_codesigningtool, '_manifest_with_dossier_for_bundle')
+  def test_embedded_manifests_for_path(
+      self, mock_manifest_with_dossier_for_bundle):
+    mock_manifest_with_dossier_for_bundle.return_value = {
+        'codesign_identity': 'My fake codesign identity',
+        'entitlements': 'fake.entitlements',
+        'provisioning_profile': 'fake.mobileprovision',
+    }
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      frameworks_path = os.path.join(bundle_path, 'Frameworks')
+      my_framework_path = os.path.join(frameworks_path, 'MyFramework.framework')
+      os.mkdir(frameworks_path)
+      os.mkdir(my_framework_path)
+
+      actual_embedded_manifests = (
+          dossier_codesigningtool._embedded_manifests_for_path(
+              bundle_path, tmp_output_dir, 'Frameworks', '/usr/bin/codesign'
+          )
+      )
+
+      mock_manifest_with_dossier_for_bundle.assert_called_with(
+          my_framework_path, tmp_output_dir, '/usr/bin/codesign')
+
+      expected_embedded_manifests = [{
+          'codesign_identity': 'My fake codesign identity',
+          'entitlements': 'fake.entitlements',
+          'provisioning_profile': 'fake.mobileprovision',
+          'embedded_relative_path': 'Frameworks/MyFramework.framework',
+      }]
+      self.assertEqual(
+          actual_embedded_manifests, expected_embedded_manifests)
+
+  def test_embedded_manifests_for_path_with_non_existing_directory(self):
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      actual_embedded_manifests = (
+          dossier_codesigningtool._embedded_manifests_for_path(
+              bundle_path, tmp_output_dir, 'Frameworks', '/usr/bin/codesign'
+          )
+      )
+      self.assertEqual([], actual_embedded_manifests)
+
+  def test_embedded_manifests_for_path_with_unknown_bundle_directory(self):
+    with self.assertRaisesRegex(
+        ValueError,
+        'Invalid bundle directory for dossier manifest: UnknownDirectory'):
+      dossier_codesigningtool._embedded_manifests_for_path(
+          '/path/to/fake.app',
+          '/tmp/',
+          'UnknownDirectory',
+          '/usr/bin/codesign')
+
+  @mock.patch.object(dossier_codesigningtool, '_extract_codesign_data')
+  @mock.patch.object(dossier_codesigningtool, '_extract_provisioning_profile')
+  @mock.patch.object(dossier_codesigningtool, '_embedded_manifests_for_path')
+  def test_manifest_with_dossier_for_bundle_with_embedded_manifests(
+      self,
+      mock_embedded_manifests_for_path,
+      mock_extract_provisioning_profile,
+      mock_extract_codesign_data):
+    mock_extract_codesign_data.return_value = (
+        '/path/to/fake.entitlements', 'My fake codesign identity')
+    mock_extract_provisioning_profile.return_value = (
+        '/path/to/fake.mobileprovision')
+
+    frameworks_embedded_manifest = {
+        'codesign_identity': 'My fake codesign identity',
+        'entitlements': 'fake.entitlements',
+        'provisioning_profile': 'fake.mobileprovision',
+        'embedded_relative_path': 'Frameworks/MyFramework.framework',
+        'embedded_bundle_manifests': [],
+    }
+    plugins_embedded_manifest = {
+        'codesign_identity': 'My fake codesign identity',
+        'entitlements': 'fake.entitlements',
+        'provisioning_profile': 'fake.mobileprovision',
+        'embedded_relative_path': 'Plugins/WatchExtension.appex',
+        'embedded_bundle_manifests': [],
+    }
+    watch_embedded_manifest = {
+        'codesign_identity': 'My fake codesign identity',
+        'entitlements': 'fake.entitlements',
+        'provisioning_profile': 'fake.mobileprovision',
+        'embedded_relative_path': 'Watch/WatchApp.app',
+        'embedded_bundle_manifests': [],
+    }
+    mock_embedded_manifests_for_path.side_effect = [
+        [],  # AppClips
+        [plugins_embedded_manifest],  # PlugIns
+        [frameworks_embedded_manifest],  # Frameworks
+        [watch_embedded_manifest],  # Watch
+    ]
+
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      actual_manifest = (
+          dossier_codesigningtool._manifest_with_dossier_for_bundle(
+              bundle_path, tmp_output_dir, '/usr/bin/codesign'
+          )
+      )
+      expected_manifest = {
+          'codesign_identity': 'My fake codesign identity',
+          'entitlements': '/path/to/fake.entitlements',
+          'provisioning_profile': '/path/to/fake.mobileprovision',
+          'embedded_bundle_manifests': [
+              plugins_embedded_manifest,
+              frameworks_embedded_manifest,
+              watch_embedded_manifest,
+          ],
+      }
+      self.assertDictEqual(expected_manifest, actual_manifest)
+
+  @mock.patch.object(dossier_codesigningtool, '_extract_codesign_data')
+  def test_manifest_with_dossier_for_bundle_with_no_codesign_identity(
+      self, mock_extract_codesign_data):
+    mock_extract_codesign_data.return_value = (None, None)
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      self.assertIsNone(
+          dossier_codesigningtool._manifest_with_dossier_for_bundle(
+              bundle_path, tmp_output_dir, '/usr/bin/codesign'
+          )
+      )
+
+  @mock.patch.object(dossier_codesigningtool, '_extract_codesign_data')
+  @mock.patch.object(dossier_codesigningtool, '_embedded_manifests_for_path')
+  def test_manifest_with_dossier_for_bundle_with_no_embedded_manifests(
+      self, mock_embedded_manifests_for_path, mock_extract_codesign_data):
+    mock_extract_codesign_data.return_value = (
+        '/path/to/fake.entitlements', 'My fake codesign identity')
+    mock_embedded_manifests_for_path.return_value = []
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      actual_manifest = (
+          dossier_codesigningtool._manifest_with_dossier_for_bundle(
+              bundle_path, tmp_output_dir, '/usr/bin/codesign'
+          )
+      )
+      expected_manifest = {
+          'codesign_identity': 'My fake codesign identity',
+          'entitlements': '/path/to/fake.entitlements',
+      }
+      self.assertDictEqual(expected_manifest, actual_manifest)
+
+  @mock.patch('subprocess.Popen')
+  def test_extract_codesign_data(self, mock_subprocess):
+    mock_subprocess.return_value.communicate.return_value = (
+        _FAKE_APP_XML_PLIST, _FAKE_CODESIGN_STDERR_WITH_SIGNING_AUTHORITY)
+    mock_subprocess.return_value.poll.return_value = 0
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      actual_entitlements_file, actual_codesign_identity = (
+          dossier_codesigningtool._extract_codesign_data(
+              bundle_path,
+              tmp_output_dir,
+              'my_unique_id',
+              '/usr/bin/codesign',
+          )
+      )
+      # Assert extracted codesign identity matches expected identity.
+      expected_codesign_identity = (
+          'Apple Development: Bazel Development (XXXXXXXXXX)')
+      self.assertEqual(actual_codesign_identity, expected_codesign_identity)
+      self.assertEqual(actual_entitlements_file, 'my_unique_id.entitlements')
+
+      # Assert written entitlements file matches output.
+      actual_entitlements_file_path = os.path.join(
+          tmp_output_dir, actual_entitlements_file)
+      with open(actual_entitlements_file_path, 'r') as fp:
+        actual_entitlements_file_content = fp.read()
+        self.assertEqual(actual_entitlements_file_content, _FAKE_APP_XML_PLIST)
+
+  @mock.patch('subprocess.Popen')
+  def test_extract_codesign_data_returns_none_for_adhoc_signature(
+      self, mock_subprocess):
+    mock_subprocess.return_value.communicate.return_value = (
+        _FAKE_APP_XML_PLIST, _FAKE_CODESIGN_STDERR_WITH_ADHOC_SIGNING)
+    mock_subprocess.return_value.poll.return_value = 0
+    with (tempfile.TemporaryDirectory() as tmp_output_dir,
+          tempfile.TemporaryDirectory(suffix='.app') as bundle_path):
+      actual_entitlements_file, actual_codesign_identity = (
+          dossier_codesigningtool._extract_codesign_data(
+              bundle_path,
+              tmp_output_dir,
+              'my_unique_id',
+              '/usr/bin/codesign',
+          )
+      )
+      self.assertIsNone(actual_codesign_identity)
+      self.assertEqual(actual_entitlements_file, 'my_unique_id.entitlements')
 
 
 if __name__ == '__main__':

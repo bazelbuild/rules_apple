@@ -25,7 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 import uuid
 
 from tools.dossier_codesigningtool import dossier_codesigning_reader as dossier_reader
@@ -136,8 +136,11 @@ def generate_arg_parser():
   return parser
 
 
-def _extract_codesign_data(bundle_path, output_directory, unique_id,
-                           codesign_path):
+def _extract_codesign_data(
+    bundle_path: str,
+    output_directory: str,
+    unique_id: str,
+    codesign_path: str) -> Tuple[Optional[str], Optional[str]]:
   """Extracts codesigning data from the provided bundle to the output directory.
 
    Given a bundle_path will extract the entitlements file to the provided
@@ -168,21 +171,26 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
   output, stderr = process.communicate()
   if process.poll() != 0:
     raise OSError('Fail to extract entitlements from bundle: %s' % stderr)
+
   if not output:
     return None, None
+
   signing_info = re.search(r'^Authority=(.*)$', str(stderr), re.MULTILINE)
   if signing_info:
     cert_authority = signing_info.group(1)
   else:
     cert_authority = None
-  plist = plistlib.loads(output)
+
+  plist = plistlib.loads(output.encode('utf-8'))
   if not plist:
     return None, cert_authority
+
   output_file_name = unique_id + '.entitlements'
   output_file_path = os.path.join(output_directory, output_file_name)
   output_file = open(output_file_path, 'w')
   output_file.write(output)
   output_file.close()
+
   return output_file_name, cert_authority
 
 
@@ -313,8 +321,11 @@ def _generate_manifest(
   return manifest
 
 
-def _embedded_manifests_for_path(bundle_path, dossier_directory,
-                                 target_directory, codesign_path):
+def _embedded_manifests_for_path(
+    bundle_path: str,
+    dossier_directory: str,
+    target_directory: str,
+    codesign_path: str) -> List[Dict[str, Union[str, Dict[str, str]]]]:
   """Generates embedded manifests for a bundle in a sub-directory.
 
   Provided a bundle, output directory, and a target directory, traverses the
@@ -333,6 +344,10 @@ def _embedded_manifests_for_path(bundle_path, dossier_directory,
     A list of manifest contents with the contents they reference copied into
     dossier_directory, or an empty list if no bundles are codesigned.
   """
+  if target_directory not in _EMBEDDED_BUNDLE_DIRECTORY_NAMES:
+    raise ValueError(
+        'Invalid bundle directory for dossier manifest: %s' % target_directory)
+
   embedded_manifests = []
   target_directory_path = os.path.join(bundle_path, target_directory)
   if os.path.exists(target_directory_path):
@@ -351,8 +366,10 @@ def _embedded_manifests_for_path(bundle_path, dossier_directory,
   return embedded_manifests
 
 
-def _manifest_with_dossier_for_bundle(bundle_path, dossier_directory,
-                                      codesign_path):
+def _manifest_with_dossier_for_bundle(
+    bundle_path: str,
+    dossier_directory: str,
+    codesign_path: str) -> Optional[Dict[str, Union[str, Dict[str, str]]]]:
   """Generates a manifest and assets for a provided bundle.
 
   Provided a bundle and output directory, prepares a code signing dossier by
@@ -389,25 +406,28 @@ def _manifest_with_dossier_for_bundle(bundle_path, dossier_directory,
                             provisioning_profile, embedded_manifests)
 
 
-def _generate_manifest_dossier(args):
+def _generate_manifest_dossier(parsed_args: argparse.Namespace):
   """Generates a manifest dossier for provided args."""
-  bundle_path = args.bundle
-  dossier_directory = args.output
+  bundle_path = parsed_args.bundle
+  dossier_directory = parsed_args.output
+
   packaging_required = False
-  if args.zip:
+  if parsed_args.zip:
     dossier_directory = tempfile.mkdtemp()
     packaging_required = True
-  codesign_path = args.codesign
+
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
+
   manifest = _manifest_with_dossier_for_bundle(
-      os.path.abspath(bundle_path), dossier_directory, codesign_path)
+      os.path.abspath(bundle_path), dossier_directory, parsed_args.codesign)
   manifest_file = open(
       os.path.join(dossier_directory, dossier_reader.MANIFEST_FILENAME), 'w')
   manifest_file.write(json.dumps(manifest, sort_keys=True))
   manifest_file.close()
+
   if packaging_required:
-    _zip_dossier(dossier_directory, args.output)
+    _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
 
 
