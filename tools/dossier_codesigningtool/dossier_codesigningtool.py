@@ -25,6 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Dict, Optional, Union
 import uuid
 
 from tools.dossier_codesigningtool import dossier_codesigning_reader as dossier_reader
@@ -185,8 +186,10 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
   return output_file_name, cert_authority
 
 
-def _copy_entitlements_file(original_entitlements_file_path, output_directory,
-                            unique_id):
+def _copy_entitlements_file(
+    original_entitlements_file_path: str,
+    output_directory: str,
+    unique_id: str) -> str:
   """Copies an entitlements file from an original path to an output directory.
 
   Args:
@@ -211,8 +214,10 @@ def _copy_entitlements_file(original_entitlements_file_path, output_directory,
     return None
 
 
-def _copy_provisioning_profile(original_provisioning_profile_path,
-                               output_directory, unique_id):
+def _copy_provisioning_profile(
+    original_provisioning_profile_path: str,
+    output_directory: str,
+    unique_id: str) -> str:
   """Copies a provisioning profile file from its path to an output directory.
 
   Args:
@@ -225,7 +230,7 @@ def _copy_provisioning_profile(original_provisioning_profile_path,
   Returns:
     The filename relative to output_directory the profile was copied to.
   """
-  profile_extension = os.path.splitext(original_provisioning_profile_path)[1]
+  _, profile_extension = os.path.splitext(original_provisioning_profile_path)
   dest_provisioning_profile_filename = unique_id + profile_extension
   dest_provision_profile_path = os.path.join(output_directory,
                                              dest_provisioning_profile_filename)
@@ -233,7 +238,10 @@ def _copy_provisioning_profile(original_provisioning_profile_path,
   return dest_provisioning_profile_filename
 
 
-def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
+def _extract_provisioning_profile(
+    bundle_path: str,
+    output_directory: str,
+    unique_id: str) -> Optional[str]:
   """Extracts the profile for the provided bundle to a destination file name.
 
   Given a bundle_path will extract the profile file to the provided
@@ -264,10 +272,12 @@ def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
                                     output_directory, unique_id)
 
 
-def _generate_manifest(codesign_identity=None,
-                       entitlement_file=None,
-                       provisioning_profile_file=None,
-                       embedded_bundle_manifests=None):
+def _generate_manifest(
+    codesign_identity: Optional[str],
+    entitlement_file: Optional[str],
+    provisioning_profile_file: Optional[str],
+    embedded_bundle_manifests: Optional[str],
+) -> Dict[str, Union[str, Dict[str, str]]]:
   """Generates the manifest based on provided parameters.
 
   Given a set of code signing parameters, generates a manifest representation
@@ -420,7 +430,9 @@ def _zip_dossier(dossier_path, destination_path):
     raise OSError('Fail to zip dossier: %s' % stderr)
 
 
-def _merge_dossier_contents(source_dossier_path, destination_dossier_path):
+def _merge_dossier_contents(
+    source_dossier_path: str,
+    destination_dossier_path: str) -> None:
   """Merges all files except the actual manifest from one dossier to another.
 
   Args:
