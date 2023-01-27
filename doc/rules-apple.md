@@ -445,6 +445,19 @@ experimental_mixed_language_library(<a href="#experimental_mixed_language_librar
 
 Compiles and links Objective-C and Swift code into a static library.
 
+This is an experimental macro that supports compiling mixed Objective-C and
+Swift source files into a static library.
+
+Due to the build performance reason, in general it's not recommended to
+have mixed Objective-C and Swift modules, but it isn't uncommon to see
+mixed language modules in some old codebases. This macro is meant to make
+it easier to migrate codebases with mixed language modules to Bazel without
+having to demix them first.
+
+This macro only supports a very simple use case of mixed language
+modules---it does not support for header maps or Clang modules.
+
+
 **PARAMETERS**
 
 
