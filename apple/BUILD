@@ -38,6 +38,7 @@ bzl_library(
         "//apple/internal:apple_framework_import",
         "//apple/internal:apple_universal_binary",
         "//apple/internal:apple_xcframework_import",
+        "//apple/internal:experimental_mixed_language_library",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
     ],
