@@ -97,7 +97,11 @@ def generate_arg_parser():
   identity_group.add_argument(
       '--infer_identity',
       action='store_true',
-      help='Infer the codesigning identity based on provisioning profile at signing time. If this option is passed, the provisioning profile is mandatory.'
+      help=(
+          'Infer the codesigning identity based on provisioning profile at'
+          ' signing time. If this option is passed, the provisioning profile is'
+          ' mandatory.'
+      ),
   )
   create_parser.add_argument(
       '--provisioning_profile',
@@ -110,8 +114,13 @@ def generate_arg_parser():
   create_parser.add_argument(
       '--embedded_dossier',
       action='append',
+      default=[],
       nargs=2,
-      help='Specifies an embedded bundle dossier to be included in created dossier. Should be in form [relative path of artifact dossier signs] [path to dossier]'
+      help=(
+          'Specifies an embedded bundle dossier to be included in created'
+          ' dossier. Should be in form [relative path of artifact dossier'
+          ' signs] [path to dossier]'
+      ),
   )
   create_parser.set_defaults(func=_create_dossier)
 
@@ -431,7 +440,7 @@ def _generate_manifest_dossier(parsed_args: argparse.Namespace):
     shutil.rmtree(dossier_directory)
 
 
-def _zip_dossier(dossier_path, destination_path):
+def _zip_dossier(dossier_path: str, destination_path: str) -> None:
   """Zips a dossier into a file.
 
   Args:
@@ -441,8 +450,16 @@ def _zip_dossier(dossier_path, destination_path):
   Raises:
     OSError: If unable to execute packaging command
   """
-  command = ('/usr/bin/zip', '-r', '-j', '-qX', '-0', destination_path,
-             dossier_path)
+  command = (
+      '/usr/bin/zip',
+      '--recurse-paths',
+      '--junk-paths',
+      '--quiet',
+      '--strip-extra',
+      '--compression-method', 'store',
+      destination_path,
+      dossier_path,
+  )
   process = subprocess.Popen(
       command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   _, stderr = process.communicate()
@@ -468,56 +485,59 @@ def _merge_dossier_contents(
         os.path.join(destination_dossier_path, filename))
 
 
-def _create_dossier(args):
+def _create_dossier(parsed_args: argparse.Namespace):
   """Creates a signing dossier.
 
   Provided a set of args from generate sub-command, creates a new dossier.
 
   Args:
-    args: A struct of arguments required for dossier creation that were
+    parsed_args: A struct of arguments required for dossier creation that were
       generated from an instance of argparse.ArgumentParser(...).
 
   Raises:
     SystemExit: If the identity can only be inferred and a provisioning profile
       was not provided.
   """
-  dossier_directory = args.output
+  dossier_directory = parsed_args.output
   packaging_required = False
-  if args.zip:
+  if parsed_args.zip:
     dossier_directory = tempfile.mkdtemp()
     packaging_required = True
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
   unique_id = str(uuid.uuid4())
+
   entitlements_filename = None
-  if hasattr(args, 'entitlements_file') and args.entitlements_file:
-    entitlements_filename = _copy_entitlements_file(args.entitlements_file,
+  entitlements_file = getattr(parsed_args, 'entitlements_file', None)
+  if entitlements_file:
+    entitlements_filename = _copy_entitlements_file(entitlements_file,
                                                     dossier_directory,
                                                     unique_id)
+
   provisioning_profile_filename = None
-  if hasattr(args, 'provisioning_profile') and args.provisioning_profile:
+  provisioning_profile = getattr(parsed_args, 'provisioning_profile', None)
+  if provisioning_profile:
     provisioning_profile_filename = _copy_provisioning_profile(
-        args.provisioning_profile, dossier_directory, unique_id)
-  if args.infer_identity and provisioning_profile_filename is None:
+        parsed_args.provisioning_profile, dossier_directory, unique_id)
+  if parsed_args.infer_identity and provisioning_profile_filename is None:
     raise SystemExit(
         'A provisioning profile must be provided to infer the signing identity')
+
   embedded_manifests = []
-  if hasattr(args, 'embedded_dossier') and args.embedded_dossier:
-    for embedded_dossier in args.embedded_dossier:
-      embedded_dossier_bundle_relative_path = embedded_dossier[0]
-      with dossier_reader.extract_zipped_dossier_if_required(
-          embedded_dossier[1]) as embedded_dossier_directory:
-        embedded_dossier_path = embedded_dossier_directory.path
-        _merge_dossier_contents(embedded_dossier_path, dossier_directory)
-        embedded_manifest = dossier_reader.read_manifest_from_dossier(
-            embedded_dossier_path)
-        embedded_manifest[
-            dossier_reader
-            .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-        embedded_manifests.append(embedded_manifest)
-  codesign_identity = None
-  if hasattr(args, 'codesign_identity') and args.codesign_identity:
-    codesign_identity = args.codesign_identity
+  for embedded_dossier in getattr(parsed_args, 'embedded_dossier', []):
+    embedded_dossier_bundle_relative_path = embedded_dossier[0]
+    with dossier_reader.extract_zipped_dossier_if_required(
+        embedded_dossier[1]) as embedded_dossier_directory:
+      embedded_dossier_path = embedded_dossier_directory.path
+      _merge_dossier_contents(embedded_dossier_path, dossier_directory)
+      embedded_manifest = dossier_reader.read_manifest_from_dossier(
+          embedded_dossier_path)
+      embedded_manifest[
+          dossier_reader
+          .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+      embedded_manifests.append(embedded_manifest)
+
+  codesign_identity = getattr(parsed_args, 'codesign_identity', None)
   manifest = _generate_manifest(codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
@@ -526,7 +546,7 @@ def _create_dossier(args):
       'w') as fp:
     fp.write(json.dumps(manifest, sort_keys=True))
   if packaging_required:
-    _zip_dossier(dossier_directory, args.output)
+    _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
 
 

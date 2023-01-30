@@ -13,10 +13,13 @@
 # limitations under the License.
 """Tests for dossier_codesigningtool_lib."""
 
+import argparse
+import json
 import os
 import tempfile
 import unittest
 from unittest import mock
+import zipfile
 
 from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigningtool
 
@@ -367,6 +370,81 @@ class DossierCodesigningtoolGenerateTest(unittest.TestCase):
       )
       self.assertIsNone(actual_codesign_identity)
       self.assertEqual(actual_entitlements_file, 'my_unique_id.entitlements')
+
+
+class DossierCodesigningtoolCreateTest(unittest.TestCase):
+
+  @mock.patch('uuid.uuid4')
+  def test_create_dossier_with_directory(self, mock_uuid):
+    mock_uuid.return_value = 'fake'
+    with (
+        tempfile.TemporaryDirectory() as tmp_dossier_dir,
+        tempfile.NamedTemporaryFile(suffix='.entitlements') as tmp_entitlements,
+        tempfile.NamedTemporaryFile(
+            suffix='.mobileprovision') as tmp_mobileprovision):
+      dossier_codesigningtool._create_dossier(
+          argparse.Namespace(
+              codesign_identity='-',
+              entitlements_file=tmp_entitlements.name,
+              infer_identity=False,
+              output=tmp_dossier_dir,
+              provisioning_profile=tmp_mobileprovision.name,
+              zip=False,
+          )
+      )
+
+      expected_manifest_contents = {
+          'codesign_identity': '-',
+          'entitlements': 'fake.entitlements',
+          'provisioning_profile': 'fake.mobileprovision',
+          'embedded_bundle_manifests': [],
+      }
+      manifest_json_path = os.path.join(tmp_dossier_dir, 'manifest.json')
+      self.assertTrue(os.path.exists(manifest_json_path))
+      with open(manifest_json_path, 'r') as fp:
+        self.assertDictEqual(json.load(fp), expected_manifest_contents)
+
+  @mock.patch('uuid.uuid4')
+  def test_create_dossier_with_zip(self, mock_uuid):
+    mock_uuid.return_value = 'fake'
+    with (
+        tempfile.TemporaryDirectory() as tmp_dossier_dir,
+        tempfile.NamedTemporaryFile(suffix='.entitlements') as tmp_entitlements,
+        tempfile.NamedTemporaryFile(
+            suffix='.mobileprovision') as tmp_mobileprovision):
+
+      tmp_dossier_zip = os.path.join(tmp_dossier_dir, 'app_dossier.zip')
+      dossier_codesigningtool._create_dossier(
+          argparse.Namespace(
+              codesign_identity='-',
+              entitlements_file=tmp_entitlements.name,
+              infer_identity=False,
+              output=tmp_dossier_zip,
+              provisioning_profile=tmp_mobileprovision.name,
+              zip=True,
+          )
+      )
+
+      expected_manifest_contents = {
+          'codesign_identity': '-',
+          'embedded_bundle_manifests': [],
+          'entitlements': 'fake.entitlements',
+          'provisioning_profile': 'fake.mobileprovision',
+      }
+      expected_zip_files = [
+          'fake.entitlements',
+          'fake.mobileprovision',
+          'manifest.json',
+      ]
+      self.assertTrue(os.path.exists(tmp_dossier_zip))
+      with zipfile.ZipFile(tmp_dossier_zip, 'r') as zip_file:
+        actual_zip_files = sorted([z.filename for z in zip_file.infolist()])
+        self.assertListEqual(actual_zip_files, expected_zip_files)
+
+        extracted_manifest_json_file = zip_file.extract(
+            'manifest.json', path=tmp_dossier_dir)
+        with open(extracted_manifest_json_file, 'r') as fp:
+          self.assertDictEqual(json.load(fp), expected_manifest_contents)
 
 
 if __name__ == '__main__':
