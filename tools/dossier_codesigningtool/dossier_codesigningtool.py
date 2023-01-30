@@ -126,7 +126,10 @@ def generate_arg_parser():
 
   embed_parser = subparsers.add_parser(
       'embed',
-      help='Embeds a dossier into an existing dossier. Only supports embedding at the top level of the existing dossier.'
+      help=(
+          'Embeds a dossier into an existing dossier. Only supports embedding'
+          ' at the top level of the existing dossier.'
+      ),
   )
   embed_parser.add_argument(
       '--dossier', required=True, help='Path to dossier location to edit.')
@@ -430,14 +433,26 @@ def _generate_manifest_dossier(parsed_args: argparse.Namespace):
 
   manifest = _manifest_with_dossier_for_bundle(
       os.path.abspath(bundle_path), dossier_directory, parsed_args.codesign)
-  manifest_file = open(
-      os.path.join(dossier_directory, dossier_reader.MANIFEST_FILENAME), 'w')
-  manifest_file.write(json.dumps(manifest, sort_keys=True))
-  manifest_file.close()
 
+  _write_manifest(manifest, dossier_directory)
   if packaging_required:
     _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
+
+
+def _write_manifest(
+    manifest: Dict[str, Union[str, Dict[str, str]]],
+    dossier_directory: str) -> None:
+  """Writes a dossier manifest.json file at dossier_directory.
+
+  Args:
+    manifest: The dossier manifest to write.
+    dossier_directory: Target directory to write the manifest.json file.
+  """
+  manifest_file = os.path.join(
+      dossier_directory, dossier_reader.MANIFEST_FILENAME)
+  with open(manifest_file, 'w') as fp:
+    json.dump(manifest, fp, sort_keys=True)
 
 
 def _zip_dossier(dossier_path: str, destination_path: str) -> None:
@@ -541,59 +556,45 @@ def _create_dossier(parsed_args: argparse.Namespace):
   manifest = _generate_manifest(codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
-  with open(
-      os.path.join(dossier_directory, dossier_reader.MANIFEST_FILENAME),
-      'w') as fp:
-    fp.write(json.dumps(manifest, sort_keys=True))
+
+  _write_manifest(manifest, dossier_directory)
   if packaging_required:
     _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
 
 
-def _embed_dossier(args):
+def _embed_dossier(parsed_args):
   """Embeds an existing dossier into the specified dossier.
 
   Provided a set of args from generate sub-command, embeds a dossier in a
   dossier.
 
   Args:
-    args: A struct of arguments required for generating a dossier from a signed
-      bundle that were generated from an instance of
+    parsed_args: A struct of arguments required for generating a dossier from a
+      signed bundle that were generated from an instance of
       argparse.ArgumentParser(...).
 
   Raises:
     OSError: If any of specified dossiers are not found.
   """
-  embedded_dossier_bundle_relative_path = args.embedded_relative_artifact_path
-  with dossier_reader.extract_zipped_dossier_if_required(
-      args.dossier) as dossier_directory:
-    with dossier_reader.extract_zipped_dossier_if_required(
-        args.embedded_dossier_path) as embedded_dossier_directory:
-      embedded_dossier_path = embedded_dossier_directory.path
-      dossier_directory_path = dossier_directory.path
+  with (dossier_reader.extract_zipped_dossier_if_required(
+            parsed_args.dossier) as dossier_dir,
+        dossier_reader.extract_zipped_dossier_if_required(
+            parsed_args.embedded_dossier_path) as embedded_dossier_dir):
 
-      if not os.path.isdir(dossier_directory_path):
-        raise OSError('Dossier does not exist at path %s' %
-                      dossier_directory_path)
-      if not os.path.isdir(embedded_dossier_path):
-        raise OSError('Embedded dossier does not exist at path %s' %
-                      embedded_dossier_path)
-      manifest = dossier_reader.read_manifest_from_dossier(
-          dossier_directory_path)
-      embedded_manifest = dossier_reader.read_manifest_from_dossier(
-          embedded_dossier_path)
-      _merge_dossier_contents(embedded_dossier_path, dossier_directory_path)
-      embedded_manifest[
-          dossier_reader
-          .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-      manifest[dossier_reader.EMBEDDED_BUNDLE_MANIFESTS_KEY].append(
-          embedded_manifest)
-      with open(
-          os.path.join(dossier_directory_path,
-                       dossier_reader.MANIFEST_FILENAME), 'w') as fp:
-        fp.write(json.dumps(manifest, sort_keys=True))
-      if dossier_directory.unzipped:
-        _zip_dossier(dossier_directory_path, args.dossier)
+    manifest = dossier_reader.read_manifest_from_dossier(dossier_dir.path)
+    embedded_manifest = dossier_reader.read_manifest_from_dossier(
+        embedded_dossier_dir.path)
+
+    _merge_dossier_contents(embedded_dossier_dir.path, dossier_dir.path)
+    embedded_manifest[dossier_reader.EMBEDDED_RELATIVE_PATH_KEY] = (
+        parsed_args.embedded_relative_artifact_path)
+    manifest[dossier_reader.EMBEDDED_BUNDLE_MANIFESTS_KEY].append(
+        embedded_manifest)
+
+    _write_manifest(manifest, dossier_dir.path)
+    if dossier_dir.unzipped:
+      _zip_dossier(dossier_dir.path, parsed_args.dossier)
 
 
 if __name__ == '__main__':
