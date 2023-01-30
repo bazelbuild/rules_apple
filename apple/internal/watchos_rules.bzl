@@ -1251,6 +1251,7 @@ Resolved Xcode is version {xcode_version}.
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
     embeddable_targets = ctx.attr.deps
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1290,7 +1291,8 @@ Resolved Xcode is version {xcode_version}.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        entitlements = entitlements,
+        avoid_deps = ctx.attr.frameworks,
+        entitlements = entitlements.linking,
         extra_linkopts = [],
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -1311,8 +1313,9 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             bundle_id = bundle_id,
-            entitlements = entitlements,
+            entitlements = entitlements.bundle,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1322,6 +1325,7 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             label_name = label.name,
         ),
         partials.clang_rt_dylibs_partial(
@@ -1341,7 +1345,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_name = bundle_name,
             embed_target_dossiers = True,
             embedded_targets = embeddable_targets,
-            entitlements = entitlements,
+            entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -1351,6 +1355,7 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             debug_dependencies = embeddable_targets,
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
@@ -1379,6 +1384,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            executable_name = executable_name,
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
@@ -1415,7 +1421,8 @@ Resolved Xcode is version {xcode_version}.
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        entitlements = entitlements,
+        executable_name = executable_name,
+        entitlements = entitlements.codesigning,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
