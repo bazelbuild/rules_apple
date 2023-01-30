@@ -431,20 +431,123 @@ class DossierCodesigningtoolCreateTest(unittest.TestCase):
           'entitlements': 'fake.entitlements',
           'provisioning_profile': 'fake.mobileprovision',
       }
-      expected_zip_files = [
+      expected_zip_files = {
           'fake.entitlements',
           'fake.mobileprovision',
           'manifest.json',
-      ]
+      }
       self.assertTrue(os.path.exists(tmp_dossier_zip))
       with zipfile.ZipFile(tmp_dossier_zip, 'r') as zip_file:
-        actual_zip_files = sorted([z.filename for z in zip_file.infolist()])
-        self.assertListEqual(actual_zip_files, expected_zip_files)
+        actual_zip_files = {z.filename for z in zip_file.infolist()}
+        self.assertSetEqual(actual_zip_files, expected_zip_files)
 
         extracted_manifest_json_file = zip_file.extract(
             'manifest.json', path=tmp_dossier_dir)
         with open(extracted_manifest_json_file, 'r') as fp:
           self.assertDictEqual(json.load(fp), expected_manifest_contents)
+
+
+class DossierCodesigningtoolEmbedTest(unittest.TestCase):
+
+  def _get_fake_manifest(self, unique_id):
+    manifest_contents = {
+        'codesign_identity': '-',
+        'entitlements': f'{unique_id}.entitlements',
+        'provisioning_profile': f'{unique_id}.mobileprovision',
+        'embedded_bundle_manifests': [],
+    }
+    return json.dumps(manifest_contents)
+
+  def _write_fake_manifest(self, unique_id, temporary_dir):
+    tmp_manifest_file = os.path.join(temporary_dir, 'manifest.json')
+    manifest_contents = self._get_fake_manifest(unique_id)
+    with open(tmp_manifest_file, 'w') as fp:
+      fp.write(manifest_contents)
+    return tmp_manifest_file
+
+  def test_embed_dossier_with_dossier_directories(self):
+    with (tempfile.TemporaryDirectory() as tmp_dossier_dir,
+          tempfile.TemporaryDirectory() as tmp_embedded_dossier_dir):
+      manifest_file = self._write_fake_manifest('app', tmp_dossier_dir)
+      _ = self._write_fake_manifest('watch_app', tmp_embedded_dossier_dir)
+
+      dossier_codesigningtool._embed_dossier(
+          argparse.Namespace(
+              dossier=tmp_dossier_dir,
+              embedded_relative_artifact_path='Watch/WatchApp.app',
+              embedded_dossier_path=tmp_embedded_dossier_dir,
+          )
+      )
+
+      self.assertTrue(os.path.exists(manifest_file))
+      expected_manifest = {
+          'codesign_identity': '-',
+          'entitlements': 'app.entitlements',
+          'provisioning_profile': 'app.mobileprovision',
+          'embedded_bundle_manifests': [{
+              'codesign_identity': '-',
+              'entitlements': 'watch_app.entitlements',
+              'provisioning_profile': 'watch_app.mobileprovision',
+              'embedded_relative_path': 'Watch/WatchApp.app',
+              'embedded_bundle_manifests': [],
+          }],
+      }
+      with open(manifest_file, 'r') as fp:
+        actual_manifest = json.load(fp)
+        self.assertDictEqual(actual_manifest, expected_manifest)
+
+  def test_embed_dossier_with_dossier_archives(self):
+    with (tempfile.TemporaryDirectory() as tmp_dossier_dir,
+          tempfile.TemporaryDirectory() as tmp_embedded_dossier_dir):
+      dossier_zip = os.path.join(tmp_dossier_dir, 'app_dossier.zip')
+      with zipfile.ZipFile(dossier_zip, 'w') as zip_file:
+        zip_file.writestr('app.mobileprovision', 'mobileprovision')
+        zip_file.writestr('app.entitlements', 'entitlements')
+        zip_file.writestr('manifest.json', self._get_fake_manifest('app'))
+
+      embedded_dossier_zip = os.path.join(
+          tmp_embedded_dossier_dir, 'watch_app_dossier.zip')
+      with zipfile.ZipFile(embedded_dossier_zip, 'w') as zip_file:
+        zip_file.writestr('watch_app.mobileprovision', 'mobileprovision')
+        zip_file.writestr('watch_app.entitlements', 'entitlements')
+        zip_file.writestr('manifest.json', self._get_fake_manifest('watch_app'))
+
+      dossier_codesigningtool._embed_dossier(
+          argparse.Namespace(
+              dossier=dossier_zip,
+              embedded_dossier_path=embedded_dossier_zip,
+              embedded_relative_artifact_path='Watch/WatchApp.app',
+          )
+      )
+
+      self.assertTrue(os.path.exists(dossier_zip))
+      expected_manifest = {
+          'codesign_identity': '-',
+          'entitlements': 'app.entitlements',
+          'provisioning_profile': 'app.mobileprovision',
+          'embedded_bundle_manifests': [{
+              'codesign_identity': '-',
+              'entitlements': 'watch_app.entitlements',
+              'provisioning_profile': 'watch_app.mobileprovision',
+              'embedded_relative_path': 'Watch/WatchApp.app',
+              'embedded_bundle_manifests': [],
+          }],
+      }
+      expected_dossier_zip_files = {
+          'app.entitlements',
+          'app.mobileprovision',
+          'manifest.json',
+          'watch_app.entitlements',
+          'watch_app.mobileprovision',
+      }
+      with zipfile.ZipFile(dossier_zip, 'r') as zip_file:
+        actual_zip_files = {z.filename for z in zip_file.infolist()}
+        self.assertSetEqual(actual_zip_files, expected_dossier_zip_files)
+
+        extracted_manifest_json_file = zip_file.extract(
+            'manifest.json', path=tmp_dossier_dir)
+        with open(extracted_manifest_json_file, 'r') as fp:
+          self.assertDictEqual(json.load(fp), expected_manifest)
 
 
 if __name__ == '__main__':

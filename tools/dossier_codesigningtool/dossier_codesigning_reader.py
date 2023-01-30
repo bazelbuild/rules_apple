@@ -733,11 +733,17 @@ def extract_zipped_dossier_if_required(dossier_path):
 
   Returns:
     A DossierDirectory object that has the path to this dossier's directory.
+
+  Raises:
+    OSError: if specified dossier_path does not exists.
   """
   # Assume if the path is a file instead of a directory we should unzip
   if os.path.isfile(dossier_path):
     return DossierDirectory(_extract_zipped_dossier(dossier_path), True)
-  return DossierDirectory(dossier_path, False)
+  elif os.path.isdir(dossier_path):
+    return DossierDirectory(dossier_path, False)
+  else:
+    raise OSError('Dossier does not exist at path %s' % dossier_path)
 
 
 def _check_common_archived_bundle_args(*, output_artifact):
