@@ -1,3 +1,12 @@
+load("//tools/build_defs/license:license.bzl", "license")
+
+package(default_applicable_licenses = ["//:license"])
+
+license(
+    name = "license",
+    package_name = "rules_apple",
+)
+
 licenses(["notice"])
 
 exports_files(["LICENSE"])
