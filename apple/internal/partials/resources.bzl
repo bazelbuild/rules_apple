@@ -121,7 +121,7 @@ def _expand_owners(*, owners):
     dict = {}
     for resource, owner in owners.to_list():
         if owner:
-            dict.setdefault(resource, default = {})[owner] = None
+            dict.setdefault(resource, {})[owner] = None
     return dict
 
 def _expand_processed_origins(*, processed_origins):

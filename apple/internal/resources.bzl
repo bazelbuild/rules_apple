@@ -269,10 +269,9 @@ def _bucketize_data(
             bucket_name = "unprocessed"
             resource_swift_module = None
 
-        buckets.setdefault(
-            bucket_name,
-            default = [],
-        ).append((parent, resource_swift_module, resource_depset))
+        buckets.setdefault(bucket_name, []).append(
+            (parent, resource_swift_module, resource_depset),
+        )
 
     return (
         owners,
@@ -477,19 +476,14 @@ def _process_bucketized_data(
             for _, _, processed_file in result.files:
                 processed_field.setdefault(
                     parent_dir if parent_dir else "",
-                    default = [],
+                    [],
                 ).append(processed_file)
 
             # Save files to the "processed" field for copying in the bundling phase.
             for _, processed_files in processed_field.items():
-                buckets.setdefault(
-                    "processed",
-                    default = [],
-                ).append((
-                    parent_dir,
-                    swift_module,
-                    depset(transitive = processed_files),
-                ))
+                buckets.setdefault("processed", []).append(
+                    (parent_dir, swift_module, depset(transitive = processed_files)),
+                )
 
             # Add owners information for each of the processed files.
             for _, _, processed_files in result.files:
@@ -599,10 +593,7 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
         # which are not desireable for our use case.
         fields = _populated_resource_fields(provider)
         for field in fields:
-            buckets.setdefault(
-                field,
-                default = [],
-            ).extend(getattr(provider, field))
+            buckets.setdefault(field, []).extend(getattr(provider, field))
 
     # unowned_resources is a depset of resource paths.
     unowned_resources = depset(transitive = [provider.unowned_resources for provider in providers])
@@ -669,10 +660,7 @@ def _minimize(*, bucket):
         if swift_module:
             swift_module_by_key[key] = swift_module
 
-        resources_by_key.setdefault(
-            key,
-            default = [],
-        ).append(resources)
+        resources_by_key.setdefault(key, []).append(resources)
 
     return [
         (parent_dir_by_key.get(k, None), swift_module_by_key.get(k, None), depset(transitive = r))
