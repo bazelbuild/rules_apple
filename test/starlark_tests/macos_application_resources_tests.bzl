@@ -19,6 +19,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def macos_application_resources_test_suite(name):
     """Test suite for macos_application resources.
 

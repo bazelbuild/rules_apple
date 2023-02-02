@@ -28,6 +28,8 @@ load(
     "asserts",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _linkmap_test_impl(ctx):
     """Implementation of the linkmap_test rule."""
     env = analysistest.begin(ctx)

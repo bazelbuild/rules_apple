@@ -27,6 +27,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def apple_static_xcframework_import_test_suite(name):
     """Test suite for apple_static_xcframework_import.
 

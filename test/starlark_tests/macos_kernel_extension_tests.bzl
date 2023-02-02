@@ -32,6 +32,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 _analysis_arm64_macos_cpu_test = make_analysis_target_actions_test(
     config_settings = {"//command_line_option:macos_cpus": "arm64"},
 )

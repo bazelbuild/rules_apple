@@ -27,6 +27,8 @@ load(
     "dsyms_test",
 )
 
+visibility("private")
+
 def macos_dylib_test_suite(name):
     """Test suite for macos_dylib.
 

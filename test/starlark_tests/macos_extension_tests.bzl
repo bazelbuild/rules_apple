@@ -19,6 +19,8 @@ load(
     "entry_point_test",
 )
 
+visibility("private")
+
 def macos_extension_test_suite(name):
     """Test suite for macos_extension.
 

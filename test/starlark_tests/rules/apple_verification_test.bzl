@@ -40,6 +40,8 @@ load(
     "paths",
 )
 
+visibility("//test/starlark_tests/...")
+
 _CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 

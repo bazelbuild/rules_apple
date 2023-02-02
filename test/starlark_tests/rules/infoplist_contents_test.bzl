@@ -30,6 +30,8 @@ load(
     "AppleBundleInfo",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _infoplist_contents_test_impl(ctx):
     """Implementation of the plist_contents_test rule."""
     target_under_test = ctx.attr.target_under_test[0]

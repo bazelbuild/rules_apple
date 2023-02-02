@@ -47,6 +47,8 @@ load(
     "analysis_failure_message_test",
 )
 
+visibility("private")
+
 def tvos_application_test_suite(name):
     """Test suite for tvos_application.
 

@@ -40,6 +40,8 @@ load(
     "linkmap_test",
 )
 
+visibility("private")
+
 def ios_extension_test_suite(name):
     """Test suite for ios_extension.
 

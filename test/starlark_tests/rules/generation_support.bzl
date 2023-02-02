@@ -21,6 +21,8 @@ load(
 )
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+visibility("//test/starlark_tests/...")
+
 _SDK_TO_VERSION_ARG = {
     "iphonesimulator": "-mios-simulator-version-min",
     "iphoneos": "-miphoneos-version-min",

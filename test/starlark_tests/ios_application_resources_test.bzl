@@ -31,6 +31,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def ios_application_resources_test_suite(name):
     """Test suite for apple_bundle_version.
 

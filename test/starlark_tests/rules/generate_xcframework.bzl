@@ -23,6 +23,8 @@ load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+visibility("//test/starlark_tests/...")
+
 _PLATFORM_TO_SDK = {
     "ios": "iphoneos",
     "ios_simulator": "iphonesimulator",

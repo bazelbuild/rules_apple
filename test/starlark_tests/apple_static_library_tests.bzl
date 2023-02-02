@@ -50,6 +50,8 @@ analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test
     },
 )
 
+visibility("private")
+
 def apple_static_library_test_suite(name):
     """Test suite for apple_static_library.
 

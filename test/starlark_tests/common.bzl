@@ -14,6 +14,8 @@
 
 """Common build definitions used by test fixtures."""
 
+visibility("//test/starlark_tests/...")
+
 # Common tags that prevent the test fixtures from actually being built (i.e.,
 # their actions executed) when running `bazel test` to do analysis testing.
 _fixture_tags = [

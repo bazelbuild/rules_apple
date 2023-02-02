@@ -19,6 +19,8 @@ load(
     "dicts",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _output_text_match_test_impl(ctx):
     """Implementation of the `output_text_match_test` rule."""
     target_under_test = ctx.attr.target_under_test

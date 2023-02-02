@@ -23,6 +23,8 @@ load(
     "output_group_zip_contents_test",
 )
 
+visibility("private")
+
 def watchos_application_swift_test_suite(name):
     """Test suite for watchos_application_swift.
 

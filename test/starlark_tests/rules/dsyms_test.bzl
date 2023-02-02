@@ -30,6 +30,8 @@ load(
     "asserts",
 )
 
+visibility("//test/starlark_tests/...")
+
 def check_public_provider_outputs(
         *,
         dsym_bundle_info_outputs,

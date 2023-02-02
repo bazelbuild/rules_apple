@@ -31,6 +31,8 @@ load(
     "dsyms_test",
 )
 
+visibility("private")
+
 def macos_command_line_application_test_suite(name):
     """Test suite for macos_command_line_application.
 

@@ -20,6 +20,8 @@ load(
     "unittest",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _analysis_runfiles_test_impl(ctx):
     "Test that runfiles of the given target under test is properly set."
     env = analysistest.begin(ctx)

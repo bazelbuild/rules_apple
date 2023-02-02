@@ -31,6 +31,8 @@ load(
     "dsyms_test",
 )
 
+visibility("private")
+
 def macos_bundle_test_suite(name):
     """Test suite for macos_bundle.
 

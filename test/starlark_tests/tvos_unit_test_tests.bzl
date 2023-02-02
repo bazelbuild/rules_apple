@@ -39,6 +39,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def tvos_unit_test_test_suite(name):
     """Test suite for tvos_unit_test.
 

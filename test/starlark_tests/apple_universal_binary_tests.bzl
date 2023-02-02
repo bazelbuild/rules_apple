@@ -23,6 +23,8 @@ load(
     "binary_contents_test",
 )
 
+visibility("private")
+
 def apple_universal_binary_test_suite(name):
     """Test suite for apple_universal_binary.
 

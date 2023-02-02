@@ -27,6 +27,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def ios_imessage_application_test_suite(name):
     """Test suite for ios_extension.
 

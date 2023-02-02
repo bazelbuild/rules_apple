@@ -40,6 +40,8 @@ load(
     "linkmap_test",
 )
 
+visibility("private")
+
 def apple_xcframework_test_suite(name):
     """Test suite for apple_xcframework.
 

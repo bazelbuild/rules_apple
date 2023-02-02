@@ -24,6 +24,8 @@ load(
     "unittest",
 )
 
+visibility("//test/starlark_tests/...")
+
 _TARGET_CONTAINS_ACTION_WITH_ARGV_FAIL_MSG = """
 Expected argv could not be found on actual action argv list for target mnemonic '{target_mnemonic}'.
 Target: {target}

@@ -35,6 +35,8 @@ load(
     "linkmap_test",
 )
 
+visibility("private")
+
 def ios_app_clip_test_suite(name):
     """Test suite for ios_app_clip.
 

@@ -32,6 +32,8 @@ load(
     "sets",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _analysis_target_outputs_test_impl(ctx):
     env = analysistest.begin(ctx)
     expected_outputs = sets.make(ctx.attr.expected_outputs)

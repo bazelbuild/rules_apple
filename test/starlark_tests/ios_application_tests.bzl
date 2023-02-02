@@ -61,6 +61,8 @@ load(
     "analysis_failure_message_test",
 )
 
+visibility("private")
+
 def ios_application_test_suite(name):
     """Test suite for ios_application.
 

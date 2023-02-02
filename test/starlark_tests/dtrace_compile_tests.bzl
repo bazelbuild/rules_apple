@@ -19,6 +19,8 @@ load(
     "output_text_match_test",
 )
 
+visibility("private")
+
 def dtrace_compile_test_suite(name):
     """Test suite for `dtrace_compile`.
 

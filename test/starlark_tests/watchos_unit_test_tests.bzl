@@ -31,6 +31,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def watchos_unit_test_test_suite(name):
     """Test suite for watchos_unit_test.
 

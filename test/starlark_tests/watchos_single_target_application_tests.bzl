@@ -39,6 +39,8 @@ load(
     "analysis_target_actions_test",
 )
 
+visibility("private")
+
 def watchos_single_target_application_test_suite(name):
     """Test suite for watchos_single_target_application.
 

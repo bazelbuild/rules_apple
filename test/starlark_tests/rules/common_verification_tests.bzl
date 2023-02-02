@@ -19,6 +19,8 @@ load(
     "apple_verification_test",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _dict_to_space_separated_string_array(dict_to_transform, separator = " "):
     """Returns an array of formatted strings suitable for apple_verification_test env variables.
 

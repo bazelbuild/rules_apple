@@ -27,6 +27,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def ios_sticker_pack_extension_test_suite(name):
     """Test suite for ios_extension.
 

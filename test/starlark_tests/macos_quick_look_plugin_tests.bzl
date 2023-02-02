@@ -27,6 +27,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def macos_quick_look_plugin_test_suite(name):
     """Test suite for macos_quick_look_plugin.
 

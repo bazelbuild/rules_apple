@@ -31,6 +31,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def watchos_single_target_ui_test_test_suite(name):
     """Test suite for watchos_ui_test leveraging watchos_single_target_application.
 

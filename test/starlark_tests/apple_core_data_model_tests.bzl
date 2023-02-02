@@ -23,6 +23,8 @@ load(
     "analysis_target_outputs_test",
 )
 
+visibility("private")
+
 def apple_core_data_model_test_suite(name):
     """Test suite for apple_bundle_version.
 

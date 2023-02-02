@@ -19,6 +19,8 @@ load(
     "AppleTestRunnerInfo",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _dummy_test_runner_impl(ctx):
     ctx.actions.expand_template(
         template = ctx.file._test_template,

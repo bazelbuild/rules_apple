@@ -26,6 +26,8 @@ load(
     "asserts",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _analysis_failure_message_test_impl(ctx):
     env = analysistest.begin(ctx)
     asserts.expect_failure(env, ctx.attr.expected_error)

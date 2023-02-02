@@ -43,6 +43,8 @@ load(
     "analysis_runfiles_test",
 )
 
+visibility("private")
+
 def macos_unit_test_test_suite(name):
     """Test suite for macos_unit_test.
 

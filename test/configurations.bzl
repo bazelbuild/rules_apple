@@ -14,6 +14,8 @@
 
 """Configuration options for the Apple rule integration tests."""
 
+visibility("private")
+
 # General configuration options used with `apple_shell_test`.
 # Note that changing this to fastbuild or dbg will break several tests.
 COMPILATION_MODE_OPTIONS = ["--compilation_mode opt"]

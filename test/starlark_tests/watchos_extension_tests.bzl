@@ -39,6 +39,8 @@ load(
     "linkmap_test",
 )
 
+visibility("private")
+
 def watchos_extension_test_suite(name):
     """Test suite for watchos_extension.
 

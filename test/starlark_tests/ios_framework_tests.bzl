@@ -27,6 +27,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def ios_framework_test_suite(name):
     """Test suite for ios_framework.
 

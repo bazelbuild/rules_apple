@@ -19,6 +19,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def tvos_application_swift_test_suite(name):
     """Test suite for tvos_application_swift.
 

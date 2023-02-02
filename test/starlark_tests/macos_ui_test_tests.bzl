@@ -39,6 +39,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def macos_ui_test_test_suite(name):
     """Test suite for macos_ui_test.
 

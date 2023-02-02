@@ -19,6 +19,8 @@ load(
     "analysis_target_outputs_test",
 )
 
+visibility("private")
+
 def generate_dynamic_xcframework_test_suite(name):
     """Test suite for generate_dynamic_xcframework.
 

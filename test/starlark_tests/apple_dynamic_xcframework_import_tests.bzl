@@ -33,6 +33,8 @@ load(
     "binary_contents_test",
 )
 
+visibility("private")
+
 def apple_dynamic_xcframework_import_test_suite(name):
     """Test suite for apple_dynamic_xcframework_import.
 

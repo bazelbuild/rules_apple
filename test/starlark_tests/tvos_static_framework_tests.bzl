@@ -23,6 +23,8 @@ load(
     "archive_contents_test",
 )
 
+visibility("private")
+
 def tvos_static_framework_test_suite(name):
     """Test suite for tvos_static_framework.
 

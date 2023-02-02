@@ -39,6 +39,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def ios_ui_test_test_suite(name):
     """Test suite for ios_ui_test.
 

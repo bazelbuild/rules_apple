@@ -23,6 +23,8 @@ load(
     "infoplist_contents_test",
 )
 
+visibility("private")
+
 def apple_bundle_version_test_suite(name):
     """Test suite for apple_bundle_version.
 

@@ -19,6 +19,8 @@ load(
     "apple_verification_transition",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _output_group_zip_contents_test_impl(ctx):
     """Implementation of the output_group_zip_contents_test rule."""
     target_under_test = ctx.attr.target_under_test[0]

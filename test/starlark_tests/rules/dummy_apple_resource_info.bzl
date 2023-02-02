@@ -23,6 +23,8 @@ load(
     "AppleResourceInfo",
 )
 
+visibility("//test/starlark_tests/...")
+
 def _dummy_apple_resource_info_impl(ctx):
     output = ctx.actions.declare_file("{}.out".format(ctx.label.name))
     ctx.actions.write(output, "dummy file")
