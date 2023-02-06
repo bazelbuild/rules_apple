@@ -16,6 +16,11 @@
 
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _compute_enabled_features(*, requested_features, unsupported_features):
     """Returns a list of features for the given build.
 

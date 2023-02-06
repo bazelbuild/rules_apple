@@ -47,6 +47,8 @@ load(
     _macos_xpc_service = "macos_xpc_service",
 )
 
+visibility("public")
+
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 macos_quick_look_plugin = _macos_quick_look_plugin
 macos_spotlight_importer = _macos_spotlight_importer

@@ -31,6 +31,11 @@ load(
     "paths",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _archive(
         *,
         actions,

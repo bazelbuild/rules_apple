@@ -36,6 +36,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 def _macos_additional_contents_partial_impl(*, additional_contents):
     """Implementation for the additional contents processing partial."""
 

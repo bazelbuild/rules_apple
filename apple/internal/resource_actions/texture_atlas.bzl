@@ -19,6 +19,8 @@ load(
     "apple_support",
 )
 
+visibility("//apple/internal/...")
+
 def compile_texture_atlas(
         *,
         actions,

@@ -26,6 +26,8 @@ _AppleExtensionSafeValidationInfo = provider(
     },
 )
 
+visibility("//apple/...")
+
 def _extension_safe_validation_partial_impl(
         *,
         is_extension_safe,

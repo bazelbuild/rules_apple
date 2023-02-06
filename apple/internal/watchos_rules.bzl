@@ -103,6 +103,11 @@ load(
     "sets",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
 

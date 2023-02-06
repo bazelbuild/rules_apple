@@ -14,6 +14,8 @@
 
 """Support for the xctoolrunner tool."""
 
+visibility("//apple/internal/...")
+
 def _prefixed_path(path):
     """Prefix paths with a token used in the xctoolrunner tool.
 

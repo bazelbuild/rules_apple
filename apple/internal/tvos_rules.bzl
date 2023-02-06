@@ -114,6 +114,11 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     rule_descriptor = rule_support.rule_descriptor(

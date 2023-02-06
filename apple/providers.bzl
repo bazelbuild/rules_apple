@@ -20,6 +20,8 @@ consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 """
 
+visibility("public")
+
 AppleBundleInfo = provider(
     doc = """
 This provider propagates general information about an Apple bundle that is not

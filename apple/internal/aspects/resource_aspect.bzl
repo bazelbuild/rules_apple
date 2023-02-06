@@ -53,6 +53,8 @@ load(
     "partial",
 )
 
+visibility("//apple/internal/...")
+
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
     apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]

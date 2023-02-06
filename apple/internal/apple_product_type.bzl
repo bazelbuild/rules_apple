@@ -18,6 +18,11 @@ This should be internal to the Apple rules, used to control/configure the
 type of rule being created and thus its descriptor to control behaviors.
 """
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Product type identifiers used to describe various bundle types.
 #
 # The "product type" is a concept used internally by Xcode (the strings themselves

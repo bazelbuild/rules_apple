@@ -14,6 +14,8 @@
 
 """AppleEmbeddableInfo provider implementation for embeddable bundles propagation."""
 
+visibility("//apple/internal/...")
+
 _APPLE_EMBEDDABLE_INFO_FIELDS = {
     "app_clips": """
 A depset with the zipped archives of bundles that need to be expanded into the

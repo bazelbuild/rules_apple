@@ -28,6 +28,8 @@ load(
     "dicts",
 )
 
+visibility("public")
+
 def _collect_group_names(s):
     """Returns the list of placeholder names found in the given string.
 

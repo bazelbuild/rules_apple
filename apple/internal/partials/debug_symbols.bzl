@@ -35,6 +35,8 @@ load(
     "shell",
 )
 
+visibility("//apple/...")
+
 _AppleDebugInfo = provider(
     doc = "Private provider to propagate transitive debug symbol information.",
     fields = {

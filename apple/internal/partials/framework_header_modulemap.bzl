@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _get_link_declarations(dylibs = [], frameworks = []):
     """Returns the module map lines that link to the given dylibs and frameworks.
 

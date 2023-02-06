@@ -113,6 +113,11 @@ load(
     "MacosXPCServiceBundleInfo",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
     rule_descriptor = rule_support.rule_descriptor(

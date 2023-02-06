@@ -19,4 +19,6 @@ load(
     _framework_provider_aspect = "framework_provider_aspect",
 )
 
+visibility("public")
+
 framework_provider_aspect = _framework_provider_aspect

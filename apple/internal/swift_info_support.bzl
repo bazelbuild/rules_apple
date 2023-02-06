@@ -24,6 +24,11 @@ load(
 )
 load("@bazel_skylib//lib:sets.bzl", "sets")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _verify_found_module_name(*, bundle_name, found_module_name):
     """Validate that the module name fits the requirements for Swift frameworks.
 

@@ -31,6 +31,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 _AppleBitcodeInfo = provider(
     doc = "Private provider to propagate the transitive bitcode `File`s.",
     fields = {

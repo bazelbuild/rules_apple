@@ -106,6 +106,11 @@ load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _group_link_outputs_by_library_identifier(
         *,
         actions,

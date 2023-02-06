@@ -14,6 +14,11 @@
 
 """Support methods for handling artifacts from CcInfo providers."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _get_all_deps(*, deps, split_deps_keys = []):
     """Returns a list of all dependencies from a Label list and optional split attribute keys.
 

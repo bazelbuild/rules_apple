@@ -14,6 +14,11 @@
 
 """Support for bundle package type used by Apple bundling rules."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Bundle package type identifiers
 # These correspond to the CFBundlePackageType key in Info.plist files.
 bundle_package_type = struct(

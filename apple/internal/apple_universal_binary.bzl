@@ -35,6 +35,11 @@ load(
     "transition_support",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _apple_universal_binary_impl(ctx):
     inputs = [
         binary.files.to_list()[0]

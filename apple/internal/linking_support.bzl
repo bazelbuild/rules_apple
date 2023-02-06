@@ -24,6 +24,11 @@ load(
     "entitlements_support",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _debug_outputs_by_architecture(link_outputs):
     """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
 

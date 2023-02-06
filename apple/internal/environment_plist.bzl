@@ -37,6 +37,11 @@ load(
     "dicts",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.

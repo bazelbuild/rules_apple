@@ -60,6 +60,11 @@ load(
     "dicts",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _macos_binary_infoplist_impl(ctx):
     """Implementation of the internal `macos_command_line_infoplist` rule.
 

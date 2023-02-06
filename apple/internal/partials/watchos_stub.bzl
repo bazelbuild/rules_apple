@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 _AppleWatchosStubInfo = provider(
     doc = """
 Private provider to propagate the watchOS stub that needs to be package in the iOS archive.

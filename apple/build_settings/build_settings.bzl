@@ -14,6 +14,11 @@
 
 """List of Bazel's rules_apple build settings."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 
 # List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.

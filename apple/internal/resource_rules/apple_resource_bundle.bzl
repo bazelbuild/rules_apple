@@ -19,6 +19,8 @@ load(
     "AppleResourceBundleInfo",
 )
 
+visibility("//apple/...")
+
 def _apple_resource_bundle_impl(_ctx):
     # All of the resource processing logic for this rule exists in the apple_resource_aspect.
     #

@@ -63,6 +63,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 _PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 
 def _merge_root_infoplists(

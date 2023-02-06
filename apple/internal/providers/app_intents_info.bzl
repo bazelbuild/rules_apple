@@ -14,6 +14,8 @@
 
 """AppIntentsInfo provider implementation for AppIntents support for Apple rules."""
 
+visibility("//apple/internal/...")
+
 AppIntentsInfo = provider(
     doc = "Private provider to propagate `.swift` source files required by AppIntents processing.",
     fields = ["swift_source_files"],

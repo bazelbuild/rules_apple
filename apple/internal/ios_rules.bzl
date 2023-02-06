@@ -121,6 +121,11 @@ load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _ios_application_impl(ctx):
     """Implementation of ios_application."""
     rule_descriptor = rule_support.rule_descriptor(

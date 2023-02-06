@@ -16,6 +16,11 @@
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 AppleMacToolsToolchainInfo = provider(
     doc = """
 Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.

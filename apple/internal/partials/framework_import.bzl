@@ -47,6 +47,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 def _framework_import_partial_impl(
         *,
         actions,

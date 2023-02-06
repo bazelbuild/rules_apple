@@ -27,6 +27,11 @@ load(
     "intermediates",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _create_stub_binary(
         *,
         actions,

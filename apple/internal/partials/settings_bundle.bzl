@@ -35,6 +35,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _settings_bundle_partial_impl(
         *,
         settings_bundle):

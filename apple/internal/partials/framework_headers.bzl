@@ -23,6 +23,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _framework_headers_partial_impl(*, hdrs):
     """Implementation for the framework headers partial."""
     return struct(

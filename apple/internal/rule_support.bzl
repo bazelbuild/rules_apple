@@ -30,6 +30,11 @@ load(
     "bundle_package_type",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Options to declare signing behavior and exceptions.
 #
 # Args:

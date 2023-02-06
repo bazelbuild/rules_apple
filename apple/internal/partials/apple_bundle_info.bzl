@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _apple_bundle_info_partial_impl(
         *,
         actions,

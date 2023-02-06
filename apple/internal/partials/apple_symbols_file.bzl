@@ -32,6 +32,8 @@ load(
 )
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
+visibility("//apple/...")
+
 _AppleSymbolsFileInfo = provider(
     doc = "Private provider to propagate the transitive .symbols `File`s.",
     fields = {

@@ -41,6 +41,8 @@ load(
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
+visibility("public")
+
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 ios_application = _ios_application
 ios_app_clip = _ios_app_clip

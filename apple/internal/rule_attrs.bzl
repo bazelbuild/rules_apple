@@ -61,6 +61,11 @@ load(
     "dicts",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Private attributes on all rules; these should be included in all rule attributes.
 _COMMON_ATTRS = dicts.add(
     {

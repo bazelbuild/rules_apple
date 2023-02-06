@@ -107,6 +107,11 @@ load(
     _watchos_stub_partial = "watchos_stub_partial",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 partials = struct(
     app_assets_validation_partial = _app_assets_validation_partial,
     app_intents_metadata_bundle_partial = _app_intents_metadata_bundle_partial,

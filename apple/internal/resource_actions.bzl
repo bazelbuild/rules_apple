@@ -51,6 +51,11 @@ load(
     _compile_texture_atlas = "compile_texture_atlas",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
     compile_datamodels = _compile_datamodels,

@@ -20,6 +20,8 @@ load(
 )
 load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 
+visibility("//apple/internal/...")
+
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the swift source files propation aspect."""
     if ctx.rule.kind != "swift_library":

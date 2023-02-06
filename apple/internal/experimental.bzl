@@ -19,6 +19,11 @@ load(
     "defines",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # TODO(b/266604130): Remove helper method once users of define flag have been migrated.
 def is_experimental_tree_artifact_enabled(
         *,

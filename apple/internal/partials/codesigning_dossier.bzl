@@ -47,6 +47,8 @@ load(
     "sets",
 )
 
+visibility("//apple/...")
+
 _AppleCodesigningDossierInfo = provider(
     doc = """
 Private provider to propagate codesigning dossier information.

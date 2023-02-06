@@ -35,6 +35,8 @@ load(
     _apple_core_data_model = "apple_core_data_model",
 )
 
+visibility("public")
+
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group

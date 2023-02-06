@@ -27,6 +27,8 @@ load(
     "rule_factory",
 )
 
+visibility("public")
+
 def _linker_flag_for_sdk_dylib(dylib):
     """Returns a linker flag suitable for linking the given `sdk_dylib` value.
 

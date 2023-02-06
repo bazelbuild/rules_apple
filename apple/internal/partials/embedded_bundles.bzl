@@ -31,6 +31,8 @@ load(
     "AppleEmbeddableInfo",
 )
 
+visibility("//apple/...")
+
 def _embedded_bundles_partial_impl(
         *,
         bundle_embedded_bundles,

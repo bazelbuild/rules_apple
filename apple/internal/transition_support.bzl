@@ -33,6 +33,11 @@ part on the language used for XCFramework library identifiers:
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "ios": "//command_line_option:ios_multi_cpus",
     "macos": "//command_line_option:macos_cpus",

@@ -27,6 +27,8 @@ load(
     "dicts",
 )
 
+visibility("//apple/...")
+
 CoverageFilesInfo = provider(
     doc = """
 Provider used by the `coverage_files_aspect` aspect to propagate the

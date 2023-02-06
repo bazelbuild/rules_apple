@@ -34,6 +34,8 @@ load(
     _apple_xcframework = "apple_xcframework",
 )
 
+visibility("public")
+
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
 apple_static_framework_import = _apple_static_framework_import

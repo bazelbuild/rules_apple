@@ -19,6 +19,8 @@ A rule for handling the cc_toolchains and their constraints for a potential "fat
 load("@build_bazel_rules_apple//apple:providers.bzl", "ApplePlatformInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
+visibility("public")
+
 def _target_os_from_rule_ctx(ctx):
     """Returns a `String` representing the selected Apple OS."""
     ios_constraint = ctx.attr._ios_constraint[platform_common.ConstraintValueInfo]

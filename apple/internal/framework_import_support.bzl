@@ -22,6 +22,11 @@ load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _cc_info_with_dependencies(
         *,
         actions,

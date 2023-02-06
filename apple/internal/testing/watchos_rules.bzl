@@ -49,6 +49,8 @@ load(
     "WatchosXcTestBundleInfo",
 )
 
+visibility("//apple/...")
+
 _WATCHOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, WatchosApplicationBundleInfo]]
 
 def _watchos_ui_test_bundle_impl(ctx):

@@ -48,6 +48,8 @@ load(
     "group_files_by_directory",
 )
 
+visibility("//apple/...")
+
 def _apple_core_data_model_impl(ctx):
     """Implementation of the apple_core_data_model."""
     actions = ctx.actions

@@ -52,6 +52,8 @@ load(
     "paths",
 )
 
+visibility("//apple/internal/...")
+
 def _compile_datamodels(
         *,
         actions,

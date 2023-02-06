@@ -80,6 +80,11 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(

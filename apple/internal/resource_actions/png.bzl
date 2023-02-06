@@ -19,6 +19,8 @@ load(
     "apple_support",
 )
 
+visibility("//apple/internal/...")
+
 def copy_png(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that copies and compresses a png using copypng.
 

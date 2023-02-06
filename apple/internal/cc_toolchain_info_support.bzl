@@ -14,6 +14,11 @@
 
 """Support methods for handling CcToolchainInfo providers."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _get_apple_clang_triplet(cc_toolchain):
     """Parses and performs normalization on Clang target triplet string reference.
 

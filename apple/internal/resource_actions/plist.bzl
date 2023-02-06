@@ -39,6 +39,8 @@ load(
     "shell",
 )
 
+visibility("//apple/internal/...")
+
 def plisttool_action(
         *,
         actions,

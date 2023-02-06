@@ -16,6 +16,11 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _intermediates_path_string(*, target_name, output_discriminator):
     """Returns a preferred path string given a target name and an optional output discriminator."""
     if not output_discriminator:

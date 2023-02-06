@@ -39,6 +39,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 _AppleSwiftDylibsInfo = provider(
     doc = """
 Private provider to propagate the transitive binary `File`s that depend on

@@ -14,6 +14,8 @@
 
 """Implementation of apple_resource_group rule."""
 
+visibility("//apple/...")
+
 def _apple_resource_group_impl(_ctx):
     # All of the resource processing logic for this rule exists in the apple_resource_aspect.
     #

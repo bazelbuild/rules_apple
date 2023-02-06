@@ -27,6 +27,8 @@ load(
 )
 load("@bazel_skylib//lib:partial.bzl", "partial")
 
+visibility("//apple/...")
+
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,

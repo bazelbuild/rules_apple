@@ -19,6 +19,8 @@ load(
     "AppleTestRunnerInfo",
 )
 
+visibility("public")
+
 def _get_template_substitutions(*, device_type, os_version, testrunner):
     """Returns the template substitutions for this runner."""
     subs = {

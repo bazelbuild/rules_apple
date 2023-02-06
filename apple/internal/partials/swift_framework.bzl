@@ -31,6 +31,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 def _swift_framework_partial_impl(
         *,
         actions,

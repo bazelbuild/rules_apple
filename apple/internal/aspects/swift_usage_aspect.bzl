@@ -27,6 +27,10 @@ depends on.
     fields = {},
 )
 
+visibility([
+    "//apple/internal/...",
+])
+
 def _swift_usage_aspect_impl(target, aspect_ctx):
     # Targets can directly propagate their own `SwiftUsageInfo` provider. In
     # those case, this aspect must not propagate a `SwiftUsageInfo`, because

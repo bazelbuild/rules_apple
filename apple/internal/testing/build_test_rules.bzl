@@ -19,6 +19,8 @@ load(
     "transition_support",
 )
 
+visibility("//apple/...")
+
 _PASSING_TEST_SCRIPT = """\
 #!/bin/bash
 exit 0

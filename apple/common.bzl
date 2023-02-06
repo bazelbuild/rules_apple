@@ -14,6 +14,8 @@
 
 """Support for things that are common to all Apple platforms."""
 
+visibility("public")
+
 # The different modes for the validation of requested entitlements vs. those
 # enabled in the provisioning profile.
 #

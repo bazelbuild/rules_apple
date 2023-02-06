@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _app_assets_validation_partial_impl(
         *,
         app_icons,

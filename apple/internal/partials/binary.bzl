@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _binary_partial_impl(
         *,
         actions,

@@ -49,6 +49,8 @@ load(
     "MacosXcTestBundleInfo",
 )
 
+visibility("//apple/...")
+
 _MACOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, MacosApplicationBundleInfo]]
 
 def _macos_ui_test_bundle_impl(ctx):

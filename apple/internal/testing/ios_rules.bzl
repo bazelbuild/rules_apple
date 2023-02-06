@@ -51,6 +51,8 @@ load(
     "IosXcTestBundleInfo",
 )
 
+visibility("//apple/...")
+
 def _ios_ui_test_bundle_impl(ctx):
     """Implementation of ios_ui_test."""
     return apple_test_bundle_support.apple_test_bundle_impl(

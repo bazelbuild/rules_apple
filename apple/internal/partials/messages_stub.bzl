@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 _AppleMessagesStubInfo = provider(
     doc = """
 Private provider to propagate the messages stub that needs to be package in the iOS archive.

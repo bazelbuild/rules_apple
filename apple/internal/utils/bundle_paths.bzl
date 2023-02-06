@@ -19,6 +19,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 def _farthest_parent(path, extension):
     """Returns the part of a path with the given extension closest to the root.
 

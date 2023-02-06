@@ -31,6 +31,8 @@ load(
     "paths",
 )
 
+visibility("public")
+
 def _dtrace_compile_impl(ctx):
     """Implementation for dtrace_compile."""
     output_hdrs = []

@@ -23,6 +23,8 @@ load(
     "xctoolrunner",
 )
 
+visibility("//apple/internal/...")
+
 def compile_mlmodel(
         *,
         actions,

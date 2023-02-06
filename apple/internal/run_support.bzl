@@ -19,6 +19,11 @@ load(
     "outputs",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _register_simulator_executable(
         *,
         actions,

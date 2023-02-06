@@ -43,6 +43,8 @@ load(
     "paths",
 )
 
+visibility("//apple/internal/...")
+
 def _actool_args_for_special_file_types(
         *,
         asset_files,

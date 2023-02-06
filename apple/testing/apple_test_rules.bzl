@@ -25,6 +25,12 @@ load(
     _coverage_files_aspect = "coverage_files_aspect",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+    "@build_bazel_rules_apple//testing/...",
+])
+
 # Re-export these symbols to avoid breaking current users of these.
 # TODO(kaipi): Find a better location for test providers to export them as public interface from
 # rules_apple.

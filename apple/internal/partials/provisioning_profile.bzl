@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _provisioning_profile_partial_impl(
         *,
         actions,

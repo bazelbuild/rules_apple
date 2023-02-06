@@ -14,6 +14,8 @@
 
 """Utility functions for working with strings, lists, and files in Starlark."""
 
+visibility("public")
+
 def full_label(lbl):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
 

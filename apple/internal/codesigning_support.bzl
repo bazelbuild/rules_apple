@@ -39,6 +39,11 @@ load(
     "shell",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _double_quote(raw_string):
     """Add double quotes around the string and preserve existing quote characters.
 

@@ -86,6 +86,8 @@ load(
     "types",
 )
 
+visibility("//apple/...")
+
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"

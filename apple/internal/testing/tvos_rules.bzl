@@ -50,6 +50,8 @@ load(
     "TvosXcTestBundleInfo",
 )
 
+visibility("//apple/...")
+
 _TVOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, TvosApplicationBundleInfo]]
 
 def _tvos_ui_test_bundle_impl(ctx):

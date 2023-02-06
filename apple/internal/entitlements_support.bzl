@@ -35,6 +35,11 @@ load(
     "entitlements_validation_mode",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _tool_validation_mode(*, is_device, rules_mode):
     """Returns the tools validation_mode to use.
 

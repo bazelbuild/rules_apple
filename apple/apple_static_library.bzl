@@ -36,6 +36,8 @@ load(
     "ApplePlatformInfo",
 )
 
+visibility("public")
+
 def _apple_static_library_impl(ctx):
     # Most validation of the platform type and minimum version OS currently happens in
     # `transition_support.apple_platform_split_transition`, either implicitly through native

@@ -88,6 +88,11 @@ load(
     "types",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "infoplists": (resources_support.infoplists, False),
     "plists": (resources_support.plists_and_strings, False),

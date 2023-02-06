@@ -99,6 +99,11 @@ load(
     "paths",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Location enum that can be used to tag files into their appropriate location
 # in the final archive.
 _LOCATION_ENUM = struct(

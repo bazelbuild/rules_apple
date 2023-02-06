@@ -48,6 +48,8 @@ load(
     "paths",
 )
 
+visibility("//apple/...")
+
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions

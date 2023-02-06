@@ -14,6 +14,11 @@
 
 """Support functions for working with Apple platforms and device families."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items

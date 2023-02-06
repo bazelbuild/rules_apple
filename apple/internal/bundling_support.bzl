@@ -14,6 +14,11 @@
 
 """Low-level bundling name helpers."""
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _bundle_full_name(
         *,
         custom_bundle_extension = None,

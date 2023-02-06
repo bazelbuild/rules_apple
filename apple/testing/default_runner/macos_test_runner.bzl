@@ -23,6 +23,8 @@ load(
     "AppleTestRunnerInfo",
 )
 
+visibility("public")
+
 def _get_xctestrun_template_substitutions(xcode_config):
     """Returns the template substitutions for the xctestrun template."""
 

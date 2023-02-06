@@ -48,6 +48,11 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.
 # This defines an _enum_ to identify an imported XCFramework bundle type.
 _BUNDLE_TYPE = struct(frameworks = 1, libraries = 2)

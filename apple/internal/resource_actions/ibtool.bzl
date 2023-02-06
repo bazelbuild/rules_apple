@@ -31,6 +31,8 @@ load(
     "paths",
 )
 
+visibility("//apple/internal/...")
+
 def _ibtool_arguments(min_os, families):
     """Returns common `ibtool` command line arguments.
 

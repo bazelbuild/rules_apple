@@ -19,6 +19,11 @@ load(
     "SwiftUsageInfo",
 )
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _uses_swift(targets):
     """Returns True if any of the given targets uses Swift.
 

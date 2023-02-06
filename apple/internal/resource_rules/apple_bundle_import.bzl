@@ -27,6 +27,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _apple_bundle_import_impl(ctx):
     """Implementation of the apple_bundle_import rule."""
     parent_dir_param = partial.make(

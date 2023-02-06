@@ -25,6 +25,8 @@ load(
     "embeddable_info",
 )
 
+visibility("//apple/...")
+
 # List of attributes through which the aspect propagates. We include `runtime_deps` here as
 # these are supported by `objc_library` for frameworks that should be present in the bundle, but not
 # linked against.

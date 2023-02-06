@@ -35,6 +35,8 @@ load(
     "partial",
 )
 
+visibility("//apple/...")
+
 def _clang_rt_dylibs_partial_impl(
         *,
         actions,
