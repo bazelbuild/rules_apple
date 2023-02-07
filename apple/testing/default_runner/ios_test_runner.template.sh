@@ -109,6 +109,8 @@ fi
 sanitizer_dyld_env=""
 readonly sanitizer_root="${TEST_BUNDLE_PATH}/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
+  [[ -e "$sanitizer" ]] || continue
+
   if [[ -n "$sanitizer_dyld_env" ]]; then
     sanitizer_dyld_env="$sanitizer_dyld_env:"
   fi

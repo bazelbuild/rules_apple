@@ -7,6 +7,10 @@ load(
     "WATCHOS_CONFIGURATIONS",
 )
 load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
+load(
     "//test:test_rules.bzl",
     "apple_multi_shell_test",
     "apple_shell_test",
@@ -242,6 +246,16 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=i386,x86_64,sim_arm64",
     ],
+)
+
+apple_shell_test(
+    name = "ios_test_runner_unit_test_14.x",
+    size = "large",
+    src = "ios_test_runner_unit_test_14.x.sh",
+    args = [
+        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+    ],
+    tags = common.skip_ci_tags,
 )
 
 apple_shell_test(
