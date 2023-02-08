@@ -85,6 +85,8 @@ fi
 sanitizer_dyld_env=""
 readonly sanitizer_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
+  [[ -e "$sanitizer" ]] || continue
+
   if [[ -n "$sanitizer_dyld_env" ]]; then
     sanitizer_dyld_env="$sanitizer_dyld_env:"
   fi

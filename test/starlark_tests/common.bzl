@@ -21,6 +21,12 @@ _fixture_tags = [
     "notap",
 ]
 
+# Tags that indicate this test is not supported in CI (e.g., required runtimes
+# are not available).
+_skip_ci_tags = [
+    "skipci",
+]
+
 # The current baseline for iOS is version 12.0, based on when the arm64e architecture was
 # introduced.
 _min_os_ios = struct(
@@ -60,4 +66,5 @@ common = struct(
     min_os_macos = _min_os_macos,
     min_os_tvos = _min_os_tvos,
     min_os_watchos = _min_os_watchos,
+    skip_ci_tags = _skip_ci_tags,
 )
