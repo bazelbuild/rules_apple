@@ -216,6 +216,12 @@ Test filter string that will be passed into the test runner to select which test
 """,
         default = "",
     ),
+    "test_coverage_manifest": attr.label(
+        doc = """
+A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.
+""",
+        allow_single_file = True,
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):

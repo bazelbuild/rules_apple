@@ -110,7 +110,6 @@ sanitizer_dyld_env=""
 readonly sanitizer_root="${TEST_BUNDLE_PATH}/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
   [[ -e "$sanitizer" ]] || continue
-
   if [[ -n "$sanitizer_dyld_env" ]]; then
     sanitizer_dyld_env="$sanitizer_dyld_env:"
   fi
@@ -162,7 +161,7 @@ if [[ -n "$TESTBRIDGE_TEST_ONLY" || -n "$TEST_FILTER" ]]; then
   else
     ALL_TESTS=("$TEST_FILTER")
   fi
-  
+
   for TEST in $ALL_TESTS; do
     if [[ $TEST == -* ]]; then
       if [[ -n "$SKIP_TESTS" ]]; then
@@ -255,7 +254,7 @@ xcrun llvm-profdata merge "$profraw" --output "$profdata"
 lcov_args=(
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
-  -path-equivalence="$ROOT,."
+  -path-equivalence=.,"$PWD"
 )
 has_binary=false
 IFS=";"
@@ -274,13 +273,19 @@ for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   lcov_args+=("-arch=$arch")
 done
 
+llvm_coverage_manifest="$COVERAGE_MANIFEST"
+readonly provided_coverage_manifest="%(test_coverage_manifest)s"
+if [[ -s "${provided_coverage_manifest:-}" ]]; then
+  llvm_coverage_manifest="$provided_coverage_manifest"
+fi
+
 readonly error_file="$TMP_DIR/llvm-cov-error.txt"
 llvm_cov_status=0
 xcrun llvm-cov \
   export \
   -format lcov \
   "${lcov_args[@]}" \
-  @"$COVERAGE_MANIFEST" \
+  @"$llvm_coverage_manifest" \
   > "$COVERAGE_OUTPUT_FILE" \
   2> "$error_file" \
   || llvm_cov_status=$?
@@ -299,7 +304,7 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     export \
     -format text \
     "${lcov_args[@]}" \
-    @"$COVERAGE_MANIFEST" \
+    @"$llvm_coverage_manifest" \
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json" \
     2> "$error_file" \
     || llvm_cov_json_export_status=$?

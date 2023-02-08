@@ -406,7 +406,8 @@ Builds and bundles a macOS Spotlight Importer.
 ## macos_ui_test
 
 <pre>
-macos_ui_test(<a href="#macos_ui_test-name">name</a>, <a href="#macos_ui_test-data">data</a>, <a href="#macos_ui_test-deps">deps</a>, <a href="#macos_ui_test-env">env</a>, <a href="#macos_ui_test-platform_type">platform_type</a>, <a href="#macos_ui_test-runner">runner</a>, <a href="#macos_ui_test-test_filter">test_filter</a>, <a href="#macos_ui_test-test_host">test_host</a>)
+macos_ui_test(<a href="#macos_ui_test-name">name</a>, <a href="#macos_ui_test-data">data</a>, <a href="#macos_ui_test-deps">deps</a>, <a href="#macos_ui_test-env">env</a>, <a href="#macos_ui_test-platform_type">platform_type</a>, <a href="#macos_ui_test-runner">runner</a>, <a href="#macos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#macos_ui_test-test_filter">test_filter</a>,
+              <a href="#macos_ui_test-test_host">test_host</a>)
 </pre>
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -427,6 +428,7 @@ Note: macOS UI tests are not currently supported in the default test runner.
 | <a id="macos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="macos_ui_test-platform_type"></a>platform_type |  -   | String | optional | "macos" |
 | <a id="macos_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="macos_ui_test-test_coverage_manifest"></a>test_coverage_manifest |  A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 | <a id="macos_ui_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="macos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
@@ -436,7 +438,8 @@ Note: macOS UI tests are not currently supported in the default test runner.
 ## macos_unit_test
 
 <pre>
-macos_unit_test(<a href="#macos_unit_test-name">name</a>, <a href="#macos_unit_test-data">data</a>, <a href="#macos_unit_test-deps">deps</a>, <a href="#macos_unit_test-env">env</a>, <a href="#macos_unit_test-platform_type">platform_type</a>, <a href="#macos_unit_test-runner">runner</a>, <a href="#macos_unit_test-test_filter">test_filter</a>, <a href="#macos_unit_test-test_host">test_host</a>)
+macos_unit_test(<a href="#macos_unit_test-name">name</a>, <a href="#macos_unit_test-data">data</a>, <a href="#macos_unit_test-deps">deps</a>, <a href="#macos_unit_test-env">env</a>, <a href="#macos_unit_test-platform_type">platform_type</a>, <a href="#macos_unit_test-runner">runner</a>, <a href="#macos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#macos_unit_test-test_filter">test_filter</a>,
+                <a href="#macos_unit_test-test_host">test_host</a>)
 </pre>
 
 Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
@@ -463,6 +466,7 @@ find more information about testing for Apple platforms
 | <a id="macos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | {} |
 | <a id="macos_unit_test-platform_type"></a>platform_type |  -   | String | optional | "macos" |
 | <a id="macos_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="macos_unit_test-test_coverage_manifest"></a>test_coverage_manifest |  A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 | <a id="macos_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | "" |
 | <a id="macos_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
 
