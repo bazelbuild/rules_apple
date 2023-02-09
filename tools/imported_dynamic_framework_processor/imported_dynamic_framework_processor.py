@@ -173,6 +173,8 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
     os.makedirs(temp_framework_dirs)
 
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
+  os.chmod(temp_framework_path, 0o755)
+  return 0
 
 
 def _strip_bitcode(framework_binary, output_path):
