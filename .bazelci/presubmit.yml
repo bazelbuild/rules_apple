@@ -5,6 +5,8 @@ x_defaults:
   common: &common
     platform: macos
     xcode_version: "14.2"
+    shell_commands:
+    - .bazelci/xcode_debug.sh
     build_targets:
     - "tools/..."
     - "test/..."
