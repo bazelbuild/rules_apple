@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#import <Foundation/Foundation.h>
 #import <XCTest/XCTest.h>
 
 #import "examples/ios/Squarer/Sources/Squarer.h"
@@ -24,6 +25,16 @@
 - (void)testNumberIsSquared {
   Squarer *squarer = [[Squarer alloc] init];
   XCTAssertEqual(49, [squarer squareInteger:7], @"Number should be squared");
+}
+
+- (void)testEnvIsSet {
+  XCTAssertNotNil([[NSProcessInfo processInfo] environment][@"TEST_ENV_VAR"],
+                  @"TEST_ENV_VAR should be set");
+}
+
+- (void)testSrcdirEnv {
+  XCTAssertNotNil([[NSProcessInfo processInfo] environment][@"TEST_SRCDIR"],
+                  @"TEST_SRCDIR should be set");
 }
 
 @end

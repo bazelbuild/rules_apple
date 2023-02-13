@@ -66,10 +66,18 @@ function escape() {
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
 test_env="%(test_env)s"
+if [[ -n "$test_env" ]]; then
+  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR"
+else
+  test_env="TEST_SRCDIR=$TEST_SRCDIR"
+fi
+
+passthrough_env=()
 xctestrun_env=""
 for single_test_env in ${test_env//,/ }; do
   IFS="=" read -r key value <<< "$single_test_env"
   xctestrun_env+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
+  passthrough_env+=("SIMCTL_CHILD_$key=$value")
 done
 
 if [[ -n "$test_host_path" ]]; then
@@ -158,6 +166,7 @@ else
     SIMCTL_CHILD_DYLD_FALLBACK_FRAMEWORK_PATH="$platform_developer_dir/Library/Frameworks" \
     SIMCTL_CHILD_DYLD_INSERT_LIBRARIES="$sanitizer_dyld_env" \
     SIMCTL_CHILD_LLVM_PROFILE_FILE="$profraw" \
+    env "${passthrough_env[@]}" \
     xcrun simctl \
     spawn \
     "$id" \
