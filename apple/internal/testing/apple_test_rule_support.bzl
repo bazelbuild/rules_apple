@@ -67,8 +67,11 @@ def _coverage_files_aspect_impl(target, ctx):
     direct_binaries = []
     transitive_binaries_sets = []
     if AppleBundleInfo in target and target[AppleBundleInfo].binary:
-        direct_binaries.append(target[AppleBundleInfo].binary)
-
+        if "exclude_test_target_coverage" not in ctx.features:
+            direct_binaries.append(target[AppleBundleInfo].binary)
+        else:
+            if AppleTestInfo not in target:
+                direct_binaries.append(target[AppleBundleInfo].binary)
     # Collect dependencies coverage files.
     for dep in getattr(ctx.rule.attr, "deps", []):
         coverage_files.append(dep[CoverageFilesInfo].coverage_files)
@@ -78,8 +81,9 @@ def _coverage_files_aspect_impl(target, ctx):
         transitive_binaries_sets.append(fmwk[CoverageFilesInfo].covered_binaries)
 
     if hasattr(ctx.rule.attr, "test_host") and ctx.rule.attr.test_host:
-        coverage_files.append(ctx.rule.attr.test_host[CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(ctx.rule.attr.test_host[CoverageFilesInfo].covered_binaries)
+        if "exclude_test_target_coverage" not in ctx.features:
+            coverage_files.append(ctx.rule.attr.test_host[CoverageFilesInfo].coverage_files)
+            transitive_binaries_sets.append(ctx.rule.attr.test_host[CoverageFilesInfo].covered_binaries)
 
     return [
         CoverageFilesInfo(
