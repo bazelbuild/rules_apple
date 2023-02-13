@@ -69,9 +69,9 @@ def _coverage_files_aspect_impl(target, ctx):
     if AppleBundleInfo in target and target[AppleBundleInfo].binary:
         if "exclude_test_target_coverage" not in ctx.features:
             direct_binaries.append(target[AppleBundleInfo].binary)
-        else:
-            if AppleTestInfo not in target:
-                direct_binaries.append(target[AppleBundleInfo].binary)
+        elif AppleTestInfo not in target:
+            direct_binaries.append(target[AppleBundleInfo].binary)
+
     # Collect dependencies coverage files.
     for dep in getattr(ctx.rule.attr, "deps", []):
         coverage_files.append(dep[CoverageFilesInfo].coverage_files)
