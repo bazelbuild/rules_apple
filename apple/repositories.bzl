@@ -114,9 +114,9 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         _maybe(
             http_archive,
             name = "build_bazel_apple_support",
-            sha256 = "2e3dc4d0000e8c2f5782ea7bb53162f37c485b5d8dc62bb3d7d7fc7c276f0d00",
+            sha256 = "33f0836185441c796d9d7d9d090204055f8e4e4b60370bd9f05e7b17b113d288",
             urls = [
-                "https://github.com/bazelbuild/apple_support/releases/download/1.3.2/apple_support.1.3.2.tar.gz",
+                "https://github.com/bazelbuild/apple_support/releases/download/1.4.0/apple_support.1.4.0.tar.gz",
             ],
             ignore_version_differences = ignore_version_differences,
         )
