@@ -182,18 +182,23 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
+if grep -q -e "Executed 0 tests, with 0 failures" "$testlog"; then
+  echo "error: no tests were executed, is the test bundle empty?" >&2
+  exit 1
+fi
+
 # When tests crash after they have reportedly completed, XCTest marks them as
 # a success. These 2 cases are Swift fatalErrors, and C++ exceptions. There
 # are likely other cases we can add to this in the future. FB7801959
 if grep -q \
   -e "^Fatal error:" \
   -e "^libc++abi.dylib: terminating with uncaught exception" \
-  -e "Executed 0 tests, with 0 failures" \
   "$testlog"
 then
   echo "error: log contained test false negative" >&2
   exit 1
 fi
+
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
