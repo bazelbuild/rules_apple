@@ -4,7 +4,6 @@ rules repos (this doc is not duplicated across the repos):
 - [`apple_support`](https://github.com/bazelbuild/apple_support)
 - [`rules_apple`](https://github.com/bazelbuild/rules_apple)
 - [`rules_swift`](https://github.com/bazelbuild/rules_swift)
-- [`Tulsi`](https://github.com/bazelbuild/tulsi)
 
 # Maintainers
 
@@ -68,8 +67,6 @@ things to do.
   when it can be merged in the future.
 - If for some reason a commit should never be cherry picked, comment on
   it to indicate why and so it appears triaged for the future.
-- When cherry picking multiple tulsi commits, be sure to land the
-  version bumps in the same order as they were upstream
 
 # Reviews
 
@@ -115,7 +112,6 @@ is the recommended process:
 - Update the `apple/repositories.bzl` file in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
-- Update the `Tulsi` `WORKSPACE` with the new version of `rules_apple`.
 - Merge the automatically submitted PRs that update the `MODULE.bazel`
   versions.
 
