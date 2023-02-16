@@ -15,6 +15,7 @@ x_defaults:
     test_flags:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
+    bazel: 1a6ffe6d453708e3cefc98a07965c680e48d6bac
     build_flags:
       # https://github.com/bazelbuild/bazel/issues/16939
       - --incompatible_objc_linking_info_migration=false
@@ -41,13 +42,11 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
     <<: *common
     <<: *common_last_green
 
   macos_last_green_head_deps:
     name: "Last Green Bazel with Head Deps"
-    bazel: last_green
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
@@ -57,7 +56,6 @@ tasks:
 
   doc_tests:
     name: "Doc tests"
-    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."
