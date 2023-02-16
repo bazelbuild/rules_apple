@@ -21,3 +21,6 @@ use_repo(
 
 provisioning_profile_repository = use_extension("//apple:apple.bzl", "provisioning_profile_repository_extension")
 use_repo(provisioning_profile_repository, "local_provisioning_profiles")
+
+apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
+use_repo(apple_cc_configure, "local_config_apple_cc")
