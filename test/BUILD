@@ -45,26 +45,7 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-# Gather external dependencies into a target that can be injected into the
-# integration tests. The test script will then mock out the files required
-# to make these proper WORKSPACES that can be used in tests.
-# This enables us to:
-#   1. Reuse the download of the external dependencies across all tests.
-#   2. Remove the need to update dependency versions in the repo's
-#      WORKSPACE and the test WORKSPACE.
-filegroup(
-    name = "external_deps",
-    testonly = 1,
-    srcs = [
-        "@bazel_skylib//:test_deps",
-        "@xctestrunner//:ios_test_runner",
-    ],
-)
-
 # ----------------------------------------------------------------------------
-
-# Ballpark number for shared_count:
-#  grep -c function\ test test/*_test.sh
 
 # Tests that end up needing things like ibtool or actool run under the hood
 # are better off as a dedicated *_resources_test.sh that can then be marked
