@@ -27,6 +27,11 @@ load(
     "dicts",
 )
 
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+
 CoverageFilesInfo = provider(
     doc = """
 Provider used by the `coverage_files_aspect` aspect to propagate the
@@ -103,7 +108,7 @@ This aspect propagates a `CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None, test_filter = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None, test_filter = None, product_module_name = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -115,6 +120,7 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
     subs["test_filter"] = test_filter or ""
+    subs["product_module_name"] = product_module_name or ""
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -135,6 +141,12 @@ def _apple_test_rule_impl(ctx, test_type):
     test_bundle_target = ctx.attr.deps[0]
 
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
+    swift_module_list = test_bundle_target[AppleTestInfo].swift_modules.to_list()
+
+    module_name = ""
+    if len(swift_module_list) > 0:
+        test_swift_module_file = swift_module_list[len(swift_module_list) - 1]
+        module_name = paths.split_extension(paths.basename(test_swift_module_file.short_path))[0]
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
@@ -177,6 +189,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_environment,
             test_host = test_host_archive,
             test_filter = ctx.attr.test_filter,
+            product_module_name = module_name,
         ),
         is_executable = True,
     )
