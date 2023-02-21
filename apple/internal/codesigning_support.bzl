@@ -59,6 +59,22 @@ def _no_op(x):
     """Helper that does not nothing be return the result."""
     return x
 
+def _preferred_codesigning_identity(platform_prerequisites):
+    """Returns the preferred codesigning identity from platform prerequisites"""
+    if not platform_prerequisites.platform.is_device:
+        return "-"
+    build_settings = platform_prerequisites.build_settings
+    if build_settings:
+        objc_fragment = platform_prerequisites.objc_fragment
+        if objc_fragment:
+            # TODO(b/252873771): Remove this fallback when the native Bazel flag
+            # ios_signing_cert_name is removed.
+            return (build_settings.signing_certificate_name or
+                    objc_fragment.signing_certificate_name)
+        else:
+            return build_settings.signing_certificate_name
+    return None
+
 def _codesign_args_for_path(
         *,
         entitlements_file,
@@ -94,8 +110,6 @@ def _codesign_args_for_path(
         "/usr/bin/codesign",
     ]
 
-    is_device = platform_prerequisites.platform.is_device
-
     # Add quotes for sanitizing inputs when they're invoked directly from a shell script, for
     # instance when using this string to assemble the output of codesigning_command.
     maybe_quote = shell.quote if shell_quote else _no_op
@@ -103,7 +117,7 @@ def _codesign_args_for_path(
 
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
     # use an ad hoc identity.
-    identity = platform_prerequisites.signing_certificate_name if is_device else "-"
+    identity = _preferred_codesigning_identity(platform_prerequisites)
     if not identity:
         if provisioning_profile:
             cmd_codesigning.extend([
@@ -120,7 +134,7 @@ def _codesign_args_for_path(
             maybe_quote(identity),
         ])
 
-    if is_device:
+    if platform_prerequisites.platform.is_device:
         if path_to_sign.use_entitlements and entitlements_file:
             cmd_codesigning.extend([
                 "--entitlements",
@@ -184,8 +198,7 @@ def _validate_provisioning_profile(
         provisioning_profile):
     # Verify that a provisioning profile was provided for device builds on
     # platforms that require it.
-    is_device = platform_prerequisites.platform.is_device
-    if (is_device and
+    if (platform_prerequisites.platform.is_device and
         rule_descriptor.requires_signing_for_device and
         not provisioning_profile):
         fail("The provisioning_profile attribute must be set for device " +
@@ -439,11 +452,9 @@ def _generate_codesigning_dossier_action(
 
     dossier_arguments = ["--output", output_dossier.path, "--zip"]
 
-    is_device = platform_prerequisites.platform.is_device
-
     # Try to use the identity passed on the command line, if any. If it's a simulator build, use an
     # ad hoc identity.
-    codesign_identity = platform_prerequisites.signing_certificate_name if is_device else "-"
+    codesign_identity = _preferred_codesigning_identity(platform_prerequisites)
     if not codesign_identity and not provisioning_profile:
         codesign_identity = "-"
     if codesign_identity:

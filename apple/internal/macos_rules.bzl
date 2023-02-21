@@ -152,7 +152,6 @@ def _macos_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -418,7 +417,6 @@ def _macos_bundle_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -628,7 +626,6 @@ def _macos_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -853,7 +850,6 @@ def _macos_quick_look_plugin_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1076,7 +1072,6 @@ def _macos_kernel_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1299,7 +1294,6 @@ def _macos_spotlight_importer_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1508,7 +1502,6 @@ def _macos_xpc_service_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1716,7 +1709,6 @@ def _macos_command_line_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1834,7 +1826,6 @@ def _macos_dylib_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
-        signing_certificate_name = apple_xplat_toolchain_info.build_settings.signing_certificate_name,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
