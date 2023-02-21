@@ -64,7 +64,6 @@ def _platform_prerequisites(
         features,
         objc_fragment,
         platform_type_string,
-        signing_certificate_name = None,
         uses_swift,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
@@ -80,9 +79,6 @@ def _platform_prerequisites(
       features: The list of enabled features applied to the target.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
       platform_type_string: The platform type for the current target as a string.
-      signing_certificate_name: The name of the code signing identity to use for signing. If this
-        is expected to be inferred from an assigned provisioning profile or if code signing does not
-        apply to this part of the rule logic, set this to None. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
 
@@ -103,14 +99,6 @@ def _platform_prerequisites(
     else:
         minimum_deployment_os = minimum_os
 
-    if objc_fragment:
-        # TODO(b/252873771): Remove this fallback when the native Bazel flag ios_signing_cert_name
-        # is removed.
-        preferred_signing_cert_name = (signing_certificate_name or
-                                       objc_fragment.signing_certificate_name)
-    else:
-        preferred_signing_cert_name = signing_certificate_name
-
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
@@ -126,7 +114,6 @@ def _platform_prerequisites(
         platform = platform,
         platform_type = platform_type_attr,
         sdk_version = sdk_version,
-        signing_certificate_name = preferred_signing_cert_name,
         uses_swift = uses_swift,
         xcode_version_config = xcode_version_config,
     )
