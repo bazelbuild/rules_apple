@@ -201,6 +201,21 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Verify ios_application with imported static framework that has data attribute
+    # bundles the framework's own .bundle/ and its data resources in the final binary.
+    archive_contents_test(
+        name = "{}_swift_with_imported_static_fmwk_with_bundle_and_data".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_static_fmwk_with_data",
+        contains = [
+            "$BUNDLE_ROOT/sample.png",
+            "$BUNDLE_ROOT/it.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/fr.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/iOSStaticFramework.bundle/",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_fmwk_with_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",

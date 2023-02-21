@@ -2022,6 +2022,25 @@ EOF
 """,
 )
 
+# Swift app with imported Swift static framework with data attribute
+ios_application(
+    name = "swift_app_with_imported_static_fmwk_with_data",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFrameworkWithDataAndBundle",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple static XCFramework import tests.
 
@@ -3441,6 +3460,25 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
         "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_resources_import",
+    ],
+)
+
+ios_application(
+    name = "app_with_imported_xcfmwk_bundling_resources_and_data",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_resources_and_data",
     ],
 )
 

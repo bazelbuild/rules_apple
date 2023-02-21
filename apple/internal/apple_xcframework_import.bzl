@@ -28,17 +28,19 @@ load(
     "framework_import_support",
 )
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
-load("@build_bazel_rules_apple//apple/internal:resources.bzl", "resources")
 load("@build_bazel_rules_apple//apple/internal:rule_factory.bzl", "rule_factory")
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "AppleFrameworkImportBundleInfo",
+)
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftToolchainInfo", "swift_clang_module_aspect", "swift_common")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.
@@ -510,7 +512,13 @@ def _apple_static_xcframework_import_impl(ctx):
     )
 
     providers = []
-    providers.append(DefaultInfo(files = depset(xcframework_imports)))
+
+    # Create DefaultInfo provider
+    default_info_provider = DefaultInfo(
+        files = depset(xcframework_imports),
+        runfiles = ctx.runfiles(files = ctx.files.data),
+    )
+    providers.append(default_info_provider)
 
     fields = {}
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
@@ -583,20 +591,10 @@ def _apple_static_xcframework_import_impl(ctx):
     if swift_interop_info:
         providers.append(swift_interop_info)
 
-    # Create AppleResourceInfo provider.
+    # Create AppleFrameworkImportBundleInfo provider.
     bundle_files = [x for x in xcframework_library.framework_files if ".bundle/" in x.short_path]
     if bundle_files:
-        parent_dir_param = partial.make(
-            resources.bundle_relative_parent_dir,
-            extension = "bundle",
-        )
-        resource_provider = resources.bucketize_typed(
-            bundle_files,
-            owner = str(label),
-            bucket_type = "unprocessed",
-            parent_dir_param = parent_dir_param,
-        )
-        providers.append(resource_provider)
+        providers.append(AppleFrameworkImportBundleInfo(bundle_files = bundle_files))
 
     return providers
 
@@ -722,6 +720,16 @@ linked into that target.
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
                 aspects = [swift_clang_module_aspect],
+            ),
+            "data": attr.label_list(
+                allow_files = True,
+                doc = """
+List of files needed by this target at runtime.
+
+Files and targets named in the `data` attribute will appear in the `*.runfiles`
+area of this target, if it has one. This may include data files needed by a
+binary or library, or other programs needed by it.
+""",
             ),
             "has_swift": attr.bool(
                 doc = """

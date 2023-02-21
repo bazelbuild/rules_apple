@@ -118,6 +118,21 @@ def apple_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify ios_application with static XCFramework that has data attribute
+    # bundles the framework's data in the final binary.
+    archive_contents_test(
+        name = "{}_static_xcfw_with_bundle_resources_and_data".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_resources_and_data",
+        contains = [
+            "$BUNDLE_ROOT/sample.png",
+            "$BUNDLE_ROOT/it.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/fr.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/resource_bundle.bundle/",
+        ],
+        tags = [name],
+    )
+
     analysis_target_outputs_test(
         name = "{}_static_xcfw_import_with_lib_ids_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_lib_ids",

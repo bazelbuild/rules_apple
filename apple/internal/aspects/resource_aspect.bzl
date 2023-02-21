@@ -40,6 +40,10 @@ load(
     "AppleResourceInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "AppleFrameworkImportBundleInfo",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
@@ -99,6 +103,7 @@ def _apple_resource_aspect_impl(target, ctx):
     collect_infoplists_args = {}
     collect_args = {}
     collect_structured_args = {}
+    collect_framework_import_bundle_files = None
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
@@ -117,6 +122,12 @@ def _apple_resource_aspect_impl(target, ctx):
     elif ctx.rule.kind == "swift_library":
         module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
+        collect_args["res_attrs"] = ["data"]
+        owner = str(ctx.label)
+
+    elif ctx.rule.kind in ["apple_static_framework_import", "apple_static_xcframework_import"]:
+        if AppleFrameworkImportBundleInfo in target:
+            collect_framework_import_bundle_files = target[AppleFrameworkImportBundleInfo].bundle_files
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
@@ -228,6 +239,21 @@ def _apple_resource_aspect_impl(target, ctx):
                     **process_args
                 ),
             )
+
+    # Collect .bundle/ files from framework_import rules
+    if collect_framework_import_bundle_files:
+        parent_dir_param = partial.make(
+            resources.bundle_relative_parent_dir,
+            extension = "bundle",
+        )
+        providers.append(
+            resources.bucketize_typed(
+                collect_framework_import_bundle_files,
+                owner = owner,
+                bucket_type = "unprocessed",
+                parent_dir_param = parent_dir_param,
+            ),
+        )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
     inherited_providers = []
