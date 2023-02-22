@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("//apple:ios.bzl", "ios_application")
+load("//apple:ios.bzl", "ios_application", "ios_unit_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 licenses(["notice"])
@@ -12,6 +12,40 @@ swift_library(
     data = [
         "Resources/Main.storyboard",
     ],
+    module_name = "Sources",
+)
+
+swift_library(
+    name = "Tests",
+    testonly = True,
+    srcs = [
+        "Tests/Tests.swift",
+    ],
+    deps = [
+        ":Sources",
+    ],
+)
+
+ios_unit_test(
+    name = "UnitTests",
+    minimum_os_version = "8.0",
+    deps = [":Tests"],
+)
+
+genrule(
+    name = "CreateTestCoverageManifest",
+    srcs = ["Sources/AppDelegate.swift"],
+    outs = [
+        "CoverageManifest.instrumented_files",
+    ],
+    cmd = "echo $(SRCS) > $@",
+)
+
+ios_unit_test(
+    name = "UnitTestsWithCoverageManifest",
+    minimum_os_version = "15.0",
+    test_coverage_manifest = "CoverageManifest.instrumented_files",
+    deps = [":Tests"],
 )
 
 ios_application(
