@@ -134,7 +134,7 @@ EOF
 EOF
 
   cat > app/coverage_manifest.txt <<EOF
-./app/SharedLogic.m
+app/SharedLogic.m
 EOF
 
   cat >> app/BUILD <<EOF
