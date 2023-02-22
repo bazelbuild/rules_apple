@@ -251,12 +251,8 @@ fi
 readonly profdata="$TMP_DIR/coverage.profdata"
 xcrun llvm-profdata merge "$profraw" --output "$profdata"
 
-cp "$profdata" /tmp/coverage_manifest.profraw
-
-echo "ROOT: $ROOT"
-echo "PWD: $PWD"
 lcov_args=(
-  -instr-profile="$profdata"
+  -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
   -path-equivalence="$ROOT,."
 )
@@ -266,7 +262,6 @@ arch=$(uname -m)
 for binary in $TEST_BINARIES_FOR_LLVM_COV; do
   if [[ "$has_binary" == false ]]; then
     lcov_args+=("${binary}")
-    cp "${binary}" /tmp/test_binary
     has_binary=true
     if ! file "$binary" | grep -q "$arch"; then
       arch=x86_64

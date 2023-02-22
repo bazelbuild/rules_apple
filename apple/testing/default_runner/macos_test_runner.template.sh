@@ -162,7 +162,7 @@ llvm_cov_export_status=0
 lcov_args=(
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
-  -path-equivalence=.,"$PWD"
+  -path-equivalence="$ROOT,."
 )
 xcrun llvm-cov \
   export \
