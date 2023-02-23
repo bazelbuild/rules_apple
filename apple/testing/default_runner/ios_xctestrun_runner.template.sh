@@ -80,11 +80,44 @@ for single_test_env in ${test_env//,/ }; do
   passthrough_env+=("SIMCTL_CHILD_$key=$value")
 done
 
+xcrun_target_app_path=""
+xcrun_is_xctrunner_hosted_bundle="false"
+xcrun_is_ui_test_bundle="false"
+test_type="%(test_type)s"
 if [[ -n "$test_host_path" ]]; then
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
   xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
+
+  if [[ "$test_type" = "XCUITEST" ]]; then
+    xcrun_is_xctrunner_hosted_bundle="true"
+    xcrun_is_ui_test_bundle="true"
+    xcrun_target_app_path="$xctestrun_test_host_path"
+    # If ui testing is enabled we need to copy out the XCTRunner app, update its info.plist accordingly and finally
+    # copy over the needed frameworks to enable ui testing
+    readonly runner_app_name="$test_bundle_name-Runner"
+    readonly runner_app="$runner_app_name.app"
+    readonly runner_app_destination="$test_tmp_dir/$runner_app"
+    libraries_path="$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer/Library"
+    ditto "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
+    mv "$runner_app_destination/XCTRunner" "$runner_app_destination/$runner_app_name"
+    chmod -R 777 "$runner_app_destination"
+    xctestrun_test_host_path="__TESTROOT__/$runner_app"
+
+    /usr/bin/sed \
+      -e "s@WRAPPEDPRODUCTNAME@$runner_app_name@g"\
+      -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@com.apple.test.$runner_app_name@g"\
+      -i "" \
+      "$runner_app_destination/Info.plist"
+
+    readonly runner_app_frameworks_destination="$runner_app_destination/Frameworks"
+    ditto "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
+    ditto "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
+    ditto "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+    ditto "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
+    ditto "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
+  fi
 else
   xctestrun_test_host_path="__PLATFORMS__/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/xctest"
   xctestrun_test_host_based=false
@@ -114,6 +147,9 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
   -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
   -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
+  -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
+  -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
+  -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
   -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
   -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
   -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
