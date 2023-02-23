@@ -511,14 +511,12 @@ def _apple_static_xcframework_import_impl(ctx):
         xcode_config = xcode_config,
     )
 
-    providers = []
-
-    # Create DefaultInfo provider
-    default_info_provider = DefaultInfo(
-        files = depset(xcframework_imports),
-        runfiles = ctx.runfiles(files = ctx.files.data),
-    )
-    providers.append(default_info_provider)
+    providers = [
+        DefaultInfo(
+            files = depset(xcframework_imports),
+            runfiles = ctx.runfiles(files = ctx.files.data),
+        ),
+    ]
 
     fields = {}
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:

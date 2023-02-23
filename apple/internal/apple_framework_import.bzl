@@ -305,11 +305,9 @@ def _apple_static_framework_import_impl(ctx):
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
 
-    providers = []
-
-    # Create DefaultInfo provider
-    default_info_provider = DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data))
-    providers.append(default_info_provider)
+    providers = [
+        DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data)),
+    ]
 
     framework_imports_by_category = framework_import_support.classify_framework_imports(
         ctx.var,
