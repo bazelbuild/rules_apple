@@ -210,7 +210,7 @@ xcrun llvm-profdata merge "$profraw" --output "$profdata"
 lcov_args=(
   -instr-profile "$profdata"
   -ignore-filename-regex='.*external/.+'
-  -path-equivalence=".,$PWD"
+  -path-equivalence="$ROOT,."
 )
 has_binary=false
 IFS=";"
