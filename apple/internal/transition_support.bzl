@@ -193,23 +193,29 @@ def _command_line_options(
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
 
+    # Derive platform label defined in @build_bazel_apple_support//platforms.
+    #
+    # Doing this transition allows to set number of constrains defined in @build_bazel_apple_support
+    # used by other rules (e.g. rules_rust).
+    cpu_string = _cpu_string(
+        cpu = cpu,
+        platform_type = platform_type,
+        settings = settings,
+    )
+
     output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
         "//command_line_option:apple_platforms": apple_platforms,
         "//command_line_option:apple_split_cpu": cpu if cpu else "",
         "//command_line_option:compiler": settings["//command_line_option:apple_compiler"],
-        "//command_line_option:cpu": _cpu_string(
-            cpu = cpu,
-            platform_type = platform_type,
-            settings = settings,
-        ),
+        "//command_line_option:cpu": cpu_string,
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
-        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [],
+        "//command_line_option:platforms": "@build_bazel_apple_support//platforms:{}".format(cpu_string),
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
