@@ -2037,6 +2037,7 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFrameworkWithData",
         "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFrameworkWithDataAndBundle",
     ],
 )

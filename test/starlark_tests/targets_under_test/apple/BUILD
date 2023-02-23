@@ -1194,11 +1194,15 @@ apple_static_framework_import(
 )
 
 apple_static_framework_import(
+    name = "iOSImportedStaticFrameworkWithData",
+    data = ["//test/starlark_tests/resources:sample.png"],
+    features = ["-swift.layering_check"],
+    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFramework"],
+)
+
+apple_static_framework_import(
     name = "iOSImportedStaticFrameworkWithDataAndBundle",
-    data = [
-        "//test/starlark_tests/resources:localized_xibs_ios",
-        "//test/starlark_tests/resources:sample.png",
-    ],
+    data = ["//test/starlark_tests/resources:localized_xibs_ios"],
     features = ["-swift.layering_check"],
     framework_imports = ["//test/testdata/fmwk:iOSStaticFramework"],
 )
