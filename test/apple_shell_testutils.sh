@@ -465,6 +465,9 @@ function do_action() {
       "--incompatible_merge_genfiles_directory"
       # TODO: Fix the tests that fail with this flag and remove this.
       "--incompatible_unambiguous_label_stringification=false"
+      "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
+      "--crosstool_top=@local_config_apple_cc//:toolchain"
+      "--host_crosstool_top=@local_config_apple_cc//:toolchain"
   )
 
   local bazel_version="$(bazel --version)"
