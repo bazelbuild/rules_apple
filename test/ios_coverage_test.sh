@@ -183,13 +183,12 @@ function test_standalone_unit_test_coverage_json() {
       grep '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
 }
 
-# ME: I am not sure why this does not work yet a very similar setup in examples/ios/HelloWorldSwift/BUILD does work
-# function test_standalone_unit_test_coverage_coverage_manifest() {
-#   create_common_files
-#   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test || fail "Should build"
-#   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test/coverage.dat"
-#   assert_contains "SF:./app/StandaloneTest.m" "test-testlogs/app/coverage_manifest_test/coverage.dat"
-# }
+function test_standalone_unit_test_coverage_coverage_manifest() {
+  create_common_files
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test || fail "Should build"
+  assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test/coverage.dat"
+  assert_contains "SF:./app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test/coverage.dat"
+}
 
 function test_hosted_unit_test_coverage() {
   create_common_files
