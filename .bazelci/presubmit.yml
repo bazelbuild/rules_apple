@@ -16,11 +16,7 @@ x_defaults:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
     bazel: last_green
-    build_flags:
-      # https://github.com/bazelbuild/bazel/issues/16939
-      - --incompatible_objc_linking_info_migration=false
     test_flags:
-      - --incompatible_objc_linking_info_migration=false
       - --test_tag_filters=-skipci
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
