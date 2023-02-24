@@ -200,6 +200,8 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
            f.basename.startswith(target_triplet.architecture)
     ]
 
+    framework_files = filter_by_library_identifier(xcframework.files)
+
     includes = []
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
@@ -209,6 +211,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
 
     return struct(
         binary = binaries[0],
+        framework_files = framework_files,
         framework_imports = framework_imports,
         framework_includes = framework_includes,
         headers = headers,
