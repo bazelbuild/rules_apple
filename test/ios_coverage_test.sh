@@ -162,10 +162,25 @@ ios_unit_test(
 )
 
 ios_unit_test(
+    name = "standalone_test_new_runner",
+    deps = [":standalone_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+)
+
+ios_unit_test(
     name = "coverage_manifest_test",
     deps = [":standalone_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
-    test_coverage_manifest = "coverage_manifest.txt"
+    test_coverage_manifest = "coverage_manifest.txt",
+)
+
+ios_unit_test(
+    name = "coverage_manifest_test_new_runner",
+    deps = [":standalone_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_coverage_manifest = "coverage_manifest.txt",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
 )
 EOF
 }
@@ -176,11 +191,17 @@ function test_standalone_unit_test_coverage() {
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
 
+function test_standalone_unit_test_coverage_new_runner() {
+  create_common_files
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test_new_runner || fail "Should build"
+  assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
+}
+
 function test_standalone_unit_test_coverage_json() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --test_env=COVERAGE_PRODUCE_JSON=1 //app:standalone_test || fail "Should build"
   unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" coverage.json \
-      grep '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
+      grep -q '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
 }
 
 function test_standalone_unit_test_coverage_coverage_manifest() {
@@ -188,6 +209,17 @@ function test_standalone_unit_test_coverage_coverage_manifest() {
   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test/coverage.dat"
   assert_contains "SF:./app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test/coverage.dat"
+  cat "test-testlogs/app/coverage_manifest_test/coverage.dat"
+  (! grep "SF:" "test-testlogs/app/coverage_manifest_test/coverage.dat" | grep -v "SF:./app/SharedLogic.m") || fail "Should not contain any other files"
+}
+
+function test_standalone_unit_test_coverage_coverage_manifest_new_runner() {
+  create_common_files
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test_new_runner || fail "Should build"
+  assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
+  assert_contains "SF:./app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
+  cat test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat
+  (! grep "SF:" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat" | grep -v "SF:./app/SharedLogic.m") || fail "Should not contain other files"
 }
 
 function test_hosted_unit_test_coverage() {
