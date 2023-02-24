@@ -258,7 +258,9 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_includes = _framework_search_paths(framework_imports_by_category.header_imports),
         grep_includes = grep_includes,
         header_imports = framework_imports_by_category.header_imports,
+        kind = "dynamic",
         label = label,
+        libraries = framework_imports_by_category.binary_imports,
         swiftmodule_imports = framework_imports_by_category.swift_module_imports,
     )
     providers.append(cc_info)
@@ -363,11 +365,27 @@ def _apple_static_framework_import_impl(ctx):
         ),
     )
 
+    linkopts = []
+    if sdk_dylibs:
+        for dylib in ctx.attr.sdk_dylibs:
+            if dylib.startswith("lib"):
+                dylib = dylib[3:]
+            linkopts.append("-l%s" % dylib)
+    if sdk_frameworks:
+        for sdk_framework in ctx.attr.sdk_frameworks:
+            linkopts.append("-framework")
+            linkopts.append(sdk_framework)
+    if weak_sdk_frameworks:
+        for sdk_framework in ctx.attr.weak_sdk_frameworks:
+            linkopts.append("-weak_framework")
+            linkopts.append(sdk_framework)
+
     # Create CcInfo provider.
     providers.append(
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
             additional_cc_infos = additional_cc_infos,
+            alwayslink = alwayslink,
             cc_toolchain = cc_toolchain,
             ctx = ctx,
             deps = deps,
@@ -378,7 +396,10 @@ def _apple_static_framework_import_impl(ctx):
             ),
             grep_includes = grep_includes,
             header_imports = framework_imports_by_category.header_imports,
+            kind = "static",
             label = label,
+            libraries = framework_imports_by_category.binary_imports,
+            linkopts = linkopts,
             swiftmodule_imports = framework_imports_by_category.swift_module_imports,
         ),
     )
