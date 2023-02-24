@@ -23,10 +23,6 @@ load(
     "dicts",
 )
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -39,12 +35,12 @@ load(
     "AppleFrameworkImportInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
-    "cc_toolchain_info_support",
+    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "AppleFrameworkImportBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
+    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "cc_toolchain_info_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
@@ -309,7 +305,10 @@ def _apple_static_framework_import_impl(ctx):
     # TODO(b/207475773): Remove grep-includes once it's no longer required for cc_common APIs.
     grep_includes = ctx.file._grep_includes
 
-    providers = []
+    providers = [
+        DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data)),
+    ]
+
     framework_imports_by_category = framework_import_support.classify_framework_imports(
         ctx.var,
         framework_imports,
@@ -395,20 +394,10 @@ def _apple_static_framework_import_impl(ctx):
     if swift_interop_info:
         providers.append(swift_interop_info)
 
-    # Create AppleResourceInfo provider.
+    # Create AppleFrameworkImportBundleInfo provider.
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
-        parent_dir_param = partial.make(
-            resources.bundle_relative_parent_dir,
-            extension = "bundle",
-        )
-        resource_provider = resources.bucketize_typed(
-            bundle_files,
-            owner = str(label),
-            bucket_type = "unprocessed",
-            parent_dir_param = parent_dir_param,
-        )
-        providers.append(resource_provider)
+        providers.append(AppleFrameworkImportBundleInfo(bundle_files = bundle_files))
 
     return providers
 
@@ -531,6 +520,16 @@ linked into that target.
                     [apple_common.Objc, CcInfo],
                     [apple_common.Objc, CcInfo, AppleFrameworkImportInfo],
                 ],
+            ),
+            "data": attr.label_list(
+                allow_files = True,
+                doc = """
+List of files needed by this target at runtime.
+
+Files and targets named in the `data` attribute will appear in the `*.runfiles`
+area of this target, if it has one. This may include data files needed by a
+binary or library, or other programs needed by it.
+""",
             ),
             "alwayslink": attr.bool(
                 default = False,

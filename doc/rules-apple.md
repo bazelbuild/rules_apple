@@ -92,8 +92,8 @@ objc_library(
 ## apple_static_framework_import
 
 <pre>
-apple_static_framework_import(<a href="#apple_static_framework_import-name">name</a>, <a href="#apple_static_framework_import-alwayslink">alwayslink</a>, <a href="#apple_static_framework_import-deps">deps</a>, <a href="#apple_static_framework_import-framework_imports">framework_imports</a>, <a href="#apple_static_framework_import-has_swift">has_swift</a>, <a href="#apple_static_framework_import-sdk_dylibs">sdk_dylibs</a>,
-                              <a href="#apple_static_framework_import-sdk_frameworks">sdk_frameworks</a>, <a href="#apple_static_framework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>)
+apple_static_framework_import(<a href="#apple_static_framework_import-name">name</a>, <a href="#apple_static_framework_import-alwayslink">alwayslink</a>, <a href="#apple_static_framework_import-data">data</a>, <a href="#apple_static_framework_import-deps">deps</a>, <a href="#apple_static_framework_import-framework_imports">framework_imports</a>, <a href="#apple_static_framework_import-has_swift">has_swift</a>,
+                              <a href="#apple_static_framework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_framework_import-sdk_frameworks">sdk_frameworks</a>, <a href="#apple_static_framework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>)
 </pre>
 
 
@@ -125,6 +125,7 @@ objc_library(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_static_framework_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_static_framework_import-alwayslink"></a>alwayslink |  If true, any binary that depends (directly or indirectly) on this framework will link in all the object files for the framework file, even if some contain no symbols referenced by the binary. This is useful if your code isn't explicitly called by code in the binary; for example, if you rely on runtime checks for protocol conformances added in extensions in the library but do not directly reference any other symbols in the object file that adds that conformance.   | Boolean | optional | False |
+| <a id="apple_static_framework_import-data"></a>data |  List of files needed by this target at runtime.<br><br>Files and targets named in the <code>data</code> attribute will appear in the <code>*.runfiles</code> area of this target, if it has one. This may include data files needed by a binary or library, or other programs needed by it.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 | <a id="apple_static_framework_import-deps"></a>deps |  A list of targets that are dependencies of the target being built, which will provide headers and be linked into that target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 | <a id="apple_static_framework_import-framework_imports"></a>framework_imports |  The list of files under a .framework directory which are provided to Apple based targets that depend on this target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="apple_static_framework_import-has_swift"></a>has_swift |  A boolean indicating if the target has Swift source code. This helps flag frameworks that do not include Swift interface files but require linking the Swift libraries.   | Boolean | optional | False |
@@ -198,9 +199,9 @@ Generates an XCFramework with static libraries for third-party distribution.
 ## apple_static_xcframework_import
 
 <pre>
-apple_static_xcframework_import(<a href="#apple_static_xcframework_import-name">name</a>, <a href="#apple_static_xcframework_import-alwayslink">alwayslink</a>, <a href="#apple_static_xcframework_import-deps">deps</a>, <a href="#apple_static_xcframework_import-has_swift">has_swift</a>, <a href="#apple_static_xcframework_import-includes">includes</a>, <a href="#apple_static_xcframework_import-library_identifiers">library_identifiers</a>,
-                                <a href="#apple_static_xcframework_import-linkopts">linkopts</a>, <a href="#apple_static_xcframework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_xcframework_import-sdk_frameworks">sdk_frameworks</a>, <a href="#apple_static_xcframework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>,
-                                <a href="#apple_static_xcframework_import-xcframework_imports">xcframework_imports</a>)
+apple_static_xcframework_import(<a href="#apple_static_xcframework_import-name">name</a>, <a href="#apple_static_xcframework_import-alwayslink">alwayslink</a>, <a href="#apple_static_xcframework_import-data">data</a>, <a href="#apple_static_xcframework_import-deps">deps</a>, <a href="#apple_static_xcframework_import-has_swift">has_swift</a>, <a href="#apple_static_xcframework_import-includes">includes</a>,
+                                <a href="#apple_static_xcframework_import-library_identifiers">library_identifiers</a>, <a href="#apple_static_xcframework_import-linkopts">linkopts</a>, <a href="#apple_static_xcframework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_xcframework_import-sdk_frameworks">sdk_frameworks</a>,
+                                <a href="#apple_static_xcframework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>, <a href="#apple_static_xcframework_import-xcframework_imports">xcframework_imports</a>)
 </pre>
 
 
@@ -232,6 +233,7 @@ objc_library(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_static_xcframework_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_static_xcframework_import-alwayslink"></a>alwayslink |  If true, any binary that depends (directly or indirectly) on this XCFramework will link in all the object files for the XCFramework bundle, even if some contain no symbols referenced by the binary. This is useful if your code isn't explicitly called by code in the binary; for example, if you rely on runtime checks for protocol conformances added in extensions in the library but do not directly reference any other symbols in the object file that adds that conformance.   | Boolean | optional | False |
+| <a id="apple_static_xcframework_import-data"></a>data |  List of files needed by this target at runtime.<br><br>Files and targets named in the <code>data</code> attribute will appear in the <code>*.runfiles</code> area of this target, if it has one. This may include data files needed by a binary or library, or other programs needed by it.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 | <a id="apple_static_xcframework_import-deps"></a>deps |  List of targets that are dependencies of the target being built, which will provide headers and be linked into that target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 | <a id="apple_static_xcframework_import-has_swift"></a>has_swift |  A boolean indicating if the target has Swift source code. This helps flag XCFrameworks that do not include Swift interface files.   | Boolean | optional | False |
 | <a id="apple_static_xcframework_import-includes"></a>includes |  List of <code>#include/#import</code> search paths to add to this target and all depending targets.<br><br>The paths are interpreted relative to the single platform directory inside the XCFramework for the platform being built.<br><br>These flags are added for this rule and every rule that depends on it. (Note: not the rules it depends upon!) Be very careful, since this may have far-reaching effects.   | List of strings | optional | [] |
