@@ -104,7 +104,7 @@ def _cc_info_with_dependencies(
             libraries = libraries,
         )
     else:
-        libraries_to_link = _libraries_to_link_for_dynamic_framework(
+        libraries_to_link = libraries_to_link_for_dynamic_framework(
             actions = actions,
             cc_toolchain = cc_toolchain,
             feature_configuration = feature_configuration,
@@ -253,7 +253,7 @@ def _classify_framework_imports(config_vars, framework_imports):
         swift_module_imports = framework_imports_by_category.swift_module_imports,
     )
 
-def _libraries_to_link_for_dynamic_framework(
+def libraries_to_link_for_dynamic_framework(
         *,
         actions,
         cc_toolchain,
