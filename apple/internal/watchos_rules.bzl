@@ -96,6 +96,10 @@ load(
     "clang_rt_dylibs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "libraries_to_link_for_dynamic_framework",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -580,10 +584,27 @@ def _watchos_dynamic_framework_impl(ctx):
             # Make the ObjC provider using the framework_files depset found
             # in the AppleDynamicFramework provider. This is to make the
             # watchos_dynamic_framework usable as a dependency in swift_library
-            objc_provider = apple_common.new_objc_provider(
-                dynamic_framework_file = provider.framework_files,
+            libraries_to_link = libraries_to_link_for_dynamic_framework(
+                actions = actions,
+                cc_toolchain = cc_toolchain,
+                feature_configuration = cc_features,
+                libraries = provider.framework_files.to_list(),
             )
-            additional_providers.append(objc_provider)
+            additional_providers.extend([
+                apple_common.new_objc_provider(
+                    dynamic_framework_file = provider.framework_files,
+                ),
+                CcInfo(
+                    linking_context = cc_common.create_linking_context(
+                        linker_inputs = depset([
+                            cc_common.create_linker_input(
+                                owner = label,
+                                libraries = depset(libraries_to_link),
+                            ),
+                        ]),
+                    ),
+                ),
+            ])
     providers.extend(additional_providers)
 
     return [
