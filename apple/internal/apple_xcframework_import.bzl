@@ -258,7 +258,6 @@ def _get_xcframework_library_with_xcframework_processor(
     library_suffix = ".framework" if xcframework.bundle_type == _BUNDLE_TYPE.frameworks else ""
     library_path = xcframework.bundle_name + library_suffix
 
-    library_dir = intermediates.directory(dir_name = library_path, **intermediates_common)
     framework_imports_dir = intermediates.directory(
         dir_name = paths.join("framework_imports", library_path),
         **intermediates_common
@@ -281,6 +280,8 @@ def _get_xcframework_library_with_xcframework_processor(
         **intermediates_common
     )
 
+    library_dir_path = binary.dirname
+
     args = actions.args()
     args.add("--bundle_name", xcframework.bundle_name)
     args.add("--info_plist", xcframework.info_plist.path)
@@ -296,7 +297,7 @@ def _get_xcframework_library_with_xcframework_processor(
     args.add_all(files_by_category.module_map_imports, before_each = "--modulemap_file")
 
     args.add("--binary", binary.path)
-    args.add("--library_dir", library_dir.path)
+    args.add("--library_dir", library_dir_path)
     args.add("--framework_imports_dir", framework_imports_dir.path)
 
     inputs = []
@@ -307,7 +308,6 @@ def _get_xcframework_library_with_xcframework_processor(
         binary,
         framework_imports_dir,
         headers_dir,
-        library_dir,
         module_map_file,
     ]
 
@@ -331,14 +331,14 @@ def _get_xcframework_library_with_xcframework_processor(
     includes = []
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_includes = [library_dir.dirname]
+        framework_includes = [paths.dirname(library_dir_path)]
     else:
         includes = [headers_dir.path]
 
     return struct(
         binary = binary,
-        framework_dirs = [library_dir.path],
-        framework_files = [library_dir],
+        framework_dirs = [library_dir_path],
+        framework_files = [framework_imports_dir, headers_dir, module_map_file, binary],
         framework_imports = [framework_imports_dir],
         framework_includes = framework_includes,
         headers = [headers_dir],
