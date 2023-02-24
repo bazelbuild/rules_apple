@@ -246,6 +246,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=i386,x86_64,sim_arm64",
     ],
+    flaky = 1,
 )
 
 apple_shell_test(
