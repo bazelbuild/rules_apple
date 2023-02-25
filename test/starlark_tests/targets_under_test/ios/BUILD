@@ -2934,6 +2934,25 @@ ios_dynamic_framework(
 )
 
 ios_dynamic_framework(
+    name = "swift_shared_lib_framework_without_distribution",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "swift_shared_lib",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    package_for_distribution = False,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_shared_lib",
+    ],
+)
+
+ios_dynamic_framework(
     name = "swift_transitive_lib_framework",
     bundle_id = "com.google.example.framework",
     bundle_name = "swift_transitive_lib",
@@ -2950,6 +2969,24 @@ ios_dynamic_framework(
     deps = ["//test/starlark_tests/resources:swift_transitive_lib"],
 )
 
+ios_dynamic_framework(
+    name = "swift_transitive_lib_framework_without_distribution",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "swift_transitive_lib",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":swift_shared_lib_framework_without_distribution"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    package_for_distribution = False,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:swift_transitive_lib"],
+)
+
 ios_application(
     name = "app_with_dynamic_framework_with_dynamic_framework",
     bundle_id = "com.google.example",
@@ -2957,7 +2994,7 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    frameworks = [":swift_transitive_lib_framework"],
+    frameworks = [":swift_transitive_lib_framework_without_distribution"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

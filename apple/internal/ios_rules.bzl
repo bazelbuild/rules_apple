@@ -1356,13 +1356,16 @@ def _ios_dynamic_framework_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.swift_dynamic_framework_partial(
-            actions = actions,
-            bundle_name = bundle_name,
-            label_name = label.name,
-            swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
-        ),
     ]
+    if ctx.attr.package_for_distribution:
+        processor_partials.append(
+            partials.swift_dynamic_framework_partial(
+                actions = actions,
+                bundle_name = bundle_name,
+                label_name = label.name,
+                swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+            ),
+        )
 
     processor_result = processor.process(
         actions = actions,
