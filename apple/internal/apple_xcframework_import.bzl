@@ -510,12 +510,6 @@ def _apple_static_xcframework_import_impl(ctx):
         ),
     ]
 
-    fields = {}
-    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        fields = {"static_framework_file": [xcframework_library.binary]}
-    else:
-        fields = {"library": [xcframework_library.binary]}
-
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [apple_fragment.single_arch_cpu],
@@ -549,7 +543,7 @@ def _apple_static_xcframework_import_impl(ctx):
         sdk_dylib = ctx.attr.sdk_dylibs,
         sdk_framework = ctx.attr.sdk_frameworks,
         weak_sdk_framework = ctx.attr.weak_sdk_frameworks,
-        **fields
+        library = [xcframework_library.binary],
     )
     providers.append(objc_provider)
 
