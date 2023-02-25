@@ -247,6 +247,7 @@ apple_shell_test(
         "--ios_multi_cpus=i386,x86_64,sim_arm64",
     ],
     flaky = 1,
+    tags = common.skip_ci_tags,
 )
 
 apple_shell_test(
