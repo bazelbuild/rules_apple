@@ -96,12 +96,11 @@ if [[ -n "$test_host_path" ]]; then
     xcrun_target_app_path="$xctestrun_test_host_path"
     # If ui testing is enabled we need to copy out the XCTRunner app, update its info.plist accordingly and finally
     # copy over the needed frameworks to enable ui testing
-    readonly runner_app_name="$test_bundle_name-Runner"
+    readonly runner_app_name="XCTRunner"
     readonly runner_app="$runner_app_name.app"
     readonly runner_app_destination="$test_tmp_dir/$runner_app"
     libraries_path="$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer/Library"
-    ditto "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
-    mv "$runner_app_destination/XCTRunner" "$runner_app_destination/$runner_app_name"
+    cp -R "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
     chmod -R 777 "$runner_app_destination"
     xctestrun_test_host_path="__TESTROOT__/$runner_app"
 
