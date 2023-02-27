@@ -54,6 +54,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsTestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsTests/ButtonsTests.swift",
     ],
@@ -65,6 +66,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsUITestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsUITests/ButtonsUITests.swift",
     ],
@@ -199,6 +201,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsTVTestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsTVTests/ButtonsTVTests.swift",
     ],
@@ -206,6 +209,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsTVUITestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsTVUITests/ButtonsTVUITests.swift",
     ],
@@ -262,6 +266,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacTestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
@@ -273,6 +278,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacUITestsLib",
+    testonly = 1,
     srcs = [
         "ButtonsMacUITests/ButtonsMacUITests.swift",
     ],
