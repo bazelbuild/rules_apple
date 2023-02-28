@@ -523,6 +523,13 @@ apple_dynamic_xcframework_import(
 )
 
 apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_bundle_only",
+    bundle_only = True,
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_dynamic_xcframework"],
+)
+
+apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework_with_lib_ids",
     library_identifiers = {
         "ios_device": "ios-arm64",

@@ -1228,6 +1228,7 @@ ios_application(
         ":bundle_only_imported_fmwk",
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework_bundle_only",
     ],
 )
 
