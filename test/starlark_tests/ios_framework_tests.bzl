@@ -79,11 +79,13 @@ def ios_framework_test_suite(name):
         macho_load_commands_not_contain = [
             "name @rpath/bundle_only_fmwk.framework/bundle_only_fmwk (offset 24)",
             "name @rpath/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk (offset 24)",
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
         ],
         contains = [
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/bundle_only_fmwk",
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/nonlocalized.plist",
             "$BUNDLE_ROOT/Frameworks/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk",
+            "$BUNDLE_ROOT/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         ],
         tags = [name],
     )
