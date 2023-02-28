@@ -61,10 +61,10 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _sectcreate_objc_provider(segname, sectname, file):
-    """Returns an objc provider that propagates a section in a linked binary.
+def _sectcreate_cc_info(segname, sectname, file):
+    """Returns a CcInfo that propagates a section in a linked binary.
 
-    This function creates a new objc provider that contains the necessary linkopts
+    This function creates a new CcInfo that contains the necessary linkopts
     to create a new section in the binary to which the provider is propagated; it
     is equivalent to the `ld` flag `-sectcreate segname sectname file`. This can
     be used, for example, to embed entitlements in a simulator executable (since
@@ -76,17 +76,11 @@ def _sectcreate_objc_provider(segname, sectname, file):
       file: The file whose contents will be used as the content of the section.
 
     Returns:
-      An objc provider that propagates the section linkopts.
+      A CcInfo that propagates the section linkopts.
     """
 
-    # linkopts get deduped, so use a single option to pass then through as a
-    # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
     return [
-        apple_common.new_objc_provider(
-            linkopt = depset(linkopts, order = "topological"),
-            link_inputs = depset([file]),
-        ),
         CcInfo(
             linking_context = cc_common.create_linking_context(
                 user_link_flags = linkopts,
@@ -152,8 +146,6 @@ def _register_binary_linking_action(
             is a new universal (fat) binary obtained by invoking `lipo`.
         *   `cc_info`: The CcInfo provider containing information about the targets that were
             linked.
-        *   `objc`: The `apple_common.Objc` provider containing information about the targets
-            that were linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
@@ -236,7 +228,6 @@ def _register_binary_linking_action(
         binary = fat_binary,
         cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
-        objc = linking_outputs.objc,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
@@ -254,8 +245,6 @@ def _register_static_library_linking_action(ctx):
         *   `library`: The final library `File` that was linked. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
             is a new universal (fat) library obtained by invoking `lipo`.
-        *   `objc`: The `apple_common.Objc` provider containing information about the targets
-            that were linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
@@ -276,7 +265,6 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
-        objc = linking_outputs.objc,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
@@ -444,5 +432,5 @@ linking_support = struct(
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_linking_action = _register_static_library_linking_action,
-    sectcreate_objc_provider = _sectcreate_objc_provider,
+    sectcreate_cc_info = _sectcreate_cc_info,
 )

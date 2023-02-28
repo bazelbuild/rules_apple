@@ -68,7 +68,6 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
         AppleBinaryInfo(
             binary = link_result.library,
         ),
-        link_result.objc,
         link_result.output_groups,
     ]
 

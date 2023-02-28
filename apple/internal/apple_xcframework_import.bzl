@@ -482,17 +482,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     )
     providers.append(apple_framework_import_info)
 
-    # Create Objc provider
-    objc_provider = framework_import_support.objc_provider_with_dependencies(
-        additional_objc_providers = [
-            dep[apple_common.Objc]
-            for dep in deps
-            if apple_common.Objc in dep
-        ],
-        dynamic_framework_file = [xcframework_library.binary],
-    )
-    providers.append(objc_provider)
-
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
@@ -512,7 +501,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     # Create AppleDynamicFrameworkInfo provider
     apple_dynamic_framework_info = apple_common.new_dynamic_framework_provider(
-        objc = objc_provider,
         cc_info = cc_info,
     )
     providers.append(apple_dynamic_framework_info)
@@ -592,7 +580,6 @@ def _apple_static_xcframework_import_impl(ctx):
     providers.append(apple_framework_import_info)
 
     additional_cc_infos = []
-    additional_objc_providers = []
     if xcframework.files_by_category.swift_interface_imports or has_swift:
         swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
         providers.append(SwiftUsageInfo())
@@ -603,19 +590,6 @@ def _apple_static_xcframework_import_impl(ctx):
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
         additional_cc_infos.extend(swift_toolchain.implicit_deps_providers.cc_infos)
-
-    # Create Objc provider
-    additional_objc_providers.extend([
-        dep[apple_common.Objc]
-        for dep in deps
-        if apple_common.Objc in dep
-    ])
-    objc_provider = framework_import_support.objc_provider_with_dependencies(
-        additional_objc_providers = additional_objc_providers,
-        alwayslink = alwayslink,
-        library = [xcframework_library.binary],
-    )
-    providers.append(objc_provider)
 
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
@@ -706,7 +680,6 @@ linked into that target.
         AppleFrameworkImportInfo,
         CcInfo,
         apple_common.AppleDynamicFramework,
-        apple_common.Objc,
     ],
     toolchains = use_cpp_toolchain(),
 )
