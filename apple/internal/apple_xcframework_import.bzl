@@ -675,7 +675,6 @@ def _apple_static_xcframework_import_impl(ctx):
     providers.append(apple_framework_import_info)
 
     additional_cc_infos = []
-    additional_objc_providers = []
     if xcframework.files_by_category.swift_interface_imports or \
        xcframework.files_by_category.swift_module_imports or \
        has_swift:
@@ -688,13 +687,6 @@ def _apple_static_xcframework_import_impl(ctx):
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
         additional_cc_infos.extend(swift_toolchains.swift.implicit_deps_providers.cc_infos)
-
-    # Create Objc provider
-    additional_objc_providers.extend([
-        dep[apple_common.Objc]
-        for dep in deps
-        if apple_common.Objc in dep
-    ])
 
     sdk_linkopts = []
     for dylib in ctx.attr.sdk_dylibs:
