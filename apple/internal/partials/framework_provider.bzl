@@ -71,7 +71,7 @@ def _framework_provider_partial_impl(
     )
     linker_input = cc_common.create_linker_input(
         owner = rule_label,
-        libraries = depset([library_to_link]),
+        libraries = depset([] if bundle_only else [library_to_link]),
     )
     wrapper_cc_info = cc_common.merge_cc_infos(
         cc_infos = [

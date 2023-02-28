@@ -449,7 +449,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         header_imports = xcframework_library.headers,
         kind = "dynamic",
         label = label,
-        libraries = [xcframework_library.binary],
+        libraries = [] if ctx.attr.bundle_only else [xcframework_library.binary],
         swiftmodule_imports = xcframework_library.swiftmodule,
     )
     providers.append(cc_info)

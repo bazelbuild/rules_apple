@@ -260,7 +260,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         header_imports = framework_imports_by_category.header_imports,
         kind = "dynamic",
         label = label,
-        libraries = framework_imports_by_category.binary_imports,
+        libraries = [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
         swiftmodule_imports = framework_imports_by_category.swift_module_imports,
     )
     providers.append(cc_info)
