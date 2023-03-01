@@ -722,7 +722,34 @@ def _noop(
         processed_origins = processed_origins,
     )
 
+def _apple_bundle(bundle_type):
+    """Returns a function to register bundling of Apple bundles at their appropriate location.
+
+    Args:
+        bundle_type: The Apple bundle type to bundle for.
+    Returns:
+        A function to register bundling of an Apple bundle.
+    """
+    if not hasattr(processor.location, bundle_type):
+        fail("Bundle type location not supported: ", bundle_type)
+
+    def _bundle_at_location(*, files, **_kwargs):
+        bundle = files.to_list().pop()
+        location = getattr(processor.location, bundle_type)
+
+        # If tree artifacts are enabled, set the bundle name as
+        # the parent directory. Otherwise, let bundletool unzip
+        # the bundle directly.
+        if bundle.is_directory:
+            parent_dir = paths.basename(bundle.short_path)
+            return struct(files = [(location, parent_dir, files)])
+        else:
+            return struct(archives = [(location, None, files)])
+
+    return _bundle_at_location
+
 resources_support = struct(
+    apple_bundle = _apple_bundle,
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,

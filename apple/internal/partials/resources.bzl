@@ -209,6 +209,7 @@ def _resources_partial_impl(
     provider_field_to_action = {
         "asset_catalogs": (resources_support.asset_catalogs, False),
         "datamodels": (resources_support.datamodels, True),
+        "framework": (resources_support.apple_bundle(processor.location.framework), False),
         "infoplists": (resources_support.infoplists, False),
         "metals": (resources_support.metals, False),
         "mlmodels": (resources_support.mlmodels, False),
@@ -225,6 +226,7 @@ def _resources_partial_impl(
     # List containing all the files that the processor will bundle in their
     # configured location.
     bundle_files = []
+    bundle_zips = []
 
     infoplists = []
 
@@ -261,7 +263,10 @@ def _resources_partial_impl(
                 processing_args["swift_module"] = swift_module
 
             result = processing_func(**processing_args)
-            bundle_files.extend(result.files)
+            if hasattr(result, "files"):
+                bundle_files.extend(result.files)
+            if hasattr(result, "archives"):
+                bundle_zips.extend(result.archives)
             if hasattr(result, "infoplists"):
                 infoplists.extend(result.infoplists)
 
@@ -325,7 +330,11 @@ def _resources_partial_impl(
             ),
         )
 
-    return struct(bundle_files = bundle_files, providers = [final_provider])
+    return struct(
+        bundle_files = bundle_files,
+        bundle_zips = bundle_zips,
+        providers = [final_provider],
+    )
 
 def resources_partial(
         *,
@@ -345,7 +354,7 @@ def resources_partial(
         rule_label,
         targets_to_avoid = [],
         top_level_infoplists = [],
-        top_level_resources = [],
+        top_level_resources = {},
         version,
         version_keys_required = True):
     """Constructor for the resources processing partial.
@@ -379,7 +388,9 @@ def resources_partial(
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
-        top_level_resources: A list of collected resources found from resource attributes.
+        top_level_resources: A dictionary of collected resources found from resource attributes,
+            where keys are targets, and values are list of `File`s depsets. This can be obtained
+            using the `apple/internal/resources.collect` API.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.

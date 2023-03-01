@@ -79,64 +79,165 @@ def tvos_framework_test_suite(name):
         tags = [name],
     )
 
-    # Verify tvos_framework listed as a runtime_dep of an objc_library gets
-    # propagated to tvos_application bundle.
+    # Verifies transitive "runtime" tvos_framework's are propagated to tvos_application bundle, and
+    # are not linked against the app binary. Transitive "runtime" frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
+    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
-        name = "{}_includes_objc_library_tvos_framework_runtime_dep".format(name),
+        name = "{}_includes_and_does_not_link_transitive_data_tvos_frameworks".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_library_dep_with_tvos_framework_runtime_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_objc_swift_libraries_using_data_and_runtime_deps",
+        apple_generate_dsym = True,
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/fmwk_with_structured_resources",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/foo.png",
+            "$BUNDLE_ROOT/basic.bundle",
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/simple_bundle_library.bundle",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_objc_swift_libraries_using_data_and_runtime_deps",
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
+            "name @rpath/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles (offset 24)",
+            "name @rpath/fmwk_with_structured_resources.framework/fmwk_with_structured_resources (offset 24)",
         ],
         tags = [name],
     )
 
-    # Verify nested frameworks from objc_library targets get propagated to
-    # tvos_application bundle.
+    # Verify nested "runtime" tvos_framework's from transitive targets get propagated to
+    # tvos_application bundle and are not linked to top-level application. Transitive "runtime"
+    # frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
+    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
-        name = "{}_includes_multiple_objc_library_tvos_framework_deps".format(name),
+        name = "{}_includes_and_does_not_link_nested_transitive_data_tvos_frameworks".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_transitive_objc_swift_libraries_using_data_and_runtime_deps",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/fmwk_with_structured_resources",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
         ],
-        tags = [name],
-    )
-
-    # Verify tvos_framework listed as a runtime_dep of an objc_library does not
-    # get linked to top-level application (Mach-O LC_LOAD_DYLIB commands).
-    archive_contents_test(
-        name = "{}_does_not_load_bundled_tvos_framework_runtime_dep".format(name),
-        build_type = "simulator",
-        binary_test_file = "$BUNDLE_ROOT/app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        not_contains = [
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/foo.png",
+            "$BUNDLE_ROOT/basic.bundle",
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/simple_bundle_library.bundle",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_transitive_objc_swift_libraries_using_data_and_runtime_deps",
         macho_load_commands_not_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
-            "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+            "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
+            "name @rpath/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles (offset 24)",
+            "name @rpath/fmwk_with_structured_resources.framework/fmwk_with_structured_resources (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
         tags = [name],
     )
 
-    # Verify that both tvos_framework listed as a load time and runtime_dep
-    # get bundled to top-level application, and runtime does not get linked.
+    # Verify that both tvos_framework's listed as load time and runtime dependencies
+    # are bundled to top-level application, and runtime frameworks are not linked against
+    # the top-level application binary. Transitive "runtime" frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
+    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
-        name = "{}_bundles_both_load_and_runtime_framework_dep".format(name),
+        name = "{}_bundles_both_load_and_runtime_transitive_data_tvos_frameworks".format(name),
         build_type = "simulator",
-        binary_test_file = "$BUNDLE_ROOT/app_with_load_and_runtime_framework_dep",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_and_runtime_deps",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/fmwk_with_structured_resources",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/foo.png",
+            "$BUNDLE_ROOT/basic.bundle",
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/simple_bundle_library.bundle",
         ],
         macho_load_commands_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
         ],
         macho_load_commands_not_contain = [
             "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
+            "name @rpath/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles (offset 24)",
+            "name @rpath/fmwk_with_structured_resources.framework/fmwk_with_structured_resources (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_load_and_runtime_framework_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_and_runtime_deps",
+        tags = [name],
+    )
+
+    # Verifies shared resources between app and frameworks propagated via 'data' are not deduped,
+    # therefore both app and frameworks contain shared resources.
+    archive_contents_test(
+        name = "{}_bundles_shared_resources_from_app_and_fmwks_with_data_ios_frameworks".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data_and_runtime_deps",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/fmwk_with_resource_bundles",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/fmwk_with_structured_resources",
+            "$BUNDLE_ROOT/Images/foo.png",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/foo.png",
+            "$BUNDLE_ROOT/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/Images/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/foo.png",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/simple_bundle_library.bundle",
+        ],
         tags = [name],
     )
 
