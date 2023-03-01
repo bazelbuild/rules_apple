@@ -56,6 +56,7 @@ objc_library(
         ":common.m",
     ],
     data = [":structured_image_resources"],
+    tags = common.fixture_tags,
 )
 
 # --------------------------------------------------------------------------------
@@ -301,6 +302,15 @@ apple_resource_group(
 )
 
 objc_library(
+    name = "objc_lib_with_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [
+        ":structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "structured_resources_in_resources_lib",
     srcs = ["main.m"],
     data = [
@@ -411,6 +421,15 @@ apple_bundle_import(
 
 objc_library(
     name = "basic_bundle_lib",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [
+        ":basic_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "another_basic_bundle_lib",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
     data = [
         ":basic_bundle",

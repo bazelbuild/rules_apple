@@ -38,6 +38,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
 load(
@@ -238,7 +239,10 @@ def _apple_resource_aspect_impl(target, ctx):
             inherited_providers.extend([
                 x[AppleResourceInfo]
                 for x in getattr(ctx.rule.attr, attr)
-                if AppleResourceInfo in x
+                if AppleResourceInfo in x and
+                   # Filter Apple framework targets to avoid propagating and bundling
+                   # framework resources to the top-level target (eg. ios_application).
+                   AppleFrameworkBundleInfo not in x
             ])
     if inherited_providers and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.

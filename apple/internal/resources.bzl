@@ -65,6 +65,7 @@ This file provides methods to easily:
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
 load(
@@ -218,65 +219,74 @@ def _bucketize_data(
     if allowed_buckets:
         allowed_bucket_set = {k: None for k in allowed_buckets}
 
-    for resource in resources:
-        # Local cache of the resource short path since it gets used quite a bit below.
-        resource_short_path = resource.short_path
+    for target, target_resources in resources.items():
+        for resource in target_resources:
+            # Local cache of the resource short path since it gets used quite a bit below.
+            resource_short_path = resource.short_path
 
-        if owner:
-            owners.append((resource_short_path, owner))
-        else:
-            unowned_resources.append(resource_short_path)
+            if owner:
+                owners.append((resource_short_path, owner))
+            else:
+                unowned_resources.append(resource_short_path)
 
-        if types.is_string(parent_dir_param) or parent_dir_param == None:
-            parent = parent_dir_param
-        else:
-            parent = partial.call(partial = parent_dir_param, resource = resource)
+            if types.is_string(parent_dir_param) or parent_dir_param == None:
+                parent = parent_dir_param
+            else:
+                parent = partial.call(partial = parent_dir_param, resource = resource)
 
-        # Special case for localized. If .lproj/ is in the path of the resource (and the parent
-        # doesn't already have it) append the lproj component to the current parent.
-        if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
-            lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
-            parent = paths.join(parent or "", paths.basename(lproj_path))
+            # Special case for localized. If .lproj/ is in the path of the resource (and the parent
+            # doesn't already have it) append the lproj component to the current parent.
+            if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
+                lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
+                parent = paths.join(parent or "", paths.basename(lproj_path))
 
-        resource_swift_module = None
-        resource_depset = depset([resource])
-
-        # For each type of resource, place in the appropriate bucket.
-        if resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
-            bucket_name = "strings"
-        elif resource_short_path.endswith(".storyboard"):
-            bucket_name = "storyboards"
-            resource_swift_module = swift_module
-        elif resource_short_path.endswith(".xib"):
-            bucket_name = "xibs"
-            resource_swift_module = swift_module
-        elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
-            bucket_name = "asset_catalogs"
-        elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
-            bucket_name = "datamodels"
-            resource_swift_module = swift_module
-        elif ".atlas" in resource_short_path:
-            bucket_name = "texture_atlases"
-        elif resource_short_path.endswith(".png"):
-            # Process standalone pngs after asset_catalogs and texture_atlases so the latter can
-            # bucketed correctly.
-            bucket_name = "pngs"
-        elif resource_short_path.endswith(".plist"):
-            bucket_name = "plists"
-        elif resource_short_path.endswith(".mlmodel"):
-            bucket_name = "mlmodels"
-        else:
-            bucket_name = "unprocessed"
-
-        # If the allowed bucket list is not empty, and the bucket is not allowed, change the bucket
-        # to unprocessed instead.
-        if allowed_bucket_set and bucket_name not in allowed_bucket_set:
-            bucket_name = "unprocessed"
             resource_swift_module = None
+            resource_depset = depset([resource])
 
-        buckets.setdefault(bucket_name, []).append(
-            (parent, resource_swift_module, resource_depset),
-        )
+            # For each type of resource, place in the appropriate bucket.
+            if AppleFrameworkBundleInfo in target:
+                if "framework.dSYM/" in resource_short_path or resource.extension == "linkmap":
+                    # TODO(b/271168739): Propagate AppleDebugSymbolsInfo and _AppleDebugInfo providers.
+                    # Ignore dSYM bundle and linkmap since the debug symbols partial is
+                    # responsible for propagating this up the dependency graph.
+                    continue
+                bucket_name = "framework"
+            elif (resource_short_path.endswith(".strings") or
+                  resource_short_path.endswith(".stringsdict")):
+                bucket_name = "strings"
+            elif resource_short_path.endswith(".storyboard"):
+                bucket_name = "storyboards"
+                resource_swift_module = swift_module
+            elif resource_short_path.endswith(".xib"):
+                bucket_name = "xibs"
+                resource_swift_module = swift_module
+            elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
+                bucket_name = "asset_catalogs"
+            elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
+                bucket_name = "datamodels"
+                resource_swift_module = swift_module
+            elif ".atlas" in resource_short_path:
+                bucket_name = "texture_atlases"
+            elif resource_short_path.endswith(".png"):
+                # Process standalone pngs after asset_catalogs and texture_atlases so the latter can
+                # bucketed correctly.
+                bucket_name = "pngs"
+            elif resource_short_path.endswith(".plist"):
+                bucket_name = "plists"
+            elif resource_short_path.endswith(".mlmodel"):
+                bucket_name = "mlmodels"
+            else:
+                bucket_name = "unprocessed"
+
+            # If the allowed bucket list is not empty, and the bucket is not allowed, change the
+            # bucket to unprocessed instead.
+            if allowed_bucket_set and bucket_name not in allowed_bucket_set:
+                bucket_name = "unprocessed"
+                resource_swift_module = None
+
+            buckets.setdefault(bucket_name, []).append(
+                (parent, resource_swift_module, resource_depset),
+            )
 
     return (
         owners,
@@ -338,7 +348,9 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
-        resources: List of resources to place in bucket_type.
+        resources: List of resources to place in bucket_type or Dictionary of resources keyed by
+            target to place in bucket_type. This dictionary is supported by the
+            `resources.collect()` API.
 
     Returns:
         A tuple with a list of owners, a list of "unowned" resources, and a dictionary with
@@ -348,7 +360,17 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
     owners = []
     unowned_resources = []
 
-    for resource in resources:
+    all_resources = []
+    if type(resources) == "list":
+        all_resources = resources
+    elif type(resources) == "dict":
+        for target_resources in resources.values():
+            all_resources.extend(target_resources)
+    else:
+        fail("Internal error: 'resources' should be either a list or dictionary.\n" +
+             "This is most likely a rules_apple bug, please file a bug with reproduction steps")
+
+    for resource in all_resources:
         resource_short_path = resource.short_path
         if owner:
             owners.append((resource_short_path, owner))
@@ -380,13 +402,15 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
     parent_dir_param when available.
 
     Args:
-        resources: List of resources to place in bucket_type.
         bucket_type: The AppleResourceInfo field under which to collect the resources.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
+        resources: List of resources to place in bucket_type or Dictionary of resources keyed by
+            target to place in bucket_type. This dictionary is supported by the
+            `resources.collect()` API.
 
     Returns:
         An AppleResourceInfo provider with resources in the given bucket.
@@ -543,26 +567,28 @@ def _collect(*, attr, res_attrs = [], split_attr_keys = []):
         split_attr_keys: If defined, a list of 1:2+ transition keys to merge values from.
 
     Returns:
-        A list with all the collected resources for the target represented by attr.
+        A dictionary keyed by target from the rule attr with the list of all collected resources.
     """
     if not res_attrs:
         return []
 
-    files = []
+    files_by_target = {}
     for res_attr in res_attrs:
-        if hasattr(attr, res_attr):
-            file_groups = [
-                x.files.to_list()
-                for x in _get_attr_as_list(
-                    attr = attr,
-                    nested_attr = res_attr,
-                    split_attr_keys = split_attr_keys,
-                )
-                if x.files
-            ]
-            for file_group in file_groups:
-                files.extend(file_group)
-    return files
+        if not hasattr(attr, res_attr):
+            continue
+
+        targets_for_attr = _get_attr_as_list(
+            attr = attr,
+            nested_attr = res_attr,
+            split_attr_keys = split_attr_keys,
+        )
+        for target in targets_for_attr:
+            if not target.files:
+                # Target does not export any file, ignore.
+                continue
+            files_by_target.setdefault(target, []).extend(target.files.to_list())
+
+    return files_by_target
 
 def _merge_providers(*, default_owner = None, providers, validate_all_resources_owned = False):
     """Merges multiple AppleResourceInfo providers into one.

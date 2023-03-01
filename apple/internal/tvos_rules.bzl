@@ -102,6 +102,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
@@ -624,6 +625,7 @@ def _tvos_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        AppleFrameworkBundleInfo(),
         TvosFrameworkBundleInfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,

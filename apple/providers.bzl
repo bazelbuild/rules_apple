@@ -151,8 +151,24 @@ to ensure that they are explicitly produced as outputs of the build.
     },
 )
 
+AppleFrameworkBundleInfo = provider(
+    doc = """
+Denotes a target is an Apple framework bundle.
+
+This provider does not reference 3rd party or precompiled frameworks.
+Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
+""",
+    fields = {},
+)
+
 AppleFrameworkImportInfo = provider(
-    doc = "Provider that propagates information about framework import targets.",
+    doc = """
+Provider that propagates information about 3rd party imported framework targets.
+
+Propagated by framework and XCFramework import rules: `apple_dynamic_framework_import`,
+`apple_dynamic_xcframework_import`, `apple_static_framework_import`, and
+`apple_static_xcframework_import`
+""",
     fields = {
         "framework_imports": """
 `depset` of `File`s that represent framework imports that need to be bundled in the top level
@@ -207,6 +223,7 @@ AppleResourceInfo = provider(
     fields = {
         "asset_catalogs": "Resources that need to be embedded into Assets.car.",
         "datamodels": "Datamodel files.",
+        "framework": "Apple framework bundle from `ios_framework` and `tvos_framework` targets.",
         "infoplists": """Plist files to be merged and processed. Plist files that should not be
 merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
 only be bucketed with the `bucketize_typed` method.""",

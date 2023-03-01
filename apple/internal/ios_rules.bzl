@@ -106,6 +106,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
@@ -969,6 +970,7 @@ def _ios_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
+        AppleFrameworkBundleInfo(),
         IosFrameworkBundleInfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
