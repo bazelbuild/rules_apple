@@ -57,6 +57,10 @@ visibility([
 # This defines an _enum_ to identify an imported XCFramework bundle type.
 _BUNDLE_TYPE = struct(frameworks = 1, libraries = 2)
 
+# The name of the execution group that houses the Swift toolchain and is used to
+# run Swift actions.
+_SWIFT_EXEC_GROUP = "swift"
+
 def _classify_xcframework_imports(xcframework_imports):
     """Classifies XCFramework files for later processing.
 
@@ -507,7 +511,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -581,7 +585,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     additional_cc_infos = []
     if xcframework.files_by_category.swift_interface_imports or has_swift:
-        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -613,7 +617,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -647,7 +651,6 @@ through the `deps` attribute.
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
@@ -675,6 +678,11 @@ linked into that target.
             ),
         },
     ),
+    exec_groups = {
+        _SWIFT_EXEC_GROUP: exec_group(
+            toolchains = swift_common.use_toolchain(),
+        ),
+    },
     fragments = ["apple", "cpp"],
     provides = [
         AppleFrameworkImportInfo,
@@ -693,7 +701,6 @@ to library targets through the `deps` attribute.
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "alwayslink": attr.bool(
                 default = False,
@@ -744,6 +751,11 @@ on this target.
             ),
         },
     ),
+    exec_groups = {
+        _SWIFT_EXEC_GROUP: exec_group(
+            toolchains = swift_common.use_toolchain(),
+        ),
+    },
     fragments = ["apple", "cpp"],
     toolchains = use_cpp_toolchain(),
 )

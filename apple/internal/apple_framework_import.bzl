@@ -85,6 +85,10 @@ visibility([
     "//test/...",
 ])
 
+# The name of the execution group that houses the Swift toolchain and is used to
+# run Swift actions.
+_SWIFT_EXEC_GROUP = "swift"
+
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
@@ -189,7 +193,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -249,7 +253,7 @@ def _apple_static_framework_import_impl(ctx):
     # Collect transitive Objc/CcInfo providers from Swift toolchain
     additional_cc_infos = []
     if framework.swift_interface_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -299,7 +303,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, attr = "_swift_toolchain")
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -348,7 +352,6 @@ apple_dynamic_framework_import = rule(
     fragments = ["cpp"],
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -381,6 +384,11 @@ This rule encapsulates an already-built dynamic framework. It is defined by a li
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
 targets through the `deps` attribute.
 """,
+    exec_groups = {
+        _SWIFT_EXEC_GROUP: exec_group(
+            toolchains = swift_common.use_toolchain(),
+        ),
+    },
     toolchains = use_cpp_toolchain(),
 )
 
@@ -389,7 +397,6 @@ apple_static_framework_import = rule(
     fragments = ["cpp"],
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
                 allow_empty = False,
@@ -461,5 +468,10 @@ This rule encapsulates an already-built static framework. It is defined by a lis
 .framework directory. apple_static_framework_import targets need to be added to library targets
 through the `deps` attribute.
 """,
+    exec_groups = {
+        _SWIFT_EXEC_GROUP: exec_group(
+            toolchains = swift_common.use_toolchain(),
+        ),
+    },
     toolchains = use_cpp_toolchain(),
 )
