@@ -9,6 +9,21 @@ if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   exit 1
 fi
 
+simulator_name=""
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+  case $arg in
+    --simulator_name=*)
+      simulator_name="${arg##*=}"
+      ;;
+    *)
+      echo "error: Unsupported argument '${arg}'" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # Retrieve the basename of a file or folder with an extension.
 basename_without_extension() {
   local filename
@@ -158,7 +173,7 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
 simulator_id="$("./%(simulator_creator.py)s" \
   "%(os_version)s" \
   "%(device_type)s" \
-  --name "${BAZEL_IOS_SIMULATOR_NAME:-}"
+  --name "$simulator_name"
 )"
 
 test_exit_code=0
