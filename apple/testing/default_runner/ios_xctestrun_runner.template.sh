@@ -155,7 +155,15 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
   "%(xctestrun_template)s" > "$xctestrun_file"
 
-id="$("./%(simulator_creator.py)s" "%(os_version)s" "%(device_type)s")"
+simulator_creator_args=(
+  "%(os_version)s" \
+  "%(device_type)s" \
+)
+if [[ -n "${BAZEL_IOS_SIMULATOR_NAME:-}" ]]; then
+  simulator_creator_args+=(--name "${BAZEL_IOS_SIMULATOR_NAME}")
+fi
+simulator_id="$("./%(simulator_creator.py)s" "${simulator_creator_args[@]}")"
+
 test_exit_code=0
 testlog=$(mktemp)
 
@@ -173,7 +181,7 @@ if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)
   fi
 
   args=(
-    -destination "id=$id" \
+    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
@@ -205,7 +213,7 @@ else
     env "${passthrough_env[@]}" \
     xcrun simctl \
     spawn \
-    "$id" \
+    "$simulator_id" \
     "$xctest_binary" \
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
