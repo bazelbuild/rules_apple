@@ -155,14 +155,11 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
   "%(xctestrun_template)s" > "$xctestrun_file"
 
-simulator_creator_args=(
+simulator_id="$("./%(simulator_creator.py)s" \
   "%(os_version)s" \
   "%(device_type)s" \
-)
-if [[ -n "${BAZEL_IOS_SIMULATOR_NAME:-}" ]]; then
-  simulator_creator_args+=(--name "${BAZEL_IOS_SIMULATOR_NAME}")
-fi
-simulator_id="$("./%(simulator_creator.py)s" "${simulator_creator_args[@]}")"
+  --name "${BAZEL_IOS_SIMULATOR_NAME:-}"
+)"
 
 test_exit_code=0
 testlog=$(mktemp)
