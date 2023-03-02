@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS test runner.
+# Integration tests for iOS xctestrun runner.
 
 function set_up() {
   mkdir -p ios
@@ -588,21 +588,24 @@ function test_ios_unit_test_with_host_with_env() {
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
 
-function test_ios_unit_simulator_id() {
-  create_sim_runners
-  create_ios_unit_tests
-  readonly simulator_id=$(xcrun simctl create custom-sim "iPhone X" 2> >(grep -v "No runtime specified" || true))
-  do_ios_test //ios:PassingUnitTest \
-    --test_arg="--destination=platform=ios_simulator,id=$simulator_id" \
-    || fail "should pass"
-
-  xcrun simctl delete "$simulator_id"
-
-  # Custom logs from xctestrunner
-  expect_not_log "Creating a new simulator"
-  expect_not_log "Created new simulator"
-  expect_log "Executed 4 tests, with 0 failures"
-}
+# TODO (https://github.com/bazelbuild/rules_apple/issues/1881): Enable once
+# `--simulator_id` is supported
+#
+# function test_ios_unit_simulator_id() {
+#   create_sim_runners
+#   create_ios_unit_tests
+#   readonly simulator_id=$(xcrun simctl create custom-sim "iPhone X" 2> >(grep -v "No runtime specified" || true))
+#   do_ios_test //ios:PassingUnitTest \
+#     --test_arg="--destination=platform=ios_simulator,id=$simulator_id" \
+#     || fail "should pass"
+#
+#   xcrun simctl delete "$simulator_id"
+#
+#   # Custom logs from xctestrunner
+#   expect_not_log "Creating a new simulator"
+#   expect_not_log "Created new simulator"
+#   expect_log "Executed 4 tests, with 0 failures"
+# }
 
 # TODO (https://github.com/bazelbuild/rules_apple/issues/1879): Enable once
 # `--command_line_args` is supported
@@ -736,4 +739,4 @@ function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
   expect_log "Executed 2 tests, with 0 failures"
 }
 
-run_suite "ios_unit_test with iOS test runner bundling tests"
+run_suite "ios_unit_test with iOS xctestrun runner bundling tests"
