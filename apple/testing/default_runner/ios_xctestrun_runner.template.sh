@@ -159,6 +159,62 @@ if [[ -n "$sanitizer_dyld_env" ]]; then
   xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
 fi
 
+TEST_FILTER="%(test_filter)s"
+xctestrun_skip_test_section=""
+xctestrun_only_test_section=""
+
+# Use the 'TESTBRIDGE_TEST_ONLY' environment variable set by Bazel's
+# '--test_filter' flag to set the xctestrun's skip/only parameters.
+#
+# Any test prefixed with '-' will be passed to 'SkipTestIdentifiers'. Otherwise
+# the tests is passed to 'OnlyTestIdentifiers',
+if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
+  saved_IFS=$IFS
+  IFS=","
+
+  if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" && -n "${TEST_FILTER:-}" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+  elif [[ -n "${TESTBRIDGE_TEST_ONLY:-}" ]]; then
+    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+  else
+    ALL_TESTS=("$TEST_FILTER")
+  fi
+
+  for TEST in $ALL_TESTS; do
+    if [[ $TEST == -* ]]; then
+      if [[ -n "${SKIP_TESTS:-}" ]]; then
+        SKIP_TESTS+=",${TEST:1}"
+      else
+        SKIP_TESTS="${TEST:1}"
+      fi
+    else
+      if [[ -n "${ONLY_TESTS:-}" ]]; then
+          ONLY_TESTS+=",$TEST"
+      else
+          ONLY_TESTS="$TEST"
+      fi
+    fi
+  done
+  
+  IFS=$saved_IFS
+
+  if [[ -n "${SKIP_TESTS:-}" ]]; then
+    xctestrun_skip_test_section="\n"
+    for skip_test in ${SKIP_TESTS//,/ }; do
+      xctestrun_skip_test_section+="      <string>$skip_test</string>\n"
+    done
+    xctestrun_skip_test_section="    <key>SkipTestIdentifiers</key>\n    <array>$xctestrun_skip_test_section    </array>"
+  fi
+
+  if [[ -n "${ONLY_TESTS:-}" ]]; then
+    xctestrun_only_test_section="\n"
+    for only_test in ${ONLY_TESTS//,/ }; do
+      xctestrun_only_test_section+="      <string>$only_test</string>\n"
+    done
+    xctestrun_only_test_section="    <key>OnlyTestIdentifiers</key>\n    <array>$xctestrun_only_test_section    </array>"
+  fi
+fi
+
 readonly profraw="$test_tmp_dir/coverage.profraw"
 readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
 /usr/bin/sed \
@@ -173,6 +229,8 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
   -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
   -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
+  -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
+  -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
   "%(xctestrun_template)s" > "$xctestrun_file"
 
 simulator_id="$("./%(simulator_creator.py)s" \
