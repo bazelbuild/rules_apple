@@ -210,7 +210,11 @@ if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)
     args+=(-resultBundlePath "$result_bundle_path")
   fi
 
-  xcodebuild test-without-building "${args[@]}" "${custom_xcodebuild_args[@]}" \
+  if (( ${#custom_xcodebuild_args[@]} )); then
+    args+=("${custom_xcodebuild_args[@]}")
+  fi
+
+  xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
     || test_exit_code=$?
 else
