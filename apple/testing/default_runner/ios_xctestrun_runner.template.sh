@@ -9,6 +9,21 @@ if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   exit 1
 fi
 
+simulator_name=""
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+  case $arg in
+    --simulator_name=*)
+      simulator_name="${arg##*=}"
+      ;;
+    *)
+      echo "error: Unsupported argument '${arg}'" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # Retrieve the basename of a file or folder with an extension.
 basename_without_extension() {
   local filename
@@ -155,7 +170,12 @@ readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
   "%(xctestrun_template)s" > "$xctestrun_file"
 
-id="$("./%(simulator_creator.py)s" "%(os_version)s" "%(device_type)s")"
+simulator_id="$("./%(simulator_creator.py)s" \
+  "%(os_version)s" \
+  "%(device_type)s" \
+  --name "$simulator_name"
+)"
+
 test_exit_code=0
 testlog=$(mktemp)
 
@@ -173,7 +193,7 @@ if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)
   fi
 
   args=(
-    -destination "id=$id" \
+    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
@@ -205,7 +225,7 @@ else
     env "${passthrough_env[@]}" \
     xcrun simctl \
     spawn \
-    "$id" \
+    "$simulator_id" \
     "$xctest_binary" \
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
