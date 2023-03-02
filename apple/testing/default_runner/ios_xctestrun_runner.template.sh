@@ -9,12 +9,17 @@ if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   exit 1
 fi
 
+custom_xcodebuild_args=()
 simulator_name=""
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
     --simulator_name=*)
       simulator_name="${arg##*=}"
+      ;;
+    --xcodebuild_args=*)
+      xcodebuild_arg="${arg#--xcodebuild_args=}" # Strip "--xcodebuild_args=" prefix
+      custom_xcodebuild_args+=("$xcodebuild_arg")
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -203,6 +208,10 @@ if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)
   rm -rf "$result_bundle_path"
   if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
     args+=(-resultBundlePath "$result_bundle_path")
+  fi
+
+  if (( ${#custom_xcodebuild_args[@]} )); then
+    args+=("${custom_xcodebuild_args[@]}")
   fi
 
   xcodebuild test-without-building "${args[@]}" \
