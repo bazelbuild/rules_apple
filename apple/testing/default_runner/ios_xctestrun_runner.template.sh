@@ -94,11 +94,14 @@ fi
 
 passthrough_env=()
 xctestrun_env=""
-for single_test_env in ${test_env//,/ }; do
-  IFS="=" read -r key value <<< "$single_test_env"
+saved_IFS=$IFS
+IFS=","
+for test_env_key_value in ${test_env}; do
+  IFS="=" read -r key value <<< "$test_env_key_value"
   xctestrun_env+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
   passthrough_env+=("SIMCTL_CHILD_$key=$value")
 done
+IFS=$saved_IFS
 
 xcrun_target_app_path=""
 xcrun_is_xctrunner_hosted_bundle="false"
@@ -216,22 +219,6 @@ if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
 fi
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
-readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
-/usr/bin/sed \
-  -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
-  -e "s@BAZEL_TEST_BUNDLE_PATH@__TESTROOT__/$test_bundle_name.xctest@g" \
-  -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
-  -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
-  -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
-  -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
-  -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
-  -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
-  -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
-  -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
-  -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
-  -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
-  -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
-  "%(xctestrun_template)s" > "$xctestrun_file"
 
 simulator_id="$("./%(simulator_creator.py)s" \
   "%(os_version)s" \
@@ -248,12 +235,51 @@ if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
   intel_simulator_hack=true
 fi
 
+should_use_xcodebuild=false
+if [[ -n "$test_host_path" ]]; then
+  echo "note: Using 'xcodebuild' because test host was provided"
+  should_use_xcodebuild=true
+fi
 # shellcheck disable=SC2050
-if [[ -n "$test_host_path" || -n "${CREATE_XCRESULT_BUNDLE:-}" || "%(test_order)s" == random ]]; then
+if [[ "%(test_order)s" == random ]]; then
+  echo "note: Using 'xcodebuild' because random test order was requested"
+  should_use_xcodebuild=true
+fi
+if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
+  echo "note: Using 'xcodebuild' because XCResult bundle was requested"
+  should_use_xcodebuild=true
+fi
+if [[ -n "$xctestrun_skip_test_section" || -n "$xctestrun_only_test_section" ]]; then
+  echo "note: Using 'xcodebuild' because test filter was provided"
+  should_use_xcodebuild=true
+fi
+if (( ${#custom_xcodebuild_args[@]} )); then
+  echo "note: Using 'xcodebuild' because '--xcodebuild_args' was provided"
+  should_use_xcodebuild=true
+fi
+
+if [[ "$should_use_xcodebuild" == true ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
-    echo "error: running x86_64 tests on arm64 macs with CREATE_XCRESULT_BUNDLE or random ordering requires a test host" >&2
+    echo "error: running x86_64 tests on arm64 macs using 'xcodebuild' requires a test host" >&2
     exit 1
   fi
+
+  readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
+  /usr/bin/sed \
+    -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
+    -e "s@BAZEL_TEST_BUNDLE_PATH@__TESTROOT__/$test_bundle_name.xctest@g" \
+    -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
+    -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
+    -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
+    -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
+    -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
+    -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
+    -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
+    -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
+    -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
+    -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
+    -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
+    "%(xctestrun_template)s" > "$xctestrun_file"
 
   args=(
     -destination "id=$simulator_id" \
