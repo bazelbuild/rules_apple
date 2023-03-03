@@ -24,7 +24,7 @@ structure. For example with a directory structure of
     bar.d
 ```
 and a target named `dtrace_gen` the header path would be
-`<GENFILES>/dtrace_gen/foo/bar.h`.
+`&lt;GENFILES&gt;/dtrace_gen/foo/bar.h`.
 
 
 **ATTRIBUTES**
@@ -33,6 +33,6 @@ and a target named `dtrace_gen` the header path would be
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="dtrace_compile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="dtrace_compile-srcs"></a>srcs |  dtrace(.d) source files to be compiled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
+| <a id="dtrace_compile-srcs"></a>srcs |  dtrace(.d) source files to be compiled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 
 
