@@ -38,4 +38,9 @@ http_archive(
     sha256 = "782dbba871c5e59a43438a83f8bcc3b8dbb4b97408798906c68849afd1aacbaa",
     strip_prefix = "stardoc-ede1a51a36fe50ac6ebcf8981dd3defd6f6b1762",
     url = "https://github.com/bazelbuild/stardoc/archive/ede1a51a36fe50ac6ebcf8981dd3defd6f6b1762.tar.gz",
+    patch_args = ["-p1"],
+    patches = [
+      # https://github.com/bazelbuild/stardoc/pull/139
+      "//:0001-Expose-stardoc-output-files-as-runfiles-139.patch",
+    ],
 )
