@@ -7,14 +7,18 @@ load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl", "AppleTestR
 
 def _get_template_substitutions(
         *,
+        create_xcresult_bundle,
         device_type,
         os_version,
         simulator_creator,
         random,
+        xcodebuild_args,
         xctestrun_template):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
+        "create_xcresult_bundle": create_xcresult_bundle,
+        "xcodebuild_args": xcodebuild_args,
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
@@ -46,10 +50,12 @@ def _ios_xctestrun_runner_impl(ctx):
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
+            create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
             random = ctx.attr.random,
+            xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
         ),
     )
@@ -92,6 +98,19 @@ The os version of the iOS simulator to run test. The supported os versions
 correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5.
 By default, it reads --ios_simulator_version and then falls back to the latest
 supported version.
+""",
+        ),
+        "create_xcresult_bundle": attr.bool(
+            default = False,
+            doc = """
+Force the test runner to always create an XCResult bundle. This means it will
+always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "xcodebuild_args": attr.string_list(
+            doc = """
+Arguments to pass to `xcodebuild` when running the test bundle. This means it
+will always use `xcodebuild test-without-building` to run the test bundle.
 """,
         ),
         "_simulator_creator": attr.label(

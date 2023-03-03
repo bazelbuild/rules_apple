@@ -9,7 +9,12 @@ if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   exit 1
 fi
 
-custom_xcodebuild_args=()
+create_xcresult_bundle=%(create_xcresult_bundle)s
+if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
+  create_xcresult_bundle=true
+fi
+
+custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 while [[ $# -gt 0 ]]; do
   arg="$1"
@@ -245,7 +250,7 @@ if [[ "%(test_order)s" == random ]]; then
   echo "note: Using 'xcodebuild' because random test order was requested"
   should_use_xcodebuild=true
 fi
-if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
+if [[ "$create_xcresult_bundle" == true ]]; then
   echo "note: Using 'xcodebuild' because XCResult bundle was requested"
   should_use_xcodebuild=true
 fi
@@ -290,7 +295,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   readonly result_bundle_path="$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
   # TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
   rm -rf "$result_bundle_path"
-  if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
+  if [[ "$create_xcresult_bundle" == true ]]; then
     args+=(-resultBundlePath "$result_bundle_path")
   fi
 
