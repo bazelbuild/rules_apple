@@ -39,6 +39,7 @@ _failure_message = "\nPlease update the docs by running\n    bazel run //doc:upd
         failure_message = _failure_message,
         file1 = file + ".gen.md",
         file2 = "%s.md" % file.replace(".doc", ""),
+        tags = ["no-sandbox"],  # https://github.com/bazelbuild/stardoc/issues/112
     )
     for file in _PLAIN_DOC_SRCS
 ]
