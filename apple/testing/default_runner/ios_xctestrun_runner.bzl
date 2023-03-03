@@ -9,12 +9,14 @@ def _get_template_substitutions(
         *,
         device_type,
         os_version,
+        create_xcresult_bundle,
         simulator_creator,
         random,
         xctestrun_template):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
+        "create_xcresult_bundle": create_xcresult_bundle,
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
@@ -42,12 +44,17 @@ def _ios_xctestrun_runner_impl(ctx):
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
+    options = ctx.attr.options
+    if not options:
+        options = ios_xctestrun_runner_options()
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             device_type = device_type,
             os_version = os_version,
+            create_xcresult_bundle = "true" if options.get("create_xcresult_bundle", None) else "false",
             simulator_creator = ctx.executable._simulator_creator.short_path,
             random = ctx.attr.random,
             xctestrun_template = ctx.file._xctestrun_template.short_path,
@@ -67,9 +74,33 @@ def _ios_xctestrun_runner_impl(ctx):
         ),
     ]
 
+def ios_xctestrun_runner_options(
+        *,
+        create_xcresult_bundle = False):
+    """Override options for use in `ios_xctestrun_runner.options`.
+
+    Args:
+        create_xcresult_bundle: Optional. Force creation of XCResult bundles.
+    Returns:
+        A `dict` containing fields for the provided arguments.
+    """
+
+    d = {}
+
+    if create_xcresult_bundle:
+        d["create_xcresult_bundle"] = "1"
+
+    return d
+
 ios_xctestrun_runner = rule(
     _ios_xctestrun_runner_impl,
     attrs = {
+        "options": attr.string_dict(
+            doc = """
+A dictionary of global project options. Use`ios_xctestrun_runner_options` to create.
+""",
+            mandatory = False,
+        ),
         "device_type": attr.string(
             default = "",
             doc = """
