@@ -156,6 +156,45 @@ function test_pkginfo_contents() {
       "app.app/Contents/PkgInfo")"
 }
 
+# Tests that app builds with ASAN enabled and that the ASAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_asan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=asan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.asan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with TSAN enabled and that the TSAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_tsan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=tsan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.tsan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with UBSAN enabled and that the UBSAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_ubsan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=ubsan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib"
+}
+
 # Tests that app builds with include_clang_rt and asan linker option
 # enabled and that the ASAN library is packaged into the app when enabled.
 function test_app_builds_with_include_clang_rt_asan() {
