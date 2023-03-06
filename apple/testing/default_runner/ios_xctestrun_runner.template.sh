@@ -92,9 +92,9 @@ function escape() {
 # to the test runner
 test_env="%(test_env)s"
 if [[ -n "$test_env" ]]; then
-  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR"
+  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR"
 else
-  test_env="TEST_SRCDIR=$TEST_SRCDIR"
+  test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
 passthrough_env=()
