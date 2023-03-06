@@ -148,6 +148,10 @@ class PassingUnitTest : XCTestCase {
   func testSrcdirSet() {
     XCTAssertNotNil(ProcessInfo.processInfo.environment["TEST_SRCDIR"])
   }
+
+  func testUndeclaredOutputsSet() {
+    XCTAssertNotNil(ProcessInfo.processInfo.environment["TEST_UNDECLARED_OUTPUTS_DIR"])
+  }
 }
 EOF
 
@@ -470,7 +474,7 @@ function test_ios_unit_swift_test_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_test_fail() {
