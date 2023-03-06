@@ -194,4 +194,82 @@ EOF
   fi
 }
 
+# Tests that swift_library builds with include_clang_rt and asan linker option
+# enabled and that the ASAN library is packaged into the IPA when enabled.
+function test_swift_builds_with_include_clang_rt_asan() {
+  create_minimal_ios_application
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=address \
+        || fail "Should build"
+
+  if is_device_build ios ; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.asan_ios_dynamic.dylib"
+  else
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.asan_iossim_dynamic.dylib"
+  fi
+}
+
+# Tests that swift_library builds with include_clang_rt and tsan linker option
+# enabled and that the TSAN library is packaged into the IPA when enabled.
+function test_swift_builds_with_include_clang_rt_tsan() {
+  # Skip the device version as tsan is not supported on devices.
+  if ! is_device_build ios ; then
+    create_minimal_ios_application
+
+    cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+    # The clang_rt resolution implemented in tools/clangrttool.py requires
+    # the presence of a clang_rt*.dylib rpath.
+
+    do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=thread \
+        || fail "Should build"
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
+  fi
+}
+
+# Tests that swift_library builds with include_clang_rt and ubsan linker option
+# enabled and that the UBSAN library is packaged into the IPA when enabled.
+function test_swift_builds_with_include_clang_rt_ubsan() {
+  create_minimal_ios_application
+
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=undefined \
+        || fail "Should build"
+
+  if is_device_build ios ; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.ubsan_ios_dynamic.dylib"
+  else
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libclang_rt.ubsan_iossim_dynamic.dylib"
+  fi
+}
+
 run_suite "ios_application with Swift bundling tests"
