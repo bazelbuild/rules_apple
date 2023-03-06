@@ -294,6 +294,7 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
 
 _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'aps-environment',
+    'com.apple.developer.applesignin',
     'com.apple.developer.carplay-audio',
     'com.apple.developer.carplay-charging',
     'com.apple.developer.carplay-maps',
