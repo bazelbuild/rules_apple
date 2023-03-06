@@ -25,6 +25,7 @@ def _should_package_clang_runtime(*, features):
         "asan": True,
         "tsan": True,
         "ubsan": True,
+        "include_clang_rt": True,
     }
 
     for feature in features:

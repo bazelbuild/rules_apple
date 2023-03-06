@@ -106,6 +106,10 @@ Similar to what you can find in Xcode, the Address and Thread sanitizers are
 mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
+In case you want to have different compiler and linker flags, you can use 
+`--features=include_clang_rt` and specify the required compiler and linker
+flags yourself.
+
 -->
 
 ### linkmap Generation {#objc_generate_linkmap}
