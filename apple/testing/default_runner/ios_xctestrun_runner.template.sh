@@ -9,6 +9,10 @@ if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   exit 1
 fi
 
+if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
+  set -x
+fi
+
 create_xcresult_bundle=%(create_xcresult_bundle)s
 if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
   create_xcresult_bundle=true
