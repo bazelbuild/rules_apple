@@ -12,6 +12,10 @@ load(
     "ios_unit_test",
 )
 load(
+    "//apple:resources.bzl",
+    "apple_resource_group",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
@@ -3363,6 +3367,7 @@ ios_application(
 objc_library(
     name = "objc_lib_with_inner_lib_with_ios_framework",
     srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
     deps = [":objc_lib_with_ios_framework"],
 )
 
@@ -3372,13 +3377,24 @@ objc_library(
         "//test/starlark_tests/resources:shared.h",
         "//test/starlark_tests/resources:shared.m",
     ],
-    data = [":fmwk_with_resources"],
+    data = [
+        ":fmwk_with_resources",
+        ":resource_group_with_framework",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "resource_group_with_framework",
+    resources = [":fmwk_no_version"],
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "swift_lib_with_ios_framework",
     srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
     data = [":fmwk_min_os_baseline_with_bundle"],
+    tags = common.fixture_tags,
 )
 
 ios_application(
@@ -3444,6 +3460,7 @@ objc_library(
         "//test/starlark_tests/resources:shared.m",
     ],
     data = [":fmwk_with_fmwk"],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------

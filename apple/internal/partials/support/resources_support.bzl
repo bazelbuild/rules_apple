@@ -32,6 +32,10 @@ All methods in this file follow this convention:
 """
 
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -733,16 +737,18 @@ def _apple_bundle(bundle_type):
     if not hasattr(processor.location, bundle_type):
         fail("Bundle type location not supported: ", bundle_type)
 
-    def _bundle_at_location(*, files, **_kwargs):
-        bundle = files.to_list().pop()
+    def _bundle_at_location(*, files, platform_prerequisites, **_kwargs):
         location = getattr(processor.location, bundle_type)
 
-        # If tree artifacts are enabled, set the bundle name as
-        # the parent directory. Otherwise, let bundletool unzip
-        # the bundle directly.
-        if bundle.is_directory:
-            parent_dir = paths.basename(bundle.short_path)
-            return struct(files = [(location, parent_dir, files)])
+        # If tree artifacts are enabled, iterate each bundle and set the bundle name
+        # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
+        if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
+            bundle_files = []
+            for bundle in files.to_list():
+                # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.
+                basename = paths.basename(bundle.short_path)
+                bundle_files.append((location, basename, depset([bundle])))
+            return struct(files = bundle_files)
         else:
             return struct(archives = [(location, None, files)])
 
