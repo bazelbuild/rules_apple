@@ -145,12 +145,7 @@ def _ios_application_impl(ctx):
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = (
-        ctx.attr.frameworks +
-        ctx.attr.extensions +
-        ctx.attr.app_clips +
-        ctx.attr.deps
-    )
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,

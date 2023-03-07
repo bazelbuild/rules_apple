@@ -2575,7 +2575,7 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = "unit_test_with_fmwk_from_objc_library_data_and_runtime_deps",
+    name = "unit_test_with_fmwk_from_objc_library_data",
     families = [
         "iphone",
         "ipad",
@@ -2925,11 +2925,10 @@ objc_library(
 )
 
 # ---------------------------------------------------------------------------------------
-# Targets for Apple Frameworks propagated from objc_library/swift_library data attribute
-# and objc_library runtime_deps attribute tests.
+# Targets for Apple Frameworks propagated from objc_library/swift_library data attribute tests.
 
 ios_application(
-    name = "app_with_fmwks_from_objc_swift_libraries_using_data_and_runtime_deps",
+    name = "app_with_fmwks_from_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -2946,7 +2945,7 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_fmwks_from_transitive_objc_swift_libraries_using_data_and_runtime_deps",
+    name = "app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -2963,7 +2962,7 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_and_runtime_deps",
+    name = "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     frameworks = [":fmwk"],
@@ -2983,7 +2982,6 @@ ios_application(
 objc_library(
     name = "objc_lib_with_inner_lib_with_ios_framework",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_fmwk"],
     deps = [":objc_lib_with_ios_framework"],
 )
 
@@ -2994,7 +2992,6 @@ objc_library(
         "//test/starlark_tests/resources:shared.m",
     ],
     data = [":fmwk_with_resources"],
-    runtime_deps = [":fmwk_min_os_baseline"],
 )
 
 swift_library(
@@ -3004,7 +3001,7 @@ swift_library(
 )
 
 ios_application(
-    name = "app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data_and_runtime_deps",
+    name = "app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [

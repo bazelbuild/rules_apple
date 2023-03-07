@@ -27,7 +27,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal/providers:embeddable_info",
     ],
 )
 

@@ -379,10 +379,9 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_includes_and_does_not_link_transitive_data_ios_frameworks".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_objc_swift_libraries_using_data_and_runtime_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_objc_swift_libraries_using_data",
         apple_generate_dsym = True,
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
@@ -390,15 +389,12 @@ def ios_framework_test_suite(name):
         ],
         not_contains = [
             "$BUNDLE_ROOT/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
             "$BUNDLE_ROOT/basic.bundle",
         ],
-        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_objc_swift_libraries_using_data_and_runtime_deps",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_objc_swift_libraries_using_data",
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
             "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
             "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
         ],
@@ -414,29 +410,21 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_includes_and_does_not_link_nested_transitive_data_ios_frameworks".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_transitive_objc_swift_libraries_using_data_and_runtime_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
             "$BUNDLE_ROOT/basic.bundle",
         ],
-        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_transitive_objc_swift_libraries_using_data_and_runtime_deps",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk.framework/fmwk (offset 24)",
-            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
-            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
             "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
             "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
         ],
@@ -452,10 +440,9 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_both_load_and_runtime_transitive_data_ios_frameworks".format(name),
         build_type = "device",
-        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_and_runtime_deps",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
@@ -463,8 +450,6 @@ def ios_framework_test_suite(name):
         ],
         not_contains = [
             "$BUNDLE_ROOT/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
             "$BUNDLE_ROOT/basic.bundle",
@@ -473,11 +458,10 @@ def ios_framework_test_suite(name):
             "name @rpath/fmwk.framework/fmwk (offset 24)",
         ],
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
             "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
             "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_and_runtime_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         tags = [name],
     )
 
@@ -486,10 +470,9 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_shared_resources_from_app_and_fmwks_with_data_ios_frameworks".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data_and_runtime_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
         contains = [
             "$BUNDLE_ROOT/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
@@ -497,8 +480,6 @@ def ios_framework_test_suite(name):
             "$BUNDLE_ROOT/basic.bundle",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/Another.plist",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/basic.bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
         ],
