@@ -608,6 +608,20 @@ the provisioning profile to ensure they are supported.
 # Returns the aspects required to support a test host for a given target.
 _TEST_HOST_ASPECTS = [framework_provider_aspect]
 
+# A late-bound attribute denoting the value of the `--custom_malloc`
+# command line flag (or None if the flag is not provided).
+# custom_malloc exists on Apple platforms mainly to support the custom allocators for
+# ASan/TSan.
+_CUSTOM_MALLOC_ATTR = {
+    "_custom_malloc": attr.label(
+        default = configuration_field(
+            fragment = "cpp",
+            name = "custom_malloc",
+        ),
+        providers = [[CcInfo]],
+    ),
+}
+
 # Returns the default root Info.plist required to support a test bundle rule.
 _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"
 
@@ -622,6 +636,7 @@ rule_attrs = struct(
     common_bundle_attrs = _COMMON_BUNDLE_ATTRS,
     common_tool_attrs = _COMMON_TOOL_ATTRS,
     custom_transition_allowlist_attr = _CUSTOM_TRANSITION_ALLOWLIST_ATTR,
+    custom_malloc_attr = _CUSTOM_MALLOC_ATTR,
     device_family_attrs = _device_family_attrs,
     entitlements_attrs = _ENTITLEMENTS_ATTRS,
     infoplist_attrs = _infoplist_attrs,

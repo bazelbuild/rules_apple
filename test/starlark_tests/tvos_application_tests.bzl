@@ -27,6 +27,10 @@ load(
     "archive_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
+load(
     "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
@@ -209,6 +213,11 @@ def tvos_application_test_suite(name):
             "CFBundleExecutable": "app_multiple_infoplists",
         },
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`

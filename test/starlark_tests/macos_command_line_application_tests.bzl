@@ -27,6 +27,10 @@ load(
     "binary_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
+load(
     "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
@@ -140,6 +144,11 @@ def macos_command_line_application_test_suite(name):
         binary_contains_symbols = ["_anotherFunctionMain"],
         binary_not_contains_symbols = ["_dontCallMeMain"],
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
     )
 
     dsyms_test(

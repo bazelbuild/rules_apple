@@ -28,6 +28,10 @@ load(
     "binary_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -163,6 +167,11 @@ def watchos_application_test_suite(name):
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
     )
 
     # Tests inclusion of extensions within Watch extensions

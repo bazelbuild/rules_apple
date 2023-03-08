@@ -1992,6 +1992,7 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_malloc_attr,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2097,6 +2098,7 @@ ios_app_clip = rule_factory.create_apple_rule(
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_malloc_attr,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2153,6 +2155,7 @@ ios_extension = rule_factory.create_apple_rule(
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_malloc_attr,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,

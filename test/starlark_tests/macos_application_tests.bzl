@@ -43,6 +43,10 @@ load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
 
 visibility("private")
 
@@ -312,6 +316,11 @@ def macos_application_test_suite(name):
             "CFBundleExecutable": "app_multiple_infoplists",
         },
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
     )
 
     # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`

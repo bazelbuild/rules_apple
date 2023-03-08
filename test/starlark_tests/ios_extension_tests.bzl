@@ -28,6 +28,10 @@ load(
     "entry_point_test",
 )
 load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
+load(
     "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
@@ -137,6 +141,11 @@ def ios_extension_test_suite(name):
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
     )
 
     # Tests that the provisioning profile is present when built for device.

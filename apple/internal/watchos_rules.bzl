@@ -900,6 +900,7 @@ watchos_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_malloc_attr,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -961,6 +962,7 @@ watchos_extension = rule_factory.create_apple_rule(
         ),
         rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
+        rule_attrs.custom_malloc_attr,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),

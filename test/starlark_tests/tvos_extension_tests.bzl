@@ -27,6 +27,10 @@ load(
     "archive_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:custom_malloc_test.bzl",
+    "custom_malloc_test",
+)
+load(
     "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
@@ -92,6 +96,11 @@ def tvos_extension_test_suite(name):
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
         tags = [name],
+    )
+
+    custom_malloc_test(
+        name = name,
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
     )
 
     # Verify that Swift dylibs are packaged with the application, not with the extension, when only
