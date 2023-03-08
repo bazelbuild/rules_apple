@@ -543,7 +543,7 @@ def _apple_static_xcframework_import_impl(ctx):
         sdk_dylib = ctx.attr.sdk_dylibs,
         sdk_framework = ctx.attr.sdk_frameworks,
         weak_sdk_framework = ctx.attr.weak_sdk_frameworks,
-        library = [xcframework_library.binary],
+        static_framework_file = [xcframework_library.binary],
     )
     providers.append(objc_provider)
 

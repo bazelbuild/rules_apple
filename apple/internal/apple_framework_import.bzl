@@ -360,7 +360,7 @@ def _apple_static_framework_import_impl(ctx):
             alwayslink = alwayslink,
             sdk_dylib = sdk_dylibs,
             sdk_framework = sdk_frameworks,
-            library = framework_imports_by_category.binary_imports,
+            static_framework_file = framework_imports_by_category.binary_imports,
             weak_sdk_framework = weak_sdk_frameworks,
         ),
     )
