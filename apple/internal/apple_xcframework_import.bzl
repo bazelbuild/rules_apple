@@ -547,6 +547,18 @@ def _apple_static_xcframework_import_impl(ctx):
     )
     providers.append(objc_provider)
 
+    sdk_linkopts = []
+    for dylib in ctx.attr.sdk_dylibs:
+        if dylib.startswith("lib"):
+            dylib = dylib[3:]
+        sdk_linkopts.append("-l%s" % dylib)
+    for sdk_framework in ctx.attr.sdk_frameworks:
+        sdk_linkopts.append("-framework")
+        sdk_linkopts.append(sdk_framework)
+    for sdk_framework in ctx.attr.weak_sdk_frameworks:
+        sdk_linkopts.append("-weak_framework")
+        sdk_linkopts.append(sdk_framework)
+
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
@@ -563,7 +575,7 @@ def _apple_static_xcframework_import_impl(ctx):
         label = label,
         libraries = [xcframework_library.binary],
         framework_includes = xcframework_library.framework_includes,
-        linkopts = linkopts,
+        linkopts = sdk_linkopts + linkopts,
         swiftmodule_imports = [],
         includes = xcframework_library.includes + ctx.attr.includes,
     )
