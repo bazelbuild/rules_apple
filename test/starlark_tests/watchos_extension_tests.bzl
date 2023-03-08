@@ -114,7 +114,7 @@ def watchos_extension_test_suite(name):
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         expected_direct_dsyms = ["ext.appex"],
         expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
