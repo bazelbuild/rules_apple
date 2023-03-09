@@ -127,15 +127,6 @@ objc_library(
 )
 
 # --------------------------------------------------------------------------------
-# Objective-C custom allocator libraries
-
-objc_library(
-    name = "custom_allocator",
-    srcs = ["custom_allocator.m"],
-    tags = common.fixture_tags,
-)
-
-# --------------------------------------------------------------------------------
 # Objective-C main.m libraries
 
 objc_library(

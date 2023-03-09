@@ -34,10 +34,6 @@ load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
 )
-load(
-    "//test/starlark_tests/rules:custom_malloc_test.bzl",
-    "custom_malloc_test",
-)
 
 visibility("private")
 
@@ -91,11 +87,6 @@ def ios_app_clip_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],
-    )
-
-    custom_malloc_test(
-        name = name,
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`

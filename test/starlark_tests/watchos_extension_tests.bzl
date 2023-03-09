@@ -27,10 +27,6 @@ load(
     "archive_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:custom_malloc_test.bzl",
-    "custom_malloc_test",
-)
-load(
     "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
@@ -122,11 +118,6 @@ def watchos_extension_test_suite(name):
         expected_direct_dsyms = ["ext.appex"],
         expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
-    )
-
-    custom_malloc_test(
-        name = name,
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
     )
 
     infoplist_contents_test(

@@ -155,18 +155,6 @@ def _register_binary_linking_action(
     linkopts = []
     link_inputs = []
 
-    # Add custom_malloc library if it exists.
-    if hasattr(ctx.attr, "_custom_malloc") and ctx.attr._custom_malloc:
-        inputs = ctx.attr._custom_malloc[CcInfo].linking_context.linker_inputs.to_list()
-        if len(inputs) > 1:
-            fail("target '{}' should have only 1 '--custom_malloc' library".format(ctx.label))
-        for input in inputs:
-            if len(input.libraries) > 1:
-                fail("--custom_malloc target '{}' should have only 1 library".format(input.owner))
-            for library in input.libraries:
-                linkopts.append("-Wl,{}".format(library.static_library.path))
-                link_inputs.append(library.static_library)
-
     # Add linkopts/linker inputs that are common to all the rules.
     for exported_symbols_list in exported_symbols_lists:
         linkopts.append(
