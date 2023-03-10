@@ -206,7 +206,7 @@ function test_standalone_unit_test_coverage_json() {
 
 function test_standalone_unit_test_coverage_coverage_manifest() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:coverage_manifest_test || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test/coverage.dat"
   assert_contains "SF:./app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test/coverage.dat"
   cat "test-testlogs/app/coverage_manifest_test/coverage.dat"
@@ -215,7 +215,7 @@ function test_standalone_unit_test_coverage_coverage_manifest() {
 
 function test_standalone_unit_test_coverage_coverage_manifest_new_runner() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true //app:coverage_manifest_test_new_runner || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:coverage_manifest_test_new_runner || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   assert_contains "SF:./app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   cat test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat
