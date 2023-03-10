@@ -224,7 +224,7 @@ function test_standalone_unit_test_coverage_coverage_manifest_new_runner() {
 
 function test_coverage_coverage_manifest_new_runner_absolute_paths() {
   create_common_files
-  do_coverage ios --test_output=all --ios_minimum_os=9.0 --experimental_use_llvm_covmap --action_env=LCOV_MERGER=/usr/bin/true --features=-coverage_prefix_map --features=-swift.coverage_prefix_map --features=-swift.file_prefix_map //app:coverage_manifest_test_new_runner || fail "Should build"
+  do_coverage ios --test_output=all --ios_minimum_os=9.0 --experimental_use_llvm_covmap --features=-coverage_prefix_map --features=-swift.coverage_prefix_map --features=-swift.file_prefix_map //app:coverage_manifest_test_new_runner || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   assert_contains "SF:.*/app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   (! grep "SF:" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat" | grep -v "app/SharedLogic.m") || fail "Should not contain other files"
