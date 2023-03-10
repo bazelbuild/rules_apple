@@ -19,10 +19,12 @@ load(
     "archive_contents_test",
 )
 
-# buildifier: disable=unnamed-macro
-def macos_application_resources_test_suite():
-    """Test suite for macos_application resources."""
-    name = "macos_application_resources"
+def macos_application_resources_test_suite(name):
+    """Test suite for macos_application resources.
+
+    Args:
+      name: the base name to be used in things created by this macro
+    """
 
     # Tests that various nonlocalized resource types are bundled correctly with
     # the application (at the top-level, rather than inside an .lproj directory).

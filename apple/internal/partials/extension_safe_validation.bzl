@@ -36,14 +36,13 @@ def _extension_safe_validation_partial_impl(
     if is_extension_safe:
         for target in targets_to_validate:
             if not target[_AppleExtensionSafeValidationInfo].is_extension_safe:
-                # There is no way to issue a warning, so print is the only way
-                # to message.
-                # buildifier: disable=print
-                print(
+                fail(
                     ("The target {current_label} is for an extension but its framework " +
                      "dependency {target_label} is not marked extension-safe. Specify " +
-                     "'extension_safe = 1' on the framework target. This will soon cause a build " +
-                     "failure.").format(current_label = rule_label, target_label = target.label),
+                     "'extension_safe = True' on the framework target.").format(
+                        current_label = rule_label,
+                        target_label = target.label,
+                    ),
                 )
 
     return struct(

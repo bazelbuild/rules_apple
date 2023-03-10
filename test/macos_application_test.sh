@@ -69,7 +69,7 @@ macos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "${MIN_OS_MACOS_NPLUS1}",
     deps = [":lib"],
 )
 EOF
@@ -127,7 +127,7 @@ macos_application(
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
     ipa_post_processor = "post_processor.sh",
-    minimum_os_version = "10.10",
+    minimum_os_version = "${MIN_OS_MACOS}",
     deps = [":lib"],
 )
 EOF
@@ -154,6 +154,93 @@ function test_pkginfo_contents() {
 
   assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.zip" \
       "app.app/Contents/PkgInfo")"
+}
+
+# Tests that app builds with ASAN enabled and that the ASAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_asan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=asan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.asan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with TSAN enabled and that the TSAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_tsan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=tsan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.tsan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with UBSAN enabled and that the UBSAN
+# library is packaged into the app when enabled.
+function test_app_builds_with_ubsan() {  # Blocked on b/73547309
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=ubsan \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with include_clang_rt and asan linker option
+# enabled and that the ASAN library is packaged into the app when enabled.
+function test_app_builds_with_include_clang_rt_asan() {
+  create_common_files
+  create_minimal_macos_application
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build macos //app:app --features=include_clang_rt --linkopt=-fsanitize=address \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.asan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with include_clang_rt and tsan linker option
+# enabled and that the TSAN library is packaged into the app when enabled.
+function test_app_builds_with_include_clang_rt_tsan() {
+  create_common_files
+  create_minimal_macos_application
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build macos //app:app --features=include_clang_rt --linkopt=-fsanitize=thread \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.tsan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with include_clang_rt and ubsan linker option
+# enabled and that the UBSAN library is packaged into the app when enabled.
+function test_app_builds_with_include_clang_rt_ubsan() {
+  create_common_files
+  create_minimal_macos_application
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build macos //app:app --features=include_clang_rt --linkopt=-fsanitize=undefined \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib"
 }
 
 run_suite "macos_application bundling tests"

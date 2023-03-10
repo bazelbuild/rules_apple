@@ -32,9 +32,9 @@ type of rule being created and thus its descriptor to control behaviors.
 # * `application`: A basic iOS, macOS, or tvOS application. This is the default
 #   product type for those targets; it can be overridden with a more specific
 #   product type if needed.
-# * `app_extension`: A basic iOS, macOS, or tvOS application extension. This is
-#   the default product type for those targets; it can be overridden with a more
-#   specific product type if needed.
+# * `app_extension`: A basic iOS, macOS, watchOS or tvOS application extension.
+#   This is the default product type for those targets; it can be overridden with
+#   a more specific product type if needed.
 # * `bundle`: A loadable macOS bundle. This is the default product type for
 #   `macos_bundle` targets; it can be overridden with a more specific product type
 #   if needed.

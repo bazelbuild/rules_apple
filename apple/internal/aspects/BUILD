@@ -8,13 +8,14 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 bzl_library(
-    name = "framework_import_aspect",
-    srcs = ["framework_import_aspect.bzl"],
+    name = "framework_provider_aspect",
+    srcs = ["framework_provider_aspect.bzl"],
     visibility = [
-        "//apple/internal:__pkg__",
+        "//apple:__subpackages__",
     ],
     deps = [
-        "//apple/internal:apple_framework_import",
+        "//apple:providers",
+        "//apple/internal/providers:embeddable_info",
     ],
 )
 
@@ -27,7 +28,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:apple_support_toolchain",
+        "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resources",
         "//apple/internal:swift_support",
@@ -39,13 +40,23 @@ bzl_library(
 )
 
 bzl_library(
-    name = "swift_static_framework_aspect",
-    srcs = ["swift_static_framework_aspect.bzl"],
+    name = "swift_dynamic_framework_aspect",
+    srcs = ["swift_dynamic_framework_aspect.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "@bazel_skylib//lib:sets",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
+    name = "swift_usage_aspect",
+    srcs = ["swift_usage_aspect.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
         "@build_bazel_rules_swift//swift",
     ],
 )

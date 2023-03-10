@@ -18,6 +18,7 @@ exports_files([
     "nonlocalized.strings",
     "nonlocalized_resource.txt",
     "sample.mlmodel",
+    "sample.mlpackage",
     "sample.png",
     "storyboard_ios.storyboard",
     "view_ios.xib",
@@ -38,6 +39,7 @@ filegroup(
     srcs = [
         "BUILD",
         "sample.mlmodel",
+        "sample.mlpackage",
     ],
 )
 
@@ -53,8 +55,12 @@ filegroup(
         "storyboard_ios.storyboard",
         "view_ios.xib",
         ":app_icons_ios",
+        ":app_icons_ios_with_bad_size",
         ":assets2_ios",
         ":assets_ios",
+        ":imageset_missing_child",
+        ":imageset_with_invalid_json",
+        ":imageset_with_unassigned_child",
         ":launch_images_ios",
         ":localized_storyboards_ios",
         ":localized_xibs_ios",
@@ -127,6 +133,13 @@ genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
+)
+
+genrule(
+    name = "generate_storyboard_copy",
+    srcs = ["storyboard_ios.storyboard"],
+    outs = ["storyboard_ios_copy.storyboard"],
+    cmd = "cp $< $@",
 )
 
 apple_resource_bundle(
@@ -268,6 +281,26 @@ filegroup(
 filegroup(
     name = "star_atlas_files",
     srcs = glob(["star.atlas/**"]),
+)
+
+filegroup(
+    name = "imageset_missing_child",
+    srcs = glob(["imageset_missing_child.xcassets/**"]),
+)
+
+filegroup(
+    name = "imageset_with_unassigned_child",
+    srcs = glob(["imageset_with_unassigned_child.xcassets/**"]),
+)
+
+filegroup(
+    name = "app_icons_ios_with_bad_size",
+    srcs = glob(["app_icons_ios_with_bad_size.xcassets/**"]),
+)
+
+filegroup(
+    name = "imageset_with_invalid_json",
+    srcs = glob(["imageset_with_invalid_json.xcassets/**"]),
 )
 
 filegroup(

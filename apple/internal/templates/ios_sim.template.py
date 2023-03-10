@@ -406,27 +406,52 @@ def temporary_ios_simulator(simctl_path, device, version):
 
 @contextlib.contextmanager
 def extracted_app(ios_application_output_path, app_name):
-  """Extracts Foo.app from an ios_application() rule's output.
+  """Extracts Foo.app from ios_application() output and makes it writable.
 
   Args:
     ios_application_output_path: Path to the output of an `ios_application()`.
-      If the path is an .ipa archive, unzips it to a temporary directory.
+      If the path is a directory, copies it to a temporary directory and makes
+      the contents writable, as `simctl install` fails to install an `.app` that
+      is read-only. If the path is an .ipa archive, unzips it to a temporary
+      directory.
     app_name: The name of the application (e.g. "Foo" for "Foo.app").
 
   Yields:
-    Path to Foo.app.
+    Path to Foo.app in temporary directory (re-used if already present).
+
   """
   if os.path.isdir(ios_application_output_path):
-    logger.debug("Found app directory: %s", ios_application_output_path)
-    with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
-      temp_app_path = os.path.join(temp_dir, app_name + ".app")
-      shutil.copytree(ios_application_output_path, temp_app_path)
-      for root, dirs, _ in os.walk(temp_app_path):
-        for directory in dirs:
-          os.chmod(os.path.join(root, directory), 0o777)
-      os.chmod(temp_app_path, 0o777)
-      yield temp_app_path
+    # Re-use the same path for each run and rsync to it (reducing
+    # copies). Ensure the result is writable, or `simctl install` will
+    # fail with `Unhandled error domain NSPOSIXErrorDomain, code 13`.
+    dst_dir = os.path.join(tempfile.gettempdir(), "bazel_temp_" + app_name)
+    os.makedirs(dst_dir, exist_ok=True)
+    rsync_command = [
+        "/usr/bin/rsync",
+        "--archive",
+        "--delete",
+        "--checksum",
+        "--chmod=u+w",
+        "--verbose",
+        # The output path might itself be a symlink; resolve to the
+        # real path so rsync doesn't just copy the symlink.
+        os.path.realpath(ios_application_output_path),
+        dst_dir,
+    ]
+    logger.debug("Found app directory: %s, running command: %s",
+                 ios_application_output_path, rsync_command)
+    result = subprocess.run(
+        rsync_command,
+        capture_output=True,
+        check=True,
+        encoding='utf-8',
+        text=True)
+    logger.debug("rsync output: %s", result.stdout)
+    yield os.path.join(dst_dir, app_name + ".app")
   else:
+    # Create a new temporary directory for each run, deleting it
+    # afterwards (there's no efficient way to "sync" an unzip, so this
+    # can't re-use the output directory).
     with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
       logger.debug("Unzipping IPA from %s to %s", ios_application_output_path,
                    temp_dir)

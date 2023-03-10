@@ -15,6 +15,10 @@
 """ios_app_clip Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -32,11 +36,11 @@ load(
     "linkmap_test",
 )
 
-def ios_app_clip_test_suite(name = "ios_app_clip"):
+def ios_app_clip_test_suite(name):
     """Test suite for ios_app_clip.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     # Tests that app clip is codesigned when built as a standalone app
@@ -123,7 +127,7 @@ def ios_app_clip_test_suite(name = "ios_app_clip"):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "14.0",
+            "MinimumOSVersion": common.min_os_ios.appclip_support,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],

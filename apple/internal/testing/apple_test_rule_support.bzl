@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleDsymBundleInfo",
     "AppleExtraOutputsInfo",
     "AppleTestInfo",
     "AppleTestRunnerInfo",
@@ -65,7 +66,7 @@ def _coverage_files_aspect_impl(target, ctx):
     # embedded in them.
     direct_binaries = []
     transitive_binaries_sets = []
-    if AppleBundleInfo in target:
+    if AppleBundleInfo in target and target[AppleBundleInfo].binary:
         direct_binaries.append(target[AppleBundleInfo].binary)
 
     # Collect dependencies coverage files.
@@ -102,10 +103,12 @@ This aspect propagates a `CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None, test_filter = None, test_coverage_manifest = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
+    if test_coverage_manifest:
+        subs["test_coverage_manifest"] = test_coverage_manifest.short_path
     if test_host:
         subs["test_host_path"] = test_host.short_path
     else:
@@ -113,10 +116,11 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
+    subs["test_filter"] = test_filter or ""
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_coverage_execution_environment(ctx, covered_binaries):
+def _get_coverage_execution_environment(_ctx, covered_binaries):
     """Returns environment variables required for test coverage support."""
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
@@ -143,6 +147,9 @@ def _apple_test_rule_impl(ctx, test_type):
 
     direct_runfiles = []
     transitive_runfiles = []
+
+    if ctx.file.test_coverage_manifest:
+        direct_runfiles.append(ctx.file.test_coverage_manifest)
 
     test_host_archive = test_bundle_target[AppleTestInfo].test_host
     if test_host_archive:
@@ -174,19 +181,28 @@ def _apple_test_rule_impl(ctx, test_type):
             test_bundle,
             test_environment,
             test_host = test_host_archive,
+            test_filter = ctx.attr.test_filter,
+            test_coverage_manifest = ctx.file.test_coverage_manifest,
         ),
         is_executable = True,
     )
+
+    transitive_runfile_objects = [
+        ctx.attr.runner.default_runfiles,
+        ctx.attr.runner.data_runfiles,
+    ]
 
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
+        transitive_runfile_objects.append(data_dep.default_runfiles)
 
     return [
         # Repropagate the AppleBundleInfo and AppleTestInfo providers from the test bundle so that
         # clients interacting with the test targets themselves can access the bundle's structure.
         test_bundle_target[AppleBundleInfo],
+        test_bundle_target[AppleDsymBundleInfo],
         test_bundle_target[AppleTestInfo],
         test_bundle_target[OutputGroupInfo],
         coverage_common.instrumented_files_info(
@@ -204,9 +220,7 @@ def _apple_test_rule_impl(ctx, test_type):
             runfiles = ctx.runfiles(
                 files = direct_runfiles,
                 transitive_files = depset(transitive = transitive_runfiles),
-            )
-                .merge(ctx.attr.runner.default_runfiles)
-                .merge(ctx.attr.runner.data_runfiles),
+            ).merge_all(transitive_runfile_objects),
         ),
     ]
 

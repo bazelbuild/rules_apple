@@ -15,17 +15,20 @@
 """tvos_static_framework Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
 
-def tvos_static_framework_test_suite(name = "tvos_static_framework"):
+def tvos_static_framework_test_suite(name):
     """Test suite for tvos_static_framework.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     archive_contents_test(
         name = "{}_contents_test".format(name),
         build_type = "simulator",
@@ -36,6 +39,34 @@ def tvos_static_framework_test_suite(name = "tvos_static_framework"):
             "$BUNDLE_ROOT/Headers/shared.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
         ],
+        tags = [name],
+    )
+
+    # Tests Swift tvos_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
+    archive_contents_test(
+        name = "{}_swift_sim_arm64_builds".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
+        cpus = {
+            "tvos_cpus": ["x86_64", "sim_arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_tvos.arm_sim_support, "platform TVOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_x86_64_builds".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
+        cpus = {
+            "tvos_cpus": ["x86_64", "sim_arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_tvos.baseline, "platform TVOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
         tags = [name],
     )
 

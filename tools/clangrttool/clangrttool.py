@@ -106,10 +106,11 @@ class ClangRuntimeTool(object):
     return rpath, libs
 
   def run(self):
-    objdump_output = subprocess.check_output([
-        "xcrun", "llvm-objdump", "-macho", "-private-headers", "-non-verbose",
-        binary_path
-    ],
+    objdump_args = [
+        "xcrun", "llvm-objdump", "--macho", "--private-headers",
+        "--non-verbose", binary_path
+    ]
+    objdump_output = subprocess.check_output(objdump_args,
                                              encoding="utf8",
                                              errors="replace")
     objdump_output = [x.strip() for x in objdump_output.splitlines()]

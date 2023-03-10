@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:ios.bzl",
     "ios_application",
@@ -8,6 +7,7 @@ load(
     "watchos_application",
     "watchos_dynamic_framework",
     "watchos_extension",
+    "watchos_framework",
     "watchos_static_framework",
     "watchos_ui_test",
     "watchos_unit_test",
@@ -15,8 +15,12 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_static_framework_import",
 )
-load("//test/starlark_tests:common.bzl", "FIXTURE_TAGS")
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
@@ -41,9 +45,9 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 watchos_application(
@@ -54,8 +58,21 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "4.0",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+)
+
+watchos_application(
+    name = "app_arm64_support",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    extension = ":ext_arm64_support",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
 )
 
 watchos_extension(
@@ -65,14 +82,84 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
+        "//test/starlark_tests/resources:complications_watchos",
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:localization",
         "//test/starlark_tests/resources:resource_bundle",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "ext_with_fmwk",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "ext_with_two_fmwk_provisioned",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [
+        ":fmwk_with_provisioning",
+        ":second_fmwk_with_provisioning",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "ext_with_fmwk_with_fmwk_provisioned",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk_with_fmwk_with_provisioning"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "ext_with_fmwk_with_fmwk",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk_with_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -86,12 +173,27 @@ watchos_extension(
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
+    name = "ext_with_runtime_framework_using_import_static_lib_dep",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_imported_static_framework"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -102,8 +204,27 @@ watchos_extension(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+)
+
+watchos_extension(
+    name = "ext_arm64_support",
+    bundle_id = "com.google.example.ext",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
 )
 
 ios_application(
@@ -113,12 +234,121 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+watchos_framework(
+    name = "fmwk",
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "fmwk_dead_stripped",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "fmwk_with_provisioning",
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "second_fmwk_with_provisioning",
+    bundle_id = "com.google.example.frameworktoo",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "fmwk_with_fmwk",
+    bundle_id = "com.google.example.frameworkception",
+    extension_safe = True,
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "fmwk_with_fmwk_with_provisioning",
+    bundle_id = "com.google.example.frameworkception",
+    extension_safe = True,
+    frameworks = [":fmwk_with_provisioning"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_framework(
+    name = "fmwk_with_imported_static_framework",
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":static_fmwk_depending_lib",
     ],
 )
 
@@ -129,35 +359,70 @@ watchos_static_framework(
     hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    minimum_os_version = "4.0",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
+)
+
+watchos_static_framework(
+    name = "swift_static_fmwk",
+    bundle_name = "swift_static_fmwk",
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [":swift_fmwk_lib"],
+)
+
+swift_library(
+    name = "swift_fmwk_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    module_name = "swift_static_fmwk",
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [":imported_watchos_dynamic_fmwk"],
 )
 
 apple_dynamic_framework_import(
     name = "imported_watchos_dynamic_fmwk",
     framework_imports = [":generated_watchos_dynamic_fmwk"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
     name = "generated_watchos_dynamic_fmwk",
     archs = ["i386"],
     libtype = "dynamic",
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     sdk = "watchsimulator",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+
+objc_library(
+    name = "static_fmwk_depending_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    deps = [":imported_watchos_static_fmwk"],
+)
+
+apple_static_framework_import(
+    name = "imported_watchos_static_fmwk",
+    framework_imports = [":generated_watchos_static_fmwk"],
+)
+
+generate_import_framework(
+    name = "generated_watchos_static_fmwk",
+    archs = ["i386"],
+    libtype = "static",
+    minimum_os_version = common.min_os_watchos.baseline,
+    sdk = "watchsimulator",
 )
 
 # ---------------------------------------------------------------------------------------
@@ -170,9 +435,9 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "14.0",
+    minimum_os_version = common.min_os_ios.arm_sim_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":watchos_app_with_extension",
     deps = [
         ":swift_lib",
@@ -181,14 +446,15 @@ ios_application(
 
 watchos_extension(
     name = "watchos_app_extension",
+    application_extension = True,
     bundle_id = "com.google.example.watchosext.nestedwatchosext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -203,9 +469,9 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -220,9 +486,9 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -235,9 +501,9 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":watchos_app_no_swift",
     deps = [
         ":swift_lib",
@@ -252,9 +518,9 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":watchos_app_swift",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -269,9 +535,9 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":watchos_app_swift",
     deps = [
         ":swift_lib",
@@ -286,9 +552,9 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "12.2",
+    minimum_os_version = common.min_os_ios.stable_swift_abi,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     watch_application = ":watchos_app_swift_stable_abi",
     deps = [
         ":swift_lib",
@@ -304,9 +570,9 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 watchos_extension(
@@ -317,9 +583,9 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -334,9 +600,9 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 watchos_extension(
@@ -347,9 +613,9 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "4.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -366,7 +632,7 @@ watchos_application(
     ],
     minimum_os_version = "6.0",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 watchos_extension(
@@ -377,9 +643,9 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = "6.0",
+    minimum_os_version = common.min_os_watchos.stable_swift_abi,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
@@ -388,7 +654,7 @@ watchos_extension(
 swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -402,7 +668,7 @@ swift_library(
     features = ["swift.no_generated_module_map"],
     generates_header = True,
     module_name = "BasicFramework",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
 )
 
@@ -414,7 +680,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":basic_framework_lib",
     ],
@@ -428,7 +694,7 @@ swift_library(
     features = ["swift.no_generated_module_map"],
     generates_header = True,
     module_name = "DirectDependencyTest",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
@@ -443,7 +709,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":basic_framework_with_direct_dependency_lib",
     ],
@@ -457,7 +723,7 @@ swift_library(
     features = ["swift.no_generated_module_map"],
     generates_header = True,
     module_name = "TransitiveDependencyTest",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
         ":basic_framework_lib",
@@ -473,7 +739,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info-watchos.plist",
     ],
     minimum_os_version = "6.0",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":basic_framework_with_transitive_dependency_lib",
     ],
@@ -486,7 +752,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "6.0",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         ":basic_framework_lib",
         ":basic_framework_with_direct_dependency_lib",
@@ -500,7 +766,7 @@ watchos_dynamic_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = "6.0",
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_lib_with_resources",
     ],
@@ -511,8 +777,8 @@ watchos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "7.4",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_watchos.test_runner_support,
+    tags = common.fixture_tags,
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -524,9 +790,61 @@ watchos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "7.4",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_watchos.test_runner_support,
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+watchos_extension(
+    name = "ext_with_objc_library_dep_with_watchos_framework_runtime_dep",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+watchos_extension(
+    name = "ext_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_inner_lib_with_runtime_dep_fmwk"],
+)
+
+watchos_extension(
+    name = "ext_with_load_and_runtime_framework_dep",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+objc_library(
+    name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_with_fmwk"],
+    deps = [":objc_lib_with_runtime_dep_fmwk"],
+)
+
+objc_library(
+    name = "objc_lib_with_runtime_dep_fmwk",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    runtime_deps = [":fmwk_with_provisioning"],
 )

@@ -23,6 +23,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -31,34 +35,19 @@ load(
     "partial",
 )
 
-def _should_package_clang_runtime(*, features):
-    """Returns whether the Clang runtime should be bundled."""
-
-    # List of crosstool sanitizer features that require packaging some clang
-    # runtime libraries.
-    features_requiring_clang_runtime = {
-        "asan": True,
-        "tsan": True,
-        "ubsan": True,
-    }
-
-    for feature in features:
-        if feature in features_requiring_clang_runtime:
-            return True
-    return False
-
 def _clang_rt_dylibs_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         binary_artifact,
         features,
         label_name,
         output_discriminator,
-        platform_prerequisites):
+        platform_prerequisites,
+        dylibs):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
-    if _should_package_clang_runtime(features = features):
+    if clang_rt_dylibs.should_package_clang_runtime(features = features):
         clang_rt_zip = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -66,7 +55,7 @@ def _clang_rt_dylibs_partial_impl(
             file_name = "clang_rt.zip",
         )
 
-        resolved_clangrttool = apple_toolchain_info.resolved_clangrttool
+        resolved_clangrttool = apple_mac_toolchain_info.resolved_clangrttool
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
@@ -77,7 +66,7 @@ def _clang_rt_dylibs_partial_impl(
             executable = resolved_clangrttool.executable,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
-            inputs = depset([binary_artifact], transitive = [resolved_clangrttool.inputs]),
+            inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
             input_manifests = resolved_clangrttool.input_manifests,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
@@ -95,8 +84,9 @@ def _clang_rt_dylibs_partial_impl(
 def clang_rt_dylibs_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         binary_artifact,
+        dylibs,
         features,
         label_name,
         output_discriminator = None,
@@ -105,13 +95,15 @@ def clang_rt_dylibs_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
+      dylibs: List of dylibs (usually from a toolchain).
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      dylibs: The clang dylibs to bundle with the target.
 
     Returns:
       A partial that returns the bundle location of the Clang runtime dylibs, if there were any to
@@ -120,10 +112,11 @@ def clang_rt_dylibs_partial(
     return partial.make(
         _clang_rt_dylibs_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary_artifact = binary_artifact,
         features = features,
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        dylibs = dylibs,
     )

@@ -75,30 +75,6 @@ def _executable_name(ctx):
         (executable_name, _) = _bundle_full_name_from_rule_ctx(ctx)
     return executable_name
 
-def _validate_bundle_id(bundle_id):
-    """Ensure the value is a valid bundle it or fail the build.
-
-    Args:
-      bundle_id: The string to check.
-    """
-
-    # Make sure the bundle id seems like a valid one. Apple's docs for
-    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
-    # only they they specifically document is the character set, so the other
-    # two checks here are just added safety to catch likely errors by developers
-    # setting things up.
-    bundle_id_parts = bundle_id.split(".")
-    for part in bundle_id_parts:
-        if part == "":
-            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
-        if not part.isalnum():
-            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
-            # handled by the split(), so just have to check for '-'.
-            for i in range(len(part)):
-                ch = part[i]
-                if ch != "-" and not ch.isalnum():
-                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
-
 def _ensure_single_xcassets_type(attr, files, extension, message = None):
     """Helper for when an xcassets catalog should have a single sub type.
 
@@ -209,5 +185,4 @@ bundling_support = struct(
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
     executable_name = _executable_name,
-    validate_bundle_id = _validate_bundle_id,
 )

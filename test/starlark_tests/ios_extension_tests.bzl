@@ -15,6 +15,10 @@
 """ios_extension Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -37,13 +41,12 @@ load(
     "linkmap_test",
 )
 
-def ios_extension_test_suite(name = "ios_extension"):
+def ios_extension_test_suite(name):
     """Test suite for ios_extension.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -66,10 +69,7 @@ def ios_extension_test_suite(name = "ios_extension"):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",
-        tags = [
-            name,
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     apple_verification_test(
@@ -90,8 +90,9 @@ def ios_extension_test_suite(name = "ios_extension"):
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        expected_dsyms = ["app.app"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        expected_direct_dsyms = ["ext.appex"],
+        expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
     )
 
@@ -113,7 +114,7 @@ def ios_extension_test_suite(name = "ios_extension"):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
@@ -160,11 +161,45 @@ def ios_extension_test_suite(name = "ios_extension"):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/ext",
+        macho_load_commands_contain = [
+            "path @executable_path/Frameworks (offset 12)",
+            "path @executable_path/../../Frameworks (offset 12)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        tags = [name],
+    )
+
     entry_point_test(
         name = "{}_entry_point_nsextensionmain_test".format(name),
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        tags = [name],
+    )
+
+    # Verify that Swift dylibs are packaged with the application, not with the extension, when only
+    # an extension uses Swift. And to be safe, verify that they aren't packaged with the extension.
+    archive_contents_test(
+        name = "{}_device_swift_dylibs_present".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_dylibs_present".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 

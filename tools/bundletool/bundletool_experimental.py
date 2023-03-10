@@ -46,13 +46,27 @@ following keys:
       bundle is complete but before it is signed.
 """
 
+import errno
 import filecmp
 import json
 import os
 import shutil
-import subprocess
 import sys
 import zipfile
+from ctypes import CDLL, c_char_p, c_int, get_errno
+
+_CLONEFILE = None
+_USE_CLONEFILE = sys.platform == "darwin"
+def _load_clonefile():
+  global _CLONEFILE
+  if _CLONEFILE:
+    return _CLONEFILE
+
+  system = CDLL('/usr/lib/libSystem.dylib', use_errno=True)
+  _CLONEFILE = system.clonefile
+  _CLONEFILE.argtypes = [c_char_p, c_char_p, c_int] # src, dest, flags
+  _CLONEFILE.restype = c_int  # 0 on success
+  return _CLONEFILE
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the bundle')
@@ -200,8 +214,16 @@ class Bundler(object):
       raise BundleConflictError(dest)
 
     self._makedirs_safely(os.path.dirname(full_dest))
-    if sys.platform == "darwin":
-      subprocess.check_output(["/bin/cp", "-c", src, full_dest])
+    global _USE_CLONEFILE
+    if _USE_CLONEFILE:
+      clonefile = _load_clonefile()
+      result = clonefile(src.encode(), full_dest.encode(), 0)
+      if result != 0:
+        if get_errno() in (errno.EXDEV, errno.ENOTSUP):
+          _USE_CLONEFILE = False
+          shutil.copy(src, full_dest)
+        else:
+          raise Exception(f"failed to clonefile {src} to {full_dest}")
     else:
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)

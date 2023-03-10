@@ -42,7 +42,7 @@ while read -r line ; do
     entryoff="${BASH_REMATCH[1]}"
     break
   fi
-done < <(xcrun llvm-objdump -macho --private-headers "$BINARY")
+done < <(xcrun llvm-objdump --macho --private-headers "$BINARY")
 
 # Fail if we didn't get a valid entryoff; something must have gone wrong
 # earlier.

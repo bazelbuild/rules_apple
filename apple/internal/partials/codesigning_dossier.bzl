@@ -137,7 +137,7 @@ def _embedded_codesign_dossiers_from_dossier_infos(
 def _codesigning_dossier_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -178,7 +178,7 @@ def _codesigning_dossier_partial_impl(
     codesigning_support.generate_codesigning_dossier_action(
         actions = actions,
         label_name = label_name,
-        resolved_codesigning_dossier_tool = apple_toolchain_info.resolved_dossier_codesigningtool,
+        resolved_codesigning_dossier_tool = apple_mac_toolchain_info.resolved_dossier_codesigningtool,
         output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         platform_prerequisites = platform_prerequisites,
@@ -215,7 +215,7 @@ def _codesigning_dossier_partial_impl(
 def codesigning_dossier_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -231,7 +231,7 @@ def codesigning_dossier_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
@@ -256,7 +256,7 @@ def codesigning_dossier_partial(
     return partial.make(
         _codesigning_dossier_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,

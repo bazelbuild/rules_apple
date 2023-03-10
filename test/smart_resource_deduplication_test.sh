@@ -78,7 +78,6 @@ objc_library(
 
 objc_library(
     name = "shared_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":resource_only_lib"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
@@ -92,7 +91,6 @@ objc_library(
 
 objc_library(
     name = "shared_lib_with_no_direct_resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":resource_only_lib"],
 )
 
@@ -124,7 +122,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":shared_lib"],
 )
 
@@ -134,7 +132,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     strings = ["app.strings"],
     deps = [":app_lib"],
 )
@@ -201,7 +199,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":shared_lib_with_no_direct_resources"],
 )
 
@@ -211,7 +209,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     strings = ["app.strings"],
     deps = [":app_lib_with_no_direct_resources"],
 )
@@ -235,7 +233,7 @@ ios_framework(
     bundle_id = "com.framework",
     families = ["iphone"],
     infoplists = ["FrameworkInfo.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":shared_lib"],
 )
 
@@ -250,7 +248,7 @@ ios_application(
     families = ["iphone"],
     frameworks = [":framework"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "8",
+    minimum_os_version = "${MIN_OS_IOS}",
     deps = [":resource_only_lib", ":shared_lib", ":only_main_lib"],
 )
 EOF

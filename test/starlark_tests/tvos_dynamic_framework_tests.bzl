@@ -27,11 +27,11 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
+def tvos_dynamic_framework_test_suite(name):
     """Test suite for tvos_dynamic_framework.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     archive_contents_test(
@@ -68,7 +68,7 @@ def tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework"):
             "DTSDKName": "appletv*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "14.0",
+            "MinimumOSVersion": "12.0",
             "UIDeviceFamily:0": "3",
         },
         tags = [name],

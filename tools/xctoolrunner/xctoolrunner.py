@@ -40,7 +40,7 @@ import re
 import shutil
 import sys
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 # This prefix is set for rules_apple rules in:
 # apple/internal/utils/xctoolrunner.bzl
@@ -115,7 +115,7 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     raw_stderr: This is the unmodified stderr captured from "xcrun ibtool".
 
   Returns:
-    A tuple of the filtered stdout and strerr.
+    A tuple of the filtered exit_status, stdout and strerr.
   """
 
   spurious_patterns = [
@@ -143,19 +143,15 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   if tool_exit_status == 0:
     raw_stderr = None
 
-  return ("".join(stdout), raw_stderr)
+  return (tool_exit_status, "".join(stdout), raw_stderr)
 
 
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
-  xcrunargs = ["xcrun",
-               "ibtool",
-               "--errors",
-               "--warnings",
-               "--notices",
-               "--auto-activate-custom-fonts",
-               "--output-format",
-               "human-readable-text"]
+  xcrunargs = [
+      "xcrun", "ibtool", "--errors", "--warnings", "--notices",
+      "--auto-activate-custom-fonts", "--output-format", "human-readable-text"
+  ]
 
   _apply_realpath(toolargs)
 
@@ -181,7 +177,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     raw_stderr: This is the unmodified stderr captured from "xcrun actool".
 
   Returns:
-    A tuple of the filtered stdout and strerr.
+    A tuple of the filtered exit_status, stdout and strerr.
   """
   section_header = re.compile("^/\\* ([^ ]+) \\*/$")
 
@@ -189,10 +185,10 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   spurious_patterns = [
       re.compile(x) for x in [
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: \(null\)",
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]: notice: 76x76@1x app "
-          r"icons only apply to iPad apps targeting releases of iOS prior to "
-          r"10\.0\.",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: \(null\)",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: 76x76@1x "
+          r"app icons only apply to iPad apps targeting releases of iOS prior "
+          r"to 10\.0\.",
       ]
   ]
 
@@ -203,29 +199,43 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         return True
     return False
 
-  output = []
+  def is_warning_or_notice_an_error(line):
+    """Returns True if the warning/notice should be treated as an error."""
+
+    # Current things staying as warnings are launch image deprecations,
+    # requiring a 1024x1024 for appstore (b/246165573) and "foo" is used by
+    # multiple imagesets (b/139094648)
+    warnings = [
+        "is used by multiple", "1024x1024",
+        "Launch images are deprecated in iOS 13.0"
+    ]
+    for warning in warnings:
+      if warning in line:
+        return False
+    return True
+
+  output = set()
   current_section = None
-  data_in_section = False
 
   for line in raw_stdout.splitlines():
     header_match = section_header.search(line)
 
     if header_match:
-      data_in_section = False
       current_section = header_match.group(1)
       continue
 
     if not current_section:
-      output.append(line + "\n")
+      output.add(line + "\n")
     elif current_section not in excluded_sections:
       if is_spurious_message(line):
         continue
 
-      if not data_in_section:
-        data_in_section = True
-        output.append("/* %s */\n" % current_section)
+      if is_warning_or_notice_an_error(line):
+        line = line.replace(": warning: ", ": error: ")
+        line = line.replace(": notice: ", ": error: ")
+        tool_exit_status = 1
 
-      output.append(line + "\n")
+      output.add(line + "\n")
 
   # Some of the time, in a successful run, actool reports on stderr some
   # internal assertions and ask "Please file a bug report with Apple", but
@@ -235,18 +245,15 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   if tool_exit_status == 0:
     raw_stderr = None
 
-  return ("".join(output), raw_stderr)
+  return (tool_exit_status, "".join(output), raw_stderr)
 
 
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
-  xcrunargs = ["xcrun",
-               "actool",
-               "--errors",
-               "--warnings",
-               "--notices",
-               "--output-format",
-               "human-readable-text"]
+  xcrunargs = [
+      "xcrun", "actool", "--errors", "--warnings", "--notices",
+      "--output-format", "human-readable-text"
+  ]
 
   _apply_realpath(toolargs)
 
@@ -282,8 +289,7 @@ def coremlc(_, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs, print_output=True)
   return return_code
 
 def intentbuilderc(args, toolargs):
@@ -350,8 +356,7 @@ def momc(args, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs, print_output=True)
 
   destination_dir = args.xctoolrunner_assert_nonempty_dir
   if args.xctoolrunner_assert_nonempty_dir and not os.listdir(destination_dir):
@@ -369,8 +374,7 @@ def mapc(_, toolargs):
   xcrunargs += toolargs
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs,
-      print_output=True)
+      xcrunargs, print_output=True)
   return return_code
 
 

@@ -15,6 +15,10 @@
 """macos_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -32,17 +36,16 @@ load(
     "infoplist_contents_test",
 )
 load(
-    ":rules/analysis_xcasset_argv_test.bzl",
-    "analysis_xcasset_argv_test",
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 
-def macos_application_test_suite(name = "macos_application"):
+def macos_application_test_suite(name):
     """Test suite for macos_application.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
@@ -180,7 +183,8 @@ def macos_application_test_suite(name = "macos_application"):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
-        expected_dsyms = ["app.app"],
+        expected_direct_dsyms = ["app.app"],
+        expected_transitive_dsyms = ["app.app"],
         tags = [name],
     )
 
@@ -202,15 +206,22 @@ def macos_application_test_suite(name = "macos_application"):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.10",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         tags = [name],
     )
 
     # Tests xcasset tool is passed the correct arguments.
-    analysis_xcasset_argv_test(
+    analysis_target_actions_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--minimum-deployment-target " + common.min_os_macos.baseline,
+            "--product-type com.apple.product-type.application",
+            "--platform macosx",
+        ],
         tags = [name],
     )
 

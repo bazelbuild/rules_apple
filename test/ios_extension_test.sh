@@ -109,7 +109,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
 EOF
 
   if [[ -n "$product_type" ]]; then
@@ -146,7 +146,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -168,7 +168,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [
         ":frameworkDependingLib",
@@ -181,20 +181,20 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
 
 objc_library(
     name = "frameworkDependingLib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     deps = [":fmwk"],
 )
 
 $import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
+    features = ["-parse_headers"],
 )
 EOF
 
@@ -224,48 +224,6 @@ EOF
   cat > app/fmwk.framework/Headers/module.modulemap <<EOF
 This shouldn't get included
 EOF
-}
-
-# Test that the extension can be a bundle loader
-function test_bundle_loader() {
-  create_common_files
-  create_minimal_ios_application_extension
-
-  cat >> app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:ios.bzl",
-     "ios_unit_test",
-)
-
-objc_library(
-    name = "unit_test_lib",
-    hdrs = ["Foo.h"],
-    srcs = ["UnitTest.m"],
-)
-
-ios_unit_test(
-    name = "unit_tests",
-    deps = [":unit_test_lib"],
-    minimum_os_version = "9.0",
-    test_host = ":ext",
-)
-EOF
-
-  cat > app/UnitTest.m <<EOF
-#import <XCTest/XCTest.h>
-#import "app/Foo.h"
-@interface UnitTest: XCTestCase
-@end
-
-@implementation UnitTest
-- (void)testAssertNil {
-  // Call something in test host to ensure bundle loading works.
-  [[[Foo alloc] init] doSomething];
-  XCTAssertNil(nil);
-}
-@end
-EOF
-
-  do_build ios //app:unit_tests || fail "Should build"
 }
 
 # Test missing the CFBundleVersion fails the build.
@@ -338,7 +296,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -348,7 +306,7 @@ ios_extension(
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -408,7 +366,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -418,7 +376,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -478,7 +436,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -488,7 +446,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -595,20 +553,6 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that the linkmap outputs are produced when --objc_generate_linkmap is
-# present.
-function test_linkmaps_generated() {
-  create_common_files
-  create_minimal_ios_application_with_extension
-  do_build ios --objc_generate_linkmap \
-      //app:ext || fail "Should build"
-
-  declare -a archs=( $(current_archs ios) )
-  for arch in "${archs[@]}"; do
-    assert_exists "test-bin/app/ext_${arch}.linkmap"
-  done
-}
-
 # Tests that ios_extension cannot be a depenency of objc_library.
 function test_extension_under_library() {
 cat > app/BUILD <<EOF
@@ -632,7 +576,7 @@ ios_extension(
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -674,7 +618,7 @@ ios_application(
     extensions = [":ext"],
     families = ["iphone"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -684,7 +628,7 @@ ios_extension(
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )

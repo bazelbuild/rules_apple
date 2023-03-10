@@ -48,7 +48,7 @@ for app in \
       $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
     # codesign writes all output to stderr; redirect to stdout and egrep to
     # filter problematic outputs.
-    /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
+    /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep -v "^Executable=" >> "$CODESIGN_FMWKS_OUTPUT"
   done
   if [ ! -f "$CODESIGN_FMWKS_OUTPUT" ]; then
       echo "Internal Error: Failed to create codesign output file at $CODESIGN_FMWKS_OUTPUT" >&2

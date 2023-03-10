@@ -14,7 +14,7 @@
 
 """Implementation of apple_resource_group rule."""
 
-def _apple_resource_group_impl(ctx):
+def _apple_resource_group_impl(_ctx):
     # All of the resource processing logic for this rule exists in the apple_resource_aspect.
     #
     # To transform the attributes referenced by this rule into resource providers, that aspect must

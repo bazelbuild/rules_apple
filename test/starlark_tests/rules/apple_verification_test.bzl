@@ -19,7 +19,7 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 load(
@@ -38,7 +38,9 @@ load(
 
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
+
     output_dictionary = {
+        "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
@@ -53,15 +55,23 @@ def _apple_verification_transition_impl(settings, attr):
         })
     else:
         output_dictionary.update({
-            "//command_line_option:ios_multi_cpus": "arm64,armv7",
+            "//command_line_option:ios_multi_cpus": "arm64",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "armv7k",
+            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
         })
+
+    if hasattr(attr, "cpus"):
+        for cpu_option, cpus in attr.cpus.items():
+            command_line_option = "//command_line_option:%s" % cpu_option
+            output_dictionary.update({command_line_option: ",".join(cpus)})
+
     existing_features = settings.get("//command_line_option:features") or []
-    if attr.sanitizer != "none":
-        output_dictionary["//command_line_option:features"] = existing_features + [attr.sanitizer]
-    else:
-        output_dictionary["//command_line_option:features"] = existing_features
+    if hasattr(attr, "target_features"):
+        existing_features.extend(attr.target_features)
+    if hasattr(attr, "sanitizer") and attr.sanitizer != "none":
+        existing_features.append(attr.sanitizer)
+    output_dictionary["//command_line_option:features"] = existing_features
+
     return output_dictionary
 
 apple_verification_transition = transition(
@@ -70,6 +80,7 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ],
     outputs = [
+        "//command_line_option:cpu",
         "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
@@ -91,7 +102,6 @@ def _apple_verification_test_impl(ctx):
     if AppleBundleInfo in target_under_test:
         bundle_info = target_under_test[AppleBundleInfo]
         archive = bundle_info.archive
-        verifier_script = ctx.file.verifier_script
 
         bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
 
@@ -190,6 +200,7 @@ def _apple_verification_test_impl(ctx):
         target_under_test[OutputGroupInfo],
     ]
 
+# Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {
@@ -200,6 +211,11 @@ apple_verification_test = rule(
             doc = """
 The Bitcode mode to use for compilation steps. Possible values are `none`,
 `embedded_markers`, or `embedded`. Defaults to `none`.
+""",
+        ),
+        "apple_cpu": attr.string(
+            doc = """
+A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
 """,
         ),
         "build_type": attr.string(
@@ -223,12 +239,24 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
 """,
         ),
+        "cpus": attr.string_list_dict(
+            doc = """
+Dictionary of command line options cpu flags (e.g. ios_multi_cpus, macos_cpus) and the list of
+cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']})
+""",
+        ),
         "sanitizer": attr.string(
             default = "none",
             values = ["none", "asan", "tsan", "ubsan"],
             doc = """
 Possible values are `none`, `asan`, `tsan` or `ubsan`. Defaults to `none`.
 Passes a sanitizer to the target under test.
+""",
+        ),
+        "target_features": attr.string_list(
+            mandatory = False,
+            doc = """
+List of additional features to build for the target under testing.
 """,
         ),
         "target_under_test": attr.label(

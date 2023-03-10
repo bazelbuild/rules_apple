@@ -65,7 +65,7 @@ tvos_application(
     extensions = [":ext"],
     frameworks = [":framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -75,7 +75,7 @@ tvos_extension(
     bundle_id = "my.bundle.id.extension",
     frameworks = [":framework"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -86,7 +86,7 @@ tvos_framework(
     bundle_id = "my.bundle.id.framework",
     extension_safe = 1,
     infoplists = ["Info-Framework.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":framework_lib"],
 )
 
@@ -277,7 +277,7 @@ EOF
 
 # Creates the targets for a minimal tvOS dynamic framework.
 function create_minimal_tvos_framework() {
-  create_minimal_tvos_framework_with_params True "9.0"
+  create_minimal_tvos_framework_with_params True "${MIN_OS_TVOS}"
 }
 
 # Creates the targets for a minimal tvOS application and extension that both use
@@ -300,7 +300,7 @@ tvos_application(
     extensions = [":ext"],
     frameworks = ["//framework:framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -310,7 +310,7 @@ tvos_extension(
     bundle_id = "my.bundle.id.extension",
     frameworks = ["//framework:framework"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -497,7 +497,7 @@ tvos_framework(
   bundle_name = "FrameworkBundleName",
   infoplists = ["Info.plist"],
   extension_safe = True,
-  minimum_os_version = "9.0",
+  minimum_os_version = "${MIN_OS_TVOS}",
   deps = [":framework_lib"],
 )
 
@@ -602,7 +602,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     frameworks = [":framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -613,7 +613,7 @@ tvos_framework(
     bundle_id = "my.bundle.id.framework",
     infoplists = ["Info-Framework.plist"],
     linkopts = ["-application_extension"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":framework_lib"],
 )
 
@@ -735,7 +735,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     extensions = [":ext"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -745,7 +745,7 @@ tvos_extension(
     bundle_id = "my.bundle.id.extension",
     frameworks = ["//framework:framework"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -846,7 +846,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     frameworks = ["//framework:framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -866,7 +866,7 @@ tvos_framework(
     bundle_id = "my.bundle.id.framework",
     infoplists = ["Info-Framework.plist"],
     linkopts = ["-application_extension"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":framework_lib"],
 )
 
@@ -958,11 +958,11 @@ EOF
 
 
 function test_resource_bundle_is_in_framework_same_min_os() {
-  verify_resource_bundle_deduping "9.0" "9.0"
+  verify_resource_bundle_deduping "${MIN_OS_TVOS}" "${MIN_OS_TVOS}"
 }
 
 function test_resource_bundle_is_in_framework_different_min_os() {
-  verify_resource_bundle_deduping "9.0" "10.0"
+  verify_resource_bundle_deduping "${MIN_OS_TVOS}" "${MIN_OS_TVOS_NPLUS1}"
 }
 
 # Tests that resource bundles that are dependencies of a framework are
@@ -987,7 +987,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     frameworks = [":framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -998,7 +998,7 @@ tvos_framework(
     bundle_id = "my.bundle.id.framework",
     infoplists = ["Info-Framework.plist"],
     linkopts = ["-application_extension"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":framework_lib"],
 )
 
@@ -1110,7 +1110,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     frameworks = [":outer_framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -1120,7 +1120,7 @@ tvos_framework(
     hdrs = ["OuterFramework.h"],
     bundle_id = "my.bundle.id.framework",
     infoplists = ["Info-Framework.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [
         ":inner_framework",
         ":outer_framework_lib",
@@ -1139,6 +1139,7 @@ objc_library(
 apple_dynamic_framework_import(
     name = "inner_framework",
     framework_imports = glob(["inner_framework.framework/**"]),
+    features = ["-parse_headers"],
 )
 EOF
 
@@ -1238,29 +1239,6 @@ EOF
       "Payload/app.app/Frameworks/outer_framework.framework/Frameworks/inner_framework.framework/resource.txt"
 }
 
-# Tests that a warning is shown when an extension depends on a framework which
-# is not marked extension_safe.
-# TODO(cparsons): This should eventually cause failure instead of merely a
-# warning.
-function test_extension_depends_on_unsafe_framework() {
-  create_minimal_tvos_framework_with_params False "9.0"
-  create_minimal_tvos_application_and_extension
-  do_build tvos //app:app || fail "Should build"
-
-  expect_log "not marked extension-safe"
-
-  # Verify the application still builds, however.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/framework"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/framework.framework/Headers/Framework.h"
-
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/PlugIns/extension.appex/Frameworks/"
-}
-
 # Tests that an App->Framework->Framework dependency is handled properly. (That
 # a framework that is not directly depended on by the app is still pulled into
 # the app, and symbols end up in the correct binaries.)
@@ -1286,7 +1264,7 @@ tvos_application(
     bundle_id = "my.bundle.id",
     frameworks = [":framework"],
     infoplists = ["Info-App.plist", "Info-Common.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -1297,7 +1275,7 @@ tvos_framework(
     bundle_id = "my.framework.id",
     frameworks = [":depframework"],
     infoplists = ["Framework-Info.plist", "Info-Common.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":framework_lib"],
 )
 
@@ -1306,7 +1284,7 @@ tvos_framework(
     hdrs = ["DepFramework.h"],
     bundle_id = "my.depframework.id",
     infoplists = ["Framework-Info.plist", "Info-Common.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     deps = [":dep_framework_lib"],
 )
 
@@ -1492,7 +1470,7 @@ EOF
 # Verifies that, when an extension depends on a framework with different
 # minimum_os, symbol subtraction still occurs.
 function test_differing_minimum_os() {
-  create_minimal_tvos_framework_with_params True "9.0"
+  create_minimal_tvos_framework_with_params True "${MIN_OS_TVOS}"
 
 cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:tvos.bzl",
@@ -1512,7 +1490,7 @@ tvos_application(
     extensions = [":ext"],
     frameworks = ["//framework:framework"],
     infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -1522,7 +1500,7 @@ tvos_extension(
     bundle_id = "my.bundle.id.extension",
     frameworks = ["//framework:framework"],
     infoplists = ["Info-Ext.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_TVOS_NPLUS1}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -1572,184 +1550,6 @@ EOF
       "Payload/app.app/PlugIns/ext.appex/ext" "doStuff"
   assert_binary_contains tvos "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/framework.framework/framework" "doStuff"
-}
-
-# Test that if a tvos_framework target depends on a prebuilt static library
-# framework (i.e., apple_dynamic_framework_import), that the inner framework is
-# propagated up to the application and not nested in the outer framework.
-function test_framework_depends_on_prebuilt_static_apple_framework_import() {
-  cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:tvos.bzl",
-     "tvos_application",
-     "tvos_framework"
-    )
-load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_static_framework_import",
-    )
-
-objc_library(
-    name = "lib",
-    srcs = ["main.m"],
-    deps = [
-        ":inner_framework",
-    ],
-)
-
-tvos_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    frameworks = [":outer_framework"],
-    infoplists = ["Info-App.plist"],
-    minimum_os_version = "9.0",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
-    deps = [
-        ":lib",
-    ],
-)
-
-tvos_framework(
-    name = "outer_framework",
-    hdrs = ["OuterFramework.h"],
-    bundle_id = "my.bundle.id.framework",
-    infoplists = ["Info-Framework.plist"],
-    # Verify that deduping happens even for different minimum OS from the app.
-    minimum_os_version = "10.0",
-    deps = [
-        ":outer_framework_lib",
-    ],
-)
-
-objc_library(
-    name = "outer_framework_lib",
-    srcs = [
-        "OuterFramework.h",
-        "OuterFramework.m",
-    ],
-    deps = [
-        ":inner_framework",
-    ],
-    alwayslink = 1,
-)
-
-genrule(
-    name = "gen_static_framework",
-    srcs = [":inner_framework_pregen"],
-    outs = ["InnerFramework.framework/InnerFramework"],
-    cmd = "cp \$< \$@",
-)
-
-apple_static_framework_import(
-    name = "inner_framework",
-    framework_imports = glob(["InnerFramework.framework/**"]) + ["InnerFramework.framework/InnerFramework"],
-)
-EOF
-
-  mkdir -p app/InnerFramework.framework
-  mkdir -p app/InnerFramework.framework/Headers
-
-  cat > app/InnerFramework.framework/Info.plist <<EOF
-Dummy plist
-EOF
-
-  cat > app/InnerFramework.framework/Headers/InnerFramework.h <<EOF
-#ifndef INNER_FRAMEWORK_INNER_FRAMEWORK_H_
-#define INNER_FRAMEWORK_INNER_FRAMEWORK_H_
-
-void doStuff();
-
-#endif  // INNER_FRAMEWORK_INNER_FRAMEWORK_H_
-EOF
-  cp app/InnerFramework.framework/Headers/InnerFramework.h app/InnerFramework.h
-
-  cat > app/Info-Framework.plist <<EOF
-{
-  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
-  CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "FMWK";
-  CFBundleShortVersionString = "1.0";
-  CFBundleVersion = "1.0";
-}
-EOF
-  cat > app/Info-App.plist <<EOF
-{
-  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
-  CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "APPL";
-  CFBundleShortVersionString = "1.0";
-  CFBundleVersion = "1.0";
-}
-EOF
-
-  cat > app/main.m <<EOF
-#import <InnerFramework/InnerFramework.h>
-
-int main(int argc, char **argv) {
-  doStuff();
-  return 0;
-}
-EOF
-
-  cat > app/OuterFramework.h <<EOF
-#ifndef OUTER_FRAMEWORK_OUTER_FRAMEWORK_H_
-#define OUTER_FRAMEWORK_OUTER_FRAMEWORK_H_
-
-void outer();
-
-#endif  // OUTER_FRAMEWORK_OUTER_FRAMEWORK_H_
-EOF
-
-  cat > app/OuterFramework.m <<EOF
-#import <Foundation/Foundation.h>
-#import <InnerFramework/InnerFramework.h>
-
-void outer() {
-  doStuff();
-  NSLog(@"Outer framework method called\n");
-}
-EOF
-
-  mkdir -p staticlib
-
-  cat > staticlib/BUILD <<EOF
-genrule(
-    name = "gen_staticlib",
-    srcs = [":dostuff_staticlib_lipo.a"],
-    outs = ["staticlib.a"],
-    cmd = "cp \$< \$@",
-)
-
-apple_static_library(
-    name = "dostuff_staticlib",
-    minimum_os_version = "9.0",
-    platform_type = "tvos",
-    deps = [":dostuff_lib"],
-)
-
-objc_library(
-    name = "dostuff_lib",
-    srcs = [":dostuff.m"],
-)
-EOF
-
-  cat > staticlib/dostuff.m <<EOF
-#import <Foundation/Foundation.h>
-
-void doStuff() {
-  NSLog(@"doStuff called\n");
-}
-EOF
-
-  do_build tvos //staticlib:gen_staticlib || fail "Should build static lib"
-
-  cp test-bin/staticlib/staticlib.a \
-      app/inner_framework_pregen
-
-  do_build tvos //app:app -s || fail "Should build"
-
-  assert_binary_contains tvos "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/outer_framework.framework/outer_framework" "doStuff"
-  assert_binary_not_contains tvos "test-bin/app/app.ipa" \
-      "Payload/app.app/app" "doStuff"
 }
 
 run_suite "tvos_framework bundling tests"

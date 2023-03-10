@@ -15,7 +15,7 @@
 """Support code for resource processing.
 
 All methods in this file follow this convention:
-  - The argument signature is a combination of; actions, apple_toolchain_info, bundle_id, files,
+  - The argument signature is a combination of; actions, apple_mac_toolchain_info, bundle_id, files,
     output_discriminator, parent_dir, platform_prerequisites, product_type, and/or rule_label. Only
     the arguments required for each resource action should be referenced directly by keyword in the
     argument signature and implementation. Arguments should not be referenced through kwargs. The
@@ -139,7 +139,7 @@ def _compile_mappingmodels(
 def _asset_catalogs(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_id,
         files,
         output_discriminator,
@@ -147,7 +147,7 @@ def _asset_catalogs(
         platform_prerequisites,
         product_type,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes asset catalog files."""
 
     # Only merge the resulting plist for the top level bundle. For resource
@@ -178,7 +178,7 @@ def _asset_catalogs(
     for f in files.to_list():
         if ".alticon/" in f.path:
             if f.extension != "png":
-                fail("Alternate icons must be .png files packaged in a .alticon folder.")
+                fail("Alternate icons must be .png files packaged in a .alticon folder. Not: {}".format(f.path))
 
             # Process icon PNGs like any other PNG
             alticon_id = paths.basename(f.dirname)
@@ -207,8 +207,8 @@ def _asset_catalogs(
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
-        resolved_alticonstool = apple_toolchain_info.resolved_alticonstool,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_alticonstool = apple_mac_toolchain_info.resolved_alticonstool,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         rule_label = rule_label,
     )
 
@@ -220,14 +220,14 @@ def _asset_catalogs(
 def _datamodels(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     "Processes datamodel related files."
     datamodel_files = files.to_list()
 
@@ -272,7 +272,7 @@ def _datamodels(
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         swift_module = swift_module,
     ))
     output_files.extend(_compile_mappingmodels(
@@ -282,7 +282,7 @@ def _datamodels(
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
     ))
 
     return struct(files = output_files)
@@ -290,14 +290,14 @@ def _datamodels(
 def _infoplists(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         bundle_id,
         files,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes infoplists.
 
     If parent_dir is not empty, the files will be treated as resource bundle infoplists and are
@@ -307,7 +307,7 @@ def _infoplists(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_id: The bundle ID to use when templating plist files.
         files: The infoplist files to process.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -315,7 +315,7 @@ def _infoplists(
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl, and an
@@ -339,7 +339,7 @@ def _infoplists(
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_toolchain_info.resolved_plisttool,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = rule_label,
         )
         return struct(
@@ -359,7 +359,7 @@ def _metals(
         platform_prerequisites,
         files,
         output_filename = "default.metallib",
-        **kwargs):
+        **_kwargs):
     """Processes metal files.
 
     The metal files will be compiled into a Metal library named `default.metallib`.
@@ -371,7 +371,7 @@ def _metals(
         platform_prerequisites: Struct containing information on the platform being targeted.
         files: The metal files to process.
         output_filename: The output .metallib filename.
-        **kwargs: Ignored
+        **_kwargs: Ignored
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -401,13 +401,13 @@ def _metals(
 def _mlmodels(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes mlmodel files."""
 
     mlmodel_bundles = []
@@ -434,7 +434,7 @@ def _mlmodels(
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         )
 
         mlmodel_bundles.append(
@@ -460,7 +460,7 @@ def _plists_and_strings(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes plists and string files.
 
     If compilation mode is `opt`, or if force_binary is True, the plist files will be compiled into
@@ -477,7 +477,7 @@ def _plists_and_strings(
         parent_dir: The path under which the files should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -523,7 +523,7 @@ def _pngs(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Register PNG processing actions.
 
     The PNG files will be copied using `pngcopy` to make them smaller.
@@ -536,7 +536,7 @@ def _pngs(
         parent_dir: The path under which the images should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
-        **kwargs: Extra parameters forwarded to this support macro.
+        **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
@@ -570,14 +570,14 @@ def _pngs(
 def _storyboards(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     """Processes storyboard files."""
     swift_module = swift_module or rule_label.name
 
@@ -604,7 +604,7 @@ def _storyboards(
             input_file = storyboard,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
         )
         compiled_storyboardcs.append(storyboardc_dir)
@@ -621,7 +621,7 @@ def _storyboards(
         actions = actions,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         storyboardc_dirs = compiled_storyboardcs,
     )
     return struct(
@@ -638,7 +638,7 @@ def _texture_atlases(
         parent_dir,
         platform_prerequisites,
         rule_label,
-        **kwargs):
+        **_kwargs):
     """Processes texture atlas files."""
     atlases_groups = group_files_by_directory(
         files.to_list(),
@@ -676,14 +676,14 @@ def _texture_atlases(
 def _xibs(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
         swift_module,
-        **kwargs):
+        **_kwargs):
     """Processes Xib files."""
     swift_module = swift_module or rule_label.name
     nib_files = []
@@ -701,7 +701,7 @@ def _xibs(
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
         )
         nib_files.append(out_dir)
@@ -712,7 +712,7 @@ def _noop(
         *,
         parent_dir,
         files,
-        **kwargs):
+        **_kwargs):
     """Registers files to be bundled as is."""
     processed_origins = {}
     for file in files.to_list():

@@ -15,6 +15,10 @@
 """tvos_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -36,17 +40,16 @@ load(
     "linkmap_test",
 )
 load(
-    ":rules/analysis_xcasset_argv_test.bzl",
-    "analysis_xcasset_argv_test",
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 
-def tvos_application_test_suite(name = "tvos_application"):
+def tvos_application_test_suite(name):
     """Test suite for tvos_application.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -154,16 +157,32 @@ def tvos_application_test_suite(name = "tvos_application"):
     )
 
     # Tests xcasset tool is passed the correct arguments.
-    analysis_xcasset_argv_test(
+    analysis_target_actions_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--minimum-deployment-target " + common.min_os_tvos.baseline,
+            "--product-type com.apple.product-type.application",
+            "--platform appletvsimulator",
+        ],
         tags = [name],
     )
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        expected_dsyms = ["app.app"],
+        expected_direct_dsyms = ["app.app"],
+        expected_transitive_dsyms = ["app.app"],
+        tags = [name],
+    )
+
+    dsyms_test(
+        name = "{}_transitive_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk_provisioned",
+        expected_direct_dsyms = ["app_with_fmwk_with_fmwk_provisioned.app"],
+        expected_transitive_dsyms = ["app_with_fmwk_with_fmwk_provisioned.app", "fmwk_with_provisioning.framework"],
         tags = [name],
     )
 
@@ -185,7 +204,7 @@ def tvos_application_test_suite(name = "tvos_application"):
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "9.0",
+            "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
         },
         tags = [name],

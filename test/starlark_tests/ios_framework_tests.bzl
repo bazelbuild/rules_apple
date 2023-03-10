@@ -15,6 +15,10 @@
 """ios_framework Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -23,13 +27,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_framework_test_suite(name = "ios_framework"):
+def ios_framework_test_suite(name):
     """Test suite for ios_framework.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",
@@ -48,7 +51,7 @@ def ios_framework_test_suite(name = "ios_framework"):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "8.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
@@ -76,11 +79,13 @@ def ios_framework_test_suite(name = "ios_framework"):
         macho_load_commands_not_contain = [
             "name @rpath/bundle_only_fmwk.framework/bundle_only_fmwk (offset 24)",
             "name @rpath/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk (offset 24)",
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
         ],
         contains = [
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/bundle_only_fmwk",
             "$BUNDLE_ROOT/Frameworks/bundle_only_fmwk.framework/nonlocalized.plist",
             "$BUNDLE_ROOT/Frameworks/generated_ios_dynamic_fmwk.framework/generated_ios_dynamic_fmwk",
+            "$BUNDLE_ROOT/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         ],
         tags = [name],
     )
@@ -138,8 +143,8 @@ def ios_framework_test_suite(name = "ios_framework"):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_bundle_resources",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -153,10 +158,10 @@ def ios_framework_test_suite(name = "ios_framework"):
     archive_contents_test(
         name = "{}_resources_in_framework_stays_in_framework_with_app_with_lower_min_os_version".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_minimum_and_9_0_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_9_0.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -168,10 +173,10 @@ def ios_framework_test_suite(name = "ios_framework"):
     archive_contents_test(
         name = "{}_resources_in_framework_stays_in_framework_with_app_with_higher_min_os_version".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_9_0_minimum_and_8_0_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_min_os_and_baseline_fmwk",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_8_0.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_8_0.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -362,8 +367,8 @@ def ios_framework_test_suite(name = "ios_framework"):
     archive_contents_test(
         name = "{}_symbols_present_in_framework".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_min_version",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_8_0_minimum.framework/fmwk_8_0_minimum",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_baseline",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
@@ -372,10 +377,10 @@ def ios_framework_test_suite(name = "ios_framework"):
     archive_contents_test(
         name = "{}_symbols_not_in_extension".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_8_0_min_version",
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_9_0_min_version.appex/ext_with_9_0_min_version",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_baseline",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_min_os_nplus1.appex/ext_min_os_nplus1",
         binary_test_architecture = "x86_64",
-        binary_not_contains_symbols = ["_anotherFunctisonShared"],
+        binary_not_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
     )
 
@@ -402,6 +407,67 @@ def ios_framework_test_suite(name = "ios_framework"):
         text_test_values = [
             "#import <objc_static_framework/common.h>",
         ],
+        tags = [name],
+    )
+
+    # Verify ios_framework listed as a runtime_dep of an objc_library gets
+    # propagated to ios_application bundle.
+    archive_contents_test(
+        name = "{}_includes_objc_library_ios_framework_runtime_dep".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_library_dep_with_ios_framework_runtime_dep",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        ],
+        tags = [name],
+    )
+
+    # Verify nested frameworks from objc_library targets get propagated to
+    # ios_application bundle.
+    archive_contents_test(
+        name = "{}_includes_multiple_objc_library_ios_framework_deps".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        ],
+        tags = [name],
+    )
+
+    # Verify ios_framework listed as a runtime_dep of an objc_library does not
+    # get linked to top-level application (Mach-O LC_LOAD_DYLIB commands).
+    archive_contents_test(
+        name = "{}_does_not_load_bundled_ios_framework_runtime_dep".format(name),
+        build_type = "device",
+        binary_test_file = "$BUNDLE_ROOT/app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
+            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        tags = [name],
+    )
+
+    # Verify that both ios_framework listed as a load time and runtime_dep
+    # get bundled to top-level application, and runtime does not get linked.
+    archive_contents_test(
+        name = "{}_bundles_both_load_and_runtime_framework_dep".format(name),
+        build_type = "device",
+        binary_test_file = "$BUNDLE_ROOT/app_with_load_and_runtime_framework_dep",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        ],
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+        ],
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_load_and_runtime_framework_dep",
         tags = [name],
     )
 

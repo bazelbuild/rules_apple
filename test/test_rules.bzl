@@ -94,18 +94,6 @@ def apple_shell_test(
       **kwargs: Additional attribute values to apply to the test target.
     """
 
-    # Depending on the memory on a machine, the sharding of these integration
-    # tests can take out a machine, so make it opt in via a define:
-    #   '--define bazel_rules_apple.shell_test_sharding=1'
-    #   '--define bazel_rules_apple.shell_test_sharding=0'
-    requested_shard_count = kwargs.pop("shard_count", 0)
-
-    shard_count = select({
-        "//test:apple_shell_test_disable_sharding": 0,
-        "//test:apple_shell_test_enable_sharding": requested_shard_count,
-        "//conditions:default": 0,
-    })
-
     native.sh_test(
         name = name,
         srcs = ["bazel_testrunner.sh"],
@@ -121,7 +109,6 @@ def apple_shell_test(
             "//test:unittest.bash",
         ] + (data or []),
         deps = deps or [],
-        shard_count = shard_count,
         tags = ["requires-darwin"] + (tags or []),
         **kwargs
     )

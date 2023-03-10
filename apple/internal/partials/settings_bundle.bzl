@@ -37,9 +37,6 @@ load(
 
 def _settings_bundle_partial_impl(
         *,
-        actions,
-        platform_prerequisites,
-        rule_label,
         settings_bundle):
     """Implementation for the settings bundle processing partial."""
 
@@ -77,10 +74,9 @@ def settings_bundle_partial(
     Returns:
         A partial that returns the bundle location of the settings bundle, if any were configured.
     """
+    _unused = (actions, platform_prerequisites, rule_label)  # @unused
+
     return partial.make(
         _settings_bundle_partial_impl,
-        actions = actions,
-        platform_prerequisites = platform_prerequisites,
-        rule_label = rule_label,
         settings_bundle = settings_bundle,
     )

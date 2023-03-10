@@ -18,9 +18,9 @@ import shutil
 import sys
 import time
 
-from build_bazel_rules_apple.tools.bitcode_strip import bitcode_strip
-from build_bazel_rules_apple.tools.codesigningtool import codesigningtool
-from build_bazel_rules_apple.tools.wrapper_common import lipo
+from tools.bitcode_strip import bitcode_strip
+from tools.codesigningtool import codesigningtool
+from tools.wrapper_common import lipo
 
 
 def _zip_framework(framework_temp_path, output_zip_path):
@@ -121,7 +121,7 @@ def main():
   args = parser.parse_args()
 
   all_binary_archs = args.slice
-  framework_archs = lipo.find_archs_for_binaries(args.framework_binary)
+  framework_archs, _ = lipo.find_archs_for_binaries(args.framework_binary)
 
   if not framework_archs:
     return 1

@@ -73,7 +73,6 @@ def plisttool_action(
         mnemonic = mnemonic,
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def compile_plist(*, actions, input_file, output_file, platform_prerequisites):

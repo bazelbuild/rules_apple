@@ -63,7 +63,7 @@ the binary directly at analysis time; for example, for code coverage.
         "executable_name": """
 `string`. The name of the executable that was bundled.
 """,
-        "entitlements": "`File`. Entitlements file used to codesign, if any.",
+        "entitlements": "`File`. Entitlements file used, if any.",
         "extension_safe": """
 Boolean. True if the target propagating this provider was
 compiled and linked with -application-extension, restricting it to
@@ -109,9 +109,24 @@ specific to any particular binary type.
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) file that the target represents.
 """,
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
+""",
         "product_type": """
 `string`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).
+""",
+    },
+)
+
+AppleBinaryInfoplistInfo = provider(
+    doc = """
+Provides information about the Info.plist that was linked into an Apple binary
+target.
+""",
+    fields = {
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
 """,
     },
 )
@@ -124,6 +139,20 @@ A `File` containing JSON-formatted text describing the version
 number information propagated by the target. It contains two keys:
 `build_version`, which corresponds to `CFBundleVersion`; and
 `short_version_string`, which corresponds to `CFBundleShortVersionString`.
+""",
+    },
+)
+
+AppleDsymBundleInfo = provider(
+    doc = "Provides information for an Apple dSYM bundle.",
+    fields = {
+        "direct_dsyms": """
+`List` containing `File` references to each of the dSYM bundles that act as direct dependencies of
+the given target if any were generated.
+""",
+        "transitive_dsyms": """
+`Depset` containing `File` references to each of the dSYM bundles that act as transitive
+dependencies of the given target if any were generated.
 """,
     },
 )
@@ -171,6 +200,53 @@ provide debug info.
     },
 )
 
+def merge_apple_framework_import_info(apple_framework_import_infos):
+    """
+    Merges multiple `AppleFrameworkImportInfo` into one.
+
+    Args:
+        apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
+
+    Returns:
+        Result of merging all the received framework infos.
+    """
+    transitive_debug_info_binaries = []
+    transitive_dsyms = []
+    transitive_sets = []
+    build_archs = []
+
+    for framework_info in apple_framework_import_infos:
+        if hasattr(framework_info, "debug_info_binaries"):
+            transitive_debug_info_binaries.append(framework_info.debug_info_binaries)
+        if hasattr(framework_info, "dsym_imports"):
+            transitive_dsyms.append(framework_info.dsym_imports)
+        if hasattr(framework_info, "framework_imports"):
+            transitive_sets.append(framework_info.framework_imports)
+        build_archs.append(framework_info.build_archs)
+
+    return AppleFrameworkImportInfo(
+        debug_info_binaries = depset(transitive = transitive_debug_info_binaries),
+        dsym_imports = depset(transitive = transitive_dsyms),
+        framework_imports = depset(transitive = transitive_sets),
+        build_archs = depset(transitive = build_archs),
+    )
+
+AppleProvisioningProfileInfo = provider(
+    doc = "Provides information about a provisioning profile.",
+    fields = {
+        "provisioning_profile": """
+`File`. The provisioning profile.
+""",
+        "profile_name": """\
+string. The profile name (e.g. "iOS Team Provisioning Profile: com.example.app").
+""",
+        "team_id": """\
+`string`. The Team ID the profile is associated with (e.g. "A12B3CDEFG"), or `None` if it's not
+known at analysis time.
+""",
+    },
+)
+
 AppleResourceInfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items
@@ -208,66 +284,7 @@ a "marker" to indicate that a target is specifically an Apple resource bundle
 dependency is an Apple resource bundle should use this provider to describe that
 requirement.
 """,
-    fields = [],
-)
-
-AppleSupportToolchainInfo = provider(
-    doc = """
-Propagates information about an Apple toolchain to internal bundling rules that use the toolchain.
-
-This provider exists as an internal detail for the rules to reference common, executable tools and
-files used as script templates for the purposes of executing Apple actions. Defined by the
-`apple_support_toolchain` rule.
-""",
-    fields = {
-        "dsym_info_plist_template": """\
-A `File` referencing a plist template for dSYM bundles.
-""",
-        "process_and_sign_template": """\
-A `File` referencing a template for a shell script to process and sign.
-""",
-        "resolved_alticonstool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to insert alternate icons entries in the app
-bundle's `Info.plist`.
-""",
-        "resolved_bundletool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to create an Apple bundle by taking a list of
-files/ZIPs and destinations paths to build the directory structure for those files.
-""",
-        "resolved_bundletool_experimental": """\
-A `struct` from `ctx.resolve_tools` referencing an experimental tool to create an Apple bundle by
-combining the bundling, post-processing, and signing steps into a single action that eliminates the
-archiving step.
-""",
-        "resolved_clangrttool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to find all Clang runtime libs linked to a
-binary.
-""",
-        "resolved_codesigningtool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
-for Apple apps and Apple executable bundles.
-""",
-        "resolved_dossier_codesigningtool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
-""",
-        "resolved_imported_dynamic_framework_processor": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
-such that the given framework only contains the same slices as the app binary, every file belonging
-to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
-and zipped as a cacheable artifact.
-""",
-        "resolved_plisttool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
-substitution, merging, and conversion of plist files to binary format.
-""",
-        "resolved_swift_stdlib_tool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
-for the target to run.
-""",
-        "resolved_xctoolrunner": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
-""",
-    },
+    fields = {},
 )
 
 AppleTestInfo = provider(
@@ -350,6 +367,32 @@ Required template file that contains the specific mechanism with which the tests
     },
 )
 
+AppleStaticXcframeworkBundleInfo = provider(
+    doc = """
+Denotes that a target is a static library XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+""",
+    fields = {},
+)
+
+AppleXcframeworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an XCFramework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an XCFramework bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an XCFramework should use this provider to describe that
+requirement.
+""",
+    fields = {},
+)
+
 IosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is an iOS application.
@@ -360,11 +403,10 @@ a "marker" to indicate that a target is specifically an iOS application bundle
 dependency is an iOS application should use this provider to describe that
 requirement.
 """,
-    fields = [],
+    fields = {},
 )
 
 IosAppClipBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS app clip.
 
@@ -373,10 +415,10 @@ a "marker" to indicate that a target is specifically an iOS app clip bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS app clip should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 IosExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS application extension.
 
@@ -386,10 +428,10 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is an iOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 IosFrameworkBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS dynamic framework.
 
@@ -399,10 +441,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS dynamic framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosStaticFrameworkBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS static framework.
 
@@ -412,10 +454,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS static framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosImessageApplicationBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS iMessage application.
 
@@ -425,10 +467,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage application should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosImessageExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS iMessage extension.
 
@@ -438,10 +480,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage extension should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosStickerPackExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an iOS Sticker Pack extension.
 
@@ -451,10 +493,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS Sticker Pack extension should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 IosXcTestBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes a target that is an iOS .xctest bundle.
 
@@ -463,10 +505,10 @@ a "marker" to indicate that a target is specifically an iOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 MacosApplicationBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS application.
 
@@ -476,10 +518,10 @@ a "marker" to indicate that a target is specifically a macOS application bundle
 dependency is a macOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosBundleBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS loadable bundle.
 
@@ -489,10 +531,10 @@ a "marker" to indicate that a target is specifically a macOS loadable bundle
 dependency is a macOS loadable bundle should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS application extension.
 
@@ -502,10 +544,10 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 MacosKernelExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS kernel extension.
 
@@ -515,10 +557,10 @@ a "marker" to indicate that a target is specifically a macOS kernel extension
 dependency is a macOS kernel extension should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosQuickLookPluginBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS Quick Look Generator bundle.
 
@@ -528,10 +570,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a macOS Quick Look generator should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 MacosSpotlightImporterBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS Spotlight Importer bundle.
 
@@ -541,10 +583,10 @@ a "marker" to indicate that a target is specifically a macOS Spotlight importer
 dependency is a macOS Spotlight importer should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosXPCServiceBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a macOS XPC Service bundle.
 
@@ -554,10 +596,10 @@ a "marker" to indicate that a target is specifically a macOS XPC service
 dependency is a macOS XPC service should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 MacosXcTestBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes a target that is a macOS .xctest bundle.
 
@@ -567,10 +609,10 @@ a "marker" to indicate that a target is specifically a macOS .xctest bundle
 dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 TvosApplicationBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a tvOS application.
 
@@ -580,10 +622,10 @@ a "marker" to indicate that a target is specifically a tvOS application bundle
 dependency is a tvOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 TvosExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a tvOS application extension.
 
@@ -593,10 +635,10 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a tvOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
 )
 
 TvosFrameworkBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a tvOS dynamic framework.
 
@@ -606,10 +648,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS dynamic framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 TvosStaticFrameworkBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an tvOS static framework.
 
@@ -619,10 +661,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS static framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 TvosXcTestBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes a target that is a tvOS .xctest bundle.
 
@@ -631,10 +673,10 @@ a "marker" to indicate that a target is specifically a tvOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a tvOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )
 
 WatchosApplicationBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a watchOS application.
 
@@ -644,10 +686,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS application should use this provider to describe that
 requirement.
 """,
+    fields = {},
 )
 
 WatchosExtensionBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is a watchOS application extension.
 
@@ -657,10 +699,23 @@ extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """,
+    fields = {},
+)
+
+WatchosFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is watchOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a watchOS dynamic framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
 )
 
 WatchosStaticFrameworkBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes that a target is an watchOS static framework.
 
@@ -670,10 +725,10 @@ bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS static framework should use this provider to describe
 that requirement.
 """,
+    fields = {},
 )
 
 WatchosXcTestBundleInfo = provider(
-    fields = [],
     doc = """
 Denotes a target that is a watchOS .xctest bundle.
 
@@ -682,4 +737,5 @@ a "marker" to indicate that a target is specifically a watchOS .xctest bundle (a
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a watchOS .xctest bundle should use this provider to describe that requirement.
 """,
+    fields = {},
 )

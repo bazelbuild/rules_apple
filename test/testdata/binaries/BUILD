@@ -1,7 +1,10 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load(
     "//apple:apple_binary.bzl",
     "apple_binary",
+)
+load(
+    "//apple:apple_static_library.bzl",
+    "apple_static_library",
 )
 
 # Public only because these are used by the integration tests from generated

@@ -4,44 +4,57 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos
+    xcode_version: "14.2"
     build_targets:
     - "tools/..."
     - "test/..."
     test_targets:
-    - "doc/..."
     - "tools/..."
     - "test/..."
     - "examples/..."
+    test_flags:
+    - --test_tag_filters=-skipci
+  common_last_green: &common_last_green
+    bazel: last_green
+    test_flags:
+      - --test_tag_filters=-skipci
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
   macos_latest:
     name: "Latest Bazel"
-    bazel: latest
-    <<: *common
-
-  macos_last_green:
-    name: "Last Green Bazel"
-    bazel: last_green
+    bazel: last_rc
     <<: *common
 
   macos_latest_head_deps:
     name: "Latest Bazel with Head Deps"
-    bazel: latest
+    bazel: last_rc
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
 
+  macos_last_green:
+    name: "Last Green Bazel"
+    <<: *common
+    <<: *common_last_green
+
   macos_last_green_head_deps:
     name: "Last Green Bazel with Head Deps"
-    bazel: last_green
     shell_commands:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
+    <<: *common_last_green
+
+  doc_tests:
+    name: "Doc tests"
+    platform: ubuntu2004
+    test_targets:
+    - "doc/..."
+    <<: *common_last_green
 
 buildifier: latest

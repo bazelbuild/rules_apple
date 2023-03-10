@@ -19,16 +19,16 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleSupportToolchainInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -51,7 +51,7 @@ def _apple_core_data_model_impl(ctx):
     """Implementation of the apple_core_data_model."""
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
-    apple_toolchain_info = ctx.attr._toolchain[AppleSupportToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -66,7 +66,6 @@ def _apple_core_data_model_impl(ctx):
             ctx.fragments.apple.single_arch_platform.platform_type,
         ),
         uses_swift = True,
-        xcode_path_wrapper = ctx.executable._xcode_path_wrapper,
         xcode_version_config =
             ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -96,7 +95,7 @@ def _apple_core_data_model_impl(ctx):
             input_files = files.to_list(),
             output_dir = output_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_toolchain_info.resolved_xctoolrunner,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_version = swift_version,
         )
 

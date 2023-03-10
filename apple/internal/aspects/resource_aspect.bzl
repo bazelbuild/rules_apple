@@ -19,8 +19,9 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_support_toolchain.bzl",
-    "apple_support_toolchain_utils",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -37,7 +38,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
-    "AppleSupportToolchainInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "AppleFrameworkImportBundleInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -71,7 +75,6 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         objc_fragment = None,
         platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
-        xcode_path_wrapper = aspect_ctx.executable._xcode_path_wrapper,
         xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
@@ -92,7 +95,7 @@ def _apple_resource_aspect_impl(target, ctx):
     # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
-        "apple_toolchain_info": ctx.attr._toolchain[AppleSupportToolchainInfo],
+        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
         "bundle_id": None,
         "product_type": None,
         "rule_label": ctx.label,
@@ -100,6 +103,7 @@ def _apple_resource_aspect_impl(target, ctx):
     collect_infoplists_args = {}
     collect_args = {}
     collect_structured_args = {}
+    collect_framework_import_bundle_files = None
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
@@ -118,6 +122,12 @@ def _apple_resource_aspect_impl(target, ctx):
     elif ctx.rule.kind == "swift_library":
         module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
+        collect_args["res_attrs"] = ["data"]
+        owner = str(ctx.label)
+
+    elif ctx.rule.kind in ["apple_static_framework_import", "apple_static_xcframework_import"]:
+        if AppleFrameworkImportBundleInfo in target:
+            collect_framework_import_bundle_files = target[AppleFrameworkImportBundleInfo].bundle_files
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
@@ -186,8 +196,15 @@ def _apple_resource_aspect_impl(target, ctx):
         #
         # `structured_resources` also does not support propagating resource providers from
         # apple_resource_group or apple_bundle_import targets, unlike `resources`. If a target is
-        # referenced by `structured_resources` that already propagates a resource provider, it will
-        # be ignored.
+        # referenced by `structured_resources` that already propagates a resource provider, this
+        # will raise an error in the analysis phase.
+        for attr in collect_structured_args.get("res_attrs", []):
+            for found_attr in getattr(ctx.rule.attr, attr):
+                if AppleResourceInfo in found_attr:
+                    fail("Error: Found ignored resource providers for target %s. " % ctx.label +
+                         "Check that there are no processed resource targets being referenced " +
+                         "by structured_resources.")
+
         structured_files = resources.collect(
             attr = ctx.rule.attr,
             **collect_structured_args
@@ -223,6 +240,21 @@ def _apple_resource_aspect_impl(target, ctx):
                 ),
             )
 
+    # Collect .bundle/ files from framework_import rules
+    if collect_framework_import_bundle_files:
+        parent_dir_param = partial.make(
+            resources.bundle_relative_parent_dir,
+            extension = "bundle",
+        )
+        providers.append(
+            resources.bucketize_typed(
+                collect_framework_import_bundle_files,
+                owner = owner,
+                bucket_type = "unprocessed",
+                parent_dir_param = parent_dir_param,
+            ),
+        )
+
     # Get the providers from dependencies, referenced by deps and locations for resources.
     inherited_providers = []
     provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
@@ -256,10 +288,10 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "private_deps", "resources"],
+    attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
-        apple_support_toolchain_utils.shared_attrs(),
+        apple_toolchain_utils.shared_attrs(),
     ),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level

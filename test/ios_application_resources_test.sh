@@ -61,7 +61,6 @@ function create_with_localized_unprocessed_resources() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "resources",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
         "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
     ],
@@ -72,7 +71,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib", ":resources"],
 )
@@ -129,7 +128,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     settings_bundle = "@build_bazel_rules_apple//test/testdata/resources:settings_bundle_ios",
     deps = [":lib"],
@@ -151,7 +150,6 @@ function test_different_files_mapped_to_the_same_target_path_fails() {
   cat >> app/BUILD <<EOF
 objc_library(
     name = "shared_lib",
-    srcs = ["@bazel_tools//tools/objc:dummy.c"],
     data = [
       "shared_res/foo.txt",
     ],
@@ -168,7 +166,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
 )
@@ -205,7 +203,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
@@ -222,6 +220,164 @@ EOF
   atlasc_count="$(zipinfo -1 "test-bin/app/app.ipa" | \
       grep "^Payload/app\.app/star\.atlasc/..*$" | wc -l | tr -d ' ')"
   assert_equals "2" "$atlasc_count"
+}
+
+# Verify that the warning about 76x76 icons doesn't get displayed.
+function test_actool_hides_warning_about_76x76_icons() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:app_icons_ios",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["ipad"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Assets.car"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/app_icon76x76@2x~ipad.png"
+  expect_not_log "76x76"
+}
+
+# Verify that we warn with unassigned children in an asset
+function test_actool_errors_with_unassigned_children_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_with_unassigned_child",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "The image set \"star_universal\" has an unassigned child"
+}
+
+# Verify that we error with invalid json in an asset
+function test_actool_errors_with_invalid_json_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_with_invalid_json",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "The Contents.json describing the \"star_universal.imageset\" is not valid JSON."
+}
+# Verify that we error with missing children in an asset
+function test_actool_errors_with_missing_children_in_asset() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:imageset_missing_child",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "error: The file \"star.png\" for the image set \"star_universal\" does not exist."
+}
+
+# Verify that we error with badly sized assets in icons.
+function test_actool_errors_with_badly_sized_children_in_icon() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:app_icons_ios_with_bad_size",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app && fail "Should fail"
+
+  expect_log "error: app_icon.appiconset/app_icon_40pt_3x.png is 120x121 but should be 120x120."
 }
 
 run_suite "ios_application bundling with resources tests"

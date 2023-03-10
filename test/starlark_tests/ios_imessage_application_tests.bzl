@@ -15,6 +15,10 @@
 """ios_imessage_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -23,13 +27,12 @@ load(
     "infoplist_contents_test",
 )
 
-def ios_imessage_application_test_suite(name = "ios_imessage_application"):
+def ios_imessage_application_test_suite(name):
     """Test suite for ios_extension.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -57,7 +60,7 @@ def ios_imessage_application_test_suite(name = "ios_imessage_application"):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "LSApplicationLaunchProhibited": "true",
-            "MinimumOSVersion": "10.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],

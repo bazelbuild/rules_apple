@@ -14,25 +14,14 @@
 
 """Helper methods for assembling the test targets."""
 
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:binary_support.bzl",
-    "binary_support",
-)
-
 # Attributes belonging to the bundling rules that should be removed from the test targets.
 _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
         "deps",
-        "dylibs",
         "bundle_id",
         "bundle_name",
-        "bundle_loader",
         "families",
         "frameworks",
         "infoplists",
@@ -98,29 +87,21 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     if "bundle_name" in kwargs:
         fail("bundle_name is not supported in test rules.")
 
-    bundling_args = binary_support.add_entitlements(
-        test_bundle_name,
-        bundle_name = name,
-        platform_type = str(apple_common.platform_type.ios),
-        product_type = apple_product_type.unit_test_bundle,
-        include_entitlements = False,
-        testonly = True,
-        **bundle_attrs
-    )
-
     # Ideally this target should be private, but the outputs should not be private, so we're
     # explicitly using the same visibility as the test (or None if none was set).
     bundle_rule(
         name = test_bundle_name,
+        bundle_name = name,
         test_bundle_output = "{}.zip".format(name),
-        **bundling_args
+        testonly = True,
+        **bundle_attrs
     )
 
     if runner:
         test_rule(
             name = name,
             runner = runner,
-            test_host = bundling_args.get("test_host"),
+            test_host = bundle_attrs.get("test_host"),
             deps = [":{}".format(test_bundle_name)],
             **test_attrs
         )
@@ -132,7 +113,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             test_rule(
                 name = test_name,
                 runner = runner,
-                test_host = bundling_args.get("test_host"),
+                test_host = bundle_attrs.get("test_host"),
                 deps = [":{}".format(test_bundle_name)],
                 **test_attrs
             )

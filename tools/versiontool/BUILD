@@ -5,10 +5,9 @@ py_binary(
     srcs = ["versiontool.py"],
     python_version = "PY3",
     srcs_version = "PY3",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
     deps = [":versiontool_lib"],
 )
 

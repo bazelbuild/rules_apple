@@ -254,9 +254,7 @@ def _signing_command_lines(
 
 def _should_sign_simulator_frameworks(
         *,
-        config_vars,
-        features,
-        rule_descriptor):
+        features):
     """Check if simulator bound framework bundles should be codesigned.
 
     Args:
@@ -421,16 +419,15 @@ def _codesigning_command(
         rule_descriptor = rule_descriptor,
     )
     paths_to_sign = []
+    is_device = platform_prerequisites.platform.is_device
 
     # The command returned by this function is executed as part of a bundling shell script.
     # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
     # script that contains the path to the directory where the bundle is being built.
     should_sign_sim_frameworks = _should_sign_simulator_frameworks(
-        config_vars = platform_prerequisites.config_vars,
         features = platform_prerequisites.features,
-        rule_descriptor = rule_descriptor,
     )
-    if frameworks_path and should_sign_sim_frameworks:
+    if (frameworks_path and should_sign_sim_frameworks) or is_device:
         framework_root = paths.join("$WORK_DIR", frameworks_path) + "/"
         full_signed_frameworks = []
 
@@ -450,7 +447,7 @@ def _codesigning_command(
         features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
-    if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
+    if is_device or should_sign_sim_bundles:
         path_to_sign = paths.join("$WORK_DIR", bundle_path)
         paths_to_sign.append(
             _path_to_sign(path = path_to_sign),
@@ -556,7 +553,6 @@ def _generate_codesigning_dossier_action(
         progress_message = progress_message,
         tools = [resolved_codesigning_dossier_tool.executable],
         xcode_config = platform_prerequisites.xcode_version_config,
-        xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
     )
 
 def _post_process_and_sign_archive_action(
@@ -644,15 +640,14 @@ def _post_process_and_sign_archive_action(
         processing_tools.append(ipa_post_processor)
         ipa_post_processor_path = ipa_post_processor.path
 
-    # Only compress the IPA for optimized (release) builds or when requested.
-    # For debug builds, zip without compression, which will speed up the build.
+    # Compress the IPA when requested. By default, enable compression for optimized (release) builds
+    # to reduce file size, and disable compression for debug builds to speed up the build.
     config_vars = platform_prerequisites.config_vars
-    compression_requested = defines.bool_value(
+    should_compress = defines.bool_value(
         config_vars = config_vars,
         define_name = "apple.compress_ipa",
-        default = False,
+        default = (config_vars["COMPILATION_MODE"] == "opt"),
     )
-    should_compress = (config_vars["COMPILATION_MODE"] == "opt") or compression_requested
 
     # TODO(b/163217926): These are kept the same for the three different actions
     # that could be run to ensure anything keying off these values continues to

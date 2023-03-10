@@ -4,16 +4,26 @@ rules repos (this doc is not duplicated across the repos):
 - [`apple_support`](https://github.com/bazelbuild/apple_support)
 - [`rules_apple`](https://github.com/bazelbuild/rules_apple)
 - [`rules_swift`](https://github.com/bazelbuild/rules_swift)
-- [`Tulsi`](https://github.com/bazelbuild/tulsi)
 
 # Maintainers
 
-The current maintainers are:
+The current maintainers can be seen in the [CODEOWNERS](CODEOWNERS)
+file.
 
-- @keith
-- @segiddins
-- @brentleyjones
-- @thii
+## How to become a maintainer
+
+These rules are community maintained. Any community member can become a
+maintainer. Ideally we have a large set of maintainers who can work on
+improving different parts of the rules for different use cases. In order
+to become a maintainer you must demonstrate proficiency working on these
+bazel rules. The best way to do this is to contribute multiple
+non-trivial features over time. If you would like to become a
+maintainer, once you have a collection of non-trivial changes, reach out
+to Keith Smiley (keithbsmiley@gmail.com) with links to your changes.
+Once you have met these criteria the existing maintainers will vote and
+require a 2/3rds majority to add new maintainers. Otherwise the
+maintainers will provide specific feedback on what they would like to
+see before granting access.
 
 # Upstream changes
 
@@ -57,8 +67,6 @@ things to do.
   when it can be merged in the future.
 - If for some reason a commit should never be cherry picked, comment on
   it to indicate why and so it appears triaged for the future.
-- When cherry picking multiple tulsi commits, be sure to land the
-  version bumps in the same order as they were upstream
 
 # Reviews
 
@@ -93,47 +101,22 @@ is the recommended process:
   GitHub](https://github.com/bazelbuild/rules_apple/compare/0.21.1...HEAD),
   and collect the most notable user facing commits for the release
   notes.
-- Starting with `apple_support` create a new release with this template
-  for the notes:
-
-```
-- NOTABLE CHANGE 1
-- NOTABLE CHANGE 2
-- This release is tested with Bazel N.N.N
-
-Please use the release asset from your Bazel WORKSPACE instead of
-GitHub's asset to reduce download size and improve reproducibility.
-
-SHA-256 digest: `TBD`
-```
-
-- Download the source archive GitHub produced with the release,
-  unarchive it, and create a release archive with this command:
-  `COPYFILE_DISABLE=1 tar czvf REPO_NAME.RELEASE_VERSION.tar.gz *` (ideally
-  this would be scripted in the future and more artifacts would be excluded to
-  reduce download size, but this method avoids potentially gitignored artifacts
-  in the archives).
-- Update the release with the archive, and update the sha256 with the
-  output of `shasum -a 256 ARCHIVE`.
-- Update the `apple_support` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
+- Starting with `apple_support` run the `Create Release` GitHub action
+  where the only input is the release's version number. This
+  automatically creates the release on GitHub.
+- Edit the release to fill in the release notes and supported bazel
+  versions.
 - Update the `swift/repositories.bzl` file in `rules_swift` with the new
   `apple_support` release.
 - Repeat the steps above to create a release on `rules_swift`.
-- Update the `rules_swift` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
 - Update the `apple/repositories.bzl` file in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
-- Update the `rules_apple` `README.md` with the new version and sha256
-  to make it easier for users to copy and paste to their `WORKSPACE`.
-- Update the `Tulsi` `WORKSPACE` with the new version of `rules_apple`.
+- Merge the automatically submitted PRs that update the `MODULE.bazel`
+  versions.
 
 ### Notes
 
-- The rules aren't currently following true semantic versioning, but in
-  general the minor version should be bumped for most changes, and the
-  patch only for very small releases.
 - It's highly recommended that rules maintainers track more closely with
   the HEAD of the rules repos than with the releases.
 - In general before releasing the HEAD of the rules repos should be

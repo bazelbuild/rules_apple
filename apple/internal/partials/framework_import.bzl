@@ -54,7 +54,7 @@ load(
 def _framework_import_partial_impl(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         features,
         label_name,
         output_discriminator,
@@ -111,6 +111,14 @@ def _framework_import_partial_impl(
         if not framework_binaries_by_framework.get(framework_basename):
             framework_binaries_by_framework[framework_basename] = []
 
+        # Check if file is a tree artifact to treat as bundle files.
+        # XCFramework import rules forward tree artifacts when using the
+        # xcframework_processor_tool, since the effective XCFramework library
+        # files are not known during analysis phase.
+        if file.is_directory:
+            files_by_framework[framework_basename].append(file)
+            continue
+
         # Check if this file is a binary to slice and code sign.
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
@@ -119,12 +127,11 @@ def _framework_import_partial_impl(
         if framework_relative_dir:
             parent_dir = paths.join(parent_dir, framework_relative_dir)
 
+        # Classify if it's a file to bundle or framework binary
         if paths.replace_extension(parent_dir, "") == file.basename:
             framework_binaries_by_framework[framework_basename].append(file)
-            continue
-
-        # Treat the rest as files to copy into the bundle.
-        files_by_framework[framework_basename].append(file)
+        else:
+            files_by_framework[framework_basename].append(file)
 
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
@@ -140,11 +147,12 @@ def _framework_import_partial_impl(
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
 
-        for framework_binary in framework_binaries_by_framework[framework_basename]:
-            args.add("--framework_binary", framework_binary.path)
+        args.add_all(
+            framework_binaries_by_framework[framework_basename],
+            before_each = "--framework_binary",
+        )
 
-        for build_arch in build_archs_found:
-            args.add("--slice", build_arch)
+        args.add_all(build_archs_found, before_each = "--slice")
 
         if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
             args.add("--strip_bitcode")
@@ -153,8 +161,7 @@ def _framework_import_partial_impl(
 
         args.add("--temp_path", temp_framework_bundle_path)
 
-        for file in files_by_framework[framework_basename]:
-            args.add("--framework_file", file.path)
+        args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
@@ -167,17 +174,17 @@ def _framework_import_partial_impl(
         )
         args.add_all(codesign_args)
 
-        resolved_codesigningtool = apple_toolchain_info.resolved_codesigningtool
-        resolved_imported_dynamic_framework_processor = apple_toolchain_info.resolved_imported_dynamic_framework_processor
-
-        # Inputs of action are all the framework files, plus binaries needed for identifying the
-        # current build's preferred architecture, plus a generated list of those binaries to prune
-        # their dependencies so that future changes to the app/extension/framework binaries do not
-        # force this action to re-run on incremental builds, plus the top-level target's
-        # provisioning profile if the current build targets real devices.
-        input_files = files_by_framework[framework_basename] + framework_binaries_by_framework[framework_basename]
+        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
+        resolved_imported_dynamic_framework_processor = apple_mac_toolchain_info.resolved_imported_dynamic_framework_processor
 
         execution_requirements = {}
+
+        # Inputs of action are all the framework files, plus binaries needed for identifying the
+        # current build's preferred architecture, and the provisioning profile if specified.
+        input_files = (
+            files_by_framework[framework_basename] +
+            framework_binaries_by_framework[framework_basename]
+        )
         if provisioning_profile:
             input_files.append(provisioning_profile)
             execution_requirements = {"no-sandbox": "1"}
@@ -205,7 +212,6 @@ def _framework_import_partial_impl(
             outputs = [framework_zip],
             tools = [resolved_codesigningtool.executable],
             xcode_config = platform_prerequisites.xcode_version_config,
-            xcode_path_wrapper = platform_prerequisites.xcode_path_wrapper,
         )
 
         bundle_zips.append(
@@ -221,7 +227,7 @@ def _framework_import_partial_impl(
 def framework_import_partial(
         *,
         actions,
-        apple_toolchain_info,
+        apple_mac_toolchain_info,
         features,
         label_name,
         output_discriminator = None,
@@ -233,11 +239,11 @@ def framework_import_partial(
     """Constructor for the framework import file processing partial.
 
     This partial propagates framework import file bundle locations. The files are collected through
-    the framework_import_aspect aspect.
+    the framework_provider_aspect aspect.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -255,7 +261,7 @@ def framework_import_partial(
     return partial.make(
         _framework_import_partial_impl,
         actions = actions,
-        apple_toolchain_info = apple_toolchain_info,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         features = features,
         label_name = label_name,
         output_discriminator = output_discriminator,

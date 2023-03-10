@@ -85,7 +85,7 @@ run into compatibility issues. To silence this warning, pass \
 
     repo_rule(name = name, **kwargs)
 
-def apple_rules_dependencies(ignore_version_differences = False):
+def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_ready_dependencies = True):
     """Fetches repositories that are dependencies of the `rules_apple` workspace.
 
     Users should call this macro in their `WORKSPACE` to ensure that all of the
@@ -95,56 +95,49 @@ def apple_rules_dependencies(ignore_version_differences = False):
     Args:
       ignore_version_differences: If `True`, warnings about potentially
           incompatible versions of depended-upon repositories will be silenced.
+      include_bzlmod_ready_dependencies: Whether or not bzlmod-ready
+             dependencies should be included.
     """
-    _maybe(
-        http_archive,
-        name = "bazel_skylib",
-        urls = [
-            "https://github.com/bazelbuild/bazel-skylib/archive/df3c9e2735f02a7fe8cd80db4db00fec8e13d25f.tar.gz",
-        ],
-        strip_prefix = "bazel-skylib-df3c9e2735f02a7fe8cd80db4db00fec8e13d25f",
-        sha256 = "58f558d04a936cade1d4744d12661317e51f6a21e3dd7c50b96dc14f3fa3b87d",
-        ignore_version_differences = ignore_version_differences,
-    )
 
-    _maybe(
-        http_archive,
-        name = "build_bazel_apple_support",
-        sha256 = "76df040ade90836ff5543888d64616e7ba6c3a7b33b916aa3a4b68f342d1b447",
-        urls = [
-            "https://github.com/bazelbuild/apple_support/releases/download/0.11.0/apple_support.0.11.0.tar.gz",
-        ],
-        ignore_version_differences = ignore_version_differences,
-    )
+    if include_bzlmod_ready_dependencies:
+        _maybe(
+            http_archive,
+            name = "bazel_skylib",
+            urls = [
+                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+            ],
+            sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+            ignore_version_differences = ignore_version_differences,
+        )
 
-    _maybe(
-        http_archive,
-        name = "build_bazel_rules_swift",
-        urls = [
-            "https://github.com/bazelbuild/rules_swift/releases/download/0.24.0/rules_swift.0.24.0.tar.gz",
-        ],
-        sha256 = "4f167e5dbb49b082c5b7f49ee688630d69fb96f15c84c448faa2e97a5780dbbc",
-        ignore_version_differences = ignore_version_differences,
-    )
+        _maybe(
+            http_archive,
+            name = "build_bazel_apple_support",
+            sha256 = "77a121a0f5d4cd88824429464ad2bfb54bdc8a3bccdb4d31a6c846003a3f5e44",
+            urls = [
+                "https://github.com/bazelbuild/apple_support/releases/download/1.4.1/apple_support.1.4.1.tar.gz",
+            ],
+            ignore_version_differences = ignore_version_differences,
+        )
 
-    _maybe(
-        http_archive,
-        name = "subpar",
-        urls = [
-            "https://github.com/google/subpar/archive/2.0.0.tar.gz",
-        ],
-        strip_prefix = "subpar-2.0.0",
-        sha256 = "b80297a1b8d38027a86836dbadc22f55dc3ecad56728175381aa6330705ac10f",
-        ignore_version_differences = ignore_version_differences,
-    )
+        _maybe(
+            http_archive,
+            name = "build_bazel_rules_swift",
+            urls = [
+                "https://github.com/bazelbuild/rules_swift/releases/download/1.6.0/rules_swift.1.6.0.tar.gz",
+            ],
+            sha256 = "d25a3f11829d321e0afb78b17a06902321c27b83376b31e3481f0869c28e1660",
+            ignore_version_differences = ignore_version_differences,
+        )
 
     _maybe(
         http_archive,
         name = "xctestrunner",
         urls = [
-            "https://github.com/google/xctestrunner/archive/a13ec9de45d225620dd4b5e30b23bdc663631f31.tar.gz",
+            "https://github.com/google/xctestrunner/archive/24629f3e6c0dda397f14924b64eb45d04433c07e.tar.gz",
         ],
-        strip_prefix = "xctestrunner-a13ec9de45d225620dd4b5e30b23bdc663631f31",
-        sha256 = "22fcb8658d08486d55c67c9b72ee7c736ccbd083a5231995e0fd2aee6b07b030",
+        strip_prefix = "xctestrunner-24629f3e6c0dda397f14924b64eb45d04433c07e",
+        sha256 = "6e692722c3b3d5f2573357870c78febe8419b18ab28565bc6a1d9ddd28c8ec51",
         ignore_version_differences = ignore_version_differences,
     )

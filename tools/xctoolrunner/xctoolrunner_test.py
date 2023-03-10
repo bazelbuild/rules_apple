@@ -18,8 +18,8 @@ import unittest
 
 from unittest import mock
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
-from build_bazel_rules_apple.tools.xctoolrunner import xctoolrunner
+from tools.wrapper_common import execute
+from tools.xctoolrunner import xctoolrunner
 
 
 _UNHANDLED_DESTINATION_METRICS_MSG = (
@@ -39,7 +39,7 @@ class TestIBTOOL(unittest.TestCase):
     stderr = ""
     tool_exit_status = 0
 
-    (out, _) = xctoolrunner.ibtool_filtering(
+    (tool_exit_status, out, _) = xctoolrunner.ibtool_filtering(
         tool_exit_status,
         stdout,
         stderr)

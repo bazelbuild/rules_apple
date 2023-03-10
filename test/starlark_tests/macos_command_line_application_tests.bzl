@@ -15,6 +15,10 @@
 """macos_command_line_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -26,12 +30,17 @@ load(
     ":rules/dsyms_test.bzl",
     "dsyms_test",
 )
+load(
+    ":rules/infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
 
-# buildifier: disable=unnamed-macro
-def macos_command_line_application_test_suite():
-    """Test suite for macos_command_line_application."""
-    name = "macos_command_line_application"
+def macos_command_line_application_test_suite(name):
+    """Test suite for macos_command_line_application.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
@@ -68,7 +77,7 @@ def macos_command_line_application_test_suite():
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.11",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         tags = [name],
     )
@@ -93,7 +102,7 @@ def macos_command_line_application_test_suite():
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.11",
+            "LSMinimumSystemVersion": "10.13",
         },
         tags = [name],
     )
@@ -138,7 +147,31 @@ def macos_command_line_application_test_suite():
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_dsyms = ["cmd_app_basic"],
+        expected_direct_dsyms = ["cmd_app_basic"],
+        expected_transitive_dsyms = ["cmd_app_basic"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_info_plists",
+        expected_values = {
+            "AnotherKey": "AnotherValue",
+            "BuildMachineOSBuild": "*",
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "cmd_app_info_plists",
+            "CFBundleShortVersionString": "1.0",
+            "CFBundleSupportedPlatforms:0": "MacOSX",
+            "CFBundleVersion": "1.0",
+            "DTPlatformVersion": "*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "DTPlatformName": "macosx",
+            "DTSDKBuild": "*",
+            "DTSDKName": "macosx*",
+            "LSMinimumSystemVersion": "10.13",
+        },
         tags = [name],
     )
 

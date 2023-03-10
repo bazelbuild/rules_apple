@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu
+set -euo pipefail
 
 newline=$'\n'
 
@@ -41,11 +41,17 @@ newline=$'\n'
 #  ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
 #  TEXT_TEST_FILE: The text file to test with `TEXT_TEST_VALUES`.
 #  TEXT_TEST_VALUES: Array for regular expressions to test the contents of the
-#      text file with.
+#      text file with. Regular expressions must follow POSIX Basic Regular
+#      Expression (BRE) syntax.
+#  BINARY_NOT_CONTAINS_ARCHITECTURES: The architectures to verify are not in the
+#      assembled binary.
 #  BINARY_TEST_FILE: The file to test with `BINARY_TEST_SYMBOLS`
 #  BINARY_TEST_ARCHITECTURE: The architecture to use with `BINARY_TEST_SYMBOLS`.
 #  BINARY_CONTAINS_SYMBOLS: Array of symbols that should be present.
 #  BINARY_NOT_CONTAINS_SYMBOLS: Array of symbols that should not be present.
+#  BINARY_CONTAINS_REGEX_SYMBOLS: Array of regular expressions for symbols that
+#      should be present. Regular expressions must follow POSIX Extended Regular
+#      Expression (ERE) syntax.
 #  CODESIGN_INFO_CONTAINS: Array of codesign information that should
 #      be present.
 #  CODESIGN_INFO_NOT_CONTAINS: Array of codesign information that should
@@ -100,6 +106,27 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     fail "Archive did not contain binary at \"$path\"" \
       "contents were:$newline$(find $ARCHIVE_ROOT)"
   fi
+
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    IFS=' ' found_archs=($(lipo -archs "$path"))
+    for arch in "${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+    do
+      for found_arch in "${found_archs[@]}"
+      do
+        something_tested=true
+        arch_found=false
+        if [[ "$arch" == "$found_arch" ]]; then
+          arch_found=true
+          break
+        fi
+      done
+      if [[ "$arch_found" = true ]]; then
+        fail "Unexpectedly found architecture \"$arch\". The architectures " \
+          "in the binary were:$newline${found_archs[@]}"
+      fi
+    done
+  fi
+
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
     if [[ ! -n $arch ]]; then
@@ -108,7 +135,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
 
     # Filter out undefined symbols from the objdump mach-o symbol output and
     # return the rightmost value; these binary symbols will not have spaces.
-    IFS=$'\n' actual_symbols=($(objdump -t -macho -arch="$arch" "$path" | grep -v "*UND*" | awk '{print substr($0,index($0,$5))}'))
+    IFS=$'\n' actual_symbols=($(objdump --syms --macho --arch="$arch" "$path" | grep -v "*UND*" | awk '{print substr($0,index($0,$5))}'))
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
@@ -123,6 +150,25 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
         done
         if [[ "$symbol_found" = false ]]; then
             fail "Expected symbol \"$test_symbol\" was not found. The " \
+              "symbols in the binary were:$newline${actual_symbols[@]}"
+        fi
+      done
+    fi
+
+    if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+      for test_regex in "${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
+      do
+        something_tested=true
+        symbol_found=false
+        for actual_symbol in "${actual_symbols[@]}"
+        do
+          if [[ "$actual_symbol" =~ $test_regex ]]; then
+            symbol_found=true
+            break
+          fi
+        done
+        if [[ "$symbol_found" = false ]]; then
+            fail "Expected symbol \"$test_regex\" was not found. The " \
               "symbols in the binary were:$newline${actual_symbols[@]}"
         fi
       done
@@ -150,6 +196,10 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for symbols," \
         "but no arch was set to check: ${BINARY_CONTAINS_SYMBOLS[@]}"
+    fi
+    if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+      fail "Rule Misconfigured: Supposed to look for symbols," \
+        "but no arch was set to check: ${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
     fi
     if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
       fail "Rule Misconfigured: Supposed to look for missing symbols," \
@@ -198,10 +248,20 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   fi
 
   if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" || -n "${MACHO_LOAD_COMMANDS_NOT_CONTAIN-}" ]]; then
-    # Remove the leftmost white space from otool output to make string matching
-    # of symbols possible, avoiding the accidental elimination of white space
-    # from paths and identifiers.
-    IFS=$'\n' actual_symbols=($(otool -l "$path" | awk '{$1=$1}1'))
+    # The `otool` commands below remove the leftmost white space from the
+    # output to make string matching of symbols possible, avoiding the
+    # accidental elimination of white space from paths and identifiers.
+    IFS=$'\n'
+    if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+      arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
+      if [[ ! -n $arch ]]; then
+        fail "No architecture specified for binary file at \"$path\""
+      else
+        actual_symbols=($(otool -v -arch "$arch" -l "$path" | awk '{$1=$1}1'))
+      fi
+    else
+      actual_symbols=($(otool -v -l "$path" | awk '{$1=$1}1'))
+    fi
     if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
       for test_symbol in "${MACHO_LOAD_COMMANDS_CONTAIN[@]}"
       do
@@ -243,6 +303,10 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     fi
   fi
 else
+  if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for missing architectures," \
+      "but no binary was set to check: ${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
+  fi
   if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
     fail "Rule Misconfigured: Binary arch was set," \
       "but no binary was set to check: ${BINARY_TEST_ARCHITECTURE}"
@@ -254,6 +318,10 @@ else
   if [[ -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
     fail "Rule Misconfigured: Supposed to look for missing symbols," \
       "but no binary was set to check: ${BINARY_NOT_CONTAINS_SYMBOLS[@]}"
+  fi
+  if [[ -n "${BINARY_CONTAINS_REGEX_SYMBOLS-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for regex symbols," \
+      "but no binary was set to check: ${BINARY_CONTAINS_REGEX_SYMBOLS[@]}"
   fi
   if [[ -n "${MACHO_LOAD_COMMANDS_CONTAIN-}" ]]; then
     fail "Rule Misconfigured: Supposed to look for macho load commands," \
@@ -272,7 +340,8 @@ if [[ -n "${NOT_CONTAINS-}" ]]; then
     something_tested=true
     expanded_path=$(eval echo "$path")
     if [[ -e $expanded_path ]]; then
-      fail "Archive did contain \"$expanded_path\""
+      fail "Archive did contain \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
     fi
   done
 fi
@@ -330,7 +399,7 @@ if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
         "$newline$(/usr/libexec/PlistBuddy -c Print $path)"
     fi
     if [[ "$value" != $expected_value ]]; then
-      fail "Expected plist value \"$value\" to be \"$expected_value\""
+      fail "Expected plist value \"$value\" at key \"$key\" to be \"$expected_value\""
     fi
   done
 fi

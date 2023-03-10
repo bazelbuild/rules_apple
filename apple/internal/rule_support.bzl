@@ -29,10 +29,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundle_package_type.bzl",
     "bundle_package_type",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
-)
 
 # Options to declare signing behavior and exceptions.
 #
@@ -78,7 +74,6 @@ def _describe_rule_type(
         app_icon_parent_extension = None,
         archive_extension = ".zip",
         binary_infoplist = True,
-        binary_type = "executable",
         bundle_extension = None,
         bundle_locations = None,
         bundle_package_type = None,
@@ -118,9 +113,6 @@ def _describe_rule_type(
         archive_extension: Extension for the archive output of the rule.
         binary_infoplist: Whether the Info.plist output should be in binary form.
         bundle_package_type: Four-character code representing the bundle type.
-        binary_type: Binary type to use for the binary_type attribute in the bundling rules. This
-            attribute is read by apple_common.link_multi_arch_binary, so rules that use apple_binary
-            underneath are not affected.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
         codesigning_exceptions: A value from _CODESIGNING_EXCEPTIONS to determine conditions for
@@ -175,7 +167,6 @@ def _describe_rule_type(
         app_icon_parent_extension = app_icon_parent_extension,
         archive_extension = archive_extension,
         binary_infoplist = binary_infoplist,
-        binary_type = binary_type,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
         bundle_package_type = bundle_package_type,
@@ -277,14 +268,15 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
         # ios_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
@@ -293,8 +285,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
@@ -333,7 +327,9 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.messages_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -356,7 +352,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = transition_support.static_framework_transition,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -365,7 +361,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
@@ -389,7 +384,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
@@ -447,7 +441,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
             allowed_device_families = ["mac"],
-            binary_type = "dylib",
             bundle_extension = "",
             deps_cfg = apple_common.multi_arch_split,
             product_type = apple_product_type.dylib,
@@ -474,14 +467,16 @@ _RULE_TYPE_DESCRIPTORS = {
             rpaths = [
                 # Extension binaries live in
                 # Application.app/Contents/PlugIns/Extension.appex/Contents/MacOS/Extension
-                # Frameworks are packaged in Application.app/Contents/Frameworks
+                # Frameworks are packaged in
+                # Application.app/Contents/PlugIns/Extension.appex/Contents/Frameworks
+                # or Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
                 "@executable_path/../../../../Frameworks",
             ],
         ),
         # macos_quick_look_plugin
         apple_product_type.quicklook_plugin: _describe_rule_type(
             allowed_device_families = ["mac"],
-            binary_type = "dylib",
             bundle_extension = ".qlgenerator",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
@@ -496,7 +491,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             app_icon_parent_extension = ".xcassets",
             app_icon_extension = ".appiconset",
-            binary_type = "loadable_bundle",
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
@@ -565,7 +559,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
@@ -590,7 +583,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
@@ -653,14 +645,15 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
         # tvos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["tv"],
-            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
@@ -668,8 +661,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
@@ -678,7 +673,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = transition_support.static_framework_transition,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -687,7 +682,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["tv"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
@@ -711,7 +705,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["tv"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
@@ -736,6 +729,7 @@ _RULE_TYPE_DESCRIPTORS = {
     "watchos": {
         # watchos_application
         apple_product_type.watch2_application: _describe_rule_type(
+            additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
             allows_locale_trimming = True,
             app_icon_parent_extension = ".xcassets",
@@ -760,14 +754,15 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.watch2_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/Frameworks
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
                 "@executable_path/../../Frameworks",
             ],
         ),
         # watchos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["watch"],
-            binary_type = "dylib",
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
@@ -775,8 +770,10 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
-                # Application.app/Frameworks/Framework.framework/Framework
-                # Frameworks are packaged in Application.app/Frameworks
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),
@@ -785,7 +782,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = transition_support.static_framework_transition,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -794,7 +791,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["watch"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
@@ -818,7 +814,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
             allowed_device_families = ["watch"],
-            binary_type = "loadable_bundle",
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",

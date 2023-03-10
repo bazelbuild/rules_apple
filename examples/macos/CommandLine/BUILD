@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "objc_library")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:macos.bzl",

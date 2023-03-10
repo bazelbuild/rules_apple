@@ -42,7 +42,7 @@ def _bitcode_symbols_partial_impl(
         *,
         actions,
         binary_artifact,
-        debug_outputs_provider,
+        bitcode_symbol_maps,
         dependency_targets,
         label_name,
         output_discriminator,
@@ -51,16 +51,18 @@ def _bitcode_symbols_partial_impl(
     """Implementation for the bitcode symbols processing partial."""
 
     bitcode_dirs = []
-    if binary_artifact and debug_outputs_provider:
-        debug_outputs_map = debug_outputs_provider.outputs_map
 
+    bitcode_symbols = {}
+    if bitcode_symbol_maps:
+        bitcode_symbols.update(bitcode_symbol_maps)
+
+    if binary_artifact and bitcode_symbols:
         bitcode_files = []
         copy_commands = []
-        for arch in debug_outputs_map:
-            bitcode_file = debug_outputs_map[arch].get("bitcode_symbols")
+        for arch in bitcode_symbols:
+            bitcode_file = bitcode_symbols[arch]
             if not bitcode_file:
                 continue
-
             bitcode_files.append(bitcode_file)
 
             # Get the UUID of the arch slice and use that to name the bcsymbolmap file.
@@ -117,7 +119,7 @@ def bitcode_symbols_partial(
         *,
         actions,
         binary_artifact = None,
-        debug_outputs_provider = None,
+        bitcode_symbol_maps = {},
         dependency_targets = [],
         label_name,
         output_discriminator = None,
@@ -128,8 +130,8 @@ def bitcode_symbols_partial(
     Args:
       actions: Actions defined for the current build context.
       binary_artifact: The main binary artifact for this target.
-      debug_outputs_provider: The AppleDebugOutputs provider containing the references to the debug
-        outputs of this target's binary.
+      bitcode_symbol_maps: A mapping of architectures to Files representing bitcode symbol maps for
+        each architecture.
       dependency_targets: List of targets that should be checked for bitcode files that need to be
         bundled..
       label_name: Name of the target being built
@@ -146,7 +148,7 @@ def bitcode_symbols_partial(
         _bitcode_symbols_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
-        debug_outputs_provider = debug_outputs_provider,
+        bitcode_symbol_maps = bitcode_symbol_maps,
         dependency_targets = dependency_targets,
         label_name = label_name,
         output_discriminator = output_discriminator,

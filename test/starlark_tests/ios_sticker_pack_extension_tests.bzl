@@ -15,21 +15,28 @@
 """ios_sticker_pack_extension Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
+)
+load(
+    ":rules/common_verification_tests.bzl",
+    "archive_contents_test",
 )
 load(
     ":rules/infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 
-def ios_sticker_pack_extension_test_suite(name = "ios_sticker_pack_extension"):
+def ios_sticker_pack_extension_test_suite(name):
     """Test suite for ios_extension.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -57,10 +64,30 @@ def ios_sticker_pack_extension_test_suite(name = "ios_sticker_pack_extension"):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "LSApplicationIsStickerProvider": "YES",
-            "MinimumOSVersion": "10.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "NSExtension:NSExtensionPointIdentifier": "com.apple.message-payload-provider",
             "UIDeviceFamily:0": "1",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bitcode_test".format(name),
+        apple_bitcode = "embedded",
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext",
+        binary_test_file = "$BUNDLE_ROOT/sticker_ext",
+        macho_load_commands_contain = ["segname __LLVM"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_strip_bitcode_test".format(name),
+        build_type = "device",
+        apple_bitcode = "none",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext",
+        binary_test_file = "$BUNDLE_ROOT/sticker_ext",
+        macho_load_commands_contain = ["segname __LLVM"],  # TODO: This might need to change in the future to not contain bitcode
         tags = [name],
     )
 

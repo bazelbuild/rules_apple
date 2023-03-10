@@ -27,15 +27,20 @@ load(
     "dsyms_test",
 )
 load(
+    ":rules/infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
+load(
     ":rules/output_group_test.bzl",
     "output_group_test",
 )
 
-# buildifier: disable=unnamed-macro
-def macos_dylib_test_suite():
-    """Test suite for macos_dylib."""
-    name = "macos_dylib"
+def macos_dylib_test_suite(name):
+    """Test suite for macos_dylib.
 
+    Args:
+      name: the base name to be used in things created by this macro
+    """
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
@@ -81,7 +86,30 @@ def macos_dylib_test_suite():
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
-        expected_dsyms = ["dylib"],
+        expected_direct_dsyms = ["dylib"],
+        expected_transitive_dsyms = ["dylib"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        expected_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "dylib",
+            "CFBundleShortVersionString": "1.0",
+            "CFBundleSupportedPlatforms:0": "MacOSX",
+            "CFBundleVersion": "1.0",
+            "DTPlatformVersion": "*",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "DTPlatformName": "macosx",
+            "DTSDKBuild": "*",
+            "DTSDKName": "macosx*",
+            "LSMinimumSystemVersion": "10.13",
+        },
         tags = [name],
     )
 

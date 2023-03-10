@@ -55,6 +55,7 @@ if [[ "$TEST_BUNDLE_PATH" == *.xctest ]]; then
 else
   unzip -qq -d "${TEST_TMP_DIR}" "${TEST_BUNDLE_PATH}"
 fi
+readonly test_binary="$TEST_TMP_DIR/${TEST_BUNDLE_NAME}.xctest/Contents/MacOS/$TEST_BUNDLE_NAME"
 
 # In case there is no test host, TEST_HOST_PATH will be empty. TEST_BUNDLE_PATH
 # will always be populated.
@@ -104,6 +105,16 @@ function escape() {
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
 TEST_ENV="%(test_env)s"
+readonly profraw="$TEST_TMP_DIR/coverage.profraw"
+if [[ "${COVERAGE:-}" -eq 1 ]]; then
+  readonly profile_env="LLVM_PROFILE_FILE=$profraw"
+  if [[ -n "$TEST_ENV" ]]; then
+    TEST_ENV="$TEST_ENV,$profile_env"
+  else
+    TEST_ENV="$profile_env"
+  fi
+fi
+
 XCTESTRUN_ENV=""
 for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
@@ -126,6 +137,65 @@ fi
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
+rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
+    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/test.xcresult" \
     -xctestrun "$XCTESTRUN"
+
+if [[ "${COVERAGE:-}" -ne 1 ]]; then
+  # Normal tests run without coverage
+  exit 0
+fi
+
+llvm_coverage_manifest="$COVERAGE_MANIFEST"
+readonly provided_llvm_coverage_manifest="%(test_llvm_coverage_manifest)s"
+if [[ -s "${provided_llvm_coverage_manifest:-}" ]]; then
+  llvm_coverage_manifest="$provided_llvm_coverage_manifest"
+fi
+
+readonly profdata="$TEST_TMP_DIR/coverage.profdata"
+xcrun llvm-profdata merge "$profraw" --output "$profdata"
+
+readonly export_error_file="$TEST_TMP_DIR/llvm-cov-export-error.txt"
+llvm_cov_export_status=0
+lcov_args=(
+  -instr-profile "$profdata"
+  -ignore-filename-regex='.*external/.+'
+  -path-equivalence=".,$PWD"
+)
+xcrun llvm-cov \
+  export \
+  -format lcov \
+  "${lcov_args[@]}" \
+  "$test_binary" \
+  @"$llvm_coverage_manifest" \
+  > "$COVERAGE_OUTPUT_FILE" \
+  2> "$export_error_file" \
+  || llvm_cov_export_status=$?
+
+# Error ourselves if lcov outputs warnings, such as if we misconfigure
+# something and the file path of one of the covered files doesn't exist
+if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
+  echo "error: while exporting coverage report" >&2
+  cat "$export_error_file" >&2
+  exit 1
+fi
+
+if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+  llvm_cov_json_export_status=0
+  xcrun llvm-cov \
+    export \
+    -format text \
+    "${lcov_args[@]}" \
+    "$test_binary" \
+    @"$llvm_coverage_manifest" \
+    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
+    2> "$export_error_file" \
+    || llvm_cov_json_export_status=$?
+  if [[ -s "$export_error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
+    cat "$export_error_file" >&2
+    exit 1
+  fi
+fi

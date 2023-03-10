@@ -17,6 +17,7 @@ py_test(
     name = "execute_test",
     srcs = ["execute_test.py"],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [
         ":execute",
         "//:py_init_shim",
@@ -30,7 +31,7 @@ py_library(
     visibility = [
         "//tools:__subpackages__",
     ],
-    deps = ["//tools/wrapper_common:execute"],
+    deps = [":execute"],
 )
 
 # Consumed by bazel tests.

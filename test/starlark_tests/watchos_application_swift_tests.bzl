@@ -19,11 +19,11 @@ load(
     "archive_contents_test",
 )
 
-def watchos_application_swift_test_suite(name = "watchos_application_swift"):
+def watchos_application_swift_test_suite(name):
     """Test suite for watchos_application_swift.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
 
     # Pre-ABI stability, simulator build, iOS companion app uses Swift but

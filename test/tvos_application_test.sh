@@ -65,7 +65,7 @@ tvos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
@@ -135,7 +135,7 @@ tvos_application(
     name = "app",
     bundle_id = "my.bundle.id",
     infoplists = ["Info.plist"],
-    minimum_os_version = "10.0",
+    minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "bogus.mobileprovision",
     deps = [":lib"],
 )
@@ -148,7 +148,7 @@ EOF
   ! do_build tvos //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:app_entitlements", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 run_suite "tvos_application bundling tests"

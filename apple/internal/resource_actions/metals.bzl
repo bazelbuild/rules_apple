@@ -46,7 +46,7 @@ def _metal_apple_target_triple(platform_prerequisites):
         version = target_os_version,
     )
 
-def compile_metals(*, actions, input_files, output_file, platform_prerequisites, **kwargs):
+def compile_metals(*, actions, input_files, output_file, platform_prerequisites, **_kwargs):
     """Creates actions that compile .metal files into a single .metallib file.
 
     Args:
@@ -54,7 +54,7 @@ def compile_metals(*, actions, input_files, output_file, platform_prerequisites,
         platform_prerequisites: Struct containing information on the platform being targeted.
         input_files: The input metal files.
         output_file: The output metallib file.
-        **kwargs: Ignored
+        **_kwargs: Ignored
     """
     air_files = []
     target = _metal_apple_target_triple(platform_prerequisites)

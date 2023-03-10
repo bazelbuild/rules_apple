@@ -15,6 +15,10 @@
 """macos_bundle Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -27,13 +31,12 @@ load(
     "dsyms_test",
 )
 
-def macos_bundle_test_suite(name = "macos_bundle"):
+def macos_bundle_test_suite(name):
     """Test suite for macos_bundle.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
@@ -66,7 +69,7 @@ def macos_bundle_test_suite(name = "macos_bundle"):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.10",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         tags = [name],
@@ -145,7 +148,8 @@ def macos_bundle_test_suite(name = "macos_bundle"):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        expected_dsyms = ["bundle.bundle"],
+        expected_direct_dsyms = ["bundle.bundle"],
+        expected_transitive_dsyms = ["bundle.bundle"],
         tags = [name],
     )
 

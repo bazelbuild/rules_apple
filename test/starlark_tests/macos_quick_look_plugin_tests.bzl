@@ -15,6 +15,10 @@
 """macos_quick_look_plugin Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -23,13 +27,12 @@ load(
     "archive_contents_test",
 )
 
-def macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin"):
+def macos_quick_look_plugin_test_suite(name):
     """Test suite for macos_quick_look_plugin.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
@@ -62,7 +65,7 @@ def macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin"):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.10",
+            "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
         tags = [name],
@@ -74,11 +77,7 @@ def macos_quick_look_plugin_test_suite(name = "macos_quick_look_plugin"):
         binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin",
         macho_load_commands_not_contain = ["cmd LC_RPATH"],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
-        tags = [
-            name,
-            # OSS Blocked by b/127807024
-            "manual",  # disabled in oss
-        ],
+        tags = [name],
     )
 
     archive_contents_test(

@@ -15,6 +15,10 @@
 """tvos_extension Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -32,13 +36,12 @@ load(
     "infoplist_contents_test",
 )
 
-def tvos_extension_test_suite(name = "tvos_extension"):
+def tvos_extension_test_suite(name):
     """Test suite for tvos_extension.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -50,7 +53,8 @@ def tvos_extension_test_suite(name = "tvos_extension"):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
-        expected_dsyms = ["ext.appex"],
+        expected_direct_dsyms = ["ext.appex"],
+        expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
     )
 
@@ -72,7 +76,7 @@ def tvos_extension_test_suite(name = "tvos_extension"):
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "9.0",
+            "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
         },
         tags = [name],
@@ -98,6 +102,40 @@ def tvos_extension_test_suite(name = "tvos_extension"):
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/ext",
+        macho_load_commands_contain = [
+            "path @executable_path/Frameworks (offset 12)",
+            "path @executable_path/../../Frameworks (offset 12)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        tags = [name],
+    )
+
+    # Verify that Swift dylibs are packaged with the application, not with the extension, when only
+    # an extension uses Swift. And to be safe, verify that they aren't packaged with the extension.
+    archive_contents_test(
+        name = "{}_device_swift_dylibs_present".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_dylibs_present".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 

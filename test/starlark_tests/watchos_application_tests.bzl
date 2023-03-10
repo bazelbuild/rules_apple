@@ -15,6 +15,10 @@
 """watchos_application Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -27,17 +31,16 @@ load(
     "infoplist_contents_test",
 )
 load(
-    ":rules/analysis_xcasset_argv_test.bzl",
-    "analysis_xcasset_argv_test",
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 
-def watchos_application_test_suite(name = "watchos_application"):
+def watchos_application_test_suite(name):
     """Test suite for watchos_application.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -72,16 +75,24 @@ def watchos_application_test_suite(name = "watchos_application"):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "4.0",
+            "MinimumOSVersion": common.min_os_watchos.baseline,
             "UIDeviceFamily:0": "4",
+            "WKWatchKitApp": "true",
         },
         tags = [name],
     )
 
     # Tests xcasset tool is passed the correct arguments.
-    analysis_xcasset_argv_test(
+    analysis_target_actions_test(
         name = "{}_xcasset_actool_argv".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--minimum-deployment-target " + common.min_os_watchos.baseline,
+            "--product-type com.apple.product-type.application.watchapp2",
+            "--platform watchsimulator",
+        ],
         tags = [name],
     )
 

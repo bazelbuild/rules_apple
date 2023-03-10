@@ -15,13 +15,26 @@
 """watchos_extension Starlark tests."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "apple_product_type",
+)  # buildifier: disable=bzl-visibility
+load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
+)
+load(
+    ":rules/product_type_test.bzl",
+    "product_type_test",
 )
 load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
     "bitcode_symbol_map_test",
+    "entry_point_test",
 )
 load(
     ":rules/dsyms_test.bzl",
@@ -36,13 +49,12 @@ load(
     "linkmap_test",
 )
 
-def watchos_extension_test_suite(name = "watchos_extension"):
+def watchos_extension_test_suite(name):
     """Test suite for watchos_extension.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -81,6 +93,7 @@ def watchos_extension_test_suite(name = "watchos_extension"):
         contains = [
             "$RESOURCE_ROOT/resource_bundle.bundle/Info.plist",
             "$RESOURCE_ROOT/Another.plist",
+            "$RESOURCE_ROOT/Assets.car",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         tags = [name],
@@ -111,7 +124,8 @@ def watchos_extension_test_suite(name = "watchos_extension"):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
-        expected_dsyms = ["ext.appex"],
+        expected_direct_dsyms = ["ext.appex"],
+        expected_transitive_dsyms = ["ext.appex"],
         tags = [name],
     )
 
@@ -133,7 +147,7 @@ def watchos_extension_test_suite(name = "watchos_extension"):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "4.0",
+            "MinimumOSVersion": common.min_os_watchos.baseline,
             "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
             "NSExtension:NSExtensionPointIdentifier": "com.apple.watchkit",
             "UIDeviceFamily:0": "4",
@@ -180,6 +194,76 @@ def watchos_extension_test_suite(name = "watchos_extension"):
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_correct_rpath_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/ext",
+        macho_load_commands_contain = [
+            "path @executable_path/Frameworks (offset 12)",
+            "path @executable_path/../../Frameworks (offset 12)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_test".format(name),
+        build_type = "simulator",
+        entry_point = "_WKExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_app_extension_test".format(name),
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:watchos_app_extension",
+        tags = [name],
+    )
+
+    product_type_test(
+        name = "{}_product_type_watchkit_extension".format(name),
+        expected_product_type = apple_product_type.watch2_extension,
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    product_type_test(
+        name = "{}_product_type_app_extension".format(name),
+        expected_product_type = apple_product_type.app_extension,
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:watchos_app_extension",
+    )
+
+    # Test that the output binary omits the 32 bit watchOS slice when built for a minimum OS that
+    # does not support 32 bit architectures.
+    archive_contents_test(
+        name = "{}_watchos_binary_contents_dropping_32_bit_device_archs_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_arm64_support",
+        cpus = {
+            "watchos_cpus": ["armv7k", "arm64_32"],
+        },
+        binary_test_file = "$BINARY",
+        binary_not_contains_architectures = ["armv7k"],
+        tags = [name],
+    )
+
+    # Test that the watchOS output binary still contains the 64 bit Arm slice when built for a
+    # minimum OS that does not support 32 bit architectures.
+    archive_contents_test(
+        name = "{}_watchos_binary_contents_retains_arm64_32_when_dropping_32_bit_device_archs_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_arm64_support",
+        cpus = {
+            "watchos_cpus": ["armv7k", "arm64_32"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64_32",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION"],
         tags = [name],
     )
 

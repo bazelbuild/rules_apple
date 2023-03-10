@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 
-from build_bazel_rules_apple.tools.wrapper_common import execute
+from tools.wrapper_common import execute
 
 
 # Regex with benign codesign messages that can be safely ignored.
@@ -62,6 +62,7 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
   cmd = [codesign_path, "-v", "--sign", identity]
   if entitlements:
     cmd.extend([
+        "--generate-entitlement-der",
         "--entitlements",
         entitlements,
     ])
@@ -112,6 +113,7 @@ def _certificate_fingerprint(identity):
   _, fingerprint, _ = execute.execute_and_filter_output([
       "openssl",
       "x509",
+      "-sha1",
       "-inform",
       "DER",
       "-noout",

@@ -13,9 +13,6 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [
-        "//apple/internal:binary_support",
-    ],
 )
 
 bzl_library(
@@ -27,8 +24,8 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:apple_toolchains",
         "//apple/internal:bundling_support",
-        "//apple/internal:entitlements_support",
         "//apple/internal:experimental",
         "//apple/internal:features_support",
         "//apple/internal:linking_support",
@@ -36,7 +33,9 @@ bzl_library(
         "//apple/internal:partials",
         "//apple/internal:platform_support",
         "//apple/internal:processor",
+        "//apple/internal:resources",
         "//apple/internal:rule_support",
+        "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
         "@build_bazel_rules_swift//swift",
     ],

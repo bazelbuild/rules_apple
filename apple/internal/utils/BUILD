@@ -19,6 +19,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "clang_rt_dylibs",
+    srcs = ["clang_rt_dylibs.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "defines",
     srcs = ["defines.bzl"],
     visibility = [

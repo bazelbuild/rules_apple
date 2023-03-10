@@ -74,12 +74,6 @@ new_local_repository(
     path = '$PWD/../external/bazel_skylib',
 )
 
-new_local_repository(
-    name = "subpar",
-    build_file_content = '',
-    path = '$PWD/../external/subpar',
-)
-
 local_repository(
     name = 'build_bazel_rules_apple',
     path = '$(rlocation build_bazel_rules_apple)',
@@ -118,6 +112,13 @@ load(
 )
 
 swift_rules_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
 EOF
 }
 

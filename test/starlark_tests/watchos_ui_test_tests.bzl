@@ -15,6 +15,10 @@
 """watchos_ui_test Starlark tests."""
 
 load(
+    ":common.bzl",
+    "common",
+)
+load(
     ":rules/apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -27,26 +31,26 @@ load(
     "infoplist_contents_test",
 )
 
-def watchos_ui_test_test_suite(name = "watchos_ui_test"):
+def watchos_ui_test_test_suite(name):
     """Test suite for watchos_ui_test.
 
     Args:
-        name: The name prefix for all the nested tests
+      name: the base name to be used in things created by this macro
     """
-
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        tags = [name],
     )
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
-        expected_dsyms = ["ui_test.xctest"],
-        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        expected_direct_dsyms = ["ui_test.xctest"],
+        expected_transitive_dsyms = ["ui_test.xctest", "ext.appex"],
+        tags = [name],
     )
 
     infoplist_contents_test(
@@ -67,10 +71,10 @@ def watchos_ui_test_test_suite(name = "watchos_ui_test"):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": "7.4",
+            "MinimumOSVersion": common.min_os_watchos.test_runner_support,
             "UIDeviceFamily:0": "4",
         },
-        tags = [name, "manual", "notap"],  # TODO(b/179148169) Remove "notap" when Xcode 12.5 becomes the default.
+        tags = [name],
     )
 
     native.test_suite(
