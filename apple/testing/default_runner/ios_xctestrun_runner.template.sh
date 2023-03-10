@@ -181,18 +181,16 @@ xctestrun_only_test_section=""
 # Any test prefixed with '-' will be passed to 'SkipTestIdentifiers'. Otherwise
 # the tests is passed to 'OnlyTestIdentifiers',
 if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
-  saved_IFS=$IFS
-  IFS=","
-
   if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" && -n "${TEST_FILTER:-}" ]]; then
-    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY,$TEST_FILTER")
+    ALL_TESTS="$TESTBRIDGE_TEST_ONLY,$TEST_FILTER"
   elif [[ -n "${TESTBRIDGE_TEST_ONLY:-}" ]]; then
-    ALL_TESTS=("$TESTBRIDGE_TEST_ONLY")
+    ALL_TESTS="$TESTBRIDGE_TEST_ONLY"
   else
-    ALL_TESTS=("$TEST_FILTER")
+    ALL_TESTS="$TEST_FILTER"
   fi
 
-  for TEST in $ALL_TESTS; do
+  saved_IFS=$IFS
+  IFS=","; for TEST in $ALL_TESTS; do
     if [[ $TEST == -* ]]; then
       if [[ -n "${SKIP_TESTS:-}" ]]; then
         SKIP_TESTS+=",${TEST:1}"
@@ -207,7 +205,7 @@ if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
       fi
     fi
   done
-  
+
   IFS=$saved_IFS
 
   if [[ -n "${SKIP_TESTS:-}" ]]; then
