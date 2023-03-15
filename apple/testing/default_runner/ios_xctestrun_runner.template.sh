@@ -13,7 +13,7 @@ if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
   set -x
 fi
 
-create_xcresult_bundle=%(create_xcresult_bundle)s
+create_xcresult_bundle="%(create_xcresult_bundle)s"
 if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
   create_xcresult_bundle=true
 fi
@@ -234,7 +234,7 @@ simulator_id="$("./%(simulator_creator.py)s" \
 )"
 
 test_exit_code=0
-testlog=$(mktemp)
+readonly testlog=$test_tmp_dir/test.log
 
 test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
 intel_simulator_hack=false
