@@ -200,7 +200,11 @@ def _register_binary_linking_action(
         stamp = stamp,
     )
 
-    fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
+    file_ending = "_lipobin"
+    if "-dynamiclib" in extra_linkopts:
+        file_ending += ".dylib"
+
+    fat_binary = ctx.actions.declare_file("{}{}".format(ctx.label.name, file_ending))
 
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
