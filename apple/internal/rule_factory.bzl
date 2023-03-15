@@ -1156,7 +1156,6 @@ def _create_apple_binary_rule(
         doc,
         additional_attrs = {},
         cfg = transition_support.apple_rule_transition,
-        implicit_outputs = None,
         platform_type = None,
         product_type = None,
         require_linking_attrs = True):
@@ -1254,7 +1253,6 @@ binaries/libraries will be created combining all architectures specified by
         doc = doc,
         executable = is_executable,
         fragments = ["apple", "cpp", "objc"],
-        outputs = implicit_outputs,
         toolchains = use_cpp_toolchain(),
     )
 
