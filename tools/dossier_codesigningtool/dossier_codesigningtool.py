@@ -30,6 +30,9 @@ import uuid
 
 from tools.dossier_codesigningtool import dossier_codesigning_reader as dossier_reader
 
+# A type to access the leaf JSON values from a manifest.
+_ManifestJsonValue = Union[str, List[str], Dict[str, str]]
+
 
 class DossierDirectory(object):
   """Class to manage dossier directories.
@@ -209,7 +212,7 @@ def _extract_codesign_data(
 def _copy_entitlements_file(
     original_entitlements_file_path: str,
     output_directory: str,
-    unique_id: str) -> str:
+    unique_id: str) -> Optional[str]:
   """Copies an entitlements file from an original path to an output directory.
 
   Args:
@@ -296,8 +299,8 @@ def _generate_manifest(
     codesign_identity: Optional[str],
     entitlement_file: Optional[str],
     provisioning_profile_file: Optional[str],
-    embedded_bundle_manifests: Optional[str],
-) -> Dict[str, Union[str, Dict[str, str]]]:
+    embedded_bundle_manifests: Optional[_ManifestJsonValue],
+) -> Dict[str, _ManifestJsonValue]:
   """Generates the manifest based on provided parameters.
 
   Given a set of code signing parameters, generates a manifest representation
@@ -337,7 +340,8 @@ def _embedded_manifests_for_path(
     bundle_path: str,
     dossier_directory: str,
     target_directory: str,
-    codesign_path: str) -> List[Dict[str, Union[str, Dict[str, str]]]]:
+    codesign_path: str,
+) -> List[Dict[str, _ManifestJsonValue]]:
   """Generates embedded manifests for a bundle in a sub-directory.
 
   Provided a bundle, output directory, and a target directory, traverses the
@@ -381,7 +385,7 @@ def _embedded_manifests_for_path(
 def _manifest_with_dossier_for_bundle(
     bundle_path: str,
     dossier_directory: str,
-    codesign_path: str) -> Optional[Dict[str, Union[str, Dict[str, str]]]]:
+    codesign_path: str) -> Optional[Dict[str, _ManifestJsonValue]]:
   """Generates a manifest and assets for a provided bundle.
 
   Provided a bundle and output directory, prepares a code signing dossier by
@@ -441,7 +445,7 @@ def _generate_manifest_dossier(parsed_args: argparse.Namespace):
 
 
 def _write_manifest(
-    manifest: Dict[str, Union[str, Dict[str, str]]],
+    manifest: Dict[str, _ManifestJsonValue],
     dossier_directory: str) -> None:
   """Writes a dossier manifest.json file at dossier_directory.
 
