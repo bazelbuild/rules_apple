@@ -1144,7 +1144,7 @@ apple_dynamic_framework_import(
 EOF
 
   mkdir -p app/inner_framework.framework
-  cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_tvos_dylib_lipobin) \
+  cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_tvos_dylib_lipobin.dylib) \
       app/inner_framework.framework/inner_framework
 
   cat > app/inner_framework.framework/Info.plist <<EOF
