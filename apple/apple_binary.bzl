@@ -183,8 +183,4 @@ rule is being provided for the purpose of transitioning users from the built-in
 implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
-    implicit_outputs = {
-        # Provided for compatibility with built-in `apple_binary` only.
-        "lipobin": "%{name}_lipobin",
-    },
 )
