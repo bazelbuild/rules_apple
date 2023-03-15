@@ -13,6 +13,7 @@
 # limitations under the License.
 """Common functionality for tool wrappers to execute jobs."""
 
+import io
 import os
 import re
 import subprocess
@@ -107,8 +108,11 @@ def execute_and_filter_output(cmd_args,
     # like curly quotes.
     def _ensure_utf8_encoding(s):
       # Tests might hook sys.stdout/sys.stderr, so be defensive.
-      if (getattr(s, "encoding", "utf8") != "utf8" and
-          callable(getattr(s, "reconfigure", None))):
+      if (
+          getattr(s, "encoding", "utf8") != "utf8"
+          and callable(getattr(s, "reconfigure", None))
+          and isinstance(s, io.TextIOWrapper)
+      ):
         s.reconfigure(encoding="utf8")
 
     if stdout:
