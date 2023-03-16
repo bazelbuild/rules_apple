@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS xctestrun runner.
+# Integration tests for iOS test runner.
 
 function set_up() {
   mkdir -p ios
@@ -34,15 +34,17 @@ load(
 load("@build_bazel_rules_swift//swift:swift.bzl",
      "swift_library"
 )
+
 load(
-    "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.bzl",
-    "ios_test_runner"
+    "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
+    "ios_xctestrun_runner"
 )
 
-ios_test_runner(
+ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone 8",
 )
+
 EOF
 }
 
@@ -137,6 +139,11 @@ class PassingUiTest: XCTestCase {
   }
 
   func testPass() throws {
+    let result = 1 + 1;
+    XCTAssertEqual(result, 2);
+  }
+
+  func testPass2() throws {
     let result = 1 + 1;
     XCTAssertEqual(result, 2);
   }
@@ -325,7 +332,7 @@ function test_ios_ui_swift_test_pass() {
 
   expect_log "Test Suite 'PassingUiTest' passed"
   expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
-  expect_log "Executed 1 test, with 0 failures"
+  expect_log "Executed 2 tests, with 0 failures"
 }
 
 function test_ios_ui_test_fail() {
@@ -348,6 +355,18 @@ function test_ios_ui_test_with_filter() {
   expect_log "Test Case '-\[PassingUiTest testPass2\]' passed"
   expect_log "Test Suite 'PassingUiTest' passed"
   expect_log "Test Suite 'PassingUiTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_ui_swift_test_with_filter() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiSwiftTest || fail "should pass"
+
+  expect_log "Test Case '-\[ios_pass_ui_swift_test_lib.PassingUiTest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUiTest' passed"
+  expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
