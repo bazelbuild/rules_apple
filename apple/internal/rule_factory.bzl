@@ -589,9 +589,9 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
-            "_emitswiftinterface": attr.bool(
+            "emitswiftinterface": attr.bool(
                 default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+                doc = "Generate swift interfaces files (this triggers a config transition).",
             ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
@@ -892,9 +892,9 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
-            "_emitswiftinterface": attr.bool(
+            "emitswiftinterface": attr.bool(
                 default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+                doc = "Generate swift interfaces files (this triggers a config transition).",
             ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
@@ -1029,9 +1029,9 @@ to manually dlopen the framework at runtime.
         })
     elif rule_descriptor.product_type == apple_product_type.static_framework:
         attrs.append({
-            "_emitswiftinterface": attr.bool(
+            "emitswiftinterface": attr.bool(
                 default = True,
-                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+                doc = "Generate swift interfaces files (this triggers a config transition).",
             ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],

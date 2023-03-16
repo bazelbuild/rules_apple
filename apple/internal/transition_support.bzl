@@ -327,7 +327,7 @@ def _command_line_options_for_xcframework_platform(
 def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules."""
     return _command_line_options(
-        emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        emit_swiftinterface = getattr(attr, "emitswiftinterface", False),
         minimum_os_version = attr.minimum_os_version,
         platform_type = attr.platform_type,
         settings = settings,
