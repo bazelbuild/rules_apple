@@ -586,6 +586,46 @@ function test_prebuilt_static_apple_static_framework_import_resources() {
       "Payload/app.app/fmwk.bundle/Some.plist"
 }
 
+# Tests that a dynamic framework with a "." in the name builds
+function test_ios_framework_name_with_dot() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+    "ios_framework"
+)
+ios_framework(
+    name = "fmwk.dynamic_framework",
+    deps = [":lib"],
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+)
+EOF
+
+  do_build ios //app:fmwk.dynamic_framework || fail "Should build"
+}
+
+# Tests that a dynamic framework without a "." in the name builds
+function test_ios_framework_name_without_dot() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl",
+    "ios_framework"
+)
+ios_framework(
+    name = "fmwk",
+    deps = [":lib"],
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+)
+EOF
+
+  do_build ios //app:fmwk || fail "Should build"
+}
+
 # Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
 # is bundled properly with the application.
 function test_prebuilt_dynamic_apple_framework_import_dependency() {
