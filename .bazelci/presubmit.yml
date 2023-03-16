@@ -15,7 +15,7 @@ x_defaults:
     test_flags:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
-    bazel: 67d9d755552ed9b4fb182ea1e86f3470c62048e4
+    bazel: last_green
     test_flags:
       - --test_tag_filters=-skipci
 
