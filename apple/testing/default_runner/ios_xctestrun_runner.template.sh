@@ -271,7 +271,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     exit 1
   fi
 
-  test_product_module_name=$(echo "$test_bundle_name" | /usr/bin/sed -r 's/_/-/g')
+  test_product_module_name=$(echo "$test_bundle_name" | /usr/bin/sed -r 's/-/_/g')
 
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \

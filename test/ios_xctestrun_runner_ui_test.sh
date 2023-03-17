@@ -397,7 +397,7 @@ function test_ios_ui_test_dash_with_filter() {
 
   expect_log "Test Case '-\[PassingUITest testPass2\]' passed"
   expect_log "Test Suite 'PassingUITest' passed"
-  expect_log "Test Suite 'PassingUITest_WithDash.xctest' passed"
+  expect_log "Test Suite 'PassingUITest-WithDash.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
