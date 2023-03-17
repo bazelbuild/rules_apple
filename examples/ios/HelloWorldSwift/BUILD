@@ -26,12 +26,14 @@ swift_library(
     ],
 )
 
+# Pass the depending UI test's name as module_name to support test_filter
 swift_library(
     name = "UITests",
     testonly = True,
     srcs = [
         "Tests/UITests.swift",
     ],
+    module_name = "HelloWorldSwiftUITests",
 )
 
 ios_unit_test(
