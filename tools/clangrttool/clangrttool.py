@@ -124,6 +124,10 @@ class ClangRuntimeTool(object):
           "Could not find any clang runtime libraries to package."
           "This is likely a configuration error")
 
+    if "DEVELOPER_DIR" in os.environ:
+      xcode_default_location = "/Applications/Xcode.app/Contents/Developer"
+      clang_lib_path = clang_lib_path.replace(xcode_default_location, os.environ["DEVELOPER_DIR"])
+
     with zipfile.ZipFile(out_path, "w") as out_zip:
       for lib in clang_libraries:
         full_path = os.path.join(clang_lib_path, lib)
