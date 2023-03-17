@@ -333,7 +333,7 @@ target only contains Objective-C files.""")
             # attribute to declare custom inputs.
             ":" + umbrella_module_map,
         ],
-        module_map = umbrella_module_map,
+        module_map = objc_module_map_name,
         srcs = objc_srcs,
         **kwargs
     )
