@@ -301,9 +301,9 @@ version and device will be used when launching the app.
 ### Generate an Xcode project
 
 There are a few community-provided solutions (such as [rules_xcodeproj](https://github.com/buildbuddy-io/rules_xcodeproj)
-and [Tulsi](https://tulsi.bazel.build/)) to help generating Xcode
-projects. By doing so, you will be able to write, debug, and test
-iOS/macOS/watchOS/tvOS applications as if you were using the Xcode build system.
+) to help generating Xcode projects. By doing so, you will be able to write,
+debug, and test iOS/macOS/watchOS/tvOS applications as if you were using the
+Xcode build system.
 
 Let's see how to do so with `rules_xcodeproj`.
 
@@ -311,13 +311,13 @@ Open the `WORKSPACE` file again and add the following:
 
 ```starlark
 http_archive(
-    name = "com_github_buildbuddy_io_rules_xcodeproj",
-    sha256 = "1e2f40eaee520093343528ac9a4a9180b0500cdd83b1e5e2a95abc8c541686e2",
-    url = "https://github.com/buildbuddy-io/rules_xcodeproj/releases/download/1.1.0/release.tar.gz",
+    name = "rules_xcodeproj",
+    sha256 = "ef70a074a74bb5eb7d4a1f17a89d3755d64be7153c3eb41e1d6fdd21844ffcd4",
+    url = "https://github.com/buildbuddy-io/rules_xcodeproj/releases/download/1.3.1/release.tar.gz",
 )
 
 load(
-    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:repositories.bzl",
+    "@rules_xcodeproj//xcodeproj:repositories.bzl",
     "xcodeproj_rules_dependencies",
 )
 
@@ -328,7 +328,7 @@ Add the following import at the top of the `BUILD` file:
 
 ```starlark
 load(
-    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:defs.bzl",
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
     "top_level_target",
     "xcodeproj",
 )
