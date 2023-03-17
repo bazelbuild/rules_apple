@@ -101,11 +101,11 @@ function create_ios_ui_tests() {
   cat > ios/pass_ui_test.m <<EOF
 #import <XCTest/XCTest.h>
 
-@interface PassingUiTest : XCTestCase
+@interface PassingUITest : XCTestCase
 
 @end
 
-@implementation PassingUiTest
+@implementation PassingUITest
 
 - (void)setUp {
     [super setUp];
@@ -131,7 +131,7 @@ EOF
   cat > ios/pass_ui_test.swift <<EOF
 import XCTest
 
-class PassingUiTest: XCTestCase {
+class PassingUITest: XCTestCase {
 
   override func setUp() {
     super.setUp()
@@ -153,11 +153,11 @@ EOF
   cat > ios/fail_ui_test.m <<EOF
 #import <XCTest/XCTest.h>
 
-@interface FailingUiTest : XCTestCase
+@interface FailingUITest : XCTestCase
 
 @end
 
-@implementation FailingUiTest
+@implementation FailingUITest
 
 - (void)setUp {
     [super setUp];
@@ -176,29 +176,29 @@ EOF
 @end
 EOF
 
-  cat > ios/PassUiTest-Info.plist <<EOF
+  cat > ios/PassUITest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
         <key>CFBundleExecutable</key>
-        <string>PassUiTest</string>
+        <string>PassUITest</string>
 </dict>
 </plist>
 EOF
 
-  cat > ios/PassUiSwiftTest-Info.plist <<EOF
+  cat > ios/PassUISwiftTest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
         <key>CFBundleExecutable</key>
-        <string>PassUiSwiftTest</string>
+        <string>PassUISwiftTest</string>
 </dict>
 </plist>
 EOF
 
-  cat > ios/FailUiTest-Info.plist <<EOF
+  cat > ios/FailUITest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
         <key>CFBundleExecutable</key>
-        <string>FailingUiTest</string>
+        <string>FailingUITest</string>
 </dict>
 </plist>
 EOF
@@ -210,8 +210,8 @@ objc_library(
 )
 
 ios_ui_test(
-    name = "PassingUiTest",
-    infoplists = ["PassUiTest-Info.plist"],
+    name = "PassingUITest",
+    infoplists = ["PassUITest-Info.plist"],
     deps = [":pass_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
@@ -220,14 +220,14 @@ ios_ui_test(
 
 swift_library(
     name = "pass_ui_swift_test_lib",
-    module_name = "PassingUiSwiftTest",
+    module_name = "PassingUITestSwift",
     testonly = True,
     srcs = ["pass_ui_test.swift"],
 )
 
 ios_ui_test(
-    name = "PassingUiSwiftTest",
-    infoplists = ["PassUiSwiftTest-Info.plist"],
+    name = "PassingUITestSwift",
+    infoplists = ["PassUISwiftTest-Info.plist"],
     deps = [":pass_ui_swift_test_lib"],
     minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     test_host = ":app",
@@ -240,8 +240,8 @@ objc_library(
 )
 
 ios_ui_test(
-    name = 'FailingUiTest',
-    infoplists = ["FailUiTest-Info.plist"],
+    name = 'FailingUITest',
+    infoplists = ["FailUITest-Info.plist"],
     deps = [":fail_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
@@ -260,11 +260,11 @@ function create_ios_ui_envtest() {
 #include <assert.h>
 #include <stdlib.h>
 
-@interface EnvUiTest : XCTestCase
+@interface EnvUITest : XCTestCase
 
 @end
 
-@implementation EnvUiTest
+@implementation EnvUITest
 
 - (void)setUp {
     [super setUp];
@@ -284,11 +284,11 @@ function create_ios_ui_envtest() {
 @end
 EOF
 
-  cat >ios/EnvUiTest-Info.plist <<EOF
+  cat >ios/EnvUITest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
         <key>CFBundleExecutable</key>
-        <string>EnvUiTest</string>
+        <string>EnvUITest</string>
 </dict>
 </plist>
 EOF
@@ -300,8 +300,8 @@ objc_library(
 )
 
 ios_ui_test(
-    name = 'EnvUiTest',
-    infoplists = ["EnvUiTest-Info.plist"],
+    name = 'EnvUITest',
+    infoplists = ["EnvUITest-Info.plist"],
     deps = [":env_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
@@ -318,10 +318,10 @@ function test_ios_ui_test_pass() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_ios_test //ios:PassingUiTest || fail "should pass"
+  do_ios_test //ios:PassingUITest || fail "should pass"
 
-  expect_log "Test Suite 'PassingUiTest' passed"
-  expect_log "Test Suite 'PassingUiTest.xctest' passed"
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUITest.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
 
@@ -329,10 +329,10 @@ function test_ios_ui_swift_test_pass() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_ios_test //ios:PassingUiSwiftTest || fail "should pass"
+  do_ios_test //ios:PassingUISwiftTest || fail "should pass"
 
-  expect_log "Test Suite 'PassingUiTest' passed"
-  expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUISwiftTest.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
 
@@ -340,10 +340,10 @@ function test_ios_ui_test_fail() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  ! do_ios_test //ios:FailingUiTest || fail "should fail"
+  ! do_ios_test //ios:FailingUITest || fail "should fail"
 
-  expect_log "Test Suite 'FailingUiTest' failed"
-  expect_log "Test Suite 'FailingUiTest.xctest' failed"
+  expect_log "Test Suite 'FailingUITest' failed"
+  expect_log "Test Suite 'FailingUITest.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
 }
 
@@ -351,11 +351,11 @@ function test_ios_ui_test_with_filter() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_ios_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiTest || fail "should pass"
+  do_ios_test --test_filter=PassingUITest/testPass2 //ios:PassingUITest || fail "should pass"
 
-  expect_log "Test Case '-\[PassingUiTest testPass2\]' passed"
-  expect_log "Test Suite 'PassingUiTest' passed"
-  expect_log "Test Suite 'PassingUiTest.xctest' passed"
+  expect_log "Test Case '-\[PassingUITest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUITest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
@@ -363,11 +363,11 @@ function test_ios_ui_swift_test_with_filter() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  do_ios_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiSwiftTest || fail "should pass"
+  do_ios_test --test_filter=PassingUITest/testPass2 //ios:PassingUISwiftTest || fail "should pass"
 
-  expect_log "Test Case '-\[PassingUiSwiftTest.PassingUiTest testPass2\]' passed"
-  expect_log "Test Suite 'PassingUiTest' passed"
-  expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
+  expect_log "Test Case '-\[PassingUISwiftTest.PassingUITest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUISwiftTest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
@@ -375,9 +375,9 @@ function test_ios_ui_test_with_env() {
   create_sim_runners
   create_ios_app
   create_ios_ui_envtest ENV_KEY1 ENV_VALUE2
-  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUiTest || fail "should pass"
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUITest || fail "should pass"
 
-  expect_log "Test Suite 'EnvUiTest' passed"
+  expect_log "Test Suite 'EnvUITest' passed"
 }
 
 run_suite "ios_ui_test with iOS xctestrun runner bundling tests"
