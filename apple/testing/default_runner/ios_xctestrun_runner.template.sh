@@ -278,6 +278,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
     -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
     -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
+    -e "s@BAZEL_TEST_PRODUCT_MODULE_NAME@$test_bundle_name@g" \
     -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
     -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
