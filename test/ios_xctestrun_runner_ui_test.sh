@@ -227,6 +227,15 @@ ios_ui_test(
     runner = ":ios_x86_64_sim_runner",
 )
 
+ios_ui_test(
+    name = "PassingUITest-WithDash",
+    infoplists = ["PassUITest-Info.plist"],
+    deps = [":pass_ui_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+
 swift_library(
     name = "pass_ui_swift_test_lib",
     module_name = "PassingUISwiftTest",
@@ -377,6 +386,18 @@ function test_ios_ui_test_underscore_with_filter() {
   expect_log "Test Case '-\[PassingUITest testPass2\]' passed"
   expect_log "Test Suite 'PassingUITest' passed"
   expect_log "Test Suite 'PassingUITest_WithUnderscore.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_ui_test_dash_with_filter() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test --test_filter=PassingUITest/testPass2 //ios:PassingUITest-WithDash || fail "should pass"
+
+  expect_log "Test Case '-\[PassingUITest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUITest_WithDash.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
 }
 
