@@ -4,6 +4,8 @@
 <dict>
   <key>BazelTests</key>
   <dict>
+    <key>ProductModuleName</key>
+    <string>BAZEL_TEST_PRODUCT_MODULE_NAME</string>
     <key>TestBundlePath</key>
     <string>BAZEL_TEST_BUNDLE_PATH</string>
     <key>TestExecutionOrdering</key>

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS test runner.
+# Integration tests for iOS xctestrun runner.
 
 function set_up() {
   mkdir -p ios
@@ -220,6 +220,7 @@ ios_ui_test(
 
 swift_library(
     name = "pass_ui_swift_test_lib",
+    module_name = "PassingUiSwiftTest",
     testonly = True,
     srcs = ["pass_ui_test.swift"],
 )
@@ -364,7 +365,7 @@ function test_ios_ui_swift_test_with_filter() {
   create_ios_ui_tests
   do_ios_test --test_filter=PassingUiTest/testPass2 //ios:PassingUiSwiftTest || fail "should pass"
 
-  expect_log "Test Case '-\[ios_pass_ui_swift_test_lib.PassingUiTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUiSwiftTest.PassingUiTest testPass2\]' passed"
   expect_log "Test Suite 'PassingUiTest' passed"
   expect_log "Test Suite 'PassingUiSwiftTest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
@@ -379,4 +380,4 @@ function test_ios_ui_test_with_env() {
   expect_log "Test Suite 'EnvUiTest' passed"
 }
 
-run_suite "ios_ui_test with iOS test runner bundling tests"
+run_suite "ios_ui_test with iOS xctestrun runner bundling tests"
