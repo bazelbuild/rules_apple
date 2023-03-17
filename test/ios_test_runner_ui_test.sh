@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS xctestrun runner.
+# Integration tests for iOS test runner.
 
 function set_up() {
   mkdir -p ios
