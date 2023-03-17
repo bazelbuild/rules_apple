@@ -271,8 +271,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     exit 1
   fi
 
-  test_product_module_name=$(echo "$test_bundle_name" | /usr/bin/sed -r 's/-/_/g')
-
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
     -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
@@ -280,7 +278,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
     -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
     -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
-    -e "s@BAZEL_TEST_PRODUCT_MODULE_NAME@$test_product_module_name@g" \
+    -e "s@BAZEL_TEST_PRODUCT_MODULE_NAME@${test_bundle_name//-/_}@g" \
     -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
     -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
