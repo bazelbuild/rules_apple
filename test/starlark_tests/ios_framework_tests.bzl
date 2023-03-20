@@ -33,6 +33,17 @@ def ios_framework_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    archive_contents_test(
+        name = "{}_with_dot_in_name_builds_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_dot.dynamic_framework",
+        binary_test_file = "$BUNDLE_ROOT/fmwk_with_dot.dynamic_framework",
+        contains = [
+            "$BUNDLE_ROOT/fmwk_with_dot.dynamic_framework",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",

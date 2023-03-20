@@ -1610,6 +1610,25 @@ ios_framework(
     ],
 )
 
+ios_framework(
+    name = "fmwk_with_dot.dynamic_framework",
+    hdrs = ["//test/starlark_tests/resources:common.h"],
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic framework import tests.
 
