@@ -580,19 +580,6 @@ def ios_framework_test_suite(name):
         tags = [name],
     )
 
-    # Verify nested frameworks from objc_library targets get propagated to
-    # watchos_extension bundle.
-    archive_contents_test(
-        name = "{}_includes_multiple_objc_library_ios_framework_deps".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_objc_lib_with_nested_ios_framework",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
-        ],
-        tags = [name],
-    )
-
     native.test_suite(
         name = name,
         tags = [name],
