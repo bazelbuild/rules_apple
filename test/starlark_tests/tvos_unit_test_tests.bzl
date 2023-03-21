@@ -86,13 +86,12 @@ def tvos_unit_test_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_test_target_bundles_framework_from_objc_library_data_and_runtime_deps".format(name),
+        name = "{}_test_target_bundles_framework_from_objc_library_data".format(name),
         build_type = "simulator",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_structured_resources.framework/fmwk_with_structured_resources",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk_from_objc_library_data_and_runtime_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk_from_objc_library_data",
         tags = [name],
     )
 
