@@ -583,6 +583,7 @@ def ios_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
         tags = [name],
     )
+
     archive_contents_test(
         name = "{}_bundles_both_load_and_runtime_framework_dep_without_duplicate_files_errors_with_tree_artifacts".format(name),
         build_type = "device",
@@ -598,9 +599,6 @@ def ios_framework_test_suite(name):
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
-        build_settings = {
-            build_settings_labels.use_tree_artifacts_outputs: "True",
-        },
         tags = [name],
     )
 
