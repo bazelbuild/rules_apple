@@ -456,9 +456,6 @@ def ios_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_objc_swift_libraries_using_data",
         apple_generate_dsym = True,
-        build_settings = {
-            build_settings_labels.use_tree_artifacts_outputs: "True",
-        },
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
             "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",

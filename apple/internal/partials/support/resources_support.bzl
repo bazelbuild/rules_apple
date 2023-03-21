@@ -742,7 +742,7 @@ def _apple_bundle(bundle_type):
 
         # If tree artifacts are enabled, iterate each bundle and set the bundle name
         # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
-        if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
+        if is_experimental_tree_artifact_enabled(config_vars = platform_prerequisites.config_vars):
             bundle_files = []
             for bundle in files.to_list():
                 # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.
