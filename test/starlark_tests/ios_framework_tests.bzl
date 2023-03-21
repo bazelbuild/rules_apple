@@ -425,7 +425,6 @@ def ios_framework_test_suite(name):
     # are not linked against the app binary. Transitive "runtime" frameworks included are:
     #   - `data` of an objc_library target.
     #   - `data` of an swift_library target.
-    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
         name = "{}_includes_and_does_not_link_transitive_data_ios_frameworks".format(name),
         build_type = "simulator",
@@ -456,7 +455,6 @@ def ios_framework_test_suite(name):
     # frameworks included are:
     #   - `data` of an objc_library target.
     #   - `data` of an swift_library target.
-    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
         name = "{}_includes_and_does_not_link_nested_transitive_data_ios_frameworks".format(name),
         build_type = "simulator",
@@ -486,7 +484,6 @@ def ios_framework_test_suite(name):
     # the top-level application binary. Transitive "runtime" frameworks included are:
     #   - `data` of an objc_library target.
     #   - `data` of an swift_library target.
-    #   - `runtime_dep` of an objc_library target.
     archive_contents_test(
         name = "{}_bundles_both_load_and_runtime_transitive_data_ios_frameworks".format(name),
         build_type = "device",
@@ -580,6 +577,19 @@ def ios_framework_test_suite(name):
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+        tags = [name],
+    )
+
+    # Verify nested frameworks from objc_library targets get propagated to
+    # watchos_extension bundle.
+    archive_contents_test(
+        name = "{}_includes_multiple_objc_library_ios_framework_deps".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_objc_lib_with_nested_ios_framework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        ],
         tags = [name],
     )
 
