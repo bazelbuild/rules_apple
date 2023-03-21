@@ -1,4 +1,4 @@
-This document outlines the processes we follow to maintain the 4 Apple
+This document outlines the processes we follow to maintain the 3 Apple
 rules repos (this doc is not duplicated across the repos):
 
 - [`apple_support`](https://github.com/bazelbuild/apple_support)
