@@ -839,12 +839,12 @@ watchos_extension(
 objc_library(
     name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_fmwk"],
+    data = [":fmwk_with_fmwk"],
     deps = [":objc_lib_with_runtime_dep_fmwk"],
 )
 
 objc_library(
     name = "objc_lib_with_runtime_dep_fmwk",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_provisioning"],
+    data = [":fmwk_with_provisioning"],
 )
