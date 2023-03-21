@@ -10,6 +10,16 @@ py_binary(
     ],
 )
 
+py_test(
+    name = "clangrttool_unittest",
+    srcs = ["clangrttool_unittest.py"],
+    python_version = "PY3",
+    deps = [
+        ":clangrttool",
+        "//:py_init_shim",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
