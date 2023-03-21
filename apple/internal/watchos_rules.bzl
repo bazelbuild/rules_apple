@@ -831,9 +831,7 @@ def _watchos_extension_impl(ctx):
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    embeddable_targets = (
-        ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
-    )
+    embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
     executable_name = bundling_support.executable_name(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,

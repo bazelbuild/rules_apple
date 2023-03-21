@@ -126,7 +126,7 @@ def _tvos_application_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-    embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
+    embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,

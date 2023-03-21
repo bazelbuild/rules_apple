@@ -14,26 +14,6 @@
 
 """AppleEmbeddableInfo provider implementation for embeddable bundles propagation."""
 
-_APPLE_EMBEDDABLE_INFO_FIELDS = {
-    "app_clips": """
-A depset with the zipped archives of bundles that need to be expanded into the
-AppClips section of the packaging bundle.""",
-    "frameworks": """
-A depset with the zipped archives of bundles that need to be expanded into the
-Frameworks section of the packaging bundle.""",
-    "plugins": """
-A depset with the zipped archives of bundles that need to be expanded into the
-PlugIns section of the packaging bundle.""",
-    "signed_frameworks": """
-A depset of strings referencing frameworks that have already been codesigned.""",
-    "watch_bundles": """
-A depset with the zipped archives of bundles that need to be expanded into the Watch section of
-the packaging bundle. Only applicable for iOS applications.""",
-    "xpc_services": """
-A depset with the zipped archives of bundles that need to be expanded into the XPCServices section
-of the packaging bundle. Only applicable for macOS applications.""",
-}
-
 AppleEmbeddableInfo = provider(
     doc = """
 Internal provider used to propagate the different embeddable bundles that a
@@ -42,39 +22,23 @@ objc_library) this provider is propagated with by the embeddable_info_aspect.
 
 Do not depend on this provider for non Apple rules.
 """,
-    fields = _APPLE_EMBEDDABLE_INFO_FIELDS,
-)
-
-def _merge_providers(apple_embeddable_infos):
-    """Merges multiple `AppleEmbeddableInfo` providers into one.
-
-    Merging multiple providers into one is needed to collect multiple
-    framework providers from `framework_provider_aspect`.
-
-    Args:
-        apple_embeddable_infos: List of `AppleEmbeddableInfo` to be merged.
-    Returns:
-        Merged `AppleEmbeddableInfo` provider.
-    """
-    if not apple_embeddable_infos:
-        return None
-
-    embeddable_info_fields = {}
-    for field in _APPLE_EMBEDDABLE_INFO_FIELDS:
-        field_embeddable_infos = []
-        for apple_embeddable_info in apple_embeddable_infos:
-            if hasattr(apple_embeddable_info, field):
-                field_embeddable_infos.append(
-                    getattr(apple_embeddable_info, field),
-                )
-
-        if field_embeddable_infos:
-            embeddable_info_fields[field] = depset(
-                transitive = field_embeddable_infos,
-            )
-
-    return AppleEmbeddableInfo(**embeddable_info_fields)
-
-embeddable_info = struct(
-    merge_providers = _merge_providers,
+    fields = {
+        "app_clips": """
+A depset with the zipped archives of bundles that need to be expanded into the
+AppClips section of the packaging bundle.""",
+        "frameworks": """
+A depset with the zipped archives of bundles that need to be expanded into the
+Frameworks section of the packaging bundle.""",
+        "plugins": """
+A depset with the zipped archives of bundles that need to be expanded into the
+PlugIns section of the packaging bundle.""",
+        "signed_frameworks": """
+A depset of strings referencing frameworks that have already been codesigned.""",
+        "watch_bundles": """
+A depset with the zipped archives of bundles that need to be expanded into the Watch section of
+the packaging bundle. Only applicable for iOS applications.""",
+        "xpc_services": """
+A depset with the zipped archives of bundles that need to be expanded into the XPCServices section
+of the packaging bundle. Only applicable for macOS applications.""",
+    },
 )
