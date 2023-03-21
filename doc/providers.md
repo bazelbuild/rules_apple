@@ -166,6 +166,25 @@ being built (the application).
 | <a id="AppleExtraOutputsInfo-files"></a>files |  <code>depset</code> of <code>File</code>s. These files will be propagated from embedded bundles (such as frameworks and extensions) to the top-level bundle (such as an application) to ensure that they are explicitly produced as outputs of the build.    |
 
 
+<a id="AppleFrameworkBundleInfo"></a>
+
+## AppleFrameworkBundleInfo
+
+<pre>
+AppleFrameworkBundleInfo()
+</pre>
+
+
+Denotes a target is an Apple framework bundle.
+
+This provider does not reference 3rd party or precompiled frameworks.
+Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
+
+
+**FIELDS**
+
+
+
 <a id="AppleFrameworkImportInfo"></a>
 
 ## AppleFrameworkImportInfo
@@ -174,7 +193,13 @@ being built (the application).
 AppleFrameworkImportInfo(<a href="#AppleFrameworkImportInfo-framework_imports">framework_imports</a>, <a href="#AppleFrameworkImportInfo-dsym_imports">dsym_imports</a>, <a href="#AppleFrameworkImportInfo-build_archs">build_archs</a>, <a href="#AppleFrameworkImportInfo-debug_info_binaries">debug_info_binaries</a>)
 </pre>
 
-Provider that propagates information about framework import targets.
+
+Provider that propagates information about 3rd party imported framework targets.
+
+Propagated by framework and XCFramework import rules: `apple_dynamic_framework_import`,
+`apple_dynamic_xcframework_import`, `apple_static_framework_import`, and
+`apple_static_xcframework_import`
+
 
 **FIELDS**
 
@@ -234,9 +259,9 @@ requirement.
 ## AppleResourceInfo
 
 <pre>
-AppleResourceInfo(<a href="#AppleResourceInfo-alternate_icons">alternate_icons</a>, <a href="#AppleResourceInfo-asset_catalogs">asset_catalogs</a>, <a href="#AppleResourceInfo-datamodels">datamodels</a>, <a href="#AppleResourceInfo-infoplists">infoplists</a>, <a href="#AppleResourceInfo-metals">metals</a>, <a href="#AppleResourceInfo-mlmodels">mlmodels</a>, <a href="#AppleResourceInfo-plists">plists</a>,
-                  <a href="#AppleResourceInfo-pngs">pngs</a>, <a href="#AppleResourceInfo-processed">processed</a>, <a href="#AppleResourceInfo-storyboards">storyboards</a>, <a href="#AppleResourceInfo-strings">strings</a>, <a href="#AppleResourceInfo-texture_atlases">texture_atlases</a>, <a href="#AppleResourceInfo-unprocessed">unprocessed</a>, <a href="#AppleResourceInfo-xibs">xibs</a>, <a href="#AppleResourceInfo-owners">owners</a>,
-                  <a href="#AppleResourceInfo-processed_origins">processed_origins</a>, <a href="#AppleResourceInfo-unowned_resources">unowned_resources</a>)
+AppleResourceInfo(<a href="#AppleResourceInfo-alternate_icons">alternate_icons</a>, <a href="#AppleResourceInfo-asset_catalogs">asset_catalogs</a>, <a href="#AppleResourceInfo-datamodels">datamodels</a>, <a href="#AppleResourceInfo-framework">framework</a>, <a href="#AppleResourceInfo-infoplists">infoplists</a>, <a href="#AppleResourceInfo-metals">metals</a>,
+                  <a href="#AppleResourceInfo-mlmodels">mlmodels</a>, <a href="#AppleResourceInfo-plists">plists</a>, <a href="#AppleResourceInfo-pngs">pngs</a>, <a href="#AppleResourceInfo-processed">processed</a>, <a href="#AppleResourceInfo-storyboards">storyboards</a>, <a href="#AppleResourceInfo-strings">strings</a>, <a href="#AppleResourceInfo-texture_atlases">texture_atlases</a>,
+                  <a href="#AppleResourceInfo-unprocessed">unprocessed</a>, <a href="#AppleResourceInfo-xibs">xibs</a>, <a href="#AppleResourceInfo-owners">owners</a>, <a href="#AppleResourceInfo-processed_origins">processed_origins</a>, <a href="#AppleResourceInfo-unowned_resources">unowned_resources</a>)
 </pre>
 
 Provider that propagates buckets of resources that are differentiated by type.
@@ -249,6 +274,7 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-alternate_icons"></a>alternate_icons |  Alternate icons to be included in the App bundle.    |
 | <a id="AppleResourceInfo-asset_catalogs"></a>asset_catalogs |  Resources that need to be embedded into Assets.car.    |
 | <a id="AppleResourceInfo-datamodels"></a>datamodels |  Datamodel files.    |
+| <a id="AppleResourceInfo-framework"></a>framework |  Apple framework bundle from <code>ios_framework</code> and <code>tvos_framework</code> targets.    |
 | <a id="AppleResourceInfo-infoplists"></a>infoplists |  Plist files to be merged and processed. Plist files that should not be merged into the root Info.plist should be propagated in <code>plists</code>. Because of this, infoplists should only be bucketed with the <code>bucketize_typed</code> method.    |
 | <a id="AppleResourceInfo-metals"></a>metals |  Metal Shading Language source files to be compiled into a single .metallib file and bundled at the top level.    |
 | <a id="AppleResourceInfo-mlmodels"></a>mlmodels |  Core ML model files that should be processed and bundled at the top level.    |
