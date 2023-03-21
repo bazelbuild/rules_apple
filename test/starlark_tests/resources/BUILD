@@ -65,6 +65,9 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+# --------------------------------------------------------------------------------
+# Objective-C shared.h libraries
+
 objc_library(
     name = "objc_shared_lib",
     srcs = ["shared.m"],
@@ -74,6 +77,63 @@ objc_library(
         ":objc_common_lib",
     ],
 )
+
+objc_library(
+    name = "objc_shared_lib_with_resources",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        ":structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_shared_lib_with_transitive_resources",
+    srcs = ["shared.m"],
+    hdrs = ["shared.h"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_common_lib_with_structured_resources",
+    ],
+)
+
+objc_library(
+    name = "another_objc_shared_lib_with_transitive_resources",
+    srcs = ["shared.m"],
+    hdrs = ["shared.h"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_common_lib_with_structured_resources",
+    ],
+)
+
+objc_library(
+    name = "objc_shared_lib_with_transitive_structured_resources",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    deps = [":objc_common_lib_with_structured_images"],
+    alwayslink = 1,
+)
+
+objc_library(
+    name = "objc_shared_lib_with_resource_bundles",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:basic_bundle",
+        "//test/testdata/resources:simple_bundle_library",
+    ],
+)
+
+# --------------------------------------------------------------------------------
+# Objective-C main.m libraries
 
 objc_library(
     name = "objc_main_lib",
@@ -737,6 +797,19 @@ objc_library(
         "framework_resources/nonlocalized.plist",
     ],
     tags = common.fixture_tags,
+)
+
+genrule(
+    name = "generate_structured_image",
+    srcs = [":sample.png"],
+    outs = ["Images/foo.png"],
+    cmd = "cp $(location :sample.png) $@",
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "structured_image_resources",
+    structured_resources = [":generate_structured_image"],
 )
 
 filegroup(

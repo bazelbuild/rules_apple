@@ -231,6 +231,35 @@ tvos_framework(
 )
 
 tvos_framework(
+    name = "fmwk_with_structured_resources",
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-application_extension"],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib_with_structured_images",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_resource_bundles",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    resources = [],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_resource_bundles",
+    ],
+)
+
+tvos_framework(
     name = "fmwk_dead_stripped",
     bundle_id = "com.google.example.framework",
     exported_symbols_lists = [
