@@ -356,8 +356,6 @@ def _apple_test_bundle_impl(ctx):
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 
-    embeddable_targets = ctx.attr.deps + getattr(ctx.attr, "frameworks", [])
-
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -399,7 +397,7 @@ def _apple_test_bundle_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = embeddable_targets,
+            embeddable_targets = getattr(ctx.attr, "frameworks", []),
             platform_prerequisites = platform_prerequisites,
         ),
         partials.framework_import_partial(
