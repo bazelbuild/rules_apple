@@ -13,7 +13,8 @@ def _get_template_substitutions(
         simulator_creator,
         random,
         xcodebuild_args,
-        xctestrun_template):
+        xctestrun_template,
+        reuse_simulator):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -23,6 +24,7 @@ def _get_template_substitutions(
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
+        "reuse_simulator": reuse_simulator,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -57,6 +59,7 @@ def _ios_xctestrun_runner_impl(ctx):
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
+            reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
         ),
     )
 
@@ -111,6 +114,12 @@ always use `xcodebuild test-without-building` to run the test bundle.
             doc = """
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "reuse_simulator": attr.bool(
+            default = True,
+            doc = """
+Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
 """,
         ),
         "_simulator_creator": attr.label(

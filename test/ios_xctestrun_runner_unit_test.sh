@@ -44,6 +44,12 @@ ios_xctestrun_runner(
     device_type = "iPhone 8",
 )
 
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_reuse_disabled_runner",
+    device_type = "iPhone 8",
+    reuse_simulator = False,
+)
+
 EOF
 }
 
@@ -228,6 +234,16 @@ ios_unit_test(
     test_host = ":app",
     env = test_env,
     runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = "PassingWithHostSimReuseDisabled",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    env = test_env,
+    runner = ":ios_x86_64_sim_ruse_disabled_runner",
 )
 
 swift_library(
@@ -463,6 +479,17 @@ function test_ios_unit_test_with_host_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingWithHostSimReuseDisabled || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHostSimReuseDisabled.xctest' passed"
   expect_log "Executed 4 tests, with 0 failures"
 }
 

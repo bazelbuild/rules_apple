@@ -227,10 +227,21 @@ fi
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
-simulator_id="$("./%(simulator_creator.py)s" \
+simulator_creator_args=(
   "%(os_version)s" \
   "%(device_type)s" \
   --name "$simulator_name"
+)
+
+reuse_simulator=%(reuse_simulator)s
+if [[ "$reuse_simulator" == true ]]; then
+  simulator_creator_args+=(--reuse-simulator)
+else
+  simulator_creator_args+=(--no-reuse-simulator)
+fi
+
+simulator_id="$("./%(simulator_creator.py)s" \
+  "${simulator_creator_args[@]}"
 )"
 
 test_exit_code=0
@@ -332,6 +343,11 @@ else
     "$test_tmp_dir/$test_bundle_name.xctest" \
     2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
     || test_exit_code=$?
+fi
+
+if [[ "$reuse_simulator" == false ]]; then
+  xcrun simctl shutdown "$simulator_id"
+  xcrun simctl delete "$simulator_id"
 fi
 
 if [[ "$test_exit_code" -ne 0 ]]; then
