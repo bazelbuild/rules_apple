@@ -171,7 +171,7 @@ def _extract_signing_info(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [control_file.path],
-            executable = resolved_provisioning_profile_tool.executable,
+            executable = resolved_provisioning_profile_tool.files_to_run,
             # Since the tools spawns openssl and/or security tool, it doesn't
             # support being sandboxed.
             execution_requirements = {"no-sandbox": "1"},

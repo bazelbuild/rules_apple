@@ -126,9 +126,11 @@ def _resolve_tools_for_executable(*, rule_ctx, attr_name):
     # across rule boundaries.
     executable = getattr(rule_ctx.executable, attr_name)
     target = getattr(rule_ctx.attr, attr_name)
+    files_to_run = target[DefaultInfo].files_to_run
     inputs, input_manifests = rule_ctx.resolve_tools(tools = [target])
     return struct(
         executable = executable,
+        files_to_run = files_to_run,
         inputs = inputs,
         input_manifests = input_manifests,
     )

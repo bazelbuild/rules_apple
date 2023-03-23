@@ -67,7 +67,7 @@ def plisttool_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
-        executable = resolved_plisttool.executable,
+        executable = resolved_plisttool.files_to_run,
         inputs = depset(inputs + [control_file], transitive = [resolved_plisttool.inputs]),
         input_manifests = resolved_plisttool.input_manifests,
         mnemonic = mnemonic,

@@ -203,7 +203,9 @@ def _framework_import_partial_impl(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
-            executable = resolved_imported_dynamic_framework_processor.executable,
+            executable = (
+                resolved_imported_dynamic_framework_processor.files_to_run
+            ),
             execution_requirements = execution_requirements,
             inputs = depset(input_files, transitive = transitive_inputs),
             input_manifests = resolved_imported_dynamic_framework_processor.input_manifests +

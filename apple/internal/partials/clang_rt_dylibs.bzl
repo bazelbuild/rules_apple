@@ -63,7 +63,7 @@ def _clang_rt_dylibs_partial_impl(
                 binary_artifact.path,
                 clang_rt_zip.path,
             ],
-            executable = resolved_clangrttool.executable,
+            executable = resolved_clangrttool.files_to_run,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
             inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
