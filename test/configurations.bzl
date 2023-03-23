@@ -77,7 +77,7 @@ WATCHOS_DEVICE_OPTIONS = COMPILATION_MODE_OPTIONS + [
 ]
 WATCHOS_SIMULATOR_OPTIONS = COMPILATION_MODE_OPTIONS + [
     "--ios_multi_cpus=sim_arm64,x86_64",
-    "--watchos_cpus=i386",
+    "--watchos_cpus=x86_64",
 ]
 
 WATCHOS_CONFIGURATIONS = {

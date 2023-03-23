@@ -28,7 +28,7 @@ def _analysis_incoming_watchos_platform_mismatch_test_impl(ctx):
     env = analysistest.begin(ctx)
     asserts.expect_failure(env, """
 ERROR: Unexpected resolved platform:
-Expected Apple platform type of \"{0}\", but that was not found in //buildenv/platforms/apple/simulator:watchos_i386.
+Expected Apple platform type of \"{0}\", but that was not found in //buildenv/platforms/apple/simulator:watchos_x86_64.
 """.format(ctx.attr.expected_platform_type))
     return analysistest.end(env)
 
@@ -43,7 +43,7 @@ analysis_incoming_watchos_platform_mismatch_test = analysistest.make(
     },
     config_settings = {
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": True,
-        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:watchos_i386"],
+        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:watchos_x86_64"],
     },
 )
 
