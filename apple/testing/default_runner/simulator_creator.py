@@ -103,10 +103,12 @@ def _main(os_version: str, device_type: str, name: Optional[str], reuse_simulato
         if state != "booted":
             _boot_simulator(simulator_id)
     else:
-        # Simulator reuse is based on device name, therefore we must generate a unique name to
-        # prevent unintended reuse.
-        device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-        device_name += f"_{device_name_suffix}"
+        if not reuse_simulator:
+            # Simulator reuse is based on device name, therefore we must generate a unique name to
+            # prevent unintended reuse.
+            device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            device_name += f"_{device_name_suffix}"
+
         simulator_id = _simctl(
             ["create", device_name, device_type, runtime_identifier]
         ).strip()
