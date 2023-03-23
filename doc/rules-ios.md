@@ -624,8 +624,7 @@ of the attributes inherited by all test rules, please check the
 ## ios_xctestrun_runner
 
 <pre>
-ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
-                     <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
+ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
 </pre>
 
 
@@ -676,7 +675,6 @@ in Xcode.
 | <a id="ios_xctestrun_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of <code>xcrun simctl list devicetypes</code>. E.g., iPhone X, iPad Air. By default, it reads from --ios_simulator_device or falls back to some device.   | String | optional | <code>""</code> |
 | <a id="ios_xctestrun_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of <code>xcrun simctl list runtimes</code>. E.g., 15.5. By default, it reads --ios_simulator_version and then falls back to the latest supported version.   | String | optional | <code>""</code> |
 | <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional | <code>False</code> |
-| <a id="ios_xctestrun_runner-reuse_simulator"></a>reuse_simulator |  Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.   | Boolean | optional | <code>True</code> |
 | <a id="ios_xctestrun_runner-xcodebuild_args"></a>xcodebuild_args |  Arguments to pass to <code>xcodebuild</code> when running the test bundle. This means it will always use <code>xcodebuild test-without-building</code> to run the test bundle.   | List of strings | optional | <code>[]</code> |
 
 
