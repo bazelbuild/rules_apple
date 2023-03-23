@@ -24,7 +24,7 @@ def _get_template_substitutions(
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
-        "reuse_simulator": reuse_simulator
+        "reuse_simulator": reuse_simulator,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
