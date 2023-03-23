@@ -107,7 +107,7 @@ def _swift_dylib_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = swift_stdlib_tool_args,
-        executable = resolved_swift_stdlib_tool.executable,
+        executable = resolved_swift_stdlib_tool.files_to_run,
         inputs = depset(binary_files, transitive = [resolved_swift_stdlib_tool.inputs]),
         input_manifests = resolved_swift_stdlib_tool.input_manifests,
         mnemonic = "SwiftStdlibCopy",

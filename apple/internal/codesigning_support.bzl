@@ -544,7 +544,7 @@ def _generate_codesigning_dossier_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
-        executable = resolved_codesigning_dossier_tool.executable,
+        executable = resolved_codesigning_dossier_tool.files_to_run,
         execution_requirements = execution_requirements,
         inputs = depset(input_files, transitive = [resolved_codesigning_dossier_tool.inputs]),
         input_manifests = resolved_codesigning_dossier_tool.input_manifests,

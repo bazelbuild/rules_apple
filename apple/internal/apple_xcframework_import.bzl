@@ -311,7 +311,7 @@ def _get_xcframework_library_with_xcframework_processor(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
-        executable = xcframework_processor_tool.executable,
+        executable = xcframework_processor_tool.files_to_run,
         inputs = depset(
             inputs,
             transitive = [xcframework_processor_tool.inputs],

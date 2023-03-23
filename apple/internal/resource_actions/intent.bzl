@@ -103,7 +103,7 @@ def generate_intent_classes_sources(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = arguments,
-        executable = resolved_xctoolrunner.executable,
+        executable = resolved_xctoolrunner.files_to_run,
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         mnemonic = "IntentGenerate",
         outputs = outputs,
