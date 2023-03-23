@@ -69,13 +69,8 @@ def _dsyms_test_impl(ctx):
 
     if not architectures:
         if AppleBundleInfo in target_under_test:
-            platform_type = target_under_test[AppleBundleInfo].platform_type
-            if platform_type == "watchos":
-                architectures = ["i386"]
-            else:
-                architectures = ["x86_64"]
+            architectures = ["arm64", "x86_64"]
         elif AppleBinaryInfo in target_under_test:
-            # AppleBinaryInfo does not supply a platform_type. In this case, assume x86_64.
             architectures = ["x86_64"]
         else:
             fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
@@ -174,7 +169,7 @@ dsyms_test = analysistest.make(
             default = [],
             doc = """
 List of architectures to verify for the given dSYM bundles as provided. Defaults to x86_64 for all
-platforms except for watchOS, which has a default of i386.
+platforms.
 """,
         ),
         "expected_direct_dsyms": attr.string_list(
@@ -209,5 +204,9 @@ contents. Defaults to `True`.
     },
     config_settings = {
         "//command_line_option:apple_generate_dsym": "true",
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
     },
 )

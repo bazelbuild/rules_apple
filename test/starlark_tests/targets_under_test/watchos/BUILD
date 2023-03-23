@@ -1069,7 +1069,6 @@ generate_dynamic_xcframework(
         "watchos_simulator": [
             "x86_64",
             "arm64",
-            "i386",
         ],
     },
 )
@@ -1135,7 +1134,6 @@ generate_static_xcframework(
         "watchos_simulator": [
             "x86_64",
             "arm64",
-            "i386",
         ],
     },
 )
