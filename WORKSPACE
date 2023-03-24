@@ -39,3 +39,12 @@ http_archive(
     strip_prefix = "stardoc-97c0751114ad83b22877e05f3cbcda4ab5d77de5",
     url = "https://github.com/bazelbuild/stardoc/archive/97c0751114ad83b22877e05f3cbcda4ab5d77de5.tar.gz",
 )
+
+# For examples
+
+http_archive(
+    name = "com_github_keith_ld64.lld",
+    build_file_content = 'filegroup(name = "lld_bin", srcs = ["ld64.lld"], visibility = ["//visibility:public"])',
+    sha256 = "a55344b2401700089a46f8573248e01d2450e69a2320fe17e65895c1b58cb306",
+    url = "https://github.com/keith/ld64.lld/releases/download/12-22-22/ld64.tar.xz",
+)

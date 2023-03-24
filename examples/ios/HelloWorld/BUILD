@@ -45,3 +45,29 @@ build_test(
     name = "ExamplesBuildTest",
     targets = [":HelloWorld"],
 )
+
+# Example of using a custom linker
+
+cc_library(
+    name = "lld_linkopt",
+    linkopts = ["--ld-path=external/com_github_keith_ld64.lld/ld64.lld"],
+)
+
+ios_application(
+    name = "HelloWorld_with_lld",
+    additional_linker_inputs = ["@com_github_keith_ld64.lld//:lld_bin"],
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
+    bundle_id = "com.example.hello-world",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [":Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
+    minimum_os_version = "8.0",
+    version = ":HelloWorldVersion",
+    deps = [
+        ":Sources",
+        ":lld_linkopt",
+    ],
+)
