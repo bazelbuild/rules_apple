@@ -518,7 +518,6 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
         ],
         tags = [name],
@@ -529,7 +528,7 @@ def ios_application_test_suite(name):
         name = "{}_metadata_appintents_bundle_contents_for_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [
             ".*HelloWorldIntent.*",
             ".*IntelIntent.*",
@@ -547,7 +546,7 @@ def ios_application_test_suite(name):
         name = "{}_metadata_appintents_bundle_contents_for_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [
             ".*HelloWorldIntent.*",
             ".*ArmIntent.*",

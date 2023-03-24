@@ -42,7 +42,7 @@ def _app_intents_metadata_bundle_partial_impl(
         platform_prerequisites):
     """Implementation of the AppIntents metadata bundle partial."""
     if not deps:
-        # No `app_intents`` were set by the rule calling this partial.
+        # No `app_intents` were set by the rule calling this partial.
         return struct()
 
     # Link 'stub' binary to use for app intents metadata processing.
@@ -108,7 +108,7 @@ def _app_intents_metadata_bundle_partial_impl(
         bundle_files = [(
             bundle_location,
             "Metadata.appintents",
-            depset(direct = metadata_bundle),
+            depset(direct = [metadata_bundle]),
         )],
     )
 

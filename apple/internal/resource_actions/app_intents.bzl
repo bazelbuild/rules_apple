@@ -16,7 +16,6 @@
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 visibility("//apple/internal/...")
 
@@ -40,30 +39,22 @@ def generate_app_intents_metadata_bundle(
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
     Returns:
-        List of Metadata.appintents bundle files.
+        File referencing the Metadata.appintents bundle.
     """
-    outputs = [
-        intermediates.file(
-            actions = actions,
-            target_name = label.name,
-            output_discriminator = None,
-            file_name = paths.join("Metadata.appintents", file_name),
-        )
-        for file_name in [
-            "extract.actionsdata",
-            "objects.appintentsmanifest",
-            "version.json",
-        ]
-    ]
 
-    app_dir = paths.dirname(outputs[0].dirname)
+    output = intermediates.directory(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        dir_name = "Metadata.appintents",
+    )
 
     args = actions.args()
     args.add("appintentsmetadataprocessor")
 
     args.add("--binary-file", bundle_binary)
     args.add("--module-name", label.name)
-    args.add("--output", app_dir)
+    args.add("--output", output.dirname)
     args.add_all("--source-files", source_files)
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     args.add_all(target_triples, before_each = "--target-triple")
@@ -77,9 +68,9 @@ def generate_app_intents_metadata_bundle(
         arguments = [args],
         executable = "/usr/bin/xcrun",
         inputs = depset([bundle_binary], transitive = [depset(source_files)]),
-        outputs = outputs,
+        outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
         xcode_config = xcode_version_config,
     )
 
-    return outputs
+    return output

@@ -345,7 +345,6 @@ def macos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intents",
         contains = [
             "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$RESOURCE_ROOT/Metadata.appintents/objects.appintentsmanifest",
             "$RESOURCE_ROOT/Metadata.appintents/version.json",
         ],
         tags = [name],

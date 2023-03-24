@@ -202,7 +202,6 @@ def watchos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intents",
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/Metadata.appintents/objects.appintentsmanifest",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
         ],
         tags = [name],
@@ -216,7 +215,6 @@ def watchos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_app_intents",
         contains = [
             "$BUNDLE_ROOT/PlugIns/ext_with_app_intents.appex/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/PlugIns/ext_with_app_intents.appex/Metadata.appintents/objects.appintentsmanifest",
             "$BUNDLE_ROOT/PlugIns/ext_with_app_intents.appex/Metadata.appintents/version.json",
         ],
         tags = [name],
