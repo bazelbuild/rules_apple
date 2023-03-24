@@ -32,7 +32,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:intermediates",
-        "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
