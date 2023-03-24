@@ -337,6 +337,7 @@ def _get_xcframework_library_with_xcframework_processor(
         includes = includes,
         clang_module_map = module_map_file,
         swiftmodule = [],
+        framework_files = [],
     )
 
 def _get_library_identifier(
