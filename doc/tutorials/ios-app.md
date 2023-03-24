@@ -312,8 +312,8 @@ Open the `WORKSPACE` file again and add the following:
 ```starlark
 http_archive(
     name = "rules_xcodeproj",
-    sha256 = "ef70a074a74bb5eb7d4a1f17a89d3755d64be7153c3eb41e1d6fdd21844ffcd4",
-    url = "https://github.com/buildbuddy-io/rules_xcodeproj/releases/download/1.3.1/release.tar.gz",
+    sha256 = "7967b372bd1777214ce65c87a82ac0630150b7504b443de0315ea52e45758e0c",
+    url = "https://github.com/buildbuddy-io/rules_xcodeproj/releases/download/1.3.3/release.tar.gz",
 )
 
 load(
