@@ -149,6 +149,22 @@ if [[ -n "$test_host_path" ]]; then
     cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
+    entitlements_path=$"$runner_app_destination/RunnerEntitlements.plist"
+    find "$runner_app_frameworks_destination" \
+      -name "*.framework" \
+      -exec codesign \
+      -f \
+      --entitlements \
+      "$entitlements_path" \
+      --timestamp=none \
+      -s - {} \; 2> "$test_tmp_dir/codesign_frameworks_stderr_logs.txt"
+    codesign \
+      -f \
+      --entitlements \
+      "$entitlements_path" \
+      --timestamp=none \
+      -s - "$runner_app_destination" \
+      2> "$test_tmp_dir/codesign_runner_app_stderr_logs.txt"
   fi
 else
   xctestrun_test_host_path="__PLATFORMS__/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/xctest"
