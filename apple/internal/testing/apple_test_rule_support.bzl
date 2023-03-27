@@ -105,7 +105,7 @@ This aspect propagates a `CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host = None):
+def _get_template_substitutions(test_type, test_bundle, test_environment, test_host_bundle_name = None, test_host = None):
     """Dictionary with the substitutions to be applied to the template script."""
     subs = {}
 
@@ -113,6 +113,10 @@ def _get_template_substitutions(test_type, test_bundle, test_environment, test_h
         subs["test_host_path"] = test_host.short_path
     else:
         subs["test_host_path"] = ""
+    if test_host_bundle_name:
+        subs["test_host_bundle_name"] = test_host_bundle_name
+    else:
+        subs["test_host_bundle_name"] = ""
     subs["test_bundle_path"] = test_bundle.short_path
     subs["test_type"] = test_type.upper()
     subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
@@ -151,6 +155,12 @@ def _apple_test_rule_impl(ctx, test_type):
     # Environment variables for the Bazel test action itself.
     execution_environment = dict(getattr(runner, "execution_environment", {}))
 
+    # Bundle name of the app under test (test host) if given
+    test_host_bundle_name = None
+    if ctx.attr.test_host:
+        if ctx.attr.test_host[AppleBundleInfo]:
+            test_host_bundle_name = ctx.attr.test_host[AppleBundleInfo].bundle_name
+
     direct_runfiles = []
     transitive_runfiles = []
 
@@ -185,6 +195,7 @@ def _apple_test_rule_impl(ctx, test_type):
             test_type,
             test_bundle,
             test_environment,
+            test_host_bundle_name,
             test_host = test_host_archive,
         ),
         is_executable = True,
