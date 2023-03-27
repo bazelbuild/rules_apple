@@ -208,6 +208,10 @@ PROVISIONING_PROFILE_KEY = 'provisioning_profile'
 EMBEDDED_BUNDLE_MANIFESTS_KEY = 'embedded_bundle_manifests'
 EMBEDDED_RELATIVE_PATH_KEY = 'embedded_relative_path'
 
+
+# Regex which matches the 40 char hash
+_SECURITY_FIND_IDENTITY_OUTPUT_REGEX = re.compile(r'(?P<hash>[A-F0-9]{40})')
+
 # The filename for a manifest within a manifest
 MANIFEST_FILENAME = 'manifest.json'
 
@@ -278,26 +282,16 @@ def _parse_provisioning_profile(provisioning_profile_path):
   return plistlib.loads(plist_xml)
 
 
-def _certificate_fingerprint(identity):
-  """Extracts a fingerprint given identity in a provisioning profile."""
-  openssl_command = [
-      'openssl',
-      'x509',
-      '-inform',
-      'DER',
-      '-noout',
-      '-fingerprint',
-  ]
-  fingerprint = _execute_and_filter_output(openssl_command, inputstr=identity)
-  fingerprint = fingerprint.strip()
-  fingerprint = fingerprint.replace('SHA1 Fingerprint=', '')
-  fingerprint = fingerprint.replace(':', '')
-  return fingerprint
+def _generate_sha1(data):
+  """Returns the SHA1 of the data as a string in uppercase."""
+  openssl_command = ['openssl', 'sha1']
+  cmd_output = _execute_and_filter_output(openssl_command, inputstr=data)
+  return cmd_output.upper().strip()
 
 
-def _find_codesign_identities(identity=None):
-  """Finds the code signing identities on the current system."""
-  ids = []
+def _find_codesign_identities(signing_keychain=None):
+  """Finds the code signing identities in a specified keychain."""
+  ids = {}
   execute_command = [
       'security',
       'find-identity',
@@ -305,33 +299,31 @@ def _find_codesign_identities(identity=None):
       '-p',
       'codesigning',
   ]
+  if signing_keychain:
+    execute_command.extend([signing_keychain])
   output = _execute_and_filter_output(execute_command)
   output = output.strip()
-  pattern = '(?P<hash>[A-F0-9]{40})'
-  if identity:
-    name_requirement = re.escape(identity)
-    pattern += r'\s+".*?{}.*?"'.format(name_requirement)
-  regex = re.compile(pattern)
   for line in output.splitlines():
-    # CSSMERR_TP_CERT_REVOKED comes from Security.framework/cssmerr.h
-    if 'CSSMERR_TP_CERT_REVOKED' in line:
-      continue
-    m = regex.search(line)
+    m = _SECURITY_FIND_IDENTITY_OUTPUT_REGEX.search(line)
     if m:
-      groups = m.groupdict()
-      identifier = groups['hash']
-      ids.append(identifier)
+      ids[m.groupdict()['hash']] = line
   return ids
 
 
-def _find_codesign_identity(provisioning_profile_path):
-  """Finds a valid identity on the system given a provisioning profile."""
+def _resolve_codesign_identity(
+    provisioning_profile_path, codesign_identity, signing_keychain
+):
+  """Finds the best identity on the system given a profile and identity."""
   mpf = _parse_provisioning_profile(provisioning_profile_path)
-  ids_codesign = set(_find_codesign_identities())
+  ids_codesign = _find_codesign_identities(signing_keychain)
+  best_codesign_identity = codesign_identity
   for id_mpf in _get_identities_from_provisioning_profile(mpf):
-    if id_mpf in ids_codesign:
-      return id_mpf
-  return None
+    if id_mpf in ids_codesign.keys():
+      best_codesign_identity = id_mpf
+      # Return early if the specified codesign_identity matches a valid entity.
+      if codesign_identity in ids_codesign[id_mpf]:
+        break
+  return best_codesign_identity
 
 
 def _get_identities_from_provisioning_profile(provisioning_profile):
@@ -341,7 +333,7 @@ def _get_identities_from_provisioning_profile(provisioning_profile):
       # Old versions of plistlib return the deprecated plistlib.Data type
       # instead of bytes.
       identity = identity.data
-    yield _certificate_fingerprint(identity)
+    yield _generate_sha1(identity)
 
 
 def _find_codesign_allocate():
@@ -408,26 +400,34 @@ def _invoke_codesign(codesign_path, identity, entitlements_path, force_signing,
       print_output=True)
 
 
-def _fetch_preferred_signing_identity(manifest,
-                                      provisioning_profile_file_path=None):
+def _fetch_preferred_signing_identity(
+    manifest, provisioning_profile_file_path, signing_keychain
+):
   """Returns the preferred signing identity.
 
   Args:
     manifest: The contents of the manifest in this dossier.
     provisioning_profile_file_path: Directory of the provisioning profile to be
       used for signing.
+    signing_keychain: If not None, this will only search for the signing
+      identity in the keychain file specified, forwarding the path directly to
+      the /usr/bin/codesign invocation via its --keychain argument.
 
   Returns:
     A string representing the code signing identity or None if one could not be
     found.
 
-  Provided a manifest and an optional path to a provisioning profile will
-  attempt to resolve what codesigning identity should be used. Will return
-  the resolved codesigning identity or None if no identity could be resolved.
+  Provided a manifest and a path to a provisioning profile attempts to resolve
+  what codesigning identity should be used. Will return the resolved codesigning
+  identity or None if no identity could be resolved.
   """
   codesign_identity = manifest.get(CODESIGN_IDENTITY_KEY)
-  if not codesign_identity and provisioning_profile_file_path:
-    codesign_identity = _find_codesign_identity(provisioning_profile_file_path)
+
+  # An identity of '-' is used for simulator signing which can't be validated.
+  if codesign_identity != '-':
+    codesign_identity = _resolve_codesign_identity(
+        provisioning_profile_file_path, codesign_identity, signing_keychain
+    )
   return codesign_identity
 
 
@@ -553,7 +553,7 @@ def _sign_bundle_with_manifest(
       entitlements. If not None, only the strings listed here will be
       transferred to the generated entitlements. If None, the entitlements found
       with the dossier will be used directly for code signing.
-    signing_keychain: If not None, this will only search for the signing
+    signing_keychain: If not None, this will first search for the signing
       identity in the keychain file specified, forwarding the path directly to
       the /usr/bin/codesign invocation via its --keychain argument.
     override_codesign_identity: If set, this will override the identity
@@ -572,7 +572,8 @@ def _sign_bundle_with_manifest(
                                                 provisioning_profile_filename)
   if not codesign_identity:
     codesign_identity = _fetch_preferred_signing_identity(
-        manifest, provisioning_profile_file_path)
+        manifest, provisioning_profile_file_path, signing_keychain
+    )
   if not codesign_identity:
     raise SystemExit(
         'Signing failed - codesigning identity not specified in manifest '
