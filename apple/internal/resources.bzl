@@ -685,13 +685,23 @@ def _minimize(*, bucket):
     swift_module_by_key = {}
 
     for parent_dir, swift_module, resources in bucket:
-        key = "_".join([parent_dir or "@root", swift_module or "@root"])
+        # TODO(b/275385433): Audit Starlark performance of different string interpolation methods.
+        # Particularly for the resource aspect, using the '%' operator yielded better results than
+        # using `str.format` and string concatenation.
+        key = "%s_%s" % (parent_dir or "@root", swift_module or "@root")
+
         if parent_dir:
             parent_dir_by_key[key] = parent_dir
         if swift_module:
             swift_module_by_key[key] = swift_module
 
-        resources_by_key.setdefault(key, []).append(resources)
+        # TODO(b/275385433): Audit Starlark performance of `dict.setdefault` vs. if/else statements.
+        # Particularly for the resource aspect, using if/else statements yielded better results than
+        # using `dict.setdefault` (from apple/internal/resources.bzl).
+        if key in resources_by_key:
+            resources_by_key[key].append(resources)
+        else:
+            resources_by_key[key] = [resources]
 
     return [
         (parent_dir_by_key.get(k, None), swift_module_by_key.get(k, None), depset(transitive = r))
