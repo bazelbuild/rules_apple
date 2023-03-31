@@ -59,6 +59,7 @@ apple_resource_bundle(
 
 objc_library(
     name = "PrenotCalculatorTestsLib",
+    testonly = True,
     srcs = [
         "EquationTest.m",
     ],

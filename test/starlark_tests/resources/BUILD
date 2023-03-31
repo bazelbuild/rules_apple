@@ -187,15 +187,21 @@ swift_library(
 
 objc_library(
     name = "objc_test_lib",
+    testonly = True,
     srcs = ["test.m"],
     tags = common.fixture_tags,
+    deps = [
+    ],
 )
 
 objc_library(
     name = "objc_swift_depending_test_lib",
+    testonly = True,
     srcs = ["test.m"],
     tags = common.fixture_tags,
-    deps = [":swift_uikit_appdelegate"],
+    deps = [
+        ":swift_uikit_appdelegate",
+    ],
 )
 
 swift_library(
