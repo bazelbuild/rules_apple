@@ -11,6 +11,7 @@ load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
+    "watchos_single_target_application",
 )
 
 licenses(["notice"])
@@ -127,13 +128,13 @@ ios_application(
 
 watchos_single_target_application(
     name = "HelloWorld-SingleTargetWatchApplication",
-    app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
+    # app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",
     infoplists = [":WatchApp-Info.plist"],
     minimum_os_version = "7.0",
-    storyboards = [
-        "WatchResources/Interface.storyboard",
-    ],
+    # storyboards = [
+    #     "WatchResources/Interface.storyboard",
+    # ],
     tags = [
         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
     ],
