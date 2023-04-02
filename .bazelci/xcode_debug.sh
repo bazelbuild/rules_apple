@@ -1,6 +1,4 @@
 #!/bin/bash
 
-xcrun simctl list
-
-xcrun simctl list devices available
+xcrun simctl list -v
 ls /Applications/
