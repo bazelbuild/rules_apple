@@ -13,7 +13,7 @@
             <objects>
                 <controller id="AgC-eL-Hgc" customClass="InterfaceController">
                     <items>
-                        <group width="1" alignment="center" verticalAlignment="center" layout="vertical" id="4Pl-rB-KsK">
+                        <group width="1" alignment="left" verticalAlignment="center" layout="vertical" id="4Pl-rB-KsK">
                             <items>
                                 <label alignment="center" text="Status" numberOfLines="0" id="II4-7x-n79">
                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
