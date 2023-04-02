@@ -56,6 +56,11 @@ Contents were:\n\n{2}\n\n""".format(
             ),
         )
 
+def _file_name_without_extension(file_path):
+    file_name_with_extension = file_path.split("/")[-1]
+    file_name = file_name_with_extension.split(".")[0]
+    return file_name
+
 def _dsyms_test_impl(ctx):
     """Implementation of the dsyms_test rule."""
     env = analysistest.begin(ctx)
@@ -84,7 +89,6 @@ def _dsyms_test_impl(ctx):
     package = target_under_test.label.package
 
     all_expected_dsyms = ctx.attr.expected_direct_dsyms + ctx.attr.expected_transitive_dsyms
-
     expected_infoplists = [
         "{0}/{1}.dSYM/Contents/Info.plist".format(package, x)
         for x in all_expected_dsyms
@@ -98,12 +102,13 @@ def _dsyms_test_impl(ctx):
             )
             for x in ctx.attr.expected_binaries
         ]
+
     else:
         expected_binaries = [
             "{0}/{1}.dSYM/Contents/Resources/DWARF/{2}".format(
                 package,
                 x,
-                paths.split_extension(x)[0],
+                _file_name_without_extension(x),
             )
             for x in all_expected_dsyms
         ]

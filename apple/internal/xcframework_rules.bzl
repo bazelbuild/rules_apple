@@ -567,6 +567,7 @@ def _apple_xcframework_impl(ctx):
                 platform_prerequisites = platform_prerequisites,
                 predeclared_outputs = overridden_predeclared_outputs,
                 product_type = rule_descriptor.product_type,
+                rule_descriptor = rule_descriptor,
             ),
             partials.binary_partial(
                 actions = actions,
@@ -586,6 +587,7 @@ def _apple_xcframework_impl(ctx):
                 executable_name = executable_name,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
+                label_name = label.name,
             ),
             partials.resources_partial(
                 actions = actions,

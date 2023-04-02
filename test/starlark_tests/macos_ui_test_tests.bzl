@@ -86,8 +86,8 @@ def macos_ui_test_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest"],
-        expected_transitive_dsyms = ["ui_test.xctest", "app.app"],
+        expected_direct_dsyms = ["ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest"],
+        expected_transitive_dsyms = ["ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest", "app_dsyms/app.app"],
         tags = [name],
     )
 

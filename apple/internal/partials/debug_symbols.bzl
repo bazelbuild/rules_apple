@@ -31,6 +31,10 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 
 _AppleDebugInfo = provider(
     doc = "Private provider to propagate transitive debug symbol information.",
@@ -167,7 +171,8 @@ def _bundle_dsym_files(
         dsym_binaries = {},
         dsym_info_plist_template,
         dsym_output_filename,
-        platform_prerequisites):
+        platform_prerequisites,
+        label_name):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -188,6 +193,7 @@ def _bundle_dsym_files(
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       dsym_output_filename: The dSYM binary file name.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      label_name: The name of the target.
 
     Returns:
       A tuple where the first argument is a list of files that comprise the .dSYM bundle, which
@@ -195,8 +201,7 @@ def _bundle_dsym_files(
       artifact representation of a .dSYM bundle with the binaries lipoed together as one binary.
     """
     dsym_bundle_name_with_extension = debug_output_filename + bundle_extension
-    dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
-
+    dsym_bundle_name = paths.join(label_name + "_dsyms", dsym_bundle_name_with_extension + ".dSYM")
     output_files = []
     dsym_bundle_dir = None
 
@@ -266,7 +271,8 @@ def _debug_symbols_partial_impl(
         dsym_info_plist_template,
         executable_name,
         linkmaps = {},
-        platform_prerequisites):
+        platform_prerequisites,
+        label_name):
     """Implementation for the debug symbols processing partial."""
     deps_dsym_bundle_providers = [
         x[AppleDsymBundleInfo]
@@ -307,6 +313,7 @@ def _debug_symbols_partial_impl(
                 dsym_info_plist_template = dsym_info_plist_template,
                 dsym_output_filename = dsym_output_filename,
                 platform_prerequisites = platform_prerequisites,
+                label_name = label_name,
             )
             if dsym_bundle_dir:
                 direct_dsym_bundles.append(dsym_bundle_dir)
@@ -380,7 +387,8 @@ def debug_symbols_partial(
         dsym_info_plist_template,
         executable_name,
         linkmaps = {},
-        platform_prerequisites):
+        platform_prerequisites,
+        label_name):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -404,6 +412,7 @@ def debug_symbols_partial(
       executable_name: The name of the output DWARF executable.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      label_name: The name of the target.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
@@ -420,4 +429,5 @@ def debug_symbols_partial(
         executable_name = executable_name,
         linkmaps = linkmaps,
         platform_prerequisites = platform_prerequisites,
+        label_name = label_name,
     )

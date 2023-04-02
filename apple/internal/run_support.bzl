@@ -27,7 +27,9 @@ def _register_simulator_executable(
         output,
         platform_prerequisites,
         predeclared_outputs,
-        runner_template):
+        runner_template,
+        rule_descriptor,
+        label_name):
     """Registers an action that runs the bundled app in the iOS simulator.
 
     Args:
@@ -38,6 +40,8 @@ def _register_simulator_executable(
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
       runner_template: The simulator runner template as a `File`.
+      rule_descriptor: The rule descriptor for the given rule.
+      label_name: The name of the target.
     """
 
     sim_device = str(platform_prerequisites.objc_fragment.ios_simulator_device or "")
@@ -49,6 +53,8 @@ def _register_simulator_executable(
         bundle_extension = bundle_extension,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
+        label_name = label_name,
     )
 
     actions.expand_template(
@@ -72,7 +78,9 @@ def _register_macos_executable(
         output,
         platform_prerequisites,
         predeclared_outputs,
-        runner_template):
+        runner_template,
+        rule_descriptor,
+        label_name):
     """Registers an action that runs the bundled macOS app.
 
     Args:
@@ -83,6 +91,8 @@ def _register_macos_executable(
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
       runner_template: The macos runner template as a `File`.
+      rule_descriptor: The rule descriptor for the given rule.
+      label_name: The name of the target.
     """
 
     archive = outputs.archive(
@@ -91,6 +101,8 @@ def _register_macos_executable(
         bundle_extension = bundle_extension,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
+        label_name = label_name,
     )
 
     actions.expand_template(

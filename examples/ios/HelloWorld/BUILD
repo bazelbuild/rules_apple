@@ -30,6 +30,7 @@ ios_application(
     name = "HelloWorld",
     app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
     bundle_id = "com.example.hello-world",
+    bundle_name = "HelloWorld",
     families = [
         "iphone",
         "ipad",
@@ -37,6 +38,22 @@ ios_application(
     infoplists = [":Info.plist"],
     launch_storyboard = "//examples/resources:Launch.storyboard",
     minimum_os_version = "9.0",
+    version = ":HelloWorldVersion",
+    deps = [":Sources"],
+)
+
+ios_application(
+    name = "HelloWorld_Beta",
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
+    bundle_id = "com.example.hello-world",
+    bundle_name = "HelloWorld",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [":Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
+    minimum_os_version = "8.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

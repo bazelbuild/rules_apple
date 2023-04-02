@@ -179,8 +179,8 @@ def apple_xcframework_test_suite(name):
     dsyms_test(
         name = "{}_device_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
+        expected_direct_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework"],
         architectures = ["arm64"],
         check_public_provider = False,
         tags = [name],
@@ -189,8 +189,8 @@ def apple_xcframework_test_suite(name):
     dsyms_test(
         name = "{}_simulator_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
+        expected_direct_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework"],
         architectures = ["x86_64"],
         check_public_provider = False,
         tags = [name],
@@ -199,8 +199,8 @@ def apple_xcframework_test_suite(name):
     dsyms_test(
         name = "{}_fat_device_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
+        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework"],
         architectures = ["arm64", "arm64e"],
         check_public_provider = False,
         tags = [name],
@@ -209,8 +209,8 @@ def apple_xcframework_test_suite(name):
     dsyms_test(
         name = "{}_fat_simulator_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
+        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
+        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
         architectures = ["x86_64", "arm64"],
         check_public_provider = False,
         tags = [name],
