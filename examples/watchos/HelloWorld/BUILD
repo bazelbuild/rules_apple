@@ -106,24 +106,24 @@ watchos_extension(
     deps = [":WatchApp2Sources"],
 )
 
-# ios_application(
-#     name = "HelloWorld-SingleTargetWatchHost",
-#     app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
-#     bundle_id = "com.example.hello-world",
-#     families = [
-#         "iphone",
-#         "ipad",
-#     ],
-#     infoplists = [":Phone-Info.plist"],
-#     launch_storyboard = "//examples/resources:Launch.storyboard",
-#     minimum_os_version = "9.0",
-#     tags = [
-#         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-#     ],
-#     version = ":HelloWorldVersion",
-#     watch_application = ":HelloWorld-SingleTargetWatchApplication",
-#     deps = [":PhoneSources"],
-# )
+ios_application(
+    name = "HelloWorld-SingleTargetWatchHost",
+    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
+    bundle_id = "com.example.hello-world",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [":Phone-Info.plist"],
+    launch_storyboard = "//examples/resources:Launch.storyboard",
+    minimum_os_version = "9.0",
+    tags = [
+        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+    ],
+    version = ":HelloWorldVersion",
+    # watch_application = ":HelloWorld-SingleTargetWatchApplication",
+    deps = [":PhoneSources"],
+)
 
 # watchos_single_target_application(
 #     name = "HelloWorld-SingleTargetWatchApplication",
