@@ -122,13 +122,13 @@ ios_application(
         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
     ],
     version = ":HelloWorldVersion",
-    # watch_application = ":HelloWorld-SingleTargetWatchApplication",
+    watch_application = ":HelloWorld-SingleTargetWatchApplication",
     deps = [":PhoneSources"],
 )
 
 watchos_single_target_application(
     name = "HelloWorld-SingleTargetWatchApplication",
-    # app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
+    app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",
     infoplists = [":WatchApp-Info.plist"],
     minimum_os_version = "7.0",
@@ -153,13 +153,13 @@ build_test(
     ],
 )
 
-# build_test(
-#     name = "ExamplesBuildTest-LatestXcodeBeta",
-#     tags = [
-#         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-#     ],
-#     targets = [
-#         ":HelloWorld-SingleTargetWatchHost",
-#         ":HelloWorld-SingleTargetWatchApplication",
-#     ],
-# )
+build_test(
+    name = "ExamplesBuildTest-LatestXcodeBeta",
+    tags = [
+        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+    ],
+    targets = [
+        ":HelloWorld-SingleTargetWatchHost",
+        ":HelloWorld-SingleTargetWatchApplication",
+    ],
+)
