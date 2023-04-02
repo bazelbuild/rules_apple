@@ -132,9 +132,9 @@ watchos_single_target_application(
     bundle_id = "com.example.hello-world.watch",
     infoplists = [":WatchApp-Info.plist"],
     minimum_os_version = "7.0",
-    storyboards = [
-        "WatchResources/Interface.storyboard",
-    ],
+    # storyboards = [
+    #     "WatchResources/Interface.storyboard",
+    # ],
     tags = [
         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
     ],

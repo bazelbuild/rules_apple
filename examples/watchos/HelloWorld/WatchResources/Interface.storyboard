@@ -16,10 +16,10 @@
                         <group width="1" alignment="left" verticalAlignment="center" layout="vertical" id="4Pl-rB-KsK">
                             <items>
                                 <label alignment="center" text="Status" numberOfLines="0" id="II4-7x-n79">
-                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="textColor" white="0.66666666666666663" alpha="0.5" colorSpace="calibratedWhite"/>
                                     <fontDescription key="font" style="UICTFontTextStyleCaption2"/>
                                 </label>
-                                <label alignment="center" text="Greeting" numberOfLines="0" id="0GZ-4u-jue"/>
+                                <label alignment="center" text="Greetings" numberOfLines="0" id="0GZ-4u-jue"/>
                             </items>
                         </group>
                     </items>
