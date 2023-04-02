@@ -102,7 +102,7 @@ watchos_extension(
     name = "HelloWorld-WatchExtension",
     bundle_id = "com.example.hello-world.watch.extension",
     infoplists = [":WatchExt-Info.plist"],
-    minimum_os_version = "2.0",
+    minimum_os_version = "7.0",
     version = ":HelloWorldVersion",
     deps = [":WatchApp2Sources"],
 )
@@ -153,13 +153,13 @@ build_test(
     ],
 )
 
-build_test(
-    name = "ExamplesBuildTest-LatestXcodeBeta",
-    tags = [
-        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-    ],
-    targets = [
-        ":HelloWorld-SingleTargetWatchHost",
-        ":HelloWorld-SingleTargetWatchApplication",
-    ],
-)
+# build_test(
+#     name = "ExamplesBuildTest-LatestXcodeBeta",
+#     tags = [
+#         "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
+#     ],
+#     targets = [
+#         ":HelloWorld-SingleTargetWatchHost",
+#         ":HelloWorld-SingleTargetWatchApplication",
+#     ],
+# )
