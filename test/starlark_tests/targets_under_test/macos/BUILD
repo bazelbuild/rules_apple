@@ -2155,6 +2155,7 @@ objc_library(
 
 apple_dynamic_xcframework_import(
     name = "macos_imported_dynamic_xcframework",
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_macos_xcframework"],
 )
@@ -2173,6 +2174,7 @@ generate_dynamic_xcframework(
             "x86_64",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 macos_application(
@@ -2218,6 +2220,7 @@ generate_dynamic_xcframework(
             "arm64",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
