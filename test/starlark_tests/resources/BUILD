@@ -318,7 +318,6 @@ objc_library(
 
 objc_library(
     name = "structured_resources_in_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":structured_resources_in_resources",
     ],
@@ -334,7 +333,6 @@ apple_resource_group(
 
 objc_library(
     name = "processed_resources_in_structured_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":processed_resources_in_structured_resources",
     ],
@@ -459,7 +457,6 @@ objc_library(
 
 objc_library(
     name = "ios_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":assets_ios",
         ":mapping_model",
@@ -476,7 +473,6 @@ objc_library(
 
 objc_library(
     name = "ios_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":localized_generic_resources",
         ":localized_plists",
@@ -489,7 +485,6 @@ objc_library(
 
 objc_library(
     name = "apple_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":mapping_model",
         ":nonlocalized.plist",
@@ -503,7 +498,6 @@ objc_library(
 
 objc_library(
     name = "apple_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":localized_generic_resources",
         ":localized_plists",

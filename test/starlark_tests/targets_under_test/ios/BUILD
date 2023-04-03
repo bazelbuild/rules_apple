@@ -614,11 +614,20 @@ objc_library(
 
 objc_library(
     name = "main_lib_with_fmwk_lib_dep",
-    srcs = [
-        "//test/starlark_tests/resources:main.m",
-    ],
+    srcs = [":main_lib_with_fmwk_lib_dep_file"],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+write_file(
+    name = "main_lib_with_fmwk_lib_dep_file",
+    out = "main_lib_with_fmwk_lib_dep_file.m",
+    content = ["""
+int main() {
+  return 0;
+}
+"""],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1500,7 +1509,7 @@ write_file(
     content = ["""
 #import <iOSDynamicFramework/iOSDynamicFramework.h>
 
-int main() {
+int dynamic_fmwk_depending_lib_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1541,7 +1550,7 @@ write_file(
     content = ["""
 import iOSDynamicFramework
 
-func main() {
+func dynamic_fmwk_depending_swift_lib_function() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
@@ -1618,7 +1627,7 @@ write_file(
     content = ["""
 #import <iOSStaticFramework/iOSStaticFramework.h>
 
-int main() {
+int static_fmwk_depending_lib_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1659,7 +1668,7 @@ write_file(
     content = ["""
 #import <iOSSwiftStaticFramework/iOSSwiftStaticFramework.h>
 
-int main() {
+int swift_static_fmwk_depending_lib_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1697,7 +1706,7 @@ write_file(
     content = ["""
 #import <iOSSwiftStaticFrameworkWithoutModuleInterfaces/iOSSwiftStaticFrameworkWithoutModuleInterfaces.h>
 
-int main() {
+int swift_static_without_module_interfaces_fmwk_depending_lib_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1739,7 +1748,7 @@ write_file(
     content = ["""
 import iOSSwiftStaticFramework
 
-func main() {
+func swift_static_fmwk_depending_swift_lib_function() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
@@ -1819,7 +1828,7 @@ write_file(
     content = ["""
 #import <generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.h>
 
-int main() {
+int dynamic_xcframework_depending_lib_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1860,7 +1869,7 @@ write_file(
     content = ["""
 import generated_dynamic_xcframework_with_headers
 
-func main() {
+func swift_with_framework_function() {
   let sc = generated_dynamic_xcframework_with_headers.SharedClass()
   sc.doSomethingShared()
 }
@@ -1930,7 +1939,7 @@ write_file(
     content = ["""
 #import <SwiftFmwkWithGenHeader/SwiftFmwkWithGenHeader.h>
 
-int main() {
+int objc_with_framework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -1971,7 +1980,7 @@ write_file(
     content = ["""
 import SwiftFmwkWithGenHeader
 
-func main() {
+func swift_with_dynamic_swift_framework_function() {
   let sc = SwiftFmwkWithGenHeader.SharedClass()
   sc.doSomethingShared()
 }
@@ -2043,7 +2052,7 @@ write_file(
     content = ["""
 import iOSStaticFramework
 
-func main() {
+func static_fmwk_depending_swift_lib_cuntion() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
@@ -2087,7 +2096,7 @@ write_file(
     content = ["""
 #import <generated_static_xcframework_with_headers.h>
 
-int main() {
+int objc_with_static_xcframework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -2128,7 +2137,7 @@ write_file(
     content = ["""
 #import <generated_swift_static_xcframework.h>
 
-int main() {
+int objc_with_swift_static_xcframework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -2169,7 +2178,7 @@ write_file(
     content = ["""
 #import <generated_swift_static_xcframework_without_swiftmodule.h>
 
-int main() {
+int objc_with_swift_static_xcframework_without_swiftmodule_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
   [sharedClass doSomethingShared];
   return 0;
@@ -2221,7 +2230,7 @@ write_file(
     content = ["""
 import generated_static_xcframework_with_headers
 
-func main() {
+func static_xcframework_depending_swift_lib_funtion_function() {
   let sc = generated_static_xcframework_with_headers.SharedClass()
   sc.doSomethingShared()
 }
@@ -2285,7 +2294,7 @@ write_file(
     content = ["""
 import generated_swift_static_xcframework
 
-func main() {
+func static_swift_xcframework_depending_swift_lib_function() {
   let sc = generated_swift_static_xcframework.SharedClass()
   sc.doSomethingShared()
 }
@@ -3011,9 +3020,20 @@ ios_application(
 
 objc_library(
     name = "objc_lib_with_inner_lib_with_ios_framework",
-    srcs = ["//test/starlark_tests/resources:main.m"],
+    srcs = [":objc_lib_with_inner_lib_with_ios_framework_file"],
     tags = common.fixture_tags,
     deps = [":objc_lib_with_ios_framework"],
+)
+
+write_file(
+    name = "objc_lib_with_inner_lib_with_ios_framework_file",
+    out = "objc_lib_with_inner_lib_with_ios_framework_file.m",
+    content = ["""
+int objc_lib_with_inner_lib_with_ios_framework_function() {
+  return 0;
+}
+"""],
+    tags = common.fixture_tags,
 )
 
 objc_library(
