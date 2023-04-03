@@ -28,8 +28,8 @@ load(
 # List of attributes through which the aspect propagates. We include `runtime_deps` here as
 # these are supported by `objc_library` for frameworks that should be present in the bundle, but not
 # linked against.
-# TODO(b/120205406): Migrate the `runtime_deps` use case to be referenced through `data` instead.
-_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = ["deps", "frameworks", "private_deps", "runtime_deps"]
+# TODO(b/120205406): Remove `runtime_deps` support to use objc_library/swift_library `data` instead.
+_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = ["deps", "frameworks", "private_deps", "runtime_deps", "data"]
 
 def _framework_provider_aspect_impl(target, ctx):
     """Implementation of the framework provider propagation aspect."""

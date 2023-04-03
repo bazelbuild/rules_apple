@@ -421,64 +421,195 @@ def ios_framework_test_suite(name):
         tags = [name],
     )
 
-    # Verify ios_framework listed as a runtime_dep of an objc_library gets
-    # propagated to ios_application bundle.
+    # Verifies transitive "runtime" ios_framework's are propagated to ios_application bundle, and
+    # are not linked against the app binary. Transitive "runtime" frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
     archive_contents_test(
-        name = "{}_includes_objc_library_ios_framework_runtime_dep".format(name),
+        name = "{}_includes_and_does_not_link_transitive_data_ios_frameworks".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_library_dep_with_ios_framework_runtime_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_objc_swift_libraries_using_data",
+        apple_generate_dsym = True,
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_no_version.framework/fmwk_no_version",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
         ],
-        tags = [name],
-    )
-
-    # Verify nested frameworks from objc_library targets get propagated to
-    # ios_application bundle.
-    archive_contents_test(
-        name = "{}_includes_multiple_objc_library_ios_framework_deps".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        not_contains = [
+            "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
         ],
-        tags = [name],
-    )
-
-    # Verify ios_framework listed as a runtime_dep of an objc_library does not
-    # get linked to top-level application (Mach-O LC_LOAD_DYLIB commands).
-    archive_contents_test(
-        name = "{}_does_not_load_bundled_ios_framework_runtime_dep".format(name),
-        build_type = "device",
-        binary_test_file = "$BUNDLE_ROOT/app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_objc_swift_libraries_using_data",
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk.framework/fmwk (offset 24)",
-            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
-            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+            "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
+            "name @rpath/fmwk_no_version.framework/fmwk_no_version (offset 24)",
+            "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_includes_and_does_not_link_transitive_data_ios_frameworks_with_tree_artifacts".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_objc_swift_libraries_using_data",
+        apple_generate_dsym = True,
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_no_version.framework/fmwk_no_version",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_objc_swift_libraries_using_data",
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_no_version.framework/fmwk_no_version (offset 24)",
+            "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
+            "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
+        ],
         tags = [name],
     )
 
-    # Verify that both ios_framework listed as a load time and runtime_dep
-    # get bundled to top-level application, and runtime does not get linked.
+    # Verify nested "runtime" ios_framework's from transitive targets get propagated to
+    # ios_application bundle and are not linked to top-level application. Transitive "runtime"
+    # frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
     archive_contents_test(
-        name = "{}_bundles_both_load_and_runtime_framework_dep".format(name),
+        name = "{}_includes_and_does_not_link_nested_transitive_data_ios_frameworks".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_no_version.framework/fmwk_no_version",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_no_version.framework/fmwk_no_version (offset 24)",
+            "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
+            "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
+        ],
+        tags = [name],
+    )
+
+    # Verify that both ios_framework's listed as load time and runtime dependencies
+    # are bundled to top-level application, and runtime frameworks are not linked against
+    # the top-level application binary. Transitive "runtime" frameworks included are:
+    #   - `data` of an objc_library target.
+    #   - `data` of an swift_library target.
+    archive_contents_test(
+        name = "{}_bundles_both_load_and_runtime_transitive_data_ios_frameworks".format(name),
         build_type = "device",
-        binary_test_file = "$BUNDLE_ROOT/app_with_load_and_runtime_framework_dep",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_no_version.framework/fmwk_no_version",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
+            "$BUNDLE_ROOT/basic.bundle",
         ],
         macho_load_commands_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
         ],
         macho_load_commands_not_contain = [
-            "name @rpath/fmwk_min_os_baseline.framework/fmwk_min_os_baseline (offset 24)",
+            "name @rpath/fmwk_no_version.framework/fmwk_no_version (offset 24)",
+            "name @rpath/fmwk_with_resources.framework/fmwk_with_resources (offset 24)",
+            "name @rpath/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_load_and_runtime_framework_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        tags = [name],
+    )
+
+    # Verifies shared resources between app and frameworks propagated via 'data' are not deduped,
+    # therefore both app and frameworks contain shared resources.
+    archive_contents_test(
+        name = "{}_bundles_shared_resources_from_app_and_fmwks_with_data_ios_frameworks".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
+        contains = [
+            "$BUNDLE_ROOT/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/fmwk_min_os_baseline_with_bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_no_version.framework/fmwk_no_version",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/fmwk_with_resources",
+            "$BUNDLE_ROOT/basic.bundle",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resources.framework/basic.bundle",
+        ],
+        tags = [name],
+    )
+
+    # Verifies an ios_framework listed both as a load time dependency, and dependency of another
+    # ios_framework target listed as a runtime dependency:
+    #
+    # - Framework is bundled at the top-level application.
+    # - Framework is linked to the application binary.
+    # - Framework does not cause duplicate files error due being listed at two different targets:
+    #     1. As a load time dependency at the ios_application target using `frameworks`.
+    #     2. As a load time dependency to a runtime ios_framework target using `frameworks`.
+    #
+    # - Runtime framework is bundled at the top-level application.
+    # - Runtime framework is not linked to the application binary.
+    archive_contents_test(
+        name = "{}_bundles_both_load_and_runtime_framework_dep_without_duplicate_files_errors".format(name),
+        build_type = "device",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        ],
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+        ],
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundles_both_load_and_runtime_framework_dep_without_duplicate_files_errors_with_tree_artifacts".format(name),
+        build_type = "device",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
+        ],
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+        ],
+        macho_load_commands_not_contain = [
+            "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
         tags = [name],
     )
 

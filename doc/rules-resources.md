@@ -275,7 +275,7 @@ parent_dir_param when available.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="resources_common.bucketize_typed-resources"></a>resources |  List of resources to place in bucket_type.   |  none |
+| <a id="resources_common.bucketize_typed-resources"></a>resources |  List of resources to place in bucket_type or Dictionary of resources keyed by target to place in bucket_type. This dictionary is supported by the <code>resources.collect()</code> API.   |  none |
 | <a id="resources_common.bucketize_typed-bucket_type"></a>bucket_type |  The AppleResourceInfo field under which to collect the resources.   |  none |
 | <a id="resources_common.bucketize_typed-owner"></a>owner |  An optional string that has a unique identifier to the target that should own the resources. If an owner should be passed, it's usually equal to <code>str(ctx.label)</code>.   |  <code>None</code> |
 | <a id="resources_common.bucketize_typed-parent_dir_param"></a>parent_dir_param |  Either a string/None or a struct used to calculate the value of parent_dir for each resource. If it is a struct, it will be considered a partial context, and will be invoked with partial.call().   |  <code>None</code> |
@@ -308,7 +308,7 @@ parent_dir_param when available.
 | <a id="resources_common.bucketize_typed_data-bucket_type"></a>bucket_type |  The AppleResourceInfo field under which to collect the resources.   |  none |
 | <a id="resources_common.bucketize_typed_data-owner"></a>owner |  An optional string that has a unique identifier to the target that should own the resources. If an owner should be passed, it's usually equal to <code>str(ctx.label)</code>.   |  <code>None</code> |
 | <a id="resources_common.bucketize_typed_data-parent_dir_param"></a>parent_dir_param |  Either a string/None or a struct used to calculate the value of parent_dir for each resource. If it is a struct, it will be considered a partial context, and will be invoked with partial.call().   |  <code>None</code> |
-| <a id="resources_common.bucketize_typed_data-resources"></a>resources |  List of resources to place in bucket_type.   |  none |
+| <a id="resources_common.bucketize_typed_data-resources"></a>resources |  List of resources to place in bucket_type or Dictionary of resources keyed by target to place in bucket_type. This dictionary is supported by the <code>resources.collect()</code> API.   |  none |
 
 **RETURNS**
 
@@ -370,7 +370,7 @@ These are all placed into a list, and then returned.
 
 **RETURNS**
 
-A list with all the collected resources for the target represented by attr.
+A dictionary keyed by target from the rule attr with the list of all collected resources.
 
 
 <a id="resources_common.deduplicate"></a>

@@ -75,12 +75,12 @@ def watchos_framework_test_suite(name):
         tags = [name],
     )
 
-    # Verify watchos_framework listed as a runtime_dep of an objc_library gets
+    # Verify watchos_framework listed as a data of an objc_library gets
     # propagated to watchos_extension bundle.
     archive_contents_test(
-        name = "{}_includes_objc_library_watchos_framework_runtime_dep".format(name),
+        name = "{}_includes_objc_library_watchos_framework_data".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_library_dep_with_watchos_framework_runtime_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_library_dep_with_watchos_framework_data",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
         ],
@@ -92,7 +92,7 @@ def watchos_framework_test_suite(name):
     archive_contents_test(
         name = "{}_includes_multiple_objc_library_watchos_framework_deps".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_lib_dep_with_inner_lib_with_data_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
@@ -101,22 +101,22 @@ def watchos_framework_test_suite(name):
         tags = [name],
     )
 
-    # Verify watchos_framework listed as a runtime_dep of an objc_library does not
+    # Verify watchos_framework listed as a data of an objc_library does not
     # get linked to top-level extension (Mach-O LC_LOAD_DYLIB commands).
     archive_contents_test(
-        name = "{}_does_not_load_bundled_watchos_framework_runtime_dep".format(name),
+        name = "{}_does_not_load_bundled_watchos_framework_data".format(name),
         build_type = "simulator",
-        binary_test_file = "$BUNDLE_ROOT/ext_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        binary_test_file = "$BUNDLE_ROOT/ext_with_objc_lib_dep_with_inner_lib_with_data_fmwk",
         macho_load_commands_not_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
             "name @rpath/fmwk_with_provisioning.framework/fmwk_with_provisioning (offset 24)",
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_objc_lib_dep_with_inner_lib_with_data_fmwk",
         tags = [name],
     )
 
-    # Verify that both watchos_framework listed as a load time and runtime_dep
+    # Verify that both watchos_framework listed as a load time and data
     # get bundled to top-level extension, and runtime does not get linked.
     archive_contents_test(
         name = "{}_bundles_both_load_and_runtime_framework_dep".format(name),

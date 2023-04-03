@@ -800,7 +800,7 @@ watchos_unit_test(
 # ---------------------------------------------------------------------------------------
 
 watchos_extension(
-    name = "ext_with_objc_library_dep_with_watchos_framework_runtime_dep",
+    name = "ext_with_objc_library_dep_with_watchos_framework_data",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
@@ -808,19 +808,20 @@ watchos_extension(
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     tags = common.fixture_tags,
-    deps = [":objc_lib_with_runtime_dep_fmwk"],
+    deps = [":objc_lib_with_data_fmwk"],
 )
 
 watchos_extension(
-    name = "ext_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+    name = "ext_with_objc_lib_dep_with_inner_lib_with_data_fmwk",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    # frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     tags = common.fixture_tags,
-    deps = [":objc_lib_with_inner_lib_with_runtime_dep_fmwk"],
+    deps = [":objc_lib_with_inner_lib_with_data_fmwk"],
 )
 
 watchos_extension(
@@ -833,18 +834,18 @@ watchos_extension(
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     tags = common.fixture_tags,
-    deps = [":objc_lib_with_runtime_dep_fmwk"],
+    deps = [":objc_lib_with_data_fmwk"],
 )
 
 objc_library(
-    name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    name = "objc_lib_with_inner_lib_with_data_fmwk",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_fmwk"],
-    deps = [":objc_lib_with_runtime_dep_fmwk"],
+    data = [":fmwk_with_fmwk"],
+    deps = [":objc_lib_with_data_fmwk"],
 )
 
 objc_library(
-    name = "objc_lib_with_runtime_dep_fmwk",
+    name = "objc_lib_with_data_fmwk",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_provisioning"],
+    data = [":fmwk_with_provisioning"],
 )

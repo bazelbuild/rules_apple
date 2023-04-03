@@ -32,6 +32,10 @@ All methods in this file follow this convention:
 """
 
 load(
+    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -722,7 +726,36 @@ def _noop(
         processed_origins = processed_origins,
     )
 
+def _apple_bundle(bundle_type):
+    """Returns a function to register bundling of Apple bundles at their appropriate location.
+
+    Args:
+        bundle_type: The Apple bundle type to bundle for.
+    Returns:
+        A function to register bundling of an Apple bundle.
+    """
+    if not hasattr(processor.location, bundle_type):
+        fail("Bundle type location not supported: ", bundle_type)
+
+    def _bundle_at_location(*, files, platform_prerequisites, **_kwargs):
+        location = getattr(processor.location, bundle_type)
+
+        # If tree artifacts are enabled, iterate each bundle and set the bundle name
+        # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
+        if is_experimental_tree_artifact_enabled(config_vars = platform_prerequisites.config_vars):
+            bundle_files = []
+            for bundle in files.to_list():
+                # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.
+                basename = paths.basename(bundle.short_path)
+                bundle_files.append((location, basename, depset([bundle])))
+            return struct(files = bundle_files)
+        else:
+            return struct(archives = [(location, None, files)])
+
+    return _bundle_at_location
+
 resources_support = struct(
+    apple_bundle = _apple_bundle,
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,

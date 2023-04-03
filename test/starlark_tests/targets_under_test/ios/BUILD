@@ -12,6 +12,10 @@ load(
     "ios_unit_test",
 )
 load(
+    "//apple:resources.bzl",
+    "apple_resource_group",
+)
+load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
@@ -509,7 +513,7 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
         "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework",
     ],
 )
@@ -613,7 +617,7 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
         "//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework",
     ],
 )
@@ -766,8 +770,8 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -785,7 +789,7 @@ ios_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -2553,7 +2557,7 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = "unit_test_with_fmwk_from_objc_library_runtime_deps",
+    name = "unit_test_with_fmwk_from_objc_library_data",
     families = [
         "iphone",
         "ipad",
@@ -2564,7 +2568,7 @@ ios_unit_test(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        ":objc_lib_with_runtime_dep_fmwk",
+        ":objc_lib_with_ios_framework",
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
@@ -3020,7 +3024,7 @@ ios_dynamic_framework(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
     ],
 )
 
@@ -3306,10 +3310,10 @@ objc_library(
 )
 
 # ---------------------------------------------------------------------------------------
-# Targets for Apple Frameworks propagated from objc_library runtime_deps attribute tests.
+# Targets for Apple Frameworks propagated from objc_library/swift_library data attribute tests.
 
 ios_application(
-    name = "app_with_objc_library_dep_with_ios_framework_runtime_dep",
+    name = "app_with_fmwks_from_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -3319,12 +3323,14 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":objc_lib_with_runtime_dep_fmwk",
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 ios_application(
-    name = "app_with_objc_lib_dep_with_inner_lib_with_runtime_dep_fmwk",
+    name = "app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -3334,12 +3340,14 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+        ":objc_lib_with_inner_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 ios_application(
-    name = "app_with_load_and_runtime_framework_dep",
+    name = "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
     frameworks = [":fmwk"],
@@ -3350,21 +3358,109 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":objc_lib_with_runtime_dep_fmwk",
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 objc_library(
-    name = "objc_lib_with_inner_lib_with_runtime_dep_fmwk",
+    name = "objc_lib_with_inner_lib_with_ios_framework",
     srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_with_fmwk"],
-    deps = [":objc_lib_with_runtime_dep_fmwk"],
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_ios_framework"],
 )
 
 objc_library(
-    name = "objc_lib_with_runtime_dep_fmwk",
-    srcs = ["//test/starlark_tests/resources:main.m"],
-    runtime_deps = [":fmwk_min_os_baseline"],
+    name = "objc_lib_with_ios_framework",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [
+        ":fmwk_with_resources",
+        ":resource_group_with_framework",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "resource_group_with_framework",
+    resources = [":fmwk_no_version"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_lib_with_ios_framework",
+    srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
+    data = [":fmwk_min_os_baseline_with_bundle"],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:another_basic_bundle_lib",
+        "//test/starlark_tests/resources:objc_lib_with_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_objc_lib_with_nested_ios_framework"],
+    families = ["iphone"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_nested_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_objc_lib_with_nested_ios_framework",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_nested_ios_framework",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_nested_ios_framework",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [":fmwk_with_fmwk"],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
