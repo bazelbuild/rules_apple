@@ -532,6 +532,7 @@ apple_static_framework_import(
     name = "iOSImportedStaticFramework",
     features = ["-swift.layering_check"],
     framework_imports = [":iOSStaticFramework"],
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -541,6 +542,7 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -805,6 +807,7 @@ objc_library(
     data = [
         "//test/starlark_tests/resources:structured_resources",
     ],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1528,6 +1531,7 @@ ios_application(
 swift_library(
     name = "dynamic_fmwk_depending_swift_lib",
     srcs = [":dynamic_fmwk_depending_swift_lib_file"],
+    tags = common.fixture_tags,
     deps = [":iOSImportedDynamicFramework"],
 )
 
@@ -1566,6 +1570,7 @@ apple_dynamic_framework_import(
     name = "iOSImportedDynamicFramework",
     features = ["-swift.layering_check"],
     framework_imports = [":iOSDynamicFramework"],
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -1575,6 +1580,7 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
+    tags = common.fixture_tags,
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -1602,6 +1608,7 @@ ios_application(
 objc_library(
     name = "static_fmwk_depending_lib",
     srcs = [":static_fmwk_depending_lib_file"],
+    tags = common.fixture_tags,
     deps = [":iOSImportedStaticFramework"],
 )
 
@@ -1722,6 +1729,7 @@ swift_library(
     name = "swift_static_fmwk_depending_swift_lib",
     srcs = [":swift_static_fmwk_depending_swift_lib_file"],
     module_name = "swift_static_fmwk_depending_swift_lib",
+    tags = common.fixture_tags,
     deps = [":iOSImportedSwiftStaticFramework"],
 )
 
@@ -1743,6 +1751,7 @@ apple_static_framework_import(
     name = "iOSImportedSwiftStaticFramework",
     features = ["-swift.layering_check"],
     framework_imports = [":iOSSwiftStaticFramework"],
+    tags = common.fixture_tags,
 )
 
 apple_static_framework_import(
@@ -1750,6 +1759,7 @@ apple_static_framework_import(
     features = ["-swift.layering_check"],
     framework_imports = [":iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
     has_swift = True,
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -1759,6 +1769,7 @@ generate_import_framework(
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
     swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -1769,6 +1780,7 @@ generate_import_framework(
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
     swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
+    tags = common.fixture_tags,
 )
 
 # -----------------------------------------------------------------------------------------
@@ -1859,6 +1871,7 @@ func main() {
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
 )
@@ -1881,6 +1894,7 @@ generate_dynamic_xcframework(
             "arm64e",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift XCFramework.
@@ -1968,6 +1982,7 @@ func main() {
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework",
     features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
@@ -1993,6 +2008,7 @@ genrule(
         "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
     ],
     cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header) -d $(RULEDIR)",
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Objective-C static framework.
@@ -2017,6 +2033,7 @@ ios_application(
 swift_library(
     name = "static_fmwk_depending_swift_lib",
     srcs = [":static_fmwk_depending_swift_lib_file"],
+    tags = common.fixture_tags,
     deps = [":iOSImportedStaticFramework"],
 )
 
@@ -2164,6 +2181,7 @@ int main() {
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
     has_swift = True,
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule"],
 )
@@ -2214,6 +2232,7 @@ func main() {
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_xcframework_with_headers"],
 )
@@ -2236,6 +2255,7 @@ generate_static_xcframework(
             "arm64e",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Swift XCFramework
@@ -2276,6 +2296,7 @@ func main() {
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
     features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework"],
 )
@@ -2303,6 +2324,7 @@ generate_static_xcframework(
         ],
         "ios": ["arm64"],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -2800,6 +2822,7 @@ ios_static_framework(
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
     deps = [":objc_library_with_sdk_dylib_and_framework"],
 )
 
@@ -2814,6 +2837,7 @@ ios_static_framework(
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
     deps = [":static_framework_lib_with_resources"],
 )
 
@@ -2825,6 +2849,7 @@ ios_static_framework(
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
     deps = [":static_framework_lib_with_resources"],
 )
 
@@ -2839,6 +2864,7 @@ ios_static_framework(
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
     deps = [":static_framework_lib_with_resources"],
 )
 

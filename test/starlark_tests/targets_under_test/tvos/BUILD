@@ -219,6 +219,7 @@ tvos_application(
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -233,6 +234,7 @@ tvos_extension(
     ],
     minimum_os_version = common.min_os_tvos.nplus1,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -655,12 +657,14 @@ tvos_framework(
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
+    tags = common.fixture_tags,
     deps = [":imported_tvos_dynamic_fmwk"],
 )
 
 apple_dynamic_framework_import(
     name = "imported_tvos_dynamic_fmwk",
     framework_imports = [":generated_tvos_dynamic_fmwk"],
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -670,6 +674,7 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = common.min_os_tvos.baseline,
     sdk = "appletvsimulator",
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -677,12 +682,14 @@ generate_import_framework(
 
 objc_library(
     name = "static_fmwk_depending_lib",
+    tags = common.fixture_tags,
     deps = [":imported_tvos_static_fmwk"],
 )
 
 apple_static_framework_import(
     name = "imported_tvos_static_fmwk",
     framework_imports = [":generated_tvos_static_fmwk"],
+    tags = common.fixture_tags,
 )
 
 generate_import_framework(
@@ -691,6 +698,7 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = common.min_os_tvos.baseline,
     sdk = "appletvsimulator",
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -719,6 +727,7 @@ objc_library(
 
 apple_dynamic_xcframework_import(
     name = "tvos_imported_dynamic_xcframework",
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_tvos_xcframework"],
 )
@@ -740,6 +749,7 @@ generate_dynamic_xcframework(
             "x86_64",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -766,6 +776,7 @@ objc_library(
 
 apple_static_xcframework_import(
     name = "tvos_imported_static_xcframework",
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_tvos_xcframework"],
 )
@@ -787,6 +798,7 @@ generate_static_xcframework(
             "x86_64",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1196,6 +1208,7 @@ tvos_application(
 objc_library(
     name = "objc_lib_with_inner_lib_with_tvos_framework",
     srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
     deps = [":objc_lib_with_tvos_framework"],
 )
 
@@ -1203,12 +1216,14 @@ objc_library(
     name = "objc_lib_with_tvos_framework",
     srcs = ["//test/starlark_tests/resources:main.m"],
     data = [":fmwk_with_structured_resources"],
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "swift_lib_with_tvos_framework",
     srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
     data = [":fmwk_with_resource_bundles"],
+    tags = common.fixture_tags,
 )
 
 tvos_application(

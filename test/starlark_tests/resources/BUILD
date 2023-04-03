@@ -598,6 +598,7 @@ apple_resource_group(
     structured_resources = [
         "//test/testdata/resources:structured",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -618,11 +619,13 @@ swift_library(
         "//test/testdata/resources:view_ios.xib",
     ],
     module_name = "EasyToSearchForModuleName",
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "swift_lib_with_transitive_resources",
     srcs = ["Dummy.swift"],
+    tags = common.fixture_tags,
     deps = [
         ":swift_lib_with_resources",
     ],
@@ -634,6 +637,7 @@ swift_library(
     data = [
         "//test/testdata/resources:localized_storyboards_ios",
     ],
+    tags = common.fixture_tags,
     deps = [
         ":swift_lib_with_storyboard_b",
     ],
@@ -645,6 +649,7 @@ swift_library(
     data = [
         "//test/testdata/resources:storyboard_ios.storyboard",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -653,6 +658,7 @@ swift_library(
     data = [
         "//test/testdata/resources:assets_ios",
     ],
+    tags = common.fixture_tags,
     deps = [
         ":swift_lib_with_asset_catalog_b",
     ],
@@ -664,6 +670,7 @@ swift_library(
     data = [
         "//test/testdata/resources:assets2_ios",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -672,6 +679,7 @@ swift_library(
     data = [
         "//test/testdata/resources:generate_storyboard_copy",
     ],
+    tags = common.fixture_tags,
     deps = [":swift_lib_with_resources"],
 )
 
@@ -679,6 +687,7 @@ genrule(
     name = "DummySwiftFile",
     outs = ["Dummy.swift"],
     cmd = "echo 'struct Dummy {}' > $@",
+    tags = common.fixture_tags,
 )
 
 filegroup(
