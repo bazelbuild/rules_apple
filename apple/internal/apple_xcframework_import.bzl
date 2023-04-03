@@ -476,7 +476,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 def _apple_static_xcframework_import_impl(ctx):
     """Implementation of apple_static_xcframework_import."""
     actions = ctx.actions
-    alwayslink = ctx.attr.alwayslink
+    alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     cc_toolchain = find_cpp_toolchain(ctx)
@@ -800,6 +800,6 @@ Unnecssary and ignored, will be removed in the future.
             ),
         },
     ),
-    fragments = ["apple", "cpp"],
+    fragments = ["apple", "cpp", "objc"],
     toolchains = use_cpp_toolchain(),
 )
