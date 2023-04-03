@@ -5,6 +5,8 @@ x_defaults:
   common: &common
     platform: macos
     xcode_version: "14.2"
+    shell_commands:
+    - .bazelci/xcode_debug.sh
     build_targets:
     - "tools/..."
     - "test/..."
@@ -34,6 +36,7 @@ tasks:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
+    - .bazelci/xcode_debug.sh
     <<: *common
 
   macos_last_green:
@@ -47,6 +50,7 @@ tasks:
     # Update the WORKSPACE to use head versions of some deps to ensure nothing
     # has landed on them breaking this project.
     - .bazelci/update_workspace_to_deps_heads.sh
+    - .bazelci/xcode_debug.sh
     <<: *common
     <<: *common_last_green
 
