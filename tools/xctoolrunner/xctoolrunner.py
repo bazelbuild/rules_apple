@@ -77,6 +77,7 @@ def _execute_and_filter_with_retry(xcrunargs, filtering):
       xcrunargs,
       trim_paths=True,
       filtering=filtering,
+      custom_env={"IBToolDebugLogLevel": "4", "IBToolDebugLogFile": "/tmp/actool_log"},
       print_output=False)
 
   # If there's a retry, don't print the first failing output.
@@ -91,6 +92,7 @@ def _execute_and_filter_with_retry(xcrunargs, filtering):
       xcrunargs,
       trim_paths=True,
       filtering=filtering,
+      custom_env={"IBToolDebugLogLevel": "4", "IBToolDebugLogFile": "/tmp/actool_log"},
       print_output=True)
   return return_code
 
@@ -279,6 +281,7 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
+  print("xcrunargs: {}".format(xcrunargs))
   return _execute_and_filter_with_retry(xcrunargs=xcrunargs, filtering=actool_filtering)
 
 
