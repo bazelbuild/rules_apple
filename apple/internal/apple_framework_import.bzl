@@ -291,7 +291,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
-    alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
+    alwayslink = ctx.attr.alwayslink or getattr(ctx.fragments.objc, "alwayslink_by_default", False)
     cc_toolchain = find_cpp_toolchain(ctx)
     compilation_mode = ctx.var["COMPILATION_MODE"]
     deps = ctx.attr.deps
