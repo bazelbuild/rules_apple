@@ -73,7 +73,7 @@ watchos_application(
     bundle_id = "com.example.hello-world.watch",
     extension = ":HelloWorld-WatchExtension",
     infoplists = [":WatchApp-Info.plist"],
-    minimum_os_version = "2.0",
+    minimum_os_version = "7.0",
     storyboards = [
         "WatchResources/Interface.storyboard",
     ],
