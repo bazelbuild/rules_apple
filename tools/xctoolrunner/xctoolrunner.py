@@ -252,6 +252,10 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
+  debug_args = ["xcrun", "--find", "actool"]
+  _, _, _ = execute.execute_and_filter_output(debug_args, print_output=True)
+  
+
   xcrunargs = [
       "xcrun", "actool", "--errors", "--warnings", "--notices",
       "--output-format", "human-readable-text"
