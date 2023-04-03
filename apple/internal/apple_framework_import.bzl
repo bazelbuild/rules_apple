@@ -225,7 +225,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
-    alwayslink = ctx.attr.alwayslink
+    alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -394,7 +394,7 @@ targets through the `deps` attribute.
 
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
-    fragments = ["cpp"],
+    fragments = ["cpp", "objc"],
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
         {
