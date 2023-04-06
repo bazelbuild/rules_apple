@@ -73,6 +73,7 @@ def apple_build_test_rule(doc, platform_type):
     return rule(
         attrs = {
             "minimum_os_version": attr.string(
+                mandatory = True,
                 doc = """\
 A required string indicating the minimum OS version that will be used as the
 deployment target when building the targets, represented as a dotted version
