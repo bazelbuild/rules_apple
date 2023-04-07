@@ -28,6 +28,10 @@ load(
     "make_analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -299,12 +303,21 @@ def apple_xcframework_test_suite(name):
         architectures = ["arm64"],
         tags = [name],
     )
-
     linkmap_test(
         name = "{}_simulator_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         expected_linkmap_names = ["ios_dynamic_xcframework_ios_simulator"],
         architectures = ["x86_64"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ios_dynamic_xcframework_ios_simulator_x86_64.linkmap",
+            "ios_dynamic_xcframework_ios_device_arm64.linkmap",
+        ],
         tags = [name],
     )
 
@@ -315,12 +328,23 @@ def apple_xcframework_test_suite(name):
         architectures = ["arm64", "arm64e"],
         tags = [name],
     )
-
     linkmap_test(
         name = "{}_fat_simulator_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         expected_linkmap_names = ["ios_dynamic_lipoed_xcframework_ios_simulator"],
         architectures = ["x86_64", "arm64"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_multiple_architectures_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_ios_device_arm64.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_device_arm64e.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_simulator_arm64.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_simulator_x86_64.linkmap",
+        ],
         tags = [name],
     )
 
