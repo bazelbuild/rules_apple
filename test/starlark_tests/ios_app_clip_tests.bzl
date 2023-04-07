@@ -19,6 +19,10 @@ load(
     "common",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -94,6 +98,16 @@ def ios_app_clip_test_suite(name):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_clip_x86_64.linkmap",
+            "app_clip_arm64.linkmap",
+        ],
         tags = [name],
     )
 
