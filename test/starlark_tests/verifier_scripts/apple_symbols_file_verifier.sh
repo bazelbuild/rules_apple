@@ -49,4 +49,4 @@ function assert_unpacked_archive_contains_symbols_directory() {
 }
 
 assert_unpacked_archive_contains_symbols_directory "${ARCHIVE_ROOT}" \
-  "${BINARY_PATHS}"
+  "${BINARY_PATHS[@]}"
