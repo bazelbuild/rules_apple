@@ -462,6 +462,20 @@ def ios_application_test_suite(name):
     )
 
     # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
+    # is enabled for both the iOS application and the watchOS extensions.
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_watchos_test".format(name),
+        binary_paths = [
+            "Payload/companion.app/companion",
+            "Payload/companion.app/Watch/app.app/PlugIns/ext.appex/ext",
+            "Payload/companion.app/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
+        ],
+        build_type = "simulator",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension_and_symbols_in_bundle",
+    )
+
+    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
     # is enabled.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
