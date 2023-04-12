@@ -23,16 +23,16 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -116,11 +116,22 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
-        expected_direct_dsyms = ["ext.appex"],
-        expected_transitive_dsyms = ["ext.appex"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ext.appex.dSYM/Contents/Info.plist",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext_x86_64",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext_arm64",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        expected_direct_dsyms = ["dSYMs/ext.appex.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/ext.appex.dSYM"],
         tags = [name],
     )
 

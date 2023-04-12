@@ -19,12 +19,16 @@ load(
     "common",
 )
 load(
-    "//test/starlark_tests/rules:apple_verification_test.bzl",
-    "apple_verification_test",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
 )
 load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
+    "apple_verification_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -47,11 +51,22 @@ def watchos_unit_test_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
-        expected_direct_dsyms = ["unit_test.xctest"],
-        expected_transitive_dsyms = ["unit_test.xctest"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test_arm64",
+            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test_x86_64",
+            "unit_test.xctest.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
+        expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
         tags = [name],
     )
 

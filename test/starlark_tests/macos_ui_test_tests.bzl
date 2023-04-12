@@ -23,16 +23,20 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -85,11 +89,25 @@ def macos_ui_test_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest"],
-        expected_transitive_dsyms = ["ui_test.xctest", "app.app"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM/Contents/Resources/DWARF/app_arm64",
+            "app.app.dSYM/Contents/Resources/DWARF/app_x86_64",
+            "app.app.dSYM/Contents/Info.plist",
+            "ui_test.xctest.dSYM/Contents/Resources/DWARF/ui_test_arm64",
+            "ui_test.xctest.dSYM/Contents/Resources/DWARF/ui_test_x86_64",
+            "ui_test.xctest.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
+        expected_direct_dsyms = ["dSYMs/ui_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/ui_test.xctest.dSYM"],
         tags = [name],
     )
 

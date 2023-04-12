@@ -47,6 +47,7 @@ def _contains_files(env, expected_files, actual_files):
         env,
         expected_set,
         sets.intersection(all_outputs, expected_set),
+        "{} not contained in {}".format(sets.to_list(expected_set), sets.to_list(all_outputs)),
     )
 
 assertions = struct(
