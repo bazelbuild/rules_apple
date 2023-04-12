@@ -193,11 +193,13 @@ def _ios_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     if ctx.attr.watch_application:
-        embeddable_targets.append(ctx.attr.watch_application)
+        watch_app = ctx.attr.watch_application
+
+        embeddable_targets.append(watch_app)
 
         bundle_verification_targets.append(
             struct(
-                target = ctx.attr.watch_application,
+                target = watch_app,
                 parent_bundle_id_reference = ["WKCompanionAppBundleIdentifier"],
             ),
         )
@@ -331,13 +333,16 @@ def _ios_application_impl(ctx):
     ]
 
     if ctx.attr.watch_application:
-        processor_partials.append(
-            partials.watchos_stub_partial(
-                actions = actions,
-                label_name = label.name,
-                watch_application = ctx.attr.watch_application,
-            ),
-        )
+        # Add the stub binary if the associated watchOS application is a watchOS 2 application.
+        watch_bundle_info = ctx.attr.watch_application[AppleBundleInfo]
+        if watch_bundle_info.product_type == apple_product_type.watch2_application:
+            processor_partials.append(
+                partials.watchos_stub_partial(
+                    actions = actions,
+                    label_name = label.name,
+                    watch_application = ctx.attr.watch_application,
+                ),
+            )
 
     processor_partials.append(
         # We need to add this partial everytime in case any of the extensions uses a stub binary and

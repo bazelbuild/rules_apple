@@ -296,11 +296,10 @@ def _apple_test_bundle_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    # For unit tests, only pass the test host as the bundle's loader if it
-    # propagates `AppleExecutableBinary`, meaning that it's a binary that
-    # *we* built. Test hosts with stub binaries (like a watchOS app) won't
-    # have this. (For UI tests, the test host is never passed as the bundle
-    # loader, because the host application is loaded out-of-process.)
+    # For unit tests, only pass the test host as the bundle's loader if it propagates
+    # `AppleExecutableBinary`, meaning that it's a binary that *we* built. Test hosts with stub
+    # binaries (like a non-single target watchOS app) won't have this. (For UI tests, the test host
+    # is never passed as the bundle loader, because the host application is loaded out-of-process.)
     if (
         rule_descriptor.product_type == apple_product_type.unit_test_bundle and
         test_host and apple_common.AppleExecutableBinary in test_host

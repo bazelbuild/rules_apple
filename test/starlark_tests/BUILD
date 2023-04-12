@@ -42,6 +42,8 @@ load(":watchos_application_tests.bzl", "watchos_application_test_suite")
 load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
 load(":watchos_framework_tests.bzl", "watchos_framework_test_suite")
+load(":watchos_single_target_application_tests.bzl", "watchos_single_target_application_test_suite")
+load(":watchos_single_target_ui_test_tests.bzl", "watchos_single_target_ui_test_test_suite")
 load(":watchos_static_framework_tests.bzl", "watchos_static_framework_test_suite")
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
@@ -136,6 +138,10 @@ watchos_dynamic_framework_test_suite(name = "watchos_dynamic_framework")
 watchos_extension_test_suite(name = "watchos_extension")
 
 watchos_framework_test_suite(name = "watchos_framework")
+
+watchos_single_target_application_test_suite(name = "watchos_single_target_application")
+
+watchos_single_target_ui_test_test_suite(name = "watchos_single_target_ui_test")
 
 watchos_static_framework_test_suite(name = "watchos_static_framework")
 

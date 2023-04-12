@@ -105,6 +105,7 @@ load(
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
+    "WatchosSingleTargetApplicationBundleInfo",
     "WatchosStaticFrameworkBundleInfo",
 )
 load(
@@ -1231,6 +1232,214 @@ def _watchos_static_framework_impl(ctx):
         WatchosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 
+def _watchos_single_target_application_impl(ctx):
+    """Implementation of watchos_single_target_application."""
+
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("14.0"):
+        fail("""
+Single-target watchOS applications require an updated watchOS SDK provided by Xcode 14 or later.
+Resolved Xcode is version {xcode_version}.
+""".format(xcode_version = str(xcode_version_config.xcode_version())))
+
+    minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
+    if minimum_os < apple_common.dotted_version("7.0"):
+        fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    embeddable_targets = ctx.attr.deps
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "storyboards",
+            "strings",
+            "resources",
+        ],
+    )
+
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = rule_descriptor.product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
+    )
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        entitlements = entitlements,
+        extra_linkopts = [],
+        platform_prerequisites = platform_prerequisites,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            bundle_id = bundle_id,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_location = processor.location.watch,
+            bundle_name = bundle_name,
+            embed_target_dossiers = True,
+            embedded_targets = embeddable_targets,
+            entitlements = entitlements,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = embeddable_targets,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.embedded_bundles_partial(
+            bundle_embedded_bundles = True,
+            embeddable_targets = embeddable_targets,
+            platform_prerequisites = platform_prerequisites,
+            watch_bundles = [archive],
+        ),
+        partials.framework_import_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            targets = ctx.attr.deps,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            bundle_dylibs = True,
+            dependency_targets = embeddable_targets,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+    ]
+
+    if platform_prerequisites.platform.is_device:
+        processor_partials.append(
+            partials.provisioning_profile_partial(
+                actions = actions,
+                profile_artifact = provisioning_profile,
+                rule_label = label,
+            ),
+        )
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        WatchosSingleTargetApplicationBundleInfo(),
+    ] + processor_result.providers
+
 watchos_application = rule_factory.create_apple_bundling_rule(
     implementation = _watchos_application_impl,
     platform_type = "watchos",
@@ -1271,4 +1480,11 @@ watchos_static_framework = rule_factory.create_apple_bundling_rule(
     platform_type = "watchos",
     product_type = apple_product_type.static_framework,
     doc = "Builds and bundles a watchOS Static Framework.",
+)
+
+watchos_single_target_application = rule_factory.create_apple_bundling_rule(
+    implementation = _watchos_single_target_application_impl,
+    platform_type = "watchos",
+    product_type = apple_product_type.application,
+    doc = "Builds and bundles a watchOS Single Target Application.",
 )
