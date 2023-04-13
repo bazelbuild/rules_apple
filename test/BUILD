@@ -150,6 +150,17 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
+    name = "ios_extensionkit_extension_test",
+    size = "medium",
+    src = "ios_extensionkit_extension_test.sh",
+    configurations = IOS_CONFIGURATIONS,
+    data = [
+        "//test/testdata/binaries:empty_dylib",
+        "//test/testdata/binaries:empty_staticlib",
+    ],
+)
+
+apple_multi_shell_test(
     name = "ios_imessage_test",
     size = "medium",
     src = "ios_imessage_test.sh",

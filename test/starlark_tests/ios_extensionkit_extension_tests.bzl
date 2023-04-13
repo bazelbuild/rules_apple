@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ios_extension Starlark tests."""
+"""ios_extensionkit_extension Starlark tests."""
 
 load(
     ":common.bzl",
@@ -41,8 +41,8 @@ load(
     "linkmap_test",
 )
 
-def ios_extension_test_suite(name):
-    """Test suite for ios_extensionkit_extension.
+def ios_extensionkit_extension_test_suite(name):
+    """Test suite for ios_extension.
 
     Args:
       name: the base name to be used in things created by this macro
@@ -50,7 +50,7 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -58,7 +58,7 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_fmwk_provisioned_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension_with_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -66,7 +66,7 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_fmwk_provisioned_codesign_asan_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension_with_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",
         tags = [name],
@@ -75,7 +75,7 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_entitlements_simulator_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],
     )
@@ -83,27 +83,27 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_entitlements_device_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],
     )
 
     dsyms_test(
         name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
-        expected_direct_dsyms = ["ext.appex"],
-        expected_transitive_dsyms = ["ext.appex"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
+        expected_direct_dsyms = ["exappextension.appex"],
+        expected_transitive_dsyms = ["exappextension.appex"],
         tags = [name],
     )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         expected_values = {
             "BuildMachineOSBuild": "*",
-            "CFBundleExecutable": "ext",
-            "CFBundleIdentifier": "com.google.example.ext",
-            "CFBundleName": "ext",
+            "CFBundleExecutable": "exappextension",
+            "CFBundleIdentifier": "com.google.example.exappextension",
+            "CFBundleName": "exappextension",
             "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
@@ -122,10 +122,10 @@ def ios_extension_test_suite(name):
 
     infoplist_contents_test(
         name = "{}_multiple_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_multiple_infoplists",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension_multiple_infoplists",
         expected_values = {
             "AnotherKey": "AnotherValue",
-            "CFBundleExecutable": "ext_multiple_infoplists",
+            "CFBundleExecutable": "exappextension_multiple_infoplists",
         },
         tags = [name],
     )
@@ -135,10 +135,10 @@ def ios_extension_test_suite(name):
     bitcode_symbol_map_test(
         name = "{}_archive_contains_bitcode_symbol_maps_test".format(name),
         binary_paths = [
-            "Payload/app_with_ext.app/app_with_ext",
-            "Payload/app_with_ext.app/PlugIns/ext.appex/ext",
+            "Payload/app_with_exappextension.app/app_with_exappextension",
+            "Payload/app_with_exappextension.app/Extensions/exappextension.appex/exappextension",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_exappextension",
         tags = [name],
     )
 
@@ -146,7 +146,7 @@ def ios_extension_test_suite(name):
     # is present.
     linkmap_test(
         name = "{}_linkmap_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         tags = [name],
     )
 
@@ -154,7 +154,7 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_contains_provisioning_profile_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
@@ -164,12 +164,12 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_correct_rpath_header_value_test".format(name),
         build_type = "device",
-        binary_test_file = "$CONTENT_ROOT/ext",
+        binary_test_file = "$CONTENT_ROOT/exappextension",
         macho_load_commands_contain = [
             "path @executable_path/Frameworks (offset 12)",
             "path @executable_path/../../Frameworks (offset 12)",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         tags = [name],
     )
 
@@ -177,7 +177,7 @@ def ios_extension_test_suite(name):
         name = "{}_entry_point_nsextensionmain_test".format(name),
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:exappextension",
         tags = [name],
     )
 
@@ -186,8 +186,8 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_dylibs_present".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
-        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_exappextension",
+        not_contains = ["$BUNDLE_ROOT/Extensions/exappextension.appex/Frameworks/libswiftCore.dylib"],
         contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
@@ -197,9 +197,9 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_simulator_swift_dylibs_present".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_exappextension",
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Extensions/exappextension.appex/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 

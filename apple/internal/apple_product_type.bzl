@@ -89,6 +89,7 @@ apple_product_type = struct(
     app_extension = "com.apple.product-type.app-extension",
     bundle = "com.apple.product-type.bundle",
     dylib = "com.apple.product-type.library.dynamic",
+    extensionkit_extension = "com.apple.product-type.extensionkit-extension",
     framework = "com.apple.product-type.framework",
     kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",

@@ -13,6 +13,7 @@ load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
+load(":ios_extensionkit_extension_tests.bzl", "ios_extensionkit_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_imessage_application_tests.bzl", "ios_imessage_application_test_suite")
@@ -75,6 +76,8 @@ ios_application_test_suite(name = "ios_application")
 ios_app_clip_test_suite(name = "ios_app_clip")
 
 ios_extension_test_suite(name = "ios_extension")
+
+ios_extensionkit_extension_test_suite(name = "ios_extensionkit_extension")
 
 ios_framework_test_suite(name = "ios_framework")
 
