@@ -131,6 +131,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",

@@ -246,7 +246,6 @@ def _bucketize_data(
             # For each type of resource, place in the appropriate bucket.
             if AppleFrameworkBundleInfo in target:
                 if "framework.dSYM/" in resource_short_path or resource.extension == "linkmap":
-                    # TODO(b/271168739): Propagate AppleDebugSymbolsInfo and _AppleDebugInfo providers.
                     # Ignore dSYM bundle and linkmap since the debug symbols partial is
                     # responsible for propagating this up the dependency graph.
                     continue
