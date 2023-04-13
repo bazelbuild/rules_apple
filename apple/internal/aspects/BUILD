@@ -44,6 +44,7 @@ bzl_library(
         "//apple/internal:platform_support",
         "//apple/internal:resources",
         "//apple/internal:swift_support",
+        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/providers:framework_import_bundle_info",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",

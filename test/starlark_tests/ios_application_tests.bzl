@@ -792,6 +792,69 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
+    # at the top-level ios_application rule, and present through the 'dsysms' and 'linkmaps' output
+    # groups.
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Info.plist",
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_arm64",
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_x86_64",
+            # Frameworks
+            "fmwk.framework.dSYM/Contents/Info.plist",
+            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_arm64",
+            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_x86_64",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_arm64",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_x86_64",
+            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
+            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_arm64",
+            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_x86_64",
+            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_arm64",
+            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_x86_64",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_arm64.linkmap",
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_x86_64.linkmap",
+            "fmwk_arm64.linkmap",
+            "fmwk_x86_64.linkmap",
+            "fmwk_min_os_baseline_with_bundle_arm64.linkmap",
+            "fmwk_min_os_baseline_with_bundle_x86_64.linkmap",
+            "fmwk_no_version_arm64.linkmap",
+            "fmwk_no_version_x86_64.linkmap",
+            "fmwk_with_resources_arm64.linkmap",
+            "fmwk_with_resources_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
+    apple_dsym_bundle_info_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+            "dSYMs/fmwk.framework.dSYM",
+            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "dSYMs/fmwk_no_version.framework.dSYM",
+            "dSYMs/fmwk_with_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     # TODO(b/270375044): Add a test to handle the absence of a bundle_id when the attribute is made
     # into a not mandatory attribute to accomodate shared_capabilities.
 

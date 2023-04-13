@@ -140,6 +140,56 @@ def tvos_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
+    # at the top-level tvos_extension rule, and present through the 'dsysms' and 'linkmaps' output
+    # groups.
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Info.plist",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data_arm64",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data_x86_64",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles_arm64",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles_x86_64",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources_arm64",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources_x86_64",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data_arm64.linkmap",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data_x86_64.linkmap",
+            "fmwk_with_resource_bundles_arm64.linkmap",
+            "fmwk_with_resource_bundles_x86_64.linkmap",
+            "fmwk_with_structured_resources_arm64.linkmap",
+            "fmwk_with_structured_resources_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
+    apple_dsym_bundle_info_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+            "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
+            "dSYMs/fmwk_with_structured_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

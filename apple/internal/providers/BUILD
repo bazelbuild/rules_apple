@@ -22,6 +22,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_debug_info",
+    srcs = ["apple_debug_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used both
+        # by the `resource_aspect` and `debug_symbols` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "embeddable_info",
     srcs = ["embeddable_info.bzl"],
     visibility = [
