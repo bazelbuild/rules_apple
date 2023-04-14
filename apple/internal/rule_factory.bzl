@@ -894,6 +894,16 @@ def _get_tvos_attrs(rule_descriptor):
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.app_extension:
+        attrs.append({
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of an App Extension.
+The bundle is installed into the Extensions directory instead of PlugIns.
+""",
+            ),
+        })
     elif rule_descriptor.product_type == apple_product_type.framework:
         attrs.append({
             # TODO(kaipi): This attribute is not publicly documented, but it is tested in

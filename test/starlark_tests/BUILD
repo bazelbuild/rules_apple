@@ -35,6 +35,7 @@ load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
 load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
 load(":tvos_extension_tests.bzl", "tvos_extension_test_suite")
+load(":tvos_extensionkit_extension_tests.bzl", "tvos_extensionkit_extension_test_suite")
 load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
 load(":tvos_static_framework_tests.bzl", "tvos_static_framework_test_suite")
 load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
@@ -123,6 +124,8 @@ tvos_application_swift_test_suite(name = "tvos_application_swift")
 tvos_application_test_suite(name = "tvos_application")
 
 tvos_extension_test_suite(name = "tvos_extension")
+
+tvos_extensionkit_extension_test_suite(name = "tvos_extensionkit_extension")
 
 tvos_dynamic_framework_test_suite(name = "tvos_dynamic_framework")
 
