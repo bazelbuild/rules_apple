@@ -843,6 +843,17 @@ set, then the default extension is determined by the application's product_type.
             ),
         })
 
+    elif rule_descriptor.product_type == apple_product_type.app_extension:
+        attrs.append({
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of an App Extension.
+The bundle is installed into the Extensions directory instead of PlugIns.
+""",
+            ),
+        })
+
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
