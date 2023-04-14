@@ -1016,6 +1016,15 @@ instead of the WatchKit extension point (`_WKExtensionMain`), and has the
 `app_extension` `product_type` instead of `watch2_extension`.
 """,
             ),
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of a WatchKit Extension.
+It links the extension with the application extension point (`_NSExtensionMain`)
+instead of the WatchKit extension point (`_WKExtensionMain`), and has the
+`extensionkit_extension` `product_type` instead of `watch2_extension`.
+""",
+            ),
         })
     if rule_descriptor.product_type == apple_product_type.watch2_application:
         attrs.append({

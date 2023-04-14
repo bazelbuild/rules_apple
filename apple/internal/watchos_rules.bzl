@@ -858,6 +858,11 @@ def _watchos_extension_impl(ctx):
         ],
     )
     product_type = rule_descriptor.product_type
+    if ctx.attr.extensionkit_extension:
+        bundle_location = processor.location.extension
+        product_type = apple_product_type.extensionkit_extension
+    else:
+        bundle_location = processor.location.plugin
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
@@ -868,6 +873,9 @@ def _watchos_extension_impl(ctx):
         if ctx.attr.application_extension:
             extra_linkopts = ["-e", "_NSExtensionMain"]
             product_type = apple_product_type.app_extension
+        elif ctx.attr.extensionkit_extension:
+            extra_linkopts = ["-e", "_NSExtensionMain"]
+            product_type = apple_product_type.extensionkit_extension
         else:
             extra_linkopts = ["-e", "_WKExtensionMain"]
 
@@ -913,13 +921,20 @@ def _watchos_extension_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
-    archive = outputs.archive(
+    archive_for_embedding = outputs.archive(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
+
+    if ctx.attr.extensionkit_extension:
+        plugins = []
+        extensions = [archive_for_embedding]
+    else:
+        plugins = [archive_for_embedding]
+        extensions = []
 
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
 
@@ -965,7 +980,7 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
             embedded_targets = embeddable_targets,
@@ -990,7 +1005,8 @@ def _watchos_extension_impl(ctx):
             bundle_embedded_bundles = True,
             platform_prerequisites = platform_prerequisites,
             embeddable_targets = embeddable_targets,
-            plugins = [archive],
+            plugins = plugins,
+            extensions = extensions,
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = True,
