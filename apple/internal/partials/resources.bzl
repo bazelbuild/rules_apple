@@ -14,7 +14,7 @@
 
 """Partial implementations for resource processing.
 
-Resources are procesed according to type, by a series of methods that deal with the specifics for
+Resources are processed according to type, by a series of methods that deal with the specifics for
 each resource type. Each of this methods returns a struct, which always have a `files` field
 containing resource tuples as described in processor.bzl. Optionally, the structs can also have an
 `infoplists` field containing a list of plists that should be merged into the root Info.plist.
@@ -371,7 +371,7 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
-        bundle_verification_targets: List of structs that reference embedable targets that need to
+        bundle_verification_targets: List of structs that reference embeddable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the

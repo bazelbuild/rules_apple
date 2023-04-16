@@ -70,7 +70,7 @@ The info_plist_options dictionary can contain the following keys:
       compared against the final compiled plist for consistency. The keys of
       the dictionary are the labels of the targets to which the associated
       plists belong. See below for the details of how these are validated.
-  child_plist_required_values: If present, a dictionary constaining the
+  child_plist_required_values: If present, a dictionary containing the
       entries for key/value pairs a child is required to have. This
       dictionary is keyed by the label of the child targets (just like the
       `child_plists`), and the valures are a list of key/value pairs. The
@@ -185,8 +185,12 @@ REQUIRED_CHILD_KEYPATH_NOT_MATCHING = (
     'has the wrong value for "%s"; expected %r, but found %r.'
 )
 
-MISSING_VERSION_KEY_MSG = (
+MISSING_PLIST_KEY_MSG = (
     'Target "%s" is missing %s.'
+)
+
+MISSING_PLIST_KEY_IN_PARENT_MSG = (
+    'Target "%s" is missing %s in dictionary %s.'
 )
 
 INVALID_VERSION_KEY_VALUE_MSG = (
@@ -194,6 +198,89 @@ INVALID_VERSION_KEY_VALUE_MSG = (
     'https://developer.apple.com/library/content/technotes/tn2420/_index.html'
     ' and '
     'https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html'
+)
+
+UNEXPECTED_EXAPPEXTENSIONATTRIBUTES = (
+    'Target %s has an unexpected key, EXAppExtensionAttributes, for product type com.apple.product-type.app-extension. '
+    'Plugin extensions expect key NSExtension. '
+    'To build an app extension with ExtensionKit, set `extensionkit_extension = True`. '
+)
+
+UNEXPECTED_NSEXTENSION = (
+    'Target %s has an unexpected key, NSExtension, for product type com.apple.product-type.extensionkit-extension. '
+    'ExtensionKit extensions expect key EXAppExtensionAttributes. '
+    'To build an app extension without ExtensionKit, set `extensionkit_extension = False`. '
+)
+
+KNOWN_EXTENSIONKIT_EXTENSION_POINT_IDENTIFIERS = (
+    'com.apple.appintents-extension',
+    'com.apple.background-asset-downloader-extension',
+    'com.apple.deviceactivityui.report-extension',
+    'com.apple.discovery-extension'
+)
+
+KNOWN_NSEXTENSION_EXTENSION_POINT_IDENTIFIERS = (
+    'com.apple.AppSSO.idp-extension',
+    'com.apple.AudioUnit',
+    'com.apple.AudioUnit-UI',
+    'com.apple.FinderSync',
+    'com.apple.ManagedSettings.shield-action-service',
+    'com.apple.ManagedSettingsUI.shield-configuration-service',
+    'com.apple.Safari.content-blocker',
+    'com.apple.Safari.extension',
+    'com.apple.Safari.web-extension',
+    'com.apple.authentication-services-account-authentication-modification-ui',
+    'com.apple.authentication-services-credential-provider-ui',
+    'com.apple.broadcast-services-setupui',
+    'com.apple.broadcast-services-upload',
+    'com.apple.calendar.virtualconference',
+    'com.apple.callkit.call-directory',
+    'com.apple.classkit.context-provider',
+    'com.apple.ctk-tokens',
+    'com.apple.deviceactivity.monitor-extension',
+    'com.apple.dt.Xcode.extension.source-editor',
+    'com.apple.email.extension',
+    'com.apple.fileprovider-actionsui',
+    'com.apple.fileprovider-nonui',
+    'com.apple.identitylookup.classification-ui',
+    'com.apple.identitylookup.message-filter',
+    'com.apple.intents-service',
+    'com.apple.intents-ui-service',
+    'com.apple.keyboard-service',
+    'com.apple.location.push.service',
+    'com.apple.matter.support.extension.device-setup',
+    'com.apple.message-payload-provider',
+    'com.apple.message-payload-provider',
+    'com.apple.networkextension.app-proxy',
+    'com.apple.networkextension.dns-proxy',
+    'com.apple.networkextension.filter-control',
+    'com.apple.networkextension.filter-data',
+    'com.apple.networkextension.packet-tunnel',
+    'com.apple.photo-editing',
+    'com.apple.photo-project',
+    'com.apple.printing.discovery',
+    'com.apple.quicklook.preview',
+    'com.apple.quicklook.thumbnail',
+    'com.apple.services',
+    'com.apple.share-services',
+    'com.apple.spotlight.import',
+    'com.apple.tv-top-shelf',
+    'com.apple.ui-services',
+    'com.apple.usernotifications.content-extension',
+    'com.apple.usernotifications.service',
+    'com.apple.widgetkit-extension',
+)
+
+KNOWN_EXTENSIONKIT_WARNING = (
+    'Target %s with extension point %s is known to be an ExtensionKit App Extension. '
+    'The target rule may be misconfigured. '
+    'ExtensionKit App Extension targets expect the attribute `extensionkit_extension = True`.'
+)
+
+KNOWN_NSEXTENSION_WARNING = (
+    'Target %s with extension point %s is known to be an NSExtension. '
+    'The target rule may be misconfigured. '
+    'NSExtension targets expect the attribute `extensionkit_extension = False`.'
 )
 
 PLUTIL_CONVERSION_TO_XML_FAILED_MSG = (
@@ -343,8 +430,8 @@ _CONTROL_KEYS = frozenset([
 
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
-    'child_plists', 'child_plist_required_values', 'pkginfo', 'version_file',
-    'version_keys_required',
+    'child_plists', 'child_plist_required_values', 'extensionkit_keys_required',
+    'nsextension_keys_required', 'pkginfo', 'version_file', 'version_keys_required',
 ])
 
 # All valid keys in the entitlements_options control structure.
@@ -897,11 +984,25 @@ class InfoPlistTask(PlistToolTask):
         out_plist['CFBundleShortVersionString'] = short_version_string
 
   def validate_plist(self, plist):
+    self._validate_plist_version(plist)
+    self._validate_child_plist_required_values(plist)
+    self._validate_plist_extensionkit(plist)
+    self._validate_plist_nsextension(plist)
+
+  def _validate_plist_version(self, plist):
+    """When `version_keys_required`, checks that the given plist has version keys. Validates version keys.
+
+    Args:
+      plist: The dictionary representing final plist.
+    Raises:
+      PlistToolError: For any issues found.
+    """
+
     if self.options.get('version_keys_required'):
       for k in ('CFBundleVersion', 'CFBundleShortVersionString'):
         # This also errors if they are there but the empty string or zero.
         if not plist.get(k, None):
-          raise PlistToolError(MISSING_VERSION_KEY_MSG % (self.target, k))
+          raise PlistToolError(MISSING_PLIST_KEY_MSG % (self.target, k))
 
     # If the version keys are set, they must be valid (even if they were
     # not required).
@@ -912,6 +1013,15 @@ class InfoPlistTask(PlistToolTask):
       if v and not validator(v):
         raise PlistToolError(INVALID_VERSION_KEY_VALUE_MSG % (
             self.target, k, v))
+
+  def _validate_child_plist_required_values(self, plist):
+    """Validates required values.
+
+    Args:
+      plist: The dictionary representing final plist.
+    Raises:
+      PlistToolError: For any issues found.
+    """
 
     child_plists = self.options.get('child_plists')
     child_plist_required_values = self.options.get(
@@ -927,6 +1037,133 @@ class InfoPlistTask(PlistToolTask):
           self._write_pkginfo(p, plist)
       else:
         self._write_pkginfo(pkginfo_file, plist)
+
+  def _validate_plist_extensionkit(self, plist):
+    """When `extensionkit_keys_required`, checks that the given plist is valid for an ExtensionKit App Extension.
+
+    ExtensionKit App Extensions expect a `EXAppExtensionAttributes` dictionary containing an `EXExtensionPointIdentifier` entry.
+    If the given extension point is not recognized as an ExtensionKit extension, but known to be an NSExtension, provide a
+    warning with a hint to resolve; this is not a blocking error, since supported extension point strings may change over time.
+    If an NSExtension key is found, raise an error. If the ExtensionKit keys are not found, raise an error.
+
+    Args:
+      plist: The dictionary representing final plist.
+    Raises:
+      PlistToolError: For any issues found.
+    """
+
+    if not self.options.get('extensionkit_keys_required'):
+      return
+
+    # Check for extension point identifiers within any keys, so we can surface useful warnings before errors.
+    unchecked_extension_point_identifier = self._any_extension_point_identifier(plist)
+    known_extension_point = False
+    for known_extension_point_identifier in KNOWN_EXTENSIONKIT_EXTENSION_POINT_IDENTIFIERS:
+      if unchecked_extension_point_identifier == known_extension_point_identifier:
+        # This is a known ExtensionKit extension point, skip checking against known NSExtension extension points,
+        # since the lists may overlap
+        known_extension_point = True
+
+    if not known_extension_point:
+      for known_extension_point_identifier in KNOWN_NSEXTENSION_EXTENSION_POINT_IDENTIFIERS:
+        if unchecked_extension_point_identifier == known_extension_point_identifier:
+          # This is a known NSExtension extension point, and we can provide a useful warning.
+          # Don't raise a blocking error, since Apple may change available extension points in the future.
+          print(KNOWN_NSEXTENSION_WARNING % (self.target, unchecked_extension_point_identifier))
+
+    # Explicitly check against None, since an empty dictionary should raise an error
+    if plist.get('NSExtension', None) is not None:
+      raise PlistToolError(UNEXPECTED_NSEXTENSION % self.target)
+
+    self._validate_extension_point_identifier(self.target, plist, 'EXAppExtensionAttributes', 'EXExtensionPointIdentifier')
+
+  def _validate_plist_nsextension(self, plist):
+    """When `nsextension_keys_required`, checks that the given plist is valid for an NSExtension App Extension.
+
+    NSExtension App Extensions expect a `NSExtension` dictionary containing an `NSExtensionPointIdentifier` entry.
+    If the given extension point is not recognized as an NSExtension, but known to be an ExtensionKit Extension, provide a
+    warning with a hint to resolve; this is not a blocking error, since supported extension point strings may change over time.
+    If an EXAppExtensionAttributes key is found, raise an error. If the NSExtension keys are not found, raise an error.
+
+    Args:
+      plist: The dictionary representing final plist.
+    Raises:
+      PlistToolError: For any issues found.
+    """
+
+    if not self.options.get('nsextension_keys_required'):
+      return
+
+    # Check for extension point identifiers within any keys, so we can surface useful warnings before errors.
+    unchecked_extension_point_identifier = self._any_extension_point_identifier(plist)
+    known_extension_point = False
+    for known_extension_point_identifier in KNOWN_NSEXTENSION_EXTENSION_POINT_IDENTIFIERS:
+      if unchecked_extension_point_identifier == known_extension_point_identifier:
+        # This is a known NSExtension extension point, skip checking against known ExtensionKit extension points,
+        # since the lists may overlap
+        known_extension_point = True
+
+    if not known_extension_point:
+      for known_extension_point_identifier in KNOWN_EXTENSIONKIT_EXTENSION_POINT_IDENTIFIERS:
+        if unchecked_extension_point_identifier == known_extension_point_identifier:
+          # This is a known ExtensionKit extension point, and we can provide a useful warning.
+          # Don't raise a blocking error, since Apple may change available extension points in the future.
+          print(KNOWN_EXTENSIONKIT_WARNING % (self.target, unchecked_extension_point_identifier))
+
+    # Explicitly check against None, since an empty dictionary should raise an error
+    if plist.get('EXAppExtensionAttributes', None) is not None:
+      raise PlistToolError(UNEXPECTED_EXAPPEXTENSIONATTRIBUTES % self.target)
+
+    self._validate_extension_point_identifier(self.target, plist, 'NSExtension', 'NSExtensionPointIdentifier')
+
+  @staticmethod 
+  def _any_extension_point_identifier(plist):
+    """Finds any extension point identifier within an Info.plist.
+
+    The extension point identifier may not exist in the correct key, but this can be used to provide actionable warnings.
+
+    Args:
+      plist: The dictionary representing final plist.
+    Returns:
+      An extension point identifier string
+    """
+    nsextension_parent = plist.get('NSExtension', None)
+    if nsextension_parent:
+      nsextension_point_identifier = nsextension_parent.get('NSExtensionPointIdentifier')
+      if nsextension_point_identifier:
+        return nsextension_point_identifier
+
+    exappextension_parent = plist.get('EXAppExtensionAttributes', None)
+    if exappextension_parent:
+      exappextension_point_identifier = exappextension_parent.get('EXExtensionPointIdentifier')
+      if exappextension_point_identifier:
+        return exappextension_point_identifier
+
+    return None
+
+  @staticmethod
+  def _validate_extension_point_identifier(target, plist, parent_key, extension_point_identifier_key):
+    """Finds an extension point identifier within the given keys.
+
+    The extension point identifier may not exist in the correct key, but this can be used to provide actionable warnings.
+
+    Args:
+      target: The name of the target being processed.
+      plist: The dictionary representing final plist.
+      parent_key: The top-level plist key containing the extension point identifier (NSExtension or EXAppExtensionAttributes)
+      extension_point_identifier_key: The key within `parent` (NSExtensionPointIdentifier or EXExtensionPointIdentifier)
+    Raises:
+      PlistToolError: For missing keys.
+    Returns:
+      An extension point identifier string
+    """
+    parent = plist.get(parent_key, None)
+    if not parent:
+      raise PlistToolError(MISSING_PLIST_KEY_MSG % (target, parent_key))
+
+    extension_point_identifier = parent.get(extension_point_identifier_key, None)
+    if not extension_point_identifier:
+      raise PlistToolError(MISSING_PLIST_KEY_IN_PARENT_MSG % (target, extension_point_identifier_key, parent_key))
 
   @staticmethod
   def _validate_children(plist, child_plists, child_required_values, target):

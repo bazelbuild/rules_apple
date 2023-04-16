@@ -1091,7 +1091,7 @@ class PlistToolTest(unittest.TestCase):
   def test_missing_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_PLIST_KEY_MSG % (
             _testing_target, 'CFBundleVersion'))):
       plist = {'CFBundleShortVersionString': '1.0'}
       _plisttool_result({
@@ -1104,7 +1104,7 @@ class PlistToolTest(unittest.TestCase):
   def test_missing_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_PLIST_KEY_MSG % (
             _testing_target, 'CFBundleShortVersionString'))):
       plist = {'CFBundleVersion': '1.0'}
       _plisttool_result({
@@ -1117,7 +1117,7 @@ class PlistToolTest(unittest.TestCase):
   def test_empty_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_PLIST_KEY_MSG % (
             _testing_target, 'CFBundleVersion'))):
       plist = {
           'CFBundleShortVersionString': '1.0',
@@ -1133,7 +1133,7 @@ class PlistToolTest(unittest.TestCase):
   def test_empty_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_PLIST_KEY_MSG % (
             _testing_target, 'CFBundleShortVersionString'))):
       plist = {
           'CFBundleShortVersionString': '',
@@ -1196,6 +1196,186 @@ class PlistToolTest(unittest.TestCase):
             },
         },
     }, {'Foo': 'abc123.'})
+
+  def test_invalid_nsextension_attribute_in_extensionkit(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_NSEXTENSION % _testing_target)):
+      plist = {
+          'NSExtension': {
+              'NSExtensionPointIdentifier': 'com.apple.email.extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
+  def test_empty_nsextension_attribute_in_extensionkit(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_NSEXTENSION % _testing_target)):
+      plist = {
+          'NSExtension': { },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
+  def test_extra_nsextension_attribute_in_extensionkit(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_NSEXTENSION % _testing_target)):
+      plist = {
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.appintents-extension',
+          },
+          'NSExtension': {
+              'NSExtensionPointIdentifier': 'com.apple.appintents-extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
+  def test_valid_extensionkit(self):
+    plist = {
+        'EXAppExtensionAttributes': {
+            'EXExtensionPointIdentifier': 'com.apple.appintents-extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'extensionkit_keys_required': True,
+        },
+    })
+
+  def test_valid_extensionkit_with_known_nsextension(self):
+    # Although `com.apple.email.extension` is a known NSExtension, don't raise an error,
+    # since this may change in the future.
+    plist = {
+        'EXAppExtensionAttributes': {
+            'EXExtensionPointIdentifier': 'com.apple.email.extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'extensionkit_keys_required': True,
+        },
+    })
+
+  def test_valid_extensionkit_with_unknown_extension_point(self):
+    plist = {
+        'EXAppExtensionAttributes': {
+            'EXExtensionPointIdentifier': 'com.example.extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'extensionkit_keys_required': True,
+        },
+    })
+
+  def test_invalid_extensionkit_attribute_in_nsextension(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_EXAPPEXTENSIONATTRIBUTES % _testing_target)):
+      plist = {
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.appintents-extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'nsextension_keys_required': True,
+          },
+      })
+
+  def test_empty_extensionkit_attribute_in_nsextension(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_EXAPPEXTENSIONATTRIBUTES % _testing_target)):
+      plist = {
+          'EXAppExtensionAttributes': { },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'nsextension_keys_required': True,
+          },
+      })
+
+  def test_extra_extensionkit_attribute_in_nsextension(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_EXAPPEXTENSIONATTRIBUTES % _testing_target)):
+      plist = {
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.email.extension',
+          },
+          'NSExtension': {
+              'NSExtensionPointIdentifier': 'com.apple.email.extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'nsextension_keys_required': True,
+          },
+      })
+
+  def test_valid_nsextension(self):
+    plist = {
+        'NSExtension': {
+            'NSExtensionPointIdentifier': 'com.apple.email.extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'nsextension_keys_required': True,
+        },
+    })
+
+  def test_valid_nsextension_with_known_extensionkit(self):
+    # Although `com.apple.appintents-extension` is a known ExtensionKit extension,
+    # don't raise an error, since this may change in the future.
+    plist = {
+        'NSExtension': {
+            'NSExtensionPointIdentifier': 'com.apple.appintents-extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'nsextension_keys_required': True,
+        },
+    })
+
+  def test_valid_nsextension_with_unknown_extension_point(self):
+    plist = {
+        'NSExtension': {
+            'NSExtensionPointIdentifier': 'com.apple.some-new-extension',
+        },
+    }
+    _plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'nsextension_keys_required': True,
+        },
+    })
 
   def test_entitlements_options_raw_subs(self):
     plist1 = {'Bar': 'abc123.*'}
