@@ -471,6 +471,55 @@ EOF
   expect_log "While processing target \"//app:app\"; the CFBundleVersion of the child target \"//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
+# Test that a known NSExtension extension point provides a warning.
+function test_known_nsextension_warning() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "XPC!";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.widgetkit-extension";
+  };
+}
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  expect_log 'Target //app:ext with extension point com.apple.widgetkit-extension is known to be an NSExtension. The target rule may be misconfigured. NSExtension targets expect the attribute `extensionkit_extension = False`.'
+}
+
+# Test the presence of NSExtension fails the build.
+function test_nsextension_fails() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "XPC!";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPointIdentifier = "com.apple.appintents-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target //app:ext has an unexpected key, NSExtension, for product type com.apple.product-type.extensionkit-extension. ExtensionKit extensions expect key EXAppExtensionAttributes. To build an app extension without ExtensionKit, set `extensionkit_extension = False`.'
+}
+
 # Tests that a prebuilt static framework (i.e., apple_static_framework_import)
 # is not bundled with the application or extension.
 function test_prebuilt_static_apple_framework_import_dependency() {

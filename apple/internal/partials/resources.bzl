@@ -152,7 +152,9 @@ def _resources_partial_impl(
         executable_name,
         bundle_verification_targets,
         environment_plist,
+        extensionkit_keys_required,
         launch_storyboard,
+        nsextension_keys_required,
         output_discriminator,
         platform_prerequisites,
         resource_deps,
@@ -317,8 +319,10 @@ def _resources_partial_impl(
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
+                extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
+                nsextension_keys_required = nsextension_keys_required,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
@@ -346,7 +350,9 @@ def resources_partial(
         executable_name,
         bundle_verification_targets = [],
         environment_plist,
+        extensionkit_keys_required = False,
         launch_storyboard,
+        nsextension_keys_required = False,
         output_discriminator = None,
         platform_prerequisites,
         resource_deps,
@@ -378,7 +384,11 @@ def resources_partial(
             plist entry that must contain this target's bundle ID.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
+        extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are correctly
+            configured.
         launch_storyboard: A file to be used as a launch screen for the application.
+        nsextension_keys_required: Whether to validate that the Info.plist ExtensionKit keys are correctly
+            configured.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -406,9 +416,11 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        extensionkit_keys_required = extensionkit_keys_required,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
+        nsextension_keys_required = nsextension_keys_required,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resource_deps = resource_deps,

@@ -76,7 +76,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF

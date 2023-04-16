@@ -24,7 +24,7 @@
 			<string>2.0</string>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.widget-extension</string>
+		<string>com.apple.widgetkit-extension</string>
 		<key>NSExtensionPrincipalClass</key>
 		<string>TodayViewController</string>
 		<key>com.apple.notificationcenter.widget.description</key>

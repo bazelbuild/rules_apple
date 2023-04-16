@@ -192,9 +192,11 @@ def merge_root_infoplists(
         child_plists = [],
         child_required_values = [],
         environment_plist,
+        extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
         launch_storyboard,
+        nsextension_keys_required = False,
         output_discriminator,
         output_plist,
         output_pkginfo,
@@ -223,11 +225,17 @@ def merge_root_infoplists(
           pair, see plisttool's `child_plist_required_values`, as this is passed
           straight through to it.
       environment_plist: An executable file referencing the environment_plist tool.
+      extensionkit_keys_required: If True, the merged Info.plist file must include
+          an EXAppExtensionAttributes dictionary containing EXExtensionPointIdentifier.
+          The presence of an NSExtension entry will raise an error.
       include_executable_name: If True, the executable name will be added to
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
       launch_storyboard: A file to be used as a launch screen for the application.
+      nsextension_keys_required: If True, the merged Info.plist file must include
+          an NSExtension dictionary containing NSExtensionPointIdentifier.
+          The presence of an EXAppExtensionAttributes entry will raise an error.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
@@ -297,6 +305,12 @@ def merge_root_infoplists(
         info_plist_options["child_plist_required_values"] = struct(
             **{str(p.owner): v for (p, v) in child_required_values}
         )
+
+    if extensionkit_keys_required:
+        info_plist_options["extensionkit_keys_required"] = True
+
+    if nsextension_keys_required:
+        info_plist_options["nsextension_keys_required"] = True
 
     if (version != None and AppleBundleVersionInfo in version):
         version_info = version[AppleBundleVersionInfo]

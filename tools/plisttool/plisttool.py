@@ -76,6 +76,12 @@ The info_plist_options dictionary can contain the following keys:
       `child_plists`), and the valures are a list of key/value pairs. The
       key/value pairs are encoded as a list of exactly two items, the key is
       actually an array of keys, so it can walk into the child plist.
+  extensionkit_keys_required: If True, the merged Info.plist file must include
+      an EXAppExtensionAttributes dictionary containing EXExtensionPointIdentifier.
+      The presence of an NSExtension entry will raise an error.
+  nsextension_keys_required: If True, the merged Info.plist file must include
+      an NSExtension dictionary containing NSExtensionPointIdentifier.
+      The presence of an EXAppExtensionAttributes entry will raise an error.
 
 If info_plist_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not

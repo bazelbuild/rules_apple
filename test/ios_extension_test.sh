@@ -85,7 +85,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -240,7 +240,7 @@ function test_missing_version_fails() {
   CFBundleShortVersionString = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -265,7 +265,7 @@ function test_missing_short_version_fails() {
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -337,7 +337,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -407,7 +407,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -477,13 +477,62 @@ EOF
   CFBundleVersion = "1.1";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
   expect_log "While processing target \"//app:app\"; the CFBundleVersion of the child target \"//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
+}
+
+# Test that a known ExtensionKit extension point provides a warning.
+function test_known_extensionkit_warning() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "XPC!";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+  NSExtension = {
+    NSExtensionPointIdentifier = "com.apple.appintents-extension";
+  };
+}
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  expect_log 'Target //app:ext with extension point com.apple.appintents-extension is known to be an ExtensionKit App Extension. The target rule may be misconfigured. ExtensionKit App Extension targets expect the attribute `extensionkit_extension = True`.'
+}
+
+# Test the presence of EXAppExtensionAttributes fails the build.
+function test_exappextensionattributes_fails() {
+  create_common_files
+  create_minimal_ios_application_with_extension
+
+  # Replace the file, but without CFBundleVersion.
+  cat > app/Info-Ext.plist <<EOF
+{
+  CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
+  CFBundleName = "\${PRODUCT_NAME}";
+  CFBundlePackageType = "XPC!";
+  CFBundleShortVersionString = "1.0";
+  CFBundleVersion = "1.0";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.widgetkit-extension";
+  };
+}
+EOF
+
+  ! do_build ios //app:app \
+    || fail "Should fail build"
+
+  expect_log 'Target //app:ext has an unexpected key, EXAppExtensionAttributes, for product type com.apple.product-type.app-extension. Plugin extensions expect key NSExtension. To build an app extension with ExtensionKit, set `extensionkit_extension = True`.'
 }
 
 # Tests that a prebuilt static framework (i.e., apple_static_framework_import)
@@ -599,7 +648,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF

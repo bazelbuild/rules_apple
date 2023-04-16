@@ -100,7 +100,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -118,7 +118,7 @@ function test_missing_version_fails() {
   CFBundleShortVersionString = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -141,7 +141,7 @@ function test_missing_short_version_fails() {
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -219,7 +219,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -295,7 +295,7 @@ EOF
   CFBundleVersion = "1.0";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF
@@ -371,7 +371,7 @@ EOF
   CFBundleVersion = "1.1";
   NSExtension = {
     NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+    NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
   };
 }
 EOF

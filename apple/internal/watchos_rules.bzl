@@ -861,8 +861,12 @@ def _watchos_extension_impl(ctx):
     if ctx.attr.extensionkit_extension:
         bundle_location = processor.location.extension
         product_type = apple_product_type.extensionkit_extension
+        extensionkit_keys_required = True
+        nsextension_keys_required = False
     else:
         bundle_location = processor.location.plugin
+        extensionkit_keys_required = False
+        nsextension_keys_required = True
 
     # Xcode 11 requires this flag to be passed to the linker, but it is not accepted by earlier
     # versions.
@@ -1035,7 +1039,9 @@ def _watchos_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
+            extensionkit_keys_required = extensionkit_keys_required,
             launch_storyboard = None,
+            nsextension_keys_required = nsextension_keys_required,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
