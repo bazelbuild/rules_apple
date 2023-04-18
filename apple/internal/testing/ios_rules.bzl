@@ -105,7 +105,6 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
         ),
-        rule_attrs.entitlements_attrs,
         rule_attrs.infoplist_attrs(
             default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
         ),
@@ -167,7 +166,6 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
         ),
-        rule_attrs.entitlements_attrs,
         rule_attrs.infoplist_attrs(
             default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
         ),
