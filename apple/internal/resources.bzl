@@ -155,6 +155,7 @@ def _get_attr_as_list(*, attr, nested_attr, split_attr_keys):
             attr = attr,
             nested_attr = nested_attr,
         ))
+
     else:
         # Search the attribute within each split key if any split keys were defined.
         for split_attr_key in split_attr_keys:

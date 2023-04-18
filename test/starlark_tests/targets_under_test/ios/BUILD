@@ -652,6 +652,7 @@ ios_extension(
     frameworks = [":fmwk_min_os_baseline"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.nplus1,
     tags = common.fixture_tags,
@@ -1098,6 +1099,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -1117,6 +1119,7 @@ ios_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
@@ -1138,6 +1141,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -1157,6 +1161,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -1263,6 +1268,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -1283,6 +1289,7 @@ ios_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
@@ -1305,6 +1312,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -1325,6 +1333,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -3630,6 +3639,7 @@ ios_extension(
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -3813,6 +3823,7 @@ ios_extension(
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",

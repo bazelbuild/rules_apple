@@ -289,7 +289,7 @@ watchos_extension(
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     extensionkit_extension = True,
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -312,7 +312,7 @@ watchos_extension(
     extensionkit_extension = True,
     frameworks = [":fmwk"],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -332,7 +332,7 @@ watchos_extension(
         ":second_fmwk_with_provisioning",
     ],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_watchos.baseline,
@@ -350,7 +350,7 @@ watchos_extension(
     extensionkit_extension = True,
     frameworks = [":fmwk_with_fmwk_with_provisioning"],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_watchos.baseline,
@@ -368,7 +368,7 @@ watchos_extension(
     extensionkit_extension = True,
     frameworks = [":fmwk_with_fmwk"],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -384,7 +384,7 @@ watchos_extension(
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     extensionkit_extension = True,
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_watchos.baseline,
@@ -402,7 +402,7 @@ watchos_extension(
     extensionkit_extension = True,
     frameworks = [":fmwk_with_imported_static_framework"],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_watchos.baseline,
@@ -418,7 +418,7 @@ watchos_extension(
     extensionkit_extension = True,
     infoplists = [
         "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     tags = common.fixture_tags,
@@ -429,7 +429,7 @@ watchos_extension(
     bundle_id = "com.google.example.exappextension",
     extensionkit_extension = True,
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.arm64_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -652,6 +652,7 @@ watchos_extension(
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -718,6 +719,7 @@ watchos_extension(
     extensionkit_extension = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -735,7 +737,7 @@ watchos_extension(
     extensionkit_extension = True,
     extensions = [":watchos_exappextension"],
     infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+        "//test/starlark_tests/resources:WatchosExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",

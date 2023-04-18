@@ -91,6 +91,7 @@ tvos_extension(
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -115,7 +116,10 @@ tvos_extension(
     name = "swift_ext",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
+    ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
@@ -148,6 +152,7 @@ tvos_extension(
     extensionkit_extension = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
@@ -173,7 +178,10 @@ tvos_extension(
     bundle_id = "com.google.example.exappextension",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     extensionkit_extension = True,
-    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
+    ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
@@ -1001,6 +1009,7 @@ tvos_extension(
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",

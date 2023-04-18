@@ -176,6 +176,7 @@ macos_extension(
     bundle_id = "com.google.example.ext",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-nsextension.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
@@ -240,6 +241,7 @@ macos_extension(
     extensionkit_extension = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:Info-extensionkit.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
