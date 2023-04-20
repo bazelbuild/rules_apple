@@ -20,6 +20,10 @@ filegroup(
         "//tools:for_bazel_tests",
         "@build_bazel_apple_support//:for_bazel_tests",
         "@build_bazel_rules_swift//:for_bazel_tests",
+        "@com_github_apple_swift-argument-parser//:for_bazel_tests",
+        "@com_github_jakeheis_SwiftCLI//:for_bazel_tests",
+        "@com_github_mtynior_ColorizeSwift//:for_bazel_tests",
+        "@rules_xcodeproj//:for_bazel_tests",
         "@xctestrunner//:for_bazel_tests",
     ],
     visibility = [

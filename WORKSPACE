@@ -18,6 +18,13 @@ load(
 
 apple_support_dependencies()
 
+load(
+    "@rules_xcodeproj//xcodeproj:repositories.bzl",
+    "xcodeproj_rules_dependencies",
+)
+
+xcodeproj_rules_dependencies()
+
 # Setup the Skylib dependency, this is required to use the Starlark unittest
 # framework. Since this is only used for rules_apple's tests, we configure it
 # here in the WORKSPACE file. This also can't be added to

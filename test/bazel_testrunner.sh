@@ -94,6 +94,26 @@ local_repository(
     path = '$(rlocation xctestrunner)',
 )
 
+local_repository(
+    name = 'rules_xcodeproj',
+    path = '$(rlocation rules_xcodeproj)',
+)
+
+local_repository(
+    name = 'com_github_apple_swift-argument-parser',
+    path = '$(rlocation com_github_apple_swift-argument-parser)',
+)
+
+local_repository(
+    name = 'com_github_jakeheis_SwiftCLI',
+    path = '$(rlocation com_github_jakeheis_SwiftCLI)',
+)
+
+local_repository(
+    name = 'com_github_mtynior_ColorizeSwift',
+    path = '$(rlocation com_github_mtynior_ColorizeSwift)',
+)
+
 # We load rules_swift dependencies into the WORKSPACE. This is safe to do
 # _for now_ because Swift currently depends on:
 #
@@ -119,6 +139,13 @@ load(
 )
 
 apple_support_dependencies()
+
+load(
+    "@rules_xcodeproj//xcodeproj:repositories.bzl",
+    "xcodeproj_rules_dependencies",
+)
+
+xcodeproj_rules_dependencies()
 EOF
 }
 

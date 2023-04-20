@@ -124,7 +124,9 @@ watchos_test_runner(
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = glob(["**"]),
+    srcs = glob(["**"]) + [
+        "//apple/testing/default_runner/testrunner:for_bazel_tests",
+    ],
     visibility = [
         "//:__subpackages__",
     ],

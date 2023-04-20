@@ -131,6 +131,61 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             ignore_version_differences = ignore_version_differences,
         )
 
+        _maybe(
+            http_archive,
+            name = "rules_xcodeproj",
+            sha256 = "7967b372bd1777214ce65c87a82ac0630150b7504b443de0315ea52e45758e0c",
+            urls = [
+                "https://github.com/MobileNativeFoundation/rules_xcodeproj/releases/download/1.3.3/release.tar.gz",
+            ],
+            ignore_version_differences = ignore_version_differences,
+            patch_cmds = [
+                """\
+build_file_additions=$(cat <<EOF
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]) + [
+        "//xcodeproj:for_bazel_tests",
+    ],
+    visibility = ["//visibility:public"],
+)
+EOF
+)
+
+echo "${build_file_additions}" >> BUILD
+
+build_file_additions=$(cat <<EOF
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]) + [
+        "//xcodeproj/internal:for_bazel_tests",
+    ],
+    visibility = ["//visibility:public"],
+)
+EOF
+)
+
+chmod 777 xcodeproj/BUILD
+echo "${build_file_additions}" >> xcodeproj/BUILD
+
+build_file_additions=$(cat <<EOF
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+EOF
+)
+
+chmod 777 xcodeproj/internal/BUILD
+echo "${build_file_additions}" >> xcodeproj/internal/BUILD
+""",
+            ],
+        )
+
     _maybe(
         http_archive,
         name = "xctestrunner",
@@ -139,5 +194,92 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         ],
         strip_prefix = "xctestrunner-24629f3e6c0dda397f14924b64eb45d04433c07e",
         sha256 = "6e692722c3b3d5f2573357870c78febe8419b18ab28565bc6a1d9ddd28c8ec51",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
+        name = "com_github_apple_swift-argument-parser",
+        build_file_content = """\
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+swift_library(
+    name = "ArgumentParser",
+    srcs = glob(["Sources/ArgumentParser/**/*.swift"]),
+    deps = [":ArgumentParserToolInfo"],
+    visibility = ["//visibility:public"],
+)
+
+swift_library(
+    name = "ArgumentParserToolInfo",
+    srcs = glob(["Sources/ArgumentParserToolInfo/**/*.swift"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+""",
+        sha256 = "44782ba7180f924f72661b8f457c268929ccd20441eac17301f18eff3b91ce0c",
+        strip_prefix = "swift-argument-parser-1.2.2",
+        url = "https://github.com/apple/swift-argument-parser/archive/refs/tags/1.2.2.tar.gz",
+        ignore_version_differences = ignore_version_differences,
+        patch_cmds = [
+            # Bazel does not support paths with spaces. See: https://github.com/bazelbuild/bazel/issues/4327
+            "mv 'Sources/ArgumentParser/Parsable Properties' 'Sources/ArgumentParser/ParsableProperties'",
+            "mv 'Sources/ArgumentParser/Parsable Types' 'Sources/ArgumentParser/ParsableTypes'",
+        ],
+    )
+
+    _maybe(
+        http_archive,
+        name = "com_github_jakeheis_SwiftCLI",
+        build_file_content = """\
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+swift_library(
+    name = "SwiftCLI",
+    srcs = glob(["Sources/**/*.swift"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+""",
+        sha256 = "8a86d45baa86e17c92d25a6ff65798593992204169a9e2616f61b6c5cd130bb1",
+        strip_prefix = "SwiftCLI-6.0.3",
+        url = "https://github.com/jakeheis/SwiftCLI/archive/refs/tags/6.0.3.tar.gz",
+        ignore_version_differences = ignore_version_differences,
+    )
+
+    _maybe(
+        http_archive,
+        name = "com_github_mtynior_ColorizeSwift",
+        build_file_content = """\
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+swift_library(
+    name = "ColorizeSwift",
+    srcs = glob(["Sources/**/*.swift"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+""",
+        sha256 = "f36b4f06b50c1b9d6270da478d13173bf8f424e463d42e8027395a82ebfeeac8",
+        strip_prefix = "ColorizeSwift-1.6.0",
+        url = "https://github.com/mtynior/ColorizeSwift/archive/refs/tags/1.6.0.tar.gz",
         ignore_version_differences = ignore_version_differences,
     )

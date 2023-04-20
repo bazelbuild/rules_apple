@@ -194,7 +194,7 @@ function test_standalone_unit_test_coverage() {
 function test_standalone_unit_test_coverage_new_runner() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test_new_runner || fail "Should build"
-  assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
+  assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test_new_runner/coverage.dat"
 }
 
 function test_standalone_unit_test_coverage_json() {

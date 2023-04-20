@@ -17,7 +17,7 @@
     <key>IsUITestBundle</key>
     <BAZEL_IS_UI_TEST_BUNDLE/>
     <key>IsXCTRunnerHostedTestBundle</key>
-	  <BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE/>
+    <BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE/>
     <key>UITargetAppPath</key>
     <string>BAZEL_TARGET_APP_PATH</string>
     <key>DependentProductPaths</key>

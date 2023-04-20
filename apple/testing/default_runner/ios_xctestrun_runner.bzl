@@ -6,7 +6,7 @@ simulators. This rule currently doesn't support UI tests or running on device.
 load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl", "AppleTestRunnerInfo")
 
 def _get_template_substitutions(
-        *,
+        testrunner_binary,
         create_xcresult_bundle,
         device_type,
         os_version,
@@ -16,13 +16,13 @@ def _get_template_substitutions(
         xctestrun_template,
         reuse_simulator):
     substitutions = {
+        "testrunner_binary": testrunner_binary,
         "device_type": device_type,
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
-        "simulator_creator.py": simulator_creator,
-        # "ordered" isn't a special string, but anything besides "random" for this field runs in order
-        "test_order": "random" if random else "ordered",
+        "simulator_creator": simulator_creator,
+        "random": random,
         "xctestrun_template": xctestrun_template,
         "reuse_simulator": reuse_simulator,
     }
@@ -52,11 +52,12 @@ def _ios_xctestrun_runner_impl(ctx):
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
+            testrunner_binary = ctx.executable._testrunner.short_path,
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable._simulator_creator.short_path,
-            random = ctx.attr.random,
+            simulator_creator = ctx.executable._simulator_creator.short_path + ".py",
+            random = "true" if ctx.attr.random else "false",
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
@@ -70,9 +71,10 @@ def _ios_xctestrun_runner_impl(ctx):
             test_runner_template = ctx.outputs.test_runner_template,
         ),
         DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [ctx.file._xctestrun_template],
-            ).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles),
+            runfiles = ctx
+                .runfiles(files = [ctx.file._xctestrun_template])
+                .merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles)
+                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
         ),
     ]
 
@@ -125,6 +127,13 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         "_simulator_creator": attr.label(
             default = Label(
                 "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+            ),
+            executable = True,
+            cfg = "exec",
+        ),
+        "_testrunner": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner/testrunner:testrunner",
             ),
             executable = True,
             cfg = "exec",
