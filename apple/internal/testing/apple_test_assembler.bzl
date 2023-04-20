@@ -74,8 +74,6 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     elif not runner and not runners:
         fail("Must specify one of runner or runners.")
 
-    test_bundle_name = name + ".__internal__.__test_bundle"
-
     test_attrs = {k: v for (k, v) in kwargs.items() if k not in _BUNDLE_ATTRS}
     bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
 
@@ -84,15 +82,17 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         if x in test_attrs:
             bundle_attrs[x] = test_attrs[x]
 
-    if "bundle_name" in kwargs:
-        fail("bundle_name is not supported in test rules.")
+    # `bundle_name` is either provided or the default is `name`.
+    bundle_name = bundle_attrs.pop("bundle_name", name)
+
+    test_bundle_name = bundle_name + ".__internal__.__test_bundle"
 
     # Ideally this target should be private, but the outputs should not be private, so we're
     # explicitly using the same visibility as the test (or None if none was set).
     bundle_rule(
         name = test_bundle_name,
-        bundle_name = name,
-        test_bundle_output = "{}.zip".format(name),
+        bundle_name = bundle_name,
+        test_bundle_output = "{}.zip".format(bundle_name),
         testonly = True,
         **bundle_attrs
     )

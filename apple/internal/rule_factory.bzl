@@ -222,6 +222,13 @@ A file that will be used in lcov export calls to limit the scope of files instru
 """,
         allow_single_file = True,
     ),
+    "bundle_name": attr.string(
+        mandatory = False,
+        doc = """
+The desired name of the bundle (without the extension). If this attribute is not set, then the name
+of the target will be used instead.
+""",
+    ),
 }
 
 def _common_binary_linking_attrs(deps_cfg, product_type):

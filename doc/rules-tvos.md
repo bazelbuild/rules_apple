@@ -308,8 +308,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## tvos_ui_test
 
 <pre>
-tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>, <a href="#tvos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_ui_test-test_filter">test_filter</a>,
-             <a href="#tvos_ui_test-test_host">test_host</a>)
+tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-bundle_name">bundle_name</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>, <a href="#tvos_ui_test-test_coverage_manifest">test_coverage_manifest</a>,
+             <a href="#tvos_ui_test-test_filter">test_filter</a>, <a href="#tvos_ui_test-test_host">test_host</a>)
 </pre>
 
 
@@ -331,6 +331,7 @@ the attributes inherited by all test rules, please check the
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_ui_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="tvos_ui_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | <code>""</code> |
 | <a id="tvos_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="tvos_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="tvos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{}</code> |
@@ -346,8 +347,8 @@ the attributes inherited by all test rules, please check the
 ## tvos_unit_test
 
 <pre>
-tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>, <a href="#tvos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_unit_test-test_filter">test_filter</a>,
-               <a href="#tvos_unit_test-test_host">test_host</a>)
+tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-bundle_name">bundle_name</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>, <a href="#tvos_unit_test-test_coverage_manifest">test_coverage_manifest</a>,
+               <a href="#tvos_unit_test-test_filter">test_filter</a>, <a href="#tvos_unit_test-test_host">test_host</a>)
 </pre>
 
 
@@ -377,6 +378,7 @@ of the attributes inherited by all test rules, please check the
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="tvos_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="tvos_unit_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional | <code>""</code> |
 | <a id="tvos_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="tvos_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="tvos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{}</code> |
