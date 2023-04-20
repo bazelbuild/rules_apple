@@ -100,6 +100,15 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_test_bundle_name_override".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_custom_bundle_name",
+        expected_values = {
+            "CFBundleExecutable": "UnitTestCustomBundleName",
+        },
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_test_bundle_id_same_as_test_host_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_invalid_bundle_id",
@@ -114,6 +123,17 @@ def ios_unit_test_test_suite(name):
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "unit_test_multiple_infoplists",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_target_bundle_name_override".format(name),
+        build_type = "simulator",
+        contains = [
+            "$ARCHIVE_ROOT/UnitTestCustomBundleName.xctest",
+            "$BUNDLE_ROOT/UnitTestCustomBundleName",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_custom_bundle_name",
         tags = [name],
     )
 
