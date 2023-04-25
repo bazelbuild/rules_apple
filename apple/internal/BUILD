@@ -147,7 +147,18 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:capabilities",
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
+    name = "capabilities_rules",
+    srcs = ["capabilities_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":bundling_support",
         "//apple:providers",
     ],
 )
@@ -192,6 +203,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":bundling_support",
         ":resource_actions",
         "//apple:common",
         "//apple/internal/utils:defines",

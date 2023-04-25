@@ -75,7 +75,7 @@ bzl_library(
     name = "capabilities",
     srcs = ["capabilities.bzl"],
     deps = [
-        ":providers",
+        "//apple/internal:capabilities_rules",
     ],
 )
 
