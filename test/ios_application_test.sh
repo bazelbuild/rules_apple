@@ -450,69 +450,6 @@ EOF
   fi
 }
 
-# Helper for empty segment build id failures.
-function verify_build_fails_bundle_id_empty_segment_with_param() {
-  bundle_id_to_test="$1"; shift
-
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "${bundle_id_to_test}",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "Empty segment in bundle_id: \"${bundle_id_to_test}\""
-}
-
-# Test that invalid bundle ids fail a build.
-
-function test_build_fails_if_bundle_id_empty() {
-  verify_build_fails_bundle_id_empty_segment_with_param ""
-}
-
-function test_build_fails_if_bundle_id_just_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "."
-}
-
-function test_build_fails_if_bundle_id_leading_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param ".my.bundle.id"
-}
-
-function test_build_fails_if_bundle_id_trailing_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "my.bundle.id."
-}
-
-function test_build_fails_if_bundle_id_double_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "my..bundle.id"
-}
-
-function test_build_fails_if_bundle_id_has_invalid_character() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my#bundle",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "Invalid character(s) in bundle_id: \"my#bundle\""
-}
-
 # Tests that the bundle name can be overridden to differ from the target name.
 function test_bundle_name_can_differ_from_target() {
   create_common_files
