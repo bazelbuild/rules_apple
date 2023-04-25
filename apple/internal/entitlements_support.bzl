@@ -27,6 +27,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -190,30 +194,6 @@ def _extract_signing_info(
         profile_metadata = profile_metadata,
     )
 
-def _validate_bundle_id(bundle_id):
-    """Ensure the value is a valid bundle it or fail the build.
-
-    Args:
-      bundle_id: The string to check.
-    """
-
-    # Make sure the bundle id seems like a valid one. Apple's docs for
-    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
-    # only they they specifically document is the character set, so the other
-    # two checks here are just added safety to catch likely errors by developers
-    # setting things up.
-    bundle_id_parts = bundle_id.split(".")
-    for part in bundle_id_parts:
-        if part == "":
-            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
-        if not part.isalnum():
-            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
-            # handled by the split(), so just have to check for '-'.
-            for i in range(len(part)):
-                ch = part[i]
-                if ch != "-" and not ch.isalnum():
-                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
-
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
@@ -266,11 +246,7 @@ def _process_entitlements(
         are no entitlements being used in the build or no entitlements should be
         embedded via linking.
     """
-
-    # TODO(b/192450981): Move bundle ID validation out of entitlements
-    # processing and to a more common location so that rules that don't use
-    # entitlements also get validated.
-    _validate_bundle_id(bundle_id)
+    bundling_support.validate_bundle_id(bundle_id)
 
     signing_info = _extract_signing_info(
         actions = actions,

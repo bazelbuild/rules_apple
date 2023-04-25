@@ -19,9 +19,22 @@ load(
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
 )
-load(
-    "@build_bazel_rules_apple//apple:capabilities.bzl",
-    "bundle_id_suffix_source",
+
+# The different modes for sourcing the default suffix of a given bundle ID.
+#
+# These values can be used for the rules that support the `bundle_id_suffix` attribute to set the
+# desired behavior,
+#
+# * `bundle_name`: Source the default bundle ID suffix from the evaluated bundle name.
+# * `no_suffix`: Derive the bundle ID entirely from the base bundle ID, omitting the suffix.
+# * `watchos_app`: Predeclared string for watchOS applications. This suffix is required.
+# * `watchos2_app_extension`: Predeclared string for watchOS 2 application extensions. This suffix
+#   is required.
+bundle_id_suffix_source = struct(
+    bundle_name = "bundle_name",  # Predeclared string with invalid bundle ID characters.
+    no_suffix = "_",  # Predeclared string with invalid bundle ID characters.
+    watchos_app = "watchkitapp",
+    watchos2_app_extension = "watchkitapp.watchkitextension",
 )
 
 def _bundle_full_name(
@@ -318,10 +331,35 @@ def _ensure_path_format(attr, files, path_fragments_list, message = None):
         formatted_paths = "[\n  %s\n]" % ",\n  ".join(bad_paths.keys())
         fail("%s, but found the following: %s" % (message, formatted_paths), attr)
 
+def _validate_bundle_id(bundle_id):
+    """Ensure the value is a valid bundle it or fail the build.
+
+    Args:
+      bundle_id: The string to check.
+    """
+
+    # Make sure the bundle id seems like a valid one. Apple's docs for
+    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
+    # only they they specifically document is the character set, so the other
+    # two checks here are just added safety to catch likely errors by developers
+    # setting things up.
+    bundle_id_parts = bundle_id.split(".")
+    for part in bundle_id_parts:
+        if part == "":
+            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
+        if not part.isalnum():
+            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
+            # handled by the split(), so just have to check for '-'.
+            for i in range(len(part)):
+                ch = part[i]
+                if ch != "-" and not ch.isalnum():
+                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
+
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     bundle_full_name = _bundle_full_name,
     bundle_full_id = _bundle_full_id,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
+    validate_bundle_id = _validate_bundle_id,
 )
