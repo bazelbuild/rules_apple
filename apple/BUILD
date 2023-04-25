@@ -72,6 +72,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "capabilities",
+    srcs = ["capabilities.bzl"],
+    deps = [
+        ":providers",
+    ],
+)
+
+bzl_library(
     name = "cc_toolchain_forwarder",
     srcs = ["cc_toolchain_forwarder.bzl"],
     deps = [
