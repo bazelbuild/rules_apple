@@ -234,15 +234,6 @@ def _tvos_application_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = embeddable_targets,
-            label_name = label.name,
-            package_bitcode = True,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -506,14 +497,6 @@ def _tvos_framework_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-        ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
         partials.clang_rt_dylibs_partial(
@@ -738,14 +721,6 @@ def _tvos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,

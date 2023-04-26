@@ -249,12 +249,6 @@ reproducible error case.".format(
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            dependency_targets = [ctx.attr.extension],
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -492,14 +486,6 @@ def _watchos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = ctx.label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.extensions,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,

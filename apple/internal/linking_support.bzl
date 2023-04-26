@@ -39,24 +39,19 @@ def _debug_outputs_by_architecture(link_outputs):
     Returns:
         A `struct` containing three fields:
 
-        *   `bitcode_symbol_maps`: A mapping of architectures to Files representing bitcode symbol
-            maps for each architecture.
         *   `dsym_binaries`: A mapping of architectures to Files representing dSYM binary outputs
             for each architecture.
         *   `linkmaps`: A mapping of architectures to Files representing linkmaps for each
             architecture.
     """
-    bitcode_symbol_maps = {}
     dsym_binaries = {}
     linkmaps = {}
 
     for link_output in link_outputs:
-        bitcode_symbol_maps[link_output.architecture] = link_output.bitcode_symbols
         dsym_binaries[link_output.architecture] = link_output.dsym_binary
         linkmaps[link_output.architecture] = link_output.linkmap
 
     return struct(
-        bitcode_symbol_maps = bitcode_symbol_maps,
         dsym_binaries = dsym_binaries,
         linkmaps = linkmaps,
     )
@@ -312,10 +307,9 @@ def _link_multi_arch_binary(
     with minimal support for linking multiple architecture binaries from split dependencies.
 
     Specifically, this lacks support for:
-        - Generating Apple DSYMs binaries.
-        - Generating Apple bitcode symbols.
+        - Generating Apple dSYM binaries.
         - Generating Objective-C linkmaps.
-        - Avoid linking Objective-C(++) dependencies symbols (ie. avoid_deps).
+        - Avoid linking symbols from Objective-C(++) dependencies (i.e. avoid_deps).
 
     Args:
         actions: The actions provider from `ctx.actions`.
