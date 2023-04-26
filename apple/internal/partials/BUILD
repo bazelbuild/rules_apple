@@ -62,20 +62,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "bitcode_symbols",
-    srcs = ["bitcode_symbols.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "//apple/internal:intermediates",
-        "//apple/internal:processor",
-        "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
     visibility = [

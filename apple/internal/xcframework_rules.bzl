@@ -123,11 +123,10 @@ def _group_link_outputs_by_library_identifier(
         A list of structs with the following fields; `architectures` containing a list of the
         architectures that the binary was built with, `binary` referencing the output binary linked
         with the `lipo` tool if necessary, or referencing a symlink to the original binary if not,
-        `bitcode_symbol_maps` which is a mapping of architectures to bitcode symbol maps if any were
-        created, `dsym_binaries` which is a mapping of architectures to dsym binaries if any were
-        created, `environment` to reference the target environment the binary was built for,
-        `linkmaps` which is a mapping of architectures to linkmaps if any were created,  and
-        `platform` to reference the target platform the binary was built for.
+        `dsym_binaries` which is a mapping of architectures to dsym binaries if any were created,
+        `environment` to reference the target environment the binary was built for, `linkmaps` which
+        is a mapping of architectures to linkmaps if any were created, and `platform` to reference
+        the target platform the binary was built for.
     """
     linking_type = None
     for attr_name in ["binary", "library"]:
@@ -154,9 +153,8 @@ def _group_link_outputs_by_library_identifier(
     link_outputs_by_library_identifier = {}
 
     # Iterate through the structure again, this time creating a structure equivalent to link_result
-    # .outputs but with .architecture replaced with .architectures, .bitcode_symbols replaced with
-    # .bitcode_symbol_maps, .dsym_binary replaced with .dsym_binaries, and .linkmap replaced with
-    # .linkmaps
+    # .outputs but with .architecture replaced with .architectures, .dsym_binary replaced with
+    # .dsym_binaries, and .linkmap replaced with .linkmaps
     for framework_key, link_outputs in link_outputs_by_framework.items():
         inputs = [getattr(output, linking_type) for output in link_outputs]
         filename = "{}_{}".format(label_name, framework_key)
@@ -173,7 +171,6 @@ def _group_link_outputs_by_library_identifier(
         )
 
         architectures = []
-        bitcode_symbol_maps = {}
         dsym_binaries = {}
         linkmaps = {}
         split_attr_keys = []
@@ -197,9 +194,8 @@ def _group_link_outputs_by_library_identifier(
                     if SwiftInfo in dep:
                         swift_infos[link_output.architecture] = dep[SwiftInfo]
 
-            # static library linking does not support bitcode, dsym, and linkmaps yet.
+            # static library linking does not support dsym, and linkmaps yet.
             if linking_type == "binary":
-                bitcode_symbol_maps[link_output.architecture] = link_output.bitcode_symbols
                 dsym_binaries[link_output.architecture] = link_output.dsym_binary
                 linkmaps[link_output.architecture] = link_output.linkmap
 
@@ -215,7 +211,6 @@ def _group_link_outputs_by_library_identifier(
         link_outputs_by_library_identifier[library_identifier] = struct(
             architectures = architectures,
             binary = fat_binary,
-            bitcode_symbol_maps = bitcode_symbol_maps,
             dsym_binaries = dsym_binaries,
             environment = environment,
             linkmaps = linkmaps,
@@ -276,7 +271,6 @@ def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
 def _available_library_dictionary(
         *,
         architectures,
-        bitcode_symbol_maps,
         environment,
         headers_path,
         library_identifier,
@@ -287,8 +281,6 @@ def _available_library_dictionary(
      Args:
         architectures: The architectures of the target that was built. For example, `x86_64` or
             `arm64`.
-        bitcode_symbol_maps: A mapping of architectures to Files representing bitcode symbol maps
-            for each architecture.
         environment: The environment of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_common` linking APIs.
             Typically `device` or `simulator`.
@@ -312,17 +304,6 @@ def _available_library_dictionary(
         "SupportedArchitectures": architectures,
         "SupportedPlatform": platform,
     }
-
-    # If there are any bitcode symbol maps for this library, indicate that they are in the
-    # BCSymbolMaps subdir.
-    #
-    # The `BitcodeSymbolMapsPath` is relative to the `LibraryIdentifier`. If `LibraryIdentifier` is
-    # `ios-arm64_armv7`, then the path in the xcframework bundle to the bitcode symbol maps will be
-    # `ios-arm64_armv7/BCSymbolMaps`
-    for bitcode_symbol_map in bitcode_symbol_maps.values():
-        if bitcode_symbol_map:
-            available_library["BitcodeSymbolMapsPath"] = "BCSymbolMaps"
-            break
 
     if headers_path:
         available_library["HeadersPath"] = headers_path
@@ -595,14 +576,6 @@ def _apple_xcframework_impl(ctx):
                 label_name = label.name,
                 output_discriminator = library_identifier,
             ),
-            partials.bitcode_symbols_partial(
-                actions = actions,
-                binary_artifact = binary_artifact,
-                bitcode_symbol_maps = link_output.bitcode_symbol_maps,
-                label_name = label.name,
-                output_discriminator = library_identifier,
-                platform_prerequisites = platform_prerequisites,
-            ),
             partials.debug_symbols_partial(
                 actions = actions,
                 bundle_extension = nested_bundle_extension,
@@ -696,18 +669,6 @@ def _apple_xcframework_impl(ctx):
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
 
-            # Save the bitcode maps.
-            if getattr(provider, "bitcode", None):
-                bitcode_files = provider.bitcode.to_list()
-                for bitcode_file in bitcode_files:
-                    framework_archive_merge_files.append(
-                        struct(
-                            src = bitcode_file.path,
-                            dest = paths.join(library_identifier, "BCSymbolMaps"),
-                        ),
-                    )
-                framework_archive_files.append(provider.bitcode)
-
             # Save the dSYMs.
             if getattr(provider, "dsyms", None):
                 framework_output_files.append(depset(transitive = [provider.dsyms]))
@@ -721,7 +682,6 @@ def _apple_xcframework_impl(ctx):
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
             architectures = link_output.architectures,
-            bitcode_symbol_maps = link_output.bitcode_symbol_maps,
             environment = link_output.environment,
             headers_path = None,
             library_identifier = library_identifier,
@@ -1015,7 +975,6 @@ def _apple_static_xcframework_impl(ctx):
         available_libraries.append(
             _available_library_dictionary(
                 architectures = link_output.architectures,
-                bitcode_symbol_maps = {},
                 environment = link_output.environment,
                 headers_path = None,
                 library_identifier = library_identifier,

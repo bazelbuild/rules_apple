@@ -211,14 +211,6 @@ def _watchos_framework_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -459,14 +451,6 @@ def _watchos_dynamic_framework_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -710,12 +694,6 @@ def _watchos_application_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            dependency_targets = [ctx.attr.extension],
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -943,14 +921,6 @@ def _watchos_extension_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = ctx.label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = embeddable_targets,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,

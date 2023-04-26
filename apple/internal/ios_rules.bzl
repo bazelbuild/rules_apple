@@ -228,15 +228,6 @@ def _ios_application_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = embeddable_targets,
-            label_name = label.name,
-            package_bitcode = True,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -520,15 +511,6 @@ def _ios_app_clip_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = embeddable_targets,
-            label_name = label.name,
-            package_bitcode = True,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -781,14 +763,6 @@ def _ios_framework_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1015,14 +989,6 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -1266,14 +1232,6 @@ def _ios_dynamic_framework_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -1816,14 +1774,6 @@ def _ios_imessage_extension_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
-        ),
-        partials.bitcode_symbols_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bitcode_symbol_maps = debug_outputs.bitcode_symbol_maps,
-            dependency_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
