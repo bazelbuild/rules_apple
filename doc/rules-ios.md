@@ -659,6 +659,10 @@ ios_unit_test(
 )
 ```
 
+If you would like this test runner to generate xcresult bundles for your tests,
+pass `--test_env=CREATE_XCRESULT_BUNDLE=1`. It is preferable to use the `create_xcresult_bundle`
+on the test runner itself instead of this parameter.
+
 This rule automatically handles running x86_64 tests on arm64 hosts. The only
 exception is that if you want to generate xcresult bundles or run tests in
 random order, the test must have a test host. This is because of a limitation
