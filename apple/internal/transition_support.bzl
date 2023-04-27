@@ -45,21 +45,11 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "watchos": "//command_line_option:watchos_cpus",
 }
 
-# Should be kept in sync with constants from AppleCommandLineOptions in Bazel, currently ignoring
-# defaults that are dependent on the host arch.
-_PLATFORM_TYPE_TO_DEFAULT_ARCH = {
-    "ios": "x86_64",
-    "macos": "x86_64",
-    "tvos": "x86_64",
-    "watchos": "i386",
-}
-
-_32_BIT_APPLE_ARCHS = [
-    "i386",
-    "armv7",
-    "armv7s",
-    "armv7k",
-]
+# Set the default architecture for all platforms as 64-bit Intel.
+# TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
+# Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
+# dispatched the invocation.
+_DEFAULT_ARCH = "x86_64"
 
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
@@ -77,23 +67,6 @@ def _platform_specific_cpu_setting_name(platform_type):
     if not flag:
         fail("ERROR: Unknown platform type: {}".format(platform_type))
     return flag
-
-def _platform_specific_default_arch(platform_type):
-    """Returns the default architecture of a platform-specific CPU setting.
-
-    Args:
-        platform_type: A string denoting the platform type; `"ios"`, `"macos"`, `"tvos"`, or
-            `"watchos"`.
-
-    Returns:
-        The architecture string that is considered to be the default architecture for the given
-            platform type. This function never returns `None`; if the platform type is invalid, the
-            build fails.
-    """
-    default_arch = _PLATFORM_TYPE_TO_DEFAULT_ARCH.get(platform_type, None)
-    if not default_arch:
-        fail("ERROR: Unknown platform type: {}".format(platform_type))
-    return default_arch
 
 def _cpu_string(*, environment_arch, platform_type, settings = {}):
     """Generates a <platform>_<environment?>_<arch> string for the current target based on args.
@@ -142,7 +115,7 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
-        return "watchos_i386"
+        return "watchos_x86_64"
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
 
@@ -169,13 +142,9 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 
     dotted_minimum_os_version = apple_common.dotted_version(minimum_os_version)
 
-    if environment_arch in _32_BIT_APPLE_ARCHS:
-        if (platform_type == "ios" and
-            dotted_minimum_os_version >= apple_common.dotted_version("11.0")):
-            return False
-        if (platform_type == "watchos" and
-            dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
-            return False
+    if (environment_arch == "armv7k" and platform_type == "watchos" and
+        dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
+        return False
 
     return True
 
@@ -543,8 +512,7 @@ def _apple_platform_split_transition_impl(settings, attr):
                 if cpu_value.startswith("ios_"):
                     environment_archs = [cpu_value[4:]]
             if not environment_archs:
-                # Set the default architecture for the given platform type.
-                environment_archs = [_platform_specific_default_arch(platform_type)]
+                environment_archs = [_DEFAULT_ARCH]
         for environment_arch in environment_archs:
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,

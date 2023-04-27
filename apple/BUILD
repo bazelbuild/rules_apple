@@ -5,7 +5,6 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-# TODO(b/180572694): Remove ios_sim_arm64 after platforms based toolchain resolution supported.
 # Create a set of public config_settings that can be used in select()s.
 [
     config_setting(
@@ -16,17 +15,15 @@ licenses(["notice"])
         "darwin_x86_64",
         "darwin_arm64",
         "darwin_arm64e",
-        "ios_i386",
         "ios_x86_64",
-        "ios_armv7",
         "ios_arm64",
         "ios_sim_arm64",
         "tvos_x86_64",
         "tvos_arm64",
-        "watchos_i386",
         "watchos_arm64",
         "watchos_arm64_32",
         "watchos_armv7k",
+        "watchos_device_arm64",
     ]
 ]
 

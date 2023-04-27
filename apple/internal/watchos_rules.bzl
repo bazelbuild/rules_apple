@@ -613,14 +613,6 @@ def _watchos_extension_impl(ctx):
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
 
-    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("14.0"):
-        fail("""
-Single-target watchOS applications require an updated watchOS SDK provided by Xcode 14 or later.
-
-Resolved Xcode is version {xcode_version}.
-""".format(xcode_version = str(xcode_version_config.xcode_version())))
-
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os < apple_common.dotted_version("7.0"):
         fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
