@@ -18,6 +18,7 @@ Builds and bundles an iOS App Clip.
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_app_clip-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -31,7 +32,7 @@ Builds and bundles an iOS App Clip.
 | <a id="ios_app_clip-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_app_clip-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | <code>"loose"</code> |
 | <a id="ios_app_clip-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_app_clip-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_app_clip-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_app_clip-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_app_clip-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_app_clip-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
@@ -43,9 +44,10 @@ Builds and bundles an iOS App Clip.
 | <a id="ios_app_clip-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_app_clip-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_app_clip-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
-| <a id="ios_app_clip-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_app_clip-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_app_clip-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_app_clip-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_application"></a>
 
@@ -65,6 +67,7 @@ Builds and bundles an iOS Application.
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -80,7 +83,7 @@ Builds and bundles an iOS Application.
 | <a id="ios_application-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_application-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | <code>"loose"</code> |
 | <a id="ios_application-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_application-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_application-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_application-extensions"></a>extensions |  A list of iOS application extensions to include in the final application bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_application-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_application-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
@@ -97,10 +100,11 @@ Builds and bundles an iOS Application.
 | <a id="ios_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_application-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | <code>[]</code> |
 | <a id="ios_application-settings_bundle"></a>settings_bundle |  A resource bundle (e.g. <code>apple_bundle_import</code>) target that contains the files that make up the application's settings bundle. These files will be copied into the root of the final application bundle in a directory named <code>Settings.bundle</code>.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
-| <a id="ios_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_application-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_application-watch_application"></a>watch_application |  A <code>watchos_application</code> target that represents an Apple Watch application that should be embedded in the application bundle.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_build_test"></a>
 
@@ -125,7 +129,9 @@ ios_build_test(
 )
 ```
 
+
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -133,6 +139,7 @@ ios_build_test(
 | <a id="ios_build_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version that will be used as the deployment target when building the targets, represented as a dotted version number (for example, <code>"9.0"</code>).   | String | optional | <code>""</code> |
 | <a id="ios_build_test-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+
 
 <a id="ios_dynamic_framework"></a>
 
@@ -150,6 +157,7 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_dynamic_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -161,7 +169,7 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 | <a id="ios_dynamic_framework-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | <code>[]</code> |
 | <a id="ios_dynamic_framework-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_dynamic_framework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_dynamic_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_dynamic_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_dynamic_framework-extension_safe"></a>extension_safe |  If true, compiles and links this framework with <code>-application-extension</code>, restricting the binary to use only extension-safe APIs.   | Boolean | optional | <code>False</code> |
 | <a id="ios_dynamic_framework-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_dynamic_framework-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
@@ -174,9 +182,10 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 | <a id="ios_dynamic_framework-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_dynamic_framework-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_dynamic_framework-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
-| <a id="ios_dynamic_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_dynamic_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_dynamic_framework-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_dynamic_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_extension"></a>
 
@@ -199,6 +208,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -212,7 +222,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 | <a id="ios_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | <code>"loose"</code> |
 | <a id="ios_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_extension-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_extension-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_extension-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_extension-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
@@ -224,9 +234,10 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 | <a id="ios_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_extension-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., <code>AddressBook</code>, <code>QuartzCore</code>). <code>UIKit</code> and <code>Foundation</code> are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional | <code>[]</code> |
-| <a id="ios_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_framework"></a>
 
@@ -247,6 +258,7 @@ of those `ios_application` and/or `ios_extension` rules.
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -258,7 +270,7 @@ of those `ios_application` and/or `ios_extension` rules.
 | <a id="ios_framework-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to <code>codesign</code>.   | List of strings | optional | <code>[]</code> |
 | <a id="ios_framework-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_framework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_framework-extension_safe"></a>extension_safe |  If true, compiles and links this framework with <code>-application-extension</code>, restricting the binary to use only extension-safe APIs.   | Boolean | optional | <code>False</code> |
 | <a id="ios_framework-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_framework-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
@@ -271,9 +283,10 @@ of those `ios_application` and/or `ios_extension` rules.
 | <a id="ios_framework-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_framework-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_framework-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
-| <a id="ios_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_framework-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_framework-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_imessage_application"></a>
 
@@ -292,6 +305,7 @@ iOS iMessage applications do not have any dependencies, as it works mostly as a 
 for either an iOS iMessage extension or a Sticker Pack extension.
 
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -314,6 +328,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.
 | <a id="ios_imessage_application-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_imessage_application-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 
+
 <a id="ios_imessage_extension"></a>
 
 ## ios_imessage_extension
@@ -331,6 +346,7 @@ Builds and bundles an iOS iMessage Extension.
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_imessage_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -344,7 +360,7 @@ Builds and bundles an iOS iMessage Extension.
 | <a id="ios_imessage_extension-entitlements"></a>entitlements |  The entitlements file required for device builds of this target. If absent, the default entitlements from the provisioning profile will be used.<br><br>The following variables are substituted in the entitlements file: <code>$(CFBundleIdentifier)</code> with the bundle ID of the application and <code>$(AppIdentifierPrefix)</code> with the value of the <code>ApplicationIdentifierPrefix</code> key from the target's provisioning profile.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_imessage_extension-entitlements_validation"></a>entitlements_validation |  An [<code>entitlements_validation_mode</code>](/doc/types.md#entitlements-validation-mode) to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional | <code>"loose"</code> |
 | <a id="ios_imessage_extension-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_imessage_extension-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_imessage_extension-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_imessage_extension-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | required |  |
 | <a id="ios_imessage_extension-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_imessage_extension-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
@@ -355,9 +371,10 @@ Builds and bundles an iOS iMessage Extension.
 | <a id="ios_imessage_extension-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_imessage_extension-provisioning_profile"></a>provisioning_profile |  The provisioning profile (<code>.mobileprovision</code> file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_imessage_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
-| <a id="ios_imessage_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_imessage_extension-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_imessage_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_imessage_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_static_framework"></a>
 
@@ -411,6 +428,7 @@ i.e. `--features=-swift.no_generated_header`).
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_static_framework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -422,7 +440,7 @@ i.e. `--features=-swift.no_generated_header`).
 | <a id="ios_static_framework-deps"></a>deps |  A list of dependencies targets that will be linked into this target's binary. Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_static_framework-exclude_resources"></a>exclude_resources |  Indicates whether resources should be excluded from the bundle. This can be used to avoid unnecessarily bundling resources if the static framework is being distributed in a different fashion, such as a Cocoapod.   | Boolean | optional | <code>False</code> |
 | <a id="ios_static_framework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the <code>bundle_name</code> attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional | <code>""</code> |
-| <a id="ios_static_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>**private_extern**</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="ios_static_framework-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as <code>__private_extern__</code> (aka <code>visibility=hidden</code>) and will not be global in the output file.<br><br>See the man page documentation for <code>ld(1)</code> on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_static_framework-families"></a>families |  A list of device families supported by this extension. Valid values are <code>iphone</code> and <code>ipad</code>; at least one must be specified.   | List of strings | optional | <code>["iphone", "ipad"]</code> |
 | <a id="ios_static_framework-frameworks"></a>frameworks |  A list of framework targets (see [<code>ios_framework</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_static_framework-hdrs"></a>hdrs |  A list of <code>.h</code> files that will be publicly exposed by this framework. These headers should have framework-relative imports, and if non-empty, an umbrella header named <code>%{bundle_name}.h</code> will also be generated that imports all of the headers listed here.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
@@ -432,9 +450,10 @@ i.e. `--features=-swift.no_generated_header`).
 | <a id="ios_static_framework-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_static_framework-platform_type"></a>platform_type |  -   | String | optional | <code>"ios"</code> |
 | <a id="ios_static_framework-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
-| <a id="ios_static_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*<code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information.*   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
+| <a id="ios_static_framework-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   <code>stamp = 1</code>: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   <code>stamp = 0</code>: Always replace build information by constant values. This gives good build     result caching. *   <code>stamp = -1</code>: Embedding of build information is controlled by the <code>--[no]stamp</code> flag.   | Integer | optional | <code>-1</code> |
 | <a id="ios_static_framework-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_static_framework-umbrella_header"></a>umbrella_header |  An optional single .h file to use as the umbrella header for this framework. Usually, this header will have the same name as this target, so that clients can load the header using the #import &lt;MyFramework/MyFramework.h&gt; format. If this attribute is not specified (the common use case), an umbrella header will be generated under the same name as this target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_sticker_pack_extension"></a>
 
@@ -451,6 +470,7 @@ ios_sticker_pack_extension(<a href="#ios_sticker_pack_extension-name">name</a>, 
 Builds and bundles an iOS Sticker Pack Extension.
 
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -473,6 +493,7 @@ Builds and bundles an iOS Sticker Pack Extension.
 | <a id="ios_sticker_pack_extension-strings"></a>strings |  A list of <code>.strings</code> files, often localizable. These files are converted to binary plists (if they are not already) and placed in the root of the final bundle, unless a file's immediate containing directory is named <code>*.lproj</code>, in which case it will be placed under a directory with the same name in the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="ios_sticker_pack_extension-version"></a>version |  An <code>apple_bundle_version</code> target that represents the version for this target. See [<code>apple_bundle_version</code>](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 
+
 <a id="ios_test_runner"></a>
 
 ## ios_test_runner
@@ -480,6 +501,7 @@ Builds and bundles an iOS Sticker Pack Extension.
 <pre>
 ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
 </pre>
+
 
 Rule to identify an iOS runner that runs tests for iOS.
 
@@ -495,7 +517,9 @@ Outputs:
   Runfiles:
     files: The files needed during runtime for the test to be performed.
 
+
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -504,6 +528,7 @@ Outputs:
 | <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{"requires-darwin": ""}</code> |
 | <a id="ios_test_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of <code>xcrun simctl list runtimes</code>. ' 'E.g., 11.2, 9.3. By default, it is the latest supported version of the device type.'   | String | optional | <code>""</code> |
 | <a id="ios_test_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{}</code> |
+
 
 <a id="ios_ui_test"></a>
 
@@ -530,7 +555,9 @@ The following is a list of the `ios_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 
+
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -544,6 +571,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_ui_test-test_coverage_manifest"></a>test_coverage_manifest |  A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="ios_ui_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | <code>""</code> |
 | <a id="ios_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+
 
 <a id="ios_unit_test"></a>
 
@@ -578,6 +606,7 @@ of the attributes inherited by all test rules, please check the
 
 **ATTRIBUTES**
 
+
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
@@ -591,6 +620,7 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional | <code>""</code> |
 | <a id="ios_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 
+
 <a id="ios_xctestrun_runner"></a>
 
 ## ios_xctestrun_runner
@@ -599,6 +629,7 @@ of the attributes inherited by all test rules, please check the
 ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
                      <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
 </pre>
+
 
 This rule creates a test runner for iOS tests that uses xctestrun files to run
 hosted tests, and uses xctest directly to run logic tests.
@@ -633,7 +664,9 @@ exception is that if you want to generate xcresult bundles or run tests in
 random order, the test must have a test host. This is because of a limitation
 in Xcode.
 
+
 **ATTRIBUTES**
+
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
@@ -644,6 +677,7 @@ in Xcode.
 | <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional | <code>False</code> |
 | <a id="ios_xctestrun_runner-reuse_simulator"></a>reuse_simulator |  Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.   | Boolean | optional | <code>True</code> |
 | <a id="ios_xctestrun_runner-xcodebuild_args"></a>xcodebuild_args |  Arguments to pass to <code>xcodebuild</code> when running the test bundle. This means it will always use <code>xcodebuild test-without-building</code> to run the test bundle.   | List of strings | optional | <code>[]</code> |
+
 
 <a id="ios_ui_test_suite"></a>
 
@@ -660,13 +694,16 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
 [ios_ui_test]: #ios_ui_test
 
+
 **PARAMETERS**
+
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="ios_ui_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="ios_ui_test_suite-runners"></a>runners |  a list of runner targets   |  <code>None</code> |
 | <a id="ios_ui_test_suite-kwargs"></a>kwargs |  passed to the [ios_ui_test]   |  none |
+
 
 <a id="ios_unit_test_suite"></a>
 
@@ -680,12 +717,17 @@ Generates a [test_suite] containing an [ios_unit_test] for each of the given `ru
 
 `ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is replaced by `runners`.
 
+[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
 [ios_unit_test]: #ios_unit_test
 
+
 **PARAMETERS**
+
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="ios_unit_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
 | <a id="ios_unit_test_suite-runners"></a>runners |  a list of runner targets   |  <code>None</code> |
 | <a id="ios_unit_test_suite-kwargs"></a>kwargs |  passed to the [ios_unit_test]   |  none |
+
+
