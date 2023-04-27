@@ -442,7 +442,7 @@ ios_application(
 
 <pre>
 experimental_mixed_language_library(<a href="#experimental_mixed_language_library-name">name</a>, <a href="#experimental_mixed_language_library-srcs">srcs</a>, <a href="#experimental_mixed_language_library-deps">deps</a>, <a href="#experimental_mixed_language_library-module_name">module_name</a>, <a href="#experimental_mixed_language_library-objc_copts">objc_copts</a>, <a href="#experimental_mixed_language_library-swift_copts">swift_copts</a>,
-                                    <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
+                                    <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-testonly">testonly</a>, <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
 </pre>
 
 Compiles and links Objective-C and Swift code into a static library.
@@ -472,6 +472,7 @@ modules---it does not support for header maps or Clang modules.
 | <a id="experimental_mixed_language_library-objc_copts"></a>objc_copts |  Additional compiler options that should be passed to <code>clang</code>.   |  <code>[]</code> |
 | <a id="experimental_mixed_language_library-swift_copts"></a>swift_copts |  Additional compiler options that should be passed to <code>swiftc</code>. These strings are subject to <code>$(location ...)</code> and "Make" variable expansion.   |  <code>[]</code> |
 | <a id="experimental_mixed_language_library-swiftc_inputs"></a>swiftc_inputs |  Additional files that are referenced using <code>$(location...)</code> in <code>swift_copts</code>.   |  <code>[]</code> |
+| <a id="experimental_mixed_language_library-testonly"></a>testonly |  If True, only testonly targets (such as tests) can depend on this target. Default False.   |  <code>False</code> |
 | <a id="experimental_mixed_language_library-kwargs"></a>kwargs |  Other arguments to pass through to the underlying <code>objc_library</code>.   |  none |
 
 
