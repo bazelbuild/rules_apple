@@ -23,12 +23,12 @@ swift_library(
 )
 
 experimental_mixed_language_library(
-  name = "MixedTestsLib",
-  srcs = [
-    "MixedTests.m",
-    "MixedTests.swift",
-  ],
-  testonly = True,
+    name = "MixedTestsLib",
+    testonly = True,
+    srcs = [
+        "MixedTests.m",
+        "MixedTests.swift",
+    ],
 )
 
 ios_unit_test(
