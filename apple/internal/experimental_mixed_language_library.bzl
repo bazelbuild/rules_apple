@@ -197,6 +197,7 @@ def experimental_mixed_language_library(
         objc_copts = [],
         swift_copts = [],
         swiftc_inputs = [],
+        testonly = False,
         **kwargs):
     """Compiles and links Objective-C and Swift code into a static library.
 
@@ -227,6 +228,8 @@ def experimental_mixed_language_library(
             variable expansion.
         swiftc_inputs: Additional files that are referenced using
             `$(location...)` in `swift_copts`.
+        testonly: If True, only testonly targets (such as tests) can depend on
+            this target. Default False.
         **kwargs: Other arguments to pass through to the underlying
             `objc_library`.
     """
@@ -290,6 +293,7 @@ target only contains Objective-C files.""")
         hdrs = hdrs,
         module_name = module_name,
         textual_hdrs = textual_hdrs,
+        testonly = testonly,
     )
 
     swiftc_inputs = swiftc_inputs + hdrs + textual_hdrs + private_hdrs + [":" + objc_module_map_name]
@@ -312,6 +316,7 @@ target only contains Objective-C files.""")
         module_name = module_name,
         srcs = swift_srcs,
         swiftc_inputs = swiftc_inputs,
+        testonly = testonly,
     )
 
     umbrella_module_map = name + ".internal.umbrella"
@@ -320,6 +325,7 @@ target only contains Objective-C files.""")
         deps = [":" + swift_library_name],
         hdrs = hdrs,
         module_name = module_name,
+        testonly = testonly,
     )
     objc_deps.append(":" + umbrella_module_map)
 
@@ -335,5 +341,6 @@ target only contains Objective-C files.""")
         ],
         module_map = umbrella_module_map,
         srcs = objc_srcs,
+        testonly = testonly,
         **kwargs
     )
