@@ -850,7 +850,7 @@ built for those platform variants (for example, `x86_64`, `arm64`) as their valu
                 doc = """
 A dictionary of strings indicating which platform variants should be built for the tvOS platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
-built for those platform variants (for example, `i386`, `arm64`) as their values.
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
             ),
             "minimum_deployment_os_versions": attr.string_dict(

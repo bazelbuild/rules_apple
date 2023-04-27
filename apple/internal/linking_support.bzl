@@ -173,6 +173,8 @@ def _register_binary_linking_action(
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device:
             fail("entitlements should be None when targeting a device")
+        # Add an entitlements and a DER entitlements section, required of all Simulator builds that
+        # define entitlements. This is never addressed by /usr/bin/codesign and must be done here.
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(
                 segment = "__TEXT",
@@ -182,25 +184,21 @@ def _register_binary_linking_action(
         )
         link_inputs.append(entitlements)
 
-        xcode_version_config = platform_prerequisites.xcode_version_config
-        if xcode_version_config.xcode_version() >= apple_common.dotted_version("14.0"):
-            # Add the __ents_der section to all simulator builds that specify entitlements for Xcode
-            # 14 and later.
-            der_entitlements = entitlements_support.generate_der_entitlements(
-                actions = ctx.actions,
-                apple_fragment = platform_prerequisites.apple_fragment,
-                entitlements = entitlements,
-                label_name = ctx.label.name,
-                xcode_version_config = xcode_version_config,
-            )
-            linkopts.append(
-                "-Wl,-sectcreate,{segment},{section},{file}".format(
-                    segment = "__TEXT",
-                    section = "__ents_der",
-                    file = der_entitlements.path,
-                ),
-            )
-            link_inputs.append(der_entitlements)
+        der_entitlements = entitlements_support.generate_der_entitlements(
+            actions = ctx.actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            entitlements = entitlements,
+            label_name = ctx.label.name,
+            xcode_version_config = platform_prerequisites.xcode_version_config,
+        )
+        linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__ents_der",
+                file = der_entitlements.path,
+            ),
+        )
+        link_inputs.append(der_entitlements)
 
     # TODO(b/248317958): Migrate rule_descriptor.rpaths as direct inputs of the extra_linkopts arg
     # on this method.
