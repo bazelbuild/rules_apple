@@ -52,19 +52,14 @@ import os.path
 import platform
 import plistlib
 import subprocess
-import sys
 import tempfile
 import time
-from typing import Dict, Generator, Optional
+from typing import Dict, Optional
 import zipfile
 
 
 # Custom type for methods yielding an Apple simulator UDID.
-# TODO(b/256029048): Remove once Xcode 14 is the minimum supported version.
-if sys.version_info >= (3, 9):
-  AppleSimulatorUDID = collections.abc.Generator[str, None, None]
-else:
-  AppleSimulatorUDID = Generator[str, None, None]
+AppleSimulatorUDID = collections.abc.Generator[str, None, None]
 
 
 logging.basicConfig(
