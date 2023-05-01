@@ -25,6 +25,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
     "bundling_support",
 )
 load(
@@ -127,11 +128,18 @@ def _watchos_extension_based_application_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
+    )
+
+    bundle_id = bundling_support.bundle_full_id(
+        bundle_id = ctx.attr.bundle_id,
+        bundle_id_suffix = ctx.attr.bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = ctx.attr._bundle_id_suffix_default,
+        shared_capabilities = ctx.attr.shared_capabilities,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
@@ -361,11 +369,18 @@ def _watchos_extension_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
+    )
+
+    bundle_id = bundling_support.bundle_full_id(
+        bundle_id = ctx.attr.bundle_id,
+        bundle_id_suffix = ctx.attr.bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = ctx.attr._bundle_id_suffix_default,
+        shared_capabilities = ctx.attr.shared_capabilities,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
@@ -633,11 +648,17 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
+    )
+    bundle_id = bundling_support.bundle_full_id(
+        bundle_id = ctx.attr.bundle_id,
+        bundle_id_suffix = ctx.attr.bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = ctx.attr._bundle_id_suffix_default,
+        shared_capabilities = ctx.attr.shared_capabilities,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.deps
@@ -872,7 +893,6 @@ watchos_application = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = apple_common.multi_arch_split,
         ),
@@ -881,13 +901,14 @@ watchos_application = rule_factory.create_apple_rule(
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
-        rule_attrs.entitlements_attrs,
         rule_attrs.infoplist_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "watchos",
         ),
-        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.watchos_app,
+        ),
         {
             # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr and check for
             # the incoming AppleBundleInfo product_type.
@@ -933,7 +954,6 @@ watchos_extension = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = apple_common.multi_arch_split,
         ),
@@ -942,13 +962,14 @@ watchos_extension = rule_factory.create_apple_rule(
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
-        rule_attrs.entitlements_attrs,
         rule_attrs.infoplist_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "watchos",
         ),
-        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.watchos2_app_extension,
+        ),
         {
             # TODO(b/155313625): Support extensions within a `watchos_extension`, add validation to
             # make sure that this is only possible within an extension that contains code for the

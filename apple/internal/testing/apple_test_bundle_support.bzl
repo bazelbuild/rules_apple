@@ -245,6 +245,7 @@ def _apple_test_info_provider(deps, test_bundle, test_host):
 
 def _computed_test_bundle_id(test_host_bundle_id):
     """Compute a test bundle ID from the test host, or a default if not given."""
+
     if test_host_bundle_id:
         bundle_id = test_host_bundle_id + "Tests"
     else:
@@ -263,8 +264,24 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
-    if ctx.attr.bundle_id:
-        bundle_id = ctx.attr.bundle_id
+
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = product_type,
+    )
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    if ctx.attr.base_bundle_id or ctx.attr.bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
     else:
         bundle_id = _computed_test_bundle_id(test_host_bundle_id)
 
@@ -273,19 +290,9 @@ def _apple_test_bundle_impl(*, ctx, product_type):
              "same as the test host's bundle identifier. Please change one of " +
              "them.")
 
-    rule_descriptor = rule_support.rule_descriptor(
-        platform_type = ctx.attr.platform_type,
-        product_type = product_type,
-    )
-
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_name, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = ctx.attr.bundle_name,
-        label_name = ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,

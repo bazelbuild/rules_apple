@@ -489,6 +489,7 @@ bzl_library(
     ],
     deps = [
         ":apple_toolchains",
+        ":bundling_support",
         "//apple:common",
         "//apple:providers",
         "//apple/internal/aspects:app_intents_aspect",

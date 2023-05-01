@@ -28,13 +28,6 @@ def apple_capability_test_suite(name):
       name: the base name to be used in things created by this macro
     """
     analysis_failure_message_test(
-        name = "{}_empty_base_bundle_id_fail_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/capabilities:empty_base_bundle_id",
-        expected_error = "Empty segment in bundle_id: \"\"",
-        tags = [name],
-    )
-
-    analysis_failure_message_test(
         name = "{}_just_dot_base_bundle_id_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple/capabilities:just_dot_base_bundle_id",
         expected_error = "Empty segment in bundle_id: \".\"",

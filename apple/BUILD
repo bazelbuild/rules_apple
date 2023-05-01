@@ -117,6 +117,8 @@ bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [
+        "//apple/internal:bundling_support",
+        "//apple/internal:capabilities_rules",
         "//apple/internal:macos_binary_support",
         "//apple/internal:macos_rules",
         "//apple/internal/testing:apple_test_assembler",
