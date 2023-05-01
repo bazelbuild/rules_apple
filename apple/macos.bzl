@@ -30,6 +30,11 @@ load(
     _macos_unit_test = "macos_unit_test",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
     "macos_binary_infoplist",
     "macos_command_line_launchdplist",
@@ -107,17 +112,28 @@ def macos_command_line_application(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     launchdplists = binary_args.get("launchdplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
+        bundle_full_id = ""
+        if base_bundle_id or bundle_id:
+            bundle_full_id = bundling_support.bundle_full_id(
+                base_bundle_id = base_bundle_id,
+                bundle_id = bundle_id,
+                bundle_id_suffix = binary_args.get("bundle_id_suffix"),
+                bundle_name = name,
+                suffix_default = bundle_id_suffix_default.no_suffix,
+            )
+
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
-            bundle_id = bundle_id,
+            bundle_id = bundle_full_id,
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,
@@ -161,16 +177,27 @@ def macos_dylib(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
+        bundle_full_id = ""
+        if base_bundle_id or bundle_id:
+            bundle_full_id = bundling_support.bundle_full_id(
+                base_bundle_id = base_bundle_id,
+                bundle_id = bundle_id,
+                bundle_id_suffix = binary_args.get("bundle_id_suffix"),
+                bundle_name = name,
+                suffix_default = bundle_id_suffix_default.no_suffix,
+            )
+
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
-            bundle_id = bundle_id,
+            bundle_id = bundle_full_id,
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,

@@ -23,6 +23,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
     "app_intents_aspect",
 )
@@ -48,9 +52,11 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBaseBundleIdInfo",
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "AppleResourceBundleInfo",
+    "AppleSharedCapabilityInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -413,19 +419,117 @@ the symbols from the test host app
         ),
     }
 
-def _bundle_id_attrs(*, is_mandatory):
+def _signing_attrs(
+        *,
+        default_bundle_id_suffix = bundle_id_suffix_default.no_suffix,
+        supports_capabilities = True,
+        profile_extension = ".mobileprovision"):
     """Returns the attribute required to support custom bundle identifiers for the given target.
 
     Args:
-        is_mandatory: Bool to indicate if the bundle_id should be marked as mandatory such that the
-            bundle_id must be given explicitly by the user.
+        default_bundle_id_suffix: String. A value from the bundle_id_suffix_default struct that will
+            be used to indicate the default source for the bundle ID suffix, if one is composed from
+            a base bundle ID.
+        supports_capabilities: Boolean. Indicates if the attributes generated should support
+            entitlements and capabilities for code signing.
+        profile_extension: A file extension that will be required for the provisioning profile.
+            Optional. This is `.mobileprovision` by default.
     """
-    return {
+    signing_attrs = {
+        "_bundle_id_suffix_default": attr.string(
+            default = default_bundle_id_suffix,
+            doc = """
+An internally-defined string to indicate the default suffix of the bundle ID, independent from the
+user-specified `bundle_id_suffix`. This acts as a constraint to force the _signing_attrs-assigned
+bundle_id_suffix_default arg to be sourced from a common struct, and allows for better handling
+special cases like sourcing the bundle name or handling a no-suffix case.
+""",
+            values = [
+                bundle_id_suffix_default.no_suffix,
+                bundle_id_suffix_default.bundle_name,
+                bundle_id_suffix_default.watchos_app,
+                bundle_id_suffix_default.watchos2_app_extension,
+            ],
+        ),
         "bundle_id": attr.string(
-            mandatory = is_mandatory,
-            doc = "The bundle ID (reverse-DNS path followed by app name) for this target.",
+            doc = """
+The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if
+the bundle ID is not intended to be composed through an assigned base bundle ID rule found within
+`signed_capabilities`.
+""" if supports_capabilities else """
+The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if
+the bundle ID is not intended to be composed through an assigned base bundle ID referenced by
+`base_bundle_id`.
+""",
+        ),
+        "bundle_id_suffix": attr.string(
+            default = default_bundle_id_suffix,
+            doc = """
+A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from
+a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the
+end of the bundle ID following a "." separator.
+""" if supports_capabilities else """
+A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from
+the base bundle ID rule referenced by `base_bundle_id`, then this string will be appended to the end
+of the bundle ID following a "." separator.
+""",
+        ),
+        "provisioning_profile": attr.label(
+            allow_single_file = [profile_extension],
+            doc = """
+The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
+optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
+required for device builds.
+""".format(profile_extension = profile_extension),
         ),
     }
+    if supports_capabilities:
+        signing_attrs = dicts.add(signing_attrs, {
+            "entitlements": attr.label(
+                allow_single_file = True,
+                doc = """
+The entitlements file required for device builds of this target. If absent, the default entitlements
+from the provisioning profile will be used.
+
+The following variables are substituted in the entitlements file: `$(CFBundleIdentifier)` with the
+bundle ID of the application and `$(AppIdentifierPrefix)` with the value of the
+`ApplicationIdentifierPrefix` key from the target's provisioning profile.
+""",
+            ),
+            "entitlements_validation": attr.string(
+                default = entitlements_validation_mode.loose,
+                doc = """
+An `entitlements_validation_mode` to control the validation of the requested entitlements against
+the provisioning profile to ensure they are supported.
+""",
+                values = [
+                    entitlements_validation_mode.error,
+                    entitlements_validation_mode.warn,
+                    entitlements_validation_mode.loose,
+                    entitlements_validation_mode.skip,
+                ],
+            ),
+            "shared_capabilities": attr.label_list(
+                providers = [[AppleSharedCapabilityInfo]],
+                doc = """
+A list of shared `apple_capability_set` rules to represent the capabilities that a code sign aware
+Apple bundle rule output should have. These can define the formal prefix for the target's
+`bundle_id` and can further be merged with information provided by `entitlements`, if defined by any
+capabilities found within the `apple_capability_set`.
+""",
+            ),
+        })
+    else:
+        signing_attrs = dicts.add(signing_attrs, {
+            "base_bundle_id": attr.label(
+                providers = [[AppleBaseBundleIdInfo]],
+                doc = """
+The base bundle ID rule to dictate the form that a given bundle rule's bundle ID prefix should take.
+""",
+            ),
+        })
+
+    return signing_attrs
 
 def _infoplist_attrs(*, default_infoplist = None):
     """Returns the attributes required to support a root Info.plist for the given target.
@@ -451,24 +555,6 @@ must be specified. Please see
 for what is supported.
 """,
             **attr_args
-        ),
-    }
-
-def _provisioning_profile_attrs(*, profile_extension = ".mobileprovision"):
-    """Returns the attribute required to assign a custom provisioning profile for the given target.
-
-    Args:
-        profile_extension: A file extension that will be required for the provisioning profile.
-            Optional. This is `.mobileprovision` by default.
-    """
-    return {
-        "provisioning_profile": attr.label(
-            allow_single_file = [profile_extension],
-            doc = """
-The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
-optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
-required for device builds.
-""".format(profile_extension = profile_extension),
         ),
     }
 
@@ -613,34 +699,6 @@ _SIMULATOR_RUNNER_TEMPLATE_ATTR = {
     ),
 }
 
-# Returns the attributes required to support entitlements for a given target.
-_ENTITLEMENTS_ATTRS = {
-    "entitlements": attr.label(
-        allow_single_file = True,
-        doc = """
-The entitlements file required for device builds of this target. If absent, the default entitlements
-from the provisioning profile will be used.
-
-The following variables are substituted in the entitlements file: `$(CFBundleIdentifier)` with the
-bundle ID of the application and `$(AppIdentifierPrefix)` with the value of the
-`ApplicationIdentifierPrefix` key from the target's provisioning profile.
-""",
-    ),
-    "entitlements_validation": attr.string(
-        default = entitlements_validation_mode.loose,
-        doc = """
-An `entitlements_validation_mode` to control the validation of the requested entitlements against
-the provisioning profile to ensure they are supported.
-""",
-        values = [
-            entitlements_validation_mode.error,
-            entitlements_validation_mode.warn,
-            entitlements_validation_mode.loose,
-            entitlements_validation_mode.skip,
-        ],
-    ),
-}
-
 # Returns the aspects required to support a test host for a given target.
 _TEST_HOST_ASPECTS = [framework_provider_aspect]
 
@@ -652,19 +710,17 @@ rule_attrs = struct(
     app_intents_attrs = _app_intents_attrs,
     aspects = struct(test_host_aspects = _TEST_HOST_ASPECTS),
     binary_linking_attrs = _binary_linking_attrs,
-    bundle_id_attrs = _bundle_id_attrs,
     cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
     common_attrs = _COMMON_ATTRS,
     common_bundle_attrs = _common_bundle_attrs,
     common_tool_attrs = _COMMON_TOOL_ATTRS,
     custom_transition_allowlist_attr = _CUSTOM_TRANSITION_ALLOWLIST_ATTR,
     device_family_attrs = _device_family_attrs,
-    entitlements_attrs = _ENTITLEMENTS_ATTRS,
     infoplist_attrs = _infoplist_attrs,
     launch_images_attrs = _LAUNCH_IMAGES_ATTRS,
     platform_attrs = _platform_attrs,
-    provisioning_profile_attrs = _provisioning_profile_attrs,
     settings_bundle_attrs = _SETTINGS_BUNDLE_ATTRS,
+    signing_attrs = _signing_attrs,
     simulator_runner_template_attr = _SIMULATOR_RUNNER_TEMPLATE_ATTR,
     static_library_linking_attrs = _static_library_linking_attrs,
     test_bundle_attrs = _TEST_BUNDLE_ATTRS,
