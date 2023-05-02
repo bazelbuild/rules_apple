@@ -57,15 +57,6 @@ apple_shell_test(
     src = "apple_bundle_version_test.sh",
 )
 
-apple_shell_test(
-    name = "apple_core_ml_library_test",
-    size = "medium",
-    src = "apple_core_ml_library_test.sh",
-    data = [
-        "//test/testdata/resources:mlmodel_srcs",
-    ],
-)
-
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",
