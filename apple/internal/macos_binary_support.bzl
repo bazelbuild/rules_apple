@@ -25,7 +25,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundle_id_suffix_default",
     "bundling_support",
 )
 load(
@@ -163,17 +162,11 @@ macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
+        rule_attrs.signing_attrs(
+            supports_capabilities = False,
+            profile_extension = ".provisionprofile",  # Unused, but staying consistent with macOS.
+        ),
         {
-            # TODO(b/528905595): Reference rule_attrs.signing_attrs here, ignoring the unnecessary,
-            # optional provisioning_profile attribute as this is an internal rule, and that will be
-            # a no-op.
-            "_bundle_id_suffix_default": attr.string(default = bundle_id_suffix_default.no_suffix),
-            "base_bundle_id": attr.label(mandatory = False),
-            "bundle_id": attr.string(mandatory = False),
-            "bundle_id_suffix": attr.string(
-                mandatory = False,
-                default = bundle_id_suffix_default.no_suffix,
-            ),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
