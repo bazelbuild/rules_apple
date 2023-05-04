@@ -165,6 +165,41 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
+    binary_contents_test(
+        name = "{}_version_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        embedded_plist_test_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "1.2.3",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "macosx",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "macosx*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "LSMinimumSystemVersion": "10.13",
+        },
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_with_base_bundle_id_derived_bundle_id",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        embedded_plist_test_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.cmd-app-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
