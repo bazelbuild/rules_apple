@@ -34,6 +34,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
 
 def macos_bundle_test_suite(name):
     """Test suite for macos_bundle.
@@ -164,6 +168,17 @@ def macos_bundle_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         expected_direct_dsyms = ["dSYMs/bundle_dsyms/bundle.bundle.dSYM"],
         expected_transitive_dsyms = ["dSYMs/bundle_dsyms/bundle.bundle.dSYM"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_with_capability_set_derived_bundle_id",
+        expected_values = {
+            # TODO(b/270375044): The default should instead be based on the bundle name.
+            # macos_bundle is often a type of loadable bundle; see the bundle_loader attribute.
+            "CFBundleIdentifier": "com.bazel.app.example",
+        },
         tags = [name],
     )
 
