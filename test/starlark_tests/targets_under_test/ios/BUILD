@@ -3373,7 +3373,6 @@ ios_extension(
 
 ios_framework(
     name = "fmwk_with_base_bundle_id_derived_bundle_id",
-    hdrs = ["//test/starlark_tests/resources:common.h"],
     base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
     bundle_name = "fmwk-with-base-bundle-id-derived-bundle-id",
     families = [
@@ -3389,5 +3388,84 @@ ios_framework(
     deps = [
         "//test/starlark_tests/resources:framework_resources_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_imessage_application(
+    name = "imessage_app_with_capability_set_derived_bundle_id",
+    bundle_name = "imessage-app-with-capability-set-derived-bundle-id",
+    extension = ":sticker_ext_with_capability_set_derived_bundle_id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_sticker_pack_extension(
+    name = "sticker_ext_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "imessage-app-with-capability-set-derived-bundle-id.sticker-ext-with-capability-set-derived-bundle-id",
+    bundle_name = "sticker-ext-with-capability-set-derived-bundle-id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:StickerPackInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    sticker_assets = [],
+    tags = common.fixture_tags,
+)
+
+ios_ui_test(
+    name = "ui_test_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "ui-test-with-base-bundle-id-derived-bundle-id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "unit-test-with-base-bundle-id-derived-bundle-id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
