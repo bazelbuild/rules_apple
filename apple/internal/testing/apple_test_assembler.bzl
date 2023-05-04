@@ -26,7 +26,9 @@ _BUNDLE_ATTRS = {
     for x in [
         "additional_contents",
         "deps",
+        "base_bundle_id",
         "bundle_id",
+        "bundle_id_suffix",
         "families",
         "frameworks",
         "infoplists",
