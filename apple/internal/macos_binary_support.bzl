@@ -25,6 +25,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
     "bundling_support",
 )
 load(
@@ -91,7 +92,16 @@ def _macos_binary_infoplist_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    bundle_id = ctx.attr.bundle_id
+    bundle_id = ""
+    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
+
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -161,7 +171,16 @@ macos_binary_infoplist = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
         {
+            # TODO(b/528905595): Reference rule_attrs.signing_attrs here, ignoring the unnecessary,
+            # optional provisioning_profile attribute as this is an internal rule, and that will be
+            # a no-op.
+            "_bundle_id_suffix_default": attr.string(default = bundle_id_suffix_default.no_suffix),
+            "base_bundle_id": attr.label(mandatory = False),
             "bundle_id": attr.string(mandatory = False),
+            "bundle_id_suffix": attr.string(
+                mandatory = False,
+                default = bundle_id_suffix_default.no_suffix,
+            ),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
