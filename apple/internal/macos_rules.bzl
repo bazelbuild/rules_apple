@@ -2047,6 +2047,7 @@ macos_bundle = rule_factory.create_apple_rule(
             platform_type = "macos",
         ),
         rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
             profile_extension = ".provisionprofile",
         ),
         {
