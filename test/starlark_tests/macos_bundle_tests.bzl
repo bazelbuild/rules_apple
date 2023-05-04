@@ -175,9 +175,7 @@ def macos_bundle_test_suite(name):
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_with_capability_set_derived_bundle_id",
         expected_values = {
-            # TODO(b/270375044): The default should instead be based on the bundle name.
-            # macos_bundle is often a type of loadable bundle; see the bundle_loader attribute.
-            "CFBundleIdentifier": "com.bazel.app.example",
+            "CFBundleIdentifier": "com.bazel.app.example.bundle-with-capability-set-derived-bundle-id",
         },
         tags = [name],
     )
