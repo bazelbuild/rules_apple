@@ -110,8 +110,6 @@ A list of input files to be passed to the linker.
             "avoid_deps": attr.label_list(
                 cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
-                # Flag required for compile_one_dependency
-                flags = ["DIRECT_COMPILE_TIME_INPUT"],
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -126,8 +124,6 @@ Files to be made available to the library archive upon execution.
             "deps": attr.label_list(
                 cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
-                # Flag required for compile_one_dependency
-                flags = ["DIRECT_COMPILE_TIME_INPUT"],
                 doc = """
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
