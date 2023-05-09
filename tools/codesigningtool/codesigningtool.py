@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Tool wrapping code signing actions."""
 
 import argparse
 import os
@@ -18,6 +19,7 @@ import plistlib
 import re
 import subprocess
 import sys
+from typing import Optional, Union
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
@@ -212,44 +214,51 @@ def _filter_paths_already_signed(all_paths_to_sign, signed_paths):
   return [p for p in all_paths_to_sign if p not in signed_paths]
 
 
-def generate_arg_parser():
-  """Returns the arugment parser for the code signing tool."""
-  parser = argparse.ArgumentParser(description="codesign wrapper")
-  parser.add_argument(
+def add_parser_arguments(
+    parser_or_argument_group: Union[
+        argparse.ArgumentParser, argparse._ArgumentGroup
+    ]) -> None:
+  """Adds required arguments for the code signing tool.
+
+  Args:
+    parser_or_argument_group: ArgumentParser or ArgumentGroup to add codesigning
+      tool required arguments.
+  """
+  parser_or_argument_group.add_argument(
       "--target_to_sign", type=str, action="append", help="full file system "
       "paths to a target to code sign"
   )
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--directory_to_sign", type=str, action="append", help="full file system "
       "paths to a directory to code sign, if the directory doesn't exist this "
       "script will do nothing"
   )
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--mobileprovision", type=str, help="mobileprovision file")
-  parser.add_argument(
-      "--codesign", required=True, type=str, help="path to codesign binary")
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
+      "--codesign", type=str, help="path to codesign binary")
+  parser_or_argument_group.add_argument(
       "--identity", type=str, help="specific identity to sign with")
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--signed_path", type=str, action="append", help="a path that has "
       "already been signed"
   )
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--entitlements", type=str, help="file with entitlement data to forward "
       "to the code signing tool"
   )
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--force", action="store_true", help="replace any existing signature on "
       "the path(s) given"
   )
-  parser.add_argument(
+  parser_or_argument_group.add_argument(
       "--disable_timestamp", action="store_true", help="disables the use of "
       "timestamp services"
   )
-  return parser
 
 
-def main(args):
+def find_identity_and_sign_bundle_paths(args: argparse.Namespace) -> int:
+  """Finds code signing identity and signs a set of Apple bundle paths."""
   identity = args.identity
   if identity is None:
     identity = _find_codesign_identity(args.mobileprovision)
@@ -293,6 +302,16 @@ def main(args):
         full_path_to_sign=path_to_sign,
     )
 
+  return 0
+
+
+def _main():
+  """Parses arguments and invokes find_identity_and_sign_bundle_paths."""
+  parser = argparse.ArgumentParser(description="codesign wrapper")
+  add_parser_arguments(parser)
+  args = parser.parse_args()
+  return find_identity_and_sign_bundle_paths(args)
+
 
 if __name__ == "__main__":
-  sys.exit(main(generate_arg_parser().parse_args()))
+  sys.exit(_main())

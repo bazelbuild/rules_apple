@@ -168,7 +168,12 @@ def _framework_import_partial_impl(
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         )
-        args.add_all(codesign_args)
+        if codesign_args:
+            args.add_all(codesign_args)
+        else:
+            # Add required argument to disable signing because
+            # code sign arguments are mutually exclusive groups.
+            args.add("--disable_signing")
 
         resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
         resolved_imported_dynamic_framework_processor = apple_mac_toolchain_info.resolved_imported_dynamic_framework_processor
