@@ -19,6 +19,10 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_bundle_version_info_test.bzl",
+    "apple_bundle_version_info_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -132,6 +136,24 @@ def apple_bundle_version_test_suite(name):
             "CFBundleVersion": "1.2.3",
             "CFBundleShortVersionString": "1.2",
         },
+        tags = [name],
+    )
+
+    apple_bundle_version_info_test(
+        name = "{}_full_bundle_version_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:manual_1_2_build_1_2_3_version",
+        expected_build_version = "1.2.3",
+        expected_short_version_string = "1.2",
+        expected_version_file = "manual_1_2_build_1_2_3_version.bundle_version",
+        tags = [name],
+    )
+
+    apple_bundle_version_info_test(
+        name = "{}_only_build_version_bundle_version_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:only_build_version_1_2_3_version",
+        expected_build_version = "1.2.3",
+        expected_short_version_string = "1.2.3",
+        expected_version_file = "only_build_version_1_2_3_version.bundle_version",
         tags = [name],
     )
 

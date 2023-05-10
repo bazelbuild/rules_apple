@@ -145,7 +145,11 @@ def _apple_bundle_version_impl(ctx):
     )
 
     return [
-        AppleBundleVersionInfo(version_file = bundle_version_file),
+        AppleBundleVersionInfo(
+            build_version = ctx.attr.build_version,
+            short_version_string = ctx.attr.short_version_string,
+            version_file = bundle_version_file,
+        ),
         DefaultInfo(files = depset([bundle_version_file])),
     ]
 
