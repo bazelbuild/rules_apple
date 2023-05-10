@@ -109,9 +109,40 @@ specific to any particular binary type.
     },
 )
 
-AppleBundleVersionInfo = provider(
+def _apple_bundle_version_info_init(
+        *_,
+        **kwargs):
+    """Ensures that the short_version_string is set based on build_version, if it is unset."""
+
+    if "short_version_string" in kwargs and kwargs["short_version_string"]:
+        # Prevent setting short_version_string without build_version.
+        if "build_version" not in kwargs or not kwargs["build_version"]:
+            fail(
+                """
+Internal Error: short_version_string was assigned as {short_version_string} on
+AppleBundleVersionInfo but no value for build_version was set. build_version is mandatory if
+short_version_string is present.
+""".format(
+                    short_version_string = kwargs["short_version_string"],
+                ),
+            )
+    elif "build_version" in kwargs and kwargs["build_version"]:
+        kwargs["short_version_string"] = kwargs["build_version"]
+
+    # TODO(b/281687115): Consider making all fields besides short_version_string mandatory when it
+    # is feasible.
+    return kwargs
+
+AppleBundleVersionInfo, _ = provider(
     doc = "Provides versioning information for an Apple bundle.",
     fields = {
+        "build_version": """
+'String'. A version string for an Info.plist which corresponds to `CFBundleVersion`. Mandatory if
+`short_version_string` is set.
+""",
+        "short_version_string": """
+'String'. A version string for an Info.plist which corresponds to `CFBundleShortVersionString`.
+""",
         "version_file": """
 A `File` containing JSON-formatted text describing the version
 number information propagated by the target.
@@ -123,6 +154,7 @@ It contains two keys:
 *   `short_version_string`, which corresponds to `CFBundleShortVersionString`.
 """,
     },
+    init = _apple_bundle_version_info_init,
 )
 
 AppleDsymBundleInfo = provider(
