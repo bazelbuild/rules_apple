@@ -144,11 +144,16 @@ if [[ -n "$test_host_path" ]]; then
 
     readonly runner_app_frameworks_destination="$runner_app_destination/Frameworks"
     mkdir -p "$runner_app_frameworks_destination"
+    echo "$libraries_path"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
+    xctestsupport_framework_path="$libraries_path/PrivateFrameworks/XCTestSupport.framework"
+    if [[ -d "$xctestsupport_framework_path" ]]; then
+      cp -R "$xctestsupport_framework_path" "$runner_app_frameworks_destination/XCTestSupport.framework"
+    fi
   fi
 else
   xctestrun_test_host_path="__PLATFORMS__/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/xctest"
