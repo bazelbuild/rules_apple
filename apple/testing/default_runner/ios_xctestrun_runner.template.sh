@@ -144,7 +144,6 @@ if [[ -n "$test_host_path" ]]; then
 
     readonly runner_app_frameworks_destination="$runner_app_destination/Frameworks"
     mkdir -p "$runner_app_frameworks_destination"
-    echo "$libraries_path"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
