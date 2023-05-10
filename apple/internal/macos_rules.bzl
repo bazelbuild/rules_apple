@@ -298,6 +298,7 @@ def _macos_application_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -587,6 +588,7 @@ def _macos_bundle_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -824,6 +826,7 @@ def _macos_extension_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1073,6 +1076,7 @@ def _macos_quick_look_plugin_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive],
@@ -1311,6 +1315,7 @@ def _macos_kernel_extension_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1539,6 +1544,7 @@ def _macos_spotlight_importer_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1766,6 +1772,7 @@ def _macos_xpc_service_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1912,6 +1919,7 @@ def _macos_command_line_application_impl(ctx):
         label_name = label.name,
         linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
+        version = ctx.attr.version,
     )
 
     processor_result = processor.process(
@@ -2047,6 +2055,7 @@ def _macos_dylib_impl(ctx):
         label_name = label.name,
         linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
+        version = ctx.attr.version,
     )
 
     processor_result = processor.process(
@@ -2774,6 +2783,7 @@ def _macos_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -3040,6 +3050,7 @@ def _macos_dynamic_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],

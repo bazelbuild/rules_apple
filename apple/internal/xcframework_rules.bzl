@@ -629,6 +629,7 @@ def _apple_xcframework_impl(ctx):
                 label_name = label.name,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
+                version = ctx.attr.version,
             ),
             partials.resources_partial(
                 actions = actions,

@@ -18,28 +18,18 @@ load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
+load(
+    "@build_bazel_rules_apple//test/starlark_tests/rules:output_group_test_support.bzl",
+    "output_group_test_support",
+)
 
 def _output_group_zip_contents_test_impl(ctx):
     """Implementation of the output_group_zip_contents_test rule."""
-    target_under_test = ctx.attr.target_under_test[0]
-
-    if not OutputGroupInfo in target_under_test:
-        fail(("Target %s does not provide OutputGroupInfo") % target_under_test.label)
-
-    output_group = getattr(target_under_test[OutputGroupInfo], ctx.attr.output_group_name, None)
-    if not output_group:
-        fail("OutputGroupInfo does not have %s" % ctx.attr.output_group_name)
-
-    output_group_files = output_group.to_list()
-    output_group_file = ""
-    for found_output_group_file in output_group_files:
-        if found_output_group_file.short_path == ctx.attr.output_group_file_shortpath:
-            output_group_file = found_output_group_file
-    if not output_group_file:
-        fail("{output_group_file_shortpath} not found; instead found {output_group_files}".format(
-            output_group_file_shortpath = ctx.attr.output_group_file_shortpath,
-            output_group_files = output_group_files,
-        ))
+    output_group_file = output_group_test_support.output_group_file_from_target(
+        output_group_name = ctx.attr.output_group_name,
+        output_group_file_shortpath = ctx.attr.output_group_file_shortpath,
+        providing_target = ctx.attr.target_under_test[0],
+    )
     output_group_file_path = output_group_file.short_path
 
     test_lines = [

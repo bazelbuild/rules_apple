@@ -224,6 +224,19 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_dsym_version_in_info_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic_version_dsyms/cmd_app_basic_version.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "1.2.3",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

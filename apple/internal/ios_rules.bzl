@@ -321,6 +321,7 @@ def _ios_application_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -647,6 +648,7 @@ def _ios_app_clip_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -939,6 +941,7 @@ def _ios_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1200,6 +1203,7 @@ def _ios_extension_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1466,6 +1470,7 @@ def _ios_dynamic_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -2093,6 +2098,7 @@ def _ios_imessage_extension_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
