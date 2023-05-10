@@ -650,7 +650,7 @@ through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         {
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
@@ -700,7 +700,7 @@ to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         {
             "alwayslink": attr.bool(
                 default = False,

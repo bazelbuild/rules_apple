@@ -77,7 +77,7 @@ def _environment_plist_impl(ctx):
 
 environment_plist = rule(
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         {
             "platform_type": attr.string(
                 mandatory = True,

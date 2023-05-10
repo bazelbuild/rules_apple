@@ -1974,8 +1974,8 @@ macos_application = rule_factory.create_apple_rule(
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = apple_common.multi_arch_split,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2044,8 +2044,8 @@ macos_bundle = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2104,8 +2104,8 @@ macos_extension = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2149,8 +2149,8 @@ macos_quick_look_plugin = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2194,8 +2194,8 @@ macos_kernel_extension = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2238,8 +2238,8 @@ macos_spotlight_importer = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2282,8 +2282,8 @@ macos_xpc_service = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -2326,8 +2326,8 @@ macos_command_line_application = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_tool_attrs,
-        rule_attrs.custom_transition_allowlist_attr,
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2381,8 +2381,8 @@ macos_dylib = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_tool_attrs,
-        rule_attrs.custom_transition_allowlist_attr,
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",

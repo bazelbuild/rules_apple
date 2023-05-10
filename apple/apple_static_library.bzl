@@ -91,7 +91,7 @@ implementation of `apple_static_library` in Bazel core so that it can be removed
         "lipo_archive": "%{name}_lipo.a",
     },
     attrs = [
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),

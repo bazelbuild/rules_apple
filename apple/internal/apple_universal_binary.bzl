@@ -78,7 +78,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
 """,
     implementation = _apple_universal_binary_impl,
     attrs = [
-        rule_attrs.common_attrs,
+        rule_attrs.common_attrs(),
         rule_attrs.platform_attrs(),
         {
             "binary": attr.label(

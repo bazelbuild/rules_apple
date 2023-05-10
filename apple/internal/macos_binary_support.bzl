@@ -161,7 +161,7 @@ def _macos_binary_infoplist_impl(ctx):
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.signing_attrs(
             supports_capabilities = False,
             profile_extension = ".provisionprofile",  # Unused, but staying consistent with macOS.
@@ -244,7 +244,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         {
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],

@@ -1010,20 +1010,20 @@ tvos_application = rule_factory.create_apple_rule(
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = apple_common.multi_arch_split,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
-        rule_attrs.launch_images_attrs,
+        rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
         ),
-        rule_attrs.settings_bundle_attrs,
+        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(),
-        rule_attrs.simulator_runner_template_attr,
+        rule_attrs.simulator_runner_template_attr(),
         {
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
@@ -1065,8 +1065,8 @@ tvos_extension = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
@@ -1105,8 +1105,8 @@ tvos_framework = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
@@ -1163,8 +1163,8 @@ tvos_static_framework = rule_factory.create_apple_rule(
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
-        rule_attrs.common_bundle_attrs,
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
