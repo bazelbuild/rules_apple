@@ -26,6 +26,10 @@ load(
     "apple_verification_transition",
 )
 load(
+    "@build_bazel_rules_apple//test/starlark_tests/rules:output_group_test_support.bzl",
+    "output_group_test_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
 )
@@ -35,10 +39,23 @@ visibility("//test/starlark_tests/...")
 def _infoplist_contents_test_impl(ctx):
     """Implementation of the plist_contents_test rule."""
     target_under_test = ctx.attr.target_under_test[0]
-    if not AppleBundleInfo in target_under_test:
-        fail(("Target %s does not provide AppleBundleInfo") % target_under_test.label)
 
-    plist_file = target_under_test[AppleBundleInfo].infoplist
+    if ctx.attr.output_group_name:
+        if not ctx.attr.plist_test_file_shortpath:
+            fail("`output_group_name` requires `plist_test_file_shortpath` to be set.")
+
+        plist_file = output_group_test_support.output_group_file_from_target(
+            output_group_name = ctx.attr.output_group_name,
+            output_group_file_shortpath = ctx.attr.plist_test_file_shortpath,
+            providing_target = target_under_test,
+        )
+    elif ctx.attr.plist_test_file_shortpath:
+        fail("`plist_test_file_shortpath` requires `output_group_name` to be set at this time.")
+    elif not AppleBundleInfo in target_under_test:
+        fail(("Target %s does not provide AppleBundleInfo") % target_under_test.label)
+    else:
+        plist_file = target_under_test[AppleBundleInfo].infoplist
+
     plist_path = plist_file.short_path
 
     test_lines = [
@@ -129,7 +146,6 @@ If true, generates .dSYM debug symbol bundles for the target(s) under test.
         "target_under_test": attr.label(
             cfg = apple_verification_transition,
             doc = "Target containing an Info.plist file to verify.",
-            providers = [AppleBundleInfo],
             mandatory = True,
         ),
         "expected_values": attr.string_dict(
@@ -143,6 +159,19 @@ shell scripts.
         "not_expected_keys": attr.string_list(
             default = [],
             doc = "Array of plist keys that should not exist. The test will fail if the key exists.",
+        ),
+        "output_group_name": attr.string(
+            doc = """
+Optional. The name of the output group that has the plist file to verify. Requires setting
+`plist_test_file_shortpath`.
+""",
+        ),
+        "plist_test_file_shortpath": attr.string(
+            doc = """
+Optional. A short path to the plist file to test with `expected_values`. Requires setting
+`output_group_name`. If this is not set, the default `infoplist` referenced by the AppleBundleInfo
+provider will be used instead.
+""",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

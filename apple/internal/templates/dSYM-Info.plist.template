@@ -13,8 +13,8 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>%bundle_short_version_string%</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>%bundle_version_string%</string>
   </dict>
 </plist>

@@ -280,6 +280,7 @@ reproducible error case.".format(
             debug_dependencies = [ctx.attr.extension],
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -536,6 +537,7 @@ def _watchos_extension_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -791,6 +793,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,

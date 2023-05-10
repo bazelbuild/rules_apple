@@ -34,6 +34,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "binary_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
 
 visibility("private")
 
@@ -196,6 +200,19 @@ def macos_command_line_application_test_suite(name):
         compilation_mode = "opt",
         embedded_plist_test_values = {
             "CFBundleIdentifier": "com.bazel.app.example.cmd-app-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_dsym_version_in_info_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic_version.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "1.2.3",
         },
         tags = [name],
     )

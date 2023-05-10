@@ -406,6 +406,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,

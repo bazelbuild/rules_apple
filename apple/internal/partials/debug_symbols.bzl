@@ -28,6 +28,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
     "AppleDsymBundleInfo",
 )
 load(
@@ -184,7 +185,8 @@ def _bundle_dsym_files(
         debug_output_filename,
         dsym_binaries = {},
         dsym_info_plist_template,
-        platform_prerequisites):
+        platform_prerequisites,
+        version):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -204,6 +206,7 @@ def _bundle_dsym_files(
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
     Returns:
       A tuple where the first argument is a list of files that comprise the .dSYM bundle, which
@@ -242,11 +245,21 @@ def _bundle_dsym_files(
         )
         output_files.append(dsym_plist)
         dsym_relpath = "Contents/Info.plist"
+
+        build_version = "1"
+        short_version_string = "1.0"
+        if version != None and AppleBundleVersionInfo in version:
+            version_info = version[AppleBundleVersionInfo]
+            build_version = version_info.build_version
+            short_version_string = version_info.short_version_string
+
         actions.expand_template(
             output = dsym_plist,
             template = dsym_info_plist_template,
             substitutions = {
                 "%bundle_name_with_extension%": dsym_bundle_name_with_extension,
+                "%bundle_short_version_string%": short_version_string,
+                "%bundle_version_string%": build_version,
             },
         )
 
@@ -285,7 +298,8 @@ def _debug_symbols_partial_impl(
         dsym_binaries = {},
         dsym_info_plist_template,
         linkmaps = {},
-        platform_prerequisites):
+        platform_prerequisites,
+        version):
     """Implementation for the debug symbols processing partial."""
     deps_dsym_bundle_providers = [
         x[AppleDsymBundleInfo]
@@ -322,6 +336,7 @@ def _debug_symbols_partial_impl(
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
                 platform_prerequisites = platform_prerequisites,
+                version = version,
             )
             if dsym_bundle_dir:
                 direct_dsym_bundles.append(dsym_bundle_dir)
@@ -394,7 +409,8 @@ def debug_symbols_partial(
         dsym_binaries = {},
         dsym_info_plist_template,
         linkmaps = {},
-        platform_prerequisites):
+        platform_prerequisites,
+        version):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -417,6 +433,7 @@ def debug_symbols_partial(
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
@@ -432,4 +449,5 @@ def debug_symbols_partial(
         dsym_info_plist_template = dsym_info_plist_template,
         linkmaps = linkmaps,
         platform_prerequisites = platform_prerequisites,
+        version = version,
     )
