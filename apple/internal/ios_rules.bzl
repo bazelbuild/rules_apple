@@ -2397,20 +2397,20 @@ ios_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
-        rule_attrs.launch_images_attrs,
+        rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
         ),
-        rule_attrs.settings_bundle_attrs,
+        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(),
-        rule_attrs.simulator_runner_template_attr,
+        rule_attrs.simulator_runner_template_attr(),
         {
             "alternate_icons": attr.label_list(
                 allow_files = True,
@@ -2507,7 +2507,7 @@ ios_app_clip = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2520,7 +2520,7 @@ ios_app_clip = rule_factory.create_apple_rule(
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),
-        rule_attrs.simulator_runner_template_attr,
+        rule_attrs.simulator_runner_template_attr(),
         {
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
@@ -2568,7 +2568,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2629,7 +2629,7 @@ of those `ios_application` and/or `ios_extension` rules.""",
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2693,7 +2693,7 @@ ios_dynamic_framework = rule_factory.create_apple_rule(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
         ),
@@ -2796,7 +2796,7 @@ i.e. `--features=-swift.no_generated_header`).""",
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
@@ -2859,7 +2859,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2905,7 +2905,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
@@ -2941,7 +2941,7 @@ ios_sticker_pack_extension = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcstickers",
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,

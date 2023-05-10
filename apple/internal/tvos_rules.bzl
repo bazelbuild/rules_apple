@@ -1387,19 +1387,19 @@ tvos_application = rule_factory.create_apple_rule(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
-        rule_attrs.launch_images_attrs,
+        rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
         ),
-        rule_attrs.settings_bundle_attrs,
+        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(),
-        rule_attrs.simulator_runner_template_attr,
+        rule_attrs.simulator_runner_template_attr(),
         {
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
@@ -1445,7 +1445,7 @@ tvos_dynamic_framework = rule_factory.create_apple_rule(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
@@ -1506,7 +1506,7 @@ tvos_extension = rule_factory.create_apple_rule(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
@@ -1552,7 +1552,7 @@ To use this framework for your app and extensions, list it in the frameworks att
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
@@ -1657,7 +1657,7 @@ i.e. `--features=-swift.no_generated_header`).
         rule_attrs.common_bundle_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),

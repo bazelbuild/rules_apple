@@ -144,7 +144,7 @@ apple_core_ml_library = rule(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         {
             "mlmodel": attr.label(
                 allow_single_file = ["mlmodel", "mlpackage"],

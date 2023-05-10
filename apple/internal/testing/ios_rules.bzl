@@ -106,7 +106,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
@@ -122,7 +122,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
             supports_capabilities = False,
         ),
-        rule_attrs.test_bundle_attrs,
+        rule_attrs.test_bundle_attrs(),
         rule_attrs.test_host_attrs(
             aspects = rule_attrs.aspects.test_host_aspects,
             is_mandatory = True,
@@ -185,7 +185,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
@@ -201,7 +201,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
             supports_capabilities = False,
         ),
-        rule_attrs.test_bundle_attrs,
+        rule_attrs.test_bundle_attrs(),
         rule_attrs.test_host_attrs(
             aspects = rule_attrs.aspects.test_host_aspects,
             providers = [
