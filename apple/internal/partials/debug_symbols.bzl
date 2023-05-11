@@ -250,8 +250,18 @@ def _bundle_dsym_files(
         short_version_string = "1.0"
         if version != None and AppleBundleVersionInfo in version:
             version_info = version[AppleBundleVersionInfo]
-            build_version = version_info.build_version
-            short_version_string = version_info.short_version_string
+            if hasattr(version_info, "build_version"):
+                build_version = version_info.build_version
+                short_version_string = version_info.short_version_string
+            else:
+                # There is no way to issue a warning, so print is the only way to message.
+                # buildifier: disable=print
+                print("""
+Warning: Found an AppleBundleVersionInfo provider that did not have the build_version filled out as
+expected from an apple_bundle_version rule. Check the rule implementation of the target that is
+assigned to the version attribute to ensure that its rule is filling out all fields of
+AppleBundleVersionInfo as expected.
+""")
 
         actions.expand_template(
             output = dsym_plist,
