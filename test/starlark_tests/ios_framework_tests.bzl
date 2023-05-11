@@ -19,6 +19,10 @@ load(
     "common",
 )
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -679,6 +683,17 @@ def ios_framework_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.fmwk-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_ambiguous_base_bundle_id_derived_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_ambiguous_base_bundle_id_derived_bundle_id",
+        expected_error = """
+Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
+
+Please remove one of the two from your rule definition.
+""",
         tags = [name],
     )
 

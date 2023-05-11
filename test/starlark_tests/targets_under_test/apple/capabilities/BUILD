@@ -25,6 +25,13 @@ apple_base_bundle_id(
 )
 
 apple_base_bundle_id(
+    name = "alt_base_bundle_id",
+    organization_id = "com.altbazel.app",
+    tags = common.fixture_tags,
+    variant_name = "example",
+)
+
+apple_base_bundle_id(
     name = "empty_base_bundle_id",
     organization_id = "",
     tags = common.fixture_tags,
@@ -63,5 +70,16 @@ apple_base_bundle_id(
 apple_capability_set(
     name = "base_capability_set",
     base_bundle_id = ":base_bundle_id",
+    tags = common.fixture_tags,
+)
+
+apple_capability_set(
+    name = "alt_capability_set",
+    base_bundle_id = ":alt_base_bundle_id",
+    tags = common.fixture_tags,
+)
+
+apple_capability_set(
+    name = "empty_capability_set",
     tags = common.fixture_tags,
 )
