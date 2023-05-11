@@ -3353,6 +3353,62 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_ambiguous_shared_capabilities_bundle_id",
+    bundle_id = "com.bazel.app.example.bundle-id",
+    bundle_name = "app-with-ambiguous-shared-capabilities-bundle-id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_absent_shared_capabilities_bundle_id",
+    bundle_name = "app-with-absent-shared-capabilities-bundle-id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:empty_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_conflicting_shared_capabilities_bundle_id",
+    bundle_name = "app-with-conflicting-shared-capabilities-bundle-id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:alt_capability_set",
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_extension(
     name = "ext_with_capability_set_derived_bundle_id",
     bundle_name = "ext-with-capability-set-derived-bundle-id",
@@ -3374,6 +3430,27 @@ ios_extension(
 ios_framework(
     name = "fmwk_with_base_bundle_id_derived_bundle_id",
     base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_name = "fmwk-with-base-bundle-id-derived-bundle-id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_ambiguous_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id = "com.bazel.app.example.bundle-id",
     bundle_name = "fmwk-with-base-bundle-id-derived-bundle-id",
     families = [
         "iphone",

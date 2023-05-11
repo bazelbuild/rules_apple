@@ -149,11 +149,15 @@ def _base_bundle_id_from_shared_capabilities(shared_capabilities):
             elif capability_info.base_bundle_id != base_bundle_id:
                 fail("""
 Error: Received conflicting base bundle IDs from more than one assigned Apple shared capability.
+
 Found \"{conflicting_base}\" which does not match previously defined \"{base_bundle_id}\".
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """.format(
                     base_bundle_id = base_bundle_id,
                     conflicting_base = capability_info.base_bundle_id,
                 ))
+
     return base_bundle_id
 
 def _bundle_full_id(
@@ -197,17 +201,24 @@ on the Apple BUILD Rules.
             return bundle_id
 
         fail("""
-Error: There are no attributes set on this target that can be used to determine a bundle ID. Need a
-bundle_id or a reference to an apple_base_bundle_id target coming from the rule or (when applicable)
-exactly one of the `apple_capability_set` targets found within its shared_capabilities.
+Error: There are no attributes set on this target that can be used to determine a bundle ID.
+
+Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
+applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
 
     if base_bundle_id:
         if bundle_id:
             fail("""
-Error: Found a bundle_id provided with base_bundle_id. This is ambiguous. Please remove one of the
-two from your rule definition.
+Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
+
+Please remove one of the two from your rule definition.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
         return _preferred_full_bundle_id(
             base_bundle_id = base_bundle_id[AppleBaseBundleIdInfo].base_bundle_id,
             bundle_id_suffix = bundle_id_suffix,
@@ -221,13 +232,20 @@ two from your rule definition.
         fail("""
 Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
 Found none.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
     if bundle_id:
         fail("""
 Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining a `base_bundle_id`.
+
 This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
 `shared_capabilities` without a `base_bundle_id`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
     return _preferred_full_bundle_id(
         base_bundle_id = capability_base_bundle_id,
         bundle_id_suffix = bundle_id_suffix,
