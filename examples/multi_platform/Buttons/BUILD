@@ -303,7 +303,7 @@ macos_application(
     name = "ButtonsMac",
     bundle_id = "com.google.ButtonsMac",
     infoplists = ["ButtonsMac/Info.plist"],
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     deps = [
         ":ButtonsMacLib",
         ":ButtonsMacResources",
