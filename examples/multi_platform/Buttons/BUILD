@@ -92,7 +92,7 @@ ios_application(
         "ipad",
     ],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     watch_application = ":ButtonsWatch",
     deps = [
         ":ButtonsLib",
@@ -115,7 +115,7 @@ ios_extension(
 ios_static_framework(
     name = "ButtonsStaticFramework",
     bundle_name = "Buttons",
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     deps = [":ButtonsLib"],
 )
 
