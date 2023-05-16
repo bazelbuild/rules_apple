@@ -272,6 +272,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
@@ -314,14 +315,14 @@ macos_application(
 macos_unit_test(
     name = "ButtonsMacLogicTests",
     bundle_id = "com.google.logic",
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     tags = ["manual"],  # https://github.com/bazelbuild/continuous-integration/issues/1273
     deps = [":ButtonsMacTestsLib"],
 )
 
 macos_unit_test(
     name = "ButtonsMacTests",
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     tags = ["manual"],
     test_host = ":ButtonsMac",
     deps = [":ButtonsMacTestsLib"],
