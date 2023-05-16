@@ -352,7 +352,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "9.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -874,7 +874,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "9.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -939,7 +939,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "9.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -961,7 +961,7 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {
-        "ios": "8.0",
+        "ios": "9.0",
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
