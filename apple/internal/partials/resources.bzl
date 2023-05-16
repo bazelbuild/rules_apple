@@ -127,12 +127,12 @@ def _locales_requested(*, config_vars):
     else:
         return None
 
-def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested):
+def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested, locales_to_exclude):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
     if sets.length(locales_dropped):
         # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
         # could mean that the user made a mistake in defining the locales they want to keep.
-        if not sets.is_equal(locales_requested, locales_included):
+        if locales_requested and not sets.is_equal(locales_requested, locales_included):
             unused_locales = sets.difference(locales_requested, locales_included)
 
             # There is no way to issue a warning, so print is the only way
@@ -141,6 +141,33 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
             print("Warning: " + str(label) + " did not have resources that matched " +
                   sets.str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include is defined properly.")
+
+        if locales_requested and locales_to_exclude:
+            conflicting_locales = sets.intersection(locales_requested, locales_to_exclude)
+            if sets.length(conflicting_locales):
+                # There is no way to issue a warning, so print is the only way
+                # to message.
+                # buildifier: disable=print
+                print("Warning: " + str(label) + " dropping " +
+                      sets.str(conflicting_locales) + " as they are explicitly excluded but also explicitly included. Please verify " +
+                      "apple.locales_to_include and apple.locales_to_exclude are defined properly.")
+
+def _locales_to_exclude(*, config_vars):
+    """Determines which locales to exclude when resource actions.
+
+    If the user has specified "apple.locales_to_exclude" we use those.
+
+    Args:
+        config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
+
+    Returns:
+        A set of locales to exclude or None if no locale exclude is requested.
+    """
+    excluded_locales = config_vars.get("apple.locales_to_exclude")
+    if excluded_locales != None:
+        return sets.make([x.strip() for x in excluded_locales.split(",")])
+    else:
+        return None
 
 def _resources_partial_impl(
         *,
@@ -231,6 +258,7 @@ def _resources_partial_impl(
     infoplists = []
 
     locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
+    locales_to_exclude = _locales_to_exclude(config_vars = platform_prerequisites.config_vars)
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
@@ -242,6 +270,11 @@ def _resources_partial_impl(
                 if sets.contains(locales_requested, locale):
                     sets.insert(locales_included, locale)
                 elif locale != None:
+                    sets.insert(locales_dropped, locale)
+                    continue
+            if locales_to_exclude:
+                locale = bundle_paths.locale_for_path(parent_dir)
+                if locale and sets.contains(locales_to_exclude, locale):
                     sets.insert(locales_dropped, locale)
                     continue
 
@@ -277,12 +310,13 @@ def _resources_partial_impl(
         field_handler = _deduplicated_field_handler,
     )
 
-    if locales_requested:
+    if locales_requested or locales_to_exclude:
         _validate_processed_locales(
             label = rule_label,
             locales_dropped = locales_dropped,
             locales_included = locales_included,
             locales_requested = locales_requested,
+            locales_to_exclude = locales_to_exclude,
         )
 
     if bundle_id:
