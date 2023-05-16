@@ -33,6 +33,6 @@ experimental_mixed_language_library(
 
 ios_unit_test(
     name = "MixedTests",
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     deps = [":MixedTestsLib"],
 )
