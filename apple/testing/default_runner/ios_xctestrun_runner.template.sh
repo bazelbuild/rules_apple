@@ -67,6 +67,13 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
+# We must dynamically determine which platform the test binary was built for
+# to ensure we copy over the correct frameworks and dylibs.
+test_execution_platform="iPhoneSimulator.platform"
+if file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name" | grep -q "arm64"; then
+  test_execution_platform="iPhoneOS.platform"
+fi
+
 # In case there is no test host, test_host_path will be empty
 test_host_path="%(test_host_path)s"
 if [[ -n "$test_host_path" ]]; then
@@ -113,6 +120,8 @@ done
 IFS=$saved_IFS
 
 xcrun_target_app_path=""
+xcrun_test_host_bundle_identifier=""
+xcrun_test_bundle_path="__TESTROOT__/$test_bundle_name.xctest"
 xcrun_is_xctrunner_hosted_bundle="false"
 xcrun_is_ui_test_bundle="false"
 test_type="%(test_type)s"
@@ -128,17 +137,23 @@ if [[ -n "$test_host_path" ]]; then
     xcrun_target_app_path="$xctestrun_test_host_path"
     # If ui testing is enabled we need to copy out the XCTRunner app, update its info.plist accordingly and finally
     # copy over the needed frameworks to enable ui testing
-    readonly runner_app_name="XCTRunner"
+    readonly runner_app_name="$test_bundle_name-Runner"
     readonly runner_app="$runner_app_name.app"
     readonly runner_app_destination="$test_tmp_dir/$runner_app"
-    libraries_path="$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer/Library"
+    developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+    libraries_path="$developer_path/Library"
     cp -R "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
     chmod -R 777 "$runner_app_destination"
     xctestrun_test_host_path="__TESTROOT__/$runner_app"
+    xcrun_test_host_bundle_identifier="com.apple.test.$runner_app_name"
+    plugins_path="$test_tmp_dir/$runner_app/PlugIns"
+    mkdir -p "$plugins_path"
+    mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    xcrun_test_bundle_path="$xctestrun_test_host_path/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
-      -e "s@WRAPPEDPRODUCTNAME@$runner_app_name@g"\
-      -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@com.apple.test.$runner_app_name@g"\
+      -e "s@WRAPPEDPRODUCTNAME@XCTRunner@g"\
+      -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@$xcrun_test_host_bundle_identifier@g"\
       -i "" \
       "$runner_app_destination/Info.plist"
 
@@ -149,14 +164,50 @@ if [[ -n "$test_host_path" ]]; then
     cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
+    cp -R "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
     # Added in Xcode 14.3
     xctestsupport_framework_path="$libraries_path/PrivateFrameworks/XCTestSupport.framework"
     if [[ -d "$xctestsupport_framework_path" ]]; then
       cp -R "$xctestsupport_framework_path" "$runner_app_frameworks_destination/XCTestSupport.framework"
     fi
+    if [[ "$test_execution_platform" == "iPhoneOS.platform" ]]; then
+      # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
+      # will be launched as arm64e process by default. If the test bundle is arm64
+      # bundle, the XCTRunner which hosts the test bundle will fail to be
+      # launched. So removing the arm64e arch from XCTRunner can resolve this
+      # case.
+      /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
+      test_runner_mobileprovision_path="$test_tmp_dir/$runner_app/embedded.mobileprovision"
+      test_host_binary_path="$test_tmp_dir/$test_host_name.app/$test_host_name"
+      cp "$(dirname "$test_host_binary_path")/embedded.mobileprovision" "$test_runner_mobileprovision_path"
+      readonly xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
+      codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
+      codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
+      /usr/bin/sed \
+        -e "s@BAZEL_CODESIGNING_TEAM_IDENTIFIER@$codesigning_team_identifier@g" \
+        -e "s@BAZEL_TEST_HOST_BUNDLE_IDENTIFIER@$xcrun_test_host_bundle_identifier@g" \
+        "%(xctrunner_entitlements_template)s" > "$xctrunner_entitlements"
+      codesign -f \
+        --entitlements "$xctrunner_entitlements" \
+        --timestamp=none -s "$codesigning_authority" \
+        "$plugins_path/$test_bundle_name.xctest"
+      find "$test_tmp_dir/$runner_app/Frameworks" \
+        -type d \
+        -name "*.framework" \
+        -exec codesign -f --timestamp=none -s "$codesigning_authority" --entitlements "$xctrunner_entitlements" {} \;
+      find "$test_tmp_dir/$runner_app/Frameworks" \
+        -type f \
+        -name "*.dylib" \
+        -exec codesign -f --timestamp=none -s "$codesigning_authority" --entitlements "$xctrunner_entitlements" {} \;
+      codesign -f \
+        --entitlements "$xctrunner_entitlements" \
+        --timestamp=none \
+        -s "$codesigning_authority" \
+        "$test_tmp_dir/$runner_app"
+    fi
   fi
 else
-  xctestrun_test_host_path="__PLATFORMS__/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/xctest"
+  xctestrun_test_host_path="__PLATFORMS__/$test_execution_platform/Developer/Library/Xcode/Agents/xctest"
   xctestrun_test_host_based=false
 fi
 
@@ -171,7 +222,7 @@ for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
   sanitizer_dyld_env="${sanitizer_dyld_env}${sanitizer}"
 done
 
-xctestrun_libraries="__PLATFORMS__/iPhoneSimulator.platform/Developer/usr/lib/libXCTestBundleInject.dylib"
+xctestrun_libraries="__PLATFORMS__/$test_execution_platform/Developer/usr/lib/libXCTestBundleInject.dylib"
 if [[ -n "$sanitizer_dyld_env" ]]; then
   xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
 fi
@@ -290,23 +341,24 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
     -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
-    -e "s@BAZEL_TEST_BUNDLE_PATH@__TESTROOT__/$test_bundle_name.xctest@g" \
+    -e "s@BAZEL_TEST_BUNDLE_PATH@$xcrun_test_bundle_path@g" \
     -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
     -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
     -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
+    -e "s@BAZEL_TEST_HOST_BUNDLE_IDENTIFIER@$xcrun_test_host_bundle_identifier@g" \
     -e "s@BAZEL_TEST_PRODUCT_MODULE_NAME@${test_bundle_name//-/_}@g" \
     -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
     -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
     -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
     -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
+    -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
   args=(
-    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
@@ -326,7 +378,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
     || test_exit_code=$?
 else
-  platform_developer_dir="$(xcode-select -p)/Platforms/iPhoneSimulator.platform/Developer"
+  platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
   test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
   if [[ "$intel_simulator_hack" == true ]]; then
