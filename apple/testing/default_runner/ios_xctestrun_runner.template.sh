@@ -18,6 +18,11 @@ if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
   create_xcresult_bundle=true
 fi
 
+create_xctestrun_bundle="false"
+if [[ "$create_xcresult_bundle" == true ]]; then
+  create_xctestrun_bundle="%(create_xctestrun_bundle)s"
+fi
+
 custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 device_id=""
@@ -97,6 +102,9 @@ if [[ -n "$test_host_path" ]]; then
   fi
 fi
 
+test_tmp_dir_test_host_path=$(find "$test_tmp_dir" -name "*.app" -type d -maxdepth 1 -mindepth 1 -print -quit)
+test_host_name=$(basename_without_extension "$test_tmp_dir_test_host_path")
+
 # Basic XML character escaping for environment variable substitution.
 function escape() {
   local escaped=${1//&/&amp;}
@@ -136,7 +144,7 @@ if [[ -n "$test_host_path" ]]; then
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
-  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
+  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTROOT__/$test_host_name.app/$test_host_name")</string>"
 
   if [[ "$test_type" = "XCUITEST" ]]; then
     xcrun_is_xctrunner_hosted_bundle="true"
@@ -189,11 +197,21 @@ if [[ -n "$test_host_path" ]]; then
       # launched. So removing the arm64e arch from XCTRunner can resolve this
       # case.
       /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
-    fi
-    test_host_mobileprovision_path="$test_tmp_dir/$test_host_name.app/embedded.mobileprovision"
-    # Only engage signing workflow if the test host is signed
-    if [[ -f "$test_host_mobileprovision_path" ]]; then
-      cp "$test_host_mobileprovision_path" "$test_tmp_dir/$runner_app/embedded.mobileprovision"
+      # Copied frameworks/dylibs include arm64e slices, we will need to remove those to allow the runner to execute
+      frameworks_toplevel_paths=$(find "$test_tmp_dir/$runner_app/Frameworks" -name "*.framework" -depth 1)
+      for framework_toplevel_path in $frameworks_toplevel_paths; do
+        framework_binary_path="$framework_toplevel_path/$(basename_without_extension "$framework_toplevel_path")"
+        /usr/bin/lipo "$framework_binary_path" -remove arm64e -output "$framework_binary_path"
+      done
+      find "$test_tmp_dir/$runner_app/Frameworks" \
+        -type f \
+        -name "*.dylib" \
+        -exec /usr/bin/lipo {} -remove arm64e -output {} \;
+      test_host_mobileprovision_path="$test_tmp_dir/$test_host_name.app/embedded.mobileprovision"
+      # Only engage signing workflow if the test host is signed
+      if [[ -f "$test_host_mobileprovision_path" ]]; then
+        cp "$test_host_mobileprovision_path" "$test_tmp_dir/$runner_app/embedded.mobileprovision"
+      fi
       xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
       test_host_binary_path="$test_tmp_dir/$test_host_name.app/$test_host_name"
       codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
@@ -378,6 +396,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
 
 
   args=(
+    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
@@ -393,6 +412,15 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   rm -rf "$result_bundle_path"
   if [[ "$create_xcresult_bundle" == true ]]; then
     args+=(-resultBundlePath "$result_bundle_path")
+  fi
+
+  if [[ "$create_xctestrun_bundle" == true ]]; then
+    echo "note: creating xctestrun bundle"
+    ls -la "$test_tmp_dir"
+    cp "$test_tmp_dir/tests.xctestrun" "$TEST_UNDECLARED_OUTPUTS_DIR"
+    cp -R "$test_tmp_dir_test_host_path" "$TEST_UNDECLARED_OUTPUTS_DIR"
+    cp -R "$test_tmp_dir/$runner_app" "$TEST_UNDECLARED_OUTPUTS_DIR"
+    exit 0
   fi
 
   if (( ${#custom_xcodebuild_args[@]} )); then

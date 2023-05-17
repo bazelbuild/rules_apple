@@ -8,6 +8,7 @@ load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl", "AppleTestR
 def _get_template_substitutions(
         *,
         create_xcresult_bundle,
+        create_xctestrun_bundle,
         device_type,
         os_version,
         simulator_creator,
@@ -15,11 +16,13 @@ def _get_template_substitutions(
         xcodebuild_args,
         xctestrun_template,
         reuse_simulator,
-        xctrunner_entitlements_template):
+        xctrunner_entitlements_template,
+        build_for_device):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
+        "create_xctestrun_bundle": create_xctestrun_bundle,
         "xcodebuild_args": xcodebuild_args,
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
@@ -27,6 +30,7 @@ def _get_template_substitutions(
         "xctestrun_template": xctestrun_template,
         "reuse_simulator": reuse_simulator,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
+        "build_for_device": build_for_device,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -55,6 +59,7 @@ def _ios_xctestrun_runner_impl(ctx):
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
+            create_xctestrun_bundle = "true" if ctx.attr.create_xctestrun_bundle else "false",
             device_type = device_type,
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
@@ -63,6 +68,7 @@ def _ios_xctestrun_runner_impl(ctx):
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
+            build_for_device = "true" if ctx.attr.build_for_device else "false",
         ),
     )
 
@@ -116,6 +122,14 @@ Force the test runner to always create an XCResult bundle. This means it will
 always use `xcodebuild test-without-building` to run the test bundle.
 """,
         ),
+        "create_xctestrun_bundle": attr.bool(
+            default = False,
+            doc = """
+Enabling this with create an `xctestrun` bundle that can be used to execute
+the tests outside of the runner. `create_xcresult_bundle` must be set to
+`True` as well to enable this feature.
+""",
+        ),
         "xcodebuild_args": attr.string_list(
             doc = """
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
@@ -126,6 +140,12 @@ will always use `xcodebuild test-without-building` to run the test bundle.
             default = True,
             doc = """
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
+""",
+        ),
+        "build_for_device": attr.bool(
+            default = False,
+            doc = """
+If enabled then the runner will support testing on a physical device.
 """,
         ),
         "_simulator_creator": attr.label(
