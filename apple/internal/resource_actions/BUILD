@@ -57,6 +57,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "@bazel_skylib//lib:versions",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

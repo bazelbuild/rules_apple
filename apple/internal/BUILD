@@ -488,6 +488,7 @@ bzl_library(
         ":apple_product_type",
         ":apple_toolchains",
         ":rule_support",
+        ":transition_support",
         "//apple:common",
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",

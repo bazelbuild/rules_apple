@@ -21,6 +21,14 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "framework_import_bundle_info",
+    srcs = ["framework_import_bundle_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
