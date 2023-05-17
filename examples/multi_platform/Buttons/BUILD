@@ -92,7 +92,7 @@ ios_application(
         "ipad",
     ],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     watch_application = ":ButtonsWatch",
     deps = [
         ":ButtonsLib",
@@ -115,7 +115,7 @@ ios_extension(
 ios_static_framework(
     name = "ButtonsStaticFramework",
     bundle_name = "Buttons",
-    minimum_os_version = "8.0",
+    minimum_os_version = "9.0",
     deps = [":ButtonsLib"],
 )
 
@@ -272,6 +272,7 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
@@ -302,7 +303,7 @@ macos_application(
     name = "ButtonsMac",
     bundle_id = "com.google.ButtonsMac",
     infoplists = ["ButtonsMac/Info.plist"],
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     deps = [
         ":ButtonsMacLib",
         ":ButtonsMacResources",
@@ -314,14 +315,14 @@ macos_application(
 macos_unit_test(
     name = "ButtonsMacLogicTests",
     bundle_id = "com.google.logic",
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     tags = ["manual"],  # https://github.com/bazelbuild/continuous-integration/issues/1273
     deps = [":ButtonsMacTestsLib"],
 )
 
 macos_unit_test(
     name = "ButtonsMacTests",
-    minimum_os_version = "10.10",
+    minimum_os_version = "12.0",
     tags = ["manual"],
     test_host = ":ButtonsMac",
     deps = [":ButtonsMacTestsLib"],

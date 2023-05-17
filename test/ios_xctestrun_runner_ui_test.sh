@@ -329,7 +329,7 @@ EOF
 }
 
 function do_ios_test() {
-  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=8.0" "$@"
+  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=9.0" "$@"
 }
 
 function test_ios_ui_test_pass() {

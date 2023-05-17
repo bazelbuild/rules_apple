@@ -397,7 +397,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "generated_watchos_dynamic_fmwk",
-    archs = ["i386"],
+    archs = ["x86_64"],
     libtype = "dynamic",
     minimum_os_version = common.min_os_watchos.baseline,
     sdk = "watchsimulator",
@@ -419,7 +419,7 @@ apple_static_framework_import(
 
 generate_import_framework(
     name = "generated_watchos_static_fmwk",
-    archs = ["i386"],
+    archs = ["x86_64"],
     libtype = "static",
     minimum_os_version = common.min_os_watchos.baseline,
     sdk = "watchsimulator",

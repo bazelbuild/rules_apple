@@ -50,7 +50,7 @@ def _apple_verification_transition_impl(settings, attr):
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "x86_64",
-            "//command_line_option:watchos_cpus": "i386",
+            "//command_line_option:watchos_cpus": "x86_64",
         })
     else:
         output_dictionary.update({

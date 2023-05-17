@@ -43,8 +43,8 @@ def watchos_dynamic_framework_test_suite(name):
             "$BUNDLE_ROOT/Headers/BasicFramework.h",
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/i386.swiftdoc",
-            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/i386.swiftmodule",
+            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
@@ -81,8 +81,8 @@ def watchos_dynamic_framework_test_suite(name):
             "$BUNDLE_ROOT/Headers/DirectDependencyTest.h",
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/i386.swiftdoc",
-            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/i386.swiftmodule",
+            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
@@ -96,8 +96,8 @@ def watchos_dynamic_framework_test_suite(name):
             "$BUNDLE_ROOT/Headers/TransitiveDependencyTest.h",
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/i386.swiftdoc",
-            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/i386.swiftmodule",
+            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule",
         ],
         tags = [name],
     )
