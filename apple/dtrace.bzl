@@ -52,7 +52,15 @@ def _dtrace_compile_impl(ctx):
             progress_message = ("Compiling dtrace probes %s" % (src.basename)),
         )
 
-    return [DefaultInfo(files = depset(output_hdrs))]
+    return [
+        apple_common.new_objc_provider(),
+        CcInfo(
+            compilation_context = cc_common.create_compilation_context(
+                headers = depset(output_hdrs),
+            ),
+        ),
+        DefaultInfo(files = depset(output_hdrs)),
+    ]
 
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
