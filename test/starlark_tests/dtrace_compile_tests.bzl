@@ -18,6 +18,10 @@ load(
     ":rules/output_text_match_test.bzl",
     "output_text_match_test",
 )
+load(
+    ":rules/compilation_context_test.bzl",
+    "compilation_context_test",
+)
 
 def dtrace_compile_test_suite(name):
     """Test suite for `dtrace_compile`.
@@ -32,6 +36,15 @@ def dtrace_compile_test_suite(name):
             "folder1/probes.h": ["PROVIDERA_MYFUNC"],
             "folder2/probes.h": ["PROVIDERB_MYFUNC"],
         },
+        tags = [name],
+    )
+
+    compilation_context_test(
+        name = "{}_generates_expected_compilation_context_header".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/dtrace:dtrace",
+        expected_attributes = [
+            "headers",
+        ],
         tags = [name],
     )
 
