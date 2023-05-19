@@ -15,6 +15,8 @@
 """Tests for dossier_codesigningtool_reader."""
 
 import concurrent.futures
+import contextlib
+import io
 import os
 import pathlib
 import shutil
@@ -280,15 +282,16 @@ class DossierCodesigningReaderTest(unittest.TestCase):
 
   def test_wait_embedded_manifest_futures_reraises_exception(self):
     future_with_exception = concurrent.futures.Future()
-    future_with_exception.set_exception(SystemExit)
+    future_with_exception.set_exception(RuntimeError)
 
     future_with_no_exception = concurrent.futures.Future()
     future_with_no_exception.set_result(None)
     futures = [future_with_exception, future_with_no_exception]
 
-    with self.assertRaisesRegex(
-        SystemExit, 'Signing failed.*codesign tasks failed'):
+    stdout = io.StringIO()
+    with self.assertRaises(RuntimeError), contextlib.redirect_stdout(stdout):
       dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+    self.assertNotRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
 
   def test_wait_embedded_manifest_futures_does_not_raises_exception(self):
     futures = []
@@ -304,16 +307,17 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     mock_future_exception = mock.Mock()
     mock_future_not_done = mock.Mock()
 
-    mock_future_exception.exception.return_value = SystemExit()
+    mock_future_exception.exception.return_value = EOFError()
     mock_wait.return_value = (
         [mock_future_exception, mock_future_done], [mock_future_not_done])
 
     futures = [
         mock_future_exception, mock_future_done, mock_future_not_done]
 
-    with self.assertRaisesRegex(
-        SystemExit, 'Signing failed.*codesign tasks failed'):
+    stdout = io.StringIO()
+    with self.assertRaises(EOFError), contextlib.redirect_stdout(stdout):
       dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+    self.assertRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
 
     mock_future_not_done.cancel.assert_called()
     mock_future_exception.cancel.assert_not_called()
