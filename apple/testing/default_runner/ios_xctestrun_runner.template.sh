@@ -359,6 +359,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     "%(xctestrun_template)s" > "$xctestrun_file"
 
   args=(
+    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
