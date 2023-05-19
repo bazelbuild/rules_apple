@@ -694,7 +694,7 @@ def _wait_embedded_manifest_futures(
     future_list: List of Future instances to watch for completition or failure.
 
   Raises:
-    SystemExit: if any of the Futures raised an exception.
+    The exception from the codesign task
   """
   done_futures, not_done_futures = concurrent.futures.wait(
       future_list, return_when=concurrent.futures.FIRST_EXCEPTION)
@@ -704,10 +704,15 @@ def _wait_embedded_manifest_futures(
     not_done_future.cancel()
 
   if any(exceptions):
-    errors = '\n\n'.join(
-        f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1))
-    raise SystemExit(
-        f'Signing failed - one or more codesign tasks failed:\n{errors}')
+    exceptions = [e for e in exceptions if e is not None]
+    if len(exceptions) > 1:
+      print(
+          'Multiple codesign tasks failed:\n'
+          + '\n\n'.join(
+              f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1)
+          )
+      )
+    raise exceptions[0]
 
 
 def _extract_zipped_dossier(zipped_dossier_path):
