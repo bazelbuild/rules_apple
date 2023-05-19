@@ -181,8 +181,8 @@ if [[ -n "$test_host_path" ]]; then
       test_host_binary_path="$test_tmp_dir/$test_host_name.app/$test_host_name"
       cp "$(dirname "$test_host_binary_path")/embedded.mobileprovision" "$test_runner_mobileprovision_path"
       readonly xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
-      codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
-      codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
+      codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
+      codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
       /usr/bin/sed \
         -e "s@BAZEL_CODESIGNING_TEAM_IDENTIFIER@$codesigning_team_identifier@g" \
         -e "s@BAZEL_TEST_HOST_BUNDLE_IDENTIFIER@$xcrun_test_host_bundle_identifier@g" \
