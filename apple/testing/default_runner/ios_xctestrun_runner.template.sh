@@ -149,7 +149,7 @@ if [[ -n "$test_host_path" ]]; then
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
-    xcrun_test_bundle_path="$xctestrun_test_host_path/PlugIns/$test_bundle_name.xctest"
+    xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
       -e "s@WRAPPEDPRODUCTNAME@XCTRunner@g"\
