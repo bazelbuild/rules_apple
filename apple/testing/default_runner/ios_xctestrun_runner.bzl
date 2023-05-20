@@ -8,6 +8,7 @@ load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl", "AppleTestR
 def _get_template_substitutions(
         *,
         create_xcresult_bundle,
+        create_xctestrun_bundle,
         device_type,
         os_version,
         simulator_creator,
@@ -20,6 +21,7 @@ def _get_template_substitutions(
         "device_type": device_type,
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
+        "create_xctestrun_bundle": create_xctestrun_bundle,
         "xcodebuild_args": xcodebuild_args,
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
@@ -55,6 +57,7 @@ def _ios_xctestrun_runner_impl(ctx):
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
+            create_xctestrun_bundle = "true" if ctx.attr.create_xctestrun_bundle else "false",
             device_type = device_type,
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
@@ -114,6 +117,14 @@ supported version.
             doc = """
 Force the test runner to always create an XCResult bundle. This means it will
 always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "create_xctestrun_bundle": attr.bool(
+            default = False,
+            doc = """
+Enabling this with create an `xctestrun` bundle that can be used to execute
+the tests outside of the runner. `create_xcresult_bundle` must be set to
+`True` as well to enable this feature.
 """,
         ),
         "xcodebuild_args": attr.string_list(

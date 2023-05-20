@@ -18,6 +18,10 @@ if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
   create_xcresult_bundle=true
 fi
 
+if [[ "$create_xcresult_bundle" == true ]]; then
+  create_xctestrun_bundle="%(create_xctestrun_bundle)s"
+fi
+
 custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 while [[ $# -gt 0 ]]; do
@@ -83,12 +87,15 @@ if [[ -n "$test_host_path" ]]; then
     cp -cRL "$test_host_path" "$test_tmp_dir"
     # Need to modify permissions as Bazel will set all files to non-writable,
     # and Xcode's test runner requires the files to be writable.
-    chmod -R 777 "$test_tmp_dir/$test_host_name.app"
+    chmod -R 777 "$test_tmp_dir_test_host_path"
   else
     unzip -qq -d "${test_tmp_dir}" "${test_host_path}"
     mv "$test_tmp_dir"/Payload/*.app "$test_tmp_dir"
   fi
 fi
+
+test_tmp_dir_test_host_path=$(find "$test_tmp_dir" -name "*.app" -type d -maxdepth 1 -mindepth 1 -print -quit)
+test_host_name=$(basename_without_extension "$test_tmp_dir_test_host_path")
 
 # Basic XML character escaping for environment variable substitution.
 function escape() {
@@ -129,7 +136,7 @@ if [[ -n "$test_host_path" ]]; then
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
-  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
+  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTROOT__/$test_host_name.app/$test_host_name")</string>"
 
   if [[ "$test_type" = "XCUITEST" ]]; then
     xcrun_is_xctrunner_hosted_bundle="true"
@@ -148,7 +155,7 @@ if [[ -n "$test_host_path" ]]; then
     xcrun_test_host_bundle_identifier="com.apple.test.$runner_app_name"
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
-    mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    cp -R "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
@@ -170,7 +177,9 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$xctestsupport_framework_path" ]]; then
       cp -R "$xctestsupport_framework_path" "$runner_app_frameworks_destination/XCTestSupport.framework"
     fi
-    if [[ "$test_execution_platform" == "iPhoneOS.platform" ]]; then
+    test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
+    # Only engage signing workflow if the test host is signed
+    if [[ -f "$test_host_mobileprovision_path" ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
       # bundle, the XCTRunner which hosts the test bundle will fail to be
@@ -178,9 +187,9 @@ if [[ -n "$test_host_path" ]]; then
       # case.
       /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
       test_runner_mobileprovision_path="$test_tmp_dir/$runner_app/embedded.mobileprovision"
-      test_host_binary_path="$test_tmp_dir/$test_host_name.app/$test_host_name"
-      cp "$(dirname "$test_host_binary_path")/embedded.mobileprovision" "$test_runner_mobileprovision_path"
-      readonly xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
+      cp "$test_host_mobileprovision_path" "$test_runner_mobileprovision_path"
+      xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
+      test_host_binary_path="$test_tmp_dir_test_host_path/$test_host_name"
       codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
       codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
       /usr/bin/sed \
@@ -296,9 +305,13 @@ else
   simulator_creator_args+=(--no-reuse-simulator)
 fi
 
-simulator_id="$("./%(simulator_creator.py)s" \
-  "${simulator_creator_args[@]}"
-)"
+if [[ "$create_xctestrun_bundle" == true ]]; then
+  simulator_id="unused"
+else
+  simulator_id="$("./%(simulator_creator.py)s" \
+    "${simulator_creator_args[@]}"
+  )"
+fi
 
 test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
@@ -369,6 +382,15 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   rm -rf "$result_bundle_path"
   if [[ "$create_xcresult_bundle" == true ]]; then
     args+=(-resultBundlePath "$result_bundle_path")
+
+    if [[ "$create_xctestrun_bundle" == true ]]; then
+      echo "note: creating xctestrun bundle"
+      ls -la "$test_tmp_dir"
+      cp "$test_tmp_dir/tests.xctestrun" "$TEST_UNDECLARED_OUTPUTS_DIR"
+      cp -R "$test_tmp_dir_test_host_path" "$TEST_UNDECLARED_OUTPUTS_DIR"
+      cp -R "$test_tmp_dir/$runner_app" "$TEST_UNDECLARED_OUTPUTS_DIR"
+      exit 0
+    fi
   fi
 
   if (( ${#custom_xcodebuild_args[@]} )); then
