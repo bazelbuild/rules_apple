@@ -587,9 +587,6 @@ def _post_process_and_sign_archive_action(
         default = (config_vars["COMPILATION_MODE"] == "opt"),
     )
 
-    # Verify the output file if the verify_zip_crc feature is enabled.
-    should_verify = "verify_zip_crc" in features
-
     # TODO(b/163217926): These are kept the same for the three different actions
     # that could be run to ensure anything keying off these values continues to
     # work. After some data is collected, the values likely can be revisited and
@@ -624,7 +621,7 @@ def _post_process_and_sign_archive_action(
             "%ipa_post_processor%": ipa_post_processor_path or "",
             "%output_path%": output_archive.path,
             "%should_compress%": "1" if should_compress else "",
-            "%should_verify%": "1" if should_verify else "",
+            "%should_verify%": "1",  # always verify the crc
             "%signing_command_lines%": signing_command_lines,
             "%unprocessed_archive_path%": input_archive.path,
             "%work_dir%": output_archive_root_path,
