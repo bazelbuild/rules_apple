@@ -79,6 +79,10 @@ class BundleConflictError(ValueError):
     ValueError.__init__(self, msg)
 
 
+class BadZipFileError(Exception):
+  """Raised when testzip discovers a corrupt entry in the zip file."""
+
+
 class Bundler(object):
   """Implements the core functionality of the bundler."""
 
@@ -119,6 +123,11 @@ class Bundler(object):
 
       for z in root_merge_zips:
         self._add_zip_contents(z['src'], z['dest'], out_zip, compress)
+
+    with zipfile.ZipFile(output_path, 'r') as test_zip:
+      badfile = test_zip.testzip()
+      if badfile:
+        raise BadZipFileError('Bad CRC-32 for file %s' % (badfile))
 
   def _add_files(self, src, dest, executable, contents_only, out_zip, compress):
     """Adds a file or a directory of files to the ZIP archive.
