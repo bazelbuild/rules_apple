@@ -39,26 +39,29 @@ def iconname_from_filename(fname):
   return bname.split("@")[0]
 
 
-def insert_alticons(plist_data, alticons):
+def insert_alticons(plist_data, alticons, device_families):
   alticons_data = {}
   for alticon in alticons:
     alticon_id, _ = os.path.splitext(os.path.basename(alticon))
     alticons_data[alticon_id] = {
       "CFBundleIconFiles": sorted(set(map(iconname_from_filename, os.listdir(alticon)))),
     }
-  plist_data["CFBundleIcons"]["CFBundleAlternateIcons"] = alticons_data
-  plist_data["CFBundleIcons~ipad"]["CFBundleAlternateIcons"] = alticons_data
+  if "iphone" in device_families:
+    plist_data["CFBundleIcons"]["CFBundleAlternateIcons"] = alticons_data
+  if "ipad" in device_families:
+    plist_data["CFBundleIcons~ipad"]["CFBundleAlternateIcons"] = alticons_data
 
 
 def main(argv):
   parser = argparse.ArgumentParser()
   parser.add_argument("--input_plist", required=True)
   parser.add_argument("--output_plist", required=True)
+  parser.add_argument("--families", required=True)
   parser.add_argument("--alticon", action="append", required=True)
   args, _ = parser.parse_known_args(argv)
 
   plist_data = plist_load(args.input_plist)
-  insert_alticons(plist_data, args.alticon)
+  insert_alticons(plist_data, args.alticon, args.families)
   plist_write(args.output_plist, plist_data)
 
   return 0
