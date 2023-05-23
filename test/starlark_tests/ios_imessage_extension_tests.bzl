@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ios_imessage_application Starlark tests."""
+"""ios_imessage_extension Starlark tests."""
 
 load(
     ":common.bzl",
     "common",
+)
+load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
@@ -33,8 +37,8 @@ load(
 
 visibility("private")
 
-def ios_imessage_application_test_suite(name):
-    """Test suite for ios_imessage_application.
+def ios_imessage_extension_test_suite(name):
+    """Test suite for ios_imessage_extension.
 
     Args:
       name: the base name to be used in things created by this macro
@@ -42,20 +46,20 @@ def ios_imessage_application_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
         expected_values = {
             "BuildMachineOSBuild": "*",
-            "CFBundleExecutable": "imessage_app",
-            "CFBundleIdentifier": "com.google.example",
-            "CFBundleName": "imessage_app",
-            "CFBundlePackageType": "APPL",
+            "CFBundleExecutable": "imessage-ext",
+            "CFBundleIdentifier": "com.google.example.MessagesExtension",
+            "CFBundleName": "imessage-ext",
+            "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "iPhone*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",
@@ -65,8 +69,8 @@ def ios_imessage_application_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSApplicationLaunchProhibited": "true",
             "MinimumOSVersion": common.min_os_ios.baseline,
+            "NSExtension:NSExtensionPointIdentifier": "com.apple.widget-extension",
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
@@ -74,20 +78,28 @@ def ios_imessage_application_test_suite(name):
 
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app_with_capability_set_derived_bundle_id",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext_with_capability_set_derived_bundle_id",
         expected_values = {
-            "CFBundleIdentifier": "com.bazel.app.example",
+            "CFBundleIdentifier": "com.bazel.app.example.MessagesExtension",
         },
         tags = [name],
     )
 
     archive_contents_test(
-        name = "{}_stub_application_in_ipa_test".format(name),
+        name = "{}_imessage_icons_in_ipa_test".format(name),
         build_type = "device",
         contains = [
-            "$ARCHIVE_ROOT/MessagesApplicationSupport/MessagesApplicationSupportStub",
+            "$BUNDLE_ROOT/app_icon27x20@2x.png",
+            "$BUNDLE_ROOT/app_icon32x24@2x.png",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_imessage_wrong_icons_in_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext_with_wrong_appicons",
+        expected_error = "Message extensions must use Messages Extensions Icon Sets",
         tags = [name],
     )
 
