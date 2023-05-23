@@ -19,8 +19,8 @@ load(
     "output_text_match_test",
 )
 load(
-    ":rules/compilation_context_test.bzl",
-    "compilation_context_test",
+    ":rules/analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
 )
 
 def dtrace_compile_test_suite(name):
@@ -39,12 +39,11 @@ def dtrace_compile_test_suite(name):
         tags = [name],
     )
 
-    compilation_context_test(
-        name = "{}_generates_expected_compilation_context_header".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/dtrace:dtrace",
-        expected_attributes = [
-            "headers",
-        ],
+    # Test that the output library follows a given form of libdtrace_lib.a.
+    analysis_target_outputs_test(
+        name = "{}_dtarce_compile_library_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/dtrace:dtrace_lib",
+        expected_outputs = ["libdtrace_lib.a"],
         tags = [name],
     )
 
