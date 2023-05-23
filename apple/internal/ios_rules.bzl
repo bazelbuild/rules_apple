@@ -2345,9 +2345,7 @@ ios_imessage_application = rule_factory.create_apple_rule(
             platform_type = "ios",
             add_environment_plist = True,
         ),
-        rule_attrs.signing_attrs(
-            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
-        ),
+        rule_attrs.signing_attrs(),
         {
             "extension": attr.label(
                 mandatory = True,

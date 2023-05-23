@@ -71,9 +71,9 @@ def ios_sticker_pack_extension_test_suite(name):
 
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app_with_capability_set_derived_bundle_id",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_capability_set_derived_bundle_id",
         expected_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.imessage-app-with-capability-set-derived-bundle-id",
+            "CFBundleIdentifier": "com.bazel.app.example.sticker-ext-with-capability-set-derived-bundle-id",
         },
         tags = [name],
     )
