@@ -20,6 +20,7 @@ import plistlib
 import re
 import subprocess
 import sys
+import tempfile
 
 from tools.wrapper_common import execute
 
@@ -98,13 +99,22 @@ def plist_from_bytes(byte_content):
 
 def _parse_mobileprovision_file(mobileprovision_file):
   """Reads and parses a mobileprovision file."""
+  keychain_file = tempfile.mkstemp(prefix="local-profile-keychain-")[1]
+  os.remove(keychain_file)
+  try:
+      subprocess.check_call(["security", "create-keychain", "-p", "", keychain_file])
+  except Exception as exp:
+      raise subprocess.CalledProcessError("Error creating temporary keychain at path %s: %s" % (keychain_file, exp))
   plist_xml = subprocess.check_output([
       "security",
       "cms",
       "-D",
+      "-k",
+      keychain_file,
       "-i",
       mobileprovision_file,
   ])
+  os.remove(keychain_file)
   return plist_from_bytes(plist_xml)
 
 

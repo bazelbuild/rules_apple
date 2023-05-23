@@ -4,7 +4,9 @@ import plistlib
 import shutil
 import subprocess
 import sys
+import os
 from typing import List, Optional, Tuple
+from tempfile import mkstemp
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -30,8 +32,8 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _profile_contents(profile: str) -> Tuple[str, datetime.datetime, str]:
-    output = subprocess.check_output(["security", "cms", "-D", "-i", profile])
+def _profile_contents(profile: str, keychain_file: str) -> Tuple[str, datetime.datetime, str]:
+    output = subprocess.check_output(["security", "cms", "-D", "-k", keychain_file, "-i", profile])
     plist = plistlib.loads(output)
     return plist["Name"], plist["UUID"], plist["CreationDate"], plist["TeamIdentifier"][0]
 
@@ -41,8 +43,16 @@ def _find_newest_profile(
 ) -> Optional[str]:
     newest_path: Optional[str] = None
     newest_date: Optional[datetime.datetime] = None
+     # set up a temporary keychain path
+    keychain_file = mkstemp(prefix="local-profile-keychain-")[1]
+    os.remove(keychain_file)
+    try:
+        subprocess.check_call(["security", "create-keychain", "-p", "", keychain_file])
+    except Exception as exp:
+        raise subprocess.CalledProcessError("Error creating temporary keychain at path %s: %s" % (keychain_file, exp))
+
     for profile in profiles:
-        profile_name, profile_uuid, creation_date, actual_team_id = _profile_contents(profile)
+        profile_name, profile_uuid, creation_date, actual_team_id = _profile_contents(profile, keychain_file)
         if profile_name != expected_specifier and profile_uuid != expected_specifier:
             continue
         if team_id and team_id != actual_team_id:
@@ -52,6 +62,7 @@ def _find_newest_profile(
             newest_path = profile
             newest_date = creation_date
 
+    os.remove(keychain_file)
     return newest_path
 
 
