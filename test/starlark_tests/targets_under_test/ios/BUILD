@@ -2607,7 +2607,7 @@ write_file(
     content = ["""
 import generated_static_xcframework_with_headers
 
-func static_xcframework_depending_swift_lib_funtion_function() {
+func static_xcframework_depending_swift_lib_function_function() {
   let sc = generated_static_xcframework_with_headers.SharedClass()
   sc.doSomethingShared()
 }
@@ -4493,7 +4493,6 @@ ios_imessage_application(
 
 ios_sticker_pack_extension(
     name = "sticker_ext_with_capability_set_derived_bundle_id",
-    bundle_id_suffix = "imessage-app-with-capability-set-derived-bundle-id.sticker-ext-with-capability-set-derived-bundle-id",
     bundle_name = "sticker-ext-with-capability-set-derived-bundle-id",
     families = [
         "iphone",

@@ -2869,9 +2869,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
             platform_type = "ios",
             add_environment_plist = True,
         ),
-        rule_attrs.signing_attrs(
-            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
-        ),
+        rule_attrs.signing_attrs(),
         {
             "extension": attr.label(
                 mandatory = True,
