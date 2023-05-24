@@ -279,6 +279,11 @@ the exact names of the locales to be included.
 This can be used to improve compile/debug/test cycles because most developers
 only work/test in one language.
 
+#### Explicitly Excluding Locales
+
+Use `--define "apple.locales_to_exclude=foo,bar,bam"` where `foo,bar,bam` are
+the exact names of the locales to be excluded.
+
 #### Automatically Trimming Locales
 
 Use `--define "apple.trim_lproj_locales=(yes|true|1)"` to strip any `.lproj`

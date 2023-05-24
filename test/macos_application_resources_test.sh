@@ -149,4 +149,81 @@ EOF
       "app.app/Contents/Resources/bundle_library_macos.bundle/fr.lproj/localized.strings"
 }
 
+# Tests that the localizations that are explictly excluded via 
+# --define "apple.locales_to_exclude=fr" are not included in the output bundle.
+function test_bundle_localization_excludes() {
+  create_common_files
+
+  mkdir -p app/fr.lproj
+  touch app/fr.lproj/localized.strings
+
+  mkdir -p app/it.lproj
+  touch app/it.lproj/localized.strings
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    data = [
+        "fr.lproj/localized.strings",
+        "it.lproj/localized.strings",
+    ],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build macos //app:app --define "apple.locales_to_exclude=fr" \
+      || fail "Should build"
+
+  # Verify the app has a `it` localization and not an `fr` localization.
+  assert_zip_not_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/fr.lproj/localized.strings"
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/it.lproj/localized.strings"
+}
+
+# Tests that the localizations that are explictly excluded via 
+# --define "apple.locales_to_exclude=fr" overrides the ones explicitly included
+# via "apple.locales_to_include" and are not included in the output bundle.
+function test_bundle_localization_excludes_includes_conflict() {
+  create_common_files
+
+  mkdir -p app/fr.lproj
+  touch app/fr.lproj/localized.strings
+
+  mkdir -p app/it.lproj
+  touch app/it.lproj/localized.strings
+
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    data = [
+        "fr.lproj/localized.strings",
+        "it.lproj/localized.strings",
+    ],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  ! do_build macos //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
+      || fail "Should fail build"
+  error_message="\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
+Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly."
+  expect_log "$error_message"
+}
+
+
 run_suite "macos_application bundling with resources tests"
