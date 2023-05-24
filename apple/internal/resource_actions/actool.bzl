@@ -161,7 +161,8 @@ def _alticonstool_args(
         actions,
         alticons_files,
         input_plist,
-        output_plist):
+        output_plist,
+        device_families):
     alticons_dirs = group_files_by_directory(
         alticons_files,
         ["alticon"],
@@ -173,6 +174,8 @@ def _alticonstool_args(
         input_plist,
         "--output",
         output_plist,
+        "--families",
+        ",".join(device_families),
     ])
     args.add_all(alticons_dirs, before_each = "--alticon")
     return [args]
@@ -295,6 +298,7 @@ def compile_asset_catalog(
                 input_plist = actool_output_plist,
                 output_plist = output_plist,
                 alticons_files = alternate_icons,
+                device_families = platform_prerequisites.device_families,
             ),
             executable = resolved_alticonstool.files_to_run,
             inputs = depset([actool_output_plist] + alternate_icons, transitive = [resolved_alticonstool.inputs]),

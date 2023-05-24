@@ -473,12 +473,32 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
-    # Test that an application with alternate icons properly embeds the icons PNGs and has the
-    # correct entries set in the Info.plist.
+    # Test that an universal application with alternate icons properly embeds
+    # the icons PNGs and has the correct entries set in the Info.plist.
     archive_contents_test(
         name = "{}_with_alternate_icons".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon_one.png",
+            "$BUNDLE_ROOT/app_icon_two.png",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundleAlternateIcons:one:CFBundleIconFiles:0": "app_icon_one",
+            "CFBundleIcons:CFBundleAlternateIcons:two:CFBundleIconFiles:0": "app_icon_two",
+            "CFBundleIcons~ipad:CFBundleAlternateIcons:one:CFBundleIconFiles:0": "app_icon_one",
+            "CFBundleIcons~ipad:CFBundleAlternateIcons:two:CFBundleIconFiles:0": "app_icon_two",
+        },
+        tags = [name],
+    )
+
+    # Test that an iPhone application with alternate icons properly embeds the
+    # icons PNGs and has the correct entries set in the Info.plist.
+    archive_contents_test(
+        name = "{}_iphone_only_with_alternate_icons".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:iphone_only_app_with_alternate_icons",
         contains = [
             "$BUNDLE_ROOT/app_icon_one.png",
             "$BUNDLE_ROOT/app_icon_two.png",
