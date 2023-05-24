@@ -442,12 +442,11 @@ ios_application(
 )
 EOF
 
-  do_build ios //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
-      || fail "Should build"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/it.lproj/localized.strings"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/fr.lproj/localized.strings"
+  ! do_build ios //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
+      || fail "Should fail build"
+  error_message="\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
+Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly."
+  expect_log "$error_message"
 }
 
 run_suite "ios_application bundling with resources tests"
