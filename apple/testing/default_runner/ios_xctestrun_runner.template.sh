@@ -131,7 +131,7 @@ if [[ -n "$test_host_path" ]]; then
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
-  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTROOT__/$test_host_name.app/$test_host_name")</string>"
+  xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
 
   if [[ "$test_type" = "XCUITEST" ]]; then
     xcrun_is_xctrunner_hosted_bundle="true"
