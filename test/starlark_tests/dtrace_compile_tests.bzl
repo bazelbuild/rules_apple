@@ -18,6 +18,10 @@ load(
     ":rules/output_text_match_test.bzl",
     "output_text_match_test",
 )
+load(
+    ":rules/analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
+)
 
 def dtrace_compile_test_suite(name):
     """Test suite for `dtrace_compile`.
@@ -32,6 +36,14 @@ def dtrace_compile_test_suite(name):
             "folder1/probes.h": ["PROVIDERA_MYFUNC"],
             "folder2/probes.h": ["PROVIDERB_MYFUNC"],
         },
+        tags = [name],
+    )
+
+    # Test that the output library follows a given form of libdtrace_lib.a.
+    analysis_target_outputs_test(
+        name = "{}_dtarce_compile_library_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/dtrace:dtrace_lib",
+        expected_outputs = ["libdtrace_lib.a"],
         tags = [name],
     )
 

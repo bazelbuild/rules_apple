@@ -352,6 +352,27 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "iphone_only_app_with_alternate_icons",
+    alternate_icons = ["//test/starlark_tests/resources:alternate_icons_ios"],
+    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    launch_images = ["//test/starlark_tests/resources:launch_images_ios"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:launch_images_ios_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_application(

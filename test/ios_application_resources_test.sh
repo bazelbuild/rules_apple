@@ -380,4 +380,73 @@ EOF
   expect_log "error: app_icon.appiconset/app_icon_40pt_3x.png is 120x121 but should be 120x120."
 }
 
+# Tests that the localizations that are explictly excluded via 
+# --define "apple.locales_to_exclude=fr" are not included in the output bundle.
+function test_localization_excludes() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app --define "apple.locales_to_exclude=fr" \
+      || fail "Should build"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.strings"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/fr.lproj/localized.strings"
+}
+
+# Tests that the localizations that are explictly excluded via 
+# --define "apple.locales_to_exclude=fr" overrides the ones explicitly included via "apple.locales_to_include" and are not included in the output bundle.
+function test_localization_excludes_includes_conflict() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
+      || fail "Should fail build"
+  error_message="\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
+Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly."
+  expect_log "$error_message"
+}
+
 run_suite "ios_application bundling with resources tests"

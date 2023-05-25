@@ -34,6 +34,7 @@ load(
 def _dtrace_compile_impl(ctx):
     """Implementation for dtrace_compile."""
     output_hdrs = []
+    include_dir = None
 
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
@@ -52,7 +53,21 @@ def _dtrace_compile_impl(ctx):
             progress_message = ("Compiling dtrace probes %s" % (src.basename)),
         )
 
-    return [DefaultInfo(files = depset(output_hdrs))]
+        if not include_dir:
+            hdr_suffix = paths.replace_extension("/" + owner_relative_path.lstrip("/"), ".h")
+            include_dir = hdr.path.removesuffix(hdr_suffix)
+
+    return [
+        apple_common.new_objc_provider(
+            strict_include = depset([include_dir]),
+        ),
+        CcInfo(
+            compilation_context = cc_common.create_compilation_context(
+                headers = depset(output_hdrs),
+            ),
+        ),
+        DefaultInfo(files = depset(output_hdrs)),
+    ]
 
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,

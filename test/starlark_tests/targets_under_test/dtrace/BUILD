@@ -22,3 +22,10 @@ dtrace_compile(
     ],
     tags = common.fixture_tags,
 )
+
+objc_library(
+    name = "dtrace_lib",
+    srcs = ["dtrace_test.m"],
+    tags = common.fixture_tags,
+    deps = [":dtrace"],
+)
