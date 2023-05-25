@@ -151,6 +151,9 @@ if [[ -n "$test_host_path" ]]; then
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     cp -R "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    mkdir "$plugins_path/$test_bundle_name.xctest/Frameworks"
+    # We need this dylib for 14.x OSes
+    cp "$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
@@ -166,7 +169,8 @@ if [[ -n "$test_host_path" ]]; then
     cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
-    cp -R "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
+    cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
+    cp "$developer_path/usr/lib/libXCTestBundleInject.dylib" "$runner_app_frameworks_destination/libXCTestBundleInject.dylib"
     # Added in Xcode 14.3
     xctestsupport_framework_path="$libraries_path/PrivateFrameworks/XCTestSupport.framework"
     if [[ -d "$xctestsupport_framework_path" ]]; then
