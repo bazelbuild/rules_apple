@@ -183,16 +183,6 @@ if [[ -n "$test_host_path" ]]; then
       # launched. So removing the arm64e arch from XCTRunner can resolve this
       # case.
       /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
-      # Copied frameworks/dylibs include arm64e slices, we will need to remove those to allow the runner to execute
-      frameworks_toplevel_paths=$(find "$test_tmp_dir/$runner_app/Frameworks" -name "*.framework" -depth 1)
-      for framework_toplevel_path in $frameworks_toplevel_paths; do
-        framework_binary_path="$framework_toplevel_path/$(basename_without_extension "$framework_toplevel_path")"
-        /usr/bin/lipo "$framework_binary_path" -remove arm64e -output "$framework_binary_path"
-      done
-      find "$test_tmp_dir/$runner_app/Frameworks" \
-        -type f \
-        -name "*.dylib" \
-        -exec /usr/bin/lipo {} -remove arm64e -output {} \;
     fi
     test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
     # Only engage signing workflow if the test host is signed
