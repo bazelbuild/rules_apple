@@ -362,7 +362,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
     -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
     -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
-    -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
