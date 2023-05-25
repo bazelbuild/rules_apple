@@ -67,10 +67,9 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
-# We must dynamically determine which platform the test binary was built for
-# to ensure we copy over the correct frameworks and dylibs.
+build_for_device="%(build_for_device)s"
 test_execution_platform="iPhoneSimulator.platform"
-if file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name" | grep -q "arm64"; then
+if [[ "$build_for_device" == true ]]; then
   test_execution_platform="iPhoneOS.platform"
 fi
 
@@ -173,9 +172,7 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$xctestsupport_framework_path" ]]; then
       cp -R "$xctestsupport_framework_path" "$runner_app_frameworks_destination/XCTestSupport.framework"
     fi
-    test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
-    # Only engage signing workflow if the test host is signed
-    if [[ -f "$test_host_mobileprovision_path" ]]; then
+    if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
       # bundle, the XCTRunner which hosts the test bundle will fail to be
@@ -192,6 +189,10 @@ if [[ -n "$test_host_path" ]]; then
         -type f \
         -name "*.dylib" \
         -exec /usr/bin/lipo {} -remove arm64e -output {} \;
+    fi
+    test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
+    # Only engage signing workflow if the test host is signed
+    if [[ -f "$test_host_mobileprovision_path" ]]; then
       test_runner_mobileprovision_path="$test_tmp_dir/$runner_app/embedded.mobileprovision"
       cp "$test_host_mobileprovision_path" "$test_runner_mobileprovision_path"
       xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
