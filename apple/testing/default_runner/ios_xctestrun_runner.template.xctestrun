@@ -34,6 +34,8 @@
       <string>BAZEL_COVERAGE_PROFRAW</string>
       <key>DYLD_INSERT_LIBRARIES</key>
       <string>BAZEL_INSERT_LIBRARIES</string>
+      <key>DYLD_LIBRARY_PATH</key>
+      <string>BAZEL_DYLD_LIBRARY_PATH</string>
       <key>__XCODE_BUILT_PRODUCTS_DIR_PATHS</key>
       <string>/DUMMY_SRCROOT/</string>
       BAZEL_TEST_ENVIRONMENT
