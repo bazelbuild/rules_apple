@@ -92,16 +92,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_imessage_test",
-    size = "medium",
-    src = "ios_imessage_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-    ],
-)
-
-apple_multi_shell_test(
     name = "macos_application_test",
     size = "medium",
     src = "macos_application_test.sh",

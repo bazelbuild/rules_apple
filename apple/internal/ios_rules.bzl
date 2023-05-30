@@ -116,7 +116,6 @@ load(
     "IosImessageApplicationBundleInfo",
     "IosImessageExtensionBundleInfo",
     "IosStaticFrameworkBundleInfo",
-    "IosStickerPackExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
@@ -1786,192 +1785,6 @@ def _ios_imessage_extension_impl(ctx):
         link_result.debug_outputs_provider,
     ] + processor_result.providers
 
-def _ios_sticker_pack_extension_impl(ctx):
-    """Experimental implementation of ios_sticker_pack_extension."""
-    rule_descriptor = rule_support.rule_descriptor(
-        platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.messages_sticker_pack_extension,
-    )
-
-    actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_name, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = ctx.attr.bundle_name,
-        label_name = ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
-    bundle_id = bundling_support.bundle_full_id(
-        bundle_id = ctx.attr.bundle_id,
-        bundle_id_suffix = ctx.attr.bundle_id_suffix,
-        bundle_name = bundle_name,
-        suffix_default = ctx.attr._bundle_id_suffix_default,
-        shared_capabilities = ctx.attr.shared_capabilities,
-    )
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-    label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        build_settings = apple_xplat_toolchain_info.build_settings,
-        config_vars = ctx.var,
-        cpp_fragment = ctx.fragments.cpp,
-        device_families = ctx.attr.families,
-        explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
-        uses_swift = False,  # No binary deps to check.
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-    predeclared_outputs = ctx.outputs
-    provisioning_profile = ctx.file.provisioning_profile
-    resource_deps = ctx.attr.resources
-    top_level_infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists"],
-    )
-    top_level_resources = resources.collect(
-        attr = ctx.attr,
-        res_attrs = [
-            "sticker_assets",
-            "strings",
-            "resources",
-        ],
-    )
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        bundle_id = bundle_id,
-        entitlements_file = ctx.file.entitlements,
-        platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
-        provisioning_profile = provisioning_profile,
-        rule_label = label,
-        validation_mode = ctx.attr.entitlements_validation,
-    )
-
-    binary_artifact = stub_support.create_stub_binary(
-        actions = actions,
-        platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        xcode_stub_path = rule_descriptor.stub_binary_path,
-    )
-
-    archive_for_embedding = outputs.archive_for_embedding(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label.name,
-        rule_descriptor = rule_descriptor,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-    )
-
-    processor_partials = [
-        # TODO(kaipi): Refactor this partial into a more generic interface to account for
-        # sticker_assets as a top level attribute.
-        partials.app_assets_validation_partial(
-            app_icons = ctx.files.sticker_assets,
-            platform_prerequisites = platform_prerequisites,
-            product_type = rule_descriptor.product_type,
-        ),
-        partials.apple_bundle_info_partial(
-            actions = actions,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            entitlements = entitlements,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
-        ),
-        partials.binary_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
-            label_name = label.name,
-        ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
-            bundle_name = bundle_name,
-            entitlements = entitlements,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        ),
-        partials.embedded_bundles_partial(
-            platform_prerequisites = platform_prerequisites,
-            plugins = [archive_for_embedding],
-        ),
-        partials.resources_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
-            platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            top_level_infoplists = top_level_infoplists,
-            top_level_resources = top_level_resources,
-            version = ctx.attr.version,
-        ),
-        partials.messages_stub_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            label_name = label.name,
-        ),
-    ]
-
-    if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
-                actions = actions,
-                profile_artifact = provisioning_profile,
-                rule_label = label,
-            ),
-        )
-
-    processor_result = processor.process(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        entitlements = entitlements,
-        features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
-        partials = processor_partials,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        provisioning_profile = provisioning_profile,
-        rule_descriptor = rule_descriptor,
-        rule_label = label,
-    )
-
-    return [
-        DefaultInfo(
-            files = processor_result.output_files,
-        ),
-        IosExtensionBundleInfo(),
-        IosStickerPackExtensionBundleInfo(),
-        OutputGroupInfo(**processor_result.output_groups),
-    ] + processor_result.providers
-
 ios_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Application.",
     implementation = _ios_application_impl,
@@ -2351,10 +2164,9 @@ ios_imessage_application = rule_factory.create_apple_rule(
                 mandatory = True,
                 providers = [
                     [AppleBundleInfo, IosImessageExtensionBundleInfo],
-                    [AppleBundleInfo, IosStickerPackExtensionBundleInfo],
                 ],
                 doc = """
-Single label referencing either an ios_imessage_extension or ios_sticker_pack_extension target.
+Single label referencing an ios_imessage_extension target.
 Required.
 """,
             ),
@@ -2401,43 +2213,6 @@ ios_imessage_extension = rule_factory.create_apple_rule(
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
 that this target depends on.
-""",
-            ),
-        },
-    ],
-)
-
-ios_sticker_pack_extension = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an iOS Sticker Pack Extension.",
-    implementation = _ios_sticker_pack_extension_impl,
-    predeclared_outputs = {"archive": "%{name}.zip"},
-    attrs = [
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".stickersiconset",
-            icon_parent_extension = ".xcstickers",
-        ),
-        rule_attrs.common_bundle_attrs(),
-        rule_attrs.common_tool_attrs(),
-        rule_attrs.device_family_attrs(
-            allowed_families = rule_attrs.defaults.allowed_families.ios,
-            is_mandatory = True,
-        ),
-        rule_attrs.infoplist_attrs(),
-        rule_attrs.platform_attrs(
-            platform_type = "ios",
-            add_environment_plist = True,
-        ),
-        rule_attrs.signing_attrs(
-            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
-        ),
-        {
-            "sticker_assets": attr.label_list(
-                allow_files = True,
-                doc = """
-List of sticker files to bundle. The collection of assets should be under a folder named
-`*.*.xcstickers`. The icons go in a `*.stickersiconset` (instead of `*.appiconset`); and the files
-for the stickers should all be in Sticker Pack directories, so `*.stickerpack/*.sticker` or
-`*.stickerpack/*.stickersequence`.
 """,
             ),
         },

@@ -38,7 +38,6 @@ load(
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
-    _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 
 visibility("public")
@@ -49,7 +48,6 @@ ios_app_clip = _ios_app_clip
 ios_extension = _ios_extension
 ios_framework = _ios_framework
 ios_imessage_application = _ios_imessage_application
-ios_sticker_pack_extension = _ios_sticker_pack_extension
 ios_imessage_extension = _ios_imessage_extension
 ios_static_framework = _ios_static_framework
 

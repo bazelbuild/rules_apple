@@ -47,27 +47,6 @@ def _app_assets_validation_partial_impl(
                 "stickersiconset",
                 message = message,
             )
-        elif product_type == apple_product_type.messages_sticker_pack_extension:
-            path_fragments = [
-                # Replacement for appiconset.
-                ["xcstickers", "stickersiconset"],
-                # The stickers.
-                ["xcstickers", "stickerpack", "sticker"],
-                ["xcstickers", "stickerpack", "stickersequence"],
-            ]
-            message = (
-                "Message StickerPack extensions use an asset catalog named " +
-                "*.xcstickers. Their main icons use *.stickersiconset; and then " +
-                "under the Sticker Pack (*.stickerpack) goes the Stickers " +
-                "(named *.sticker) and/or Sticker Sequences (named " +
-                "*.stickersequence)"
-            )
-            bundling_support.ensure_path_format(
-                "app_icons",
-                app_icons,
-                path_fragments,
-                message = message,
-            )
         elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
             bundling_support.ensure_single_xcassets_type(
                 "app_icons",

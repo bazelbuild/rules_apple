@@ -70,10 +70,7 @@ def _actool_args_for_special_file_types(
     """
     args = []
 
-    if product_type in (
-        apple_product_type.messages_extension,
-        apple_product_type.messages_sticker_pack_extension,
-    ):
+    if product_type == apple_product_type.messages_extension:
         appicon_extension = "stickersiconset"
         icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
 
@@ -220,7 +217,7 @@ def compile_asset_catalog(
 
     xcassets = group_files_by_directory(
         asset_files,
-        ["xcassets", "xcstickers"],
+        ["xcassets"],
         attr = "asset_catalogs",
     ).keys()
 

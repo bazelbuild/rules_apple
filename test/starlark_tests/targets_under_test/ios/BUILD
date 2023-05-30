@@ -14,7 +14,6 @@ load(
     "ios_imessage_application",
     "ios_imessage_extension",
     "ios_static_framework",
-    "ios_sticker_pack_extension",
     "ios_ui_test",
     "ios_unit_test",
 )
@@ -99,7 +98,6 @@ ios_application(
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:nested_bundle_lib",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/resources:sticker_pack_ios_lib",
     ],
 )
 
@@ -2394,21 +2392,6 @@ ios_imessage_extension(
     ],
 )
 
-ios_sticker_pack_extension(
-    name = "sticker_ext",
-    bundle_id = "com.google.example.stickerext",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:StickerPackInfo.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    sticker_assets = [],
-    tags = common.fixture_tags,
-)
-
 # ---------------------------------------------------------------------------------------
 
 ios_ui_test(
@@ -3511,6 +3494,7 @@ ios_framework(
 
 ios_imessage_application(
     name = "imessage_app_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "",
     bundle_name = "imessage-app-with-capability-set-derived-bundle-id",
     extension = ":imessage_ext_with_capability_set_derived_bundle_id",
     families = [
@@ -3521,6 +3505,7 @@ ios_imessage_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -3546,24 +3531,6 @@ ios_imessage_extension(
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
-)
-
-ios_sticker_pack_extension(
-    name = "sticker_ext_with_capability_set_derived_bundle_id",
-    bundle_name = "sticker-ext-with-capability-set-derived-bundle-id",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:StickerPackInfo.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    sticker_assets = [],
-    tags = common.fixture_tags,
 )
 
 ios_ui_test(

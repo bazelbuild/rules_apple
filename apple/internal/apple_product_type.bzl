@@ -29,10 +29,10 @@ visibility([
 # are visible inside the `.pbxproj` file) that describes properties of the bundle,
 # such as its default extension.
 #
-# Additionally, products like iMessage applications and sticker packs in iOS 10
-# require a stub executable instead of a user-defined binary and additional values
-# injected into their `Info.plist` files. These behaviors are also captured in the
-# product type identifier. The product types currently supported are:
+# Additionally, products like iMessage applications in iOS 10 require a stub
+# executable instead of a user-defined binary and additional values injected into
+# their `Info.plist` files. These behaviors are also captured in the product type
+# identifier. The product types currently supported are:
 #
 # * `application`: A basic iOS, macOS, or tvOS application. This is the default
 #   product type for those targets; it can be overridden with a more specific
@@ -52,15 +52,11 @@ visibility([
 #   have the extension `.kext`.
 # * `messages_application`: An application that integrates with the Messages
 #   app (iOS 10 and above). This application must include an `ios_extension`
-#   with the `messages_extension` or `messages_sticker_pack_extension` product
-#   type (or both extensions). This product type does not contain a user-provided
-#   binary.
+#   with the `messages_extension` product type. This product type does not contain
+#.  a user-provided binary.
 # * `messages_extension`: An extension that integrates custom code/behavior into
 #   a Messages application. This product type should contain a user-provided
 #   binary.
-# * `messages_sticker_pack_extension`: An extension that defines custom sticker
-#   packs for the Messages app. This product type does not contain a
-#   user-provided binary.
 # * `quicklook_plugin`: A macOS Quick Look generator plug-in. This is the default
 #   product type for `macos_quick_look_plugin` targets; it does not need to be set
 #   explicitly (and cannot be changed).
@@ -98,9 +94,6 @@ apple_product_type = struct(
     kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",
     messages_extension = "com.apple.product-type.app-extension.messages",
-    messages_sticker_pack_extension = (
-        "com.apple.product-type.app-extension.messages-sticker-pack"
-    ),
     quicklook_plugin = "com.apple.product-type.quicklook-plugin",
     spotlight_importer = "com.apple.product-type.spotlight-importer",
     static_framework = "com.apple.product-type.framework.static",

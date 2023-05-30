@@ -231,16 +231,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../Frameworks",
             ],
         ),
-        # ios_stickerpack_extension
-        apple_product_type.messages_sticker_pack_extension: _describe_rule_type(
-            additional_infoplist_values = {"LSApplicationIsStickerProvider": "YES"},
-            allowed_device_families = ["iphone", "ipad"],
-            bundle_extension = ".appex",
-            bundle_package_type = bundle_package_type.extension_or_xpc,
-            product_type = apple_product_type.messages_sticker_pack_extension,
-            stub_binary_path = "../../../Library/Application Support/" +
-                               "MessagesApplicationExtensionStub/MessagesApplicationExtensionStub",
-        ),
         # ios_static_framework
         apple_product_type.static_framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],

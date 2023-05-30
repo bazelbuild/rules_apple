@@ -302,23 +302,6 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
-    # Tests that a bundle can contain both .xcassets and .xcstickers. This verifies
-    # that resource grouping is working correctly and that the two folders get
-    # passed to the same actool invocation, despite their differing extensions.
-    archive_contents_test(
-        name = "{}_bundle_can_contain_xcassets_and_xcstickers_test".format(name),
-        build_type = "simulator",
-        compilation_mode = "opt",
-        asset_catalog_test_file = "$CONTENT_ROOT/Assets.car",
-        asset_catalog_test_contains = [
-            "star_iphone",
-            # TODO(b/77633270): Sticker packs are not showing up, find out why.
-            # "sticker",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        tags = [name],
-    )
-
     # Tests strings and plists aren't compiled in fastbuild.
     archive_contents_test(
         name = "{}_fastbuild_compilation_mode_on_strings_and_plist_files_test".format(name),

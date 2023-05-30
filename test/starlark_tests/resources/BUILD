@@ -404,19 +404,6 @@ filegroup(
     srcs = glob(["*.lproj/*.txt"]),
 )
 
-filegroup(
-    name = "sticker_pack_ios",
-    srcs = glob(["sticker_pack_ios.xcstickers/**"]),
-)
-
-objc_library(
-    name = "sticker_pack_ios_lib",
-    data = [
-        ":sticker_pack_ios",
-    ],
-    tags = common.fixture_tags,
-)
-
 apple_bundle_import(
     name = "basic_bundle",
     bundle_imports = [":basic_bundle_files"],
