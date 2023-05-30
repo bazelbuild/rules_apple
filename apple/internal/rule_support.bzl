@@ -552,7 +552,9 @@ _RULE_TYPE_DESCRIPTORS = {
             rpaths = [
                 # XPC Application binaries live in
                 # Application.app/Contents/XCPServices/XPCService.xpc/Contents/MacOS/XPCService
-                # Frameworks are packaged in Application.app/Contents/Frameworks
+                # Frameworks are packaged in Application.app/Contents/XCPServices/XPCService.xpc/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                # Shared frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
         ),
@@ -603,6 +605,36 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
                 "@loader_path/../Frameworks",
             ],
+        ),
+        # macos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            deps_cfg = apple_common.multi_arch_split,
+            mandatory_families = True,
+            provisioning_profile_extension = ".provisionprofile",
+            product_type = apple_product_type.framework,
+            rpaths = [
+                # Application binaries  Application.app/Contents/MacOS/Application
+                # Frameworks            Application.app/Contents/Frameworks
+                # XPCService Frameworks Application.app/Contents/XCPServices/XPCService.xpc/Contents/Frameworks
+                # PlugIns Frameworks    Application.app/Contents/PlugIns/XXX.plugin/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                "@executable_path/../../../../Frameworks",
+            ],
+        ),
+        # macos_static_framework
+        apple_product_type.static_framework: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
+            deps_cfg = apple_common.multi_arch_split,
+            has_infoplist = False,
+            product_type = apple_product_type.static_framework,
+            requires_bundle_id = False,
+            requires_provisioning_profile = False,
         ),
     },
     "tvos": {

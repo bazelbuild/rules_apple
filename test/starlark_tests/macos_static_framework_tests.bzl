@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ios_static_framework Starlark tests."""
+"""macos_static_framework Starlark tests."""
 
 load(
     ":common.bzl",
@@ -27,53 +27,53 @@ load(
     "archive_contents_test",
 )
 
-def ios_static_framework_test_suite(name):
-    """Test suite for ios_static_framework.
+def macos_static_framework_test_suite(name):
+    """Test suite for macos_static_framework.
 
     Args:
       name: the base name to be used in things created by this macro
     """
 
-    # Tests Swift ios_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
+    # Tests Swift macos_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
     archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_cpu".format(name),
+        name = "{}_swift_arm64_builds_using_macos_cpus".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
-        apple_cpu = "ios_sim_arm64",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:swift_macos_static_framework",
         cpus = {
-            "ios_multi_cpus": [],
+            "macos_cpus": ["arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support, "platform MACOS"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_MACOSX"],
         tags = [name],
     )
 
     archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_ios_multi_cpus".format(name),
+        name = "{}_swift_x86_64_and_arm64_builds_using_macos_cpus".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:swift_macos_static_framework",
         cpus = {
-            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+            "macos_cpus": ["x86_64", "arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support, "platform MACOS"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_MACOSX"],
         tags = [name],
     )
+
     archive_contents_test(
         name = "{}_swift_x86_64_builds".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:swift_macos_static_framework",
         cpus = {
-            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+            "macos_cpus": ["x86_64"],
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_MACOSX"],
+        macho_load_commands_not_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.baseline, "platform MACOS"],
         tags = [name],
     )
 
@@ -87,7 +87,7 @@ def ios_static_framework_test_suite(name):
         name = "{}_swift_avoid_deps_test".format(name),
         build_type = "simulator",
         compilation_mode = "opt",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_fmwk_with_swift_and_avoid_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_fmwk_with_swift_and_avoid_deps",
         contains = [
             "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftinterface",
@@ -107,7 +107,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_no_module_map_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_without_modulemap",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:objc_static_framework_without_modulemap",
         not_contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
         tags = [name],
     )
@@ -117,7 +117,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_module_map_with_sdk_dylibs_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_with_sdk_dylibs_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:objc_static_framework_with_sdk_dylibs_dep",
         contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
         tags = [name],
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
@@ -129,7 +129,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_module_map_with_sdk_fmwks_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework_with_sdk_fmwks_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:objc_static_framework_with_sdk_fmwks_dep",
         contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
         tags = [name],
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
@@ -140,7 +140,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_module_map_with_hdrs_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:objc_static_framework",
         contains = ["$BUNDLE_ROOT/Modules/module.modulemap"],
         tags = [name],
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
@@ -148,12 +148,12 @@ def ios_static_framework_test_suite(name):
     )
 
     # Test that the Swift generated header is propagated to the Headers visible
-    # within this iOS framework along with the swift interfaces and modulemap.
+    # within this macOS framework along with the swift interfaces and modulemap.
     archive_contents_test(
         name = "{}_swift_generates_header_test".format(name),
         build_type = "simulator",
         compilation_mode = "opt",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_generated_header",
         contains = [
             "$BUNDLE_ROOT/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
@@ -167,7 +167,7 @@ def ios_static_framework_test_suite(name):
     # bundle conflicts with the generated umbrella header.
     analysis_failure_message_test(
         name = "{}_umbrella_header_conflict_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_umbrella_header_conflict",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_umbrella_header_conflict",
         expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
         tags = [name],
     )
@@ -178,7 +178,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_builds_with_dsyms_enabled_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:swift_macos_static_framework",
         apple_generate_dsym = True,
         contains = ["$BUNDLE_ROOT/SwiftFmwk"],
         tags = [name],
@@ -189,7 +189,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_bundle_name_contents_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_generated_header",
         contains = [
             "$ARCHIVE_ROOT/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
         ],
@@ -205,7 +205,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_generated_modulemap_file_content_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_from_objc_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_from_objc_library",
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
         text_test_values = [
             "link \"c++\"",
@@ -219,7 +219,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_excludes_transitive_resources_and_contains_header_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_header_and_exclude_resources",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_header_and_exclude_resources",
         contains = [
             "$BUNDLE_ROOT/static_framework_with_header_and_exclude_resources",
             "$BUNDLE_ROOT/Headers/shared.h",
@@ -232,9 +232,9 @@ def ios_static_framework_test_suite(name):
             "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
-            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/storyboard_macos.storyboardc/",
             "$BUNDLE_ROOT/nonlocalized.strings",
-            "$BUNDLE_ROOT/view_ios.nib",
+            "$BUNDLE_ROOT/view_macos.nib",
         ],
         tags = [name],
     )
@@ -244,7 +244,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_excludes_transitive_resources_and_header_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_no_header_and_exclude_resources",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_no_header_and_exclude_resources",
         contains = [
             "$BUNDLE_ROOT/static_framework_with_no_header_and_exclude_resources",
         ],
@@ -257,9 +257,9 @@ def ios_static_framework_test_suite(name):
             "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
-            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/storyboard_macos.storyboardc/",
             "$BUNDLE_ROOT/nonlocalized.strings",
-            "$BUNDLE_ROOT/view_ios.nib",
+            "$BUNDLE_ROOT/view_macos.nib",
         ],
         tags = [name],
     )
@@ -269,7 +269,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_includes_transitive_resources_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_transitive_resources",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:static_framework_with_transitive_resources",
         contains = [
             "$BUNDLE_ROOT/static_framework_with_transitive_resources",
             "$BUNDLE_ROOT/Headers/shared.h",
@@ -279,9 +279,8 @@ def ios_static_framework_test_suite(name):
             "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
             "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
-            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/storyboard_macos.storyboardc/",
             "$BUNDLE_ROOT/nonlocalized.strings",
-            "$BUNDLE_ROOT/view_ios.nib",
         ],
         not_contains = ["$BUNDLE_ROOT/Info.plist"],
         asset_catalog_test_file = "$BUNDLE_ROOT/Assets.car",

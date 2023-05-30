@@ -15,6 +15,10 @@
 """macos_application resources Starlark tests."""
 
 load(
+    ":rules/analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     ":rules/common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -200,6 +204,65 @@ def macos_application_resources_test_suite(name):
             "$RESOURCE_ROOT/nonlocalized.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    # Tests that swift_library targets have their intermediate compiled storyboards
+    # distinguished by module so that multiple link actions don't try to generate
+    # the same output.
+    archive_contents_test(
+        name = "{}_contains_compiled_storyboards_from_transitive_swift_library_test".format(name),
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/storyboard_macos.storyboardc/",
+            "$RESOURCE_ROOT/it.lproj/storyboard_macos.storyboardc/",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_transitive_swift_libraries_with_storyboards",
+        tags = [name],
+    )
+
+    # Tests that multiple swift_library targets can propagate asset catalogs and
+    # that they are all merged into a single Assets.car without conflicts.
+    archive_contents_test(
+        name = "{}_contains_merged_asset_catalog_from_transitive_swift_library_test".format(name),
+        build_type = "device",
+        contains = ["$RESOURCE_ROOT/Assets.car"],
+        # Verify that both image set names show up in the asset catalog. (The file
+        # format is a black box to us, but we can at a minimum grep the name out
+        # because it's visible in the raw bytes).
+        text_test_file = "$RESOURCE_ROOT/Assets.car",
+        text_test_values = ["star", "star2"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_transitive_swift_libraries_with_asset_catalogs",
+        tags = [name],
+    )
+
+    # Test macos_application can compile multiple storyboards in bundle root from
+    # multiple Swift libraries.
+    archive_contents_test(
+        name = "{}_can_compile_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries_test".format(name),
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/storyboard_macos.storyboardc",
+            "$RESOURCE_ROOT/storyboard_macos_copy.storyboardc",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_multiple_storyboards_in_bundle_root_from_multiple_swift_libraries",
+        tags = [name],
+    )
+
+    # Test that storyboard compilation actions with ibtool are registered for applications with
+    # Swift library with resources, and transitive Swift library resources.
+    analysis_target_actions_test(
+        name = "{}_registers_action_for_storyboard_compilation_with_swift_library_scoped_resources".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_swift_library_scoped_resources",
+        target_mnemonic = "StoryboardCompile",
+        expected_argv = ["--module EasyToSearchForModuleName"],
+        tags = [name],
+    )
+    analysis_target_actions_test(
+        name = "{}_registers_action_for_storyboard_compilation_with_transitive_swift_library_scoped_resources".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_transitive_swift_library_scoped_resources",
+        target_mnemonic = "StoryboardCompile",
+        expected_argv = ["--module EasyToSearchForModuleName"],
         tags = [name],
     )
 

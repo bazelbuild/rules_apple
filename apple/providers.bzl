@@ -756,3 +756,29 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 """,
     fields = {},
 )
+
+MacosFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an macOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an macOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is an macOS dynamic framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+)
+
+MacosStaticFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an macOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an macOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is an macOS static framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+)

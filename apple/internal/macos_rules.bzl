@@ -84,29 +84,65 @@ load(
     "clang_rt_dylibs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
+    "cc_info_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "SwiftDynamicFrameworkInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "libraries_to_link_for_dynamic_framework",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBinaryInfoplistInfo",
+    "AppleFrameworkBundleInfo",
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
+    "MacosFrameworkBundleInfo",
     "MacosKernelExtensionBundleInfo",
     "MacosQuickLookPluginBundleInfo",
     "MacosSpotlightImporterBundleInfo",
+    "MacosStaticFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
-    embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
 
+    embedded_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions +
+        ctx.attr.xpc_services +
+        ctx.attr.deps
+    )
+    verification_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions +
+        ctx.attr.xpc_services
+    )
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
     executable_name = bundling_support.executable_name(ctx)
-    bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
+
+    bundle_verification_targets = [struct(target = ext) for ext in verification_targets]
+
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -144,6 +180,7 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
@@ -171,15 +208,6 @@ def _macos_application_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -191,6 +219,15 @@ def _macos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -216,7 +253,7 @@ def _macos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + embedded_targets,
+            targets = embedded_targets,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -235,6 +272,7 @@ def _macos_application_impl(ctx):
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -309,11 +347,13 @@ def _macos_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        executable_name = executable_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
     return [
+        coverage_common.instrumented_files_info(ctx, dependency_attributes = ["deps"]),
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
@@ -576,10 +616,12 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         platform_prerequisites = platform_prerequisites,
         stamp = ctx.attr.stamp,
     )
+
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
@@ -638,7 +680,7 @@ def _macos_extension_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.additional_contents.keys(),
+            debug_dependencies = ctx.attr.frameworks + ctx.attr.additional_contents.keys(),
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
@@ -646,6 +688,7 @@ def _macos_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
+            embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             plugins = [archive],
         ),
@@ -673,6 +716,7 @@ def _macos_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -1826,4 +1870,676 @@ macos_dylib = rule_factory.create_apple_binary_rule(
     platform_type = "macos",
     product_type = apple_product_type.dylib,
     doc = "Builds a macOS Dylib binary.",
+)
+
+def _macos_framework_impl(ctx):
+    """Experimental implementation of macos_framework."""
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bin_root_path = ctx.bin_dir.path
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_features = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    signed_frameworks = []
+    if provisioning_profile:
+        signed_frameworks = [
+            bundle_name + rule_descriptor.bundle_extension,
+        ]
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
+
+    extra_linkopts = [
+        "-dynamiclib",
+        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+            extension = bundle_extension,
+            name = bundle_name,
+        ),
+    ]
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        # Frameworks do not have entitlements.
+        entitlements = None,
+        extra_linkopts = extra_linkopts,
+        platform_prerequisites = platform_prerequisites,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        executable_name = executable_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            extension_safe = ctx.attr.extension_safe,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_location = processor.location.framework,
+            bundle_name = bundle_name,
+            embed_target_dossiers = False,
+            embedded_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ),
+        # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
+        # the can be skipped.
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            executable_name = executable_name,
+            linkmaps = debug_outputs.linkmaps,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [archive_for_embedding],
+            embeddable_targets = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
+        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
+        partials.framework_provider_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            bundle_only = ctx.attr.bundle_only,
+            cc_features = cc_features,
+            cc_info = link_result.cc_info,
+            cc_toolchain = cc_toolchain,
+            objc_provider = link_result.objc,
+            rule_label = label,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
+            version_keys_required = False,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
+    ]
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        executable_name = executable_name,
+        features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        AppleFrameworkBundleInfo(),
+        MacosFrameworkBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
+    ] + processor_result.providers
+
+def _macos_dynamic_framework_impl(ctx):
+    """Experimental implementation of macos_dynamic_framework."""
+
+    # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
+    swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
+    if len(swiftdeps) != 1 or len(ctx.attr.deps) > 1:
+        fail(
+            """\
+    error: Swift dynamic frameworks expect a single swift_library dependency.
+    """,
+        )
+
+    binary_target = ctx.attr.deps[0]
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bin_root_path = ctx.bin_dir.path
+    bundle_id = ctx.attr.bundle_id
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_features = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "launch_images",
+            "launch_storyboard",
+            "strings",
+            "resources",
+        ],
+    )
+
+    signed_frameworks = []
+    if getattr(ctx.file, "provisioning_profile", None):
+        signed_frameworks = [
+            bundle_name + rule_descriptor.bundle_extension,
+        ]
+
+    extra_linkopts = [
+        "-dynamiclib",
+        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+            extension = bundle_extension,
+            name = bundle_name,
+        ),
+    ]
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        # Frameworks do not have entitlements.
+        entitlements = None,
+        extra_linkopts = extra_linkopts,
+        platform_prerequisites = platform_prerequisites,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        executable_name = executable_name,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            extension_safe = ctx.attr.extension_safe,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_location = processor.location.framework,
+            bundle_name = bundle_name,
+            embed_target_dossiers = False,
+            embedded_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            executable_name = executable_name,
+            linkmaps = debug_outputs.linkmaps,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [archive_for_embedding],
+            embeddable_targets = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
+        partials.framework_provider_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            bundle_only = False,
+            cc_features = cc_features,
+            cc_info = link_result.cc_info,
+            cc_toolchain = cc_toolchain,
+            objc_provider = link_result.objc,
+            rule_label = label,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
+            version_keys_required = False,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.swift_dynamic_framework_partial(
+            actions = actions,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            swift_dynamic_framework_info = binary_target[SwiftDynamicFrameworkInfo],
+        ),
+    ]
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        executable_name = executable_name,
+        features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    providers = processor_result.providers
+
+    additional_providers = []
+    for provider in providers:
+        if type(provider) == "AppleDynamicFramework":
+            # Make the ObjC provider using the framework_files depset found
+            # in the AppleDynamicFramework provider. This is to make the
+            # macos_dynamic_framework usable as a dependency in swift_library
+            libraries_to_link = libraries_to_link_for_dynamic_framework(
+                actions = actions,
+                cc_toolchain = cc_toolchain,
+                feature_configuration = cc_features,
+                libraries = provider.framework_files.to_list(),
+            )
+            additional_providers.extend([
+                apple_common.new_objc_provider(
+                    dynamic_framework_file = provider.framework_files,
+                ),
+                CcInfo(
+                    linking_context = cc_common.create_linking_context(
+                        linker_inputs = depset([
+                            cc_common.create_linker_input(
+                                owner = label,
+                                libraries = depset(libraries_to_link),
+                            ),
+                        ]),
+                    ),
+                ),
+            ])
+    providers.extend(additional_providers)
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        MacosFrameworkBundleInfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+    ] + providers
+
+def _macos_static_framework_impl(ctx):
+    """Implementation of macos_static_framework."""
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    avoid_deps = ctx.attr.avoid_deps
+    deps = ctx.attr.deps
+    label = ctx.label
+    predeclared_outputs = ctx.outputs
+    split_deps = ctx.split_attr.deps
+    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    executable_name = bundling_support.executable_name(ctx)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    rule_descriptor = rule_support.rule_descriptor(ctx)
+
+    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
+    binary_artifact = link_result.library
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+    ]
+
+    swift_infos = {}
+    if swift_support.uses_swift(deps):
+        for link_output in link_result.outputs:
+            split_attr_key = transition_support.apple_common_multi_arch_split_key(
+                cpu = link_output.architecture,
+                environment = link_output.environment,
+                platform_type = link_output.platform,
+            )
+            for dep in split_deps[split_attr_key]:
+                if SwiftInfo in dep:
+                    swift_infos[link_output.architecture] = dep[SwiftInfo]
+
+    # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
+    # framework.
+    if swift_infos:
+        processor_partials.append(
+            partials.swift_framework_partial(
+                actions = actions,
+                avoid_deps = avoid_deps,
+                bundle_name = bundle_name,
+                label_name = label.name,
+                swift_infos = swift_infos,
+            ),
+        )
+    else:
+        processor_partials.append(
+            partials.framework_header_modulemap_partial(
+                actions = actions,
+                bundle_name = bundle_name,
+                hdrs = ctx.files.hdrs,
+                label_name = label.name,
+                sdk_dylibs = cc_info_support.get_sdk_dylibs(deps = deps),
+                sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = deps),
+                umbrella_header = ctx.file.umbrella_header,
+            ),
+        )
+
+    if not ctx.attr.exclude_resources:
+        processor_partials.append(partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            version = None,
+        ))
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        executable_name = executable_name,
+        features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        MacosStaticFrameworkBundleInfo(),
+        OutputGroupInfo(**processor_result.output_groups),
+    ] + processor_result.providers
+
+macos_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_framework_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.framework,
+    doc = """Builds and bundles an macOS Dynamic Framework.
+
+To use this framework for your app and extensions, list it in the `frameworks` attributes
+of those `macos_application` and/or `macos_extension` rules.""",
+)
+
+macos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_dynamic_framework_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.framework,
+    doc = "Builds and bundles a macOS dynamic framework that is consumable by Xcode.",
+)
+
+macos_static_framework = rule_factory.create_apple_bundling_rule(
+    implementation = _macos_static_framework_impl,
+    platform_type = "macos",
+    product_type = apple_product_type.static_framework,
+    doc = """Builds and bundles a macOS static framework for third-party distribution.
+
+A static framework is bundled like a dynamic framework except that the embedded
+binary is a static library rather than a dynamic library. It is intended to
+create distributable static SDKs or artifacts that can be easily imported into
+other Xcode projects; it is specifically **not** intended to be used as a
+dependency of other Bazel targets. For that use case, use the corresponding
+`objc_library` targets directly.
+
+Unlike other macOS bundles, the fat binary in an `macos_static_framework` may
+simultaneously contain simulator and device architectures (that is, you can
+build a single framework artifact that works for all architectures by specifying
+`--macos_cpus=x86_64,arm64` when you build).
+
+`macos_static_framework` supports Swift, but there are some constraints:
+
+* `macos_static_framework` with Swift only works with Xcode 11 and above, since
+  the required Swift functionality for module compatibility is available in
+  Swift 5.1.
+* `macos_static_framework` only supports a single direct `swift_library` target
+  that does not depend transitively on any other `swift_library` targets. The
+  Swift compiler expects a framework to contain a single Swift module, and each
+  `swift_library` target is its own module by definition.
+* `macos_static_framework` does not support mixed Objective-C and Swift public
+  interfaces. This means that the `umbrella_header` and `hdrs` attributes are
+  unavailable when using `swift_library` dependencies. You are allowed to depend
+  on `objc_library` from the main `swift_library` dependency, but note that only
+  the `swift_library`'s public interface will be available to users of the
+  static framework.
+
+When using Swift, the `macos_static_framework` bundles `swiftinterface` and
+`swiftdocs` file for each of the required architectures. It also bundles an
+umbrella header which is the header generated by the single `swift_library`
+target. Finally, it also bundles a `module.modulemap` file pointing to the
+umbrella header for Objetive-C module compatibility. This umbrella header and
+modulemap can be skipped by disabling the `swift.no_generated_header` feature (
+i.e. `--features=-swift.no_generated_header`).""",
 )

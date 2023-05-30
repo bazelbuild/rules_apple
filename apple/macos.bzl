@@ -40,10 +40,13 @@ load(
     _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
+    _macos_dynamic_framework = "macos_dynamic_framework",
     _macos_extension = "macos_extension",
+    _macos_framework = "macos_framework",
     _macos_kernel_extension = "macos_kernel_extension",
     _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
+    _macos_static_framework = "macos_static_framework",
     _macos_xpc_service = "macos_xpc_service",
 )
 
@@ -189,6 +192,45 @@ def macos_extension(name, **kwargs):
     features.append("link_cocoa")
 
     _macos_extension(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+def macos_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_framework(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+def macos_static_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_static_framework(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+def macos_dynamic_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_dynamic_framework(
         name = name,
         features = features,
         **bundling_args

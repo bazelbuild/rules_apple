@@ -6,6 +6,7 @@ licenses(["notice"])
 
 exports_files([
     "integration_testing_ios.mobileprovision",
+    "integration_testing_macos.provisionprofile",
     "integration_testing_tvos.mobileprovision",
 ])
 
@@ -14,6 +15,7 @@ filegroup(
     srcs = [
         "BUILD",
         "integration_testing_ios.mobileprovision",
+        "integration_testing_macos.provisionprofile",
         "integration_testing_tvos.mobileprovision",
     ],
 )
