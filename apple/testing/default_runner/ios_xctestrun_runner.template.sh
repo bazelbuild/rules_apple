@@ -361,8 +361,12 @@ if [[ "$test_exit_code" -ne 0 ]]; then
 fi
 
 if grep -q -e "Executed 0 tests, with 0 failures" "$testlog"; then
-  echo "error: no tests were executed, is the test bundle empty?" >&2
-  exit 1
+  if [[ -n "${ALLOW_EMPTY_TEST_BUNDLE:-}" ]]; then
+    echo "warning: no tests were executed, is the test bundle empty?" >&2
+  else
+    echo "error: no tests were executed, is the test bundle empty?" >&2
+    exit 1
+  fi
 fi
 
 # When tests crash after they have reportedly completed, XCTest marks them as

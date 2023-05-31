@@ -103,6 +103,18 @@ function create_ios_unit_tests() {
     fail "create_sim_runners must be called first."
   fi
 
+  cat > ios/empty_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
+
+@interface EmptyUnitTest : XCTestCase
+
+@end
+
+@implementation EmptyUnitTest
+@end
+EOF
+
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
 #import <XCTest/XCUIApplication.h>
@@ -177,6 +189,15 @@ EOF
 @end
 EOF
 
+  cat > ios/EmptyUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>EmptyUnitTest</string>
+</dict>
+</plist>
+EOF
+
   cat > ios/PassUnitTest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
@@ -211,6 +232,20 @@ test_env = {
     "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
     "IMAGE_DIR": "/Project/My Tests/Images"
 }
+
+objc_library(
+    name = "empty_unit_test_lib",
+    srcs = ["empty_unit_test.m"],
+)
+
+ios_unit_test(
+    name = "EmptyUnitTest",
+    infoplists = ["EmptyUnitTest-Info.plist"],
+    deps = [":empty_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner",
+)
 
 objc_library(
     name = "pass_unit_test_lib",
@@ -459,6 +494,27 @@ EOF
 
 function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
+}
+
+function test_ios_unit_test_empty_success() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_env=ALLOW_EMPTY_TEST_BUNDLE=1 //ios:EmptyUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'EmptyUnitTest' passed"
+  expect_log "Test Suite 'EmptyUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+}
+
+function test_ios_unit_test_empty_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+
+  ! do_ios_test //ios:EmptyUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'EmptyUnitTest' passed"
+  expect_log "Test Suite 'EmptyUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
 }
 
 function test_ios_unit_test_pass() {
