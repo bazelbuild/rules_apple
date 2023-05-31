@@ -20,6 +20,7 @@ fi
 
 custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
+device_id=""
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -29,6 +30,9 @@ while [[ $# -gt 0 ]]; do
     --xcodebuild_args=*)
       xcodebuild_arg="${arg#--xcodebuild_args=}" # Strip "--xcodebuild_args=" prefix
       custom_xcodebuild_args+=("$xcodebuild_arg")
+      ;;
+    --destination=platform=iOS,id=*)
+      device_id="${arg##*=}"
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -67,10 +71,11 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
-build_for_device="%(build_for_device)s"
+build_for_device=false
 test_execution_platform="iPhoneSimulator.platform"
-if [[ "$build_for_device" == true ]]; then
+if [[ -n "$device_id" ]]; then
   test_execution_platform="iPhoneOS.platform"
+  build_for_device=true
 fi
 
 # In case there is no test host, test_host_path will be empty
@@ -306,9 +311,13 @@ else
   simulator_creator_args+=(--no-reuse-simulator)
 fi
 
-simulator_id="$("./%(simulator_creator.py)s" \
-  "${simulator_creator_args[@]}"
-)"
+if [[ "$build_for_device" == true ]]; then
+  simulator_id="unused"
+else
+  simulator_id="$("./%(simulator_creator.py)s" \
+    "${simulator_creator_args[@]}"
+  )"
+fi
 
 test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
@@ -368,11 +377,17 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
+
   args=(
-    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
+
+  if [[ "$build_for_device" == true ]]; then
+    args+=(-destination "platform=iOS,id=$device_id")
+  else
+    args+=(-destination "id=$simulator_id")
+  fi
 
   readonly result_bundle_path="$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
   # TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
