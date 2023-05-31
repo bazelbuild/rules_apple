@@ -496,7 +496,7 @@ function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
 
-function test_ios_unit_test_empty_success() {
+function test_ios_unit_test_empty_pass() {
   create_sim_runners
   create_ios_unit_tests
   do_ios_test --test_env=ALLOW_EMPTY_TEST_BUNDLE=1 //ios:EmptyUnitTest || fail "should pass"
