@@ -361,7 +361,9 @@ if [[ "$test_exit_code" -ne 0 ]]; then
 fi
 
 if grep -q -e "Executed 0 tests, with 0 failures" "$testlog"; then
-  if [[ -n "${ALLOW_EMPTY_TEST_BUNDLE:-}" ]]; then
+  # This assumes that a test bundle with no executed tests is intentional
+  # if `--test_filter` is passed to the test target.
+  if [[ -n "${TEST_FILTER:-}" ]]; then
     echo "warning: no tests were executed, is the test bundle empty?" >&2
   else
     echo "error: no tests were executed, is the test bundle empty?" >&2

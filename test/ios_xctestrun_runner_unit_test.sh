@@ -499,7 +499,7 @@ function do_ios_test() {
 function test_ios_unit_test_empty_pass() {
   create_sim_runners
   create_ios_unit_tests
-  do_ios_test --test_env=ALLOW_EMPTY_TEST_BUNDLE=1 //ios:EmptyUnitTest || fail "should pass"
+  do_ios_test --test_filter=EmptyUnitTest/testThatDoesNotExist //ios:EmptyUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EmptyUnitTest' passed"
   expect_log "Test Suite 'EmptyUnitTest.xctest' passed"
