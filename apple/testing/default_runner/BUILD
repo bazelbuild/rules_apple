@@ -63,7 +63,7 @@ exports_files([
     "macos_test_runner.template.xctestrun",
     "tvos_test_runner.template.sh",
     "watchos_test_runner.template.sh",
-    "xctrunner_entitlements_template.template.plist",
+    "xctrunner_entitlements.template.plist",
 ])
 
 py_binary(
