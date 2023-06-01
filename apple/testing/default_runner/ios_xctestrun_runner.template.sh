@@ -311,9 +311,8 @@ else
   simulator_creator_args+=(--no-reuse-simulator)
 fi
 
-if [[ "$build_for_device" == true ]]; then
-  simulator_id="unused"
-else
+simulator_id="unused"
+if [[ "$build_for_device" == false ]]; then
   simulator_id="$("./%(simulator_creator.py)s" \
     "${simulator_creator_args[@]}"
   )"
