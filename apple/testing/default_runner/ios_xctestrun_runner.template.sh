@@ -192,8 +192,7 @@ if [[ -n "$test_host_path" ]]; then
     test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
     # Only engage signing workflow if the test host is signed
     if [[ -f "$test_host_mobileprovision_path" ]]; then
-      test_runner_mobileprovision_path="$test_tmp_dir/$runner_app/embedded.mobileprovision"
-      cp "$test_host_mobileprovision_path" "$test_runner_mobileprovision_path"
+      cp "$test_host_mobileprovision_path" "$test_tmp_dir/$runner_app/embedded.mobileprovision"
       xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
       test_host_binary_path="$test_tmp_dir_test_host_path/$test_host_name"
       codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
