@@ -360,7 +360,10 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
-if grep -q -e "Executed 0 tests, with 0 failures" "$testlog"; then
+# Assume the final 'Executed N tests' or 'Executed 1 test' is the
+# total execution count for the test bundle.
+test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
+if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
   echo "error: no tests were executed, is the test bundle empty?" >&2
   exit 1
 fi

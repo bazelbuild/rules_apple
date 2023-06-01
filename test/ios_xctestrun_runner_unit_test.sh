@@ -103,6 +103,36 @@ function create_ios_unit_tests() {
     fail "create_sim_runners must be called first."
   fi
 
+  cat > ios/small_unit_test_1.m <<EOF
+#import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
+
+@interface SmallUnitTest1 : XCTestCase
+
+@end
+
+@implementation SmallUnitTest1
+- (void)testPass {
+  XCTAssertEqual(1, 1, @"should pass");
+}
+@end
+EOF
+
+  cat > ios/small_unit_test_2.m <<EOF
+#import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
+
+@interface SmallUnitTest2 : XCTestCase
+
+@end
+
+@implementation SmallUnitTest2
+- (void)testPass {
+  XCTAssertEqual(1, 1, @"should pass");
+}
+@end
+EOF
+
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
 #import <XCTest/XCUIApplication.h>
@@ -177,6 +207,15 @@ EOF
 @end
 EOF
 
+  cat > ios/SmallUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>SmallUnitTest</string>
+</dict>
+</plist>
+EOF
+
   cat > ios/PassUnitTest-Info.plist <<EOF
 <plist version="1.0">
 <dict>
@@ -211,6 +250,20 @@ test_env = {
     "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
     "IMAGE_DIR": "/Project/My Tests/Images"
 }
+
+objc_library(
+    name = "small_unit_test_lib",
+    srcs = ["small_unit_test_1.m", "small_unit_test_2.m"],
+)
+
+ios_unit_test(
+    name = "SmallUnitTest",
+    infoplists = ["SmallUnitTest-Info.plist"],
+    deps = [":small_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner",
+)
 
 objc_library(
     name = "pass_unit_test_lib",
@@ -459,6 +512,40 @@ EOF
 
 function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
+}
+
+function test_ios_unit_test_small_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+# Test bundle has tests with one test class with all tests filtered.
+function test_ios_unit_test_small_empty_test_class_filter_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter="-SmallUnitTest1/testPass" //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+# Test bundle has tests but filter excludes all of them.
+function test_ios_unit_test_small_empty_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+
+  ! do_ios_test --test_filter="BadFilter" //ios:SmallUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
 }
 
 function test_ios_unit_test_pass() {
