@@ -676,6 +676,17 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcarchive",
+    srcs = ["xcarchive.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

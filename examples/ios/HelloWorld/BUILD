@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("//apple:ios.bzl", "ios_application")
+load("//apple:xcarchive.bzl", "xcarchive")
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
@@ -44,4 +45,10 @@ ios_application(
 build_test(
     name = "ExamplesBuildTest",
     targets = [":HelloWorld"],
+)
+
+# Example using xcarchive rule to create an .xcarchive bundle.
+xcarchive(
+    name = "HelloWorld.xcarchive",
+    bundle = ":HelloWorld",
 )

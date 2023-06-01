@@ -197,6 +197,12 @@ bzl_library(
     deps = ["watchos"],
 )
 
+bzl_library(
+    name = "xcarchive",
+    srcs = ["xcarchive.bzl"],
+    deps = ["//apple/internal:xcarchive"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
