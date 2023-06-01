@@ -157,7 +157,8 @@ if [[ -n "$test_host_path" ]]; then
     mkdir -p "$plugins_path"
     cp -R "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
     mkdir "$plugins_path/$test_bundle_name.xctest/Frameworks"
-    # We need this dylib for 14.x OSes
+    # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
+    # since this file isn't present in the `iPhoneSimulator.platform`.
     cp "$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
