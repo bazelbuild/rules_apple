@@ -91,11 +91,11 @@ if [[ -n "$test_host_path" ]]; then
   else
     unzip -qq -d "${test_tmp_dir}" "${test_host_path}"
     mv "$test_tmp_dir"/Payload/*.app "$test_tmp_dir"
+    # When extracting an ipa file we don't know the name of the app bundle
+    test_tmp_dir_test_host_path=$(find "$test_tmp_dir" -name "*.app" -type d -maxdepth 1 -mindepth 1 -print -quit)
+    test_host_name=$(basename_without_extension "$test_tmp_dir_test_host_path")
   fi
 fi
-
-test_tmp_dir_test_host_path=$(find "$test_tmp_dir" -name "*.app" -type d -maxdepth 1 -mindepth 1 -print -quit)
-test_host_name=$(basename_without_extension "$test_tmp_dir_test_host_path")
 
 # Basic XML character escaping for environment variable substitution.
 function escape() {
@@ -155,7 +155,7 @@ if [[ -n "$test_host_path" ]]; then
     xcrun_test_host_bundle_identifier="com.apple.test.$runner_app_name"
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
-    cp -R "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
     mkdir "$plugins_path/$test_bundle_name.xctest/Frameworks"
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
@@ -190,12 +190,12 @@ if [[ -n "$test_host_path" ]]; then
       # case.
       /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
     fi
-    test_host_mobileprovision_path="$test_tmp_dir_test_host_path/embedded.mobileprovision"
+    test_host_mobileprovision_path="$test_tmp_dir/$test_host_name.app/embedded.mobileprovision"
     # Only engage signing workflow if the test host is signed
     if [[ -f "$test_host_mobileprovision_path" ]]; then
       cp "$test_host_mobileprovision_path" "$test_tmp_dir/$runner_app/embedded.mobileprovision"
       xctrunner_entitlements="$test_tmp_dir/$runner_app/RunnerEntitlements.plist"
-      test_host_binary_path="$test_tmp_dir_test_host_path/$test_host_name"
+      test_host_binary_path="$test_tmp_dir/$test_host_name.app/$test_host_name"
       codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
       codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
       /usr/bin/sed \
