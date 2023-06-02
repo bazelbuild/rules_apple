@@ -155,7 +155,7 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         ),
         "_xctrunner_entitlements_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:xctrunner_entitlements_template.template.plist",
+                "@build_bazel_rules_apple//apple/testing/default_runner:xctrunner_entitlements.template.plist",
             ),
             allow_single_file = True,
         ),
