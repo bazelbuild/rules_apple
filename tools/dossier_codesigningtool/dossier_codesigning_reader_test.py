@@ -215,6 +215,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         codesign_identity='-',
         executor=executor)
+    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
     self.assertEqual(len(futures), 3)
     self.assertEqual(mock_sign_bundle.call_count, 3)
     default_args = (
