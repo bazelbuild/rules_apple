@@ -14,6 +14,8 @@
     <BAZEL_TEST_HOST_BASED/>
     <key>TestHostPath</key>
     <string>BAZEL_TEST_HOST_PATH</string>
+    <key>TestHostBundleIdentifier</key>
+    <string>BAZEL_TEST_HOST_BUNDLE_IDENTIFIER</string>
     <key>IsUITestBundle</key>
     <BAZEL_IS_UI_TEST_BUNDLE/>
     <key>IsXCTRunnerHostedTestBundle</key>
@@ -24,6 +26,7 @@
     <array>
         <string>BAZEL_TEST_BUNDLE_PATH</string>
         <string>BAZEL_TARGET_APP_PATH</string>
+        <string>BAZEL_TEST_HOST_PATH</string>
     </array>
     <key>TestingEnvironmentVariables</key>
     <dict>
@@ -32,7 +35,7 @@
       <key>DYLD_INSERT_LIBRARIES</key>
       <string>BAZEL_INSERT_LIBRARIES</string>
       <key>DYLD_LIBRARY_PATH</key>
-      <string>__PLATFORMS__/iPhoneSimulator.platform/Developer/usr/lib</string>
+      <string>BAZEL_DYLD_LIBRARY_PATH</string>
       <key>__XCODE_BUILT_PRODUCTS_DIR_PATHS</key>
       <string>/DUMMY_SRCROOT/</string>
       BAZEL_TEST_ENVIRONMENT

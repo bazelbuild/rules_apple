@@ -14,7 +14,8 @@ def _get_template_substitutions(
         random,
         xcodebuild_args,
         xctestrun_template,
-        reuse_simulator):
+        reuse_simulator,
+        xctrunner_entitlements_template):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -25,6 +26,7 @@ def _get_template_substitutions(
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
         "reuse_simulator": reuse_simulator,
+        "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -60,6 +62,7 @@ def _ios_xctestrun_runner_impl(ctx):
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
+            xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
     )
 
@@ -71,7 +74,10 @@ def _ios_xctestrun_runner_impl(ctx):
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
-                files = [ctx.file._xctestrun_template],
+                files = [
+                    ctx.file._xctestrun_template,
+                    ctx.file._xctrunner_entitlements_template,
+                ],
             ).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles),
         ),
     ]
@@ -144,6 +150,12 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         "_xctestrun_template": attr.label(
             default = Label(
                 "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.template.xctestrun",
+            ),
+            allow_single_file = True,
+        ),
+        "_xctrunner_entitlements_template": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner:xctrunner_entitlements.template.plist",
             ),
             allow_single_file = True,
         ),
