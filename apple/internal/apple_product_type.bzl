@@ -45,6 +45,11 @@ visibility([
 #   if needed.
 # * `dylib`: A dynamically-loadable library. This is the default product type for
 #   `macos_dylib`; it does not need to be set explicitly (and cannot be changed).
+# * `extensionkit_extension`: A basic iOS, macOS, or tvOS ExtensionKit extension.
+#   These are `.appex` bundles located in an application's `Extensions`
+#   subdirectory. Third-party specs to define the integration points for third-
+#   party ExtensionKit extensions can be defined through `.appextensionpoint` XML
+#   plists on macOS.
 # * `framework`: A basic dynamic framework. This is the default product type for
 #   those targets; it does not need to be set explicitly (and cannot be changed).
 # * `kernel_extension`: A macOS kernel extension. This product type should be used
@@ -90,6 +95,7 @@ apple_product_type = struct(
     app_extension = "com.apple.product-type.app-extension",
     bundle = "com.apple.product-type.bundle",
     dylib = "com.apple.product-type.library.dynamic",
+    extensionkit_extension = "com.apple.product-type.extensionkit-extension",
     framework = "com.apple.product-type.framework",
     kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",

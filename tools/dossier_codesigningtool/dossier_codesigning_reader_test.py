@@ -32,6 +32,13 @@ _FAKE_MANIFEST = {
         {
             'codesign_identity': '-',
             'embedded_bundle_manifests': [],
+            'embedded_relative_path': 'Extensions/AppIntentsExtension.appex',
+            'entitlements': 'fake.entitlements',
+            'provisioning_profile': 'fake.mobileprovision'
+        },
+        {
+            'codesign_identity': '-',
+            'embedded_bundle_manifests': [],
             'embedded_relative_path': 'PlugIns/IntentsExtension.appex',
             'entitlements': 'fake.entitlements',
             'provisioning_profile': 'fake.mobileprovision'
@@ -80,48 +87,64 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         override_codesign_identity='-',
         allowed_entitlements=None)
 
-    self.assertEqual(mock_codesign.call_count, 5)
+    self.assertEqual(mock_codesign.call_count, 6)
     actual_paths = [
         mock_codesign.call_args_list[0][1]['full_path_to_sign'],
         mock_codesign.call_args_list[1][1]['full_path_to_sign'],
         mock_codesign.call_args_list[2][1]['full_path_to_sign'],
         mock_codesign.call_args_list[3][1]['full_path_to_sign'],
         mock_codesign.call_args_list[4][1]['full_path_to_sign'],
+        mock_codesign.call_args_list[5][1]['full_path_to_sign'],
     ]
     expected_paths = [
+        '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
         '/tmp/fake.app/PlugIns/IntentsExtension.appex',
         '/tmp/fake.app/PlugIns/IntentsUIExtension.appex',
         '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex',
         '/tmp/fake.app/Watch/WatchApp.app',
-        '/tmp/fake.app/'
+        '/tmp/fake.app/',
     ]
     self.assertSetEqual(set(actual_paths), set(expected_paths))
 
     # assert codesign threads block correctly (executed bottom-up)
     self.assertLess(
         actual_paths.index(
-            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'),
-        actual_paths.index('/tmp/fake.app/Watch/WatchApp.app'))
+            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'
+        ),
+        actual_paths.index('/tmp/fake.app/Watch/WatchApp.app'),
+    )
     self.assertLess(
         actual_paths.index(
-            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'),
-        actual_paths.index('/tmp/fake.app/'))
-
+            '/tmp/fake.app/Watch/WatchApp.app/PlugIns/WatchExtension.appex'
+        ),
+        actual_paths.index('/tmp/fake.app/'),
+    )
     self.assertLess(
         actual_paths.index('/tmp/fake.app/Watch/WatchApp.app'),
-        actual_paths.index('/tmp/fake.app/'))
+        actual_paths.index('/tmp/fake.app/'),
+    )
+    self.assertLess(
+        actual_paths.index(
+            '/tmp/fake.app/Extensions/AppIntentsExtension.appex'
+        ),
+        actual_paths.index('/tmp/fake.app/'),
+    )
     self.assertLess(
         actual_paths.index('/tmp/fake.app/PlugIns/IntentsExtension.appex'),
-        actual_paths.index('/tmp/fake.app/'))
+        actual_paths.index('/tmp/fake.app/'),
+    )
     self.assertLess(
         actual_paths.index('/tmp/fake.app/PlugIns/IntentsUIExtension.appex'),
-        actual_paths.index('/tmp/fake.app/'))
+        actual_paths.index('/tmp/fake.app/'),
+    )
 
-  @mock.patch.object(dossier_codesigning_reader,
-                     '_generate_entitlements_for_signing')
+  @mock.patch.object(
+      dossier_codesigning_reader, '_generate_entitlements_for_signing'
+  )
   @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
   def test_sign_bundle_with_allowed_entitlements(
-      self, mock_codesign, mock_gen_entitlements):
+      self, mock_codesign, mock_gen_entitlements
+  ):
     mock.patch('shutil.copy').start()
     mock_gen_entitlements.return_value = None
     dossier_codesigning_reader._sign_bundle_with_manifest(
@@ -133,16 +156,18 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         override_codesign_identity='-',
         allowed_entitlements=['test-an-entitlement'])
 
-    self.assertEqual(mock_codesign.call_count, 5)
-    self.assertEqual(mock_gen_entitlements.call_count, 5)
+    self.assertEqual(mock_codesign.call_count, 6)
+    self.assertEqual(mock_gen_entitlements.call_count, 6)
     actual_src_paths = [
         mock_gen_entitlements.call_args_list[0][1]['src'],
         mock_gen_entitlements.call_args_list[1][1]['src'],
         mock_gen_entitlements.call_args_list[2][1]['src'],
         mock_gen_entitlements.call_args_list[3][1]['src'],
         mock_gen_entitlements.call_args_list[4][1]['src'],
+        mock_gen_entitlements.call_args_list[5][1]['src'],
     ]
     expected_src_paths = [
+        '/tmp/dossier/fake.entitlements',
         '/tmp/dossier/fake.entitlements',
         '/tmp/dossier/fake.entitlements',
         '/tmp/dossier/fake.entitlements',
@@ -157,8 +182,10 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         mock_gen_entitlements.call_args_list[2][1]['allowed_entitlements'],
         mock_gen_entitlements.call_args_list[3][1]['allowed_entitlements'],
         mock_gen_entitlements.call_args_list[4][1]['allowed_entitlements'],
+        mock_gen_entitlements.call_args_list[5][1]['allowed_entitlements'],
     ]
     expected_allowed_entitlements = [
+        ['test-an-entitlement'],
         ['test-an-entitlement'],
         ['test-an-entitlement'],
         ['test-an-entitlement'],
@@ -175,6 +202,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         mock_gen_entitlements.call_args_list[2][1]['dest'],
         mock_gen_entitlements.call_args_list[3][1]['dest'],
         mock_gen_entitlements.call_args_list[4][1]['dest'],
+        mock_gen_entitlements.call_args_list[5][1]['dest'],
     ]
     actual_codesign_entitlements_paths = [
         mock_codesign.call_args_list[0][1]['entitlements_path'],
@@ -182,6 +210,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         mock_codesign.call_args_list[2][1]['entitlements_path'],
         mock_codesign.call_args_list[3][1]['entitlements_path'],
         mock_codesign.call_args_list[4][1]['entitlements_path'],
+        mock_codesign.call_args_list[5][1]['entitlements_path'],
     ]
     self.assertSetEqual(
         set(actual_dest_paths), set(actual_codesign_entitlements_paths))
@@ -216,8 +245,8 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         codesign_identity='-',
         executor=executor)
     dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
-    self.assertEqual(len(futures), 3)
-    self.assertEqual(mock_sign_bundle.call_count, 3)
+    self.assertEqual(len(futures), 4)
+    self.assertEqual(mock_sign_bundle.call_count, 4)
     default_args = (
         '/tmp/dossier/',
         '/usr/bin/fake_codesign',
@@ -227,6 +256,18 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         executor,
     )
     mock_sign_bundle.assert_has_calls([
+        mock.call(
+            '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
+            {
+                'codesign_identity': '-',
+                'embedded_bundle_manifests': [],
+                'embedded_relative_path': (
+                    'Extensions/AppIntentsExtension.appex'
+                ),
+                'entitlements': 'fake.entitlements',
+                'provisioning_profile': 'fake.mobileprovision',
+            },
+            *default_args),
         mock.call(
             '/tmp/fake.app/PlugIns/IntentsExtension.appex',
             {

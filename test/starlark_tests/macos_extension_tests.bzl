@@ -16,6 +16,7 @@
 
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
+    "archive_contents_test",
     "entry_point_test",
 )
 load(
@@ -45,6 +46,16 @@ def macos_extension_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.ext-with-capability-set-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    # Test that an ExtensionKit extension is bundled in Extensions and not PlugIns.
+    archive_contents_test(
+        name = "{}_extensionkit_bundling_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_extensionkit_ext",
+        contains = ["$BUNDLE_ROOT/Contents/Extensions/extensionkit_ext.appex/Contents/MacOS/extensionkit_ext"],
+        not_contains = ["$BUNDLE_ROOT/Contents/PlugIns/extensionkit_ext.appex/Contents/MacOS/extensionkit_ext"],
         tags = [name],
     )
 

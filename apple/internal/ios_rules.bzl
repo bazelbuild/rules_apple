@@ -975,10 +975,18 @@ def _ios_framework_impl(ctx):
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
-    """Experimental implementation of ios_extension."""
+    """Implementation of ios_extension."""
+
+    product_type = apple_product_type.app_extension
+    if ctx.attr.extensionkit_extension:
+        # TODO(b/283788062): Add a new type of Info.plist verification around the new
+        # EXExtensionPointIdentifier and EXAppExtensionAttributes keys to make sure that they are
+        # defined, and (potentially) that references to NSExtension keys are not present.
+        product_type = apple_product_type.extensionkit_extension
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.app_extension,
+        product_type = product_type,
     )
 
     actions = ctx.actions
@@ -1073,6 +1081,14 @@ def _ios_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    embedded_bundles_args = {}
+    if rule_descriptor.product_type == apple_product_type.app_extension:
+        embedded_bundles_args["plugins"] = [archive_for_embedding]
+    elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
+        embedded_bundles_args["extensions"] = [archive_for_embedding]
+    else:
+        fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
+
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
@@ -1135,7 +1151,7 @@ def _ios_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive_for_embedding],
+            **embedded_bundles_args
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = True,
@@ -1975,6 +1991,7 @@ ios_extension = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
+        rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
