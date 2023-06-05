@@ -644,6 +644,14 @@ least one must be specified.
         ),
     }
 
+def _extensionkit_attrs():
+    """Returns the attributes required to define a target as an ExtensionKit extension."""
+    return {
+        "extensionkit_extension": attr.bool(
+            doc = "Indicates if this target should be treated as an ExtensionKit extension.",
+        ),
+    }
+
 def _app_icon_attrs(*, icon_extension = ".appiconset", icon_parent_extension = ".xcassets"):
     """Returns the attribute required to define app icons for the given target.
 
@@ -722,6 +730,7 @@ rule_attrs = struct(
     common_tool_attrs = _common_tool_attrs,
     custom_transition_allowlist_attr = _custom_transition_allowlist_attr,
     device_family_attrs = _device_family_attrs,
+    extensionkit_attrs = _extensionkit_attrs,
     infoplist_attrs = _infoplist_attrs,
     launch_images_attrs = _launch_images_attrs,
     platform_attrs = _platform_attrs,

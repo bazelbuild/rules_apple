@@ -59,7 +59,7 @@ class DossierDirectory(object):
 
 # Directories within a bundle that embedded bundles may be present in.
 _EMBEDDED_BUNDLE_DIRECTORY_NAMES = [
-    'AppClips', 'PlugIns', 'Frameworks', 'Watch'
+    'AppClips', 'Extensions', 'PlugIns', 'Frameworks', 'Watch'
 ]
 
 

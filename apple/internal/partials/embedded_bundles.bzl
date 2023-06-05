@@ -50,6 +50,7 @@ def _embedded_bundles_partial_impl(
     # Map of embedded bundle type to their final location in the top-level bundle.
     bundle_type_to_location = {
         "app_clips": processor.location.app_clip,
+        "extensions": processor.location.extension,
         "frameworks": processor.location.framework,
         "plugins": processor.location.plugin,
         "watch_bundles": processor.location.watch,
@@ -148,6 +149,7 @@ def embedded_bundles_partial(
         app_clips = [],
         bundle_embedded_bundles = False,
         embeddable_targets = [],
+        extensions = [],
         frameworks = [],
         platform_prerequisites,
         plugins = [],
@@ -157,9 +159,9 @@ def embedded_bundles_partial(
     """Constructor for the embedded bundles processing partial.
 
     This partial is used to propagate and package embedded bundles into their respective locations
-    inside top level bundling targets. Embeddable bundles are considered to be
-    frameworks, plugins (i.e. extensions) and watchOS applications in the case of
-    ios_application.
+    inside top level bundling targets. Embeddable bundles are considered to be extensions (i.e.
+    ExtensionKit extensions), frameworks, plugins (i.e. NSExtension extensions) and watchOS
+    applications in the case of ios_application.
 
     Args:
         app_clips: List of plugin bundles that should be propagated downstream for a top level
@@ -169,6 +171,8 @@ def embedded_bundles_partial(
             embeddable bundles will be propagated downstream for a top level target to bundle them.
         embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
             propagate.
+        extensions: List of ExtensionKit extension bundles that should be propagated downstream for
+            a top level target to bundle inside `Extensions`.
         frameworks: List of framework bundles that should be propagated downstream for a top level
             target to bundle inside `Frameworks`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -189,6 +193,7 @@ def embedded_bundles_partial(
         app_clips = app_clips,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
+        extensions = extensions,
         frameworks = frameworks,
         platform_prerequisites = platform_prerequisites,
         plugins = plugins,
