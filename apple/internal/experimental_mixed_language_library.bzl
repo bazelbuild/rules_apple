@@ -66,7 +66,7 @@ def _module_map_content(
     if swift_generated_header:
         content += "\n"
         content += "module " + module_name + ".Swift {\n"
-        content += "  header \"%s\"\n" % swift_generated_header.basename
+        content += "  header \"../%s\"\n" % swift_generated_header.basename
         content += "  requires objc\n"
         content += "}\n"
 
@@ -120,8 +120,10 @@ def _module_map_impl(ctx):
             output = umbrella_header,
         )
         outputs.append(umbrella_header)
-
-    module_map = ctx.actions.declare_file(ctx.attr.name + ".modulemap")
+        module_map_path = "%s/%s" % (ctx.attr.name, "module.modulemap")
+    else:
+        module_map_path = ctx.attr.name + ".modulemap"
+    module_map = ctx.actions.declare_file(module_map_path)
     outputs.append(module_map)
 
     ctx.actions.write(
