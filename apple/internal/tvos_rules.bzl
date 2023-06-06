@@ -875,13 +875,20 @@ def _tvos_extension_impl(ctx):
         ],
     )
 
+    product_type = rule_descriptor.product_type
+    if ctx.attr.extensionkit_extension:
+        bundle_location = processor.location.extension
+        product_type = apple_product_type.extensionkit_extension
+    else:
+        bundle_location = processor.location.plugin
+
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
+        product_type = product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
@@ -897,13 +904,20 @@ def _tvos_extension_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
-    archive = outputs.archive(
+    archive_for_embedding = outputs.archive(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
+
+    if ctx.attr.extensionkit_extension:
+        plugins = []
+        extensions = [archive_for_embedding]
+    else:
+        plugins = [archive_for_embedding]
+        extensions = []
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -917,7 +931,7 @@ def _tvos_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
+            product_type = product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -939,7 +953,7 @@ def _tvos_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
@@ -963,7 +977,8 @@ def _tvos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive],
+            plugins = plugins,
+            extensions = extensions,
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = True,

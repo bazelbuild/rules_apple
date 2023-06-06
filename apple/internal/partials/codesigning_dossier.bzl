@@ -48,6 +48,7 @@ Depset of structs with codesigning dossier information to be embedded in another
 
 _VALID_LOCATIONS = sets.make([
     processor.location.app_clip,
+    processor.location.extension,
     processor.location.framework,
     processor.location.plugin,
     processor.location.watch,
@@ -77,6 +78,7 @@ def _location_map(rule_descriptor):
     resolved = rule_descriptor.bundle_locations
     return {
         processor.location.app_clip: resolved.contents_relative_app_clips,
+        processor.location.extension: resolved.contents_relative_extensions,
         processor.location.framework: resolved.contents_relative_frameworks,
         processor.location.plugin: resolved.contents_relative_plugins,
         processor.location.watch: resolved.contents_relative_watch,

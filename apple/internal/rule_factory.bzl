@@ -694,6 +694,16 @@ Info.plist under the key `UILaunchStoryboardName`.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
+    elif rule_descriptor.product_type == apple_product_type.app_extension:
+        attrs.append({
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of an App Extension.
+The bundle is installed into the Extensions directory instead of PlugIns.
+""",
+            ),
+        })
     elif _is_test_product_type(rule_descriptor.product_type):
         required_providers = [
             [AppleBundleInfo, IosApplicationBundleInfo],
@@ -833,6 +843,17 @@ set, then the default extension is determined by the application's product_type.
             ),
         })
 
+    elif rule_descriptor.product_type == apple_product_type.app_extension:
+        attrs.append({
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of an App Extension.
+The bundle is installed into the Extensions directory instead of PlugIns.
+""",
+            ),
+        })
+
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
         attrs.append({
@@ -871,6 +892,16 @@ def _get_tvos_attrs(rule_descriptor):
                 # Currently using the iOS Simulator template for tvOS, as tvOS does not require
                 # significantly different sim runner logic from iOS.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
+        })
+    elif rule_descriptor.product_type == apple_product_type.app_extension:
+        attrs.append({
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of an App Extension.
+The bundle is installed into the Extensions directory instead of PlugIns.
+""",
             ),
         })
     elif rule_descriptor.product_type == apple_product_type.framework:
@@ -993,6 +1024,15 @@ If `True`, this extension is an App Extension instead of a WatchKit Extension.
 It links the extension with the application extension point (`_NSExtensionMain`)
 instead of the WatchKit extension point (`_WKExtensionMain`), and has the
 `app_extension` `product_type` instead of `watch2_extension`.
+""",
+            ),
+            "extensionkit_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an ExtensionKit Extension instead of a WatchKit Extension.
+It links the extension with the application extension point (`_NSExtensionMain`)
+instead of the WatchKit extension point (`_WKExtensionMain`), and has the
+`extensionkit_extension` `product_type` instead of `watch2_extension`.
 """,
             ),
         })

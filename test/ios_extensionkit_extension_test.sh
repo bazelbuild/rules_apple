@@ -37,7 +37,6 @@ load("@build_bazel_rules_apple//apple:apple.bzl",
      "apple_dynamic_framework_import",
      "apple_static_framework_import",
     )
-
 objc_library(
     name = "lib",
     hdrs = ["Foo.h"],
@@ -60,7 +59,6 @@ EOF
 @implementation Foo
 - (void)doSomething { }
 @end
-
 int main(int argc, char **argv) {
   return 0;
 }
@@ -83,9 +81,8 @@ EOF
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -106,6 +103,7 @@ function create_minimal_ios_application_extension() {
   cat >> app/BUILD <<EOF
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -175,9 +173,9 @@ ios_application(
         ":lib",
     ],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -185,12 +183,10 @@ ios_extension(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-
 objc_library(
     name = "frameworkDependingLib",
     deps = [":fmwk"],
 )
-
 $import_rule(
     name = "fmwk",
     framework_imports = glob(["fmwk.framework/**"]),
@@ -238,9 +234,8 @@ function test_missing_version_fails() {
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -263,9 +258,8 @@ function test_missing_short_version_fails() {
   CFBundleName = "\${PRODUCT_NAME}";
   CFBundlePackageType = "XPC!";
   CFBundleVersion = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -284,12 +278,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
-
 objc_library(
     name = "lib",
     srcs = ["main.m"],
 )
-
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -300,9 +292,9 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -335,9 +327,8 @@ EOF
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -354,12 +345,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
-
 objc_library(
     name = "lib",
     srcs = ["main.m"],
 )
-
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -370,9 +359,9 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -405,9 +394,8 @@ EOF
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.1";
   CFBundleVersion = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -424,12 +412,10 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
-
 objc_library(
     name = "lib",
     srcs = ["main.m"],
 )
-
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -440,9 +426,9 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -475,9 +461,8 @@ EOF
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.1";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -504,7 +489,7 @@ function test_prebuilt_static_apple_framework_import_dependency() {
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
+      "Payload/app.app/PlugIns/fmwk.framework/Modules/module.modulemap"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appex/Frameworks/fmwk.framework/fmwk"
   assert_zip_not_contains "test-bin/app/app.ipa" \
@@ -515,6 +500,16 @@ function test_prebuilt_static_apple_framework_import_dependency() {
       "Payload/app.app/PlugIns/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
 # Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
@@ -551,28 +546,36 @@ function test_prebuilt_dynamic_apple_framework_import_dependency() {
       "Payload/app.app/PlugIns/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/PlugIns/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/fmwk"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/Info.plist"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appex/Frameworks/fmwk.framework/resource.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Extensions/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
-# Tests that ios_extension cannot be a depenency of objc_library.
+# Tests that ios_extension cannot be a dependency of objc_library.
 function test_extension_under_library() {
 cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_extension",
     )
-
 objc_library(
     name = "lib",
     srcs = ["main.m"],
 )
-
 objc_library(
     name = "upperlib",
     srcs = ["upperlib.m"],
     deps = [":ext"],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.extension.bundle.id",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -597,9 +600,8 @@ EOF
   CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
-  NSExtension = {
-    NSExtensionPrincipalClass = "DummyValue";
-    NSExtensionPointIdentifier = "com.apple.widget-extension";
+  EXAppExtensionAttributes = {
+    EXExtensionPointIdentifier = "com.apple.appintents-extension";
   };
 }
 EOF
@@ -622,9 +624,9 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
-
 ios_extension(
     name = "ext",
+    extensionkit_extension = True,
     bundle_id = "my.bundle.id.extension",
     families = ["iphone"],
     infoplists = ["Info-Ext.plist"],
@@ -652,9 +654,9 @@ function test_all_dsyms_propagated() {
   assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
 
   assert_zip_contains "test-bin/app/app.ipa" \
-    "Payload/app.app/PlugIns/ext.appex"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
     "Payload/app.app/Extensions/ext.appex"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+    "Payload/app.app/PlugIns/ext.appex"
 
   assert_exists \
       "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app"
@@ -662,4 +664,4 @@ function test_all_dsyms_propagated() {
       "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext"
 }
 
-run_suite "ios_extension bundling tests"
+run_suite "ios_extensionkit_extension bundling tests"

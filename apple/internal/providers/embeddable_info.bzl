@@ -18,6 +18,9 @@ _APPLE_EMBEDDABLE_INFO_FIELDS = {
     "app_clips": """
 A depset with the zipped archives of bundles that need to be expanded into the
 AppClips section of the packaging bundle.""",
+    "extensions": """
+A depset with the zipped archives of bundles that need to be expanded into the
+Extensions section of the packaging bundle.""",
     "frameworks": """
 A depset with the zipped archives of bundles that need to be expanded into the
 Frameworks section of the packaging bundle.""",

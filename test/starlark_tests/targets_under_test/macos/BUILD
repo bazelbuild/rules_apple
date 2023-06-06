@@ -216,6 +216,55 @@ macos_application(
 
 # ---------------------------------------------------------------------------------------
 
+macos_application(
+    name = "app_with_exappextension",
+    bundle_id = "com.google.example",
+    extensions = [":exappextension"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "exappextension",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    bundle_id = "com.google.example.exappextension",
+    extensionkit_extension = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_exappextension_and_symbols_in_bundle",
+    bundle_id = "com.google.example",
+    extensions = [":exappextension"],
+    include_symbols_in_bundle = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     tags = common.fixture_tags,
