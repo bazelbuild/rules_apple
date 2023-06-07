@@ -107,16 +107,20 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
-    "IosApplicationBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
-    "IosImessageApplicationBundleInfo",
     "IosImessageExtensionBundleInfo",
-    "IosStaticFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
+    "new_appleframeworkbundleinfo",
+    "new_iosappclipbundleinfo",
+    "new_iosapplicationbundleinfo",
+    "new_iosextensionbundleinfo",
+    "new_iosframeworkbundleinfo",
+    "new_iosimessageapplicationbundleinfo",
+    "new_iosimessageextensionbundleinfo",
+    "new_iosstaticframeworkbundleinfo",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
@@ -446,7 +450,7 @@ def _ios_application_impl(ctx):
                 files = [archive],
             ),
         ),
-        IosApplicationBundleInfo(),
+        new_iosapplicationbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -719,7 +723,7 @@ def _ios_app_clip_impl(ctx):
                 files = [archive],
             ),
         ),
-        IosAppClipBundleInfo(),
+        new_iosappclipbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -962,8 +966,8 @@ def _ios_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        AppleFrameworkBundleInfo(),
-        IosFrameworkBundleInfo(),
+        new_appleframeworkbundleinfo(),
+        new_iosframeworkbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1225,7 +1229,7 @@ def _ios_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        IosExtensionBundleInfo(),
+        new_iosextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1362,7 +1366,7 @@ def _ios_static_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        IosStaticFrameworkBundleInfo(),
+        new_iosstaticframeworkbundleinfo(),
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
@@ -1560,7 +1564,7 @@ def _ios_imessage_application_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        IosImessageApplicationBundleInfo(),
+        new_iosimessageapplicationbundleinfo(),
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
@@ -1789,8 +1793,8 @@ def _ios_imessage_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        IosExtensionBundleInfo(),
-        IosImessageExtensionBundleInfo(),
+        new_iosextensionbundleinfo(),
+        new_iosimessageextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,

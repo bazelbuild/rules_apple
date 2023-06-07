@@ -99,8 +99,8 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleStaticXcframeworkBundleInfo",
-    "AppleXcframeworkBundleInfo",
+    "new_applestaticxcframeworkbundleinfo",
+    "new_applexcframeworkbundleinfo",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
@@ -747,7 +747,7 @@ def _apple_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleXcframeworkBundleInfo(),
+        new_applexcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([ctx.outputs.archive], transitive = framework_output_files),
         ),
@@ -1016,7 +1016,7 @@ def _apple_static_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleStaticXcframeworkBundleInfo(),
+        new_applestaticxcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([outputs_archive]),
         ),

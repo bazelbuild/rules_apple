@@ -50,7 +50,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "MacosApplicationBundleInfo",
-    "MacosXcTestBundleInfo",
+    "new_macosxctestbundleinfo",
 )
 
 visibility("//apple/...")
@@ -63,7 +63,7 @@ def _macos_ui_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
     ) + [
-        MacosXcTestBundleInfo(),
+        new_macosxctestbundleinfo(),
     ]
 
 def _macos_unit_test_bundle_impl(ctx):
@@ -72,19 +72,19 @@ def _macos_unit_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,
     ) + [
-        MacosXcTestBundleInfo(),
+        new_macosxctestbundleinfo(),
     ]
 
 def _macos_ui_test_impl(ctx):
     """Implementation of macos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        MacosXcTestBundleInfo(),
+        new_macosxctestbundleinfo(),
     ]
 
 def _macos_unit_test_impl(ctx):
     """Implementation of macos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        MacosXcTestBundleInfo(),
+        new_macosxctestbundleinfo(),
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.

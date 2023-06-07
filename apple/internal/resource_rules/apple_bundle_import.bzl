@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceBundleInfo",
+    "new_appleresourcebundleinfo",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -41,7 +41,7 @@ def _apple_bundle_import_impl(ctx):
         parent_dir_param = parent_dir_param,
     )
     return [
-        AppleResourceBundleInfo(),
+        new_appleresourcebundleinfo(),
         resource_provider,
     ]
 

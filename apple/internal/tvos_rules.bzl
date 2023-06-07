@@ -103,12 +103,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
-    "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
-    "TvosStaticFrameworkBundleInfo",
+    "new_appleframeworkbundleinfo",
+    "new_tvosapplicationbundleinfo",
+    "new_tvosextensionbundleinfo",
+    "new_tvosframeworkbundleinfo",
+    "new_tvosstaticframeworkbundleinfo",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -391,7 +393,7 @@ def _tvos_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        TvosApplicationBundleInfo(),
+        new_tvosapplicationbundleinfo(),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
@@ -623,8 +625,8 @@ def _tvos_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        AppleFrameworkBundleInfo(),
-        TvosFrameworkBundleInfo(),
+        new_appleframeworkbundleinfo(),
+        new_tvosframeworkbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
@@ -869,7 +871,7 @@ def _tvos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        TvosExtensionBundleInfo(),
+        new_tvosextensionbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
@@ -1001,7 +1003,7 @@ def _tvos_static_framework_impl(ctx):
     return [
         DefaultInfo(files = processor_result.output_files),
         OutputGroupInfo(**processor_result.output_groups),
-        TvosStaticFrameworkBundleInfo(),
+        new_tvosstaticframeworkbundleinfo(),
     ] + processor_result.providers
 
 tvos_application = rule_factory.create_apple_rule(

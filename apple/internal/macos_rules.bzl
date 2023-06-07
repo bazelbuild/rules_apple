@@ -105,13 +105,15 @@ load(
     "AppleBinaryInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "MacosApplicationBundleInfo",
-    "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
-    "MacosKernelExtensionBundleInfo",
-    "MacosQuickLookPluginBundleInfo",
-    "MacosSpotlightImporterBundleInfo",
     "MacosXPCServiceBundleInfo",
+    "new_macosapplicationbundleinfo",
+    "new_macosbundlebundleinfo",
+    "new_macosextensionbundleinfo",
+    "new_macoskernelextensionbundleinfo",
+    "new_macosquicklookpluginbundleinfo",
+    "new_macosspotlightimporterbundleinfo",
+    "new_macosxpcservicebundleinfo",
 )
 
 visibility([
@@ -378,7 +380,7 @@ def _macos_application_impl(ctx):
                 files = [archive],
             ),
         ),
-        MacosApplicationBundleInfo(),
+        new_macosapplicationbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -599,7 +601,7 @@ def _macos_bundle_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosBundleBundleInfo(),
+        new_macosbundlebundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -846,7 +848,7 @@ def _macos_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosExtensionBundleInfo(),
+        new_macosextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1075,7 +1077,7 @@ def _macos_quick_look_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        MacosQuickLookPluginBundleInfo(),
+        new_macosquicklookpluginbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1304,7 +1306,7 @@ def _macos_kernel_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosKernelExtensionBundleInfo(),
+        new_macoskernelextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1519,7 +1521,7 @@ def _macos_spotlight_importer_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosSpotlightImporterBundleInfo(),
+        new_macosspotlightimporterbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1734,7 +1736,7 @@ def _macos_xpc_service_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosXPCServiceBundleInfo(),
+        new_macosxpcservicebundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
