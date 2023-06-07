@@ -57,7 +57,7 @@ load(
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
-    "IosXcTestBundleInfo",
+    "new_iosxctestbundleinfo",
 )
 
 def _ios_ui_test_bundle_impl(ctx):
@@ -66,7 +66,7 @@ def _ios_ui_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
     ) + [
-        IosXcTestBundleInfo(),
+        new_iosxctestbundleinfo(),
     ]
 
 def _ios_unit_test_bundle_impl(ctx):
@@ -75,19 +75,19 @@ def _ios_unit_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,
     ) + [
-        IosXcTestBundleInfo(),
+        new_iosxctestbundleinfo(),
     ]
 
 def _ios_ui_test_impl(ctx):
     """Implementation of ios_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        IosXcTestBundleInfo(),
+        new_iosxctestbundleinfo(),
     ]
 
 def _ios_unit_test_impl(ctx):
     """Implementation of ios_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        IosXcTestBundleInfo(),
+        new_iosxctestbundleinfo(),
     ]
 
 # Declare it with an underscore so it shows up that way in queries.

@@ -111,12 +111,13 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
-    "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
     "WatchosStaticFrameworkBundleInfo",
+    "new_appleframeworkbundleinfo",
+    "new_watchosapplicationbundleinfo",
+    "new_watchosextensionbundleinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
@@ -370,8 +371,8 @@ def _watchos_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        AppleFrameworkBundleInfo(),
         WatchosFrameworkBundleInfo(),
+        new_appleframeworkbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -954,7 +955,7 @@ reproducible error case.".format(
             files = processor_result.output_files,
         ),
         OutputGroupInfo(**processor_result.output_groups),
-        WatchosApplicationBundleInfo(),
+        new_watchosapplicationbundleinfo(),
     ] + processor_result.providers
 
 def _watchos_extension_impl(ctx):
@@ -1260,7 +1261,7 @@ def _watchos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        WatchosExtensionBundleInfo(),
+        new_watchosextensionbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
@@ -1680,7 +1681,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
                 processor_result.output_groups,
             )
         ),
-        WatchosApplicationBundleInfo(),
+        new_watchosapplicationbundleinfo(),
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(

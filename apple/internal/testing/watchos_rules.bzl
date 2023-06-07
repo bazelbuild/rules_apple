@@ -55,7 +55,7 @@ load(
     "AppleBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosFrameworkBundleInfo",
-    "WatchosXcTestBundleInfo",
+    "new_watchosxctestbundleinfo",
 )
 
 _WATCHOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, WatchosApplicationBundleInfo]]
@@ -66,7 +66,7 @@ def _watchos_ui_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
     ) + [
-        WatchosXcTestBundleInfo(),
+        new_watchosxctestbundleinfo(),
     ]
 
 def _watchos_unit_test_bundle_impl(ctx):
@@ -75,19 +75,19 @@ def _watchos_unit_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,
     ) + [
-        WatchosXcTestBundleInfo(),
+        new_watchosxctestbundleinfo(),
     ]
 
 def _watchos_ui_test_impl(ctx):
     """Implementation of watchos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        WatchosXcTestBundleInfo(),
+        new_watchosxctestbundleinfo(),
     ]
 
 def _watchos_unit_test_impl(ctx):
     """Implementation of watchos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        WatchosXcTestBundleInfo(),
+        new_watchosxctestbundleinfo(),
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.

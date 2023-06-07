@@ -56,7 +56,7 @@ load(
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
-    "TvosXcTestBundleInfo",
+    "new_tvosxctestbundleinfo",
 )
 
 _TVOS_TEST_HOST_PROVIDERS = [
@@ -70,7 +70,7 @@ def _tvos_ui_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
     ) + [
-        TvosXcTestBundleInfo(),
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_unit_test_bundle_impl(ctx):
@@ -79,19 +79,19 @@ def _tvos_unit_test_bundle_impl(ctx):
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,
     ) + [
-        TvosXcTestBundleInfo(),
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_ui_test_impl(ctx):
     """Implementation of tvos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        TvosXcTestBundleInfo(),
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_unit_test_impl(ctx):
     """Implementation of tvos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        TvosXcTestBundleInfo(),
+        new_tvosxctestbundleinfo(),
     ]
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.

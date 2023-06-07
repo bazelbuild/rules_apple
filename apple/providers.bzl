@@ -26,6 +26,15 @@ consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 """
 
+# TODO(b/286231886): Migrate this helper method and providers that depend on it to apple/internal.
+def _make_banned_init(provider_name):
+    """Generates a lambda with a fail(...) for providers that can't be publicly initialized."""
+    return lambda *kwargs: fail("""
+%s is not a provider that is intended to be publicly initialized.
+
+Please file an issue with the Apple BUILD rules if you would like a public API for this provider.
+""" % provider_name)
+
 AppleBaseBundleIdInfo = provider(
     doc = "Provides the base bundle ID prefix for an Apple rule.",
     fields = {
@@ -220,7 +229,7 @@ to ensure that they are explicitly produced as outputs of the build.
     },
 )
 
-AppleFrameworkBundleInfo = provider(
+AppleFrameworkBundleInfo, new_appleframeworkbundleinfo = provider(
     doc = """
 Denotes a target is an Apple framework bundle.
 
@@ -228,6 +237,7 @@ This provider does not reference 3rd party or precompiled frameworks.
 Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
 """,
     fields = {},
+    init = _make_banned_init("AppleFrameworkBundleInfo"),
 )
 
 AppleFrameworkImportInfo = provider(
@@ -347,7 +357,7 @@ and bundled at the top level.""",
     },
 )
 
-AppleResourceBundleInfo = provider(
+AppleResourceBundleInfo, new_appleresourcebundleinfo = provider(
     doc = """
 Denotes that a target is an Apple resource bundle.
 
@@ -358,6 +368,7 @@ dependency is an Apple resource bundle should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("AppleResourceBundleInfo"),
 )
 
 AppleSharedCapabilityInfo = provider(
@@ -449,7 +460,7 @@ Required template file that contains the specific mechanism with which the tests
     },
 )
 
-AppleStaticXcframeworkBundleInfo = provider(
+AppleStaticXcframeworkBundleInfo, new_applestaticxcframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is a static library XCFramework.
 
@@ -460,9 +471,10 @@ dependency is an XCFramework should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("AppleStaticXcframeworkBundleInfo"),
 )
 
-AppleXcframeworkBundleInfo = provider(
+AppleXcframeworkBundleInfo, new_applexcframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is an XCFramework.
 
@@ -473,9 +485,10 @@ dependency is an XCFramework should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("AppleXcframeworkBundleInfo"),
 )
 
-IosApplicationBundleInfo = provider(
+IosApplicationBundleInfo, new_iosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS application.
 
@@ -486,9 +499,10 @@ dependency is an iOS application should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosApplicationBundleInfo"),
 )
 
-IosAppClipBundleInfo = provider(
+IosAppClipBundleInfo, new_iosappclipbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS app clip.
 
@@ -498,9 +512,10 @@ not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS app clip should use this provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosAppClipBundleInfo"),
 )
 
-IosExtensionBundleInfo = provider(
+IosExtensionBundleInfo, new_iosextensionbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS application extension.
 
@@ -511,9 +526,10 @@ require that a dependency is an iOS application extension should use this
 provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosExtensionBundleInfo"),
 )
 
-IosFrameworkBundleInfo = provider(
+IosFrameworkBundleInfo, new_iosframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS dynamic framework.
 
@@ -524,9 +540,10 @@ a dependency is an iOS dynamic framework should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosFrameworkBundleInfo"),
 )
 
-IosStaticFrameworkBundleInfo = provider(
+IosStaticFrameworkBundleInfo, new_iosstaticframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS static framework.
 
@@ -537,9 +554,10 @@ a dependency is an iOS static framework should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosStaticFrameworkBundleInfo"),
 )
 
-IosImessageApplicationBundleInfo = provider(
+IosImessageApplicationBundleInfo, new_iosimessageapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS iMessage application.
 
@@ -550,9 +568,10 @@ a dependency is an iOS iMessage application should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosImessageApplicationBundleInfo"),
 )
 
-IosImessageExtensionBundleInfo = provider(
+IosImessageExtensionBundleInfo, new_iosimessageextensionbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS iMessage extension.
 
@@ -563,6 +582,7 @@ a dependency is an iOS iMessage extension should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosImessageExtensionBundleInfo"),
 )
 
 IosStickerPackExtensionBundleInfo = provider(
@@ -578,7 +598,7 @@ that requirement.
     fields = {},
 )
 
-IosXcTestBundleInfo = provider(
+IosXcTestBundleInfo, new_iosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is an iOS .xctest bundle.
 
@@ -588,9 +608,10 @@ not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("IosXcTestBundleInfo"),
 )
 
-MacosApplicationBundleInfo = provider(
+MacosApplicationBundleInfo, new_macosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS application.
 
@@ -601,9 +622,10 @@ dependency is a macOS application should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosApplicationBundleInfo"),
 )
 
-MacosBundleBundleInfo = provider(
+MacosBundleBundleInfo, new_macosbundlebundleinfo = provider(
     doc = """
 Denotes that a target is a macOS loadable bundle.
 
@@ -614,9 +636,10 @@ dependency is a macOS loadable bundle should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosBundleBundleInfo"),
 )
 
-MacosExtensionBundleInfo = provider(
+MacosExtensionBundleInfo, new_macosextensionbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS application extension.
 
@@ -627,9 +650,10 @@ require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosExtensionBundleInfo"),
 )
 
-MacosKernelExtensionBundleInfo = provider(
+MacosKernelExtensionBundleInfo, new_macoskernelextensionbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS kernel extension.
 
@@ -640,9 +664,10 @@ dependency is a macOS kernel extension should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosKernelExtensionBundleInfo"),
 )
 
-MacosQuickLookPluginBundleInfo = provider(
+MacosQuickLookPluginBundleInfo, new_macosquicklookpluginbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS Quick Look Generator bundle.
 
@@ -653,9 +678,10 @@ a dependency is a macOS Quick Look generator should use this provider to describ
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosQuickLookPluginBundleInfo"),
 )
 
-MacosSpotlightImporterBundleInfo = provider(
+MacosSpotlightImporterBundleInfo, new_macosspotlightimporterbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS Spotlight Importer bundle.
 
@@ -666,9 +692,10 @@ dependency is a macOS Spotlight importer should use this provider to describe th
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosSpotlightImporterBundleInfo"),
 )
 
-MacosXPCServiceBundleInfo = provider(
+MacosXPCServiceBundleInfo, new_macosxpcservicebundleinfo = provider(
     doc = """
 Denotes that a target is a macOS XPC Service bundle.
 
@@ -679,9 +706,10 @@ dependency is a macOS XPC service should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosXPCServiceBundleInfo"),
 )
 
-MacosXcTestBundleInfo = provider(
+MacosXcTestBundleInfo, new_macosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is a macOS .xctest bundle.
 
@@ -692,9 +720,10 @@ dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("MacosXcTestBundleInfo"),
 )
 
-TvosApplicationBundleInfo = provider(
+TvosApplicationBundleInfo, new_tvosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a tvOS application.
 
@@ -705,9 +734,10 @@ dependency is a tvOS application should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("TvosApplicationBundleInfo"),
 )
 
-TvosExtensionBundleInfo = provider(
+TvosExtensionBundleInfo, new_tvosextensionbundleinfo = provider(
     doc = """
 Denotes that a target is a tvOS application extension.
 
@@ -718,9 +748,10 @@ require that a dependency is a tvOS application extension should use this
 provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("TvosExtensionBundleInfo"),
 )
 
-TvosFrameworkBundleInfo = provider(
+TvosFrameworkBundleInfo, new_tvosframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is a tvOS dynamic framework.
 
@@ -731,9 +762,10 @@ a dependency is a tvOS dynamic framework should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("TvosFrameworkBundleInfo"),
 )
 
-TvosStaticFrameworkBundleInfo = provider(
+TvosStaticFrameworkBundleInfo, new_tvosstaticframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is a tvOS static framework.
 
@@ -744,9 +776,10 @@ a dependency is a tvOS static framework should use this provider to describe
 that requirement.
 """,
     fields = {},
+    init = _make_banned_init("TvosStaticFrameworkBundleInfo"),
 )
 
-TvosXcTestBundleInfo = provider(
+TvosXcTestBundleInfo, new_tvosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is a tvOS .xctest bundle.
 
@@ -756,9 +789,10 @@ not some other Apple bundle). Rule authors who wish to require that a dependency
 is a tvOS .xctest bundle should use this provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("TvosXcTestBundleInfo"),
 )
 
-WatchosApplicationBundleInfo = provider(
+WatchosApplicationBundleInfo, new_watchosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a watchOS application.
 
@@ -769,9 +803,10 @@ a dependency is a watchOS application should use this provider to describe that
 requirement.
 """,
     fields = {},
+    init = _make_banned_init("WatchosApplicationBundleInfo"),
 )
 
-WatchosExtensionBundleInfo = provider(
+WatchosExtensionBundleInfo, new_watchosextensionbundleinfo = provider(
     doc = """
 Denotes that a target is a watchOS application extension.
 
@@ -782,6 +817,7 @@ require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("WatchosExtensionBundleInfo"),
 )
 
 WatchosFrameworkBundleInfo = provider(
@@ -810,7 +846,7 @@ that requirement.
     fields = {},
 )
 
-WatchosXcTestBundleInfo = provider(
+WatchosXcTestBundleInfo, new_watchosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is a watchOS .xctest bundle.
 
@@ -820,6 +856,7 @@ not some other Apple bundle). Rule authors who wish to require that a dependency
 is a watchOS .xctest bundle should use this provider to describe that requirement.
 """,
     fields = {},
+    init = _make_banned_init("WatchosXcTestBundleInfo"),
 )
 
 MacosFrameworkBundleInfo = provider(
