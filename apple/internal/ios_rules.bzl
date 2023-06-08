@@ -983,9 +983,6 @@ def _ios_extension_impl(ctx):
 
     product_type = apple_product_type.app_extension
     if ctx.attr.extensionkit_extension:
-        # TODO(b/283788062): Add a new type of Info.plist verification around the new
-        # EXExtensionPointIdentifier and EXAppExtensionAttributes keys to make sure that they are
-        # defined, and (potentially) that references to NSExtension keys are not present.
         product_type = apple_product_type.extensionkit_extension
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -1169,6 +1166,7 @@ def _ios_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            extensionkit_keys_required = ctx.attr.extensionkit_extension,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,

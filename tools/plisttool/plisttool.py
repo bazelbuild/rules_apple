@@ -185,8 +185,12 @@ REQUIRED_CHILD_KEYPATH_NOT_MATCHING = (
     'has the wrong value for "%s"; expected %r, but found %r.'
 )
 
-MISSING_VERSION_KEY_MSG = (
+MISSING_KEY_MSG = (
     'Target "%s" is missing %s.'
+)
+
+UNEXPECTED_KEY_MSG = (
+    'Unexpectedly found key "%s" in target "%s".'
 )
 
 INVALID_VERSION_KEY_VALUE_MSG = (
@@ -334,7 +338,7 @@ _CONTROL_KEYS = frozenset([
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
     'child_plists', 'child_plist_required_values', 'pkginfo', 'version_file',
-    'version_keys_required',
+    'version_keys_required', 'extensionkit_keys_required'
 ])
 
 # All valid keys in the entitlements_options control structure.
@@ -891,24 +895,45 @@ class InfoPlistTask(PlistToolTask):
       for k in ('CFBundleVersion', 'CFBundleShortVersionString'):
         # This also errors if they are there but the empty string or zero.
         if not plist.get(k, None):
-          raise PlistToolError(MISSING_VERSION_KEY_MSG % (self.target, k))
+          raise PlistToolError(MISSING_KEY_MSG % (self.target, k))
+
+    if self.options.get('extensionkit_keys_required'):
+      # Check if the old NSExtension plist key has been accidentally set.
+      if 'NSExtension' in plist:
+        raise PlistToolError(UNEXPECTED_KEY_MSG % ('NSExtension', self.target))
+
+      # Check that the required ExtensionKit extension point ID has been set.
+      if 'EXAppExtensionAttributes' not in plist:
+        raise PlistToolError(
+            MISSING_KEY_MSG % (self.target, 'EXAppExtensionAttributes')
+        )
+      if not plist['EXAppExtensionAttributes'].get(
+          'EXExtensionPointIdentifier', None
+      ):
+        raise PlistToolError(
+            MISSING_KEY_MSG % (self.target, 'EXExtensionPointIdentifier')
+        )
 
     # If the version keys are set, they must be valid (even if they were
     # not required).
     for k, validator in (
         ('CFBundleVersion', is_valid_version_string),
-        ('CFBundleShortVersionString', is_valid_short_version_string)):
+        ('CFBundleShortVersionString', is_valid_short_version_string),
+    ):
       v = plist.get(k)
       if v and not validator(v):
-        raise PlistToolError(INVALID_VERSION_KEY_VALUE_MSG % (
-            self.target, k, v))
+        raise PlistToolError(
+            INVALID_VERSION_KEY_VALUE_MSG % (self.target, k, v)
+        )
 
     child_plists = self.options.get('child_plists')
     child_plist_required_values = self.options.get(
-        'child_plist_required_values')
+        'child_plist_required_values'
+    )
     if child_plists:
       self._validate_children(
-          plist, child_plists, child_plist_required_values, self.target)
+          plist, child_plists, child_plist_required_values, self.target
+      )
 
     pkginfo_file = self.options.get('pkginfo')
     if pkginfo_file:

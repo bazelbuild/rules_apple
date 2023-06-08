@@ -1109,7 +1109,7 @@ ios_extension(
         "ipad",
     ],
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",

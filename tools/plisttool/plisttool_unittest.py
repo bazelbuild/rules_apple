@@ -1091,7 +1091,7 @@ class PlistToolTest(unittest.TestCase):
   def test_missing_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_KEY_MSG % (
             _testing_target, 'CFBundleVersion'))):
       plist = {'CFBundleShortVersionString': '1.0'}
       _plisttool_result({
@@ -1101,10 +1101,69 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_extensionkit_attributes(self):
+    plist = {
+        'EXAppExtensionAttributes': {
+            'EXExtensionPointIdentifier': 'com.apple.generic-extension',
+        }
+    }
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'info_plist_options': {
+            'extensionkit_keys_required': True,
+        },
+    }, plist)
+
+  def test_unexpected_nsextension_attributes(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNEXPECTED_KEY_MSG % (
+            'NSExtension', _testing_target))):
+      plist = {
+          'NSExtension': {},
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.generic-extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
+  def test_missing_app_extension_attributes(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_KEY_MSG % (
+            _testing_target, 'EXAppExtensionAttributes'))):
+      plist = {}
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
+  def test_missing_app_extension_point_identifier(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.MISSING_KEY_MSG % (
+            _testing_target, 'EXExtensionPointIdentifier'))):
+      plist = {
+          'EXAppExtensionAttributes': {},
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {
+              'extensionkit_keys_required': True,
+          },
+      })
+
   def test_missing_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_KEY_MSG % (
             _testing_target, 'CFBundleShortVersionString'))):
       plist = {'CFBundleVersion': '1.0'}
       _plisttool_result({
@@ -1117,7 +1176,7 @@ class PlistToolTest(unittest.TestCase):
   def test_empty_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_KEY_MSG % (
             _testing_target, 'CFBundleVersion'))):
       plist = {
           'CFBundleShortVersionString': '1.0',
@@ -1133,7 +1192,7 @@ class PlistToolTest(unittest.TestCase):
   def test_empty_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.MISSING_VERSION_KEY_MSG % (
+        re.escape(plisttool.MISSING_KEY_MSG % (
             _testing_target, 'CFBundleShortVersionString'))):
       plist = {
           'CFBundleShortVersionString': '',

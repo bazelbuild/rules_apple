@@ -288,6 +288,7 @@ def _resources_partial_impl(
         bundle_name,
         bundle_verification_targets,
         environment_plist,
+        extensionkit_keys_required,
         launch_storyboard,
         output_discriminator,
         platform_prerequisites,
@@ -481,6 +482,7 @@ def _resources_partial_impl(
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
+                extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
@@ -509,6 +511,7 @@ def resources_partial(
         bundle_name,
         bundle_verification_targets = [],
         environment_plist,
+        extensionkit_keys_required = False,
         launch_storyboard,
         output_discriminator = None,
         platform_prerequisites,
@@ -538,6 +541,8 @@ def resources_partial(
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
+        extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are
+            correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
@@ -569,6 +574,7 @@ def resources_partial(
         bundle_name = bundle_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
+        extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

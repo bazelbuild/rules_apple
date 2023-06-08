@@ -148,7 +148,7 @@ tvos_extension(
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     extensionkit_extension = True,
-    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    infoplists = ["//test/starlark_tests/resources:ExtensionKitInfo.plist"],
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
