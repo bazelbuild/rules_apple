@@ -1225,7 +1225,7 @@ macos_extension(
     bundle_id = "com.google.example.ext",
     extensionkit_extension = True,
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
