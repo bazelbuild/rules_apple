@@ -287,6 +287,35 @@ class BundlerTest(unittest.TestCase):
           ]
       })
 
+  def test_duplicate_files_one_empty_raise_error(self):
+    foo_txt = self._scratch_file('foo.txt', '')
+    bar_txt = self._scratch_file('bar.txt', 'bar')
+    with self.assertRaisesRegex(
+        bundletool.BundleToolError,
+        re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
+            'Payload/foo.app/renamed')):
+      _run_bundler({
+          'bundle_path': 'Payload/foo.app',
+          'bundle_merge_files': [
+              {'src': foo_txt, 'dest': 'renamed'},
+              {'src': bar_txt, 'dest': 'renamed'},
+          ]
+      })
+
+    foo_txt = self._scratch_file('foo.txt', 'foo')
+    bar_txt = self._scratch_file('bar.txt', '')
+    with self.assertRaisesRegex(
+        bundletool.BundleToolError,
+        re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
+            'Payload/foo.app/renamed')):
+      _run_bundler({
+          'bundle_path': 'Payload/foo.app',
+          'bundle_merge_files': [
+              {'src': foo_txt, 'dest': 'renamed'},
+              {'src': bar_txt, 'dest': 'renamed'},
+          ]
+      })
+
   def test_zips_with_duplicate_files_but_same_content_are_allowed(self):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:foo')
