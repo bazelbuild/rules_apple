@@ -244,7 +244,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         codesign_identity='-',
         executor=executor)
-    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+    dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertEqual(len(futures), 4)
     self.assertEqual(mock_sign_bundle.call_count, 4)
     default_args = (
@@ -322,7 +322,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     mock_copy.assert_called_with(
         '/tmp/fake.mobile', '/tmp/fake.app/Contents/embedded.mobile')
 
-  def test_wait_embedded_manifest_futures_reraises_exception(self):
+  def test_wait_signing_futures_reraises_exception(self):
     future_with_exception = concurrent.futures.Future()
     future_with_exception.set_exception(RuntimeError)
 
@@ -332,19 +332,19 @@ class DossierCodesigningReaderTest(unittest.TestCase):
 
     stdout = io.StringIO()
     with self.assertRaises(RuntimeError), contextlib.redirect_stdout(stdout):
-      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+      dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertNotRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
 
-  def test_wait_embedded_manifest_futures_does_not_raises_exception(self):
+  def test_wait_signing_futures_does_not_raises_exception(self):
     futures = []
     for _ in range(3):
       future = concurrent.futures.Future()
       future.set_result(None)
       futures.append(future)
-    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+    dossier_codesigning_reader._wait_signing_futures(futures)
 
   @mock.patch('concurrent.futures.wait')
-  def test_wait_embedded_manifest_futures_cancel_futures(self, mock_wait):
+  def test_wait_signing_futures_cancel_futures(self, mock_wait):
     mock_future_done = mock.Mock()
     mock_future_exception = mock.Mock()
     mock_future_not_done = mock.Mock()
@@ -358,7 +358,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
 
     stdout = io.StringIO()
     with self.assertRaises(EOFError), contextlib.redirect_stdout(stdout):
-      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+      dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
 
     mock_future_not_done.cancel.assert_called()
