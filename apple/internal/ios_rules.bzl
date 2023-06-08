@@ -924,13 +924,24 @@ def _ios_extension_impl(ctx):
         ],
     )
 
+    product_type = rule_descriptor.product_type
+    if ctx.attr.extensionkit_extension:
+        bundle_location = processor.location.extension
+        product_type = apple_product_type.extensionkit_extension
+        extensionkit_keys_required = True
+        nsextension_keys_required = False
+    else:
+        bundle_location = processor.location.plugin
+        extensionkit_keys_required = False
+        nsextension_keys_required = True
+
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
+        product_type = product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
@@ -964,11 +975,18 @@ def _ios_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    if ctx.attr.extensionkit_extension:
+        plugins = []
+        extensions = [archive_for_embedding]
+    else:
+        plugins = [archive_for_embedding]
+        extensions = []
+
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
             platform_prerequisites = platform_prerequisites,
-            product_type = rule_descriptor.product_type,
+            product_type = product_type,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -981,7 +999,7 @@ def _ios_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
+            product_type = product_type,
         ),
         partials.binary_partial(
             actions = actions,
@@ -994,7 +1012,7 @@ def _ios_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
@@ -1027,7 +1045,8 @@ def _ios_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive_for_embedding],
+            plugins = plugins,
+            extensions = extensions,
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = True,
@@ -1042,7 +1061,9 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
+            extensionkit_keys_required = extensionkit_keys_required,
             launch_storyboard = None,
+            nsextension_keys_required = nsextension_keys_required,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,

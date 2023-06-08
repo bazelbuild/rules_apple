@@ -14,7 +14,7 @@
 
 """Partial implementations for resource processing.
 
-Resources are procesed according to type, by a series of methods that deal with the specifics for
+Resources are processed according to type, by a series of methods that deal with the specifics for
 each resource type. Each of this methods returns a struct, which always have a `files` field
 containing resource tuples as described in processor.bzl. Optionally, the structs can also have an
 `infoplists` field containing a list of plists that should be merged into the root Info.plist.
@@ -176,7 +176,9 @@ def _resources_partial_impl(
         executable_name,
         bundle_verification_targets,
         environment_plist,
+        extensionkit_keys_required,
         launch_storyboard,
+        nsextension_keys_required,
         output_discriminator,
         platform_prerequisites,
         resource_deps,
@@ -348,8 +350,10 @@ def _resources_partial_impl(
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
+                extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
+                nsextension_keys_required = nsextension_keys_required,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
@@ -377,7 +381,9 @@ def resources_partial(
         executable_name,
         bundle_verification_targets = [],
         environment_plist,
+        extensionkit_keys_required = False,
         launch_storyboard,
+        nsextension_keys_required = False,
         output_discriminator = None,
         platform_prerequisites,
         resource_deps,
@@ -402,14 +408,18 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
-        bundle_verification_targets: List of structs that reference embedable targets that need to
+        bundle_verification_targets: List of structs that reference embeddable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
+        extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are correctly
+            configured.
         launch_storyboard: A file to be used as a launch screen for the application.
+        nsextension_keys_required: Whether to validate that the Info.plist ExtensionKit keys are correctly
+            configured.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -437,9 +447,11 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        extensionkit_keys_required = extensionkit_keys_required,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
+        nsextension_keys_required = nsextension_keys_required,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resource_deps = resource_deps,
