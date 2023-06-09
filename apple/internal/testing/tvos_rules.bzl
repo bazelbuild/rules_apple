@@ -31,6 +31,10 @@ load(
     "bundle_id_suffix_default",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_tvosxctestbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -56,7 +60,6 @@ load(
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
-    "new_tvosxctestbundleinfo",
 )
 
 _TVOS_TEST_HOST_PROVIDERS = [

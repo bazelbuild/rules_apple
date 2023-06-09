@@ -31,6 +31,10 @@ load(
     "bundle_id_suffix_default",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_iosxctestbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -57,7 +61,6 @@ load(
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
-    "new_iosxctestbundleinfo",
 )
 
 def _ios_ui_test_bundle_impl(ctx):

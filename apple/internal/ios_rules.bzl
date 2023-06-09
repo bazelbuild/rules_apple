@@ -77,6 +77,17 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleframeworkbundleinfo",
+    "new_iosappclipbundleinfo",
+    "new_iosapplicationbundleinfo",
+    "new_iosextensionbundleinfo",
+    "new_iosframeworkbundleinfo",
+    "new_iosimessageapplicationbundleinfo",
+    "new_iosimessageextensionbundleinfo",
+    "new_iosstaticframeworkbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -127,14 +138,6 @@ load(
     "IosImessageExtensionBundleInfo",
     "IosStickerPackExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
-    "new_appleframeworkbundleinfo",
-    "new_iosappclipbundleinfo",
-    "new_iosapplicationbundleinfo",
-    "new_iosextensionbundleinfo",
-    "new_iosframeworkbundleinfo",
-    "new_iosimessageapplicationbundleinfo",
-    "new_iosimessageextensionbundleinfo",
-    "new_iosstaticframeworkbundleinfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")

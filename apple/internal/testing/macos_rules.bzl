@@ -31,6 +31,10 @@ load(
     "bundle_id_suffix_default",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_macosxctestbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -55,7 +59,6 @@ load(
     "AppleBundleInfo",
     "MacosApplicationBundleInfo",
     "MacosFrameworkBundleInfo",
-    "new_macosxctestbundleinfo",
 )
 
 _MACOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, MacosApplicationBundleInfo]]

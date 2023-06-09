@@ -14,7 +14,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        "//apple/internal:providers",
         "//apple/internal:resources",
         "@bazel_skylib//lib:partial",
     ],
@@ -79,7 +79,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        "//apple/internal:providers",
     ],
 )
 

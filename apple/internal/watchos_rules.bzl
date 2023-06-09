@@ -65,6 +65,12 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleframeworkbundleinfo",
+    "new_watchosapplicationbundleinfo",
+    "new_watchosextensionbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -115,9 +121,6 @@ load(
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
     "WatchosStaticFrameworkBundleInfo",
-    "new_appleframeworkbundleinfo",
-    "new_watchosapplicationbundleinfo",
-    "new_watchosextensionbundleinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",

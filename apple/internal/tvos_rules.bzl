@@ -74,6 +74,14 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleframeworkbundleinfo",
+    "new_tvosapplicationbundleinfo",
+    "new_tvosextensionbundleinfo",
+    "new_tvosframeworkbundleinfo",
+    "new_tvosstaticframeworkbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -119,11 +127,6 @@ load(
     "ApplePlatformInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
-    "new_appleframeworkbundleinfo",
-    "new_tvosapplicationbundleinfo",
-    "new_tvosextensionbundleinfo",
-    "new_tvosframeworkbundleinfo",
-    "new_tvosstaticframeworkbundleinfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",

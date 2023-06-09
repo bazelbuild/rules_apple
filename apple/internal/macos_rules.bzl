@@ -61,6 +61,17 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleframeworkbundleinfo",
+    "new_macosapplicationbundleinfo",
+    "new_macosbundlebundleinfo",
+    "new_macosextensionbundleinfo",
+    "new_macoskernelextensionbundleinfo",
+    "new_macosquicklookpluginbundleinfo",
+    "new_macosspotlightimporterbundleinfo",
+    "new_macosxpcservicebundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -128,14 +139,6 @@ load(
     "MacosFrameworkBundleInfo",
     "MacosStaticFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
-    "new_appleframeworkbundleinfo",
-    "new_macosapplicationbundleinfo",
-    "new_macosbundlebundleinfo",
-    "new_macosextensionbundleinfo",
-    "new_macoskernelextensionbundleinfo",
-    "new_macosquicklookpluginbundleinfo",
-    "new_macosspotlightimporterbundleinfo",
-    "new_macosxpcservicebundleinfo",
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 

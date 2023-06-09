@@ -146,6 +146,9 @@ bzl_library(
 bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
+    deps = [
+        "//apple/internal:providers",
+    ],
 )
 
 bzl_library(

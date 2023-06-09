@@ -64,6 +64,11 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applestaticxcframeworkbundleinfo",
+    "new_applexcframeworkbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -103,8 +108,6 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "new_applestaticxcframeworkbundleinfo",
-    "new_applexcframeworkbundleinfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")

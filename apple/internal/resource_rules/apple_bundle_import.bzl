@@ -15,12 +15,12 @@
 """Implementation of apple_bundle_import rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "new_appleresourcebundleinfo",
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
