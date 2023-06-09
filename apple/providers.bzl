@@ -25,8 +25,10 @@ boundary with well-defined public APIs for broader usage.
 
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
+    _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
     _AppleStaticXcframeworkBundleInfo = "AppleStaticXcframeworkBundleInfo",
     _AppleXcframeworkBundleInfo = "AppleXcframeworkBundleInfo",
     _IosAppClipBundleInfo = "IosAppClipBundleInfo",
@@ -57,14 +59,7 @@ load(
 
 visibility("public")
 
-AppleBaseBundleIdInfo = provider(
-    doc = "Provides the base bundle ID prefix for an Apple rule.",
-    fields = {
-        "base_bundle_id": """
-`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
-""",
-    },
-)
+AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
 
 AppleBundleInfo = provider(
     doc = """
@@ -312,14 +307,7 @@ only be bucketed with the `bucketize_typed` method.""",
     },
 )
 
-AppleSharedCapabilityInfo = provider(
-    doc = "Provides information on a mergeable set of shared capabilities.",
-    fields = {
-        "base_bundle_id": """
-`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
-""",
-    },
-)
+AppleSharedCapabilityInfo = _AppleSharedCapabilityInfo
 
 AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo
 

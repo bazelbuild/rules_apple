@@ -36,6 +36,16 @@ def _make_banned_init(provider_name):
 Please file an issue with the Apple BUILD rules if you would like a public API for this provider.
 """ % provider_name)
 
+AppleBaseBundleIdInfo, new_applebasebundleidinfo = provider(
+    doc = "Provides the base bundle ID prefix for an Apple rule.",
+    fields = {
+        "base_bundle_id": """
+`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
+""",
+    },
+    init = _make_banned_init("AppleBaseBundleIdInfo"),
+)
+
 AppleFrameworkBundleInfo, new_appleframeworkbundleinfo = provider(
     doc = """
 Denotes a target is an Apple framework bundle.
@@ -59,6 +69,16 @@ requirement.
 """,
     fields = {},
     init = _make_banned_init("AppleResourceBundleInfo"),
+)
+
+AppleSharedCapabilityInfo, new_applesharedcapabilityinfo = provider(
+    doc = "Provides information on a mergeable set of shared capabilities.",
+    fields = {
+        "base_bundle_id": """
+`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
+""",
+    },
+    init = _make_banned_init("AppleSharedCapabilityInfo"),
 )
 
 AppleStaticXcframeworkBundleInfo, new_applestaticxcframeworkbundleinfo = provider(

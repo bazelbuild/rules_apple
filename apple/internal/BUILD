@@ -156,6 +156,7 @@ bzl_library(
     ],
     deps = [
         ":bundling_support",
+        ":providers",
         "//apple:providers",
     ],
 )

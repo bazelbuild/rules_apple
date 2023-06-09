@@ -17,11 +17,15 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBaseBundleIdInfo",
-    "AppleSharedCapabilityInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebasebundleidinfo",
+    "new_applesharedcapabilityinfo",
 )
 
 visibility([
@@ -38,7 +42,7 @@ def _apple_base_bundle_id_impl(ctx):
 
     bundling_support.validate_bundle_id(base_bundle_id)
 
-    return [AppleBaseBundleIdInfo(
+    return [new_applebasebundleidinfo(
         base_bundle_id = base_bundle_id,
     )]
 
@@ -74,7 +78,7 @@ def _apple_capability_set_impl(ctx):
     if ctx.attr.base_bundle_id:
         base_bundle_id = ctx.attr.base_bundle_id[AppleBaseBundleIdInfo].base_bundle_id
 
-    return [AppleSharedCapabilityInfo(
+    return [new_applesharedcapabilityinfo(
         base_bundle_id = base_bundle_id,
     )]
 
