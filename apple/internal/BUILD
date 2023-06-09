@@ -292,6 +292,7 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":providers",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
@@ -362,6 +363,7 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":providers",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
@@ -445,6 +447,14 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
     ],
 )
 
@@ -614,6 +624,7 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":providers",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
@@ -647,6 +658,7 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":providers",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
@@ -678,6 +690,7 @@ bzl_library(
         ":partials",
         ":platform_support",
         ":processor",
+        ":providers",
         ":resources",
         ":rule_attrs",
         ":rule_factory",

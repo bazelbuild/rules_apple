@@ -61,6 +61,16 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_macosapplicationbundleinfo",
+    "new_macosbundlebundleinfo",
+    "new_macosextensionbundleinfo",
+    "new_macoskernelextensionbundleinfo",
+    "new_macosquicklookpluginbundleinfo",
+    "new_macosspotlightimporterbundleinfo",
+    "new_macosxpcservicebundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -107,13 +117,6 @@ load(
     "AppleBundleVersionInfo",
     "MacosExtensionBundleInfo",
     "MacosXPCServiceBundleInfo",
-    "new_macosapplicationbundleinfo",
-    "new_macosbundlebundleinfo",
-    "new_macosextensionbundleinfo",
-    "new_macoskernelextensionbundleinfo",
-    "new_macosquicklookpluginbundleinfo",
-    "new_macosspotlightimporterbundleinfo",
-    "new_macosxpcservicebundleinfo",
 )
 
 visibility([

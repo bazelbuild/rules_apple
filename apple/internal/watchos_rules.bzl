@@ -57,6 +57,11 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_watchosapplicationbundleinfo",
+    "new_watchosextensionbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -97,8 +102,6 @@ load(
     "AppleBundleInfo",
     "ApplePlatformInfo",
     "WatchosExtensionBundleInfo",
-    "new_watchosapplicationbundleinfo",
-    "new_watchosextensionbundleinfo",
 )
 load(
     "@bazel_skylib//lib:sets.bzl",

@@ -31,6 +31,10 @@ load(
     "bundle_id_suffix_default",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_iosxctestbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -52,7 +56,6 @@ load(
     "IosApplicationBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
-    "new_iosxctestbundleinfo",
 )
 
 visibility("//apple/...")
