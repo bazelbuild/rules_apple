@@ -19,8 +19,8 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceInfo",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",  # buildifier: disable=bzl-visibility
+    "new_appleresourceinfo",
 )
 
 visibility("//test/starlark_tests/...")
@@ -31,7 +31,7 @@ def _dummy_apple_resource_info_impl(ctx):
     outputs = depset([output])
     return [
         DefaultInfo(files = outputs),
-        AppleResourceInfo(
+        new_appleresourceinfo(
             unprocessed = [(None, None, outputs)],
             owners = depset(),
             unowned_resources = depset(),

@@ -13,6 +13,7 @@ bzl_library(
         "//apple/build_settings",
         "//apple/internal:apple_product_type",
         "//apple/internal:intermediates",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:paths",

@@ -66,7 +66,10 @@ This file provides methods to easily:
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourceinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
@@ -327,7 +330,7 @@ def _bucketize(
         parent_dir_param = parent_dir_param,
         allowed_buckets = allowed_buckets,
     )
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -421,7 +424,7 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
         resources = resources,
     )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -521,7 +524,7 @@ def _process_bucketized_data(
                     else:
                         unowned_resources.append(processed_file.short_path)
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(bucketized_owners),
         unowned_resources = depset(unowned_resources),
         processed_origins = depset(processed_origins),
@@ -656,7 +659,7 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
                 "rules_apple, please file a bug with reproduction steps.",
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
         processed_origins = processed_origins,
@@ -736,7 +739,7 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
                 (nested_parent_dir, swift_module, files),
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
         processed_origins = getattr(provider_to_nest, "processed_origins", None),
