@@ -27,6 +27,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
+    _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
     _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
     _AppleStaticXcframeworkBundleInfo = "AppleStaticXcframeworkBundleInfo",
@@ -265,20 +266,7 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
         build_archs = depset(transitive = build_archs),
     )
 
-ApplePlatformInfo = provider(
-    doc = "Provides information for the currently selected Apple platforms.",
-    fields = {
-        "target_os": """
-`String` representing the selected Apple OS.
-""",
-        "target_arch": """
-`String` representing the selected target architecture or cpu type.
-""",
-        "target_environment": """
-`String` representing the selected target environment (e.g. "device", "simulator").
-""",
-    },
-)
+ApplePlatformInfo = _ApplePlatformInfo
 
 AppleResourceBundleInfo = _AppleResourceBundleInfo
 
