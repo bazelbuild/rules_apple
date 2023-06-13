@@ -86,6 +86,7 @@ bzl_library(
     srcs = ["cc_toolchain_forwarder.bzl"],
     deps = [
         ":providers",
+        "//apple/internal:providers",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )

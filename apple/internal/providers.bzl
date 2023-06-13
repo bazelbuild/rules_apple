@@ -57,6 +57,22 @@ Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
     init = _make_banned_init("AppleFrameworkBundleInfo"),
 )
 
+ApplePlatformInfo, new_appleplatforminfo = provider(
+    doc = "Provides information for the currently selected Apple platforms.",
+    fields = {
+        "target_os": """
+`String` representing the selected Apple OS.
+""",
+        "target_arch": """
+`String` representing the selected target architecture or cpu type.
+""",
+        "target_environment": """
+`String` representing the selected target environment (e.g. "device", "simulator").
+""",
+    },
+    init = _make_banned_init("ApplePlatformInfo"),
+)
+
 AppleResourceBundleInfo, new_appleresourcebundleinfo = provider(
     doc = """
 Denotes that a target is an Apple resource bundle.

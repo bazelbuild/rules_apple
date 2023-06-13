@@ -16,6 +16,7 @@
 A rule for handling the cc_toolchains and their constraints for a potential "fat" Mach-O binary.
 """
 
+load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleplatforminfo")
 load("@build_bazel_rules_apple//apple:providers.bzl", "ApplePlatformInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
@@ -71,7 +72,7 @@ def _target_environment_from_rule_ctx(ctx):
 def _cc_toolchain_forwarder_impl(ctx):
     return [
         find_cpp_toolchain(ctx),
-        ApplePlatformInfo(
+        new_appleplatforminfo(
             target_os = _target_os_from_rule_ctx(ctx),
             target_arch = _target_arch_from_rule_ctx(ctx),
             target_environment = _target_environment_from_rule_ctx(ctx),
