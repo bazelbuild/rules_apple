@@ -328,7 +328,10 @@ class DossierCodesigningReaderTest(unittest.TestCase):
 
     future_with_no_exception = concurrent.futures.Future()
     future_with_no_exception.set_result(None)
-    futures = [future_with_exception, future_with_no_exception]
+    futures = [
+        dossier_codesigning_reader.SigningFuture(future_with_exception, 'n1'),
+        dossier_codesigning_reader.SigningFuture(future_with_no_exception, 'n2')
+    ]
 
     stdout = io.StringIO()
     with self.assertRaises(RuntimeError), contextlib.redirect_stdout(stdout):
@@ -340,7 +343,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     for _ in range(3):
       future = concurrent.futures.Future()
       future.set_result(None)
-      futures.append(future)
+      futures.append(dossier_codesigning_reader.SigningFuture(future, 'note'))
     dossier_codesigning_reader._wait_signing_futures(futures)
 
   @mock.patch('concurrent.futures.wait')
@@ -354,12 +357,15 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         [mock_future_exception, mock_future_done], [mock_future_not_done])
 
     futures = [
-        mock_future_exception, mock_future_done, mock_future_not_done]
+        dossier_codesigning_reader.SigningFuture(mock_future_exception, 'n1'),
+        dossier_codesigning_reader.SigningFuture(mock_future_done, 'n2'),
+        dossier_codesigning_reader.SigningFuture(mock_future_not_done, 'n3')
+    ]
 
     stdout = io.StringIO()
     with self.assertRaises(EOFError), contextlib.redirect_stdout(stdout):
       dossier_codesigning_reader._wait_signing_futures(futures)
-    self.assertRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
+    self.assertRegex(stdout.getvalue(), r'Codesign task\(s\) failed\:')
 
     mock_future_not_done.cancel.assert_called()
     mock_future_exception.cancel.assert_not_called()
