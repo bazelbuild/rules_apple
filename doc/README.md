@@ -40,6 +40,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-ios.md#ios_unit_test">ios_unit_test</a></code><br/>
         <code><a href="rules-ios.md#ios_unit_test_suite">ios_unit_test_suite</a></code><br/>
         <code><a href="rules-ios.md#ios_build_test">ios_build_test</a></code><br/>
+        <code><a href="rules-ios.md#ios_xctestrun_runner">ios_xctestrun_runner</a></code><br/>
       </td>
     </tr>
     <tr>
