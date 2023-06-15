@@ -57,6 +57,7 @@ To use this script with a dossier directly within an extracted ipa's app bundle:
 """
 
 import argparse
+import collections
 import concurrent.futures
 import glob
 import io
@@ -189,6 +190,26 @@ class DossierDirectory(object):
   def __exit__(self, exception_type, exception_value, traceback_value):
     if self.unzipped:
       shutil.rmtree(self.path)
+
+
+SigningFuture = collections.namedtuple('SigningFuture', ['future', 'note'])
+
+
+def submit_future(note, executor, function, *args, **kwargs) -> SigningFuture:
+  """Runs a function and creates a SigningFuture with the given note.
+
+  Args:
+    note: Text which is attached to this future for debugging
+    executor: concurrent.futures.Executor instance to use.
+    function: The function to call.
+    *args: Tuple of positional arguments for function.
+    **kwargs: Dict of keyword arguments for function.
+
+  Returns:
+    The SigningFuture object.
+  """
+  print('Submitting task to threadpool: %s' % note)
+  return SigningFuture(executor.submit(function, *args, **kwargs), note)
 
 
 # Regex with benign codesign messages that can be safely ignored.
@@ -626,31 +647,31 @@ def _sign_framework(
     executor: Asynchronous jobs Executor from concurrent.futures.
   """
 
-  with root_path as path_to_search_for_dylibs:
-    dylib_codesign_futures = []
-    for root, _, files in os.walk(path_to_search_for_dylibs):
-      for file_name in files:
-        if not file_name.endswith('.dylib'):
-          continue
-        dylib_path = os.path.join(root, file_name)
-        print('Signing dylib at: %s' % dylib_path)
-        dylib_codesign_futures.append(
-            executor.submit(_invoke_codesign, codesign_path, codesign_identity,
-                            None, dylib_path, signing_keychain)
-        )
-    _wait_signing_futures(dylib_codesign_futures)
+  path_to_search_for_dylibs = root_path
+  dylib_codesign_futures = []
+  for root, _, files in os.walk(path_to_search_for_dylibs):
+    for file_name in files:
+      if not file_name.endswith('.dylib'):
+        continue
+      dylib_path = os.path.join(root, file_name)
+      dylib_codesign_futures.append(
+          submit_future('Signing dylib at: %s' % dylib_path, executor,
+                        _invoke_codesign, codesign_path, codesign_identity,
+                        None, dylib_path, signing_keychain)
+      )
+  _wait_signing_futures(dylib_codesign_futures)
 
-  with os.path.join(root_path, 'Frameworks') as subframework_dir:
-    subframwork_codesign_futures = []
-    if os.path.exists(subframework_dir):
-      for subframework in os.listdir(subframework_dir):
-        subframework_path = os.path.join(root_path, subframework)
-        print('Signing sub-framework at: %s' % subframework_path)
-        dylib_codesign_futures.append(
-            executor.submit(_invoke_codesign, codesign_path, codesign_identity,
-                            None, subframework_path, signing_keychain)
-        )
-    _wait_signing_futures(subframwork_codesign_futures)
+  subframework_dir = os.path.join(root_path, 'Frameworks')
+  subframwork_codesign_futures = []
+  if os.path.exists(subframework_dir):
+    for subframework in os.listdir(subframework_dir):
+      path = os.path.join(subframework_dir, subframework)
+      dylib_codesign_futures.append(
+          submit_future('Signing sub-framework at: %s' % path, executor,
+                        _invoke_codesign, codesign_path, codesign_identity,
+                        None, path, signing_keychain)
+      )
+  _wait_signing_futures(subframwork_codesign_futures)
 
   print('Signing framework at: %s' % root_path)
   _invoke_codesign(codesign_path, codesign_identity,
@@ -690,33 +711,37 @@ def _sign_embedded_bundles_with_manifest(
     OSError: If Framework not formed properly
   """
   codesign_futures = []
+  framework_dir = os.path.join(root_bundle_path, 'Frameworks')
   for embedded_manifest in manifest.get(EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
     if not embedded_manifest.get(PROVISIONING_PROFILE_KEY):
       continue
     embedded_relative_path = embedded_manifest[EMBEDDED_RELATIVE_PATH_KEY]
+    if embedded_relative_path.startswith('Frameworks/'):
+      continue
     embedded_bundle_path = os.path.join(root_bundle_path,
                                         embedded_relative_path)
-    codesign_future = executor.submit(_sign_bundle_with_manifest,
-                                      embedded_bundle_path, embedded_manifest,
-                                      dossier_directory_path, codesign_path,
-                                      allowed_entitlements, signing_keychain,
-                                      codesign_identity, executor)
-    codesign_futures.append(codesign_future)
+    codesign_futures.append(
+        submit_future('embedded sign: %s' % embedded_bundle_path, executor,
+                      _sign_bundle_with_manifest,
+                      embedded_bundle_path, embedded_manifest,
+                      dossier_directory_path, codesign_path,
+                      allowed_entitlements, signing_keychain,
+                      codesign_identity, executor))
 
-  framework_dir = os.path.join(root_bundle_path, 'Frameworks')
   if os.path.exists(framework_dir):
     for entry in os.listdir(framework_dir):
-      entry_path = os.path.join(root_bundle_path, entry)
+      entry_path = os.path.join(framework_dir, entry)
       if entry.endswith('.dylib'):
-        print('Signing base-Framework dylib at: %s' % entry_path)
         codesign_futures.append(
-            executor.submit(_invoke_codesign, codesign_path, codesign_identity,
-                            None, entry_path, signing_keychain)
+            submit_future('Signing base dylib at: %s' % entry_path, executor,
+                          _invoke_codesign, codesign_path, codesign_identity,
+                          None, entry_path, signing_keychain)
         )
       elif entry.endswith('.framework'):
-        codesign_futures.append(executor.submit(_sign_framework, entry_path,
-                                                codesign_path, signing_keychain,
-                                                codesign_identity, executor))
+        codesign_futures.append(
+            submit_future('Signing framework at: %s' % entry_path, executor,
+                          _sign_framework, entry_path, codesign_path,
+                          signing_keychain, codesign_identity, executor))
       else:
         raise OSError('Error: Unexpected entry in Framework folder: %s' % entry)
 
@@ -745,33 +770,31 @@ def _copy_embedded_provisioning_profile(
     shutil.copy(provisioning_profile_file_path, dest_provisioning_profile_path)
 
 
-def _wait_signing_futures(
-    future_list):
+def _wait_signing_futures(signing_futures):
   """Waits for futures of signing tasks to complete or any to fail.
 
   Args:
-    future_list: List of Future instances to watch for completition or failure.
+    signing_futures: SigningFuture list to wait on for completition or failure.
 
   Raises:
     The exception from the codesign task
   """
-  done_futures, not_done_futures = concurrent.futures.wait(
-      future_list, return_when=concurrent.futures.FIRST_EXCEPTION)
-  exceptions = [f.exception() for f in done_futures]
+  _, not_done_futures = concurrent.futures.wait(
+      [f.future for f in signing_futures],
+      return_when=concurrent.futures.FIRST_EXCEPTION)
+
+  crashed_signing_futures = [
+      f for f in signing_futures if f.future.done() and f.future.exception()
+  ]
 
   for not_done_future in not_done_futures:
     not_done_future.cancel()
 
-  if any(exceptions):
-    exceptions = [e for e in exceptions if e is not None]
-    if len(exceptions) > 1:
-      print(
-          'Multiple codesign tasks failed:\n'
-          + '\n\n'.join(
-              f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1)
-          )
-      )
-    raise exceptions[0]
+  if any(crashed_signing_futures):
+    print('Codesign task(s) failed:\n' +
+          '\n\n'.join(f'\t{i}) {repr(f.note)}\n{repr(f.future.exception())}'
+                      for i, f in enumerate(crashed_signing_futures, start=1)))
+    raise crashed_signing_futures[0].future.exception()
 
 
 def _extract_zipped_dossier(zipped_dossier_path):
