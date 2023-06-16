@@ -42,8 +42,8 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:outputs",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
     ],
 )
