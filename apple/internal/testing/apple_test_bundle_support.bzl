@@ -56,6 +56,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleextraoutputsinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -74,7 +78,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
     "AppleTestInfo",
 )
 load(
@@ -523,7 +526,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             ctx,
             dependency_attributes = ["deps", "test_host"],
         ),
-        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
+        new_appleextraoutputsinfo(files = depset(filtered_outputs)),
         DefaultInfo(files = output_files),
         OutputGroupInfo(
             **outputs.merge_output_groups(
