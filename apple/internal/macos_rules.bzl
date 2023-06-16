@@ -62,6 +62,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_macosapplicationbundleinfo",
     "new_macosbundlebundleinfo",
@@ -130,7 +131,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
@@ -1987,7 +1987,7 @@ def _macos_command_line_application_impl(ctx):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             infoplist = infoplist,
             product_type = rule_descriptor.product_type,
@@ -2119,7 +2119,7 @@ def _macos_dylib_impl(ctx):
     infoplist = infoplists[0] if infoplists else None
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             infoplist = infoplist,
             product_type = rule_descriptor.product_type,

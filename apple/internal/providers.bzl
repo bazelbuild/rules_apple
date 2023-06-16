@@ -46,6 +46,28 @@ AppleBaseBundleIdInfo, new_applebasebundleidinfo = provider(
     init = _make_banned_init("AppleBaseBundleIdInfo"),
 )
 
+AppleBinaryInfo, new_applebinaryinfo = provider(
+    doc = """
+Provides information about an Apple binary target.
+
+This provider propagates general information about an Apple binary that is not
+specific to any particular binary type.
+""",
+    fields = {
+        "binary": """
+`File`. The binary (executable, dynamic library, etc.) file that the target represents.
+""",
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
+""",
+        "product_type": """
+`String`. The dot-separated product type identifier associated with the binary (for example,
+`com.apple.product-type.tool`).
+""",
+    },
+    init = _make_banned_init("AppleBinaryInfo"),
+)
+
 AppleBundleInfo, new_applebundleinfo = provider(
     doc = """
 This provider propagates general information about an Apple bundle that is not

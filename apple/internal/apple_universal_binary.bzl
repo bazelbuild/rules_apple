@@ -23,12 +23,12 @@ load(
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
@@ -56,7 +56,7 @@ def _apple_universal_binary_impl(ctx):
     )
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = fat_binary,
             infoplist = None,
         ),
