@@ -20,6 +20,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appledsymbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
@@ -377,7 +381,7 @@ def _debug_symbols_partial_impl(
         output_files = depset(direct_output_dsyms + direct_linkmaps)
 
     output_providers.extend([
-        AppleDsymBundleInfo(
+        new_appledsymbundleinfo(
             direct_dsyms = direct_dsym_bundles,
             transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),

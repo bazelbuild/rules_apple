@@ -34,6 +34,7 @@ load(
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleInfo = "AppleBundleInfo",
+    _AppleDsymBundleInfo = "AppleDsymBundleInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
     _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
@@ -133,19 +134,7 @@ It contains two keys:
     init = _apple_bundle_version_info_init,
 )
 
-AppleDsymBundleInfo = provider(
-    doc = "Provides information for an Apple dSYM bundle.",
-    fields = {
-        "direct_dsyms": """
-`List` containing `File` references to each of the dSYM bundles that act as direct dependencies of
-the given target if any were generated.
-""",
-        "transitive_dsyms": """
-`depset` containing `File` references to each of the dSYM bundles that act as transitive
-dependencies of the given target if any were generated.
-""",
-    },
-)
+AppleDsymBundleInfo = _AppleDsymBundleInfo
 
 AppleExtraOutputsInfo = provider(
     doc = """
