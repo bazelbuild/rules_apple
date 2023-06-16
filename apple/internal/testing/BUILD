@@ -33,6 +33,7 @@ bzl_library(
         "//apple/internal:partials",
         "//apple/internal:platform_support",
         "//apple/internal:processor",
+        "//apple/internal:providers",
         "//apple/internal:resources",
         "//apple/internal:rule_support",
         "//apple/internal:swift_support",
