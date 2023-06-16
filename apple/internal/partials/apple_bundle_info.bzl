@@ -19,8 +19,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebundleinfo",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
@@ -74,7 +74,7 @@ def _apple_bundle_info_partial_impl(
 
     return struct(
         providers = [
-            AppleBundleInfo(
+            new_applebundleinfo(
                 archive = archive,
                 archive_root = archive_root,
                 binary = binary,

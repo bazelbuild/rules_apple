@@ -46,6 +46,76 @@ AppleBaseBundleIdInfo, new_applebasebundleidinfo = provider(
     init = _make_banned_init("AppleBaseBundleIdInfo"),
 )
 
+AppleBundleInfo, new_applebundleinfo = provider(
+    doc = """
+This provider propagates general information about an Apple bundle that is not
+specific to any particular bundle type. It is propagated by most bundling
+rules (applications, extensions, frameworks, test bundles, and so forth).
+""",
+    fields = {
+        "archive": "`File`. The archive that contains the built bundle.",
+        "archive_root": """
+`String`. The file system path (relative to the workspace root) where the signed
+bundle was constructed (before archiving). Other rules **should not** depend on
+this field; it is intended to support IDEs that want to read that path from the
+provider to avoid performance issues from unzipping the output archive.
+""",
+        "binary": """
+`File`. The binary (executable, dynamic library, etc.) that was bundled. The
+physical file is identical to the one inside the bundle except that it is
+always unsigned, so note that it is _not_ a path to the binary inside your
+output bundle. The primary purpose of this field is to provide a way to access
+the binary directly at analysis time; for example, for code coverage.
+""",
+        "bundle_extension": """
+`String`. The bundle extension.
+""",
+        "bundle_id": """
+`String`. The bundle identifier (i.e., `CFBundleIdentifier` in
+`Info.plist`) of the bundle.
+""",
+        "bundle_name": """
+`String`. The name of the bundle, without the extension.
+""",
+        "entitlements": "`File`. Entitlements file used, if any.",
+        "executable_name": """
+`string`. The name of the executable that was bundled.
+""",
+        "extension_safe": """
+`Boolean`. True if the target propagating this provider was
+compiled and linked with -application-extension, restricting it to
+extension-safe APIs only.
+""",
+        "infoplist": """
+`File`. The complete (binary-formatted) `Info.plist` file for the bundle.
+""",
+        "minimum_deployment_os_version": """
+`string`. The minimum deployment OS version (as a dotted version
+number like "9.0") that this bundle was built to support. This is different from
+`minimum_os_version`, which is effective at compile time. Ensure version
+specific APIs are guarded with `available` clauses.
+""",
+        "minimum_os_version": """
+`String`. The minimum OS version (as a dotted version
+number like "9.0") that this bundle was built to support.
+""",
+        "platform_type": """
+`String`. The platform type for the bundle (i.e. `ios` for iOS bundles).
+""",
+        "product_type": """
+`String`. The dot-separated product type identifier associated
+with the bundle (for example, `com.apple.product-type.application`).
+""",
+        "uses_swift": """
+Boolean. True if Swift is used by the target propagating this
+provider. This does not consider embedded bundles; for example, an
+Objective-C application containing a Swift extension would have this field
+set to true for the extension but false for the application.
+""",
+    },
+    init = _make_banned_init("AppleBundleInfo"),
+)
+
 AppleFrameworkBundleInfo, new_appleframeworkbundleinfo = provider(
     doc = """
 Denotes a target is an Apple framework bundle.
