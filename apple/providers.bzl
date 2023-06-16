@@ -31,6 +31,7 @@ load(
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
+    _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
     _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
     _AppleResourceInfo = "AppleResourceInfo",
@@ -61,6 +62,7 @@ load(
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
+    _merge_apple_framework_import_info = "merge_apple_framework_import_info",
 )
 
 visibility("public")
@@ -125,46 +127,7 @@ AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
 
-AppleFrameworkImportInfo = provider(
-    doc = """
-Provider that propagates information about 3rd party imported framework targets.
-
-Propagated by framework and XCFramework import rules: `apple_dynamic_framework_import`,
-`apple_dynamic_xcframework_import`, `apple_static_framework_import`, and
-`apple_static_xcframework_import`
-""",
-    fields = {
-        "framework_imports": """
-`depset` of `File`s that represent framework imports that need to be bundled in the top level
-application bundle under the Frameworks directory.
-""",
-        "build_archs": """
-`depset` of `String`s that represent binary architectures reported from the current build.
-""",
-    },
-)
-
-def merge_apple_framework_import_info(apple_framework_import_infos):
-    """Merges multiple `AppleFrameworkImportInfo` into one.
-
-    Args:
-        apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
-
-    Returns:
-        Result of merging all the received framework infos.
-    """
-    transitive_sets = []
-    build_archs = []
-
-    for framework_info in apple_framework_import_infos:
-        if hasattr(framework_info, "framework_imports"):
-            transitive_sets.append(framework_info.framework_imports)
-        build_archs.append(framework_info.build_archs)
-
-    return AppleFrameworkImportInfo(
-        framework_imports = depset(transitive = transitive_sets),
-        build_archs = depset(transitive = build_archs),
-    )
+AppleFrameworkImportInfo = _AppleFrameworkImportInfo
 
 ApplePlatformInfo = _ApplePlatformInfo
 
@@ -281,3 +244,7 @@ TvosXcTestBundleInfo = _TvosXcTestBundleInfo
 WatchosApplicationBundleInfo = _WatchosApplicationBundleInfo
 WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
+
+apple_provider = struct(
+    merge_apple_framework_import_info = _merge_apple_framework_import_info,
+)

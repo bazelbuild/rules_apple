@@ -174,6 +174,49 @@ Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
     init = _make_banned_init("AppleFrameworkBundleInfo"),
 )
 
+AppleFrameworkImportInfo, new_appleframeworkimportinfo = provider(
+    doc = """
+Provider that propagates information about 3rd party imported framework targets.
+
+Propagated by framework and XCFramework import rules: `apple_dynamic_framework_import`,
+`apple_dynamic_xcframework_import`, `apple_static_framework_import`, and
+`apple_static_xcframework_import`
+""",
+    fields = {
+        "framework_imports": """
+`depset` of `File`s that represent framework imports that need to be bundled in the top level
+application bundle under the Frameworks directory.
+""",
+        "build_archs": """
+`depset` of `String`s that represent binary architectures reported from the current build.
+""",
+    },
+    init = _make_banned_init("AppleFrameworkBundleInfo"),
+)
+
+def merge_apple_framework_import_info(apple_framework_import_infos):
+    """Merges multiple `AppleFrameworkImportInfo` into one.
+
+    Args:
+        apple_framework_import_infos: List of `AppleFrameworkImportInfo` to be merged.
+
+    Returns:
+        A new `AppleFrameworkImportInfo` provider based on the contents of the providers supplied by
+        `apple_framework_import_infos`.
+    """
+    transitive_sets = []
+    build_archs = []
+
+    for framework_info in apple_framework_import_infos:
+        if hasattr(framework_info, "framework_imports"):
+            transitive_sets.append(framework_info.framework_imports)
+        build_archs.append(framework_info.build_archs)
+
+    return new_appleframeworkimportinfo(
+        framework_imports = depset(transitive = transitive_sets),
+        build_archs = depset(transitive = build_archs),
+    )
+
 ApplePlatformInfo, new_appleplatforminfo = provider(
     doc = "Provides information for the currently selected Apple platforms.",
     fields = {

@@ -15,6 +15,7 @@
 """Support methods for Apple framework import rules."""
 
 load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
+load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
@@ -304,7 +305,7 @@ def _framework_import_info_with_dependencies(
             hasattr(dep[AppleFrameworkImportInfo], "framework_imports"))
     ]
 
-    return AppleFrameworkImportInfo(
+    return new_appleframeworkimportinfo(
         build_archs = depset(build_archs),
         framework_imports = depset(
             framework_imports,
