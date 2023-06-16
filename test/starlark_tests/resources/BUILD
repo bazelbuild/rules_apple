@@ -28,7 +28,9 @@ package(
 # package.
 exports_files(
     glob(["**"]),
-    visibility = ["//test/starlark_tests:__subpackages__"],
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
 )
 
 # --------------------------------------------------------------------------------
