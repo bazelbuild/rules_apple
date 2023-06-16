@@ -23,6 +23,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -32,7 +36,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
     "ApplePlatformInfo",
 )
 
@@ -65,7 +68,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
 
     return [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = link_result.library,
         ),
         link_result.output_groups,

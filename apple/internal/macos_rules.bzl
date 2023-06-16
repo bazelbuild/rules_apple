@@ -62,6 +62,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
     "new_macosapplicationbundleinfo",
     "new_macosbundlebundleinfo",
     "new_macosextensionbundleinfo",
@@ -112,7 +113,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "MacosExtensionBundleInfo",
@@ -1839,7 +1839,7 @@ def _macos_command_line_application_impl(ctx):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             product_type = rule_descriptor.product_type,
         ),
@@ -1953,7 +1953,7 @@ def _macos_dylib_impl(ctx):
     )
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             product_type = rule_descriptor.product_type,
         ),

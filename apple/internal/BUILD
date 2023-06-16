@@ -81,10 +81,10 @@ bzl_library(
     ],
     deps = [
         ":linking_support",
+        ":providers",
         ":rule_attrs",
         ":rule_factory",
         ":transition_support",
-        "//apple:providers",
     ],
 )
 
