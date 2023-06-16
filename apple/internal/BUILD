@@ -267,6 +267,7 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple:utils",
+        "//apple/internal:providers",
         "//apple/internal/utils:files",
         "@bazel_skylib//lib:paths",
         "@build_bazel_rules_swift//swift",
