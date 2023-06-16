@@ -41,6 +41,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
+        "//apple/internal:providers",
         "//apple/internal:resources",
         "//apple/internal:swift_support",
         "//apple/internal/providers:apple_debug_info",

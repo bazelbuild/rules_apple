@@ -126,6 +126,21 @@ set to true for the extension but false for the application.
     init = _make_banned_init("AppleBundleInfo"),
 )
 
+AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
+    doc = "Provides information for an Apple dSYM bundle.",
+    fields = {
+        "direct_dsyms": """
+`List` containing `File` references to each of the dSYM bundles that act as direct dependencies of
+the given target if any were generated.
+""",
+        "transitive_dsyms": """
+`depset` containing `File` references to each of the dSYM bundles that act as transitive
+dependencies of the given target if any were generated.
+""",
+    },
+    init = _make_banned_init("AppleDsymBundleInfo"),
+)
+
 AppleFrameworkBundleInfo, new_appleframeworkbundleinfo = provider(
     doc = """
 Denotes a target is an Apple framework bundle.

@@ -33,6 +33,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appledsymbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -300,7 +304,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     if apple_dsym_bundle_infos:
         providers.append(
-            AppleDsymBundleInfo(
+            new_appledsymbundleinfo(
                 direct_dsyms = [],
                 transitive_dsyms = depset(
                     transitive = [x.transitive_dsyms for x in apple_dsym_bundle_infos],
