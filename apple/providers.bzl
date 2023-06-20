@@ -37,6 +37,7 @@ load(
     _AppleResourceInfo = "AppleResourceInfo",
     _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
     _AppleStaticXcframeworkBundleInfo = "AppleStaticXcframeworkBundleInfo",
+    _AppleTestInfo = "AppleTestInfo",
     _AppleXcframeworkBundleInfo = "AppleXcframeworkBundleInfo",
     _IosAppClipBundleInfo = "IosAppClipBundleInfo",
     _IosApplicationBundleInfo = "IosApplicationBundleInfo",
@@ -139,53 +140,7 @@ AppleSharedCapabilityInfo = _AppleSharedCapabilityInfo
 
 AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo
 
-AppleTestInfo = provider(
-    doc = """
-Provider that test targets propagate to be used for IDE integration.
-
-This includes information regarding test source files, transitive include paths,
-transitive module maps, and transitive Swift modules. Test source files are
-considered to be all of which belong to the first-level dependencies on the test
-target.
-""",
-    fields = {
-        "includes": """
-`depset` of `String`s representing transitive include paths which are needed by
-IDEs to be used for indexing the test sources.
-""",
-        "module_maps": """
-`depset` of `File`s representing module maps which are needed by IDEs to be used
-for indexing the test sources.
-""",
-        "module_name": """
-`String` representing the module name used by the test's sources. This is only
-set if the test only contains a single top-level Swift dependency. This may be
-used by an IDE to identify the Swift module (if any) used by the test's sources.
-""",
-        "non_arc_sources": """
-`depset` of `File`s containing non-ARC sources from the test's immediate
-deps.
-""",
-        "sources": """
-`depset` of `File`s containing sources and headers from the test's immediate deps.
-""",
-        "swift_modules": """
-`depset` of `File`s representing transitive swift modules which are needed by
-IDEs to be used for indexing the test sources.
-""",
-        "test_bundle": "The artifact representing the XCTest bundle for the test target.",
-        "test_host": """
-The artifact representing the test host for the test target, if the test requires a test host.
-""",
-        "deps": """
-`depset` of `String`s representing the labels of all immediate deps of the test.
-Only source files from these deps will be present in `sources`. This may be used
-by IDEs to differentiate a test target's transitive module maps from its direct
-module maps, as including the direct module maps may break indexing for the
-source files of the immediate deps.
-""",
-    },
-)
+AppleTestInfo = _AppleTestInfo
 
 AppleTestRunnerInfo = provider(
     doc = """
