@@ -32,8 +32,9 @@ visibility([
 ])
 
 # Re-export these symbols to avoid breaking current users of these.
-# TODO(kaipi): Find a better location for test providers to export them as public interface from
-# rules_apple.
+# TODO(b/286231886): Remove this bzl and have remaining deps of this bzl source the standard, public
+# Apple providers.bzl instead. That means migrating CoverageFilesInfo to the new provider format and
+# re-scoping coverage_files_aspect so that it remains private/internal.
 AppleTestInfo = _AppleTestInfo
 AppleTestRunnerInfo = _AppleTestRunnerInfo
 CoverageFilesInfo = _CoverageFilesInfo
