@@ -44,6 +44,7 @@ load(
     _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
     _AppleStaticXcframeworkBundleInfo = "AppleStaticXcframeworkBundleInfo",
     _AppleTestInfo = "AppleTestInfo",
+    _AppleTestRunnerInfo = "AppleTestRunnerInfo",
     _AppleXcframeworkBundleInfo = "AppleXcframeworkBundleInfo",
     _IosAppClipBundleInfo = "IosAppClipBundleInfo",
     _IosApplicationBundleInfo = "IosApplicationBundleInfo",
@@ -69,6 +70,7 @@ load(
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
+    _make_apple_test_runner_info = "make_apple_test_runner_info",
     _merge_apple_framework_import_info = "merge_apple_framework_import_info",
 )
 
@@ -174,37 +176,7 @@ AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo
 
 AppleTestInfo = _AppleTestInfo
 
-AppleTestRunnerInfo = provider(
-    doc = """
-Provider that runner targets must propagate.
-
-In addition to the fields, all the runfiles that the runner target declares will be added to the
-test rules runfiles.
-""",
-    fields = {
-        "execution_requirements": """
-Optional dictionary that represents the specific hardware requirements for this test.
-""",
-        "execution_environment": """
-Optional dictionary with the environment variables that are to be set in the test action, and are
-not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s
-substitution, but will be set in the test action.
-""",
-        "test_environment": """
-Optional dictionary with the environment variables that are to be propagated into the XCTest
-invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in
-the test action.
-""",
-        "test_runner_template": """
-Required template file that contains the specific mechanism with which the tests will be run. The
-*_ui_test and *_unit_test rules will substitute the following values:
-    * %(test_host_path)s:   Path to the app being tested.
-    * %(test_bundle_path)s: Path to the test bundle that contains the tests.
-    * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).
-    * %(test_type)s:        The test type, whether it is unit or UI.
-""",
-    },
-)
+AppleTestRunnerInfo = _AppleTestRunnerInfo
 
 IosStickerPackExtensionBundleInfo = provider(
     doc = """
@@ -298,5 +270,6 @@ WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
 
 apple_provider = struct(
+    make_apple_test_runner_info = _make_apple_test_runner_info,
     merge_apple_framework_import_info = _merge_apple_framework_import_info,
 )
