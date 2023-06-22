@@ -18,13 +18,14 @@ import concurrent.futures
 import contextlib
 import io
 import os
-import pathlib
 import shutil
 import tempfile
 import unittest
 from unittest import mock
 
+from absl.testing import parameterized
 from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigning_reader
+
 
 _FAKE_MANIFEST = {
     'codesign_identity': '-',
@@ -57,23 +58,25 @@ _FAKE_MANIFEST = {
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': 'PlugIns/WatchExtension.appex',
                 'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision'
+                'provisioning_profile': 'fake.mobileprovision',
             }],
             'embedded_relative_path': 'Watch/WatchApp.app',
             'entitlements': 'fake.entitlements',
-            'provisioning_profile': 'fake.mobileprovision'
-        }
+            'provisioning_profile': 'fake.mobileprovision',
+        },
     ],
     'entitlements': 'fake.entitlements',
-    'provisioning_profile': 'fake.mobileprovision'
+    'provisioning_profile': 'fake.mobileprovision',
 }
 
 _IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
+_IPA_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion.ipa'
+_COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion_dossier_with_bundle.zip'
 
 _ADDITIONAL_SIGNING_KEYCHAIN = '/tmp/Library/Keychains/ios-dev-signing.keychain'
 
 
-class DossierCodesigningReaderTest(unittest.TestCase):
+class DossierCodesigningReaderTest(parameterized.TestCase):
 
   @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
   def test_sign_bundle_with_manifest_codesign_invocations(self, mock_codesign):
@@ -516,29 +519,55 @@ class DossierCodesigningReaderTest(unittest.TestCase):
       )
       mock_package.assert_called_once()
 
-  def test_ipa_extract_and_package_flow(self):
+  @parameterized.named_parameters(
+      (
+          'plain_ipa',
+          _IPA_WORKSPACE_PATH,
+          'app.app',
+          '',
+          []),
+      (
+          'watchos_ipa',
+          _IPA_W_WATCHOS_WORKSPACE_PATH,
+          'app_companion.app',
+          '',
+          ['WatchKitSupport2'],
+      ),
+      (
+          'watchos_combined_zip',
+          _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH,
+          'app_companion.app',
+          'bundle',
+          ['WatchKitSupport2'],
+      ),
+  )
+  def test_extract_and_package_flow(
+      self, unsigned_archive_path, app_name, app_bundle_subdir, expected_folders
+  ):
+    working_dir = tempfile.mkdtemp()
     try:
-      working_dir = tempfile.mkdtemp()
-
       extracted_bundle = dossier_codesigning_reader._extract_archive(
           working_dir=working_dir,
-          app_bundle_subdir='Payload',
-          unsigned_archive_path=_IPA_WORKSPACE_PATH,
+          app_bundle_subdir=app_bundle_subdir,
+          unsigned_archive_path=unsigned_archive_path,
       )
-      # Using pathlib to compare the last two path components, making sure that
-      # the Payload subdir was preserved with the app bundle.
-      extracted_bundle_path = pathlib.Path(extracted_bundle)
-      self.assertListEqual(
-          ['Payload', 'app.app'], list(extracted_bundle_path.parts)[-2:]
+      self.assertEqual(
+          os.path.join(working_dir, app_bundle_subdir, 'Payload', app_name),
+          extracted_bundle
       )
+      output_dir = tempfile.mkdtemp()
       try:
-        output_dir = tempfile.mkdtemp()
         output_ipa_path = os.path.join(output_dir, 'output.ipa')
         dossier_codesigning_reader._package_ipa(
             working_dir=working_dir,
-            app_bundle_subdir='Payload',
+            app_bundle_subdir=app_bundle_subdir,
             output_ipa=output_ipa_path,
         )
+        for expected_folder in expected_folders:
+          if not os.path.exists(
+              os.path.join(working_dir, app_bundle_subdir, expected_folder)
+          ):
+            self.fail(f'"{expected_folder}" not found in output IPA!')
         if not os.path.isfile(output_ipa_path):
           self.fail('output ipa was not created!')
       finally:

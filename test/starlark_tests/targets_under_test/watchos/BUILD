@@ -194,6 +194,10 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
     watch_application = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
