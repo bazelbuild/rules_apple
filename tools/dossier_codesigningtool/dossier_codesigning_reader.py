@@ -483,13 +483,13 @@ def _extract_archive(*, app_bundle_subdir, working_dir, unsigned_archive_path):
 
   Args:
     app_bundle_subdir: String, the path relative to the working directory to the
-      directory with the .app within the archive which will be returned.
+      directory containing the `Payload` directory.
     working_dir: String, the path to unzip the archive file into.
     unsigned_archive_path: String, the full path to a unsigned archive.
 
   Returns:
     extracted_bundle: String, the path to extracted bundle, which is
-      {working_dir}/{app_bundle_subdir}/*.app
+      {working_dir}/{app_bundle_subdir}/Payload/*.app
 
   Raises:
     OSError: when app bundle is not found in extracted archive.
@@ -498,7 +498,7 @@ def _extract_archive(*, app_bundle_subdir, working_dir, unsigned_archive_path):
       ['ditto', '-x', '-k', unsigned_archive_path, working_dir])
 
   extracted_bundles = glob.glob(
-      os.path.join(working_dir, app_bundle_subdir, '*.app'))
+      os.path.join(working_dir, app_bundle_subdir, 'Payload', '*.app'))
   if len(extracted_bundles) != 1:
     raise OSError(
         f'Input with IPA contents broken, {len(extracted_bundles)} apps were'
@@ -512,9 +512,8 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
   """Package signed bundle into the target location.
 
   Args:
-    app_bundle_subdir: String, the path relative to the working
-      directory to the directory with the .app within the archive which will be
-      returned.
+    app_bundle_subdir: String, the path relative to the working directory to the
+      directory containing the `Payload` directory.
     working_dir: String, the path to the folder which contains contents suitable
       for an unzipped IPA archive.
     output_ipa: String, a path to where the zipped IPA file should be placed.
@@ -527,7 +526,7 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
   print('Archiving IPA package %s.' % output_ipa_fullpath)
   # Check that Payload exists; if not, then it can be assumed that we do not
   # have the means to form a valid IPA.
-  ipa_payload_path = os.path.join(working_dir, app_bundle_subdir)
+  ipa_payload_path = os.path.join(working_dir, app_bundle_subdir, 'Payload')
   if not os.path.exists(ipa_payload_path):
     raise OSError(
         f'Could not find a Payload to build a valid IPA in: {ipa_payload_path}'
@@ -537,7 +536,7 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
     # Check that the optional sub directory exists within the working directory
     # before adding it to the ditto cmd, to avoid noisy diagnostic messaging
     # from ditto's stderr output.
-    ipa_subdir_path = os.path.join(working_dir, ipa_optional_subdir)
+    ipa_subdir_path = os.path.join(app_bundle_subdir, ipa_optional_subdir)
     if os.path.exists(ipa_subdir_path):
       ipa_source_dirs.append(ipa_subdir_path)
   subprocess.check_call(
@@ -878,7 +877,8 @@ def _sign_archived_bundle(
     allowed_entitlements: A list of strings indicating keys that are valid for
       entitlements. Only the strings listed here will be transferred to the
       generated entitlements.
-    app_bundle_subdir: String, the path relative to the working
+    app_bundle_subdir: String, the path relative to the working directory to the
+      directory containing the `Payload` directory.
     codesign_path: Path to the codesign tool as a string.
     dossier_directory_path: Directory of dossier to be used for signing.
     output_ipa: String, a path to where the zipped IPA file should be placed.
@@ -954,7 +954,7 @@ def _sign_bundle(parsed_args):
       dossier_directory_path = os.path.join(working_dir, 'dossier')
       _sign_archived_bundle(
           allowed_entitlements=allowed_entitlements,
-          app_bundle_subdir='bundle/Payload',
+          app_bundle_subdir='bundle',
           codesign_path=codesign_path,
           dossier_directory_path=dossier_directory_path,
           output_ipa=output_artifact,
@@ -986,7 +986,7 @@ def _sign_bundle(parsed_args):
         )
         _sign_archived_bundle(
             allowed_entitlements=allowed_entitlements,
-            app_bundle_subdir='Payload',
+            app_bundle_subdir='',
             codesign_path=codesign_path,
             dossier_directory_path=dossier_directory.path,
             output_ipa=output_artifact,
