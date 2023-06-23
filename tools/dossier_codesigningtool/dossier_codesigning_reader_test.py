@@ -19,6 +19,7 @@ import contextlib
 import io
 import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -525,20 +526,20 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           _IPA_WORKSPACE_PATH,
           'app.app',
           '',
-          []),
+          ['Payload']),
       (
           'watchos_ipa',
           _IPA_W_WATCHOS_WORKSPACE_PATH,
           'app_companion.app',
           '',
-          ['WatchKitSupport2'],
+          ['Payload', 'WatchKitSupport2'],
       ),
       (
           'watchos_combined_zip',
           _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH,
           'app_companion.app',
           'bundle',
-          ['WatchKitSupport2'],
+          ['Payload', 'WatchKitSupport2'],
       ),
   )
   def test_extract_and_package_flow(
@@ -546,14 +547,14 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
   ):
     working_dir = tempfile.mkdtemp()
     try:
-      extracted_bundle = dossier_codesigning_reader._extract_archive(
+      extracted_input_path = dossier_codesigning_reader._extract_archive(
           working_dir=working_dir,
           app_bundle_subdir=app_bundle_subdir,
           unsigned_archive_path=unsigned_archive_path,
       )
       self.assertEqual(
           os.path.join(working_dir, app_bundle_subdir, 'Payload', app_name),
-          extracted_bundle
+          extracted_input_path
       )
       output_dir = tempfile.mkdtemp()
       try:
@@ -563,13 +564,14 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
             app_bundle_subdir=app_bundle_subdir,
             output_ipa=output_ipa_path,
         )
-        for expected_folder in expected_folders:
-          if not os.path.exists(
-              os.path.join(working_dir, app_bundle_subdir, expected_folder)
-          ):
-            self.fail(f'"{expected_folder}" not found in output IPA!')
         if not os.path.isfile(output_ipa_path):
           self.fail('output ipa was not created!')
+        extracted_output_path = os.path.join(output_dir, 'extracted')
+        subprocess.check_call(
+            ['ditto', '-x', '-k', output_ipa_path, extracted_output_path])
+        for folder in expected_folders:
+          if not os.path.exists(os.path.join(extracted_output_path, folder)):
+            self.fail(f'"{folder}" not found in output IPA!')
       finally:
         shutil.rmtree(output_dir)
     finally:

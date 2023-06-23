@@ -236,8 +236,9 @@ _SECURITY_FIND_IDENTITY_OUTPUT_REGEX = re.compile(r'(?P<hash>[A-F0-9]{40})')
 # The filename for a manifest within a manifest
 MANIFEST_FILENAME = 'manifest.json'
 
-# All optional ipa subdirectories by Apple; 'Payload' is required of all IPAs.
-IPA_OPTIONAL_SUBDIRS = [
+# All ipa subdirectories allowed by Apple; 'Payload' is required of all IPAs.
+IPA_ALLOWED_SUBDIRS = [
+    'Payload',
     'SwiftSupport',
     'WatchKitSupport2',
     'MessagesApplicationExtensionSupport',
@@ -519,29 +520,24 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
     output_ipa: String, a path to where the zipped IPA file should be placed.
 
   Raises:
-    OSError: If a recognized 'Payload' sub directory could not be found.
+    OSError: If IPA directories are malformed
   """
-  # Expand a user path if specified, resolve symlinks if necessary.
-  output_ipa_fullpath = os.path.realpath(os.path.expanduser(output_ipa))
-  print('Archiving IPA package %s.' % output_ipa_fullpath)
-  # Check that Payload exists; if not, then it can be assumed that we do not
-  # have the means to form a valid IPA.
-  ipa_payload_path = os.path.join(working_dir, app_bundle_subdir, 'Payload')
-  if not os.path.exists(ipa_payload_path):
-    raise OSError(
-        f'Could not find a Payload to build a valid IPA in: {ipa_payload_path}'
-    )
-  ipa_source_dirs = [ipa_payload_path]
-  for ipa_optional_subdir in IPA_OPTIONAL_SUBDIRS:
-    # Check that the optional sub directory exists within the working directory
-    # before adding it to the ditto cmd, to avoid noisy diagnostic messaging
-    # from ditto's stderr output.
-    ipa_subdir_path = os.path.join(app_bundle_subdir, ipa_optional_subdir)
-    if os.path.exists(ipa_subdir_path):
-      ipa_source_dirs.append(ipa_subdir_path)
+  output_ipa = os.path.realpath(os.path.expanduser(output_ipa))
+  bundle_path = os.path.join(working_dir, app_bundle_subdir)
+
+  print(f'Archiving IPA package {output_ipa} from {bundle_path}')
+
+  if not os.path.exists(os.path.join(bundle_path, 'Payload')):
+    raise OSError(f'Could not find a Payload for IPA in: {bundle_path}')
+
+  for entry in os.scandir(bundle_path):
+    if not entry.is_dir():
+      raise OSError(f'Only directories allowed at base of IPA: {entry.path}')
+    if entry.name not in IPA_ALLOWED_SUBDIRS:
+      raise OSError(f'Disallowed IPA base directory detected: {entry.path}')
+
   subprocess.check_call(
-      ['ditto', '-c', '-k', '--norsrc', '--noextattr', '--keepParent'] +
-      ipa_source_dirs + [output_ipa_fullpath])
+      ['ditto', '-c', '-k', '--norsrc', '--noextattr', bundle_path, output_ipa])
 
 
 def _sign_bundle_with_manifest(
