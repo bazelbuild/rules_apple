@@ -278,6 +278,8 @@ def _tvos_application_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -551,6 +553,8 @@ def _tvos_framework_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -795,6 +799,8 @@ def _tvos_extension_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(

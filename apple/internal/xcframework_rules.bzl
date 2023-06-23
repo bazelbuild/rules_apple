@@ -617,7 +617,10 @@ def _apple_xcframework_impl(ctx):
                 dsym_binaries = link_output.dsym_binaries,
                 dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                 linkmaps = link_output.linkmaps,
+                output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
+                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                rule_label = label,
                 version = ctx.attr.version,
             ),
             partials.resources_partial(

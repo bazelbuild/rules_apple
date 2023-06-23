@@ -284,6 +284,8 @@ reproducible error case.".format(
             debug_dependencies = [ctx.attr.extension],
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -541,6 +543,8 @@ def _watchos_extension_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -797,6 +801,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -883,7 +889,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an watchOS Application.",
+    doc = "Builds and bundles a watchOS Application.",
     implementation = _watchos_application_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
@@ -945,7 +951,7 @@ which case it will be placed under a directory with the same name in the bundle.
 )
 
 watchos_extension = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an watchOS Extension.",
+    doc = "Builds and bundles a watchOS Extension.",
     implementation = _watchos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [

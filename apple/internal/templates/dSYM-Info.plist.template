@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleIdentifier</key>
-    <string>com.apple.xcode.dsym.%bundle_name_with_extension%.dSYM</string>
+    <string>$(CFBundleIdentifier)</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>
@@ -13,8 +13,8 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleShortVersionString</key>
-    <string>%bundle_short_version_string%</string>
+    <string>1.0</string>
     <key>CFBundleVersion</key>
-    <string>%bundle_version_string%</string>
+    <string>1</string>
   </dict>
 </plist>
