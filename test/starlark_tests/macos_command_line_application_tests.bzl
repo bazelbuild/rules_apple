@@ -225,12 +225,27 @@ def macos_command_line_application_test_suite(name):
     )
 
     infoplist_contents_test(
+        name = "{}_default_dsym_version_in_info_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleIdentifier": "com.apple.xcode.dsym.cmd_app_basic.dSYM",
+            "CFBundleShortVersionString": "1.0",
+            "CFBundleVersion": "1",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
         name = "{}_dsym_version_in_info_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
         apple_generate_dsym = True,
         output_group_name = "dsyms",
         plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic_version.dSYM/Contents/Info.plist",
         expected_values = {
+            "CFBundleIdentifier": "com.apple.xcode.dsym.cmd_app_basic_version.dSYM",
             "CFBundleShortVersionString": "1.2",
             "CFBundleVersion": "1.2.3",
         },
