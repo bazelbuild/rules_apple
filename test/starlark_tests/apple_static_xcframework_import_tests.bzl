@@ -167,8 +167,8 @@ def apple_static_xcframework_import_test_suite(name):
         build_type = "simulator",
         cpus = {"watchos_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_static_xcframework",
-        not_contains = ["$BUNDLE_ROOT/PlugIns/ext_with_imported_static_xcframework.appex/Frameworks"],
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_static_xcframework.appex/ext_with_imported_static_xcframework",
+        not_contains = ["$BUNDLE_ROOT/Frameworks"],
+        binary_test_file = "$BUNDLE_ROOT/app_with_imported_static_xcframework",
         binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
@@ -180,8 +180,8 @@ def apple_static_xcframework_import_test_suite(name):
         name = "{}_links_watchos_arm64_32_macho_load_cmd_for_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_static_xcframework",
-        not_contains = ["$BUNDLE_ROOT/PlugIns/ext_with_imported_static_xcframework.appex/Frameworks"],
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_static_xcframework.appex/ext_with_imported_static_xcframework",
+        not_contains = ["$BUNDLE_ROOT/Frameworks"],
+        binary_test_file = "$BUNDLE_ROOT/app_with_imported_static_xcframework",
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
         binary_contains_symbols = [

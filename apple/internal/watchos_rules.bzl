@@ -682,6 +682,25 @@ def _watchos_application_impl(ctx):
 def _watchos_extension_based_application_impl(ctx):
     """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
 
+    minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
+    if minimum_os >= apple_common.dotted_version("9.0"):
+        # There is no way to issue a warning, so print is the only way to message before fail-ing.
+        # buildifier: disable=print
+        print("""
+WARNING: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
+
+This will soon be an error.
+
+watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying on
+an app delegate via deps rather than a watchOS 2 extension.
+
+Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.0 or
+later will be met with a rejection.
+
+Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
+delegate is referenced in the single-target `watchos_application`'s `deps`.
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.watch2_application,
