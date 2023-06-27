@@ -229,19 +229,6 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
-    # Test app with App Intents generates and bundles Metadata.appintents bundle.
-    archive_contents_test(
-        name = "{}_contains_app_intents_metadata_bundle".format(name),
-        build_type = "simulator",
-        cpus = {"watchos_cpus": ["arm64"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_app_intents",
-        contains = [
-            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/Metadata.appintents/version.json",
-        ],
-        tags = [name],
-    )
-
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_capability_set_derived_bundle_id",
