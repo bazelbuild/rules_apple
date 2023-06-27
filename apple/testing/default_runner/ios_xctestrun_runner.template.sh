@@ -396,7 +396,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
 
 
   args=(
-    -destination "id=$simulator_id" \
     -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )

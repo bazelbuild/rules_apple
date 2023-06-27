@@ -626,7 +626,7 @@ of the attributes inherited by all test rules, please check the
 ## ios_xctestrun_runner
 
 <pre>
-ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-build_for_device">build_for_device</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>,
+ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#ios_xctestrun_runner-create_xctestrun_bundle">create_xctestrun_bundle</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>,
                      <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>, <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
 </pre>
 
@@ -675,8 +675,8 @@ in Xcode.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_xctestrun_runner-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="ios_xctestrun_runner-build_for_device"></a>build_for_device |  If enabled then the runner will support testing on a physical device.   | Boolean | optional | <code>False</code> |
 | <a id="ios_xctestrun_runner-create_xcresult_bundle"></a>create_xcresult_bundle |  Force the test runner to always create an XCResult bundle. This means it will always use <code>xcodebuild test-without-building</code> to run the test bundle.   | Boolean | optional | <code>False</code> |
+| <a id="ios_xctestrun_runner-create_xctestrun_bundle"></a>create_xctestrun_bundle |  Enabling this with create an <code>xctestrun</code> bundle that can be used to execute the tests outside of the runner. <code>create_xcresult_bundle</code> must be set to <code>True</code> as well to enable this feature.   | Boolean | optional | <code>False</code> |
 | <a id="ios_xctestrun_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of <code>xcrun simctl list devicetypes</code>. E.g., iPhone X, iPad Air. By default, it reads from --ios_simulator_device or falls back to some device.   | String | optional | <code>""</code> |
 | <a id="ios_xctestrun_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of <code>xcrun simctl list runtimes</code>. E.g., 15.5. By default, it reads --ios_simulator_version and then falls back to the latest supported version.   | String | optional | <code>""</code> |
 | <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional | <code>False</code> |
