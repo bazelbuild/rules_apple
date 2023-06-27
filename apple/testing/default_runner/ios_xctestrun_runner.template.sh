@@ -415,7 +415,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
 
   if [[ "$create_xctestrun_bundle" == true ]]; then
     echo "note: creating xctestrun bundle"
-    ls -la "$test_tmp_dir"
     cp "$test_tmp_dir/tests.xctestrun" "$TEST_UNDECLARED_OUTPUTS_DIR"
     cp -R "$test_tmp_dir_test_host_path" "$TEST_UNDECLARED_OUTPUTS_DIR"
     cp -R "$test_tmp_dir/$runner_app" "$TEST_UNDECLARED_OUTPUTS_DIR"
