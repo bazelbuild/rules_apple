@@ -13,6 +13,7 @@ def _get_template_substitutions(
         simulator_creator,
         random,
         xcodebuild_args,
+        command_line_args,
         xctestrun_template,
         reuse_simulator,
         xctrunner_entitlements_template):
@@ -21,6 +22,7 @@ def _get_template_substitutions(
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
+        "command_line_args": command_line_args,
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
@@ -60,6 +62,7 @@ def _ios_xctestrun_runner_impl(ctx):
             simulator_creator = ctx.executable._simulator_creator.short_path,
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
+            command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
@@ -119,6 +122,12 @@ always use `xcodebuild test-without-building` to run the test bundle.
         "xcodebuild_args": attr.string_list(
             doc = """
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
+will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "command_line_args": attr.string_list(
+            doc = """
+CommandLineArguments to pass to xctestrun file when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
 """,
         ),

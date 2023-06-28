@@ -46,6 +46,7 @@
     <string>keepNever</string>
     <key>ClangProfileDataDirectoryPath</key>
     <string>BAZEL_COVERAGE_OUTPUT_DIR</string>
+BAZEL_COMMAND_LINE_ARGS_SECTION
 BAZEL_SKIP_TEST_SECTION
 BAZEL_ONLY_TEST_SECTION
   </dict>
