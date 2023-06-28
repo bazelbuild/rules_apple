@@ -173,8 +173,8 @@ bzl_library(
     name = "versioning",
     srcs = ["versioning.bzl"],
     deps = [
-        ":providers",
         "//apple/internal:apple_toolchains",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:dicts",
     ],
 )

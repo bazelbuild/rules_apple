@@ -28,6 +28,7 @@ load(
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleInfo = "AppleBundleInfo",
+    _AppleBundleVersionInfo = "AppleBundleVersionInfo",
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
@@ -64,6 +65,7 @@ load(
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
+    _make_apple_bundle_version_info = "make_apple_bundle_version_info",
     _make_apple_test_runner_info = "make_apple_test_runner_info",
     _merge_apple_framework_import_info = "merge_apple_framework_import_info",
 )
@@ -71,49 +73,20 @@ load(
 visibility("public")
 
 AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
-
 AppleBundleInfo = _AppleBundleInfo
-
 AppleBinaryInfo = _AppleBinaryInfo
-
-AppleBundleVersionInfo = provider(
-    doc = "Provides versioning information for an Apple bundle.",
-    fields = {
-        "version_file": """
-Required. A `File` containing JSON-formatted text describing the version number information
-propagated by the target.
-
-It contains two keys:
-
-*   `build_version`, which corresponds to `CFBundleVersion`.
-
-*   `short_version_string`, which corresponds to `CFBundleShortVersionString`.
-""",
-    },
-)
-
+AppleBundleVersionInfo = _AppleBundleVersionInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
-
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
-
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
-
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
-
 ApplePlatformInfo = _ApplePlatformInfo
-
 AppleResourceBundleInfo = _AppleResourceBundleInfo
-
 AppleResourceInfo = _AppleResourceInfo
-
 AppleSharedCapabilityInfo = _AppleSharedCapabilityInfo
-
 AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo
-
 AppleTestInfo = _AppleTestInfo
-
 AppleTestRunnerInfo = _AppleTestRunnerInfo
-
 AppleXcframeworkBundleInfo = _AppleXcframeworkBundleInfo
 IosAppClipBundleInfo = _IosAppClipBundleInfo
 IosApplicationBundleInfo = _IosApplicationBundleInfo
@@ -141,6 +114,7 @@ WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
 
 apple_provider = struct(
+    make_apple_bundle_version_info = _make_apple_bundle_version_info,
     make_apple_test_runner_info = _make_apple_test_runner_info,
     merge_apple_framework_import_info = _merge_apple_framework_import_info,
 )

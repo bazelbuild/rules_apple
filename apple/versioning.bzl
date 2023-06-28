@@ -15,8 +15,8 @@
 """Rules related to Apple bundle versioning."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebundleversioninfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -147,7 +147,7 @@ def _apple_bundle_version_impl(ctx):
     )
 
     return [
-        AppleBundleVersionInfo(
+        new_applebundleversioninfo(
             version_file = bundle_version_file,
         ),
         DefaultInfo(files = depset([bundle_version_file])),
