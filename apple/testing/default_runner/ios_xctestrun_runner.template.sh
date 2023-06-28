@@ -159,11 +159,7 @@ if [[ -n "$test_host_path" ]]; then
     mkdir "$plugins_path/$test_bundle_name.xctest/Frameworks"
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
-    libswift_concurrency_path=$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib
-    # This path no longer exists in Xcode 15.0+.
-    if [ -f "$libswift_concurrency_path" ]; then
-      cp "$libswift_concurrency_path" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
-    fi
+    cp "$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
