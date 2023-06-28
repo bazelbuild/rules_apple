@@ -41,7 +41,7 @@
       BAZEL_TEST_ENVIRONMENT
     </dict>
     <key>SystemAttachmentLifetime</key>
-		<string>keepNever</string>
+    <string>keepNever</string>
     <key>UserAttachmentLifetime</key>
     <string>keepNever</string>
     <key>ClangProfileDataDirectoryPath</key>
