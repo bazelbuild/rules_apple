@@ -1087,6 +1087,28 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 
 
 
+<a id="apple_provider.make_apple_bundle_version_info"></a>
+
+## apple_provider.make_apple_bundle_version_info
+
+<pre>
+apple_provider.make_apple_bundle_version_info(<a href="#apple_provider.make_apple_bundle_version_info-version_file">version_file</a>)
+</pre>
+
+Creates a new instance of the `AppleBundleVersionInfo` provider.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="apple_provider.make_apple_bundle_version_info-version_file"></a>version_file |  Required. See the docs on <code>AppleBundleVersionInfo</code>.   |  none |
+
+**RETURNS**
+
+A new `AppleBundleVersionInfo` provider based on the supplied arguments.
+
+
 <a id="apple_provider.make_apple_test_runner_info"></a>
 
 ## apple_provider.make_apple_test_runner_info
