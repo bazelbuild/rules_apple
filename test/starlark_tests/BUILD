@@ -45,6 +45,7 @@ load(":watchos_framework_tests.bzl", "watchos_framework_test_suite")
 load(":watchos_static_framework_tests.bzl", "watchos_static_framework_test_suite")
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
+load(":xcarchive_tests.bzl", "xcarchive_test_suite")
 
 licenses(["notice"])
 
@@ -142,6 +143,8 @@ watchos_static_framework_test_suite(name = "watchos_static_framework")
 watchos_ui_test_test_suite(name = "watchos_ui_test")
 
 watchos_unit_test_test_suite(name = "watchos_unit_test")
+
+xcarchive_test_suite(name = "xcarchive")
 
 test_suite(
     name = "all_tests",

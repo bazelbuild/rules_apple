@@ -9,6 +9,7 @@ py_library(
         "//tools/codesigningtool:__pkg__",
         "//tools/dossier_codesigningtool:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
+        "//tools/xcarchivetool:__pkg__",
         "//tools/xctoolrunner:__pkg__",
     ],
 )

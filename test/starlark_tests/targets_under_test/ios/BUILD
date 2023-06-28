@@ -32,6 +32,10 @@ load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
+load(
+    "//apple:xcarchive.bzl",
+    "xcarchive",
+)
 
 licenses(["notice"])
 
@@ -58,6 +62,12 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+xcarchive(
+    name = "app_minimal.xcarchive",
+    bundle = ":app_minimal",
+    tags = common.fixture_tags,
 )
 
 ios_application(

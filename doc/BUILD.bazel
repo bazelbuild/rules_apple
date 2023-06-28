@@ -15,6 +15,7 @@ _RULES_DOC_SRCS = [
     "tvos.doc",
     "versioning",
     "watchos.doc",
+    "xcarchive",
 ]
 
 _DOC_SRCS = _PLAIN_DOC_SRCS + _RULES_DOC_SRCS
