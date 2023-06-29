@@ -1,19 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 licenses(["notice"])
-
-bzl_library(
-    name = "apple_test_rules",
-    srcs = ["apple_test_rules.bzl"],
-    visibility = [
-        "//apple/testing:__subpackages__",
-        "//test:__subpackages__",
-    ],
-    deps = [
-        "//apple:providers",
-        "//apple/internal/testing:apple_test_rule_support",
-    ],
-)
 
 filegroup(
     name = "DefaultTestBundlePlist",

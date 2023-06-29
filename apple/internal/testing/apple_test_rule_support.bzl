@@ -29,14 +29,14 @@ load(
 
 visibility("//apple/...")
 
-CoverageFilesInfo = provider(
+_CoverageFilesInfo = provider(
     doc = """
-Provider used by the `coverage_files_aspect` aspect to propagate the
+Internal provider used by the `coverage_files_aspect` aspect to propagate the
 transitive closure of sources and binaries that a test depends on. These files
 are then made available during the coverage action as they are required by the
-coverage insfrastructure. The sources are provided in the `coverage_files` field,
+coverage infrastructure. The sources are provided in the `coverage_files` field,
 and the binaries in the `covered_binaries` field. This provider is only available
-if when coverage collecting is enabled.
+when coverage collecting is enabled.
 """,
     fields = {
         "coverage_files": "`depset` of files required to be present during a coverage run.",
@@ -71,20 +71,22 @@ def _coverage_files_aspect_impl(target, ctx):
     if AppleBundleInfo in target:
         direct_binaries.append(target[AppleBundleInfo].binary)
 
+    rule_attrs = ctx.rule.attr
+
     # Collect dependencies coverage files.
-    for dep in getattr(ctx.rule.attr, "deps", []):
-        coverage_files.append(dep[CoverageFilesInfo].coverage_files)
+    for dep in getattr(rule_attrs, "deps", []):
+        coverage_files.append(dep[_CoverageFilesInfo].coverage_files)
 
-    for fmwk in getattr(ctx.rule.attr, "frameworks", []):
-        coverage_files.append(fmwk[CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(fmwk[CoverageFilesInfo].covered_binaries)
+    for fmwk in getattr(rule_attrs, "frameworks", []):
+        coverage_files.append(fmwk[_CoverageFilesInfo].coverage_files)
+        transitive_binaries_sets.append(fmwk[_CoverageFilesInfo].covered_binaries)
 
-    if hasattr(ctx.rule.attr, "test_host") and ctx.rule.attr.test_host:
-        coverage_files.append(ctx.rule.attr.test_host[CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(ctx.rule.attr.test_host[CoverageFilesInfo].covered_binaries)
+    if hasattr(rule_attrs, "test_host") and rule_attrs.test_host:
+        coverage_files.append(rule_attrs.test_host[_CoverageFilesInfo].coverage_files)
+        transitive_binaries_sets.append(rule_attrs.test_host[_CoverageFilesInfo].covered_binaries)
 
     return [
-        CoverageFilesInfo(
+        _CoverageFilesInfo(
             coverage_files = depset(transitive = coverage_files),
             covered_binaries = depset(
                 direct = direct_binaries,
@@ -100,7 +102,7 @@ This aspect walks the dependency graph through the dependency graph and collects
 headers that are depended upon transitively. These files are needed to calculate test coverage on a
 test run.
 
-This aspect propagates a `CoverageFilesInfo` provider.
+This aspect propagates a `_CoverageFilesInfo` provider.
 """,
     implementation = _coverage_files_aspect_impl,
 )
@@ -171,7 +173,7 @@ def _apple_test_rule_impl(ctx, test_type):
     direct_runfiles.append(test_bundle)
 
     if ctx.configuration.coverage_enabled:
-        covered_binaries = test_bundle_target[CoverageFilesInfo].covered_binaries
+        covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
         execution_environment = dicts.add(
             execution_environment,
             _get_coverage_execution_environment(
@@ -181,7 +183,7 @@ def _apple_test_rule_impl(ctx, test_type):
         )
 
         transitive_runfiles.append(covered_binaries)
-        transitive_runfiles.append(test_bundle_target[CoverageFilesInfo].coverage_files)
+        transitive_runfiles.append(test_bundle_target[_CoverageFilesInfo].coverage_files)
 
         transitive_runfiles.append(ctx.attr._gcov.files)
         transitive_runfiles.append(ctx.attr._mcov.files)
