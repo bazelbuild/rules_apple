@@ -19,6 +19,10 @@ load(
     "common",
 )
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -213,6 +217,13 @@ def watchos_application_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.watchkitapp",
         },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_watchos_single_target_application_required_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_invalid_watchos_version",
+        expected_error = "Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.",
         tags = [name],
     )
 
