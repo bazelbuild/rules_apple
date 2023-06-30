@@ -45,7 +45,7 @@ when coverage collecting is enabled.
 )
 
 # Key to extract all values for inserting into the binary at load time.
-INSERT_LIBRARIES_KEY = "DYLD_INSERT_LIBRARIES"
+_INSERT_LIBRARIES_KEY = "DYLD_INSERT_LIBRARIES"
 
 def _coverage_files_aspect_impl(target, ctx):
     """Implementation for the `coverage_files_aspect` aspect."""
@@ -105,57 +105,147 @@ This aspect propagates a `_CoverageFilesInfo` provider.
     implementation = _coverage_files_aspect_impl,
 )
 
-def _get_template_substitutions(test_type, test_bundle, test_environment, test_host_bundle_name = None, test_host = None, test_filter = None, test_coverage_manifest = None):
-    """Dictionary with the substitutions to be applied to the template script."""
-    subs = {}
+def _get_template_substitutions(
+        *,
+        test_bundle,
+        test_environment,
+        test_host_artifact = None,
+        test_host_bundle_name = "",
+        test_filter = None,
+        test_coverage_manifest = None,
+        test_type):
+    """Dictionary with the substitutions to be applied to the template script.
 
-    if test_coverage_manifest:
-        subs["test_coverage_manifest"] = test_coverage_manifest.short_path
-    if test_host:
-        subs["test_host_path"] = test_host.short_path
-    else:
-        subs["test_host_path"] = ""
-    if test_host_bundle_name:
-        subs["test_host_bundle_name"] = test_host_bundle_name
-    else:
-        subs["test_host_bundle_name"] = ""
-    subs["test_bundle_path"] = test_bundle.short_path
-    subs["test_type"] = test_type.upper()
-    subs["test_env"] = ",".join([k + "=" + v for (k, v) in test_environment.items()])
-    subs["test_filter"] = test_filter or ""
+    Args:
+        test_bundle: File representing the test bundle's artifact that is with this rule.
+        test_coverage_manifest: Optional. File representing the coverage manifest that is with
+            this rule.
+        test_environment: Dictionary representing the test environment for the current process
+            running in the simulator.
+        test_filter: Optional. The test filter received from the test rule implementation.
+        test_host_artifact: Optional. A File representing the artifact found from the referenced
+            test host rule if one was assigned.
+        test_host_bundle_name: Optional. The bundle_name for the test host rule if one was assigned.
+        test_type: String. The test type received from the test rule implementation.
 
-    return {"%(" + k + ")s": subs[k] for k in subs}
+    Returns:
+        A new dictionary with substitutions suitable for ctx.actions.expand_template when applied to
+        the rule's assigned test runner template.
+    """
+    substitutions = {
+        "test_bundle_path": test_bundle.short_path,
+        "test_coverage_manifest": test_coverage_manifest.short_path if test_coverage_manifest else "",
+        "test_env": ",".join([k + "=" + v for (k, v) in test_environment.items()]),
+        "test_filter": test_filter or "",
+        "test_host_bundle_name": test_host_bundle_name,
+        "test_host_path": test_host_artifact.short_path if test_host_artifact else "",
+        "test_type": test_type.upper(),
+    }
+    return {"%(" + k + ")s": substitutions[k] for k in substitutions}
 
-def _get_coverage_execution_environment(_ctx, covered_binaries):
-    """Returns environment variables required for test coverage support."""
+def _get_coverage_execution_environment(*, covered_binaries, gcov_runfiles_path):
+    """Returns environment variables required for test coverage support.
+
+    Args:
+        covered_binaries: String. The `depset` of files representing the binaries that are being
+            tested under a coverage run.
+        gcov_runfiles_path: String. The location of gcov necessary for running the coverage test.
+
+    Returns:
+        A new dictionary with the required environment variables for retrieving Apple coverage
+        information.
+    """
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
         "APPLE_COVERAGE": "1",
+        "COVERAGE_GCOV_PATH": gcov_runfiles_path,
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
+def _get_simulator_test_environment(
+        *,
+        command_line_test_env,
+        rule_test_env,
+        runner_test_env):
+    """Returns the test environment for the current process running in the simulator
+
+    All DYLD_INSERT_LIBRARIES key-value pairs are merged from the command-line, test
+    rule and test runner.
+
+    Args:
+        command_line_test_env: Dictionary of fhe environment variables retrieved from the test
+            invocation's command line arguments.
+        rule_test_env: Dictionary of the environment variables retrieved from the test rule's
+            attributes.
+        runner_test_env: Dictionary of the environment variables retrieved from the assigned test
+            runner.
+
+    Returns:
+        A new dictionary referencing the environment variables above, adjusted to handle additional
+        information such as required DYLD_INSERT_LIBRARIES instructions.
+    """
+
+    # Get mutable copies of the different test environment dicts.
+    command_line_test_env_copy = dicts.add(command_line_test_env)
+    rule_test_env_copy = dicts.add(rule_test_env)
+    runner_test_env_copy = dicts.add(runner_test_env)
+
+    # Combine all DYLD_INSERT_LIBRARIES values in a list ordered as per the source:
+    # 1. Command line test-env
+    # 2. Test Rule test-env
+    # 3. Test Runner test-env
+    insert_libraries_values = []
+    command_line_values = command_line_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    if command_line_values:
+        insert_libraries_values.append(command_line_values)
+    rule_values = rule_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    if rule_values:
+        insert_libraries_values.append(rule_values)
+    runner_values = runner_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    if runner_values:
+        insert_libraries_values.append(runner_values)
+
+    # Combine all DYLD_INSERT_LIBRARIES values in a single string separated by ":" and then save it
+    # to a dict to be combined with other test_env pairs.
+    insert_libraries_values_joined = ":".join(insert_libraries_values)
+    test_env_dyld_insert_pairs = {}
+    if insert_libraries_values_joined:
+        test_env_dyld_insert_pairs = {_INSERT_LIBRARIES_KEY: insert_libraries_values_joined}
+
+    # Combine all the environments with the DYLD_INSERT_LIBRARIES values merged together.
+    return dicts.add(
+        command_line_test_env_copy,
+        rule_test_env_copy,
+        runner_test_env_copy,
+        test_env_dyld_insert_pairs,
+    )
+
 def _apple_test_rule_impl(ctx, test_type):
     """Implementation for the Apple test rules."""
-    runner = ctx.attr.runner[AppleTestRunnerInfo]
-    execution_requirements = getattr(runner, "execution_requirements", {})
+    runner_attr = ctx.attr.runner
+    runner_info = runner_attr[AppleTestRunnerInfo]
+    execution_requirements = getattr(runner_info, "execution_requirements", {})
 
     test_bundle_target = ctx.attr.deps[0]
-
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
+    test_host_attr = ctx.attr.test_host
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
-    test_environment = _get_simulator_test_environment(ctx, runner)
+    test_environment = _get_simulator_test_environment(
+        command_line_test_env = ctx.configuration.test_env,
+        rule_test_env = ctx.attr.env,
+        runner_test_env = getattr(runner_info, "test_environment", {}),
+    )
 
     # Environment variables for the Bazel test action itself.
-    execution_environment = dict(getattr(runner, "execution_environment", {}))
+    execution_environment = dict(getattr(runner_info, "execution_environment", {}))
 
     # Bundle name of the app under test (test host) if given
-    test_host_bundle_name = None
-    if ctx.attr.test_host:
-        if ctx.attr.test_host[AppleBundleInfo]:
-            test_host_bundle_name = ctx.attr.test_host[AppleBundleInfo].bundle_name
+    test_host_bundle_name = ""
+    if test_host_attr and AppleBundleInfo in test_host_attr:
+        test_host_bundle_name = test_host_attr[AppleBundleInfo].bundle_name
 
     direct_runfiles = []
     transitive_runfiles = []
@@ -163,46 +253,57 @@ def _apple_test_rule_impl(ctx, test_type):
     if ctx.file.test_coverage_manifest:
         direct_runfiles.append(ctx.file.test_coverage_manifest)
 
-    test_host_archive = test_bundle_target[AppleTestInfo].test_host
-    if test_host_archive:
-        direct_runfiles.append(test_host_archive)
+    test_host_artifact = test_bundle_target[AppleTestInfo].test_host
+    if test_host_artifact:
+        direct_runfiles.append(test_host_artifact)
 
     direct_runfiles.append(test_bundle)
 
     if ctx.configuration.coverage_enabled:
+        apple_coverage_support_files = ctx.attr._apple_coverage_support.files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
+        gcov_files = ctx.attr._gcov.files
+        mcov_files = ctx.attr._mcov.files
+
         execution_environment = dicts.add(
             execution_environment,
             _get_coverage_execution_environment(
-                ctx,
-                covered_binaries,
+                covered_binaries = covered_binaries,
+                gcov_runfiles_path = "/".join([
+                    "runfiles",
+                    ctx.workspace_name,
+                    gcov_files.to_list()[1].path,
+                ]),
             ),
         )
 
-        transitive_runfiles.append(covered_binaries)
-        transitive_runfiles.append(test_bundle_target[_CoverageFilesInfo].coverage_files)
-
-        transitive_runfiles.append(ctx.attr._apple_coverage_support.files)
+        transitive_runfiles.extend([
+            apple_coverage_support_files,
+            covered_binaries,
+            gcov_files,
+            mcov_files,
+            test_bundle_target[_CoverageFilesInfo].coverage_files,
+        ])
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
     ctx.actions.expand_template(
-        template = runner.test_runner_template,
+        template = runner_info.test_runner_template,
         output = executable,
         substitutions = _get_template_substitutions(
-            test_type,
-            test_bundle,
-            test_environment,
-            test_host_bundle_name,
-            test_host = test_host_archive,
-            test_filter = ctx.attr.test_filter,
+            test_bundle = test_bundle,
             test_coverage_manifest = ctx.file.test_coverage_manifest,
+            test_environment = test_environment,
+            test_filter = ctx.attr.test_filter,
+            test_host_artifact = test_host_artifact,
+            test_host_bundle_name = test_host_bundle_name,
+            test_type = test_type,
         ),
         is_executable = True,
     )
 
     transitive_runfile_objects = [
-        ctx.attr.runner.default_runfiles,
-        ctx.attr.runner.data_runfiles,
+        runner_attr.default_runfiles,
+        runner_attr.data_runfiles,
     ]
 
     # Add required data into the runfiles to make it available during test
@@ -240,45 +341,3 @@ def _apple_test_rule_impl(ctx, test_type):
 apple_test_rule_support = struct(
     apple_test_rule_impl = _apple_test_rule_impl,
 )
-
-def _get_simulator_test_environment(ctx, runner):
-    """Returns the test environment for the current process running in the simulator
-
-    All DYLD_INSERT_LIBRARIES key-value pairs are merged from the command-line, test
-    rule and test runner.
-    """
-
-    # Get mutable copies of the different test environment dicts.
-    command_line_test_env = dicts.add(ctx.configuration.test_env)
-    rule_test_env = dicts.add(ctx.attr.env)
-    runner_test_env = dicts.add(getattr(runner, "test_environment", {}))
-
-    # Combine all DYLD_INSERT_LIBRARIES values in a list ordered as per the source:
-    # 1. Command line test-env
-    # 2. Test Rule test-env
-    # 3. Test Runner test-env
-    insert_libraries_values = []
-    command_line_values = command_line_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
-    if command_line_values:
-        insert_libraries_values.append(command_line_values)
-    rule_values = rule_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
-    if rule_values:
-        insert_libraries_values.append(rule_values)
-    runner_values = runner_test_env.pop(INSERT_LIBRARIES_KEY, default = None)
-    if runner_values:
-        insert_libraries_values.append(runner_values)
-
-    # Combine all DYLD_INSERT_LIBRARIES values in a single string separated by ":" and then save it
-    # to a dict to be combined with other test_env pairs.
-    insert_libraries_values_joined = ":".join(insert_libraries_values)
-    test_env_dyld_insert_pairs = {}
-    if insert_libraries_values_joined:
-        test_env_dyld_insert_pairs = {INSERT_LIBRARIES_KEY: insert_libraries_values_joined}
-
-    # Combine all the environments with the DYLD_INSERT_LIBRARIES values merged together.
-    return dicts.add(
-        command_line_test_env,
-        rule_test_env,
-        runner_test_env,
-        test_env_dyld_insert_pairs,
-    )
