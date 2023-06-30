@@ -62,8 +62,18 @@ def compile_metals(*, actions, input_files, output_file, platform_prerequisites,
     if not input_files:
         fail("Input .metal files can't be empty")
 
+    hdrs = []
+    metal_files = []
+    for file in input_files:
+        if file.extension == "metal":
+            metal_files.append(file)
+        elif file.extension == "h":
+            hdrs.append(file)
+        else:
+            fail("Unhandled filetype: {}".format(file.extension))
+
     # Compile each .metal file into a single .air file
-    for input_metal in input_files:
+    for input_metal in metal_files:
         air_file = actions.declare_file(
             paths.replace_extension(input_metal.basename, ".air"),
         )
@@ -80,7 +90,7 @@ def compile_metals(*, actions, input_files, output_file, platform_prerequisites,
         apple_support.run(
             actions = actions,
             executable = "/usr/bin/xcrun",
-            inputs = [input_metal],
+            inputs = [input_metal] + hdrs,
             outputs = [air_file],
             arguments = [args],
             mnemonic = "MetalCompile",

@@ -469,7 +469,7 @@ filegroup(
 
 filegroup(
     name = "metal_files",
-    srcs = glob(["*.metal"]),
+    srcs = glob(["*.metal"]) + ["shader_defines.h"],
 )
 
 filegroup(
