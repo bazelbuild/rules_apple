@@ -271,7 +271,12 @@ def _bucketize_data(
                 bucket_name = "pngs"
             elif resource_short_path.endswith(".plist"):
                 bucket_name = "plists"
-            elif resource_short_path.endswith(".metal"):
+
+            elif resource_short_path.endswith(".metal") or resource_short_path.endswith(".h"):
+                # Assume that any bundled headers are Metal headers for now.
+                # Although this will break if anyone wants to bundle headers
+                # files as is, it's unlikely that there is such a use case at
+                # all.
                 bucket_name = "metals"
             elif resource_short_path.endswith(".mlmodel") or resource_short_path.endswith(".mlpackage"):
                 bucket_name = "mlmodels"
