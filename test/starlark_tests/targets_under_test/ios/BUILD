@@ -3338,7 +3338,7 @@ objc_library(
         "//test/starlark_tests/resources:shared.m",
     ],
     data = [
-        "//test/testdata/resources:assets_ios",
+        "//test/testdata/resources:assets",
         "//test/testdata/resources:nonlocalized.strings",
         "//test/testdata/resources:storyboard_ios.storyboard",
         "//test/testdata/resources:unversioned_datamodel",

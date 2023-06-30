@@ -29,6 +29,9 @@ load(":macos_extension_tests.bzl", "macos_extension_test_suite")
 load(":macos_quick_look_plugin_tests.bzl", "macos_quick_look_plugin_test_suite")
 load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
+load(":macos_framework_tests.bzl", "macos_framework_test_suite")
+load(":macos_dynamic_framework_tests.bzl", "macos_dynamic_framework_test_suite")
+load(":macos_static_framework_tests.bzl", "macos_static_framework_test_suite")
 load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
 load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
@@ -102,6 +105,12 @@ macos_command_line_application_test_suite(name = "macos_command_line_application
 macos_dylib_test_suite(name = "macos_dylib")
 
 macos_extension_test_suite(name = "macos_extension")
+
+macos_framework_test_suite(name = "macos_framework")
+
+macos_dynamic_framework_test_suite(name = "macos_dynamic_framework")
+
+macos_static_framework_test_suite(name = "macos_static_framework")
 
 # TODO: Re-enable once it works on M1s with the public crosstool.
 # macos_kernel_extension_test_suite(name = "macos_kernel_extension")

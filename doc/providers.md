@@ -658,6 +658,28 @@ provider to describe that requirement.
 
 
 
+<a id="MacosFrameworkBundleInfo"></a>
+
+## MacosFrameworkBundleInfo
+
+<pre>
+MacosFrameworkBundleInfo()
+</pre>
+
+
+Denotes that a target is an macOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an macOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is an macOS dynamic framework should use this provider to describe
+that requirement.
+
+
+**FIELDS**
+
+
+
 <a id="MacosKernelExtensionBundleInfo"></a>
 
 ## MacosKernelExtensionBundleInfo
@@ -718,6 +740,28 @@ a "marker" to indicate that a target is specifically a macOS Spotlight importer
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS Spotlight importer should use this provider to describe that
 requirement.
+
+
+**FIELDS**
+
+
+
+<a id="MacosStaticFrameworkBundleInfo"></a>
+
+## MacosStaticFrameworkBundleInfo
+
+<pre>
+MacosStaticFrameworkBundleInfo()
+</pre>
+
+
+Denotes that a target is an macOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an macOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is an macOS static framework should use this provider to describe
+that requirement.
 
 
 **FIELDS**

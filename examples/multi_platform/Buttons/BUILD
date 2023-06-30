@@ -10,6 +10,8 @@ load(
 load(
     "//apple:macos.bzl",
     "macos_application",
+    "macos_framework",
+    "macos_static_framework",
     # Enable when macos_test_runner supports macOS UI Tests.
     # "macos_ui_test",
     "macos_unit_test",
@@ -290,6 +292,13 @@ swift_library(
     module_name = "ButtonsMacUITests",
 )
 
+macos_static_framework(
+    name = "ButtonsMacStaticFramework",
+    bundle_name = "ButtonsMac",
+    minimum_os_version = "11.11",
+    deps = [":ButtonsMacLib"],
+)
+
 ## Resources
 
 objc_library(
@@ -298,6 +307,15 @@ objc_library(
 )
 
 ## Packaging
+
+macos_framework(
+    name = "ButtonsMacDynamicFramework",
+    bundle_id = "com.google.ButtonsMac",
+    bundle_name = "ButtonsMac",
+    infoplists = ["ButtonsMac/Info.plist"],
+    minimum_os_version = "11.11",
+    deps = [":ButtonsMacLib"],
+)
 
 macos_application(
     name = "ButtonsMac",
@@ -359,6 +377,8 @@ build_test(
         ":ButtonsStaticFramework",
         ":ButtonsExtension",
         ":ButtonsMac",
+        ":ButtonsMacStaticFramework",
+        ":ButtonsMacDynamicFramework",
         ":ButtonsTV",
         ":ButtonsTVExtension",
         ":ButtonsTVStaticFramework",

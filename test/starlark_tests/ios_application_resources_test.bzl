@@ -310,7 +310,7 @@ def ios_application_resources_test_suite(name):
         compilation_mode = "opt",
         asset_catalog_test_file = "$CONTENT_ROOT/Assets.car",
         asset_catalog_test_contains = [
-            "star_iphone",
+            "star",
             # TODO(b/77633270): Sticker packs are not showing up, find out why.
             # "sticker",
         ],
@@ -646,7 +646,7 @@ def ios_application_resources_test_suite(name):
         # format is a black box to us, but we can at a minimum grep the name out
         # because it's visible in the raw bytes).
         text_test_file = "$BUNDLE_ROOT/Assets.car",
-        text_test_values = ["star_iphone"],
+        text_test_values = ["star"],
         tags = [name],
     )
 
@@ -701,7 +701,7 @@ def ios_application_resources_test_suite(name):
         # format is a black box to us, but we can at a minimum grep the name out
         # because it's visible in the raw bytes).
         text_test_file = "$BUNDLE_ROOT/Assets.car",
-        text_test_values = ["star_iphone", "star2_iphone"],
+        text_test_values = ["star", "star2"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_libraries_with_asset_catalogs",
         tags = [name],
     )

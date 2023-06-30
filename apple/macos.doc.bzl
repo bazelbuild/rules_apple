@@ -28,10 +28,13 @@ load(
     _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
+    _macos_dynamic_framework = "macos_dynamic_framework",
     _macos_extension = "macos_extension",
+    _macos_framework = "macos_framework",
     _macos_kernel_extension = "macos_kernel_extension",
     _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
+    _macos_static_framework = "macos_static_framework",
     _macos_xpc_service = "macos_xpc_service",
 )
 load(":macos.bzl", _macos_build_test = "macos_build_test")
@@ -48,3 +51,7 @@ macos_unit_test = _macos_unit_test
 macos_ui_test = _macos_ui_test
 macos_xpc_service = _macos_xpc_service
 macos_build_test = _macos_build_test
+
+macos_framework = _macos_framework
+macos_dynamic_framework = _macos_dynamic_framework
+macos_static_framework = _macos_static_framework
