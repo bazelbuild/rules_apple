@@ -106,10 +106,10 @@ is the recommended process:
   automatically creates the release on GitHub.
 - Edit the release to fill in the release notes and supported bazel
   versions.
-- Update the `swift/repositories.bzl` file in `rules_swift` with the new
+- Update the `swift/repositories.bzl` & `MODULE.bazel` files in `rules_swift` with the new
   `apple_support` release.
 - Repeat the steps above to create a release on `rules_swift`.
-- Update the `apple/repositories.bzl` file in `rules_apple` with the new
+- Update the `apple/repositories.bzl` and `MODULE.bazel` files in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
 - Merge the automatically submitted PRs that update the `MODULE.bazel`
