@@ -156,7 +156,7 @@ if [[ -n "$test_host_path" ]]; then
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
-    mkdir "$plugins_path/$test_bundle_name.xctest/Frameworks"
+    mkdir -p "$plugins_path/$test_bundle_name.xctest/Frameworks"
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
     # No longer necessary starting in Xcode 15 - hence the `-f` file existence check
