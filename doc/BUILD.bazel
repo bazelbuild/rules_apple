@@ -8,6 +8,7 @@ _PLAIN_DOC_SRCS = [
 
 _RULES_DOC_SRCS = [
     "apple",
+    "docc",
     "dtrace",
     "ios.doc",
     "macos.doc",

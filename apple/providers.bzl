@@ -215,3 +215,17 @@ that requirement.
 """,
     fields = {},
 )
+
+DocCBundleInfo = provider(
+    doc = "Provides general information about a .docc bundle.",
+    fields = {
+        "bundle": "the path to the .docc bundle",
+    },
+)
+
+DocCSymbolGraphsInfo = provider(
+    doc = "Provides the symbol graphs required to archive a .docc bundle.",
+    fields = {
+        "symbol_graphs": "the paths to the symbol graphs",
+    },
+)

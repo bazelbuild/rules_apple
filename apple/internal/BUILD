@@ -760,6 +760,20 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "docc",
+    srcs = ["docc.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal/aspects:docc_archive_aspect",
+        "@bazel_skylib//lib:dicts",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

@@ -123,7 +123,8 @@ if [[ -n "${TEXT_TEST_FILE-}" ]]; then
         "contents of text file at \"$path\""
     fi
   done
-  for test_regexp in "${TEXT_FILE_NOT_CONTAINS[@]}"
+  text_file_not_contains=${TEXT_FILE_NOT_CONTAINS:-()}
+  for test_regexp in "${text_file_not_contains[@]}"
   do
     something_tested=true
     if grep -q "$test_regexp" "$path"

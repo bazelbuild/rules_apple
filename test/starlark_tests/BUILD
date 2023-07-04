@@ -56,6 +56,7 @@ load(":watchos_single_target_ui_test_tests.bzl", "watchos_single_target_ui_test_
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 load(":xcarchive_tests.bzl", "xcarchive_test_suite")
+load(":docc_tests.bzl", "docc_test_suite")
 
 licenses(["notice"])
 
@@ -175,6 +176,8 @@ watchos_ui_test_test_suite(name = "watchos_ui_test")
 watchos_unit_test_test_suite(name = "watchos_unit_test")
 
 xcarchive_test_suite(name = "xcarchive")
+
+docc_test_suite(name = "docc")
 
 test_suite(name = "all_tests")
 
