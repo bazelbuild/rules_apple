@@ -4,7 +4,7 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos
-    xcode_version: "14.3"
+    xcode_version: "14.2"
     build_targets:
     - "tools/..."
     - "test/..."
