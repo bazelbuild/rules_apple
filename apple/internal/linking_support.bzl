@@ -320,7 +320,6 @@ def _link_multi_arch_binary(
         deps,
         disabled_features,
         features,
-        grep_includes = None,
         label,
         stamp = -1,
         user_link_flags = []):
@@ -345,7 +344,6 @@ def _link_multi_arch_binary(
             to retrieve transitive CcInfo providers for C++ linking action.
         disabled_features: List of features to be disabled for C++ actions.
         features: List of features to be enabled for C++ actions.
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         label: Label for the current target (`ctx.label`).
         stamp: Boolean to indicate whether to include build information in the linked binary.
             If 1, build information is always included.
@@ -410,7 +408,6 @@ def _link_multi_arch_binary(
             additional_inputs = additional_inputs,
             cc_toolchain = cc_toolchain,
             feature_configuration = feature_configuration,
-            grep_includes = grep_includes,
             linking_contexts = cc_linking_contexts,
             name = output_name,
             stamp = stamp,

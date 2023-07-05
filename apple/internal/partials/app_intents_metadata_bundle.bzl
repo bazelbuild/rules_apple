@@ -35,7 +35,6 @@ def _app_intents_metadata_bundle_partial_impl(
         deps,
         disabled_features,
         features,
-        grep_includes,
         label,
         platform_prerequisites):
     """Implementation of the AppIntents metadata bundle partial."""
@@ -54,7 +53,6 @@ def _app_intents_metadata_bundle_partial_impl(
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        grep_includes = grep_includes,
         label = label,
         # Allow `_main` to be undefined since non of the AppIntents implementing dependencies
         # should include this entry point, and we only care about linking all AppIntents symbols.
@@ -118,7 +116,6 @@ def app_intents_metadata_bundle_partial(
         deps,
         disabled_features,
         features,
-        grep_includes,
         label,
         platform_prerequisites):
     """Constructor for the AppIntents metadata bundle processing partial.
@@ -132,7 +129,6 @@ def app_intents_metadata_bundle_partial(
         deps: List of dependencies implementing the AppIntents protocol.
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features to be enabled for C++ link actions.
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         label: Label of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
     Returns:
@@ -146,7 +142,6 @@ def app_intents_metadata_bundle_partial(
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        grep_includes = grep_includes,
         label = label,
         platform_prerequisites = platform_prerequisites,
     )
