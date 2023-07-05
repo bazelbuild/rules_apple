@@ -39,7 +39,6 @@ def _cc_info_with_dependencies(
         disabled_features,
         features,
         framework_includes = [],
-        grep_includes,
         header_imports,
         kind,
         label,
@@ -58,7 +57,6 @@ def _cc_info_with_dependencies(
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
         framework_includes: List of Apple framework search paths (defaults to: []).
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         header_imports: List of imported header files.
         includes: List of included headers search paths (defaults to: []).
         kind: whether the framework is "static" or "dynamic".
@@ -89,7 +87,6 @@ def _cc_info_with_dependencies(
         includes = includes,
         compilation_contexts = dep_compilation_contexts,
         language = "objc",
-        grep_includes = grep_includes,
     )
 
     linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]

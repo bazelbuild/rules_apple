@@ -437,7 +437,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
-    grep_includes = ctx.file._grep_includes
     label = ctx.label
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -495,7 +494,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         disabled_features = disabled_features,
         features = features,
         framework_includes = xcframework_library.framework_includes,
-        grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
         kind = "dynamic",
         label = label,
@@ -547,7 +545,6 @@ def _apple_static_xcframework_import_impl(ctx):
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
-    grep_includes = ctx.file._grep_includes
     has_swift = ctx.attr.has_swift
     label = ctx.label
     linkopts = ctx.attr.linkopts
@@ -605,7 +602,6 @@ def _apple_static_xcframework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        grep_includes = grep_includes,
         header_imports = xcframework_library.headers,
         kind = "static",
         label = label,
