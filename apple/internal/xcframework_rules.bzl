@@ -247,7 +247,7 @@ def _library_identifier(*, architectures, environment, platform):
             Typically `device` or `simulator`.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
-            For example, `ios`, `macos`, `tvos` or `watchos`.
+            For example, `ios`, `macos`, `tvos`, `visionos` or `watchos`.
 
     Returns:
         A string that can be used to determine the subfolder this embedded framework will be found
@@ -306,7 +306,7 @@ def _available_library_dictionary(
             the xcframework bundle.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
-            For example, `ios`, `macos`, `tvos` or `watchos`.
+            For example, `ios`, `macos`, `tvos`, `visionos`, or `watchos`.
 
     Returns:
         A dictionary containing keys representing how a given framework should be referenced in the

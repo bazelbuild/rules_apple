@@ -788,6 +788,71 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
     init = _make_banned_init(provider_name = "TvosXcTestBundleInfo"),
 )
 
+VisionosApplicationBundleInfo, new_visionosapplicationbundleinfo = provider(
+    doc = """
+Denotes that a target is a visionOS application.
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS application
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS application should use this provider to describe that
+requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosApplicationBundleInfo"),
+)
+
+VisionosExtensionBundleInfo, new_visionosextensionbundleinfo = provider(
+    doc = """
+Denotes that a target is an visionOS application extension.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an iOS application
+extension bundle (and not some other Apple bundle). Rule authors who wish to
+require that a dependency is an iOS application extension should use this
+provider to describe that requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosExtensionBundleInfo"),
+)
+
+VisionosFrameworkBundleInfo, new_visionosframeworkbundleinfo = provider(
+    doc = """
+Denotes that a target is visionOS dynamic framework.
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS dynamic framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosFrameworkBundleInfo"),
+)
+
+VisionosStaticFrameworkBundleInfo, new_visionosstaticframeworkbundleinfo = provider(
+    doc = """
+Denotes that a target is an visionOS static framework.
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS static framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosStaticFrameworkBundleInfo"),
+)
+
+VisionosXcTestBundleInfo, new_visionosxctestbundleinfo = provider(
+    doc = """
+Denotes a target that is a visionOS .xctest bundle.
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS .xctest bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is a visionOS .xctest bundle should use this provider to describe that requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosXcTestBundleInfo"),
+)
+
 WatchosApplicationBundleInfo, new_watchosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a watchOS application.

@@ -671,6 +671,39 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos_rules",
+    srcs = ["visionos_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_product_type",
+        ":apple_toolchains",
+        ":bundling_support",
+        ":entitlements_support",
+        ":features_support",
+        ":linking_support",
+        ":outputs",
+        ":partials",
+        ":platform_support",
+        ":processor",
+        ":providers",
+        ":resources",
+        ":rule_attrs",
+        ":rule_factory",
+        ":rule_support",
+        ":stub_support",
+        ":swift_support",
+        "//apple:providers",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//lib:sets",
+        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    ],
+)
+
+bzl_library(
     name = "watchos_rules",
     srcs = ["watchos_rules.bzl"],
     visibility = [
@@ -791,6 +824,15 @@ environment_plist(
 environment_plist(
     name = "environment_plist_macos",
     platform_type = "macos",
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+environment_plist(
+    name = "environment_plist_visionos",
+    platform_type = "visionos",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.

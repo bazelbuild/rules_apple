@@ -75,6 +75,7 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "ios": apple_common.dotted_version("15.0"),
     "macos": apple_common.dotted_version("12.0"),
     "tvos": apple_common.dotted_version("15.0"),
+    "visionos": apple_common.dotted_version("1.0"),
     "watchos": apple_common.dotted_version("8.0"),
 }
 

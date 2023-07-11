@@ -582,6 +582,93 @@ _RULE_TYPE_DESCRIPTORS = {
             skip_simulator_signing_allowed = False,
         ),
     },
+    "visionos": {
+        # visionos_application
+        apple_product_type.application: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            allows_locale_trimming = True,
+            bundle_extension = ".app",
+            bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            bundle_package_type = bundle_package_type.application,
+            product_type = apple_product_type.application,
+            requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
+        # visionos_extension
+        apple_product_type.app_extension: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.app_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
+                "@executable_path/../../Frameworks",
+            ],
+        ),
+        # visionos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework or
+                # Application.app/PlugIns/Extension.appex/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks or
+                # Application.app/PlugIns/Extension.appex/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
+        # visionos_static_framework
+        apple_product_type.static_framework: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            bundle_extension = ".framework",
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
+            product_type = apple_product_type.static_framework,
+        ),
+        # visionos_ui_test
+        apple_product_type.ui_test_bundle: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
+            product_type = apple_product_type.ui_test_bundle,
+            requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
+            skip_simulator_signing_allowed = False,
+        ),
+        # visionos_unit_test
+        apple_product_type.unit_test_bundle: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
+            product_type = apple_product_type.unit_test_bundle,
+            requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
+            skip_simulator_signing_allowed = False,
+        ),
+    },
     "watchos": {
         # watchos_application (single target application)
         apple_product_type.application: _describe_rule_type(

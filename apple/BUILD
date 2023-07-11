@@ -205,6 +205,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos",
+    srcs = ["visionos.bzl"],
+    deps = [
+        "//apple/internal:visionos_rules",
+        "//apple/internal/testing:apple_test_assembler",
+        "//apple/internal/testing:build_test_rules",
+        "//apple/internal/testing:visionos_rules",
+    ],
+)
+
+bzl_library(
+    name = "visionos.doc",
+    srcs = ["visionos.doc.bzl"],
+    deps = ["visionos"],
+)
+
+bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
