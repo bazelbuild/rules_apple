@@ -70,7 +70,7 @@ def _platform_prerequisites(
         config_vars,
         cpp_fragment = None,
         device_families,
-        explicit_minimum_os = None,
+        explicit_minimum_os,
         objc_fragment = None,
         platform_type_string,
         uses_swift,
@@ -83,7 +83,7 @@ def _platform_prerequisites(
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
       device_families: The list of device families that apply to the target being built.
-      explicit_minimum_os: A dotted version string indicating minimum OS desired. Optional.
+      explicit_minimum_os: A dotted version string indicating minimum OS desired.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
@@ -94,13 +94,6 @@ def _platform_prerequisites(
     """
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
     platform = apple_fragment.multi_arch_platform(platform_type_attr)
-
-    if explicit_minimum_os:
-        minimum_os = explicit_minimum_os
-    else:
-        # TODO(b/38006810): Use the SDK version instead of the flag value as a soft default.
-        minimum_os = str(xcode_version_config.minimum_os_for_platform_type(platform_type_attr))
-
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
@@ -109,7 +102,7 @@ def _platform_prerequisites(
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         device_families = device_families,
-        minimum_os = minimum_os,
+        minimum_os = explicit_minimum_os,
         platform = platform,
         platform_type = platform_type_attr,
         objc_fragment = objc_fragment,

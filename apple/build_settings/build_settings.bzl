@@ -14,6 +14,11 @@
 
 """List of Bazel's rules_apple build settings."""
 
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+
 visibility([
     "//apple/...",
     "//test/...",
@@ -21,8 +26,9 @@ visibility([
 
 _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 
-# List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
-build_settings = {
+# List of all registered build settings with command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_flags = {
     "parse_xcframework_info_plist": struct(
         doc = """
 Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
@@ -47,19 +53,34 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
     ),
 }
 
+# List of all registered build settings without command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_settings = {
+    "minimum_os_version": struct(
+        doc = """
+Relays a minimum os version from rule transition to implementation. Only to be used when the
+equivalent rule attribute is not present, such as within an aspect implementation over *_library
+rules.
+""",
+        default = "",
+    ),
+}
+
+_all_build_settings = dicts.add(build_settings, build_flags)
+
 build_settings_labels = struct(
     all_labels = [
         "{package}:{target_name}".format(
             package = _BUILD_SETTINGS_PACKAGE,
             target_name = build_setting_name,
         )
-        for build_setting_name in build_settings
+        for build_setting_name in _all_build_settings
     ],
     **{
         build_setting_name: "{package}:{target_name}".format(
             package = _BUILD_SETTINGS_PACKAGE,
             target_name = build_setting_name,
         )
-        for build_setting_name in build_settings
+        for build_setting_name in _all_build_settings
     }
 )

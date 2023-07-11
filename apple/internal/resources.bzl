@@ -98,6 +98,7 @@ visibility([
 ])
 
 CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
+    "datamodels": (resources_support.datamodels, True),
     "infoplists": (resources_support.infoplists, False),
     "plists": (resources_support.plists_and_strings, False),
     "pngs": (resources_support.pngs, False),
@@ -504,16 +505,17 @@ def _process_bucketized_data(
                 processed_origins.append((processed_resource, processed_origin))
 
             processed_field = {}
-            for _, _, processed_file in result.files:
+            for _, revised_parent_dir, processed_file in result.files:
                 processed_field.setdefault(
-                    parent_dir if parent_dir else "",
+                    # The parent_dir can change after processing, so be sure to pass that through.
+                    revised_parent_dir if revised_parent_dir else "",
                     [],
                 ).append(processed_file)
 
             # Save files to the "processed" field for copying in the bundling phase.
-            for _, processed_files in processed_field.items():
+            for revised_parent_dir, processed_files in processed_field.items():
                 buckets.setdefault("processed", []).append(
-                    (parent_dir, swift_module, depset(transitive = processed_files)),
+                    (revised_parent_dir, swift_module, depset(transitive = processed_files)),
                 )
 
             # Add owners information for each of the processed files.

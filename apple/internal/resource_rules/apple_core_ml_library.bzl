@@ -74,6 +74,7 @@ def _apple_core_ml_library_impl(ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
+        explicit_minimum_os = apple_xplat_toolchain_info.build_settings.minimum_os_version,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
