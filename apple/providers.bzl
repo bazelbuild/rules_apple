@@ -693,6 +693,57 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
     fields = {},
 )
 
+VisionosApplicationBundleInfo = provider(
+    doc = """
+Denotes that a target is a visionOS application.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS application
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS application should use this provider to describe that
+requirement.
+""",
+    fields = {},
+)
+
+VisionosFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is visionOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS dynamic framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+)
+
+VisionosStaticFrameworkBundleInfo = provider(
+    doc = """
+Denotes that a target is an visionOS static framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS static framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS static framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+)
+
+VisionosXcTestBundleInfo = provider(
+    doc = """
+Denotes a target that is a visionOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS .xctest bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is a visionOS .xctest bundle should use this provider to describe that requirement.
+""",
+    fields = {},
+)
+
 WatchosApplicationBundleInfo = provider(
     doc = """
 Denotes that a target is a watchOS application.

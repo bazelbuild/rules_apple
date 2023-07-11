@@ -126,6 +126,7 @@ binaries/libraries will be created combining all architectures specified by
 *   `ios`: architectures gathered from `--ios_multi_cpus`.
 *   `macos`: architectures gathered from `--macos_cpus`.
 *   `tvos`: architectures gathered from `--tvos_cpus`.
+*   `visionos`: architectures gathered from `--visionos_cpus`.
 *   `watchos`: architectures gathered from `--watchos_cpus`.
 """,
             ),
