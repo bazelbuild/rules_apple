@@ -221,7 +221,6 @@ def _command_line_options(
             platform = "watchos",
             platform_type = platform_type,
         ),
-        "@build_bazel_rules_apple//apple/build_settings:minimum_os_version": minimum_os_version,
     }
 
     output_dictionary["@build_bazel_rules_swift//swift:emit_swiftinterface"] = emit_swiftinterface
@@ -382,7 +381,6 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
-    "@build_bazel_rules_apple//apple/build_settings:minimum_os_version",
     "@build_bazel_rules_swift//swift:emit_swiftinterface",
 ]
 _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_outputs + [

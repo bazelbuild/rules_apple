@@ -67,7 +67,6 @@ visibility("//apple/internal/...")
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
-    apple_fragment = aspect_ctx.fragments.apple
     apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
@@ -76,13 +75,13 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     # aspect, or the list of allowed device families can be determined independently of the
     # rule_descriptor.
     return platform_support.platform_prerequisites(
-        apple_fragment = apple_fragment,
+        apple_fragment = aspect_ctx.fragments.apple,
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
         device_families = None,
-        explicit_minimum_os = apple_xplat_toolchain_info.build_settings.minimum_os_version,
+        explicit_minimum_os = None,
         objc_fragment = None,
-        platform_type_string = str(apple_fragment.single_arch_platform.platform_type),
+        platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
         xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
