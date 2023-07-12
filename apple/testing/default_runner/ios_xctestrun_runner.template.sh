@@ -21,6 +21,7 @@ fi
 custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 device_id=""
+command_line_args=(%(command_line_args)s)
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -33,6 +34,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --destination=platform=iOS,id=*)
       device_id="${arg##*=}"
+      ;;
+    --command_line_args=*)
+      command_line_args+=("${arg##*=}")
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -105,6 +109,19 @@ function escape() {
   escaped=${escaped//'"'/&quot;}
   echo "$escaped"
 }
+
+# Gather command line arguments for `CommandLineArguments` in the xctestrun file
+xctestrun_cmd_line_args_section=""
+if [[ -n "${command_line_args:-}" ]]; then
+  xctestrun_cmd_line_args_section="\n"
+  saved_IFS=$IFS
+  IFS=","
+  for cmd_line_arg in ${command_line_args[@]}; do
+    xctestrun_cmd_line_args_section+="      <string>$cmd_line_arg</string>\n"
+  done
+  IFS=$saved_IFS
+  xctestrun_cmd_line_args_section="    <key>CommandLineArguments</key>\n    <array>$xctestrun_cmd_line_args_section    </array>"
+fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
@@ -345,6 +362,10 @@ if [[ "$create_xcresult_bundle" == true ]]; then
   echo "note: Using 'xcodebuild' because XCResult bundle was requested"
   should_use_xcodebuild=true
 fi
+if [[ -n "$xctestrun_cmd_line_args_section" ]]; then
+  echo "note: Using 'xcodebuild' because '--command_line_args' was provided"
+  should_use_xcodebuild=true
+fi
 if [[ -n "$xctestrun_skip_test_section" || -n "$xctestrun_only_test_section" ]]; then
   echo "note: Using 'xcodebuild' because test filter was provided"
   should_use_xcodebuild=true
@@ -376,6 +397,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
     -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
+    -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
