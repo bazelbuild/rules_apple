@@ -296,7 +296,7 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     env = test_env,
-    runner = ":ios_x86_64_sim_ruse_disabled_runner",
+    runner = ":ios_x86_64_sim_reuse_disabled_runner",
 )
 
 swift_library(
