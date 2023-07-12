@@ -2318,7 +2318,7 @@ write_file(
     name = "objc_with_framework_src",
     out = "ObjcWithFramework.m",
     content = ["""
-#import <SwiftFmwkWithGenHeader/SwiftFmwkWithGenHeader.h>
+#import <Swift3PFmwkWithGenHeader/Swift3PFmwkWithGenHeader.h>
 
 int objc_with_framework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
@@ -2359,10 +2359,10 @@ write_file(
     name = "swift_with_dynamic_swift_framework_src",
     out = "SwiftWithDynamicSwiftFramework.swift",
     content = ["""
-import SwiftFmwkWithGenHeader
+import Swift3PFmwkWithGenHeader
 
 func swift_with_dynamic_swift_framework_function() {
-  let sc = SwiftFmwkWithGenHeader.SharedClass()
+  let sc = Swift3PFmwkWithGenHeader.SharedClass()
   sc.doSomethingShared()
 }
 """],
@@ -2379,25 +2379,25 @@ apple_dynamic_xcframework_import(
 
 genrule(
     name = "ios_swift_dynamic_xcframework",
-    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header"],
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header"],
     outs = [
-        "SwiftFmwkWithGenHeader.xcframework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Info.plist",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
-        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "Swift3PFmwkWithGenHeader.xcframework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
     ],
-    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header) -d $(RULEDIR)",
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header) -d $(RULEDIR)",
     tags = common.fixture_tags,
 )
 
@@ -3780,10 +3780,13 @@ ios_static_framework(
 
 ios_static_framework(
     name = "static_framework_with_generated_header",
-    bundle_name = "SwiftFmwkWithGenHeader",
+    bundle_name = "SwiftStaticFmwkWithGenHeader",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
-    deps = [":SwiftFmwkWithGenHeader"],
+    deps = [":SwiftStaticFmwkWithGenHeader"],
 )
 
 ios_static_framework(
@@ -3876,10 +3879,11 @@ swift_library(
 )
 
 swift_library(
-    name = "SwiftFmwkWithGenHeader",
+    name = "SwiftStaticFmwkWithGenHeader",
     srcs = [":dummy_swift"],
+    features = ["swift.enable_library_evolution"],
     generates_header = True,
-    module_name = "SwiftFmwkWithGenHeader",
+    module_name = "SwiftStaticFmwkWithGenHeader",
     tags = common.fixture_tags,
 )
 

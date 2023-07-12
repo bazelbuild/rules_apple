@@ -83,16 +83,16 @@ def apple_dynamic_xcframework_import_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Headers/",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Modules/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
         ],
         binary_test_file = "$BINARY",
         macho_load_commands_contain = [
-            "name @rpath/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader (offset 24)",
+            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
         ],
         tags = [name],
     )
@@ -101,16 +101,16 @@ def apple_dynamic_xcframework_import_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Headers/",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Modules/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
         ],
         binary_test_file = "$BINARY",
         macho_load_commands_contain = [
-            "name @rpath/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader (offset 24)",
+            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
         ],
         tags = [name],
     )
@@ -164,7 +164,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         name = "{}_xcframework_swift_binary_file_info_test_fat".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
         binary_contains_file_info = ["Mach-O 64-bit dynamically linked shared library x86_64"],
         tags = [name],
     )
@@ -215,16 +215,16 @@ def apple_dynamic_xcframework_import_test_suite(name):
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Headers/",
-            "$BUNDLE_ROOT/Frameworks/SwiftFmwkWithGenHeader.framework/Modules/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
         ],
         binary_test_file = "$BINARY",
         macho_load_commands_contain = [
-            "name @rpath/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader (offset 24)",
+            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
         ],
         tags = [name],
     )
