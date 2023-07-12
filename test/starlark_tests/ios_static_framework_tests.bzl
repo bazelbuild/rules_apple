@@ -141,10 +141,10 @@ def ios_static_framework_test_suite(name):
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
         contains = [
-            "$BUNDLE_ROOT/Headers/SwiftFmwkWithGenHeader.h",
+            "$BUNDLE_ROOT/Headers/SwiftStaticFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/Modules/SwiftStaticFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/SwiftStaticFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
         tags = [name],
     )
@@ -177,12 +177,12 @@ def ios_static_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
         contains = [
-            "$ARCHIVE_ROOT/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+            "$ARCHIVE_ROOT/SwiftStaticFmwkWithGenHeader.framework/SwiftStaticFmwkWithGenHeader",
         ],
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
         text_test_values = [
-            "module SwiftFmwkWithGenHeader",
-            "header \"SwiftFmwkWithGenHeader.h\"",
+            "module SwiftStaticFmwkWithGenHeader",
+            "header \"SwiftStaticFmwkWithGenHeader.h\"",
         ],
         tags = [name],
     )
