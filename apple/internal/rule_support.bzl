@@ -781,6 +781,27 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # visionos_extension
+        apple_product_type.app_extension: _describe_rule_type(
+            allowed_device_families = ["vision"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            deps_cfg = apple_common.multi_arch_split,
+            extra_linkopts = [
+                "-e",
+                "_VisionExtensionMain",
+                "-fapplication-extension",
+            ],
+            product_type = apple_product_type.app_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
+                # or Application.app/Frameworks
+                "@executable_path/Frameworks",
+                "@executable_path/../../Frameworks",
+            ],
+        ),
         # visionos_framework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["vision"],

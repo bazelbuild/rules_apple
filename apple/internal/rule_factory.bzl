@@ -1042,10 +1042,10 @@ fashion, such as a Cocoapod.
 
         attrs.append({
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
 """,
                 **extra_args
@@ -1145,10 +1145,10 @@ fashion, such as a Cocoapod.
 
         attrs.append({
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
                 **extra_args
