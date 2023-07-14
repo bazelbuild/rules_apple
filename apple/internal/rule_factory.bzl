@@ -83,6 +83,7 @@ load(
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
     "VisionosApplicationBundleInfo",
+    "VisionosExtensionBundleInfo",
     "VisionosFrameworkBundleInfo",
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
@@ -1023,7 +1024,8 @@ fashion, such as a Cocoapod.
                 aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
-                    [AppleBundleInfo, VisionosApplicationBundleInfo],
+                    [AppleBundleInfo, TvosApplicationBundleInfo],
+                    [AppleBundleInfo, TvosExtensionBundleInfo],
                 ],
             ),
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
@@ -1060,22 +1062,40 @@ def _get_visionos_attrs(rule_descriptor):
 
     if rule_descriptor.product_type == apple_product_type.application:
         attrs.append({
+            "extensions": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, VisionosExtensionBundleInfo],
+                ],
+                doc = "A list of visionOS extensions to include in the final application bundle.",
+            ),
             "_runner_template": attr.label(
                 cfg = "exec",
                 allow_single_file = True,
-                # Currently using the iOS Simulator template since it does not
-                # require significantly different sim runner logic from iOS.
+                # Currently using the iOS Simulator template for visionOS, as visionOS does not require
+                # significantly different sim runner logic from iOS.
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
             ),
         })
     elif rule_descriptor.product_type == apple_product_type.framework:
         attrs.append({
-            "hdrs": attr.label_list(allow_files = [".h"]),
+            # TODO(kaipi): This attribute is not publicly documented, but it is tested in
+            # http://github.com/bazelbuild/rules_apple/test/ios_framework_test.sh?l=79. Figure out
+            # what to do with this.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
 If true, compiles and links this framework with `-application-extension`, restricting the binary to
 use only extension-safe APIs.
+""",
+            ),
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
 """,
             ),
         })
@@ -1125,8 +1145,8 @@ fashion, such as a Cocoapod.
                 aspects = [framework_provider_aspect],
                 mandatory = test_host_mandatory,
                 providers = [
-                    [AppleBundleInfo, TvosApplicationBundleInfo],
-                    [AppleBundleInfo, TvosExtensionBundleInfo],
+                    [AppleBundleInfo, VisionosApplicationBundleInfo],
+                    [AppleBundleInfo, VisionosExtensionBundleInfo],
                 ],
             ),
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
