@@ -26,6 +26,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
 
 visibility("public")
 
@@ -134,7 +138,7 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
     },
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),

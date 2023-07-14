@@ -45,6 +45,7 @@ bzl_library(
         "//apple/internal:linking_support",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
     ],
 )
 
