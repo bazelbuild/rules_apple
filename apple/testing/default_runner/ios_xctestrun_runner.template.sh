@@ -344,8 +344,10 @@ readonly testlog=$test_tmp_dir/test.log
 
 test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
 intel_simulator_hack=false
+architecture="arm64"
 if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
   intel_simulator_hack=true
+  architecture="i386"
 fi
 
 should_use_xcodebuild=false
@@ -398,12 +400,14 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
     -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
-    -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
     -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
     -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
+    -e "s@BAZEL_SOURCE_FILES_COMMON_PREFIX@$PWD@g" \
+    -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
+    -e "s@BAZEL_TEST_BUNDLE_NAME@$test_bundle_name.xctest@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
 
@@ -429,7 +433,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     args+=("${custom_xcodebuild_args[@]}")
   fi
 
-  xcodebuild test-without-building "${args[@]}" \
+  xcodebuild test-without-building "${args[@]}" -enableCodeCoverage YES \
     2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
     || test_exit_code=$?
 else
@@ -492,8 +496,11 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
   exit 0
 fi
 
-readonly profdata="$test_tmp_dir/coverage.profdata"
-xcrun llvm-profdata merge "$profraw" --output "$profdata"
+profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+if [[ "$should_use_xcodebuild" == false ]]; then
+  profdata="$test_tmp_dir/coverage.profdata"
+  xcrun llvm-profdata merge "$profraw" --output "$profdata"
+fi
 
 lcov_args=(
   -instr-profile "$profdata"

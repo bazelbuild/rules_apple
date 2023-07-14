@@ -30,8 +30,6 @@
     </array>
     <key>TestingEnvironmentVariables</key>
     <dict>
-      <key>LLVM_PROFILE_FILE</key>
-      <string>BAZEL_COVERAGE_PROFRAW</string>
       <key>DYLD_INSERT_LIBRARIES</key>
       <string>BAZEL_INSERT_LIBRARIES</string>
       <key>DYLD_LIBRARY_PATH</key>
@@ -49,6 +47,36 @@
 BAZEL_COMMAND_LINE_ARGS_SECTION
 BAZEL_SKIP_TEST_SECTION
 BAZEL_ONLY_TEST_SECTION
+  </dict>
+  <key>__xctestrun_metadata__</key>
+  <dict>
+    <key>CodeCoverageBuildableInfos</key>
+    <array>
+      <dict>
+        <key>Architecture</key>
+        <string>BAZEL_ARCHITECTURE</string>
+        <key>BuildableIdentifier</key>
+        <string>000000000000000000000000:primary</string>
+        <key>IncludeInReport</key>
+        <false/>
+        <key>IsStatic</key>
+        <false/>
+        <key>Name</key>
+        <string>BAZEL_TEST_BUNDLE_NAME</string>
+        <key>ProductPath</key>
+        <string>__TESTROOT__/Debug-iphonesimulator/BAZEL_TEST_BUNDLE_NAME-Runner.app/PlugIns/BAZEL_TEST_BUNDLE_NAME.xctest/BAZEL_TEST_BUNDLE_NAME</string>
+        <key>SourceFiles</key>
+        <array></array>
+        <key>SourceFilesCommonPathPrefix</key>
+        <string>BAZEL_SOURCE_FILES_COMMON_PREFIX/</string>
+        <key>Toolchains</key>
+        <array>
+          <string>com.apple.dt.toolchain.XcodeDefault</string>
+        </array>
+      </dict>
+    </array>
+    <key>FormatVersion</key>
+    <integer>1</integer>
   </dict>
 </dict>
 </plist>
