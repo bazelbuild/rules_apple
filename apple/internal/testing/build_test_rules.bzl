@@ -63,6 +63,9 @@ def apple_build_test_rule(doc, platform_type):
     Returns:
         The created `rule`.
     """
+    targets_cfg = apple_common.multi_arch_split
+    if platform_type == "watchos":
+        targets_cfg = transition_support.apple_platform_split_transition
 
     # TODO(b/161808913): Once resource processing actions have all been moved
     #  into the resource aspect (that is, they are processed at the library
@@ -81,7 +84,7 @@ number (for example, `"9.0"`).
 """,
             ),
             "targets": attr.label_list(
-                cfg = apple_common.multi_arch_split,
+                cfg = targets_cfg,
                 doc = "The targets to check for successful build.",
                 # Since `CcInfo` is the currency provider for rules that
                 # propagate libraries for linking to Apple bundles, this is
