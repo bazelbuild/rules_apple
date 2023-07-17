@@ -49,15 +49,19 @@ def _apple_static_library_impl(ctx):
         collect_data = True,
     )
 
-    return [
+    providers = [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
         AppleBinaryInfo(
             binary = link_result.library,
             infoplist = None,
         ),
-        link_result.objc,
         link_result.output_groups,
     ]
+
+    if link_result.objc:
+        providers.append(link_result.objc)
+
+    return providers
 
 apple_static_library = rule(
     implementation = _apple_static_library_impl,
