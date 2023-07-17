@@ -18,6 +18,7 @@ objc_library(
     data = [
         "Resources/Main.storyboard",
     ],
+    tags = ["manual"],
 )
 
 apple_bundle_version(

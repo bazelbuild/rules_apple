@@ -45,6 +45,7 @@ swift_library(
         "Buttons/ViewController.swift",
     ],
     module_name = "Buttons",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -53,6 +54,7 @@ swift_library(
         "ButtonsExtension/ActionRequestHandler.swift",
     ],
     module_name = "ButtonsExtension",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -62,6 +64,7 @@ swift_library(
         "ButtonsTests/ButtonsTests.swift",
     ],
     module_name = "ButtonsTests",
+    tags = ["manual"],
     deps = [
         ":ButtonsLib",
     ],
@@ -74,6 +77,7 @@ swift_library(
         "ButtonsUITests/ButtonsUITests.swift",
     ],
     module_name = "ButtonsUITests",
+    tags = ["manual"],
 )
 
 ## Resources
@@ -165,6 +169,7 @@ swift_library(
         "ButtonsWatchExtension/NotificationController.swift",
     ],
     module_name = "ButtonsWatchExtension",
+    tags = ["manual"],
 )
 
 ## Packaging
@@ -199,6 +204,7 @@ swift_library(
         "ButtonsTV/ViewController.swift",
     ],
     module_name = "ButtonsTV",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -207,20 +213,25 @@ swift_library(
         "ButtonsTVExtension/ServiceProvider.swift",
     ],
     module_name = "ButtonsTVExtension",
+    tags = ["manual"],
 )
 
 swift_library(
     name = "ButtonsTVTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTVTests/ButtonsTVTests.swift",
     ],
+    tags = ["manual"],
 )
 
 swift_library(
     name = "ButtonsTVUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTVUITests/ButtonsTVUITests.swift",
     ],
+    tags = ["manual"],
 )
 
 ## Resources
@@ -270,6 +281,7 @@ swift_library(
         "ButtonsMac/ViewController.swift",
     ],
     module_name = "ButtonsMac",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -279,6 +291,7 @@ swift_library(
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
     module_name = "ButtonsMacTests",
+    tags = ["manual"],
     deps = [
         ":ButtonsMacLib",
     ],
@@ -286,10 +299,12 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsMacUITests/ButtonsMacUITests.swift",
     ],
     module_name = "ButtonsMacUITests",
+    tags = ["manual"],
 )
 
 macos_static_framework(
