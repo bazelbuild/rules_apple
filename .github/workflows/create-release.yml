@@ -18,18 +18,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          git config user.name "Automatic version bump"
-          git config user.email "noreply@github.com"
-
-          ./.github/update-module-version.sh "$TAG"
-          tmp_branch="$(uuidgen)"
-          git checkout -b "$tmp_branch"
-          git add MODULE.bazel
-          msg="Update MODULE.bazel to $TAG"
-          git commit -m "$msg"
-          git push -u origin "$tmp_branch"
-          gh pr create --title "$msg" --body ""
-
           COPYFILE_DISABLE=1 tar czvf "rules_apple.$TAG.tar.gz" ./*
           ./.github/generate-notes.sh "$TAG" | tee notes.md
           gh release create "$TAG" --title "$TAG" --target "$GITHUB_REF_NAME" --notes-file notes.md "rules_apple.$TAG.tar.gz"
