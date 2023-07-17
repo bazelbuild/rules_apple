@@ -433,7 +433,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     args+=("${custom_xcodebuild_args[@]}")
   fi
 
-  xcodebuild test-without-building "${args[@]}" -enableCodeCoverage YES \
+  xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
     || test_exit_code=$?
 else
