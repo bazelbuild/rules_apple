@@ -63,6 +63,31 @@ def _platform_specific_cpu_setting_name(platform_type):
         fail("ERROR: Unknown platform type: {}".format(platform_type))
     return flag
 
+def _environment_archs(platform_type, settings):
+    """Returns a full set of environment archs from the incoming command line options.
+
+    Args:
+        platform_type: A string denoting the platform type; `"ios"`, `"macos"`,
+            `"tvos"`, or `"watchos"`.
+        settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
+            the settings argument found on the implementation function of the current Starlark
+            transition.
+
+    Returns:
+        A list of valid Apple environments with its architecture as a string (for example
+        `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`).
+    """
+    environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
+    if not environment_archs:
+        if platform_type == "ios":
+            # Legacy exception to interpret the --cpu as an iOS arch.
+            cpu_value = settings["//command_line_option:cpu"]
+            if cpu_value.startswith("ios_"):
+                environment_archs = [cpu_value[4:]]
+        if not environment_archs:
+            environment_archs = [_DEFAULT_ARCH]
+    return environment_archs
+
 def _cpu_string(*, environment_arch, platform_type, settings = {}):
     """Generates a <platform>_<environment?>_<arch> string for the current target based on args.
 
@@ -313,11 +338,13 @@ def _command_line_options_for_xcframework_platform(
     return output_dictionary
 
 def _apple_rule_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules using Bazel CPUs and apple_common split transition."""
+    """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
+    platform_type = attr.platform_type
     return _command_line_options(
         emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        environment_arch = _environment_archs(platform_type, settings)[0],
         minimum_os_version = attr.minimum_os_version,
-        platform_type = attr.platform_type,
+        platform_type = platform_type,
         settings = settings,
     )
 
@@ -337,10 +364,9 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
 ]
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
     "//command_line_option:apple_platforms",
-]
-_apple_platform_transition_inputs = _apple_rule_base_transition_inputs + [
-    "//command_line_option:apple_platforms",
     "//command_line_option:incompatible_enable_apple_toolchain_resolution",
+]
+_apple_platform_transition_inputs = _apple_platforms_rule_base_transition_inputs + [
     "//command_line_option:platforms",
 ]
 _apple_rule_base_transition_outputs = [
@@ -374,12 +400,18 @@ _apple_rule_base_transition = transition(
 )
 
 def _apple_platforms_rule_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules using Bazel platforms and Starlark split transition."""
+    """Rule transition for Apple rules using Bazel platforms and the Starlark split transition."""
+    platform_type = attr.platform_type
+    environment_arch = None
+    if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
+        # Add fallback to match an anticipated split of Apple cpu-based resolution
+        environment_arch = _environment_archs(platform_type, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
         emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
+        environment_arch = environment_arch,
         minimum_os_version = attr.minimum_os_version,
-        platform_type = attr.platform_type,
+        platform_type = platform_type,
         settings = settings,
     )
 
@@ -483,16 +515,7 @@ def _apple_platform_split_transition_impl(settings, attr):
 
     else:
         platform_type = attr.platform_type
-        environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
-        if not environment_archs:
-            if platform_type == "ios":
-                # Legacy exception to interpret the --cpu as an iOS arch.
-                cpu_value = settings["//command_line_option:cpu"]
-                if cpu_value.startswith("ios_"):
-                    environment_archs = [cpu_value[4:]]
-            if not environment_archs:
-                environment_archs = [_DEFAULT_ARCH]
-        for environment_arch in environment_archs:
+        for environment_arch in _environment_archs(platform_type, settings):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
                 platform_type = platform_type,
