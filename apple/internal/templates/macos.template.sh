@@ -39,6 +39,4 @@ readonly BUNDLE_INFO_PLIST="${APP_DIR}/Contents/Info.plist"
 readonly BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "${BUNDLE_INFO_PLIST}")
 
 # Launch the app binary
-# Do *not* use `exec` here becaues we need the clean up done by the trap to run after the 
-# executable has been run.
-"${APP_DIR}/Contents/MacOS/${BUNDLE_EXECUTABLE}" "$@"
+exec "${APP_DIR}/Contents/MacOS/${BUNDLE_EXECUTABLE}" "$@"
