@@ -24,6 +24,7 @@ swift_library(
     name = "iMessageExtensionLib",
     srcs = ["MessagesViewController.swift"],
     data = ["MainInterface.storyboard"],
+    tags = ["manual"],
 )
 
 ios_imessage_extension(

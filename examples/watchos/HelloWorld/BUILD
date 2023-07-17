@@ -30,6 +30,7 @@ objc_library(
     sdk_frameworks = [
         "WatchConnectivity",
     ],
+    tags = ["manual"],
 )
 
 objc_library(
@@ -44,6 +45,7 @@ objc_library(
         "WatchConnectivity",
         "WatchKit",
     ],
+    tags = ["manual"],
 )
 
 apple_bundle_version(
