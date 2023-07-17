@@ -141,6 +141,7 @@ bzl_library(
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
     ],
