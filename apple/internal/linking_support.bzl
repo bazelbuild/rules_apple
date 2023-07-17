@@ -213,7 +213,7 @@ def _register_binary_linking_action(
         binary = fat_binary,
         cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
-        objc = linking_outputs.objc,
+        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
@@ -253,7 +253,7 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
-        objc = linking_outputs.objc,
+        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
