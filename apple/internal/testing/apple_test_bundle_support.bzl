@@ -343,7 +343,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     extra_linkopts = [
         "-framework",
         "XCTest",
-        "-bundle",
     ]
 
     link_result = linking_support.register_binary_linking_action(
@@ -354,6 +353,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

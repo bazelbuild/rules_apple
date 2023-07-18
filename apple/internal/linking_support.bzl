@@ -92,6 +92,8 @@ def _register_binary_linking_action(
         entitlements = None,
         exported_symbols_lists = [],
         extra_linkopts = [],
+        extra_requested_features = [],
+        extra_disabled_features = [],
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1):
@@ -204,6 +206,8 @@ def _register_binary_linking_action(
         avoid_deps = all_avoid_deps,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
+        extra_requested_features = extra_requested_features,
+        extra_disabled_features = extra_disabled_features,
         stamp = stamp,
     )
 

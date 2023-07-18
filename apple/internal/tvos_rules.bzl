@@ -478,13 +478,13 @@ def _tvos_framework_impl(ctx):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
-            "-dynamiclib",
             "-install_name",
             "@rpath/{name}{extension}/{name}".format(
                 extension = bundle_extension,
                 name = bundle_name,
             ),
         ],
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
