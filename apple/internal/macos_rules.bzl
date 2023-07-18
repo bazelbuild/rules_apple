@@ -520,7 +520,7 @@ def _macos_bundle_impl(ctx):
         bundle_loader = ctx.attr.bundle_loader,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = ["-bundle"],
+        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1015,7 +1015,6 @@ def _macos_quick_look_plugin_impl(ctx):
     )
 
     extra_linkopts = [
-        "-dynamiclib",
         "-install_name",
         "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
@@ -1024,6 +1023,7 @@ def _macos_quick_look_plugin_impl(ctx):
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -2076,7 +2076,7 @@ def _macos_dylib_impl(ctx):
         # Dynamic libraries do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = ["-dynamiclib"],
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

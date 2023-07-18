@@ -503,12 +503,13 @@ def _apple_xcframework_impl(ctx):
             # executables. Only macOS (which is not yet supported) is an outlier; this will require
             # changes to native Bazel linking logic for Apple binary targets.
             "-Wl,-rpath,@executable_path/Frameworks",
-            "-dynamiclib",
-            "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+            "-install_name",
+            "@rpath/{name}{extension}/{name}".format(
                 extension = nested_bundle_extension,
                 name = bundle_name,
             ),
         ],
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = None,
         # All required knowledge for 3P facing frameworks is passed directly through the given
         # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.

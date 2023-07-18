@@ -863,8 +863,8 @@ def _ios_framework_impl(ctx):
     )
 
     extra_linkopts = [
-        "-dynamiclib",
-        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+        "-install_name",
+        "@rpath/{name}{extension}/{name}".format(
             extension = bundle_extension,
             name = bundle_name,
         ),
@@ -879,6 +879,7 @@ def _ios_framework_impl(ctx):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
