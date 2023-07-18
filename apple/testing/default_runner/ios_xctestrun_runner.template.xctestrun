@@ -64,7 +64,7 @@ BAZEL_ONLY_TEST_SECTION
         <key>Name</key>
         <string>BAZEL_TEST_BUNDLE_NAME</string>
         <key>ProductPath</key>
-        <string>__TESTROOT__/Debug-iphonesimulator/BAZEL_TEST_BUNDLE_NAME-Runner.app/PlugIns/BAZEL_TEST_BUNDLE_NAME.xctest/BAZEL_TEST_BUNDLE_NAME</string>
+        <string>FakePath</string>
         <key>SourceFiles</key>
         <array></array>
         <key>SourceFilesCommonPathPrefix</key>
