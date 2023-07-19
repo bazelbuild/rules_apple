@@ -39,4 +39,4 @@ readonly BUNDLE_INFO_PLIST="${APP_DIR}/Contents/Info.plist"
 readonly BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "${BUNDLE_INFO_PLIST}")
 
 # Launch the app binary
-exec "${APP_DIR}/Contents/MacOS/${BUNDLE_EXECUTABLE}" "$@"
+"${APP_DIR}/Contents/MacOS/${BUNDLE_EXECUTABLE}" "$@"
