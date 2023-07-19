@@ -23,6 +23,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
+    "analysis_runfiles_dsym_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -186,6 +190,16 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "LSMinimumSystemVersion": "10.13",
         },
+        tags = [name],
+    )
+
+    analysis_runfiles_dsym_test(
+        name = "{}_runfiles_dsym_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_x86_64",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
+        ],
         tags = [name],
     )
 
