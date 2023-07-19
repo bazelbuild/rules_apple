@@ -50,6 +50,7 @@ objc_library(
         ":PrenotCalculatorResources",
     ],
     sdk_frameworks = ["CoreData"],
+    tags = ["manual"],
 )
 
 apple_resource_bundle(
@@ -62,6 +63,7 @@ objc_library(
     srcs = [
         "EquationTest.m",
     ],
+    tags = ["manual"],
     deps = [
         ":PrenotCalculator_library",
     ],

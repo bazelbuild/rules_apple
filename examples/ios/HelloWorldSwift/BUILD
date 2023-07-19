@@ -13,6 +13,7 @@ swift_library(
         "Resources/Main.storyboard",
     ],
     module_name = "Sources",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -21,6 +22,7 @@ swift_library(
     srcs = [
         "Tests/Tests.swift",
     ],
+    tags = ["manual"],
     deps = [
         ":Sources",
     ],
@@ -34,6 +36,7 @@ swift_library(
         "Tests/UITests.swift",
     ],
     module_name = "HelloWorldSwiftUITests",
+    tags = ["manual"],
 )
 
 ios_unit_test(
