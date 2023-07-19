@@ -92,6 +92,14 @@ def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return actions.declare_file(label_name)
 
+def _dsyms(*, processor_result):
+    """Returns a list of all of the dsyms from the result."""
+    dsyms = []
+    for provider in processor_result.providers:
+        if getattr(provider, "dsyms", None):
+            dsyms.extend(provider.dsyms.to_list())
+    return dsyms
+
 def _infoplist(*, actions, label_name, output_discriminator):
     """Returns a file reference for this target's Info.plist file."""
     return intermediates.file(
@@ -164,6 +172,7 @@ outputs = struct(
     archive = _archive,
     archive_for_embedding = _archive_for_embedding,
     binary = _binary,
+    dsyms = _dsyms,
     executable = _executable,
     infoplist = _infoplist,
     merge_output_groups = _merge_output_groups,

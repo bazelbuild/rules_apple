@@ -375,13 +375,14 @@ def _macos_application_impl(ctx):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
+    dsyms = outputs.dsyms(processor_result = processor_result)
 
     return [
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive],
+                files = [archive] + dsyms,
             ),
         ),
         new_macosapplicationbundleinfo(),
@@ -1853,6 +1854,8 @@ def _macos_command_line_application_impl(ctx):
     if clang_rt_dylibs.should_package_clang_runtime(features = features):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
+    dsyms = outputs.dsyms(processor_result = processor_result)
+
     return [
         new_applebinaryinfo(
             binary = output_file,
@@ -1864,7 +1867,7 @@ def _macos_command_line_application_impl(ctx):
                 depset([output_file]),
                 processor_result.output_files,
             ]),
-            runfiles = ctx.runfiles(runfiles),
+            runfiles = ctx.runfiles(runfiles + dsyms),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
