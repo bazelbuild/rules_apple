@@ -43,6 +43,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -97,7 +101,7 @@ _macos_internal_ui_test_bundle = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -161,7 +165,7 @@ _macos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,

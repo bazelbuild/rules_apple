@@ -64,7 +64,7 @@ def apple_build_test_rule(doc, platform_type):
         The created `rule`.
     """
     targets_cfg = apple_common.multi_arch_split
-    if platform_type == "tvos" or platform_type == "watchos":
+    if not platform_type == "ios":
         targets_cfg = transition_support.apple_platform_split_transition
 
     # TODO(b/161808913): Once resource processing actions have all been moved

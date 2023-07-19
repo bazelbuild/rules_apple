@@ -1996,10 +1996,10 @@ macos_application = rule_factory.create_apple_rule(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.app_intents_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2008,7 +2008,7 @@ macos_application = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2072,7 +2072,7 @@ macos_bundle = rule_factory.create_apple_rule(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2132,7 +2132,7 @@ macos_extension = rule_factory.create_apple_rule(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2178,7 +2178,7 @@ macos_quick_look_plugin = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2223,7 +2223,7 @@ macos_kernel_extension = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2267,7 +2267,7 @@ macos_spotlight_importer = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2311,7 +2311,7 @@ macos_xpc_service = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2355,7 +2355,7 @@ macos_command_line_application = rule_factory.create_apple_rule(
     is_executable = True,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2410,7 +2410,7 @@ macos_dylib = rule_factory.create_apple_rule(
     implementation = _macos_dylib_impl,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
