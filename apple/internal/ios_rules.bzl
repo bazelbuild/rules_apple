@@ -1826,10 +1826,10 @@ ios_application = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.app_intents_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1838,7 +1838,7 @@ ios_application = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -1935,7 +1935,7 @@ ios_app_clip = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1991,7 +1991,7 @@ ios_extension = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2050,7 +2050,7 @@ ios_framework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2215,7 +2215,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
