@@ -97,6 +97,7 @@ ios_application(
         "iphone",
         "ipad",
     ],
+    features = ["exported_symbols"],
     infoplists = ["Buttons/Info.plist"],
     minimum_os_version = "11.0",
     watch_application = ":ButtonsWatch",
@@ -335,6 +336,7 @@ macos_framework(
 macos_application(
     name = "ButtonsMac",
     bundle_id = "com.google.ButtonsMac",
+    features = ["exported_symbols"],
     infoplists = ["ButtonsMac/Info.plist"],
     minimum_os_version = "12.0",
     deps = [
