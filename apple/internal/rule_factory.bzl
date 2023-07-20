@@ -86,6 +86,9 @@ AppleTestRunnerInfo provider.
     ),
 }
 
+# The name of the execution group used to run j2objc linking actions.
+_J2OBJC_LINKING_EXEC_GROUP = "j2objc"
+
 def _create_apple_rule(
         *,
         cfg = transition_support.apple_rule_transition,
@@ -127,6 +130,12 @@ def _create_apple_rule(
         cfg = cfg,
         doc = doc,
         executable = is_executable,
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        exec_groups = {
+            _J2OBJC_LINKING_EXEC_GROUP: exec_group(
+                exec_compatible_with = ["@platforms//os:osx"],
+            ),
+        },
         fragments = ["apple", "cpp", "objc"],
         toolchains = toolchains,
         **extra_args
@@ -157,6 +166,12 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        exec_groups = {
+            _J2OBJC_LINKING_EXEC_GROUP: exec_group(
+                exec_compatible_with = ["@platforms//os:osx"],
+            ),
+        },
         test = True,
         toolchains = use_cpp_toolchain(),
     )

@@ -72,6 +72,9 @@ visibility([
     "//test/...",
 ])
 
+# The name of the execution group used to run j2objc linking actions.
+_J2OBJC_LINKING_EXEC_GROUP = "j2objc"
+
 def _common_attrs():
     """Private attributes on all rules; these should be included in all rule attributes."""
     return dicts.add(
@@ -172,13 +175,14 @@ def _j2objc_binary_linking_attrs(*, deps_cfg):
             cfg = deps_cfg,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
         "_j2objc_dead_code_pruner": attr.label(
             executable = True,
             # Setting `allow_single_file=True` would be more correct. Unfortunately,
             # doing so prevents using py_binary as the underlying target because py_binary
             # produces at least _two_ output files (the executable plus any files in srcs)
             allow_files = True,
-            cfg = "exec",
+            cfg = config.exec(_J2OBJC_LINKING_EXEC_GROUP),
             default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
         ),
         # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
