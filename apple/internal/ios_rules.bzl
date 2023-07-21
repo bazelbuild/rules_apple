@@ -226,10 +226,13 @@ def _ios_application_impl(ctx):
     )
 
     extra_linkopts = []
+    extra_requested_features = []
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -237,6 +240,7 @@ def _ios_application_impl(ctx):
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
