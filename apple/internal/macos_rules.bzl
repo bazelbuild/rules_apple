@@ -195,10 +195,15 @@ def _macos_application_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
