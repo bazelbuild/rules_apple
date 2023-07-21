@@ -79,12 +79,6 @@ def _common_attrs():
     """Private attributes on all rules; these should be included in all rule attributes."""
     return dicts.add(
         {
-            "_grep_includes": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                executable = True,
-                default = Label("@bazel_tools//tools/cpp:grep-includes"),
-            ),
         },
         apple_support.action_required_attrs(),
     )
