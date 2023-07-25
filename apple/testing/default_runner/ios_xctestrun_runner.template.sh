@@ -347,7 +347,7 @@ intel_simulator_hack=false
 architecture="arm64"
 if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
   intel_simulator_hack=true
-  architecture="i386"
+  architecture="x86_64"
 fi
 
 should_use_xcodebuild=false
