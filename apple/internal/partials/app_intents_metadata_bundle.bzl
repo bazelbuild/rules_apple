@@ -56,7 +56,7 @@ def _app_intents_metadata_bundle_partial_impl(
         disabled_features = disabled_features,
         features = features,
         label = label,
-        # Allow `_main` to be undefined since non of the AppIntents implementing dependencies
+        # Allow `_main` to be undefined since none of the AppIntents implementing dependencies
         # should include this entry point, and we only care about linking all AppIntents symbols.
         user_link_flags = ["-Wl,-U,_main"],
     )
