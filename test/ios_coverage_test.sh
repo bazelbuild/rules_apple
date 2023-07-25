@@ -235,11 +235,10 @@ ios_unit_test(
 )
 
 ios_ui_test(
-    name = "test_coverage_ui_test_new_runner",
+    name = "test_coverage_ui_test",
     deps = [":coverage_ui_test_lib"],
     minimum_os_version = "15",
     test_host = ":coverage_app",
-    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
 )
 EOF
 }
@@ -299,8 +298,8 @@ function test_hosted_unit_test_coverage() {
 
 function test_ui_test_coverage_new_runner() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test_new_runner || fail "Should build"
-  assert_contains "CoverageApp.swift:" "test-testlogs/app/test_coverage_ui_test_new_runner/coverage.dat"
+  do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test || fail "Should build"
+  assert_contains "CoverageApp.swift:" "test-testlogs/app/test_coverage_ui_test/coverage.dat"
 }
 
 run_suite "ios coverage tests"
