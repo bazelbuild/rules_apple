@@ -1086,6 +1086,7 @@ def _ios_extension_impl(ctx):
     )
     executable_name = ctx.attr.executable_name
     label = ctx.label
+
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         build_settings = apple_xplat_toolchain_info.build_settings,
@@ -1210,6 +1211,16 @@ def _ios_extension_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+        ),
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -2609,6 +2620,9 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
         ),
+        rule_attrs.app_intents_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2618,7 +2632,12 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
