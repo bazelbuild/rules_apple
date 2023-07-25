@@ -296,7 +296,7 @@ function test_hosted_unit_test_coverage() {
     nm -u - | grep foo || fail "Undefined 'foo' symbol not found"
 }
 
-function test_ui_test_coverage_new_runner() {
+function test_ui_test_coverage() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test || fail "Should build"
   assert_contains "CoverageApp.swift:" "test-testlogs/app/test_coverage_ui_test/coverage.dat"
