@@ -27,7 +27,7 @@ def _app_intents_aspect_impl(target, ctx):
     if ctx.rule.kind != "swift_library":
         return []
 
-    sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = [target])
+    sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = [target], include_weak = True)
     if "AppIntents" not in sdk_frameworks.to_list():
         fail(
             "Target '%s' does not depend on the AppIntents SDK framework. " % target.label +
