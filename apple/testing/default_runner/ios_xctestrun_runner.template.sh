@@ -479,7 +479,7 @@ fi
 # a success. These 2 cases are Swift fatalErrors, and C++ exceptions. There
 # are likely other cases we can add to this in the future. FB7801959
 if grep -q \
-  -e "^Fatal error:" \
+  -e "^(.*:[0-9]+:\s)?Fatal error:" \
   -e "^libc++abi.dylib: terminating with uncaught exception" \
   "$testlog"
 then
