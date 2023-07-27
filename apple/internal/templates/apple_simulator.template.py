@@ -49,6 +49,7 @@ import json
 import logging
 import os
 import os.path
+import pathlib
 import platform
 import plistlib
 import subprocess
@@ -65,7 +66,7 @@ AppleSimulatorUDID = collections.abc.Generator[str, None, None]
 logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.INFO,
+    level=logging.DEBUG,
 )
 logger = logging.getLogger(__name__)
 
@@ -474,6 +475,34 @@ def temporary_simulator(
     subprocess.run([simctl_path, "delete", udid], check=True)
 
 
+def register_dsyms(dsyms_dir: str):
+  """Adds all dSYMs in `dsyms_dir` to the symbolscache.
+
+  Args:
+    dsyms_dir: Path to directory potentially containing dSYMs
+  """
+  symbolscache_command = [
+      "/usr/bin/symbolscache",
+      "add",
+      "--tag",
+      "Bazel",
+  ] + [
+      a
+      for a in pathlib.Path(dsyms_dir).glob(
+          "**/*.dSYM/Contents/Resources/DWARF/*"
+      )
+  ]
+  logger.debug("Running command: %s", symbolscache_command)
+  result = subprocess.run(
+      symbolscache_command,
+      capture_output=True,
+      check=True,
+      encoding="utf-8",
+      text=True,
+  )
+  logger.debug("symbolscache output: %s", result.stdout)
+
+
 @contextlib.contextmanager
 def extracted_app(
     application_output_path: str, app_name: str
@@ -626,6 +655,8 @@ def run_app_in_simulator(
       simctl_path=simctl_path,
       udid=simulator_udid,
   )
+  root_dir = os.path.dirname(application_output_path)
+  register_dsyms(root_dir)
   with extracted_app(application_output_path, app_name) as app_path:
     logger.debug("Installing app %s to simulator %s", app_path, simulator_udid)
     subprocess.run(

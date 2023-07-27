@@ -386,7 +386,8 @@ def _macos_application_impl(ctx):
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
-                files = [archive] + dsyms,
+                files = [archive],
+                transitive_files = dsyms,
             ),
         ),
         new_macosapplicationbundleinfo(),
@@ -1871,7 +1872,10 @@ def _macos_command_line_application_impl(ctx):
                 depset([output_file]),
                 processor_result.output_files,
             ]),
-            runfiles = ctx.runfiles(runfiles + dsyms),
+            runfiles = ctx.runfiles(
+                files = runfiles,
+                transitive_files = dsyms,
+            ),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(

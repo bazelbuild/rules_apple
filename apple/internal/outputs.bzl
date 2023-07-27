@@ -93,12 +93,12 @@ def _executable(*, actions, label_name):
     return actions.declare_file(label_name)
 
 def _dsyms(*, processor_result):
-    """Returns a list of all of the dsyms from the result."""
+    """Returns a depset of all of the dsyms from the result."""
     dsyms = []
     for provider in processor_result.providers:
         if getattr(provider, "dsyms", None):
-            dsyms.extend(provider.dsyms.to_list())
-    return dsyms
+            dsyms.append(provider.dsyms)
+    return depset(transitive = dsyms)
 
 def _infoplist(*, actions, label_name, output_discriminator):
     """Returns a file reference for this target's Info.plist file."""
