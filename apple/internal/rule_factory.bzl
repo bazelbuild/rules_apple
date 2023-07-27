@@ -143,22 +143,7 @@ def _link_multi_arch_binary_attrs(*, cfg = apple_common.multi_arch_split):
     Args:
         cfg: Bazel split transition to use on attrs.
     """
-    return dicts.add(
-        _common_linking_api_attrs(cfg = cfg),
-        {
-            # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
-            # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
-            # See CompilationSupport.java:
-            # - `registerJ2ObjcDeadCodeRemovalActions()`
-            # - `registerLinkActions()` --> `registerBinaryStripAction()`
-            # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
-            "_xcrunwrapper": attr.label(
-                cfg = "exec",
-                executable = True,
-                default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-            ),
-        },
-    )
+    return _common_linking_api_attrs(cfg = cfg)
 
 # Needed for the J2ObjC processing code that already exists in the implementation of
 # apple_common.link_multi_arch_binary.
