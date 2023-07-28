@@ -300,7 +300,7 @@ function test_hosted_unit_test_coverage() {
 function test_ui_test_coverage_new_runner() {
   create_common_files
   do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test_new_runner || fail "Should build"
-  assert_contains "DA:5,1" "test-testlogs/app/test_coverage_ui_test_new_runner/coverage.dat"
+  assert_contains "DA:5,1 " "test-testlogs/app/test_coverage_ui_test_new_runner/coverage.dat"
 }
 
 run_suite "ios coverage tests"
