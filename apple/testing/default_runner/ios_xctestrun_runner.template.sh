@@ -408,7 +408,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
-    -e "s@BAZEL_SOURCE_FILES_COMMON_PREFIX@$PWD@g" \
     -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
     -e "s@BAZEL_TEST_BUNDLE_NAME@$test_bundle_name.xctest@g" \
     -e "s@BAZEL_PRODUCT_PATH@$product_path@g" \
