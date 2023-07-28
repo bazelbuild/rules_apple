@@ -490,6 +490,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         predeclared_outputs = predeclared_outputs,
     )
 
+    dsyms = outputs.dsyms(processor_result = processor_result)
+
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
     # the rule (except the archive) so that they're propagated and can be returned by the test
@@ -530,7 +532,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             dependency_attributes = ["deps", "test_host"],
         ),
         new_appleextraoutputsinfo(files = depset(filtered_outputs)),
-        DefaultInfo(files = output_files),
+        DefaultInfo(
+            files = output_files,
+            runfiles = ctx.runfiles(
+                transitive_files = dsyms,
+            ),
+        ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
