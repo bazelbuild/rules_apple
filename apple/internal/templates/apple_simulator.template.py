@@ -67,7 +67,7 @@ AppleSimulatorUDID = collections.abc.Generator[str, None, None]
 logging.basicConfig(
     format="%(asctime)s.%(msecs)03d %(levelname)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
 
@@ -484,6 +484,10 @@ def register_dsyms(dsyms_dir: str):
   """
   symbolscache_command = [
       "/usr/bin/symbolscache",
+      "delete",
+      "--tag",
+      "Bazel",
+      "compact",
       "add",
       "--tag",
       "Bazel",

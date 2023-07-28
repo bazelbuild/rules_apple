@@ -33,15 +33,13 @@ else
   readonly APP_DIR="${TEMP_DIR}/%app_name%.app"
 fi
 
-for dsym in $(find -L "$(dirname %app_path%)" -type d -name "*.dSYM"); do
-  # This adds the symbols to the CoreSymbolication so they can be easily found
-  # without having spotlight index them.
-  # Tagged with "bazel" for easy deletions of all bazel symbols should we want
-  # to add a cleanup mechanism.
-  # Not cleaning up as part of the trap because the symbols may be accessed
-  # after the trap has run in the case of a crash.
-  symbolscache add --tag Bazel "${dsym}/Contents/Resources/DWARF/"*
-done
+# Clean out all the old symbols from previous runs.
+symbolscache --quiet delete --tag Bazel compact
+# This adds the symbols to the CoreSymbolication so they can be easily found
+# without having spotlight index them.
+# Not cleaning up as part of a trap because the symbols may be accessed
+# after the trap has run in the case of a crash.
+find -L "$(dirname %app_path%)" -path "*.dSYM/Contents/Resources/DWARF/*" -exec symbolscache --quiet add --tag Bazel {} \;
 
 # Get the bundle executable name of the app. Read this from the plist in case it
 # differs from the app name.
