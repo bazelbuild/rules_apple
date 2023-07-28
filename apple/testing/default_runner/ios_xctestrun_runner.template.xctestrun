@@ -58,17 +58,13 @@ BAZEL_ONLY_TEST_SECTION
         <key>BuildableIdentifier</key>
         <string>000000000000000000000000:primary</string>
         <key>IncludeInReport</key>
-        <false/>
+        <true/>
         <key>IsStatic</key>
         <false/>
         <key>Name</key>
         <string>BAZEL_TEST_BUNDLE_NAME</string>
         <key>ProductPath</key>
-        <string>FakePath</string>
-        <key>SourceFiles</key>
-        <array></array>
-        <key>SourceFilesCommonPathPrefix</key>
-        <string>BAZEL_SOURCE_FILES_COMMON_PREFIX/</string>
+        <string>BAZEL_PRODUCT_PATH</string>
         <key>Toolchains</key>
         <array>
           <string>com.apple.dt.toolchain.XcodeDefault</string>
