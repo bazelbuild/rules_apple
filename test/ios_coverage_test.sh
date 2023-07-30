@@ -28,13 +28,18 @@ function tear_down() {
 
 function create_common_files() {
   cat > app/BUILD <<EOF
-load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_unit_test")
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_unit_test", "ios_ui_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 objc_library(
     name = "app_lib",
     hdrs = ["main.h"],
     srcs = ["main.m"],
+)
+
+swift_library(
+    name = "coverage_app_lib",
+    srcs = ["CoverageApp.swift"],
 )
 
 objc_library(
@@ -53,6 +58,12 @@ objc_library(
     name = "standalone_test_lib",
     srcs = ["StandaloneTest.m"],
     deps = [":shared_logic"],
+)
+
+swift_library(
+    name = "coverage_ui_test_lib",
+    srcs = ["PassingUITest.swift"],
+    testonly = True
 )
 EOF
 
@@ -137,6 +148,36 @@ EOF
 app/SharedLogic.m
 EOF
 
+cat > app/CoverageApp.swift <<EOF
+import SwiftUI
+
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            Text("Hello World")
+        }
+    }
+}
+EOF
+
+cat > app/PassingUITest.swift <<EOF
+import XCTest
+
+class PassingUITest: XCTestCase {
+    let app = XCUIApplication()
+
+  override func setUp() {
+    super.setUp()
+    app.launch()
+  }
+
+  func testPass() throws {
+    XCTAssertTrue(app.staticTexts["Hello World"].exists)
+  }
+}
+EOF
+
   cat >> app/BUILD <<EOF
 ios_application(
     name = "app",
@@ -146,6 +187,16 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
+)
+
+ios_application(
+    name = "coverage_app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "15",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":coverage_app_lib"],
 )
 
 ios_unit_test(
@@ -181,6 +232,14 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_coverage_manifest = "coverage_manifest.txt",
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+)
+
+ios_ui_test(
+    name = "test_coverage_ui_test_new_runner",
+    deps = [":coverage_ui_test_lib"],
+    minimum_os_version = "15",
+    test_host = ":coverage_app",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
 )
 EOF
 }
@@ -236,6 +295,12 @@ function test_hosted_unit_test_coverage() {
     "test-bin/app/hosted_test.runfiles/build_bazel_rules_apple_integration_tests/app/hosted_test.zip" \
     "hosted_test.xctest/hosted_test" \
     nm -u - | grep foo || fail "Undefined 'foo' symbol not found"
+}
+
+function test_ui_test_coverage_new_runner() {
+  create_common_files
+  do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test_new_runner || fail "Should build"
+  assert_contains "DA:5,1" "test-testlogs/app/test_coverage_ui_test_new_runner/coverage.dat"
 }
 
 run_suite "ios coverage tests"
