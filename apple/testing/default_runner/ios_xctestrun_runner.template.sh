@@ -149,11 +149,9 @@ xcrun_test_bundle_path="__TESTROOT__/$test_bundle_name.xctest"
 xcrun_is_xctrunner_hosted_bundle="false"
 xcrun_is_ui_test_bundle="false"
 test_type="%(test_type)s"
-product_path="__TESTROOT__/Debug-iphonesimulator/$test_bundle_name.xctest/$test_bundle_name"
 if [[ -n "$test_host_path" ]]; then
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
-  product_path="__TESTROOT__/Debug-iphonesimulator/$test_host_name.app/PlugIns/$test_bundle_name.xctest/$test_bundle_name"
   # If this is set in the case there is no test host, some tests hang indefinitely
   xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
 
@@ -166,7 +164,6 @@ if [[ -n "$test_host_path" ]]; then
     readonly runner_app_name="$test_bundle_name-Runner"
     readonly runner_app="$runner_app_name.app"
     readonly runner_app_destination="$test_tmp_dir/$runner_app"
-    product_path="__TESTROOT__/Debug-iphonesimulator/$runner_app/PlugIns/$test_bundle_name.xctest/$test_bundle_name"
     developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
     libraries_path="$developer_path/Library"
     cp -R "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
@@ -410,7 +407,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
     -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
     -e "s@BAZEL_TEST_BUNDLE_NAME@$test_bundle_name.xctest@g" \
-    -e "s@BAZEL_PRODUCT_PATH@$product_path@g" \
+    -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
 

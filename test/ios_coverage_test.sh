@@ -62,7 +62,7 @@ objc_library(
 
 swift_library(
     name = "coverage_ui_test_lib",
-    srcs = ["CoverageUITest.swift"],
+    srcs = ["PassingUITest.swift"],
     testonly = True
 )
 EOF
@@ -161,10 +161,10 @@ struct MyApp: App {
 }
 EOF
 
-cat > app/CoverageUITest.swift <<EOF
+cat > app/PassingUITest.swift <<EOF
 import XCTest
 
-class PassingUiTest: XCTestCase {
+class PassingUITest: XCTestCase {
     let app = XCUIApplication()
 
   override func setUp() {
