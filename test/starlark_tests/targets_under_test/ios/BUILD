@@ -2154,7 +2154,7 @@ write_file(
     name = "objc_with_static_xcframework_src",
     out = "ObjcWithXCFrameworkStaticLibrary.m",
     content = ["""
-#import <generated_static_xcframework_with_headers.h>
+#import <generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.h>
 
 int objc_with_static_xcframework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
@@ -2195,7 +2195,7 @@ write_file(
     name = "objc_with_swift_static_xcframework_src",
     out = "ObjcWithSwiftXCFrameworkStaticLibrary.m",
     content = ["""
-#import <generated_swift_static_xcframework.h>
+#import <generated_swift_static_xcframework/generated_swift_static_xcframework.h>
 
 int objc_with_swift_static_xcframework_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
@@ -2236,7 +2236,7 @@ write_file(
     name = "objc_with_swift_static_xcframework_without_swiftmodule_src",
     out = "ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m",
     content = ["""
-#import <generated_swift_static_xcframework_without_swiftmodule.h>
+#import <generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.h>
 
 int objc_with_swift_static_xcframework_without_swiftmodule_function() {
   SharedClass *sharedClass = [[SharedClass alloc] init];

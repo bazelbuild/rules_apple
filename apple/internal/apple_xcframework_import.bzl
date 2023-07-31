@@ -217,7 +217,12 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
         framework_includes = [paths.dirname(f.dirname) for f in binaries]
     else:
-        includes = [h.dirname for h in headers]
+        # For library XCFrameworks, in Xcode the contents of "Headers" are copied to an intermediate
+        # directory for referencing artifacts to include in the build; to replicate this behavior,
+        # make sure "includes" is set at the point where "Headers" is found, adjacent to any
+        # binaries.
+        if headers:
+            includes = [paths.join(f.dirname, "Headers") for f in binaries]
 
     return struct(
         binary = binaries[0],

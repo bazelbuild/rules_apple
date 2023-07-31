@@ -185,11 +185,41 @@ Supported platforms: {library_identifiers}
 """)
 
 
+def _relpath_from_subdirectory(*, absolute_path, subdirectory):
+  """Returns a relative path from the root of a given subdirectory.
+
+  Args:
+    absolute_path: String. An absolute path to search within.
+    subdirectory: String. The name of the subdirectory to search for within the
+      absolute path given.
+  Returns:
+    The relative path from the point where the subdirectory was found to the
+    file or directory referenced by the provided absolute path.
+  Raises:
+    ValueError - if no path could be found.
+  """
+  found_dir = None
+  parent_dir = os.path.dirname(absolute_path)
+  while parent_dir != "" and parent_dir != "/" and found_dir is None:
+    if parent_dir.endswith(os.sep + subdirectory):
+      found_dir = parent_dir
+    else:
+      parent_dir = os.path.dirname(parent_dir)
+
+  if parent_dir == "/" or parent_dir == "":
+    raise ValueError(f"""
+Internal Error: Could not find {subdirectory} in path: {absolute_path}
+""")
+
+  return os.path.relpath(absolute_path, start=found_dir)
+
+
 def _copy_xcframework_files(
     *,
     executable: bool = False,
     library_identifier: str,
     output_directories: List[str],
+    copy_from_subdirectory: str = "",
     xcframework_files: List[str]) -> None:
   """Copies XCFramework files filtered by library identifier to a directory.
 
@@ -197,6 +227,10 @@ def _copy_xcframework_files(
     executable: Indicates whether or not the file(s) should be made executable.
     library_identifier: XCFramework library identifier to filter files with.
     output_directories: List of directory paths to copy files to.
+    copy_from_subdirectory: String. The name of a subdirectory that will be used
+      to generate relative paths to copy files from, preserving subdirectory
+      paths in between. If declared, this overrides the default behavior to only
+      preserve paths from the common path of all provided library_files.
     xcframework_files: List of XCFramework files to filter by library identifier
       and copy files from.
   """
@@ -212,10 +246,17 @@ def _copy_xcframework_files(
   # This path will reference the following path:
   #   a) For framework based XCFramework -> the .framework directory.
   #   b) For library based XCFramework -> the library identifier directory.
-  library_dir_path = os.path.commonpath(library_files)
+  if not copy_from_subdirectory:
+    library_dir_path = os.path.commonpath(library_files)
 
   for library_file in library_files:
-    rel_path = os.path.relpath(library_file, start=library_dir_path)
+    if copy_from_subdirectory:
+      rel_path = _relpath_from_subdirectory(
+          absolute_path=library_file,
+          subdirectory=copy_from_subdirectory)
+    else:
+      rel_path = os.path.relpath(library_file, start=library_dir_path)
+
     for output_directory in output_directories:
       dest_path = os.path.join(output_directory, rel_path)
       os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -265,6 +306,7 @@ def main() -> int:
   _copy_xcframework_files(
       library_identifier=library_identifier,
       output_directories=[headers_dir],
+      copy_from_subdirectory="Headers",
       xcframework_files=args.header_files)
 
   modules_dir = os.path.join(args.library_dir, "Modules")

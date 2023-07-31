@@ -476,7 +476,6 @@ def _copy_framework_headers_and_modulemap(
         headers = headers,
         headers_path = headers_path,
         label = label,
-        is_framework_umbrella_header = True,
     )
     framework_headers.append(umbrella_header)
 
@@ -597,8 +596,7 @@ def _generate_umbrella_header(
         bundle_name,
         headers,
         headers_path,
-        label,
-        is_framework_umbrella_header = False):
+        label):
     """Generates a single umbrella header given a sequence of header files.
 
     Args:
@@ -607,14 +605,12 @@ def _generate_umbrella_header(
         headers: List of header files for the framework bundle.
         headers_path: Base path for the generated umbrella header file.
         label: Label of the target being built.
-        is_framework_umbrella_header: Boolean to indicate if the generated umbrella header is for an
-          Apple framework. Defaults to `False`.
     Returns:
         File for the generated umbrella header.
     """
     header_text = "#import <Foundation/Foundation.h>\n"
 
-    header_prefix = bundle_name if is_framework_umbrella_header else ""
+    header_prefix = bundle_name
     for header in headers:
         header_text += "#import <{}>\n".format(paths.join(header_prefix, header.basename))
 
