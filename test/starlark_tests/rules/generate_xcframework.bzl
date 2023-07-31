@@ -293,7 +293,7 @@ def _generate_static_xcframework_impl(ctx):
         )
 
         library_path = library_identifier
-        headers_path = paths.join(library_path, "Headers")
+        headers_path = paths.join(library_path, "Headers", label.name)
 
         if not swift_library:
             # Compile library
