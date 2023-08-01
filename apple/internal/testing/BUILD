@@ -62,6 +62,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:providers",
         "//apple/internal:transition_support",
     ],
 )
