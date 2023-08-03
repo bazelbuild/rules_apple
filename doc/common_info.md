@@ -483,3 +483,46 @@ have the paths made absolute via swizzling by enabling the
 `"apple.swizzle_absolute_xcttestsourcelocation"` feature. You'll also need to
 set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
+
+### Xcode Version Selection and Invalidation
+
+There are a few steps required to properly make Bazel use the right Xcode version. Moreover, a few tricks are needed to make sure that the Bazel server is restarted and certain caches cleared when changing Xcode version using `xcode-select`.
+
+1. The first thing you should think about is to enforce a single Xcode version for all your builds to ensure remote cache hits. On top of that, enforcing a single Xcode version speeds up repository setup time. You can achieve this by passing a specific Xcode version config via the `--xcode_version_config` flag. More details are available in [Locking Xcode versions in Bazel](https://www.smileykeith.com/2021/03/08/locking-xcode-in-bazel).
+2. If your configuration supports multiple Xcode versions, you should pass `--xcode_version` to specify which version should be used.
+3. In your Bazel wrapper (an executable script place at `tools/bazel` in your repository, read more [here](https://github.com/bazelbuild/bazelisk#ensuring-that-your-developers-use-bazelisk-rather-than-bazel)), you should pass a few flags to every invocation or generate and import a `bazelrc`:
+    * Capture `xcode-select -p` or use the value of `DEVELOPER_DIR` if available and forward it to repository rules for invalidation when changed: `--repo_env=DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
+    * If not using the new [Apple CC toolchain](https://github.com/bazelbuild/apple_support#toolchain-setup) available starting in apple_support 1.4.0, pass `--repo_env=USE_CLANG_CL=$xcode_version` where `xcode_version` should be the value of `xcodebuild -version | tail -1 | cut -d " " -f3` which is unique to each version.
+    * If using the new Apple CC toolchain and [apple_support](https://github.com/bazelbuild/apple_support) 1.7.0 or higher, pass `--repo_env=XCODE_VERSION=$xcode_version` instead.
+    * To invalidate the repository rule when the Xcode version changes but its path doesn't, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag.
+
+The above flags can be passed either directly to each invocation or by generating a `bazelrc` which is imported from your main `.bazelrc`. This snippet shows the latter option:
+
+```bash
+#!/bin/bash
+
+bazel_real="$BAZEL_REAL"
+bazelrc_lines=()
+
+if [[ $OSTYPE == darwin* ]]; then
+  xcode_path=$(xcode-select -p)
+  xcode_version=$(xcodebuild -version | tail -1 | cut -d " " -f3)
+
+  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")
+  if [[ "$xcode_path" != /Applications/* ]]; then
+    echo "error: Xcode must be installed in /Applications/, not '$xcode_path'" >&2
+    exit 1
+  fi
+
+  xcode_build_number=$(/usr/bin/xcodebuild -version 2>/dev/null | tail -1 | cut -d " " -f3)
+  bazelrc_lines+=("common --xcode_version=$xcode_version")
+  bazelrc_lines+=("common --repo_env=XCODE_VERSION=$xcode_version")
+  bazelrc_lines+=("common --repo_env=DEVELOPER_DIR=$xcode_path")
+fi
+
+printf '%s\n' "${bazelrc_lines[@]}" >> xcode.bazelrc
+
+exec "$bazel_real"
+```
+
+In your main `.bazelrc` add `import xcode.bazelrc` at the very bottom.
