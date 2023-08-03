@@ -515,7 +515,7 @@ if [[ $OSTYPE == darwin* ]]; then
   bazelrc_lines+=("build --repo_env=DEVELOPER_DIR=$xcode_path")
 fi
 
-printf '%s\n' "${bazelrc_lines[@]}" >> xcode.bazelrc
+printf '%s\n' "${bazelrc_lines[@]}" > xcode.bazelrc
 
 exec "$bazel_real" "$@"
 ```
