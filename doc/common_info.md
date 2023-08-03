@@ -507,22 +507,17 @@ bazelrc_lines=()
 if [[ $OSTYPE == darwin* ]]; then
   xcode_path=$(xcode-select -p)
   xcode_version=$(xcodebuild -version | tail -1 | cut -d " " -f3)
-
-  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")
-  if [[ "$xcode_path" != /Applications/* ]]; then
-    echo "error: Xcode must be installed in /Applications/, not '$xcode_path'" >&2
-    exit 1
-  fi
-
   xcode_build_number=$(/usr/bin/xcodebuild -version 2>/dev/null | tail -1 | cut -d " " -f3)
-  bazelrc_lines+=("common --xcode_version=$xcode_version")
-  bazelrc_lines+=("common --repo_env=XCODE_VERSION=$xcode_version")
-  bazelrc_lines+=("common --repo_env=DEVELOPER_DIR=$xcode_path")
+
+  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")  
+  bazelrc_lines+=("build --xcode_version=$xcode_version")
+  bazelrc_lines+=("build --repo_env=XCODE_VERSION=$xcode_version")
+  bazelrc_lines+=("build --repo_env=DEVELOPER_DIR=$xcode_path")
 fi
 
 printf '%s\n' "${bazelrc_lines[@]}" >> xcode.bazelrc
 
-exec "$bazel_real"
+exec "$bazel_real" "$@"
 ```
 
 In your main `.bazelrc` add `import xcode.bazelrc` at the very bottom.
