@@ -2896,21 +2896,6 @@ ios_static_framework(
 )
 
 ios_static_framework(
-    name = "static_framework_with_umbrella_header_conflict",
-    hdrs = [
-        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
-        "//test/starlark_tests/resources:shared.h",
-    ],
-    bundle_name = "UmbrellaHeaderConflict",
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
-    minimum_os_version = common.min_os_ios.baseline,
-    tags = common.fixture_tags,
-    deps = [":shared_lib"],
-)
-
-ios_static_framework(
     name = "static_framework_from_objc_library",
     # TODO(b/239957001): Remove this when the rule no longer forces library
     # evolution.

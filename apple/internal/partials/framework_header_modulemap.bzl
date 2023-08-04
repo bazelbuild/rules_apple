@@ -119,27 +119,20 @@ def _create_umbrella_header(actions, output, headers):
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
-def _verify_headers(
+def _exported_headers(
         *,
         public_hdrs,
-        umbrella_header_name):
-    """Raises an error if a public header conflicts with the umbrella header.
+        generated_umbrella_header_file):
+    """Determines if the generated umbrella header needs to be an output of public headers.
 
     Args:
       public_hdrs: The list of headers to bundle.
-      umbrella_header_name: The basename of the umbrella header file, or None if
-          there is no umbrella header.
+      generated_umbrella_header_file: The generated umbrella header file.
     """
-    conflicting_headers = []
     for public_hdr in public_hdrs:
-        if public_hdr.basename == umbrella_header_name:
-            conflicting_headers.append(public_hdr.path)
-    if conflicting_headers:
-        fail(("Found imported header file(s) which conflict(s) with the name \"%s\" of the " +
-              "generated umbrella header for this target. Check input files:\n%s\n\nPlease " +
-              "remove the references to these files from your rule's list of headers to import " +
-              "or rename the headers if necessary.\n") %
-             (umbrella_header_name, ", ".join(conflicting_headers)))
+        if public_hdr.basename == generated_umbrella_header_file.basename:
+            return public_hdrs
+    return public_hdrs + [generated_umbrella_header_file]
 
 def _framework_header_modulemap_partial_impl(
         *,
@@ -182,13 +175,13 @@ def _framework_header_modulemap_partial_impl(
                 (processor.location.bundle, "Headers", depset(hdrs)),
             )
         else:
-            _verify_headers(
+            exported_hdrs = _exported_headers(
                 public_hdrs = hdrs,
-                umbrella_header_name = umbrella_header_name,
+                generated_umbrella_header_file = umbrella_header_file,
             )
 
             bundle_files.append(
-                (processor.location.bundle, "Headers", depset(hdrs + [umbrella_header_file])),
+                (processor.location.bundle, "Headers", depset(exported_hdrs)),
             )
     else:
         umbrella_header_name = None
@@ -227,7 +220,7 @@ def framework_header_modulemap_partial(
         output_discriminator = None,
         sdk_dylibs = [],
         sdk_frameworks = [],
-        umbrella_header):
+        umbrella_header = None):
     """Constructor for the framework headers and modulemaps partial.
 
     This partial bundles the headers and modulemaps for sdk frameworks.
@@ -243,7 +236,7 @@ def framework_header_modulemap_partial(
           or `None`.
       sdk_dylibs: A list of dynamic libraries referenced by this framework.
       sdk_frameworks: A list of frameworks referenced by this framework.
-      umbrella_header: An umbrella header to use instead of generating one
+      umbrella_header: An umbrella header to use instead of generating one. Optional.
 
     Returns:
       A partial that returns the bundle location of the sdk framework header and modulemap

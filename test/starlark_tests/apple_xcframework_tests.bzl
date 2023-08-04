@@ -20,7 +20,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
@@ -522,15 +521,6 @@ def apple_xcframework_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
         ],
-        tags = [name],
-    )
-
-    # Test that an actionable error is produced for the user when a header to
-    # bundle conflicts with the generated umbrella header.
-    analysis_failure_message_test(
-        name = "{}_umbrella_header_conflict_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_umbrella_header_conflict",
-        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\nthird_party/bazel_rules/rules_apple/test/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
         tags = [name],
     )
 

@@ -668,7 +668,6 @@ def _apple_xcframework_impl(ctx):
                     hdrs = ctx.files.public_hdrs,
                     label_name = label.name,
                     output_discriminator = library_identifier,
-                    umbrella_header = None,
                 ),
             )
 
@@ -941,7 +940,6 @@ def _apple_static_xcframework_impl(ctx):
                 hdrs = ctx.files.public_hdrs,
                 label_name = label.name,
                 output_discriminator = library_identifier,
-                umbrella_header = None,
                 sdk_frameworks = sdk_frameworks,
                 sdk_dylibs = sdk_dylibs,
             ))
