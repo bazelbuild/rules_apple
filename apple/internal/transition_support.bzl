@@ -552,9 +552,9 @@ _apple_platform_split_transition = transition(
 
 # TODO(b/230527536): Add support for Bazel platforms on ios/tvos_static_framework transition support method
 def _apple_common_multi_arch_split_key(*, cpu, environment, platform_type):
-    """Returns split key for the apple_common.multi_arch_split transition based on target triplet.
+    """Returns split key for the transition_support.apple_platform_split_transition transition based on target triplet.
 
-    See ApplePlatform.cpuStringForTarget for reference on how apple_common.multi_arch_split
+    See ApplePlatform.cpuStringForTarget for reference on how transition_support.apple_platform_split_transition
     transition key is built.
 
      Args:

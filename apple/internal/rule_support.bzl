@@ -29,6 +29,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundle_package_type.bzl",
     "bundle_package_type",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
 
 # Options to declare signing behavior and exceptions.
 #
@@ -122,7 +126,7 @@ def _describe_rule_type(
         default_test_runner: Default test runner to set in the runner attribute. Only used for
             tests.
         deps_cfg: The configuration for the deps attribute. This should be None for rules that use
-            the apple_binary intermediate target, and apple_common.multi_arch_split for the rules
+            the apple_binary intermediate target, and transition_support.apple_platform_split_transition for the rules
             that use the Starlark linking API.
         expose_non_archive_relative_output: Whether or not to expose an output archive that ignores
             the `archive_relative` bundle location, to permit embedding within another target. Has no
@@ -214,7 +218,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_alternate_icons = True,
             has_launch_images = True,
             has_settings_bundle = True,
@@ -238,7 +242,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             expose_non_archive_relative_output = True,
             is_executable = True,
             mandatory_families = True,
@@ -258,7 +262,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".appiconset",
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-fapplication-extension",
                 "-e",
@@ -280,7 +284,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             mandatory_families = True,
             product_type = apple_product_type.framework,
             rpaths = [
@@ -317,7 +321,7 @@ _RULE_TYPE_DESCRIPTORS = {
             app_icon_extension = ".stickersiconset",
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-fapplication-extension",
                 "-e",
@@ -352,7 +356,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -365,7 +369,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -388,7 +392,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -415,7 +419,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.application,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             is_executable = True,
             product_type = apple_product_type.application,
             provisioning_profile_extension = ".provisionprofile",
@@ -431,7 +435,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.tool: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             is_executable = True,
             product_type = apple_product_type.tool,
             provisioning_profile_extension = ".provisionprofile",
@@ -442,7 +446,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.dylib: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
         ),
@@ -455,7 +459,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-fapplication-extension",
                 "-e",
@@ -480,7 +484,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".qlgenerator",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.quicklook_plugin,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
@@ -494,7 +498,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.bundle,
             provisioning_profile_extension = ".provisionprofile",
             requires_signing_for_device = False,
@@ -512,7 +516,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.kernel_extension,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             # This was added for b/122473338, and should be removed eventually once symbol
             # stripping is better-handled. It's redundant with an option added in the CROSSTOOL
             # for the "kernel_extension" feature, but for now it's necessary to detect kext
@@ -531,7 +535,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".mdimporter",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.spotlight_importer,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
@@ -543,7 +547,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xpc",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.xpc_service,
             provisioning_profile_extension = ".provisionprofile",
             requires_deps = True,
@@ -566,7 +570,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -590,7 +594,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -612,7 +616,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             mandatory_families = True,
             provisioning_profile_extension = ".provisionprofile",
             product_type = apple_product_type.framework,
@@ -630,7 +634,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -648,7 +652,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_launch_images = True,
             has_settings_bundle = True,
             is_executable = True,
@@ -666,7 +670,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-e",
                 "_TVExtensionMain",
@@ -689,7 +693,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
@@ -705,7 +709,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -718,7 +722,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -741,7 +745,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -779,7 +783,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-fapplication-extension",
             ],
@@ -798,7 +802,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             product_type = apple_product_type.framework,
             rpaths = [
                 # Framework binaries live in
@@ -814,7 +818,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
@@ -827,7 +831,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
@@ -850,7 +854,7 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_package_type = bundle_package_type.bundle,
             default_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist",
             default_test_runner = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner",
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_linkopts = [
                 "-framework",
                 "XCTest",
