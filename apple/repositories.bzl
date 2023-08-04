@@ -120,6 +120,7 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             ],
             strip_prefix = "apple_support-bc5ac0e065a59e89f3ccd4797e34218a5187a1a5",
             ignore_version_differences = ignore_version_differences,
+            patch_cmds = ["rm -rf test"],
         )
 
         _maybe(
