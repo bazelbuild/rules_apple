@@ -494,7 +494,7 @@ There are a few steps required to properly make Bazel use the right Xcode versio
     * Capture `xcode-select -p` or use the value of `DEVELOPER_DIR` if available and forward it to repository rules for invalidation when changed: `--repo_env=DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
     * If not using the new [Apple CC toolchain](https://github.com/bazelbuild/apple_support#toolchain-setup) available starting in apple_support 1.4.0, pass `--repo_env=USE_CLANG_CL=$xcode_version` where `xcode_version` should be the value of `xcodebuild -version | tail -1 | cut -d " " -f3` which is unique to each version.
     * If using the new Apple CC toolchain and [apple_support](https://github.com/bazelbuild/apple_support) 1.7.0 or higher, pass `--repo_env=XCODE_VERSION=$xcode_version` instead.
-    * To invalidate the repository rule when the Xcode version changes but its path doesn't, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag. This forwards an argument to the JVM which is ignored except for causing the server to restart when its value changes.
+    * To invalidate the repository rule when Xcode's path changes but the version doesn't, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag. This forwards an argument to the JVM which is ignored except for causing the server to restart when its value changes.
 
 The above flags can be passed either directly to each invocation or by generating a `bazelrc` which is imported from your main `.bazelrc`. This snippet shows the latter option:
 
