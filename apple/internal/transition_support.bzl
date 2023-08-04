@@ -239,11 +239,6 @@ def _command_line_options(
             platform = "tvos",
             platform_type = platform_type,
         ),
-        "//command_line_option:visionos_minimum_os": _min_os_version_or_none(
-            minimum_os_version = minimum_os_version,
-            platform = "visionos",
-            platform_type = platform_type,
-        ),
         "//command_line_option:watchos_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "watchos",
@@ -387,7 +382,6 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:macos_minimum_os",
     "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
-    "//command_line_option:visionos_minimum_os",
     "//command_line_option:watchos_minimum_os",
     "@build_bazel_rules_swift//swift:emit_swiftinterface",
 ]
