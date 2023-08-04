@@ -160,6 +160,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:clang_modulemap_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "@bazel_skylib//lib:partial",

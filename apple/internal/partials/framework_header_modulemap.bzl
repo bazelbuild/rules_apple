@@ -15,6 +15,10 @@
 """Partial implementation for bundling header and modulemaps for external-facing frameworks."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:clang_modulemap_support.bzl",
+    "clang_modulemap_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -28,111 +32,6 @@ load(
 )
 
 visibility("//apple/...")
-
-def _get_link_declarations(dylibs = [], frameworks = []):
-    """Returns the module map lines that link to the given dylibs and frameworks.
-
-    Args:
-      dylibs: A sequence of library names (which must begin with "lib") that will
-          be referenced in the module map.
-      frameworks: A sequence of framework names that will be referenced in the
-          module map.
-
-    Returns:
-      A list of "link" and "link framework" lines that reference the given
-      libraries and frameworks.
-    """
-    link_lines = []
-
-    for dylib in dylibs:
-        if not dylib.startswith("lib"):
-            fail("Linked libraries must start with 'lib' but found %s" % dylib)
-        link_lines.append('link "%s"' % dylib[3:])
-    for framework in frameworks:
-        link_lines.append('link framework "%s"' % framework)
-
-    return link_lines
-
-def _get_umbrella_header_declaration(basename):
-    """Returns the module map line that references an umbrella header.
-
-    Args:
-      basename: The basename of the umbrella header file to be referenced in the
-          module map.
-
-    Returns:
-      The module map line that references the umbrella header.
-    """
-    return 'umbrella header "%s"' % basename
-
-def _create_modulemap(
-        actions,
-        framework_modulemap,
-        output,
-        module_name,
-        sdk_dylibs,
-        sdk_frameworks,
-        umbrella_header_name):
-    """Creates a modulemap for a framework.
-
-    Args:
-      actions: The actions module from a rule or aspect context.
-      framework_modulemap: Boolean to indicate if the generated modulemap should be for a
-          framework instead of a library or a generic module. Defaults to `True`.
-      output: A declared `File` to which the module map will be written.
-      module_name: The name of the module to declare in the module map file.
-      sdk_dylibs: A list of system dylibs to list in the module.
-      sdk_frameworks: A list of system frameworks to list in the module.
-      umbrella_header_name: The basename of the umbrella header file, or None if
-          there is no umbrella header.
-    """
-    declarations = []
-    if umbrella_header_name:
-        declarations.append(
-            _get_umbrella_header_declaration(umbrella_header_name),
-        )
-    declarations.extend([
-        "export *",
-        "module * { export * }",
-    ])
-    declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
-
-    content = (
-        "{module_with_qualifier} {module_name} {{\n".format(
-            module_with_qualifier = "framework module" if framework_modulemap else "module",
-            module_name = module_name,
-        ) +
-        "\n".join(["  " + decl for decl in declarations]) +
-        "\n}\n"
-    )
-    actions.write(output = output, content = content)
-
-def _create_umbrella_header(actions, output, headers):
-    """Creates an umbrella header that imports a list of other headers.
-
-    Args:
-      actions: The `actions` module from a rule or aspect context.
-      output: A declared `File` to which the umbrella header will be written.
-      headers: A list of header files to be imported by the umbrella header.
-    """
-    import_lines = ['#import "%s"' % f.basename for f in headers]
-    content = "\n".join(import_lines) + "\n"
-    actions.write(output = output, content = content)
-
-def _exported_headers(
-        *,
-        public_hdrs,
-        generated_umbrella_header_file):
-    """Determines if the generated umbrella header needs to be an output of public headers.
-
-    Args:
-      public_hdrs: The list of headers to bundle.
-      generated_umbrella_header_file: The generated umbrella header file.
-    """
-    for public_hdr in public_hdrs:
-        if public_hdr.basename == generated_umbrella_header_file.basename:
-            return public_hdrs
-    return public_hdrs + [generated_umbrella_header_file]
 
 def _framework_header_modulemap_partial_impl(
         *,
@@ -148,62 +47,40 @@ def _framework_header_modulemap_partial_impl(
     """Implementation for the sdk framework headers and modulemaps partial."""
     bundle_files = []
 
-    umbrella_header_name = None
-    if umbrella_header:
-        umbrella_header_name = umbrella_header.basename
+    header_files, umbrella_header_filename = clang_modulemap_support.process_headers(
+        actions = actions,
+        label_name = label_name,
+        module_name = bundle_name,
+        output_discriminator = output_discriminator,
+        public_hdrs = hdrs,
+        umbrella_header = umbrella_header,
+    )
+    if header_files:
         bundle_files.append(
-            (processor.location.bundle, "Headers", depset(hdrs + [umbrella_header])),
-        )
-    elif hdrs:
-        umbrella_header_name = "{}.h".format(bundle_name)
-        umbrella_header_file = intermediates.file(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-            file_name = umbrella_header_name,
-        )
-        _create_umbrella_header(
-            actions,
-            umbrella_header_file,
-            sorted(hdrs),
+            (processor.location.bundle, "Headers", depset(header_files)),
         )
 
-        # Don't bundle the umbrella header if there is only one public header
-        # which has the same name
-        if len(hdrs) == 1 and hdrs[0].basename == umbrella_header_name:
-            bundle_files.append(
-                (processor.location.bundle, "Headers", depset(hdrs)),
-            )
-        else:
-            exported_hdrs = _exported_headers(
-                public_hdrs = hdrs,
-                generated_umbrella_header_file = umbrella_header_file,
-            )
-
-            bundle_files.append(
-                (processor.location.bundle, "Headers", depset(exported_hdrs)),
-            )
-    else:
-        umbrella_header_name = None
-
-    # Create a module map if there is a need for one (that is, if there are
-    # headers or if there are dylibs/frameworks that the target depends on).
-    if any([sdk_dylibs, sdk_frameworks, umbrella_header_name]):
+    # Create a module map if there is a need for one (that is, if there are headers or if there are
+    # dylibs/frameworks that the target depends on).
+    if any([sdk_dylibs, sdk_frameworks, umbrella_header_filename]):
         modulemap_file = intermediates.file(
             actions = actions,
             target_name = label_name,
             output_discriminator = output_discriminator,
             file_name = "module.modulemap",
         )
-        _create_modulemap(
-            actions = actions,
+        modulemap_content = clang_modulemap_support.modulemap_header_interface_contents(
             framework_modulemap = framework_modulemap,
-            output = modulemap_file,
             module_name = bundle_name,
             sdk_dylibs = sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
             sdk_frameworks = sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
-            umbrella_header_name = umbrella_header_name,
+            umbrella_header_filename = umbrella_header_filename,
         )
+        actions.write(
+            output = modulemap_file,
+            content = modulemap_content,
+        )
+
         bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
 
     return struct(
@@ -236,7 +113,8 @@ def framework_header_modulemap_partial(
           or `None`.
       sdk_dylibs: A list of dynamic libraries referenced by this framework.
       sdk_frameworks: A list of frameworks referenced by this framework.
-      umbrella_header: An umbrella header to use instead of generating one. Optional.
+      umbrella_header: An umbrella header to use instead of generating one. Will be inferred from
+          hdrs if one is not explicitly provided. Optional.
 
     Returns:
       A partial that returns the bundle location of the sdk framework header and modulemap

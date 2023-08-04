@@ -178,6 +178,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "clang_modulemap_support",
+    srcs = ["clang_modulemap_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":intermediates",
+    ],
+)
+
+bzl_library(
     name = "codesigning_support",
     srcs = ["codesigning_support.bzl"],
     visibility = [
