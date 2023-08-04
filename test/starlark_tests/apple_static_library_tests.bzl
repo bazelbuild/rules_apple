@@ -19,17 +19,9 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_lipo_test.bzl",
-    "analysis_lipo_test",
-)
-load(
     ":rules/analysis_mismatched_platform_test.bzl",
     "analysis_incoming_ios_platform_mismatch_test",
     "analysis_incoming_watchos_platform_mismatch_test",
-)
-load(
-    ":rules/analysis_lipo_test.bzl",
-    "analysis_lipo_test",
 )
 load(
     ":rules/analysis_runfiles_test.bzl",
@@ -124,7 +116,7 @@ def apple_static_library_test_suite(name):
     # is for watchOS.
     analysis_incoming_ios_platform_mismatch_test(
         name = "{}_incoming_ios_platform_mismatch_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         expected_platform_type = "watchos",
         tags = [name],
     )
@@ -134,7 +126,7 @@ def apple_static_library_test_suite(name):
     # rule is for iOS.
     analysis_incoming_watchos_platform_mismatch_test(
         name = "{}_incoming_watchos_platform_mismatch_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         expected_platform_type = "ios",
         tags = [name],
     )
@@ -190,7 +182,7 @@ def apple_static_library_test_suite(name):
         name = "{}_ios_binary_contents_intel_simulator_os8_apple_platforms_test".format(name),
         apple_platforms = ["@build_bazel_apple_support//platforms:ios_x86_64"],
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS", "version 8.0"],
@@ -219,7 +211,7 @@ def apple_static_library_test_suite(name):
         name = "{}_ios_binary_contents_device_apple_platforms_test".format(name),
         apple_platforms = ["@build_bazel_apple_support//platforms:ios_arm64"],
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOS"],
@@ -251,7 +243,7 @@ def apple_static_library_test_suite(name):
             "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
@@ -283,7 +275,7 @@ def apple_static_library_test_suite(name):
             "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_os14",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
@@ -379,20 +371,6 @@ def apple_static_library_test_suite(name):
     )
 
     # Test that the output binary is identified as watchOS simulator (PLATFORM_WATCHOSSIMULATOR) via
-    # the Mach-O load command LC_BUILD_VERSION for an Intel binary when specifying the outputs via
-    # the apple_platforms command line option.
-    binary_contents_test(
-        name = "{}_watchos_binary_contents_intel_simulator_apple_platforms_test".format(name),
-        apple_platforms = ["@build_bazel_apple_support//platforms:watchos_x86_64"],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 8.0", "platform WATCHOSSIMULATOR"],
-        tags = [name],
-    )
-
-    # Test that the output binary is identified as watchOS simulator (PLATFORM_WATCHOSSIMULATOR) via
     # the Mach-O load command LC_BUILD_VERSION for an Intel binary.
     binary_contents_test(
         name = "{}_watchos_binary_contents_intel_simulator_platform_test".format(name),
@@ -404,20 +382,6 @@ def apple_static_library_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOSSIMULATOR"],
-        tags = [name],
-    )
-
-    # Test that the output binary is identified as watchOS device (PLATFORM_WATCHOS) via the Mach-O
-    # load command LC_BUILD_VERSION for an Arm 64-on-32 binary when specifying the outputs via the
-    # apple_platforms command line option.
-    binary_contents_test(
-        name = "{}_watchos_binary_contents_device_apple_platforms_test".format(name),
-        apple_platforms = ["@build_bazel_apple_support//platforms:watchos_arm64_32"],
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_os8",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 8.0", "platform WATCHOS"],
         tags = [name],
     )
 
