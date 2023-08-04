@@ -1,6 +1,8 @@
 # NOTE: These are mainly just for the BazelCI setup so they don't have
 # to be repeated multiple times in .bazelci/presubmit.yml.
 
+build --enable_bzlmod=false
+
 # https://github.com/bazelbuild/bazel/issues/16729
 build --experimental_strict_conflict_checks
 
