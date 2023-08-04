@@ -118,6 +118,7 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             urls = [
                 "https://github.com/bazelbuild/apple_support/archive/bc5ac0e065a59e89f3ccd4797e34218a5187a1a5.tar.gz",
             ],
+            strip_prefix = "apple_support-bc5ac0e065a59e89f3ccd4797e34218a5187a1a5",
             ignore_version_differences = ignore_version_differences,
         )
 
