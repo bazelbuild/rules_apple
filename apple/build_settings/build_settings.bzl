@@ -14,6 +14,11 @@
 
 """List of Bazel's rules_apple build settings."""
 
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+
 visibility([
     "//apple/...",
     "//test/...",
@@ -21,8 +26,9 @@ visibility([
 
 _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 
-# List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
-build_settings = {
+# List of all registered build settings with command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_flags = {
     "parse_xcframework_info_plist": struct(
         doc = """
 Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
@@ -47,19 +53,36 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
     ),
 }
 
+# List of all registered build settings without command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_settings = {
+    "enable_wip_features": struct(
+        doc = """
+Enables functionality that is still a work in progress, with interfaces and output that can change
+at any time, that is only ready for automated testing now.
+
+This could indicate functionality intended for a future release of the Apple BUILD rules, or
+functionality that is never intended to be production-ready but is required of automated testing.
+""",
+        default = False,
+    ),
+}
+
+_all_build_settings = dicts.add(build_settings, build_flags)
+
 build_settings_labels = struct(
     all_labels = [
         "{package}:{target_name}".format(
             package = _BUILD_SETTINGS_PACKAGE,
             target_name = build_setting_name,
         )
-        for build_setting_name in build_settings
+        for build_setting_name in _all_build_settings
     ],
     **{
         build_setting_name: "{package}:{target_name}".format(
             package = _BUILD_SETTINGS_PACKAGE,
             target_name = build_setting_name,
         )
-        for build_setting_name in build_settings
+        for build_setting_name in _all_build_settings
     }
 )
