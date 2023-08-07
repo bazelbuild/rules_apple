@@ -102,6 +102,9 @@ def _cpu_string(*, cpu, platform_type, settings = {}):
             return "ios_sim_arm64"
         return "ios_x86_64"
     if platform_type == "macos":
+        host_cpu = settings["//command_line_option:host_cpu"]
+        if host_cpu == "darwin":
+            return "darwin"
         if cpu:
             return "darwin_{}".format(cpu)
         macos_cpus = settings["//command_line_option:macos_cpus"]
@@ -342,6 +345,7 @@ _apple_rule_common_transition_inputs = [
     "//command_line_option:apple_crosstool_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
+    "//command_line_option:host_cpu",
     "//command_line_option:cpu",
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
