@@ -130,9 +130,7 @@ def _create_apple_rule(
         executable = is_executable,
         # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
         exec_groups = {
-            _J2OBJC_LINKING_EXEC_GROUP: exec_group(
-                exec_compatible_with = ["@platforms//os:osx"],
-            ),
+            _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
         },
         fragments = ["apple", "cpp", "objc"],
         toolchains = toolchains,
@@ -166,9 +164,7 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
         doc = doc,
         # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
         exec_groups = {
-            _J2OBJC_LINKING_EXEC_GROUP: exec_group(
-                exec_compatible_with = ["@platforms//os:osx"],
-            ),
+            _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
         },
         test = True,
         toolchains = use_cpp_toolchain(),
