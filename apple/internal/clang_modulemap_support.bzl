@@ -136,8 +136,7 @@ def _process_headers(
         label_name,
         module_name,
         output_discriminator,
-        public_hdrs,
-        umbrella_header = None):
+        public_hdrs):
     """Validates the umbrella header against a set of public headers, generating one if necessary.
 
     Args:
@@ -148,18 +147,14 @@ def _process_headers(
             or `None`.
         public_hdrs: A list of public headers to present in addition to the generated header. Useful
             for mixed interface Swift and Objective-C SDKs. Optional.
-        umbrella_header: An umbrella header to use instead of generating one. Will be inferred from
-            hdrs if one is not explicitly provided.
 
     Returns:
         A tuple where the first field is a list of Files representing headers that need to be
         bundled, and the second field is a String representing the filename of the umbrella header
         or None if an umbrella header was not found.
     """
-    if not public_hdrs and not umbrella_header:
+    if not public_hdrs:
         return ([], None)
-    elif umbrella_header:
-        return (public_hdrs + [umbrella_header], umbrella_header.basename)
 
     # Automatically generate an umbrella header for the provided publicly visible headers, in the
     # absence of a user-defined umbrella header.

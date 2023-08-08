@@ -976,7 +976,6 @@ def _tvos_static_framework_impl(ctx):
                 label_name = label.name,
                 sdk_dylibs = cc_info_support.get_sdk_dylibs(deps = deps),
                 sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = deps),
-                umbrella_header = ctx.file.umbrella_header,
             ),
         )
 
@@ -1228,15 +1227,6 @@ fashion, such as a Cocoapod.
 A list of `.h` files that will be publicly exposed by this framework. These headers should have
 framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
 be generated that imports all of the headers listed here.
-""",
-            ),
-            "umbrella_header": attr.label(
-                allow_single_file = [".h"],
-                doc = """
-An optional single .h file to use as the umbrella header for this framework. Usually, this header
-will have the same name as this target, so that clients can load the header using the #import
-<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
-umbrella header will be generated under the same name as this target.
 """,
             ),
         },

@@ -42,8 +42,7 @@ def _framework_header_modulemap_partial_impl(
         label_name,
         output_discriminator,
         sdk_dylibs,
-        sdk_frameworks,
-        umbrella_header):
+        sdk_frameworks):
     """Implementation for the sdk framework headers and modulemaps partial."""
     bundle_files = []
 
@@ -53,7 +52,6 @@ def _framework_header_modulemap_partial_impl(
         module_name = bundle_name,
         output_discriminator = output_discriminator,
         public_hdrs = hdrs,
-        umbrella_header = umbrella_header,
     )
     if header_files:
         bundle_files.append(
@@ -96,8 +94,7 @@ def framework_header_modulemap_partial(
         label_name,
         output_discriminator = None,
         sdk_dylibs = [],
-        sdk_frameworks = [],
-        umbrella_header = None):
+        sdk_frameworks = []):
     """Constructor for the framework headers and modulemaps partial.
 
     This partial bundles the headers and modulemaps for sdk frameworks.
@@ -113,8 +110,6 @@ def framework_header_modulemap_partial(
           or `None`.
       sdk_dylibs: A list of dynamic libraries referenced by this framework.
       sdk_frameworks: A list of frameworks referenced by this framework.
-      umbrella_header: An umbrella header to use instead of generating one. Will be inferred from
-          hdrs if one is not explicitly provided. Optional.
 
     Returns:
       A partial that returns the bundle location of the sdk framework header and modulemap
@@ -130,5 +125,4 @@ def framework_header_modulemap_partial(
         output_discriminator = output_discriminator,
         sdk_dylibs = sdk_dylibs,
         sdk_frameworks = sdk_frameworks,
-        umbrella_header = umbrella_header,
     )
