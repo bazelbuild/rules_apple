@@ -39,10 +39,10 @@ def _archive(
         bundle_extension,
         bundle_name,
         executable_name = None,
+        label_name,
         platform_prerequisites,
         predeclared_outputs,
-        rule_descriptor,
-        label_name):
+        rule_descriptor):
     """Returns a file reference for this target's archive."""
     bundle_name_with_extension = bundle_name + bundle_extension
 
@@ -81,10 +81,10 @@ def _archive_for_embedding(
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             executable_name = executable_name,
+            label_name = label_name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
-            label_name = label_name,
         )
 
 def _binary(*, actions, bundle_name, executable_name, label_name, output_discriminator):

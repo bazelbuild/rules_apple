@@ -738,4 +738,37 @@ function test_tree_artifacts_and_disable_simulator_codesigning() {
       --features=apple.skip_codesign_simulator_bundles || fail "Should build"
 }
 
+# Tests tree artifacts of bundle targets(with same bundles names) don't conflict with each other.
+function test_tree_artifacts_with_same_bundle_names_dont_conflict() {
+  create_common_files
+  
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [
+        ":lib",
+    ],
+)
+ios_application(
+    name = "app-beta",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [
+        ":lib",
+    ],
+)
+EOF
+
+  do_build ios //app:app //app:app-beta \
+      --define=apple.experimental.tree_artifact_outputs=1 || fail "Should build"
+}
+
 run_suite "ios_application bundling tests"

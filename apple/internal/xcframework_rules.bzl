@@ -585,9 +585,9 @@ def _apple_xcframework_impl(ctx):
                 dsym_binaries = link_output.dsym_binaries,
                 dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                 executable_name = executable_name,
+                label_name = label.name,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
-                label_name = label.name,
             ),
             partials.resources_partial(
                 actions = actions,

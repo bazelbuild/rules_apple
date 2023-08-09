@@ -258,9 +258,9 @@ def _ios_application_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -381,12 +381,12 @@ def _ios_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        runner_template = ctx.file._runner_template,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
+        runner_template = ctx.file._runner_template,
     )
 
     archive = outputs.archive(
@@ -394,10 +394,10 @@ def _ios_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     return [
@@ -548,9 +548,9 @@ def _ios_app_clip_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -636,12 +636,12 @@ def _ios_app_clip_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        runner_template = ctx.file._runner_template,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
+        runner_template = ctx.file._runner_template,
     )
 
     archive = outputs.archive(
@@ -649,10 +649,10 @@ def _ios_app_clip_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     return [
@@ -808,9 +808,9 @@ def _ios_framework_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1036,9 +1036,9 @@ def _ios_extension_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1280,9 +1280,9 @@ def _ios_dynamic_framework_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1827,9 +1827,9 @@ def _ios_imessage_extension_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,

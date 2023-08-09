@@ -395,9 +395,9 @@ def _apple_test_bundle_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -475,10 +475,10 @@ def _apple_test_bundle_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but

@@ -48,10 +48,10 @@ def _apple_bundle_info_partial_impl(
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        label_name = label_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label_name,
     )
     archive_root = outputs.root_path_from_archive(archive = archive)
 

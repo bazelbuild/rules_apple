@@ -238,9 +238,9 @@ def _macos_application_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -339,12 +339,12 @@ def _macos_application_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         output = executable,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
-        runner_template = ctx.file._runner_template,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
+        runner_template = ctx.file._runner_template,
     )
 
     archive = outputs.archive(
@@ -352,10 +352,10 @@ def _macos_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     return [
@@ -441,10 +441,10 @@ def _macos_bundle_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -497,9 +497,9 @@ def _macos_bundle_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -639,10 +639,10 @@ def _macos_extension_impl(ctx):
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -697,9 +697,9 @@ def _macos_extension_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -857,10 +857,10 @@ def _macos_quick_look_plugin_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -916,9 +916,9 @@ def _macos_quick_look_plugin_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive],
@@ -1058,10 +1058,10 @@ def _macos_kernel_extension_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -1115,9 +1115,9 @@ def _macos_kernel_extension_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1256,10 +1256,10 @@ def _macos_spotlight_importer_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -1313,9 +1313,9 @@ def _macos_spotlight_importer_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1452,10 +1452,10 @@ def _macos_xpc_service_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
-        label_name = label.name,
     )
 
     processor_partials = [
@@ -1509,9 +1509,9 @@ def _macos_xpc_service_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1635,9 +1635,9 @@ def _macos_command_line_application_impl(ctx):
         dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         executable_name = executable_name,
+        label_name = label.name,
         linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
-        label_name = label.name,
     )
 
     processor_result = processor.process(
@@ -1750,9 +1750,9 @@ def _macos_dylib_impl(ctx):
         dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         executable_name = executable_name,
+        label_name = label.name,
         linkmaps = debug_outputs.linkmaps,
         platform_prerequisites = platform_prerequisites,
-        label_name = label.name,
     )
 
     processor_result = processor.process(
@@ -2031,9 +2031,9 @@ def _macos_framework_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -2275,9 +2275,9 @@ def _macos_dynamic_framework_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            label_name = label.name,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
