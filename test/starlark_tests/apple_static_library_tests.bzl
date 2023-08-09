@@ -108,7 +108,7 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         expected_runfiles = [
             "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/static_library/example_library_arm_sim_support_lipo.a",
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/static_library/libmain_lib.a",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/static_library/libmain_lib.lo",
         ],
         tags = [name],
     )
