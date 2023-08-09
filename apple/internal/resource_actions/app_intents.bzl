@@ -61,6 +61,10 @@ def generate_app_intents_metadata_bundle(
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
+    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
+        # TODO(b/295227222): Generate app intents metadata with --compile-time-extraction using
+        # .swiftconstvals instead of --legacy-extraction at the earliest convenience.
+        args.add("--legacy-extraction")
 
     apple_support.run(
         actions = actions,
