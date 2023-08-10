@@ -108,6 +108,7 @@ load(
     "AppleBinaryInfo",
     "AppleBinaryInfoplistInfo",
     "AppleFrameworkBundleInfo",
+    "ApplePlatformInfo",
     "MacosApplicationBundleInfo",
     "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
@@ -2369,6 +2370,7 @@ def _macos_static_framework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     avoid_deps = ctx.attr.avoid_deps
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.attr.deps
     label = ctx.label
     predeclared_outputs = ctx.outputs
@@ -2408,15 +2410,11 @@ def _macos_static_framework_impl(ctx):
 
     swift_infos = {}
     if swift_support.uses_swift(deps):
-        for link_output in link_result.outputs:
-            split_attr_key = transition_support.apple_common_multi_arch_split_key(
-                cpu = link_output.architecture,
-                environment = link_output.environment,
-                platform_type = link_output.platform,
-            )
+        for split_attr_key, cc_toolchain in cc_toolchain_forwarder.items():
+            apple_platform_info = cc_toolchain[ApplePlatformInfo]
             for dep in split_deps[split_attr_key]:
                 if SwiftInfo in dep:
-                    swift_infos[link_output.architecture] = dep[SwiftInfo]
+                    swift_infos[apple_platform_info.target_arch] = dep[SwiftInfo]
 
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
     # framework.

@@ -878,6 +878,12 @@ to manually dlopen the framework at runtime.
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """
@@ -1142,6 +1148,12 @@ to manually dlopen the framework at runtime.
             "_emitswiftinterface": attr.bool(
                 default = True,
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
             ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
