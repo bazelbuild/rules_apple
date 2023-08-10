@@ -15,6 +15,14 @@
 """Partial implementation for Swift frameworks with third party interfaces."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:clang_modulemap_support.bzl",
+    "clang_modulemap_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -41,6 +49,9 @@ def _swift_framework_partial_impl(
         framework_modulemap,
         label_name,
         output_discriminator,
+        public_hdrs,
+        sdk_dylibs,
+        sdk_frameworks,
         swift_infos):
     """Implementation for the Swift framework processing partial."""
 
@@ -65,7 +76,7 @@ issue with a reproducible error case.
         )
 
         # If headers are generated, they should be generated equally for all archs, so just take the
-        # first one found.
+        # first generated header found.
         if (not found_generated_header) and swift_module.clang:
             if swift_module.clang.compilation_context.direct_headers:
                 found_generated_header = swift_module.clang.compilation_context.direct_headers[0]
@@ -95,35 +106,91 @@ issue with a reproducible error case.
         found_module_name = found_module_name,
     )
 
+    swift_generated_header = None
     if found_generated_header:
-        bundle_header = swift_info_support.declare_generated_header(
+        swift_generated_header = swift_info_support.declare_generated_header(
             actions = actions,
             generated_header = found_generated_header,
+            is_clang_submodule = bool(public_hdrs),
             label_name = label_name,
             output_discriminator = output_discriminator,
             module_name = expected_module_name,
         )
-        bundle_files.append((processor.location.bundle, "Headers", depset([bundle_header])))
 
-        modulemap = swift_info_support.declare_modulemap(
+    umbrella_header_filename = None
+    if public_hdrs:
+        umbrella_referenced_headers = list(public_hdrs)
+        if swift_generated_header:
+            umbrella_referenced_headers.append(swift_generated_header)
+
+        header_files, umbrella_header_filename = clang_modulemap_support.process_headers(
             actions = actions,
-            framework_modulemap = framework_modulemap,
             label_name = label_name,
-            output_discriminator = output_discriminator,
             module_name = expected_module_name,
+            output_discriminator = output_discriminator,
+            public_hdrs = umbrella_referenced_headers,
         )
-        bundle_files.append((processor.location.bundle, "Modules", depset([modulemap])))
+        if header_files:
+            bundle_files.append(
+                (processor.location.bundle, "Headers", depset(header_files)),
+            )
+    elif swift_generated_header:
+        bundle_files.append(
+            (processor.location.bundle, "Headers", depset([swift_generated_header])),
+        )
+
+    if umbrella_header_filename or public_hdrs or swift_generated_header:
+        # Generate the clang module map and arrange headers appropriately.
+        modulemap_file = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = "module.modulemap",
+        )
+
+        modulemap_content = ""
+        if public_hdrs:
+            modulemap_content += clang_modulemap_support.modulemap_header_interface_contents(
+                framework_modulemap = framework_modulemap,
+                module_name = expected_module_name,
+                sdk_dylibs = sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
+                sdk_frameworks = sorted(sdk_frameworks.to_list() if sdk_frameworks else []),
+                umbrella_header_filename = umbrella_header_filename,
+            )
+            modulemap_content += "\n"
+            modulemap_content += clang_modulemap_support.modulemap_swift_contents(
+                framework_modulemap = False,
+                is_submodule = True,
+                module_name = expected_module_name,
+            )
+        else:
+            modulemap_content += clang_modulemap_support.modulemap_swift_contents(
+                framework_modulemap = framework_modulemap,
+                is_submodule = False,
+                module_name = expected_module_name,
+            )
+
+        actions.write(
+            output = modulemap_file,
+            content = modulemap_content,
+        )
+
+        bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
 
     return struct(bundle_files = bundle_files)
 
 def swift_framework_partial(
         *,
         actions,
+        apple_xplat_toolchain_info,
         avoid_deps = [],
         bundle_name,
         framework_modulemap = True,
         label_name,
         output_discriminator = None,
+        public_hdrs = [],
+        sdk_dylibs = [],
+        sdk_frameworks = [],
         swift_infos):
     """Constructor for the Swift framework processing partial.
 
@@ -132,13 +199,22 @@ def swift_framework_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        avoid_deps: A list of library targets with modules to avoid, if specified.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+        avoid_deps: A list of library targets with modules to avoid, if specified. Optional.
         bundle_name: The name of the output bundle.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module. Defaults to `True`.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
+            or `None`. Optional.
+        public_hdrs: A list of public headers to present in addition to the generated header. Useful
+            for mixed interface Swift and Objective-C SDKs. Optional.
+        sdk_dylibs: A list of dynamic libraries referenced by this framework. Only necessary to
+            generate static library archive-supporting Clang module maps, as "dynamic" frameworks
+            should reference these in load commands. Optional.
+        sdk_frameworks: A list of frameworks referenced by this framework. Only necessary to
+            generate static library archive-supporting Clang module maps, as "dynamic" frameworks
+            should reference these in load commands. Optional.
         swift_infos: A dictionary with architectures as keys and the SwiftInfo provider containing
             the required artifacts for that architecture as values.
 
@@ -146,6 +222,9 @@ def swift_framework_partial(
         A partial that returns the bundle location of the supporting Swift artifacts needed in a
         Swift based sdk framework.
     """
+    enable_wip_features = (
+        apple_xplat_toolchain_info.build_settings.enable_wip_features
+    )
     return partial.make(
         _swift_framework_partial_impl,
         actions = actions,
@@ -154,5 +233,8 @@ def swift_framework_partial(
         framework_modulemap = framework_modulemap,
         label_name = label_name,
         output_discriminator = output_discriminator,
+        public_hdrs = public_hdrs if enable_wip_features else [],
+        sdk_dylibs = sdk_dylibs if enable_wip_features else [],
+        sdk_frameworks = sdk_frameworks if enable_wip_features else [],
         swift_infos = swift_infos,
     )

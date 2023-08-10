@@ -98,67 +98,11 @@ Please file an issue with a reproducible error case.\
 
     return swift_module
 
-def _modulemap_contents(
-        *,
-        framework_modulemap,
-        module_name):
-    """Returns the contents for the modulemap file for a Swift framework.
-
-    Args:
-        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
-            framework instead of a library or a generic module.
-        module_name: The name of the Swift module.
-
-    Returns:
-        A string representing a generated modulemap.
-    """
-    return """\
-{module_with_qualifier} {module_name} {{
-  header "{module_name}.h"
-  requires objc
-}}
-""".format(
-        module_with_qualifier = "framework module" if framework_modulemap else "module",
-        module_name = module_name,
-    )
-
-def _declare_modulemap(
-        *,
-        actions,
-        framework_modulemap,
-        label_name,
-        module_name,
-        output_discriminator):
-    """Generates and declares the modulemap file for this Swift framework.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
-            framework instead of a library or a generic module.
-        label_name: Name of the target being built.
-        module_name: The name of the Swift module.
-        output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
-
-    Returns:
-        A File referencing the intermediate generated modulemap.
-    """
-    modulemap = intermediates.file(
-        actions = actions,
-        target_name = label_name,
-        output_discriminator = output_discriminator,
-        file_name = "module.modulemap",
-    )
-    actions.write(modulemap, _modulemap_contents(
-        framework_modulemap = framework_modulemap,
-        module_name = module_name,
-    ))
-    return modulemap
-
 def _declare_generated_header(
         *,
         actions,
         generated_header,
+        is_clang_submodule,
         label_name,
         module_name,
         output_discriminator):
@@ -167,6 +111,8 @@ def _declare_generated_header(
     Args:
         actions: The actions provider from `ctx.actions`.
         generated_header: A File referencing the generated header from a SwiftInfo provider.
+        is_clang_submodule: Delcares if this header will be referenced as a Clang submodule, rather
+            than as the Clang module itself. This changes the header to be suffixed with "-Swift.h".
         label_name: Name of the target being built.
         module_name: The name of the Swift module.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -175,11 +121,15 @@ def _declare_generated_header(
     Returns:
         A File referencing the intermediate generated header.
     """
+
+    bundle_header_filename = "{}.h".format(
+        module_name + "-Swift" if is_clang_submodule else module_name,
+    )
     bundle_header = intermediates.file(
         actions = actions,
         target_name = label_name,
         output_discriminator = output_discriminator,
-        file_name = "{}.h".format(module_name),
+        file_name = bundle_header_filename,
     )
     actions.symlink(
         target_file = generated_header,
@@ -255,7 +205,6 @@ swift_info_support = struct(
     verify_found_module_name = _verify_found_module_name,
     modules_from_avoid_deps = _modules_from_avoid_deps,
     swift_include_info = _swift_include_info,
-    declare_modulemap = _declare_modulemap,
     declare_generated_header = _declare_generated_header,
     declare_swiftdoc = _declare_swiftdoc,
     declare_swiftinterface = _declare_swiftinterface,

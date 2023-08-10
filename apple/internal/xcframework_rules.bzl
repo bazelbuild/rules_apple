@@ -654,6 +654,7 @@ def _apple_xcframework_impl(ctx):
             processor_partials.append(
                 partials.swift_framework_partial(
                     actions = actions,
+                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     bundle_name = bundle_name,
                     label_name = label.name,
                     output_discriminator = library_identifier,
@@ -915,6 +916,7 @@ def _apple_static_xcframework_impl(ctx):
             interface_artifacts = partial.call(
                 partials.swift_framework_partial(
                     actions = actions,
+                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     avoid_deps = ctx.attr.avoid_deps,
                     bundle_name = bundle_name,
                     framework_modulemap = False,

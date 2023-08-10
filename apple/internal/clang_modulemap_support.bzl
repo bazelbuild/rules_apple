@@ -181,7 +181,38 @@ def _process_headers(
     )
     return (export_headers, umbrella_header_filename)
 
+def _modulemap_swift_contents(
+        *,
+        framework_modulemap,
+        is_submodule,
+        module_name):
+    """Returns the contents for the modulemap file for a Swift framework.
+
+    Args:
+        framework_modulemap: Boolean to indicate if the generated modulemap should be for a
+            framework instead of a library or a generic module.
+        is_submodule: Boolean to indicate if the generated module map declaration should be in the
+            form of a SwiftPM compatible submodule, which is of the form "{module_name}.Swift".
+        module_name: The name of the Swift module.
+
+    Returns:
+        A string representing a generated modulemap.
+    """
+    declared_module_name = module_name + ".Swift" if is_submodule else module_name
+    generated_header_filename = module_name + "-Swift" if is_submodule else module_name
+    return """\
+{module_with_qualifier} {declared_module_name} {{
+  header "{generated_header_filename}.h"
+  requires objc
+}}
+""".format(
+        module_with_qualifier = "framework module" if framework_modulemap else "module",
+        declared_module_name = declared_module_name,
+        generated_header_filename = generated_header_filename,
+    )
+
 clang_modulemap_support = struct(
     process_headers = _process_headers,
     modulemap_header_interface_contents = _modulemap_header_interface_contents,
+    modulemap_swift_contents = _modulemap_swift_contents,
 )
