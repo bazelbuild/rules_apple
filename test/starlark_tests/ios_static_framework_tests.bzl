@@ -51,7 +51,6 @@ def ios_static_framework_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_swift_sim_arm64_builds".format(name),
         name = "{}_swift_sim_arm64_builds_using_ios_multi_cpus".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
@@ -82,8 +81,8 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_swift_sim_arm64_builds_using_apple_platforms".format(name),
         apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
+            "@build_bazel_apple_support//platforms:ios_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
@@ -96,8 +95,8 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_swift_x86_64_builds_using_apple_platforms".format(name),
         apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
+            "@build_bazel_apple_support//platforms:ios_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
