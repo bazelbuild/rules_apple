@@ -81,7 +81,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_swift_sim_arm64_builds_using_apple_platforms".format(name),
         apple_platforms = [
-            "@build_bazel_apple_support//platforms:ios_arm64",
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
             "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
@@ -95,7 +95,7 @@ def ios_static_framework_test_suite(name):
     archive_contents_test(
         name = "{}_swift_x86_64_builds_using_apple_platforms".format(name),
         apple_platforms = [
-            "@build_bazel_apple_support//platforms:ios_arm64",
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
             "@build_bazel_apple_support//platforms:ios_x86_64",
         ],
         build_type = "simulator",
