@@ -500,7 +500,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -638,7 +638,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -694,7 +694,7 @@ objc_library(
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
+        swift_common.toolchain_attrs(),
         {
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
@@ -769,7 +769,7 @@ objc_library(
     implementation = _apple_static_xcframework_import_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
+        swift_common.toolchain_attrs(),
         {
             "alwayslink": attr.bool(
                 default = False,
