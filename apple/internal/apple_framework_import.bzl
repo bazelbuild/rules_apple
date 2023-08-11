@@ -260,8 +260,8 @@ def _apple_dynamic_framework_import_impl(ctx):
         header_imports = framework.header_imports,
         kind = "dynamic",
         label = label,
-        libraries = [] if ctx.attr.bundle_only else framework_imports_by_category.binary_imports,
-        swiftmodule_imports = framework_imports_by_category.swift_module_imports,
+        libraries = [] if ctx.attr.bundle_only else framework.binary_imports,
+        swiftmodule_imports = framework.swift_module_imports,
     )
     providers.append(cc_info)
 
@@ -346,7 +346,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
-        toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
+        toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -359,7 +359,7 @@ def _apple_static_framework_import_impl(ctx):
 
         if _is_debugging(compilation_mode):
             swiftmodule = _swiftmodule_for_cpu(
-                framework_imports_by_category.swift_module_imports,
+                framework.swift_module_imports,
                 target_triplet.architecture,
             )
             if swiftmodule:
@@ -416,15 +416,15 @@ def _apple_static_framework_import_impl(ctx):
             header_imports = framework.header_imports,
             kind = "static",
             label = label,
-            libraries = framework_imports_by_category.binary_imports,
+            libraries = framework.binary_imports,
             linkopts = linkopts,
-            swiftmodule_imports = framework_imports_by_category.swift_module_imports,
+            swiftmodule_imports = framework.swift_module_imports,
         ),
     )
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
         swiftinterface_files = framework_import_support.filter_swift_module_files_for_architecture(
             architecture = target_triplet.architecture,
             swift_module_files = framework.swift_interface_imports,

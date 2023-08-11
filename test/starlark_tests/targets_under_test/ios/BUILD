@@ -1881,8 +1881,8 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = "8.0",
-    tags = FIXTURE_TAGS,
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
     deps = [
         ":swift_static_fmwk_depending_swift_lib",
         "//test/starlark_tests/resources:swift_main_lib",
