@@ -2503,6 +2503,7 @@ macos_static_framework = rule_factory.create_apple_bundling_rule(
     implementation = _macos_static_framework_impl,
     platform_type = "macos",
     product_type = apple_product_type.static_framework,
+    cfg = transition_support.apple_platforms_rule_base_transition,
     doc = """Builds and bundles a macOS static framework for third-party distribution.
 
 A static framework is bundled like a dynamic framework except that the embedded

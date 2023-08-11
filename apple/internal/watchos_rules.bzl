@@ -84,6 +84,10 @@ load(
     "swift_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -1224,4 +1228,5 @@ watchos_static_framework = rule_factory.create_apple_bundling_rule(
     platform_type = "watchos",
     product_type = apple_product_type.static_framework,
     doc = "Builds and bundles a watchOS Static Framework.",
+    cfg = transition_support.apple_platforms_rule_base_transition,
 )
