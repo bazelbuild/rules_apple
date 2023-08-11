@@ -47,17 +47,6 @@ def _get_link_declarations(dylibs = [], frameworks = []):
 
     return link_lines
 
-def _get_umbrella_header_declaration(basename):
-    """Returns the module map line that references an umbrella header.
-
-    Args:
-        basename: The basename of the umbrella header file to be referenced in the module map.
-
-    Returns:
-        The module map line that references the umbrella header.
-    """
-    return 'umbrella header "%s"' % basename
-
 def _modulemap_header_interface_contents(
         framework_modulemap,
         module_name,
@@ -75,16 +64,18 @@ def _modulemap_header_interface_contents(
         umbrella_header_filename: The basename of the umbrella header file, or None if there is no
             umbrella header.
     """
-    declarations = []
     if umbrella_header_filename:
-        declarations.extend([
-            _get_umbrella_header_declaration(umbrella_header_filename),
+        declarations = [
+            "umbrella header \"%s\"" % umbrella_header_filename,
             "\n",
-        ])
-    declarations.extend([
-        "export *",
-        "module * { export * }",
-    ])
+            "export *",
+            # `module * ...` declarations always require an umbrella header/folder.
+            "module * { export * }",
+        ]
+    else:
+        declarations = [
+            "export *",
+        ]
     declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
 
     return (
@@ -108,6 +99,9 @@ def _create_umbrella_header(*, actions, output, public_hdrs):
         output: A declared `File` to which the umbrella header will be written.
         public_hdrs: A list of header files to be imported by the umbrella header.
     """
+
+    # TODO(b/295078966): Use Xcode preferred angle bracket + Clang module name referencing imports
+    # instead of quotes.
     import_lines = ["#import \"{header_file}\"".format(
         header_file = f.basename,
     ) for f in sorted(public_hdrs)]
