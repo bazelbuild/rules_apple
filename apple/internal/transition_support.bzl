@@ -214,7 +214,7 @@ def _command_line_options(
         # `apple_split_cpu` is used by the Bazel Apple configuration distinguisher to distinguish
         # architecture and environment, therefore we set `environment_arch` when it is available.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
-        "//command_line_option:compiler": settings["//command_line_option:apple_compiler"],
+        "//command_line_option:compiler": None,
         "//command_line_option:cpu": _cpu_string(
             environment_arch = environment_arch,
             platform_type = platform_type,
@@ -375,7 +375,6 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/apple/AppleCommandLineOptions.java
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
-    "//command_line_option:apple_compiler",
     "//command_line_option:apple_crosstool_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
