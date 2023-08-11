@@ -37,8 +37,7 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:features_support.bzl",
@@ -86,8 +85,8 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     )
 
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -254,6 +253,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
 
 apple_precompiled_resource_bundle = rule(
     implementation = _apple_precompiled_resource_bundle_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp", "objc"],
     attrs = dicts.add(
         {

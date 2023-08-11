@@ -14,10 +14,7 @@
 
 """Implementation of Apple Core Data Model resource rule."""
 
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -32,8 +29,7 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:features_support.bzl",
@@ -56,8 +52,8 @@ def _apple_core_data_model_impl(ctx):
     """Implementation of the apple_core_data_model."""
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -125,6 +121,7 @@ def _apple_core_data_model_impl(ctx):
 
 apple_core_data_model = rule(
     implementation = _apple_core_data_model_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         apple_support.action_required_attrs(),

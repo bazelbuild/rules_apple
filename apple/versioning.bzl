@@ -14,13 +14,9 @@
 
 """# Rules related to Apple bundle versioning."""
 
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -133,14 +129,15 @@ def _apple_bundle_version_impl(ctx):
     )
     inputs.append(control_file)
 
-    versiontool = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].versiontool
+    versiontool = apple_toolchain_utils.get_xplat_toolchain(ctx).versiontool
 
     ctx.actions.run(
-        executable = versiontool,
+        executable = versiontool.files_to_run,
         arguments = [control_file.path, bundle_version_file.path],
         inputs = inputs,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",
+        exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     )
 
     return [
@@ -201,6 +198,7 @@ be used for this key as well.
             ),
         },
     ),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = """
 Produces a target that contains versioning information for an Apple bundle.
 
