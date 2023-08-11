@@ -198,7 +198,7 @@ def _command_line_options(
         "//command_line_option:apple_platform_type": platform_type,
         "//command_line_option:apple_platforms": apple_platforms,
         "//command_line_option:apple_split_cpu": cpu if cpu else "",
-        "//command_line_option:compiler": settings["//command_line_option:apple_compiler"],
+        "//command_line_option:compiler": None,
         "//command_line_option:cpu": _cpu_string(
             cpu = cpu,
             platform_type = platform_type,
@@ -338,7 +338,6 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/apple/AppleCommandLineOptions.java
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
-    "//command_line_option:apple_compiler",
     "//command_line_option:apple_crosstool_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
