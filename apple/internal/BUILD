@@ -40,6 +40,14 @@ apple_mac_tools_toolchain(
     xctoolrunner = "//tools/xctoolrunner",
 )
 
+toolchain_type(name = "apple_xplat_toolchain_type")
+
+toolchain(
+    name = "apple_xplat_toolchain",
+    toolchain = "xplat_tools_toolchain",
+    toolchain_type = ":apple_xplat_toolchain_type",
+)
+
 apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     build_settings = build_settings_labels.all_labels,
@@ -103,7 +111,9 @@ bzl_library(
 bzl_library(
     name = "apple_toolchains",
     srcs = ["apple_toolchains.bzl"],
-    visibility = ["//apple:__subpackages__"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
     deps = [
         "@bazel_skylib//rules:common_settings",
     ],

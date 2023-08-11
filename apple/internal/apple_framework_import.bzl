@@ -35,7 +35,12 @@ load(
     "swift_clang_module_aspect",
     "swift_common",
 )
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load(
+    "@rules_cc//cc:find_cc_toolchain.bzl",
+    "find_cc_toolchain",
+    "find_cpp_toolchain",
+    "use_cpp_toolchain",
+)
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
@@ -44,6 +49,10 @@ load(
 load(
     "//apple:utils.bzl",
     "group_files_by_directory",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
@@ -69,6 +78,9 @@ load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )
+
+# The name of the execution group that houses the Swift toolchain and is used to run Swift actions.
+_SWIFT_EXEC_GROUP = "swift"
 
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
@@ -163,7 +175,8 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    cc_toolchain = find_cc_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -231,7 +244,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -297,7 +310,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx)
+        toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -369,7 +382,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -469,7 +482,15 @@ objc_library(
 )
 ```
 """,
-    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
+    toolchains = use_cpp_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -553,7 +574,6 @@ not include Swift interface or Swift module files.
             ),
         },
     ),
-    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_static_framework_import` targets
@@ -575,4 +595,13 @@ objc_library(
 )
 ```
 """,
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
+    toolchains = use_cpp_toolchain(),
 )
