@@ -35,6 +35,10 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 visibility([
@@ -129,9 +133,12 @@ def _create_apple_rule(
         doc = doc,
         executable = is_executable,
         # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-        exec_groups = {
-            _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
-        },
+        exec_groups = dicts.add(
+            {
+                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
+            },
+            apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        ),
         fragments = ["apple", "cpp", "objc"],
         toolchains = toolchains,
         **extra_args
@@ -163,9 +170,12 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
         ),
         doc = doc,
         # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-        exec_groups = {
-            _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
-        },
+        exec_groups = dicts.add(
+            {
+                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
+            },
+            apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        ),
         test = True,
         toolchains = use_cpp_toolchain(),
     )

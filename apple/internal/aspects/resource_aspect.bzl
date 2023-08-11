@@ -24,8 +24,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -54,10 +52,7 @@ load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
@@ -67,7 +62,7 @@ visibility("//apple/internal/...")
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
-    apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(aspect_ctx)
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
@@ -103,7 +98,7 @@ def _apple_resource_aspect_impl(target, ctx):
     # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
-        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
         "bundle_id": None,
         "product_type": None,
         "rule_label": ctx.label,
@@ -321,6 +316,7 @@ apple_resource_aspect = aspect(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
     ),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
 bundling rule.""",

@@ -157,7 +157,8 @@ def _create_combined_zip_artifact(
         output_combined_zip,
         output_discriminator,
         platform_prerequisites,
-        resolved_bundletool):
+        bundletool,
+        xplat_exec_group):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
 
      Args:
@@ -169,7 +170,8 @@ def _create_combined_zip_artifact(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_bundletool: A struct referencing the resolved bundle tool.
+      bundletool: A bundle tool from xplat toolchain.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     bundletool_control_file = intermediates.file(
         actions = actions,
@@ -222,15 +224,14 @@ def _create_combined_zip_artifact(
     else:
         actions.run(
             arguments = [bundletool_control_file.path],
-            executable = resolved_bundletool.executable,
+            executable = bundletool.files_to_run,
             inputs = depset(
                 direct = [bundletool_control_file],
                 transitive = [
-                    resolved_bundletool.inputs,
                     depset([input_archive, dossier_merge_zip]),
                 ],
             ),
-            input_manifests = resolved_bundletool.input_manifests,
+            exec_group = xplat_exec_group,
             **common_combined_dossier_zip_args
         )
 
@@ -239,6 +240,7 @@ def _codesigning_dossier_partial_impl(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -325,7 +327,8 @@ def _codesigning_dossier_partial_impl(
         output_combined_zip = output_combined_zip,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
+        bundletool = apple_xplat_toolchain_info.bundletool,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return struct(
@@ -341,6 +344,7 @@ def codesigning_dossier_partial(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -359,6 +363,7 @@ def codesigning_dossier_partial(
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
@@ -386,6 +391,7 @@ def codesigning_dossier_partial(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        xplat_exec_group = xplat_exec_group,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,

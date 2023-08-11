@@ -40,7 +40,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
@@ -125,7 +125,7 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -376,11 +376,14 @@ This rule encapsulates an already-built dynamic framework. It is defined by a li
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
 targets through the `deps` attribute.
 """,
-    exec_groups = {
-        _SWIFT_EXEC_GROUP: exec_group(
-            toolchains = swift_common.use_toolchain(),
-        ),
-    },
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
     toolchains = use_cpp_toolchain(),
 )
 
@@ -460,10 +463,13 @@ This rule encapsulates an already-built static framework. It is defined by a lis
 .framework directory. apple_static_framework_import targets need to be added to library targets
 through the `deps` attribute.
 """,
-    exec_groups = {
-        _SWIFT_EXEC_GROUP: exec_group(
-            toolchains = swift_common.use_toolchain(),
-        ),
-    },
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
     toolchains = use_cpp_toolchain(),
 )

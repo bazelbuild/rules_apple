@@ -20,8 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -53,7 +52,7 @@ visibility("//apple/...")
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
     deps = getattr(ctx.attr, "deps", None)
@@ -80,7 +79,7 @@ def _apple_core_ml_library_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
 
     # coremlc doesn't have any configuration on the name of the generated source files, it uses the
     # basename of the mlmodel file instead, so we need to expect those files as outputs.
@@ -113,6 +112,7 @@ def _apple_core_ml_library_impl(ctx):
 
 apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         rule_attrs.common_tool_attrs(),

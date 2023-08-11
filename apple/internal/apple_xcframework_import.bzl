@@ -17,8 +17,7 @@
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
@@ -436,8 +435,8 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -544,8 +543,8 @@ def _apple_static_xcframework_import_impl(ctx):
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -679,11 +678,14 @@ linked into that target.
             ),
         },
     ),
-    exec_groups = {
-        _SWIFT_EXEC_GROUP: exec_group(
-            toolchains = swift_common.use_toolchain(),
-        ),
-    },
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
     fragments = ["apple", "cpp"],
     provides = [
         AppleFrameworkImportInfo,
@@ -752,11 +754,14 @@ on this target.
             ),
         },
     ),
-    exec_groups = {
-        _SWIFT_EXEC_GROUP: exec_group(
-            toolchains = swift_common.use_toolchain(),
-        ),
-    },
+    exec_groups = dicts.add(
+        {
+            _SWIFT_EXEC_GROUP: exec_group(
+                toolchains = swift_common.use_toolchain(),
+            ),
+        },
+        apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    ),
     fragments = ["apple", "cpp", "objc"],
     toolchains = use_cpp_toolchain(),
 )

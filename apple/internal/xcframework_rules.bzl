@@ -24,8 +24,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
@@ -399,7 +398,8 @@ def _create_xcframework_bundle(
         framework_archive_merge_zips = [],
         label_name,
         output_archive,
-        resolved_bundletool,
+        bundletool,
+        xplat_exec_group,
         root_info_plist):
     """Generates the bundle archive for an XCFramework.
 
@@ -420,7 +420,8 @@ def _create_xcframework_bundle(
             `bundle_path`.
         label_name: Name of the target being built.
         output_archive: The file representing the final bundled archive.
-        resolved_bundletool: A struct referencing the resolved bundle tool.
+        bundletool: A bundle tool from xplat toolchain.
+        xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
         root_info_plist: A `File` representing a fully formed root Info.plist for this XCFramework.
     """
     bundletool_control_file = intermediates.file(
@@ -443,22 +444,22 @@ def _create_xcframework_bundle(
 
     actions.run(
         arguments = [bundletool_control_file.path],
-        executable = resolved_bundletool.executable,
+        executable = bundletool.files_to_run,
         inputs = depset(
             direct = [bundletool_control_file, root_info_plist],
-            transitive = [resolved_bundletool.inputs] + framework_archive_files,
+            transitive = framework_archive_files,
         ),
-        input_manifests = resolved_bundletool.input_manifests,
         mnemonic = "CreateXCFrameworkBundle",
         outputs = [output_archive],
         progress_message = "Bundling %s" % label_name,
+        exec_group = xplat_exec_group,
     )
 
 def _apple_xcframework_impl(ctx):
     """Implementation of apple_xcframework."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     deps = ctx.split_attr.deps
 
@@ -676,6 +677,7 @@ def _apple_xcframework_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
@@ -739,7 +741,8 @@ def _apple_xcframework_impl(ctx):
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = ctx.outputs.archive,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
+        bundletool = apple_xplat_toolchain_info.bundletool,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,
     )
 
@@ -770,7 +773,6 @@ apple_xcframework = rule_factory.create_apple_rule(
     doc = "Builds and bundles an XCFramework for third-party distribution.",
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
-    toolchains = [],
     attrs = [
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -880,8 +882,8 @@ def _apple_static_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.label.name
     deps = ctx.split_attr.deps
     label = ctx.label
@@ -1009,7 +1011,8 @@ def _apple_static_xcframework_impl(ctx):
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
         output_archive = outputs_archive,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
+        bundletool = apple_xplat_toolchain_info.bundletool,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,
     )
 

@@ -20,8 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -54,8 +53,8 @@ def _apple_core_data_model_impl(ctx):
     """Implementation of the apple_core_data_model."""
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -106,6 +105,7 @@ def _apple_core_data_model_impl(ctx):
 
 apple_core_data_model = rule(
     implementation = _apple_core_data_model_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         apple_support.action_required_attrs(),

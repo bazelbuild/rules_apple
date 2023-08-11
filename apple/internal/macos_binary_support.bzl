@@ -20,8 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
@@ -86,7 +85,7 @@ def _macos_binary_infoplist_impl(ctx):
     )
 
     actions = ctx.actions
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
@@ -146,7 +145,7 @@ def _macos_binary_infoplist_impl(ctx):
         output_pkginfo = None,
         output_plist = merged_infoplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_plisttool,
+        resolved_plisttool = apple_toolchain_utils.get_mac_toolchain(ctx).resolved_plisttool,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         version = ctx.attr.version,
@@ -160,6 +159,7 @@ def _macos_binary_infoplist_impl(ctx):
 
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         rule_attrs.signing_attrs(
@@ -193,7 +193,7 @@ def _macos_command_line_launchdplist_impl(ctx):
     )
 
     actions = ctx.actions
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
@@ -231,7 +231,7 @@ def _macos_command_line_launchdplist_impl(ctx):
         output_discriminator = None,
         output_plist = merged_launchdplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_plisttool,
+        resolved_plisttool = apple_toolchain_utils.get_mac_toolchain(ctx).resolved_plisttool,
         rule_label = rule_label,
     )
 
@@ -243,6 +243,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
