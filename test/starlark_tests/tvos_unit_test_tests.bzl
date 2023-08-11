@@ -56,8 +56,8 @@ def tvos_unit_test_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
-        expected_direct_dsyms = ["unit_test.xctest"],
-        expected_transitive_dsyms = ["unit_test.xctest", "app.app"],
+        expected_direct_dsyms = ["unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest"],
+        expected_transitive_dsyms = ["unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest", "app_dsyms/app.app"],
         tags = [name],
     )
 

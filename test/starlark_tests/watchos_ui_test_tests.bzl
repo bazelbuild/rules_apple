@@ -48,8 +48,8 @@ def watchos_ui_test_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest"],
-        expected_transitive_dsyms = ["ui_test.xctest", "ext.appex"],
+        expected_direct_dsyms = ["ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest"],
+        expected_transitive_dsyms = ["ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest", "ext_dsyms/ext.appex"],
         tags = [name],
     )
 

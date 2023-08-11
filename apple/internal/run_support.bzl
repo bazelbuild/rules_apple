@@ -24,9 +24,11 @@ def _register_simulator_executable(
         actions,
         bundle_extension,
         bundle_name,
+        label_name,
         output,
         platform_prerequisites,
         predeclared_outputs,
+        rule_descriptor,
         runner_template):
     """Registers an action that runs the bundled app in the iOS simulator.
 
@@ -34,9 +36,11 @@ def _register_simulator_executable(
       actions: The actions provider from ctx.actions.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
+      label_name: The name of the target.
       output: The `File` representing where the executable should be generated.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
+      rule_descriptor: The rule descriptor for the given rule.
       runner_template: The simulator runner template as a `File`.
     """
 
@@ -47,8 +51,10 @@ def _register_simulator_executable(
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        label_name = label_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
 
     actions.expand_template(
@@ -69,9 +75,11 @@ def _register_macos_executable(
         actions,
         bundle_extension,
         bundle_name,
+        label_name,
         output,
         platform_prerequisites,
         predeclared_outputs,
+        rule_descriptor,
         runner_template):
     """Registers an action that runs the bundled macOS app.
 
@@ -79,18 +87,22 @@ def _register_macos_executable(
       actions: The actions provider from ctx.actions.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
+      label_name: The name of the target.
       output: The `File` representing where the executable should be generated.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
       runner_template: The macos runner template as a `File`.
+      rule_descriptor: The rule descriptor for the given rule.
     """
 
     archive = outputs.archive(
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        label_name = label_name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
 
     actions.expand_template(

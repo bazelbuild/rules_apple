@@ -648,13 +648,13 @@ function test_all_dsyms_propagated() {
       --output_groups=+dsyms \
       //app:app || fail "Should build"
 
-  assert_exists "test-bin/app/app.app.dSYM/Contents/Info.plist"
-  assert_exists "test-bin/app/ext.appex.dSYM/Contents/Info.plist"
+  assert_exists "test-bin/app/app_dsyms/app.app.dSYM/Contents/Info.plist"
+  assert_exists "test-bin/app/ext_dsyms/ext.appex.dSYM/Contents/Info.plist"
 
   assert_exists \
-      "test-bin/app/app.app.dSYM/Contents/Resources/DWARF/app"
+      "test-bin/app/app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app"
   assert_exists \
-      "test-bin/app/ext.appex.dSYM/Contents/Resources/DWARF/ext"
+      "test-bin/app/ext_dsyms/ext.appex.dSYM/Contents/Resources/DWARF/ext"
 }
 
 run_suite "ios_extension bundling tests"

@@ -747,8 +747,10 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            label_name = rule_label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
         )
         _bundle_post_process_and_sign(
             actions = actions,

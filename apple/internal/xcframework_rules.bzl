@@ -567,6 +567,7 @@ def _apple_xcframework_impl(ctx):
                 platform_prerequisites = platform_prerequisites,
                 predeclared_outputs = overridden_predeclared_outputs,
                 product_type = rule_descriptor.product_type,
+                rule_descriptor = rule_descriptor,
             ),
             partials.binary_partial(
                 actions = actions,
@@ -584,6 +585,7 @@ def _apple_xcframework_impl(ctx):
                 dsym_binaries = link_output.dsym_binaries,
                 dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                 executable_name = executable_name,
+                label_name = label.name,
                 linkmaps = link_output.linkmaps,
                 platform_prerequisites = platform_prerequisites,
             ),
