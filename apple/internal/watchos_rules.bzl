@@ -102,8 +102,8 @@ load(
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
-    "WatchosStaticFrameworkBundleInfo",
     "WatchosSingleTargetApplicationBundleInfo",
+    "WatchosStaticFrameworkBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",

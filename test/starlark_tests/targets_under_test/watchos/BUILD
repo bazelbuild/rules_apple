@@ -8,8 +8,8 @@ load(
     "watchos_dynamic_framework",
     "watchos_extension",
     "watchos_framework",
-    "watchos_static_framework",
     "watchos_single_target_application",
+    "watchos_static_framework",
     "watchos_ui_test",
     "watchos_unit_test",
 )

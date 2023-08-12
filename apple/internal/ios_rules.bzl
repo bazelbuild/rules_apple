@@ -105,8 +105,8 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkBundleInfo",
     "AppleBundleInfo",
+    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
     "IosApplicationBundleInfo",
