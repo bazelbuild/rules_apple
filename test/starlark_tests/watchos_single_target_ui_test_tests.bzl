@@ -51,8 +51,8 @@ def watchos_single_target_ui_test_test_suite(name):
     dsyms_test(
         name = "{}_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
-        expected_direct_dsyms = ["single_target_ui_test.xctest"],
-        expected_transitive_dsyms = ["single_target_ui_test.xctest"],
+        expected_direct_dsyms = ["single_target_ui_test.__internal__.__test_bundle_dsyms/single_target_ui_test.xctest"],
+        expected_transitive_dsyms = ["single_target_ui_test.__internal__.__test_bundle_dsyms/single_target_ui_test.xctest"],
         tags = [
             name,
             "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
