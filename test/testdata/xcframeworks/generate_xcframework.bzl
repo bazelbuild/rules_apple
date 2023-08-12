@@ -370,8 +370,12 @@ def _generate_static_xcframework_impl(ctx):
                 module_interfaces = [
                     generation_support.copy_file(
                         actions = actions,
-                        file = interface_file,
                         base_path = swiftmodule_path,
+                        file = interface_file,
+                        target_filename = "{architecture}.{extension}".format(
+                            architecture = architectures[0],
+                            extension = interface_file.extension,
+                        ),
                     )
                     for interface_file in swift_library
                     if interface_file.extension.startswith("swift")

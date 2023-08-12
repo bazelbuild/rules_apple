@@ -2290,7 +2290,21 @@ swift_library(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_depends_on_base",
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework",
     ],
+)
+
+genrule(
+    name = "static_swift_xcframework_depending_swift_lib_src",
+    outs = ["SwiftWithStaticSwiftFramework.swift"],
+    cmd = """cat > $@ <<EOF
+import generated_swift_static_xcframework
+func main() {
+  let sc = generated_swift_static_xcframework.SharedClass()
+  sc.doSomethingShared()
+}
+EOF
+""",
 )
 
 genrule(
