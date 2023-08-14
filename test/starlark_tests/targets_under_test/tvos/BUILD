@@ -430,8 +430,8 @@ apple_dynamic_xcframework_import(
 
 generate_dynamic_xcframework(
     name = "generated_dynamic_tvos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "tvos": common.min_os_tvos.baseline,
         "tvos_simulator": common.min_os_tvos.arm_sim_support,
@@ -477,8 +477,8 @@ apple_static_xcframework_import(
 
 generate_static_xcframework(
     name = "generated_static_tvos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "tvos": common.min_os_tvos.baseline,
         "tvos_simulator": common.min_os_tvos.arm_sim_support,

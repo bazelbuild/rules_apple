@@ -1,8 +1,6 @@
 load(
     "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
-    "apple_static_framework_import",
     "apple_static_xcframework",
     "apple_static_xcframework_import",
     "apple_universal_binary",
@@ -1198,95 +1196,6 @@ apple_universal_binary(
     minimum_os_version = common.min_os_macos.arm64_support,
     platform_type = "macos",
     tags = common.fixture_tags,
-)
-
-# ---------------------------------------------------------------------------------------
-# Targets for Apple dynamic framework import tests.
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFramework"],
-)
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithBitcode",
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkWithBitcode"],
-)
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithDebugInfo",
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkWithDebugInfo"],
-)
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithDsym",
-    dsym_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkDsym"],
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFramework"],
-)
-
-apple_dynamic_framework_import(
-    name = "macOSImportedDynamicFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:macOSDynamicFramework"],
-)
-
-apple_dynamic_framework_import(
-    name = "macOSImportedDynamicFrameworkWithBitcode",
-    framework_imports = ["//test/testdata/fmwk:macOSDynamicFrameworkWithBitcode"],
-)
-
-apple_dynamic_framework_import(
-    name = "macOSImportedDynamicFrameworkWithDebugInfo",
-    framework_imports = ["//test/testdata/fmwk:macOSDynamicFrameworkWithDebugInfo"],
-)
-
-apple_dynamic_framework_import(
-    name = "macOSImportedDynamicFrameworkWithDsym",
-    dsym_imports = ["//test/testdata/fmwk:macOSDynamicFrameworkDsym"],
-    framework_imports = ["//test/testdata/fmwk:macOSDynamicFramework"],
-)
-
-# ---------------------------------------------------------------------------------------
-# Targets for Apple static framework import tests.
-
-apple_static_framework_import(
-    name = "iOSImportedStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedStaticFrameworkWithData",
-    data = ["//test/starlark_tests/resources:sample.png"],
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedStaticFrameworkWithDataAndBundle",
-    data = ["//test/starlark_tests/resources:localized_xibs_ios"],
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFramework"],
-)
-
-apple_static_framework_import(
-    name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
-    has_swift = True,
-)
-
-apple_static_framework_import(
-    name = "macOSImportedStaticFramework",
-    features = ["-swift.layering_check"],
-    framework_imports = ["//test/testdata/fmwk:macOSStaticFramework"],
 )
 
 # ---------------------------------------------------------------------------------------

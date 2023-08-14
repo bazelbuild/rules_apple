@@ -21,6 +21,7 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
+    "apple_static_framework_import",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -34,6 +35,7 @@ load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
 )
+load("//test/testdata/fmwk:generate_framework_dsym.bzl", "generate_import_framework_dsym")
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load(
     "//test/testdata/xcframeworks:generate_xcframework.bzl",
@@ -436,7 +438,7 @@ swift_library(
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFramework",
+        ":macOSImportedDynamicFramework",
     ],
 )
 
@@ -464,7 +466,7 @@ swift_library(
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedStaticFramework",
+        ":macOSImportedStaticFramework",
     ],
 )
 
@@ -556,6 +558,22 @@ macos_static_framework(
     exclude_resources = False,
     minimum_os_version = common.min_os_macos.baseline,
     deps = [":static_framework_lib_with_resources"],
+)
+
+apple_static_framework_import(
+    name = "macOSImportedStaticFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":macOSStaticFramework"],
+)
+
+generate_import_framework(
+    name = "macOSStaticFramework",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    libtype = "static",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
 )
 
 genrule(
@@ -1328,6 +1346,61 @@ macos_extension(
     ],
 )
 
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithDsym",
+    dsym_imports = [":macOSDynamicFrameworkDsym"],
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFramework",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
+)
+
+generate_import_framework_dsym(
+    name = "macOSDynamicFrameworkDsym",
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithBitcode",
+    framework_imports = [":macOSDynamicFrameworkWithBitcode"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFrameworkWithBitcode",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
+    archs = ["x86_64"],
+    embed_bitcode = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithDebugInfo",
+    framework_imports = [":macOSDynamicFrameworkWithDebugInfo"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFrameworkWithDebugInfo",
+    archs = ["x86_64"],
+    embed_debug_info = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
+)
+
 # ---------------------------------------------------------------------------------------
 
 substitution(
@@ -1921,8 +1994,8 @@ macos_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedDynamicFramework",
         "//test/starlark_tests/resources:objc_shared_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFramework",
     ],
 )
 
@@ -2004,8 +2077,8 @@ macos_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedStaticFramework",
         "//test/starlark_tests/resources:objc_shared_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedStaticFramework",
     ],
 )
 
@@ -2066,8 +2139,8 @@ apple_dynamic_xcframework_import(
 
 generate_dynamic_xcframework(
     name = "generated_dynamic_macos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "macos": common.min_os_macos.arm64_support,
     },

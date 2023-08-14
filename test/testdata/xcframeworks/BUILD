@@ -34,8 +34,8 @@ generate_dynamic_xcframework(
 
 generate_dynamic_xcframework(
     name = "generated_dynamic_xcframework_with_headers",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
@@ -70,8 +70,8 @@ generate_static_xcframework(
 
 generate_static_xcframework(
     name = "generated_static_xcframework_with_headers",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
@@ -90,8 +90,8 @@ generate_static_xcframework(
 
 generate_static_xcframework(
     name = "generated_static_xcframework_with_headers_and_no_modulemap",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     generate_modulemap = False,
     minimum_os_versions = {
         "ios_simulator": common.min_os_ios.baseline,
@@ -108,7 +108,7 @@ generate_static_xcframework(
 
 swift_library(
     name = "swift_lib_for_static_xcframework",
-    srcs = ["//test/testdata/fmwk:swift_source"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
     features = [
         "swift.emit_swiftinterface",
         "swift.enable_library_evolution",
@@ -135,8 +135,8 @@ generate_static_xcframework(
 
 generate_static_framework_xcframework(
     name = "generated_static_xcframework_base",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {"ios_simulator": "11.0"},
     platforms = {"ios_simulator": ["x86_64"]},
     tags = common.fixture_tags,

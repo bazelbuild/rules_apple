@@ -906,8 +906,8 @@ apple_dynamic_xcframework_import(
 
 generate_dynamic_xcframework(
     name = "generated_dynamic_watchos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "watchos": common.min_os_watchos.arm64_support,
         "watchos_simulator": common.min_os_watchos.arm_sim_support,
@@ -972,8 +972,8 @@ apple_static_xcframework_import(
 
 generate_static_xcframework(
     name = "generated_static_watchos_xcframework",
-    srcs = ["//test/testdata/fmwk:objc_source"],
-    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
         "watchos": common.min_os_watchos.arm64_support,
         "watchos_simulator": common.min_os_watchos.arm_sim_support,
