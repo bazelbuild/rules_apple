@@ -11,7 +11,9 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
+    "apple_static_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -20,6 +22,11 @@ load(
 load(
     "//test/testdata/fmwk:generate_framework.bzl",
     "generate_import_framework",
+)
+load(
+    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+    "generate_static_xcframework",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -347,6 +354,7 @@ tvos_framework(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic framework import tests.
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
@@ -370,6 +378,7 @@ generate_import_framework(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for Apple static framework import tests.
 
 objc_library(
     name = "static_fmwk_depending_lib",
@@ -387,6 +396,102 @@ generate_import_framework(
     libtype = "static",
     minimum_os_version = common.min_os_tvos.baseline,
     sdk = "appletvsimulator",
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic XCFramework import tests.
+
+tvos_application(
+    name = "app_with_imported_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":tvos_imported_dynamic_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "tvos_imported_dynamic_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_tvos_xcframework"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_tvos_xcframework",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "tvos_simulator": common.min_os_tvos.arm_sim_support,
+    },
+    platforms = {
+        "tvos": [
+            "arm64",
+        ],
+        "tvos_simulator": [
+            "arm64",
+            "x86_64",
+        ],
+    },
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple static XCFramework import tests.
+
+tvos_application(
+    name = "app_with_imported_static_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [":tvos_imported_static_xcframework"],
+)
+
+apple_static_xcframework_import(
+    name = "tvos_imported_static_xcframework",
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_tvos_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_tvos_xcframework",
+    srcs = ["//test/testdata/fmwk:objc_source"],
+    hdrs = ["//test/testdata/fmwk:objc_headers"],
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "tvos_simulator": common.min_os_tvos.arm_sim_support,
+    },
+    platforms = {
+        "tvos": [
+            "arm64",
+        ],
+        "tvos_simulator": [
+            "arm64",
+            "x86_64",
+        ],
+    },
 )
 
 # ---------------------------------------------------------------------------------------
