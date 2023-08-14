@@ -171,7 +171,7 @@ def macos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
         contains = [
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist",
         ],
         not_contains = [
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Headers/SharedClass.h",
