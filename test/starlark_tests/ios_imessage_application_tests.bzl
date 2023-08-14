@@ -19,11 +19,11 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 

@@ -22,7 +22,7 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    ":rules/apple_verification_test.bzl",
+    "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
 load(

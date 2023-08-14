@@ -15,11 +15,11 @@
 """`dtrace_compile` Starlark tests."""
 
 load(
-    ":rules/output_text_match_test.bzl",
+    "//test/starlark_tests/rules:output_text_match_test.bzl",
     "output_text_match_test",
 )
 load(
-    ":rules/analysis_target_outputs_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 

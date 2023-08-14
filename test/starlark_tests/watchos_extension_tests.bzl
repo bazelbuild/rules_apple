@@ -23,28 +23,28 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/product_type_test.bzl",
+    "//test/starlark_tests/rules:product_type_test.bzl",
     "product_type_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "entry_point_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
+    "//test/starlark_tests/rules:dsyms_test.bzl",
     "dsyms_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
-    ":rules/linkmap_test.bzl",
+    "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
 )
 
