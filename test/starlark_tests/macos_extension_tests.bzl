@@ -17,9 +17,6 @@
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "entry_point_test",
 )
 
