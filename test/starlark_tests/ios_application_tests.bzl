@@ -61,6 +61,16 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_ipa_opt_strip_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        compilation_mode = "opt",
+        objc_enable_binary_stripping = True,
+        tags = [name],
+    )
+
     # Tests that an app with a mixed target framework compiles
     analysis_target_outputs_test(
         name = "{}_mixed_target_framework_test".format(name),

@@ -55,6 +55,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
+        "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
         "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
     }
@@ -95,17 +96,18 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ],
     outputs = [
-        "//command_line_option:cpu",
-        "//command_line_option:ios_signing_cert_name",
-        "//command_line_option:ios_multi_cpus",
-        "//command_line_option:macos_cpus",
-        "//command_line_option:tvos_cpus",
-        "//command_line_option:watchos_cpus",
-        "//command_line_option:compilation_mode",
-        "//command_line_option:features",
         "//command_line_option:apple_generate_dsym",
         "//command_line_option:apple_platforms",
+        "//command_line_option:compilation_mode",
+        "//command_line_option:cpu",
+        "//command_line_option:features",
         "//command_line_option:incompatible_enable_apple_toolchain_resolution",
+        "//command_line_option:ios_multi_cpus",
+        "//command_line_option:ios_signing_cert_name",
+        "//command_line_option:macos_cpus",
+        "//command_line_option:objc_enable_binary_stripping",
+        "//command_line_option:tvos_cpus",
+        "//command_line_option:watchos_cpus",
     ],
 )
 
@@ -260,6 +262,14 @@ Dictionary of command line options cpu flags (e.g. ios_multi_cpus, macos_cpus) a
 cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']}) Currently it is
 considered to be an error if this is set with `apple_platforms` as both opt into different means of
 toolchain resolution.
+""",
+        ),
+        "objc_enable_binary_stripping": attr.bool(
+            default = False,
+            doc = """
+Whether to perform symbol and dead-code strippings on linked binaries. Binary
+strippings will be performed if both this flag and --compilation_mode=opt are
+specified.
 """,
         ),
         "sanitizer": attr.string(
