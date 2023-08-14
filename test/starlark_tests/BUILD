@@ -164,6 +164,7 @@ bzl_library(
     srcs = glob(["**/*.bzl"]),
     deps = [
         "//apple:providers",
+        "//apple/build_settings:attrs",
         "//apple/internal:apple_product_type",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",

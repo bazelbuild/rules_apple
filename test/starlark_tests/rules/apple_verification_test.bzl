@@ -18,6 +18,7 @@ This rule is meant to be used only for rules_apple tests and are considered impl
 that may change at any time. Please do not depend on this rule.
 """
 
+load("@build_bazel_rules_apple//apple/build_settings:attrs.bzl", "build_settings")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
@@ -81,6 +82,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             command_line_option = "//command_line_option:%s" % cpu_option
             output_dictionary.update({command_line_option: ",".join(cpus)})
 
+    # Features
     existing_features = settings.get("//command_line_option:features") or []
     if hasattr(attr, "target_features"):
         existing_features.extend(attr.target_features)
@@ -88,13 +90,29 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         existing_features.append(attr.sanitizer)
     output_dictionary["//command_line_option:features"] = existing_features
 
+    # Build settings
+    for build_setting in build_settings.all_labels:
+        if build_setting in getattr(attr, "build_settings", []):
+            build_setting_value = attr.build_settings[build_setting]
+            build_setting_type = type(settings[build_setting])
+
+            # The `build_settings` rule attribute requires string values. However, build
+            # settings can have many types. In order to set the correct type, we inspect
+            # the default value from settings, and cast accordingly.
+            if build_setting_type == "bool":
+                build_setting_value = bool(build_setting_value)
+
+            output_dictionary[build_setting] = build_setting_value
+        else:
+            output_dictionary[build_setting] = settings[build_setting]
+
     return output_dictionary
 
 apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
     inputs = [
         "//command_line_option:features",
-    ],
+    ] + build_settings.all_labels,
     outputs = [
         "//command_line_option:apple_generate_dsym",
         "//command_line_option:apple_platforms",
@@ -108,7 +126,7 @@ apple_verification_transition = transition(
         "//command_line_option:objc_enable_binary_stripping",
         "//command_line_option:tvos_cpus",
         "//command_line_option:watchos_cpus",
-    ],
+    ] + build_settings.all_labels,
 )
 
 def _apple_verification_test_impl(ctx):
@@ -240,6 +258,10 @@ toolchain resolution to select the Apple SDK for Apple rules (Starlark and nativ
 considered to be an error if this is set with `cpus` as both opt into different means of toolchain
 resolution.
 """,
+        ),
+        "build_settings": attr.label_keyed_string_dict(
+            mandatory = False,
+            doc = "Build settings for target under test.",
         ),
         "build_type": attr.string(
             mandatory = True,
