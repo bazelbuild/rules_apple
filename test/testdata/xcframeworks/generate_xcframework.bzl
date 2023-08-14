@@ -348,9 +348,11 @@ def _generate_static_xcframework_impl(ctx):
 
             # Copy Swift module files to intermediate directory
             if include_module_interface_files:
+                swiftmodule_path = paths.join(library_path, label.name + ".swiftmodule")
                 module_interfaces = [
                     generation_support.copy_file(
                         actions = actions,
+                        base_path = swiftmodule_path,
                         file = interface_file,
                         label = label,
                         target_filename = "{architecture}.{extension}".format(
@@ -448,7 +450,8 @@ def _generate_static_framework_xcframework_impl(ctx):
             xcode_config = xcode_config,
         )
 
-        dynamic_library = generation_support.create_static_library(
+        # Create static library
+        static_library = generation_support.create_static_library(
             actions = actions,
             apple_fragment = apple_fragment,
             binary = binary,
@@ -456,18 +459,18 @@ def _generate_static_framework_xcframework_impl(ctx):
             xcode_config = xcode_config,
         )
 
+        # Create (static) framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
-            base_path = paths.join("intermediates", library_identifier),
+            base_path = library_identifier,
             bundle_name = label.name,
-            library = dynamic_library,
-            label = label,
             headers = hdrs,
+            label = label,
+            library = static_library,
         )
 
         framework_path = paths.join(
-            target_dir,
-            "intermediates",
+            binary.dirname,
             library_identifier,
             label.name + ".framework",
         )
