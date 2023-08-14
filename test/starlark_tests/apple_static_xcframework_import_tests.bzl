@@ -15,10 +15,6 @@
 """apple_static_xcframework_import Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
 )
