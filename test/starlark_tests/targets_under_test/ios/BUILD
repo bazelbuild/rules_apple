@@ -36,6 +36,7 @@ load(
     "//apple:xcarchive.bzl",
     "xcarchive",
 )
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
 licenses(["notice"])
 
@@ -1689,15 +1690,15 @@ ios_application(
 
 objc_library(
     name = "dynamic_fmwk_depending_lib",
-    srcs = ["DynamicFmwkDependingLib.m"],
+    srcs = [":dynamic_fmwk_depending_lib_file"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
 )
 
-genrule(
+write_file(
     name = "dynamic_fmwk_depending_lib_file",
-    outs = ["DynamicFmwkDependingLib.m"],
-    cmd = """cat > $@ <<EOF
+    out = "DynamicFmwkDependingLib.m",
+    content = ["""
 #import <iOSDynamicFramework/iOSDynamicFramework.h>
 
 int main() {
@@ -1705,8 +1706,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Objective-C dynamic framework.
@@ -1730,22 +1731,22 @@ ios_application(
 
 swift_library(
     name = "dynamic_fmwk_depending_swift_lib",
-    srcs = ["DynamicFmwkDependingSwiftLib.swift"],
+    srcs = [":dynamic_fmwk_depending_swift_lib_file"],
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFramework"],
 )
 
-genrule(
+write_file(
     name = "dynamic_fmwk_depending_swift_lib_file",
-    outs = ["DynamicFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "DynamicFmwkDependingSwiftLib.swift",
+    content = ["""
 import iOSDynamicFramework
 
 func main() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -1772,14 +1773,14 @@ ios_application(
 
 objc_library(
     name = "static_fmwk_depending_lib",
-    srcs = ["StaticFmwkDependingLib.m"],
+    srcs = [":static_fmwk_depending_lib_file"],
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
 )
 
-genrule(
+write_file(
     name = "static_fmwk_depending_lib_file",
-    outs = ["StaticFmwkDependingLib.m"],
-    cmd = """cat > $@ <<EOF
+    out = "StaticFmwkDependingLib.m",
+    content = ["""
 #import <iOSStaticFramework/iOSStaticFramework.h>
 
 int main() {
@@ -1787,8 +1788,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift static framework.
@@ -1812,15 +1813,15 @@ ios_application(
 
 objc_library(
     name = "swift_static_fmwk_depending_lib",
-    srcs = ["SwiftStaticFmwkDependingLib.m"],
+    srcs = [":swift_static_fmwk_depending_lib_file"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFramework"],
 )
 
-genrule(
+write_file(
     name = "swift_static_fmwk_depending_lib_file",
-    outs = ["SwiftStaticFmwkDependingLib.m"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftStaticFmwkDependingLib.m",
+    content = ["""
 #import <iOSSwiftStaticFramework/iOSSwiftStaticFramework.h>
 
 int main() {
@@ -1828,8 +1829,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift static framework without Swift module interface files.
@@ -1850,15 +1851,15 @@ ios_application(
 
 objc_library(
     name = "swift_static_without_module_interfaces_fmwk_depending_lib",
-    srcs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
+    srcs = [":swift_static_without_module_interfaces_fmwk_depending_lib_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFrameworkWithoutModuleInterface"],
 )
 
-genrule(
+write_file(
     name = "swift_static_without_module_interfaces_fmwk_depending_lib_src",
-    outs = ["SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftStaticFmwkWithoutInterfaceFilesDependingLib.m",
+    content = ["""
 #import <iOSSwiftStaticFrameworkWithoutModuleInterfaces/iOSSwiftStaticFrameworkWithoutModuleInterfaces.h>
 
 int main() {
@@ -1866,8 +1867,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Swift static framework.
@@ -1891,23 +1892,23 @@ ios_application(
 
 swift_library(
     name = "swift_static_fmwk_depending_swift_lib",
-    srcs = ["SwiftStaticFmwkDependingSwiftLib.swift"],
+    srcs = [":swift_static_fmwk_depending_swift_lib_file"],
     module_name = "swift_static_fmwk_depending_swift_lib",
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedSwiftStaticFramework"],
 )
 
-genrule(
+write_file(
     name = "swift_static_fmwk_depending_swift_lib_file",
-    outs = ["SwiftStaticFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftStaticFmwkDependingSwiftLib.swift",
+    content = ["""
 import iOSSwiftStaticFramework
 
 func main() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # -----------------------------------------------------------------------------------------
@@ -1935,15 +1936,15 @@ ios_application(
 
 objc_library(
     name = "dynamic_xcframework_depending_lib",
-    srcs = ["lib_with_imported_objc_xcframework.m"],
+    srcs = [":dynamic_xcframework_depending_lib_file"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
 )
 
-genrule(
+write_file(
     name = "dynamic_xcframework_depending_lib_file",
-    outs = ["lib_with_imported_objc_xcframework.m"],
-    cmd = """cat > $@ <<EOF
+    out = "lib_with_imported_objc_xcframework.m",
+    content = ["""
 #import <generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.h>
 
 int main() {
@@ -1951,8 +1952,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Objective-C XCFramework.
@@ -1976,23 +1977,23 @@ ios_application(
 
 swift_library(
     name = "dynamic_objc_xcframework_depending_swift_lib",
-    srcs = ["SwiftWithObjcFramework.swift"],
+    srcs = [":swift_with_framework_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
 )
 
-genrule(
+write_file(
     name = "swift_with_framework_src",
-    outs = ["SwiftWithObjcFramework.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftWithObjcFramework.swift",
+    content = ["""
 import generated_dynamic_xcframework_with_headers
 
 func main() {
   let sc = generated_dynamic_xcframework_with_headers.SharedClass()
   sc.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift XCFramework.
@@ -2017,15 +2018,15 @@ ios_application(
 
 objc_library(
     name = "dynamic_swift_xcframework_depending_objc_lib",
-    srcs = ["ObjcWithFramework.m"],
+    srcs = [":objc_with_framework_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework"],
 )
 
-genrule(
+write_file(
     name = "objc_with_framework_src",
-    outs = ["ObjcWithFramework.m"],
-    cmd = """cat > $@ <<EOF
+    out = "ObjcWithFramework.m",
+    content = ["""
 #import <SwiftFmwkWithGenHeader/SwiftFmwkWithGenHeader.h>
 
 int main() {
@@ -2033,8 +2034,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Swift XCFramework.
@@ -2058,25 +2059,25 @@ ios_application(
 
 swift_library(
     name = "dynamic_swift_xcframework_depending_swift_lib",
-    srcs = ["SwiftWithDynamicSwiftFramework.swift"],
+    srcs = [":swift_with_dynamic_swift_framework_src"],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework",
     ],
 )
 
-genrule(
+write_file(
     name = "swift_with_dynamic_swift_framework_src",
-    outs = ["SwiftWithDynamicSwiftFramework.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftWithDynamicSwiftFramework.swift",
+    content = ["""
 import SwiftFmwkWithGenHeader
 
 func main() {
   let sc = SwiftFmwkWithGenHeader.SharedClass()
   sc.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Objective-C static framework.
@@ -2100,22 +2101,22 @@ ios_application(
 
 swift_library(
     name = "static_fmwk_depending_swift_lib",
-    srcs = ["StaticFmwkDependingSwiftLib.swift"],
+    srcs = [":static_fmwk_depending_swift_lib_file"],
     deps = ["//test/starlark_tests/targets_under_test/apple:iOSImportedStaticFramework"],
 )
 
-genrule(
+write_file(
     name = "static_fmwk_depending_swift_lib_file",
-    outs = ["StaticFmwkDependingSwiftLib.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "StaticFmwkDependingSwiftLib.swift",
+    content = ["""
 import iOSStaticFramework
 
 func main() {
   let sharedClass = SharedClass()
   sharedClass.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Swift static framework with data attribute
@@ -2163,15 +2164,15 @@ ios_application(
 
 objc_library(
     name = "static_xcframework_depending_objc_lib",
-    srcs = ["ObjcWithXCFrameworkStaticLibrary.m"],
+    srcs = [":objc_with_static_xcframework_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework"],
 )
 
-genrule(
+write_file(
     name = "objc_with_static_xcframework_src",
-    outs = ["ObjcWithXCFrameworkStaticLibrary.m"],
-    cmd = """cat > $@ <<EOF
+    out = "ObjcWithXCFrameworkStaticLibrary.m",
+    content = ["""
 #import <generated_static_xcframework_with_headers.h>
 
 int main() {
@@ -2179,8 +2180,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift XCFramework
@@ -2204,15 +2205,15 @@ ios_application(
 
 objc_library(
     name = "swift_static_xcframework_depending_objc_lib",
-    srcs = ["ObjcWithSwiftXCFrameworkStaticLibrary.m"],
+    srcs = [":objc_with_swift_static_xcframework_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework"],
 )
 
-genrule(
+write_file(
     name = "objc_with_swift_static_xcframework_src",
-    outs = ["ObjcWithSwiftXCFrameworkStaticLibrary.m"],
-    cmd = """cat > $@ <<EOF
+    out = "ObjcWithSwiftXCFrameworkStaticLibrary.m",
+    content = ["""
 #import <generated_swift_static_xcframework.h>
 
 int main() {
@@ -2220,8 +2221,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Objective-C app with imported Swift XCFramework with no .swiftmodule files and has_swift enabled
@@ -2245,15 +2246,15 @@ ios_application(
 
 objc_library(
     name = "swift_static_xcframework_without_swiftmodule_depending_objc_lib",
-    srcs = ["ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m"],
+    srcs = [":objc_with_swift_static_xcframework_without_swiftmodule_src"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
 )
 
-genrule(
+write_file(
     name = "objc_with_swift_static_xcframework_without_swiftmodule_src",
-    outs = ["ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m"],
-    cmd = """cat > $@ <<EOF
+    out = "ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m",
+    content = ["""
 #import <generated_swift_static_xcframework_without_swiftmodule.h>
 
 int main() {
@@ -2261,8 +2262,8 @@ int main() {
   [sharedClass doSomethingShared];
   return 0;
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Objective-C XCFramework
@@ -2281,25 +2282,25 @@ ios_application(
 
 swift_library(
     name = "static_xcframework_depending_swift_lib",
-    srcs = ["SwiftWithStaticFramework.swift"],
+    srcs = [":static_xcframework_depending_swift_lib_src"],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework",
     ],
 )
 
-genrule(
+write_file(
     name = "static_xcframework_depending_swift_lib_src",
-    outs = ["SwiftWithStaticFramework.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftWithStaticFramework.swift",
+    content = ["""
 import generated_static_xcframework_with_headers
 
 func main() {
   let sc = generated_static_xcframework_with_headers.SharedClass()
   sc.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 # Swift app with imported Swift XCFramework
@@ -2327,7 +2328,7 @@ swift_library(
 
 swift_library(
     name = "static_swift_xcframework_depending_swift_lib",
-    srcs = ["SwiftWithStaticSwiftFramework.swift"],
+    srcs = [":static_swift_xcframework_depending_swift_lib_src"],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_depends_on_base",
@@ -2335,17 +2336,17 @@ swift_library(
     ],
 )
 
-genrule(
+write_file(
     name = "static_swift_xcframework_depending_swift_lib_src",
-    outs = ["SwiftWithStaticSwiftFramework.swift"],
-    cmd = """cat > $@ <<EOF
+    out = "SwiftWithStaticSwiftFramework.swift",
+    content = ["""
 import generated_swift_static_xcframework
 func main() {
   let sc = generated_swift_static_xcframework.SharedClass()
   sc.doSomethingShared()
 }
-EOF
-""",
+"""],
+    tags = common.fixture_tags,
 )
 
 genrule(
@@ -3315,22 +3316,23 @@ ios_static_framework(
     deps = [":static_framework_lib_with_resources"],
 )
 
-genrule(
-    name = "dummy_swift_src",
-    outs = ["Dummy.swift"],
-    cmd = "echo 'public struct Dummy {}' > $@",
+write_file(
+    name = "dummy_swift",
+    out = "Dummy.swift",
+    content = ["public struct Dummy {}"],
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "SwiftFmwk",
-    srcs = ["Dummy.swift"],
+    srcs = [":dummy_swift"],
     module_name = "SwiftFmwk",
     tags = common.fixture_tags,
 )
 
 swift_library(
     name = "SwiftFmwkUpperLib",
-    srcs = ["Dummy.swift"],
+    srcs = [":dummy_swift"],
     module_name = "SwiftFmwkUpperLib",
     tags = common.fixture_tags,
     deps = [":SwiftFmwkLowerLib"],
@@ -3338,7 +3340,7 @@ swift_library(
 
 swift_library(
     name = "SwiftFmwkLowerLib",
-    srcs = ["Dummy.swift"],
+    srcs = [":dummy_swift"],
     module_name = "SwiftFmwkLowerLib",
     tags = common.fixture_tags,
     deps = [":SwiftFmwkLowestLib"],
@@ -3346,14 +3348,14 @@ swift_library(
 
 swift_library(
     name = "SwiftFmwkLowestLib",
-    srcs = ["Dummy.swift"],
+    srcs = [":dummy_swift"],
     module_name = "SwiftFmwkLowestLib",
     tags = common.fixture_tags,
 )
 
 swift_library(
     name = "SwiftFmwkWithGenHeader",
-    srcs = ["Dummy.swift"],
+    srcs = [":dummy_swift"],
     generates_header = True,
     module_name = "SwiftFmwkWithGenHeader",
     tags = common.fixture_tags,
