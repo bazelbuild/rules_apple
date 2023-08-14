@@ -30,6 +30,10 @@ load(
     "generate_import_framework",
 )
 load(
+    "//test/testdata/fmwk:generate_framework_dsym.bzl",
+    "generate_import_framework_dsym",
+)
+load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
@@ -565,8 +569,8 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        ":iOSImportedDynamicFrameworkWithBitcode",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithBitcode",
     ],
 )
 
@@ -585,9 +589,9 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        ":iOSImportedDynamicFrameworkWithDebugInfo",
+        ":iOSImportedDynamicFrameworkWithDsym",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDebugInfo",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDsym",
     ],
 )
 
@@ -1131,8 +1135,8 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":iOSImportedDynamicFrameworkWithDebugInfo",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:iOSImportedDynamicFrameworkWithDebugInfo",
     ],
 )
 
@@ -1778,6 +1782,45 @@ generate_import_framework(
     libtype = "dynamic",
     minimum_os_version = "11.0",
     sdk = "iphonesimulator",
+)
+
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithBitcode",
+    framework_imports = [":iOSDynamicFrameworkWithBitcode"],
+)
+
+generate_import_framework(
+    name = "iOSDynamicFrameworkWithBitcode",
+    archs = ["x86_64"],
+    embed_bitcode = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+)
+
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithDebugInfo",
+    framework_imports = [":iOSDynamicFrameworkWithDebugInfo"],
+)
+
+generate_import_framework(
+    name = "iOSDynamicFrameworkWithDebugInfo",
+    archs = ["x86_64"],
+    embed_debug_info = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.0",
+    sdk = "iphonesimulator",
+)
+
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithDsym",
+    dsym_imports = [":iOSDynamicFrameworkDsym"],
+    framework_imports = [":iOSDynamicFramework"],
+)
+
+generate_import_framework_dsym(
+    name = "iOSDynamicFrameworkDsym",
+    framework_imports = [":iOSDynamicFramework"],
 )
 
 # --------------------------------------------------------------------------------------------------

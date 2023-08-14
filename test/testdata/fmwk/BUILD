@@ -38,29 +38,6 @@ filegroup(
 
 # ------------------------------- iOS Framework ------------------------------------------
 
-generate_import_framework(
-    name = "iOSDynamicFrameworkWithDebugInfo",
-    archs = ["x86_64"],
-    embed_debug_info = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
-generate_import_framework_dsym(
-    name = "iOSDynamicFrameworkDsym",
-    framework_imports = [":iOSDynamicFramework"],
-)
-
-generate_import_framework(
-    name = "iOSDynamicFrameworkWithBitcode",
-    archs = ["x86_64"],
-    embed_bitcode = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.0",
-    sdk = "iphonesimulator",
-)
-
 swift_library(
     name = "swift_framework_lib",
     srcs = ["SharedClass.swift"],

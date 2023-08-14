@@ -1,11 +1,8 @@
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
-    "apple_static_framework_import",
-)
-load(
-    "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
+    "apple_static_framework_import",
     "apple_static_xcframework",
     "apple_static_xcframework_import",
     "apple_universal_binary",
@@ -1205,22 +1202,6 @@ apple_universal_binary(
 
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic framework import tests.
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithBitcode",
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkWithBitcode"],
-)
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithDebugInfo",
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkWithDebugInfo"],
-)
-
-apple_dynamic_framework_import(
-    name = "iOSImportedDynamicFrameworkWithDsym",
-    dsym_imports = ["//test/testdata/fmwk:iOSDynamicFrameworkDsym"],
-    framework_imports = ["//test/testdata/fmwk:iOSDynamicFramework"],
-)
 
 apple_dynamic_framework_import(
     name = "macOSImportedDynamicFramework",
