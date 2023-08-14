@@ -5,7 +5,7 @@ platforms:
   @build_bazel_apple_support//platforms:macos_arm64
     --cpu=darwin_arm64
 
-  @build_bazel_apple_support//platforms:macos_arm64e
+  @build_bazel_apple_support//platforms:darwin_arm64e
     --cpu=darwin_arm64e
 
   @build_bazel_apple_support//platforms:ios_i386
@@ -61,7 +61,7 @@ flags:
 
   --cpu=darwin_arm64e
   --apple_platform_type=macos
-    @build_bazel_apple_support//platforms:macos_arm64e
+    @build_bazel_apple_support//platforms:darwin_arm64e
 
   --cpu=ios_i386
   --apple_platform_type=ios
