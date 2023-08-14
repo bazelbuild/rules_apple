@@ -47,6 +47,7 @@ def _swift_framework_partial_impl(
         avoid_deps,
         bundle_name,
         framework_modulemap,
+        is_static_framework,
         label_name,
         output_discriminator,
         public_hdrs,
@@ -125,6 +126,7 @@ issue with a reproducible error case.
 
         header_files, umbrella_header_filename = clang_modulemap_support.process_headers(
             actions = actions,
+            is_static_framework = is_static_framework,
             label_name = label_name,
             module_name = expected_module_name,
             output_discriminator = output_discriminator,
@@ -186,6 +188,7 @@ def swift_framework_partial(
         avoid_deps = [],
         bundle_name,
         framework_modulemap = True,
+        is_static_framework = False,
         label_name,
         output_discriminator = None,
         public_hdrs = [],
@@ -204,6 +207,8 @@ def swift_framework_partial(
         bundle_name: The name of the output bundle.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module. Defaults to `True`.
+        is_static_framework: Boolean to indicate if the target is a static framework. Defaults to
+            'False'.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`. Optional.
@@ -231,6 +236,7 @@ def swift_framework_partial(
         avoid_deps = avoid_deps,
         bundle_name = bundle_name,
         framework_modulemap = framework_modulemap,
+        is_static_framework = is_static_framework,
         label_name = label_name,
         output_discriminator = output_discriminator,
         public_hdrs = public_hdrs if enable_wip_features else [],

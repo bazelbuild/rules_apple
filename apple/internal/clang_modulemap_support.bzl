@@ -87,24 +87,30 @@ def _modulemap_header_interface_contents(
         "\n}\n"
     )
 
-def _create_umbrella_header(*, actions, output, public_hdrs):
+def _create_umbrella_header(*, actions, module_name, output, public_hdrs):
     """Creates an umbrella header that imports a list of other headers.
-
-    This uses quotes instead of angled brackets to reference headers, currently to support existing
-    behavior with regards to "static frameworks", which is corrected to act as a module-level import
-    when declared as an umbrella header in a Clang module map.
 
     Args:
         actions: The `actions` module from a rule or aspect context.
+        module_name: The name of the module to reference. Expected to be a `String` or `None`. If it
+            is `None`, the header include paths within the generated umbrella header will change to
+            reference headers with quotes instead of Xcode-preferred angle brackets, and without
+            referencing the expected nested module name path. This quote-based referencing is
+            required of some 3P dependency management systems for "static frameworks" and is
+            discouraged for other types of distributed modules and frameworks.
         output: A declared `File` to which the umbrella header will be written.
         public_hdrs: A list of header files to be imported by the umbrella header.
     """
-
-    # TODO(b/295078966): Use Xcode preferred angle bracket + Clang module name referencing imports
-    # instead of quotes.
-    import_lines = ["#import \"{header_file}\"".format(
-        header_file = f.basename,
-    ) for f in sorted(public_hdrs)]
+    sorted_public_hdrs = sorted(public_hdrs)
+    if module_name:
+        import_lines = ["#import <{module_name}/{header_file}>".format(
+            module_name = module_name,
+            header_file = f.basename,
+        ) for f in sorted_public_hdrs]
+    else:
+        import_lines = ["#import \"{header_file}\"".format(
+            header_file = f.basename,
+        ) for f in sorted_public_hdrs]
     content = "\n".join(import_lines) + "\n"
     actions.write(output = output, content = content)
 
@@ -127,6 +133,7 @@ def _exported_headers(
 def _process_headers(
         *,
         actions,
+        is_static_framework,
         label_name,
         module_name,
         output_discriminator,
@@ -135,6 +142,10 @@ def _process_headers(
 
     Args:
         actions: The `actions` module from a rule or aspect context.
+        is_static_framework: Indicates if the headers should be processed for a "static framework".
+            Static library XCFrameworks and "dynamic" frameworks prefer angled-bracket style imports
+            and will generate a warning in Xcode if they are using quotes instead. "Static
+            frameworks", as processed by some 3P dependency management tools, expect quotes.
         label_name: Name of the target being built.
         module_name: The name of the module to reference in an umbrella header, if one is generated.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -161,6 +172,7 @@ def _process_headers(
     )
     _create_umbrella_header(
         actions = actions,
+        module_name = module_name if not is_static_framework else None,
         output = generated_umbrella_header_file,
         public_hdrs = public_hdrs,
     )

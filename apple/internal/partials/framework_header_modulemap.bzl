@@ -39,6 +39,7 @@ def _framework_header_modulemap_partial_impl(
         bundle_name,
         framework_modulemap,
         hdrs,
+        is_static_framework,
         label_name,
         output_discriminator,
         sdk_dylibs,
@@ -48,6 +49,7 @@ def _framework_header_modulemap_partial_impl(
 
     header_files, umbrella_header_filename = clang_modulemap_support.process_headers(
         actions = actions,
+        is_static_framework = is_static_framework,
         label_name = label_name,
         module_name = bundle_name,
         output_discriminator = output_discriminator,
@@ -90,6 +92,7 @@ def framework_header_modulemap_partial(
         actions,
         bundle_name,
         framework_modulemap = True,
+        is_static_framework = False,
         hdrs,
         label_name,
         output_discriminator = None,
@@ -105,6 +108,8 @@ def framework_header_modulemap_partial(
       framework_modulemap: Boolean to indicate if the generated modulemap should be for a
           framework instead of a library or a generic module. Defaults to `True`.
       hdrs: The list of headers to bundle.
+      is_static_framework: Boolean to indicate if the target is a static framework. Defaults to
+          'False'.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -120,6 +125,7 @@ def framework_header_modulemap_partial(
         actions = actions,
         bundle_name = bundle_name,
         framework_modulemap = framework_modulemap,
+        is_static_framework = is_static_framework,
         hdrs = hdrs,
         label_name = label_name,
         output_discriminator = output_discriminator,
