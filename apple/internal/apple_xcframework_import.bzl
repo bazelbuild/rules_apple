@@ -188,11 +188,8 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     if not library_identifier:
         return None
 
-    def _matches_library(file):
-        return library_identifier in file.short_path.split("/")
-
     def filter_by_library_identifier(files):
-        return [f for f in files if _matches_library(f)]
+        return [f for f in files if "/{}/".format(library_identifier) in f.short_path]
 
     files_by_category = xcframework.files_by_category
     binaries = filter_by_library_identifier(files_by_category.binary_imports)
@@ -409,19 +406,32 @@ def _get_library_identifier(
         fail("Unrecognized XCFramework bundle type: %s" % bundle_type)
 
     for library_identifier in library_identifiers:
-        platform, _, architectures_environment = library_identifier.partition("-")
+        platform, _, suffix = library_identifier.partition("-")
+        architectures, _, environment = suffix.partition("-")
+
         if platform != target_platform:
             continue
 
-        if target_architecture not in architectures_environment:
+        if target_architecture not in architectures:
             continue
 
         if target_environment == "simulator" and not library_identifier.endswith("-simulator"):
             continue
-        if target_environment != "simulator" and library_identifier.endswith("-simulator"):
-            continue
 
-        return library_identifier
+        # Extra handling of path matching for arm64* architectures.
+        if target_architecture == "arm64":
+            arm64_index = architectures.find(target_architecture)
+            arm64e_index = architectures.find("arm64e")
+            arm64_32_index = architectures.find("arm64_32")
+
+            if arm64_index == arm64e_index or arm64_index == arm64_32_index:
+                continue
+
+        if target_environment == "device" and not environment:
+            return library_identifier
+
+        if target_environment != "device" and target_environment == environment:
+            return library_identifier
 
     return None
 

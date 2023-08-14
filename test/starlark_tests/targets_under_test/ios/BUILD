@@ -1925,6 +1925,7 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         ":dynamic_xcframework_depending_lib",

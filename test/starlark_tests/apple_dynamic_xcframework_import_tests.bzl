@@ -123,6 +123,15 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
     binary_contents_test(
+        name = "{}_xcframework_binary_file_info_test_arm64_device".format(name),
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        binary_contains_file_info = ["Mach-O 64-bit dynamically linked shared library arm64"],
+        tags = [name],
+    )
+    binary_contents_test(
         name = "{}_xcframework_binary_file_info_test_fat".format(name),
         build_type = "simulator",
         cpus = {
@@ -215,6 +224,59 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework",
         target_mnemonic = "ProcessXCFrameworkFiles",
         tags = [name],
+    )
+
+    # Verify ios_application links correct XCFramework library for arm64* architectures.
+    archive_contents_test(
+        name = "{}_links_ios_arm64_macho_load_cmd_for_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        binary_test_architecture = "arm64",
+        cpus = {"ios_multi_cpus": ["sim_arm64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_ios_arm64_macho_load_cmd_for_device_test".format(name),
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_ios_arm64e_macho_load_cmd_for_device_test".format(name),
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    # Verify watchos_application links correct XCFramework library for arm64* architectures.
+    archive_contents_test(
+        name = "{}_links_watchos_arm64_macho_load_cmd_for_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_xcframework.appex/Frameworks/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
+        binary_test_architecture = "arm64",
+        cpus = {"watchos_cpus": ["arm64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
+        tags = [name, "manual"],  # TODO: Re-enable once CI is on Xcode 14.3+
+    )
+    archive_contents_test(
+        name = "{}_links_watchos_arm64_32_macho_load_cmd_for_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_xcframework.appex/Frameworks/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
+        binary_test_architecture = "arm64_32",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [name, "manual"],  # TODO: Re-enable once CI is on Xcode 14.3+
     )
 
     # Verify importing XCFramework with dynamic libraries (i.e. not Apple frameworks) fails.
