@@ -1379,7 +1379,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "macOSDynamicFrameworkWithBitcode",
-    src = "SharedClass.m",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
     archs = ["x86_64"],
     embed_bitcode = True,
     libtype = "dynamic",
