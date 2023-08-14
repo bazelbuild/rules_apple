@@ -1,11 +1,3 @@
-load(
-    "//test/testdata/fmwk:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
-    "//test/testdata/fmwk:generate_framework_dsym.bzl",
-    "generate_import_framework_dsym",
-)
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
@@ -50,68 +42,6 @@ swift_library(
 )
 
 # ------------------------------- macOS Framework ------------------------------------------
-
-generate_import_framework(
-    name = "macOSDynamicFramework",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-)
-
-generate_import_framework(
-    name = "macOSDynamicFrameworkWithDebugInfo",
-    archs = ["x86_64"],
-    embed_debug_info = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-)
-
-generate_import_framework_dsym(
-    name = "macOSDynamicFrameworkDsym",
-    framework_imports = [":macOSDynamicFramework"],
-)
-
-generate_import_framework(
-    name = "macOSDynamicFrameworkWithBitcode",
-    src = "SharedClass.m",
-    archs = ["x86_64"],
-    embed_bitcode = True,
-    libtype = "dynamic",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-)
-
-generate_import_framework(
-    name = "macOSStaticFramework",
-    src = "SharedClass.m",
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "static",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-)
-
-generate_import_framework(
-    name = "macOSSwiftStaticFramework",
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-    swift_library = ":swift_framework_lib",
-)
-
-generate_import_framework(
-    name = "macOSSwiftStaticFrameworkWithoutModuleInterfaces",
-    archs = ["x86_64"],
-    include_module_interface_files = False,
-    libtype = "static",
-    minimum_os_version = "11.11",
-    sdk = "macosx",
-    swift_library = ":swift_framework_lib",
-)
 
 bzl_library(
     name = "generate_framework_bzl",
