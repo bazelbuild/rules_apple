@@ -1,7 +1,9 @@
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
+    "apple_static_xcframework_import",
 )
 load(
     "//apple:ios.bzl",
@@ -20,10 +22,6 @@ load(
     "//apple:resources.bzl",
     "apple_resource_group",
 )
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
-)
 load("//test/testdata/rules:substitution.bzl", "substitution")
 load(
     "//test/starlark_tests/rules:generate_framework.bzl",
@@ -40,6 +38,16 @@ load(
 load(
     "//apple:xcarchive.bzl",
     "xcarchive",
+)
+load(
+    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+    "generate_static_framework_xcframework",
+    "generate_static_xcframework",
+)
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
 )
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
@@ -1968,6 +1976,7 @@ swift_library(
     name = "swift_static_fmwk_depending_swift_lib",
     srcs = [":swift_static_fmwk_depending_swift_lib_file"],
     module_name = "swift_static_fmwk_depending_swift_lib",
+    tags = common.fixture_tags,
     deps = [":iOSImportedSwiftStaticFramework"],
 )
 
@@ -1989,6 +1998,7 @@ apple_static_framework_import(
     name = "iOSImportedSwiftStaticFramework",
     features = ["-swift.layering_check"],
     framework_imports = [":iOSSwiftStaticFramework"],
+    tags = common.fixture_tags,
 )
 
 apple_static_framework_import(
@@ -2044,7 +2054,7 @@ objc_library(
     name = "dynamic_xcframework_depending_lib",
     srcs = [":dynamic_xcframework_depending_lib_file"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
+    deps = [":ios_imported_dynamic_xcframework"],
 )
 
 write_file(
@@ -2085,7 +2095,7 @@ swift_library(
     name = "dynamic_objc_xcframework_depending_swift_lib",
     srcs = [":swift_with_framework_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_dynamic_xcframework"],
+    deps = [":ios_imported_dynamic_xcframework"],
 )
 
 write_file(
@@ -2100,6 +2110,33 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework",
+    features = ["-swift.layering_check"],
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_xcframework_with_headers",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
+    },
 )
 
 # Objective-C app with imported Swift XCFramework.
@@ -2126,7 +2163,7 @@ objc_library(
     name = "dynamic_swift_xcframework_depending_objc_lib",
     srcs = [":objc_with_framework_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework"],
+    deps = [":ios_imported_swift_dynamic_xcframework"],
 )
 
 write_file(
@@ -2167,9 +2204,7 @@ swift_library(
     name = "dynamic_swift_xcframework_depending_swift_lib",
     srcs = [":swift_with_dynamic_swift_framework_src"],
     tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_dynamic_xcframework",
-    ],
+    deps = [":ios_imported_swift_dynamic_xcframework"],
 )
 
 write_file(
@@ -2184,6 +2219,36 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_swift_dynamic_xcframework",
+    features = ["-swift.layering_check"],
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":ios_swift_dynamic_xcframework"],
+)
+
+genrule(
+    name = "ios_swift_dynamic_xcframework",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header"],
+    outs = [
+        "SwiftFmwkWithGenHeader.xcframework/Info.plist",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Info.plist",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Info.plist",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        "SwiftFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_xcframework_with_generated_header) -d $(RULEDIR)",
 )
 
 # Swift app with imported Objective-C static framework.
@@ -2250,6 +2315,7 @@ apple_static_framework_import(
     data = ["//test/starlark_tests/resources:sample.png"],
     features = ["-swift.layering_check"],
     framework_imports = [":iOSSwiftStaticFramework"],
+    tags = common.fixture_tags,
 )
 
 apple_static_framework_import(
@@ -2257,6 +2323,7 @@ apple_static_framework_import(
     data = ["//test/starlark_tests/resources:localized_xibs_ios"],
     features = ["-swift.layering_check"],
     framework_imports = [":iOSStaticFramework"],
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -2286,7 +2353,7 @@ objc_library(
     name = "static_xcframework_depending_objc_lib",
     srcs = [":objc_with_static_xcframework_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework"],
+    deps = [":ios_imported_static_xcframework"],
 )
 
 write_file(
@@ -2327,7 +2394,7 @@ objc_library(
     name = "swift_static_xcframework_depending_objc_lib",
     srcs = [":objc_with_swift_static_xcframework_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework"],
+    deps = [":ios_imported_swift_static_xcframework"],
 )
 
 write_file(
@@ -2368,7 +2435,7 @@ objc_library(
     name = "swift_static_xcframework_without_swiftmodule_depending_objc_lib",
     srcs = [":objc_with_swift_static_xcframework_without_swiftmodule_src"],
     tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
+    deps = [":ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
 )
 
 write_file(
@@ -2383,6 +2450,22 @@ int main() {
   return 0;
 }
 """],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
+    has_swift = True,
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule"],
+)
+
+generate_static_xcframework(
+    name = "generated_swift_static_xcframework_without_swiftmodule",
+    include_module_interface_files = False,
+    platforms = {"ios_simulator": ["x86_64"]},
+    swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
     tags = common.fixture_tags,
 )
 
@@ -2404,9 +2487,7 @@ swift_library(
     name = "static_xcframework_depending_swift_lib",
     srcs = [":static_xcframework_depending_swift_lib_src"],
     tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework",
-    ],
+    deps = [":ios_imported_static_xcframework"],
 )
 
 write_file(
@@ -2421,6 +2502,34 @@ func main() {
 }
 """],
     tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_xcframework_with_headers"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_xcframework_with_headers",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
+    },
 )
 
 # Swift app with imported Swift XCFramework
@@ -2442,8 +2551,46 @@ swift_library(
     srcs = [":swift_multi_level_static_xcframework_src"],
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_depends_on_base",
+        ":ios_imported_static_xcframework_depends_on_base",
     ],
+)
+
+generate_static_framework_xcframework(
+    name = "generated_static_xcframework_base",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    minimum_os_versions = {"ios_simulator": "11.0"},
+    platforms = {"ios_simulator": ["x86_64"]},
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "generated_static_xcframework_depends_on_base_header",
+    outs = ["generated_static_xcframework_depends_on_base_header.h"],
+    cmd = "echo '@import generated_static_xcframework_base;' > $(OUTS)",
+)
+
+generate_static_framework_xcframework(
+    name = "generated_static_xcframework_depends_on_base",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    hdrs = ["generated_static_xcframework_depends_on_base_header"],
+    minimum_os_versions = {"ios_simulator": "11.0"},
+    platforms = {"ios_simulator": ["x86_64"]},
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_base",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_xcframework_base"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_depends_on_base",
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_xcframework_depends_on_base"],
+    deps = [":ios_imported_static_xcframework_base"],
 )
 
 swift_library(
@@ -2451,8 +2598,8 @@ swift_library(
     srcs = [":static_swift_xcframework_depending_swift_lib_src"],
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_depends_on_base",
-        "//test/starlark_tests/targets_under_test/apple:ios_imported_swift_static_xcframework",
+        "ios_imported_static_xcframework_depends_on_base",
+        "ios_imported_swift_static_xcframework",
     ],
 )
 
@@ -2461,6 +2608,7 @@ write_file(
     out = "SwiftWithStaticSwiftFramework.swift",
     content = ["""
 import generated_swift_static_xcframework
+
 func main() {
   let sc = generated_swift_static_xcframework.SharedClass()
   sc.doSomethingShared()
@@ -2486,6 +2634,39 @@ ios_application(
         ":swift_multi_level_static_xcframework",
         "//test/starlark_tests/resources:swift_main_lib",
     ],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_swift_static_xcframework",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_swift_static_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_swift_static_xcframework",
+    platforms = {"ios_simulator": ["x86_64"]},
+    swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
+    tags = common.fixture_tags,
+)
+
+generate_static_xcframework(
+    name = "generated_static_xcframework_with_headers_and_no_modulemap",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    generate_modulemap = False,
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": ["arm64"],
+    },
 )
 
 # ---------------------------------------------------------------------------------------
