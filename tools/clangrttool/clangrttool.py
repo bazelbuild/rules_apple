@@ -25,6 +25,8 @@ import subprocess
 import sys
 import zipfile
 
+from build_bazel_rules_apple.tools.wrapper_common import execute
+
 
 class ClangRuntimeToolError(RuntimeError):
   """Raised for all errors.
@@ -56,6 +58,13 @@ class ClangRuntimeTool(object):
     self._binary_path = binary_path
     self._output_zip_path = output_zip_path
 
+  def _developer_dir_path(self):
+    """Returns the developer directory as reported by xcode-select."""
+    _, stdout, _ = execute.execute_and_filter_output(
+        ["xcode-select", "--print-path"], raise_on_failure=True)
+    developer_dir = stdout.strip()
+    return developer_dir
+
   def _get_xcode_clang_path_and_clang_libs(self, objdump_output):
     """Returns the path to the clang directory inside of Xcode.
 
@@ -76,7 +85,7 @@ class ClangRuntimeTool(object):
     any version of Xcode, installed into any location on the system.
 
     Args:
-      header: A Mach-O header object to parse.
+      objdump_output: The output of objdump to parse.
 
     Returns:
       A tuple with the first element as a string representing the path to the
@@ -121,10 +130,25 @@ class ClangRuntimeTool(object):
     if not clang_lib_path:
       raise ClangRuntimeToolError("Could not find clang library path.")
 
+    if not os.path.exists(clang_lib_path):
+      # Attempt to correct the Clang path, assuming the app bundle needs to be
+      # replaced to reference a local Xcode app bundle. We can identify this
+      # with `xcode-select -p``.
+      developer_dir_path = self._developer_dir_path()
+      split_clang_lib_path = clang_lib_path.split(
+          "/Contents/Developer/", maxsplit=1
+      )
+      clang_lib_path = os.path.join(developer_dir_path, split_clang_lib_path[1])
+      if not os.path.exists(clang_lib_path):
+        raise ClangRuntimeToolError(
+            "Could not find derived clang library path: %s" % clang_lib_path
+        )
+
     if not clang_libraries:
       raise ClangRuntimeToolError(
-          "Could not find any clang runtime libraries to package."
-          "This is likely a configuration error")
+          "Could not find any clang runtime libraries to package. "
+          "This is likely a configuration error"
+      )
 
     with zipfile.ZipFile(out_path, "w") as out_zip:
       for lib in clang_libraries:

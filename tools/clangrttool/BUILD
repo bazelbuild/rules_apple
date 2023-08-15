@@ -8,6 +8,9 @@ py_binary(
     visibility = [
         "//apple/internal:__pkg__",
     ],
+    deps = [
+        "//tools/wrapper_common:execute",
+    ],
 )
 
 # Consumed by bazel tests.
