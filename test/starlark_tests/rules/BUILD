@@ -12,9 +12,12 @@ bzl_library(
         "//apple:providers",
         "//apple/build_settings:attrs",
         "//apple/internal:apple_product_type",
+        "//apple/internal:intermediates",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:unittest",
+        "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift",
     ],
 )
