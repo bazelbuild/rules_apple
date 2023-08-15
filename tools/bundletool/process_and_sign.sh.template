@@ -15,6 +15,8 @@ readonly OUTPUT_PATH=%output_path%
 readonly POST_PROCESSOR=%ipa_post_processor%
 # Indicates whether the final archive should be compressed (1) or not (0).
 readonly SHOULD_COMPRESS=%should_compress%
+# Indicates whether the final archive should be verified by unzipping (1) or not (0).
+readonly SHOULD_VERIFY=%should_verify%
 # The path to archive with the unprocessed and unsigned bundle.
 readonly UNPROCESSED_ARCHIVE_PATH=%unprocessed_archive_path%
 # The absolute path to the directory where the unprocessed archive will be
@@ -69,3 +71,7 @@ TZ=UTC find . -depth -exec touch -h -t 198001010000 {} \+
   | zip -qX "-@" --compression-method "$COMPRESSION_METHOD" "$OUTPUT_BASENAME"
 popd >/dev/null
 mv "$WORK_DIR/$OUTPUT_BASENAME" "$OUTPUT_PATH"
+# Verify the CRC checksums in the zip file by running unzip -t
+if [[ "$SHOULD_VERIFY" == "1" ]]; then
+  unzip -t -qq "$OUTPUT_PATH"
+fi
