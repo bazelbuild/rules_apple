@@ -148,6 +148,7 @@ def _create_xcframework(
         ))
 
     args.extend(["-output", xcframework_directory])
+    args.extend([";ls", "-R", xcframework_directory])
 
     apple_support.run_shell(
         actions = actions,
