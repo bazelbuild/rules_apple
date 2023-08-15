@@ -40,7 +40,7 @@ load(
     "xcarchive",
 )
 load(
-    "//test/testdata/xcframeworks:generate_xcframework.bzl",
+    "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
     "generate_static_framework_xcframework",
     "generate_static_xcframework",
