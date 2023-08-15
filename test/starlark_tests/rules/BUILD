@@ -18,6 +18,6 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:unittest",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift:providers",
+        "@build_bazel_rules_swift//swift",
     ],
 )
