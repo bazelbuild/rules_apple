@@ -2431,14 +2431,14 @@ objc_library(
     name = "swift_static_xcframework_without_swiftmodule_depending_objc_lib",
     srcs = [":objc_with_swift_static_xcframework_without_swiftmodule_src"],
     tags = common.fixture_tags,
-    deps = [":ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
+    deps = [":ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled2"],
 )
 
 write_file(
     name = "objc_with_swift_static_xcframework_without_swiftmodule_src",
     out = "ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m",
     content = ["""
-#import <generated_swift_static_xcframework_without_swiftmodule2.h>
+#import <generated_swift_static_xcframework_without_swiftmodule23.h>
 
 int main() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
@@ -2450,14 +2450,15 @@ int main() {
 )
 
 apple_static_xcframework_import(
-    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
+    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled2",
     has_swift = True,
     visibility = ["//visibility:public"],
-    xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule2"],
+    xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule23"],
+    tags = common.fixture_tags,
 )
 
 generate_static_xcframework(
-    name = "generated_swift_static_xcframework_without_swiftmodule2",
+    name = "generated_swift_static_xcframework_without_swiftmodule23",
     include_module_interface_files = False,
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
@@ -2504,6 +2505,7 @@ apple_static_xcframework_import(
     features = ["-swift.layering_check"],
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_xcframework_with_headers"],
+    tags = common.fixture_tags,
 )
 
 generate_static_xcframework(
@@ -2577,6 +2579,7 @@ apple_static_xcframework_import(
     name = "ios_imported_static_xcframework_base",
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_xcframework_base"],
+    tags = common.fixture_tags,
 )
 
 apple_static_xcframework_import(
@@ -2635,6 +2638,7 @@ apple_static_xcframework_import(
     features = ["-swift.layering_check"],
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework"],
+    tags = common.fixture_tags,
 )
 
 generate_static_xcframework(

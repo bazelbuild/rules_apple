@@ -149,7 +149,7 @@ def _create_xcframework(
 
     args.extend(["-output", xcframework_directory])
     args.extend([";ls", "-R", xcframework_directory])
-    args.extend([";file", "bazel-out/darwin_x86_64-fastbuild/bin/test/starlark_tests/targets_under_test/ios/generated_swift_static_xcframework_without_swiftmodule2.xcframework/macos-x86_64/generated_swift_static_xcframework_without_swiftmodule2.a"])
+    # args.extend([";file", "bazel-out/darwin_x86_64-fastbuild/bin/test/starlark_tests/targets_under_test/ios/generated_swift_static_xcframework_without_swiftmodule2.xcframework/macos-x86_64/generated_swift_static_xcframework_without_swiftmodule2.a"])
 
     apple_support.run_shell(
         actions = actions,
