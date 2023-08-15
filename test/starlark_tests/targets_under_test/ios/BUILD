@@ -2435,14 +2435,14 @@ objc_library(
     name = "swift_static_xcframework_without_swiftmodule_depending_objc_lib",
     srcs = [":objc_with_swift_static_xcframework_without_swiftmodule_src"],
     tags = common.fixture_tags,
-    deps = [":ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled2"],
+    deps = [":ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled"],
 )
 
 write_file(
     name = "objc_with_swift_static_xcframework_without_swiftmodule_src",
     out = "ObjcWithSwiftXCFrameworkStaticLibraryWithoutSwiftmodule.m",
     content = ["""
-#import <generated_swift_static_xcframework_without_swiftmodule23.h>
+#import <generated_swift_static_xcframework_without_swiftmodule.h>
 
 int main() {
   SharedClass *sharedClass = [[SharedClass alloc] init];
@@ -2454,15 +2454,15 @@ int main() {
 )
 
 apple_static_xcframework_import(
-    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled2",
+    name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
     has_swift = True,
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
-    xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule23"],
+    xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule"],
 )
 
 generate_static_xcframework(
-    name = "generated_swift_static_xcframework_without_swiftmodule23",
+    name = "generated_swift_static_xcframework_without_swiftmodule",
     include_module_interface_files = False,
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
