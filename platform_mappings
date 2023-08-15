@@ -51,10 +51,6 @@ platforms:
     --cpu=watchos_arm64_32
 
 flags:
-  --cpu=darwin
-  --apple_platform_type=macos
-    @build_bazel_apple_support//platforms:macos_x86_64
-
   --cpu=darwin_x86_64
   --apple_platform_type=macos
     @build_bazel_apple_support//platforms:macos_x86_64
