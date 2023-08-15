@@ -204,6 +204,13 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         target_triplet = target_triplet,
     )
 
+    swiftdocs = framework_import_support.get_swift_module_files_with_target_triplet(
+        swift_module_files = filter_by_library_identifier(
+            files_by_category.swiftdoc_imports,
+        ),
+        target_triplet = target_triplet,
+    )
+
     swift_module_interfaces = framework_import_support.get_swift_module_files_with_target_triplet(
         swift_module_files = filter_by_library_identifier(
             files_by_category.swift_interface_imports,
@@ -229,6 +236,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         includes = includes,
         clang_module_map = module_maps[0] if module_maps else None,
         swiftmodule = swiftmodules,
+        swiftdoc = swiftdocs[0] if swiftdocs else None,
         swift_module_interface = swift_module_interfaces[0] if swift_module_interfaces else None,
     )
 
@@ -527,6 +535,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,
+                swiftdoc = xcframework_library.swiftdoc,
             ),
         )
     else:
@@ -666,6 +675,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,
+                swiftdoc = xcframework_library.swiftdoc,
             ),
         )
     else:

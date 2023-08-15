@@ -156,6 +156,7 @@ def _classify_file_imports(config_vars, import_files):
     module_map_imports = []
     swift_module_imports = []
     swift_interface_imports = []
+    swiftdoc_imports = []
     for file in import_files:
         # Extension matching
         file_extension = file.extension
@@ -193,8 +194,12 @@ def _classify_file_imports(config_vars, import_files):
             header_imports.append(file)
             swift_interface_imports.append(file)
             continue
-        if file_extension in ["swiftdoc", "swiftsourceinfo"]:
-            # Ignore swiftdoc files, they don't matter in the build, only for IDEs.
+        if file_extension == "swiftdoc":
+            # Collect swiftdocs for propagating for IDEs.
+            swiftdoc_imports.append(file)
+            continue
+        if file_extension == "swiftsourceinfo":
+            # Ignore swiftsourceinfo files, they don't matter in the build, only for IDEs.
             continue
         if file_extension == "a":
             binary_imports.append(file)
@@ -215,6 +220,7 @@ def _classify_file_imports(config_vars, import_files):
         module_map_imports = module_map_imports,
         swift_interface_imports = swift_interface_imports,
         swift_module_imports = swift_module_imports,
+        swiftdoc_imports = swiftdoc_imports,
         bundling_imports = bundling_imports,
     )
 
@@ -265,6 +271,7 @@ def _classify_framework_imports(config_vars, framework_imports):
         module_map_imports = framework_imports_by_category.module_map_imports,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
         swift_module_imports = framework_imports_by_category.swift_module_imports,
+        swiftdoc_imports = framework_imports_by_category.swiftdoc_imports,
     )
 
 def libraries_to_link_for_dynamic_framework(
@@ -461,7 +468,8 @@ def _swift_info_from_module_interface(
         features,
         module_name,
         swift_toolchain,
-        swiftinterface_file):
+        swiftinterface_file,
+        swiftdoc):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
 
 
@@ -495,6 +503,7 @@ def _swift_info_from_module_interface(
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,
         swift_toolchain = swift_toolchain,
+        swiftdoc = swiftdoc,
     )
 
     return swift_common.create_swift_info(
