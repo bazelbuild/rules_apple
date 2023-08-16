@@ -140,7 +140,7 @@ def apple_bundle_info_partial(
         bundle_id = bundle_id,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
         extension_safe = extension_safe,
         entitlements = entitlements,
         label_name = label_name,

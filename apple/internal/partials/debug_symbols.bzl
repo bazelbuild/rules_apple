@@ -385,7 +385,7 @@ def debug_symbols_partial(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name,
+        executable_name = None,
         label_name,
         linkmaps = {},
         platform_prerequisites):
@@ -426,7 +426,7 @@ def debug_symbols_partial(
         debug_discriminator = debug_discriminator,
         dsym_binaries = dsym_binaries,
         dsym_info_plist_template = dsym_info_plist_template,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
         label_name = label_name,
         linkmaps = linkmaps,
         platform_prerequisites = platform_prerequisites,

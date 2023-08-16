@@ -56,25 +56,6 @@ def _bundle_full_name_from_rule_ctx(ctx):
         rule_descriptor = rule_support.rule_descriptor(ctx),
     )
 
-def _executable_name(ctx):
-    """Returns the executable name of the bundle.
-
-    The executable of the bundle is the value of the `executable_name`
-    attribute if it was given; if not, then the name of the `bundle_name`
-    attribute if it was given; if not, then the name of the target will be used
-    instead.
-
-    Args:
-      ctx: The Starlark context.
-
-    Returns:
-      The executable name.
-    """
-    executable_name = getattr(ctx.attr, "executable_name", None)
-    if not executable_name:
-        (executable_name, _) = _bundle_full_name_from_rule_ctx(ctx)
-    return executable_name
-
 def _ensure_single_xcassets_type(attr, files, extension, message = None):
     """Helper for when an xcassets catalog should have a single sub type.
 
@@ -184,5 +165,4 @@ bundling_support = struct(
     bundle_full_name_from_rule_ctx = _bundle_full_name_from_rule_ctx,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
-    executable_name = _executable_name,
 )

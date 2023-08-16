@@ -188,7 +188,7 @@ def merge_root_infoplists(
         bundle_name,
         bundle_id = None,
         bundle_extension,
-        executable_name,
+        executable_name = None,
         child_plists = [],
         child_required_values = [],
         environment_plist,
@@ -275,7 +275,8 @@ def merge_root_infoplists(
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
-    if include_executable_name and executable_name:
+    executable_name = executable_name or bundle_name
+    if include_executable_name:
         substitutions["EXECUTABLE_NAME"] = executable_name
         forced_plists.append(struct(CFBundleExecutable = executable_name))
 

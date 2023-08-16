@@ -436,7 +436,7 @@ def resources_partial(
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
