@@ -657,7 +657,6 @@ def _apple_xcframework_impl(ctx):
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
-            executable_name = executable_name,
             features = features,
             ipa_post_processor = None,
             output_discriminator = library_identifier,

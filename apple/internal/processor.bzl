@@ -465,7 +465,6 @@ def _bundle_post_process_and_sign(
         codesign_inputs,
         codesignopts,
         entitlements,
-        executable_name,
         features,
         ipa_post_processor,
         output_archive,
@@ -488,7 +487,6 @@ def _bundle_post_process_and_sign(
         codesign_inputs: Extra inputs needed for the `codesign` tool.
         codesignopts: Extra options to pass to the `codesign` tool.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-        executable_name: The name of the output executable.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         output_archive: The file representing the final bundled, post-processed and signed archive.
@@ -695,7 +693,6 @@ def _process(
         codesign_inputs = [],
         codesignopts = [],
         entitlements = None,
-        executable_name,
         features,
         ipa_post_processor,
         output_discriminator = None,
@@ -719,7 +716,6 @@ def _process(
       codesign_inputs: Extra inputs needed for the `codesign` tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-      executable_name: The name of the output executable.
       features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -759,7 +755,6 @@ def _process(
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
             codesignopts = codesignopts,
-            executable_name = executable_name,
             entitlements = entitlements,
             features = features,
             ipa_post_processor = ipa_post_processor,
