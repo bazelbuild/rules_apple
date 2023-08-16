@@ -624,7 +624,6 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
-                executable_name = executable_name,
                 label_name = rule_label.name,
                 rule_descriptor = rule_descriptor,
                 platform_prerequisites = platform_prerequisites,
