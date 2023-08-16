@@ -13,11 +13,13 @@
 # limitations under the License.
 """Common functionality for tool wrappers to execute jobs."""
 
-import io
 import os
 import re
 import subprocess
 import sys
+
+
+_DEFAULT_TIMEOUT = 900
 
 
 def execute_and_filter_output(cmd_args,
@@ -27,7 +29,7 @@ def execute_and_filter_output(cmd_args,
                               inputstr=None,
                               print_output=False,
                               raise_on_failure=False,
-                              timeout=900):
+                              timeout=_DEFAULT_TIMEOUT):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
@@ -67,10 +69,14 @@ def execute_and_filter_output(cmd_args,
       stderr=subprocess.PIPE,
       env=env)
   try:
-    stdout, stderr = proc.communicate(input=inputstr, timeout=timeout)
+    stdout, stderr = proc.communicate(
+      input=inputstr,
+      timeout=timeout,
+    )
   except subprocess.TimeoutExpired:
-      proc.kill()
-      stdout, stderr = proc.communicate()
+    # Cleanup suggested by https://docs.python.org/3/library/subprocess.html
+    proc.kill()
+    stdout, stderr = proc.communicate()
 
   cmd_result = proc.returncode
 

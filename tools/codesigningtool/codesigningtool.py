@@ -25,19 +25,17 @@ from tools.wrapper_common import execute
 
 
 # Regex with benign codesign messages that can be safely ignored.
-# It matches the following bening outputs:
+# It matches the following benign outputs:
 # * signed Mach-O thin
 # * signed Mach-O universal
 # * signed app bundle with Mach-O universal
 # * signed bundle with Mach-O thin
 # * replacing existing signature
+# * signed generic
+# * Executable=/{path to signed target}
 # * using the deprecated --resource-rules flag
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r'('
-    r'signed.*Mach-O (universal|thin)|'
-    r'replacing existing signature|'
-    r'Warning: --resource-rules has been deprecated'
-    r')'
+    r"(signed.*Mach-O (universal|thin)|libswift.*\.dylib: replacing existing signature|signed generic|Executable=/|Warning: --resource-rules has been deprecated)"
 )
 
 
@@ -47,8 +45,8 @@ def _find_codesign_allocate():
   return stdout.strip()
 
 
-def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
-                     disable_timestamp, full_path_to_sign, extra):
+def invoke_codesign(*, codesign_path, identity, entitlements, force_signing,
+                    disable_timestamp, full_path_to_sign, extra):
   """Invokes the codesign tool on the given path to sign.
 
   Args:
@@ -58,6 +56,10 @@ def _invoke_codesign(codesign_path, identity, entitlements, force_signing,
     force_signing: If true, replaces any existing signature on the path given.
     disable_timestamp: If true, disables the use of timestamp services.
     full_path_to_sign: Path to the bundle or binary to code sign as a string.
+
+  Raises:
+    subprocess.CalledProcessError: For any non-zero return codes reported from
+        invoking the codesign tool against the given inputs.
   """
   cmd = [codesign_path, "-v", "--sign", identity]
   if entitlements:
@@ -292,7 +294,7 @@ def _filter_codesign_output(codesign_output):
 
 
 def _all_paths_to_sign(targets_to_sign, directories_to_sign):
-  """Returns a list of paths to sign from paths to targets and directories"""
+  """Returns a list of paths to sign from paths to targets and directories."""
   all_paths_to_sign = []
 
   if targets_to_sign:
@@ -409,8 +411,15 @@ def main(args):
                                                      signed_path)
 
   for path_to_sign in all_paths_to_sign:
-    _invoke_codesign(args.codesign, identity, args.entitlements, args.force,
-                     args.disable_timestamp, path_to_sign, extra)
+    invoke_codesign(
+        codesign_path=args.codesign,
+        identity=identity,
+        entitlements=args.entitlements,
+        force_signing=args.force,
+        disable_timestamp=args.disable_timestamp,
+        full_path_to_sign=path_to_sign,
+        extra=extra,
+    )
 
 
 if __name__ == "__main__":

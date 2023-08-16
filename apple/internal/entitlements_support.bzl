@@ -387,6 +387,56 @@ def _process_entitlements(
         linking = final_entitlements,
     )
 
+def _generate_der_entitlements(
+        *,
+        actions,
+        apple_fragment,
+        entitlements,
+        label_name,
+        xcode_version_config):
+    """Creates a DER formatted entitlements file given an existing entitlements plist.
+
+    This converts an entitlements plist into a DER encoded representation identical to that of a
+    provisioning profile's "Entitlements" section under the "DER-Encoded-Profile" plist property.
+
+    See Apple's TN3125 for more details on this representation of DER.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      entitlements: The entitlements file to sign with.
+      label_name: The name of the target being built.
+      xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+
+    Returns:
+      A `File` referencing the generated DER formatted entitlements.
+    """
+
+    der_entitlements = actions.declare_file(
+        "entitlements/%s.der" % label_name,
+    )
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [
+            "query",
+            "-f",
+            "xml",
+            "-i",
+            entitlements.path,
+            "-o",
+            der_entitlements.path,
+            "--raw",
+        ],
+        executable = "/usr/bin/derq",
+        inputs = [entitlements],
+        mnemonic = "ProcessDEREntitlements",
+        outputs = [der_entitlements],
+        xcode_config = xcode_version_config,
+    )
+    return der_entitlements
+
 entitlements_support = struct(
+    generate_der_entitlements = _generate_der_entitlements,
     process_entitlements = _process_entitlements,
 )
