@@ -36,6 +36,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -504,6 +508,11 @@ def _apple_xcframework_impl(ctx):
     framework_output_files = []
     framework_output_groups = []
 
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
 
@@ -520,12 +529,11 @@ def _apple_xcframework_impl(ctx):
                 link_output.platform,
                 default = rule_descriptor.allowed_device_families,
             ),
-            disabled_features = ctx.disabled_features,
             explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_versions.get(
                 link_output.platform,
             ),
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
-            features = ctx.features,
+            features = features,
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
@@ -922,6 +930,10 @@ def _apple_static_xcframework_impl(ctx):
     deps = ctx.split_attr.deps
     label = ctx.label
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
@@ -1021,12 +1033,11 @@ def _apple_static_xcframework_impl(ctx):
                 link_output.platform,
                 default = rule_descriptor.allowed_device_families,
             ),
-            disabled_features = ctx.disabled_features,
             explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_versions.get(
                 link_output.platform,
             ),
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
-            features = ctx.features,
+            features = features,
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
