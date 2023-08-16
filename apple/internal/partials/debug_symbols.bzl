@@ -302,7 +302,7 @@ def _debug_symbols_partial_impl(
 
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
-            dsym_output_filename = executable_name
+            dsym_output_filename = executable_name or bundle_name
             if debug_discriminator:
                 dsym_output_filename += "_" + debug_discriminator
             dsym_files, dsym_bundle_dir = _bundle_dsym_files(
@@ -385,7 +385,7 @@ def debug_symbols_partial(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name,
+        executable_name = None,
         label_name,
         linkmaps = {},
         platform_prerequisites):

@@ -275,7 +275,7 @@ def _apple_test_bundle_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    executable_name = bundling_support.executable_name(ctx)
+    executable_name = ctx.attr.executable_name
     config_vars = ctx.var
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
