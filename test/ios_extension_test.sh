@@ -203,7 +203,7 @@ EOF
     cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin.dylib) \
         app/fmwk.framework/fmwk
   else
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_staticlib_lipo.a) \
+    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/libdummy_lib.a) \
         app/fmwk.framework/fmwk
   fi
 
@@ -223,6 +223,34 @@ EOF
   mkdir -p app/fmwk.framework/Modules
   cat > app/fmwk.framework/Headers/module.modulemap <<EOF
 This shouldn't get included
+EOF
+}
+
+# Usage: create_minimal_ios_application_with_extension [product type]
+#
+# Creates a minimal iOS application target. The optional product type is
+# the Starlark constant that should be set on the extension using the
+# `product_type` attribute.
+function create_minimal_ios_application_with_extension() {
+  if [[ ! -f app/BUILD ]]; then
+    fail "create_common_files must be called first."
+  fi
+
+  product_type="${1:-}"
+
+  create_minimal_ios_application_extension "$product_type"
+
+  cat >> app/BUILD <<EOF
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext"],
+    families = ["iphone"],
+    infoplists = ["Info-App.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
 EOF
 }
 
@@ -484,73 +512,6 @@ EOF
 
   ! do_build ios //app:app || fail "Should not build"
   expect_log "While processing target \"//app:app\"; the CFBundleVersion of the child target \"//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
-}
-
-# Tests that a prebuilt static framework (i.e., apple_static_framework_import)
-# is not bundled with the application or extension.
-function test_prebuilt_static_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_and_extension_with_framework_import static apple_static_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that it's not bundled.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
-# is bundled properly with the application.
-function test_prebuilt_dynamic_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_and_extension_with_framework_import dynamic apple_dynamic_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that the framework is bundled with the application and that the
-  # binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-
-  # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-
-  # Verify that the framework is not bundled with the extension.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appex/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Plugins/ext.appexFrameworks/fmwk.framework/Modules/module.modulemap"
 }
 
 # Tests that ios_extension cannot be a depenency of objc_library.

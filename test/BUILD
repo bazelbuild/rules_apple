@@ -112,10 +112,6 @@ apple_multi_shell_test(
     size = "large",
     src = "ios_application_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -143,10 +139,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_extension_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -164,10 +156,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_application_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -264,7 +252,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_unit_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     flaky = 1,
     tags = common.skip_ci_tags,
@@ -285,7 +273,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_ui_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
 )
 

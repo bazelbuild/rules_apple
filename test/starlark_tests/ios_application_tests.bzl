@@ -166,6 +166,7 @@ def ios_application_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
+        is_not_binary_plist = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
         contains = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
