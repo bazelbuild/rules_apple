@@ -31,14 +31,11 @@ load(
     "paths",
 )
 
-# TODO: Investigate if executable_name is needed here
-# buildifier: disable=unused-variable
 def _archive(
         *,
         actions,
         bundle_extension,
         bundle_name,
-        executable_name = None,
         label_name,
         platform_prerequisites,
         predeclared_outputs,
@@ -62,7 +59,6 @@ def _archive_for_embedding(
         actions,
         bundle_name,
         bundle_extension,
-        executable_name,
         label_name,
         platform_prerequisites,
         predeclared_outputs,
@@ -80,7 +76,6 @@ def _archive_for_embedding(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            executable_name = executable_name,
             label_name = label_name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
