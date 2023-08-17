@@ -110,6 +110,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
@@ -2017,7 +2018,7 @@ simple command line tool as a standalone binary, use
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2026,7 +2027,9 @@ simple command line tool as a standalone binary, use
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2059,6 +2062,15 @@ desired Contents subdirectory.
                 ],
                 doc = "A list of macOS extensions to include in the final application bundle.",
             ),
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
+""",
+            ),
             "xpc_services": attr.label_list(
                 providers = [
                     [AppleBundleInfo, MacosXPCServiceBundleInfo],
@@ -2088,7 +2100,7 @@ macos_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2097,7 +2109,9 @@ macos_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2153,7 +2167,7 @@ point (typically expressed through Swift's `@main` attribute).""",
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2162,7 +2176,9 @@ point (typically expressed through Swift's `@main` attribute).""",
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2189,6 +2205,14 @@ The relative directory structure of filegroup contents is preserved when they ar
 desired Contents subdirectory.
 """,
             ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
+""",
+            ),
         },
     ],
 )
@@ -2198,7 +2222,7 @@ macos_quick_look_plugin = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles a macOS Quick Look Plugin.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2207,7 +2231,9 @@ macos_quick_look_plugin = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2244,7 +2270,7 @@ macos_kernel_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     cfg = transition_support.apple_rule_arm64_as_arm64e_transition,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2253,7 +2279,9 @@ macos_kernel_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2289,7 +2317,7 @@ macos_spotlight_importer = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles a macOS Spotlight Importer.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2298,7 +2326,9 @@ macos_spotlight_importer = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2334,7 +2364,7 @@ macos_xpc_service = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles a macOS XPC Service.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2343,7 +2373,9 @@ macos_xpc_service = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
@@ -2409,7 +2441,7 @@ def _macos_framework_impl(ctx):
     """Experimental implementation of macos_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     actions = ctx.actions
@@ -2655,7 +2687,7 @@ def _macos_dynamic_framework_impl(ctx):
     """Experimental implementation of macos_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -2940,7 +2972,7 @@ def _macos_static_framework_impl(ctx):
     """Implementation of macos_static_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.static_framework,
     )
 
     actions = ctx.actions
@@ -3074,27 +3106,130 @@ def _macos_static_framework_impl(ctx):
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
-macos_framework = rule_factory.create_apple_bundling_rule(
+macos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _macos_framework_impl,
-    platform_type = "macos",
-    product_type = apple_product_type.framework,
     doc = """Builds and bundles an macOS Dynamic Framework.
 
 To use this framework for your app and extensions, list it in the `frameworks` attributes
 of those `macos_application` and/or `macos_extension` rules.""",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.macos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "macos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
-macos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+macos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _macos_dynamic_framework_impl,
-    platform_type = "macos",
-    product_type = apple_product_type.framework,
     doc = "Builds and bundles a macOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+                swift_dynamic_framework_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.macos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "macos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
-macos_static_framework = rule_factory.create_apple_bundling_rule(
+_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
+
+macos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _macos_static_framework_impl,
-    platform_type = "macos",
-    product_type = apple_product_type.static_framework,
     cfg = transition_support.apple_platforms_rule_base_transition,
     doc = """Builds and bundles a macOS static framework for third-party distribution.
 
@@ -3112,7 +3247,7 @@ build a single framework artifact that works for all architectures by specifying
 
 `macos_static_framework` supports Swift, but there are some constraints:
 
-* `macos_static_framework` with Swift only works with Xcode 11 and above, since
+* `macos_static_framework` with Swift only works with Xcode 12 and above, since
   the required Swift functionality for module compatibility is available in
   Swift 5.1.
 * `macos_static_framework` only supports a single direct `swift_library` target
@@ -3133,4 +3268,70 @@ target. Finally, it also bundles a `module.modulemap` file pointing to the
 umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).""",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.macos,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "macos",
+        ),
+        {
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
+            "avoid_deps": attr.label_list(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+        },
+    ],
 )
