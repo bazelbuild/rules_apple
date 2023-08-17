@@ -46,11 +46,13 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "WatchosApplicationBundleInfo",
+    "WatchosSingleTargetApplicationBundleInfo",
     "WatchosXcTestBundleInfo",
 )
 
 _WATCHOS_TEST_HOST_PROVIDERS = [
     [AppleBundleInfo, WatchosApplicationBundleInfo],
+    [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
 ]
 
 def _watchos_ui_test_bundle_impl(ctx):

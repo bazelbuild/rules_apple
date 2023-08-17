@@ -39,6 +39,10 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "swift_dynamic_framework_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
 )
@@ -818,6 +822,10 @@ def _create_apple_binary_rule(
     else:
         attrs.append(rule_attrs.platform_attrs())
 
+    extra_deps_aspects = []
+    if product_type == apple_product_type.framework:
+        extra_deps_aspects.append(swift_dynamic_framework_aspect)
+
     if platform_type and product_type:
         rule_descriptor = rule_support.rule_descriptor(
             platform_type = platform_type,
@@ -831,7 +839,7 @@ def _create_apple_binary_rule(
                 extra_deps_aspects = [
                     apple_resource_aspect,
                     framework_provider_aspect,
-                ],
+                ] + extra_deps_aspects,
                 is_test_supporting_rule = _is_test_product_type(product_type),
                 requires_legacy_cc_toolchain = True,
             ))
@@ -846,6 +854,7 @@ def _create_apple_binary_rule(
         if require_linking_attrs:
             attrs.append(rule_attrs.binary_linking_attrs(
                 deps_cfg = transition_support.apple_platform_split_transition,
+                extra_deps_aspects = extra_deps_aspects,
                 is_test_supporting_rule = False,
                 requires_legacy_cc_toolchain = True,
             ))
@@ -895,12 +904,16 @@ def _create_apple_bundling_rule(
     )
 
     if rule_descriptor.requires_deps:
+        extra_deps_aspects = []
+        if product_type == apple_product_type.framework:
+            extra_deps_aspects.append(swift_dynamic_framework_aspect)
+
         attrs.append(rule_attrs.binary_linking_attrs(
             deps_cfg = rule_descriptor.deps_cfg,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
-            ],
+            ] + extra_deps_aspects,
             is_test_supporting_rule = _is_test_product_type(product_type),
             requires_legacy_cc_toolchain = True,
         ))

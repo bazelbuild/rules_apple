@@ -121,6 +121,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -376,7 +377,7 @@ def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -1157,7 +1158,7 @@ def _watchos_static_framework_impl(ctx):
     """Implementation of watchos_static_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.static_framework,
     )
 
     actions = ctx.actions
@@ -1663,6 +1664,7 @@ those `watchos_extension` rules.""",
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
+                swift_dynamic_framework_aspect,
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
@@ -1721,6 +1723,7 @@ watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
+                swift_dynamic_framework_aspect,
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
