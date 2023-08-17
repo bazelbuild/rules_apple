@@ -88,7 +88,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attr
     doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -97,7 +97,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attr
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -165,7 +165,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_at
     doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -174,7 +174,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_at
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
