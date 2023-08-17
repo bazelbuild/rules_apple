@@ -780,7 +780,6 @@ def _macos_extension_impl(ctx):
         MacosExtensionBundleInfo(),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
-            objc = link_result.objc,
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
@@ -2041,7 +2040,6 @@ def _macos_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -2282,7 +2280,6 @@ def _macos_dynamic_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(

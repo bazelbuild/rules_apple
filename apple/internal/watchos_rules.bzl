@@ -263,7 +263,6 @@ def _watchos_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -503,7 +502,6 @@ def _watchos_dynamic_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
