@@ -120,7 +120,7 @@ apple_binary = rule(
     implementation = _apple_binary_impl,
     attrs = dicts.add(
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),

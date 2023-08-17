@@ -2429,7 +2429,7 @@ Targets created with `macos_command_line_application` can be executed using
 `bazel run`.""",
     attrs = dicts.add(
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2490,7 +2490,7 @@ macos_dylib = rule(
     implementation = _macos_dylib_impl,
     attrs = dicts.add(
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
