@@ -1554,7 +1554,9 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1599,7 +1601,9 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1647,9 +1651,44 @@ watchos_static_framework = rule_factory.create_apple_bundling_rule(
     cfg = transition_support.apple_platforms_rule_base_transition,
 )
 
-watchos_single_target_application = rule_factory.create_apple_bundling_rule(
+watchos_single_target_application = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_single_target_application_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.application,
     doc = "Builds and bundles a watchOS Single Target Application.",
+    attrs = [
+        rule_attrs.app_icon_attrs(),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_factory.common_tool_attributes,
+        {
+            "storyboards": attr.label_list(
+                allow_files = [".storyboard"],
+                doc = """
+A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
+the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
+which case it will be placed under a directory with the same name in the bundle.
+""",
+            ),
+        },
+    ],
 )

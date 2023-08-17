@@ -98,7 +98,9 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
             is_mandatory = False,
@@ -146,7 +148,9 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
             is_mandatory = False,
