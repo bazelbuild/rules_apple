@@ -17,10 +17,6 @@ A rule for generating the environment plist
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -35,6 +31,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -82,7 +82,7 @@ def _environment_plist_impl(ctx):
 
 environment_plist = rule(
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         {
             "platform_type": attr.string(
                 mandatory = True,

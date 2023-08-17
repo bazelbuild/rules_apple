@@ -27,10 +27,6 @@ load(
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "ApplePlatformInfo",
@@ -83,7 +79,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
 apple_static_library = rule(
     implementation = _apple_static_library_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs,
         rule_attrs.static_library_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),

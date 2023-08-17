@@ -19,10 +19,6 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -144,13 +140,6 @@ of the target will be used instead.
 """,
     ),
 }
-
-# Returns the common set of attributes to support rules that leverage rules_apple tools and their
-# associated toolchains.
-_COMMON_TOOL_ATTRS = dicts.add(
-    rule_attrs.common_attrs,
-    apple_toolchain_utils.shared_attrs(),
-)
 
 def _get_common_bundling_attributes(deps_cfg, rule_descriptor):
     """Returns a list of dictionaries with attributes common to all bundling rules."""
@@ -816,7 +805,7 @@ def _create_apple_binary_rule(
 
     if platform_type:
         attrs.extend([
-            _COMMON_TOOL_ATTRS,
+            rule_attrs.common_tool_attrs,
             rule_attrs.platform_attrs(platform_type = platform_type, add_environment_plist = True),
         ])
     else:
@@ -894,14 +883,10 @@ def _create_apple_bundling_rule(
         product_type = product_type,
     )
 
-    attrs.extend(
-        [
-            _COMMON_TOOL_ATTRS,
-        ] + _get_common_bundling_attributes(
-            deps_cfg = rule_descriptor.deps_cfg,
-            rule_descriptor = rule_descriptor,
-        ),
-    )
+    attrs.extend([rule_attrs.common_tool_attrs] + _get_common_bundling_attributes(
+        deps_cfg = rule_descriptor.deps_cfg,
+        rule_descriptor = rule_descriptor,
+    ))
 
     if rule_descriptor.requires_deps:
         extra_deps_aspects = []
@@ -1023,7 +1008,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     return rule(
         implementation = implementation,
         attrs = dicts.add(
-            _COMMON_TOOL_ATTRS,
+            rule_attrs.common_tool_attrs,
             _COMMON_TEST_ATTRS,
             *ide_visible_attrs
         ),
@@ -1033,8 +1018,6 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     )
 
 rule_factory = struct(
-    # TODO(b/246990309): Move common_tool_attributes to rule attrs in a follow up CL.
-    common_tool_attributes = _COMMON_TOOL_ATTRS,
     create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule = _create_apple_bundling_rule,
     create_apple_bundling_rule_with_attrs = _create_apple_bundling_rule_with_attrs,

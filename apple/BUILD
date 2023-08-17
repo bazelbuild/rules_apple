@@ -61,7 +61,6 @@ bzl_library(
         ":providers",
         "//apple/internal:linking_support",
         "//apple/internal:rule_attrs",
-        "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_tools//tools/cpp:toolchain_utils",
