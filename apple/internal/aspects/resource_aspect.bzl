@@ -24,6 +24,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -61,6 +65,10 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
+    features = features_support.compute_enabled_features(
+        requested_features = aspect_ctx.features,
+        unsupported_features = aspect_ctx.disabled_features,
+    )
 
     # TODO(b/176548199): Support device_families when rule_descriptor can be accessed from an
     # aspect, or the list of allowed device families can be determined independently of the
@@ -69,10 +77,9 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         apple_fragment = aspect_ctx.fragments.apple,
         config_vars = aspect_ctx.var,
         device_families = None,
-        disabled_features = aspect_ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = aspect_ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,

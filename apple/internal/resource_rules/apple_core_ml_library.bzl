@@ -24,6 +24,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -69,6 +73,11 @@ def _apple_core_ml_library_impl(ctx):
         objc_output_src = actions.declare_file("{}.m".format(basename))
         objc_output_hdr = actions.declare_file("{}.h".format(basename))
 
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     # TODO(b/168721966): Consider if an aspect could be used to generate mlmodel sources. This
     # would be similar to how we are planning to use the resource aspect with the
     # apple_resource_bundle and apple_resource_group resource rules. That might allow for more
@@ -77,10 +86,9 @@ def _apple_core_ml_library_impl(ctx):
         apple_fragment = ctx.fragments.apple,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
