@@ -1205,7 +1205,7 @@ Resolved Xcode is version {xcode_version}.
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    executable_name = bundling_support.executable_name(ctx)
+    executable_name = ctx.attr.executable_name
     embeddable_targets = ctx.attr.deps
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1380,7 +1380,6 @@ Resolved Xcode is version {xcode_version}.
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        executable_name = executable_name,
         entitlements = entitlements.codesigning,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
