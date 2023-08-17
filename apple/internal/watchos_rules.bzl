@@ -1646,7 +1646,7 @@ those `watchos_extension` rules.""",
         rule_attrs.common_bundle_attrs(
             deps_cfg = apple_common.multi_arch_split,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_factory.common_tool_attributes,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
@@ -1657,6 +1657,13 @@ those `watchos_extension` rules.""",
         ),
         rule_attrs.provisioning_profile_attrs(),
         {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
@@ -1680,11 +1687,62 @@ that this target depends on.
     ],
 )
 
-watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_dynamic_framework_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.framework,
     doc = "Builds and bundles a watchOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
+        rule_factory.common_tool_attributes,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
@@ -1706,7 +1764,7 @@ watchos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.common_bundle_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
-        rule_attrs.common_tool_attrs,
+        rule_factory.common_tool_attributes,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
