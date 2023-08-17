@@ -173,6 +173,17 @@ def _binary_linking_attrs(
         _common_linking_api_attrs(deps_cfg = deps_cfg),
         _j2objc_binary_linking_attrs(deps_cfg = deps_cfg),
         {
+            "codesign_inputs": attr.label_list(
+                doc = """
+A list of dependencies targets that provide inputs that will be used by
+`codesign` (referenced with `codesignopts`).
+""",
+            ),
+            "codesignopts": attr.string_list(
+                doc = """
+A list of strings representing extra flags that should be passed to `codesign`.
+""",
+            ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -243,6 +254,14 @@ A required string indicating the minimum OS version supported by the target, rep
 dotted version number (for example, "9.0").
 """,
             mandatory = True,
+        ),
+        "minimum_deployment_os_version": attr.string(
+            mandatory = False,
+            doc = """
+A required string indicating the minimum deployment OS version supported by the target, represented
+as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which
+is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.
+""",
         ),
     }
 
@@ -386,6 +405,14 @@ def _common_bundle_attrs(*, deps_cfg):
             doc = """
 The desired name of the bundle (without the extension). If this attribute is not set, then the name
 of the target will be used instead.
+""",
+        ),
+        "executable_name": attr.string(
+            mandatory = False,
+            doc = """
+The desired name of the executable, if the bundle has an executable. If this attribute is not set,
+then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
+the target will be used instead.
 """,
         ),
         # TODO(b/36512239): Rename to "bundle_post_processor".
