@@ -598,6 +598,9 @@ rule_attrs = struct(
     ),
     defaults = struct(
         allowed_families = struct(
+            ios = ["iphone", "ipad"],
+            macos = ["mac"],
+            tvos = ["tv"],
             watchos = ["watch"],
         ),
         test_bundle_infoplist = _test_bundle_infoplist,

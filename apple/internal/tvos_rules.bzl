@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
@@ -76,6 +77,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -100,7 +105,16 @@ load(
     "libraries_to_link_for_dynamic_framework",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "TvosApplicationBundleInfo",
@@ -118,7 +132,7 @@ def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.application,
     )
 
     actions = ctx.actions
@@ -396,7 +410,7 @@ def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -676,7 +690,7 @@ def _tvos_framework_impl(ctx):
     """Experimental implementation of tvos_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     actions = ctx.actions
@@ -918,7 +932,7 @@ def _tvos_extension_impl(ctx):
     """Experimental implementation of tvos_extension."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.app_extension,
     )
 
     actions = ctx.actions
@@ -1154,7 +1168,7 @@ def _tvos_static_framework_impl(ctx):
     """Implementation of tvos_static_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.static_framework,
     )
 
     actions = ctx.actions
@@ -1288,40 +1302,231 @@ def _tvos_static_framework_impl(ctx):
         TvosStaticFrameworkBundleInfo(),
     ] + processor_result.providers
 
-tvos_application = rule_factory.create_apple_bundling_rule(
+tvos_application = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _tvos_application_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.application,
+    archive_extension = ".ipa",
     doc = "Builds and bundles a tvOS Application.",
-)
-tvos_dynamic_framework = rule_factory.create_apple_bundling_rule(
-    implementation = _tvos_dynamic_framework_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.framework,
-    doc = "Builds and bundles a tvOS dynamic framework that is consumable by Xcode.",
-)
-tvos_extension = rule_factory.create_apple_bundling_rule(
-    implementation = _tvos_extension_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.app_extension,
-    doc = "Builds and bundles a tvOS Extension.",
+    is_executable = True,
+    attrs = [
+        rule_attrs.app_icon_attrs(),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.launch_images_attrs,
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.settings_bundle_attrs,
+        {
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
+                doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+            "_runner_template": attr.label(
+                cfg = "exec",
+                allow_single_file = True,
+                # Currently using the iOS Simulator template for tvOS, as tvOS does not require
+                # significantly different sim runner logic from iOS.
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
+        },
+    ],
 )
 
-tvos_framework = rule_factory.create_apple_bundling_rule(
+tvos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
+    implementation = _tvos_dynamic_framework_impl,
+    doc = "Builds and bundles a tvOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+                swift_dynamic_framework_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
+)
+
+tvos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
+    implementation = _tvos_extension_impl,
+    doc = "Builds and bundles a tvOS Extension.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
+)
+
+tvos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _tvos_framework_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.framework,
     doc = """
 Builds and bundles a tvOS Dynamic Framework.
 
 To use this framework for your app and extensions, list it in the frameworks attributes of those tvos_application and/or tvos_extension rules.
 """,
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
-tvos_static_framework = rule_factory.create_apple_bundling_rule(
+_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
+
+tvos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _tvos_static_framework_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.static_framework,
+    cfg = transition_support.apple_platforms_rule_base_transition,
     doc = """
 Builds and bundles an tvOS static framework for third-party distribution.
 
@@ -1361,5 +1566,70 @@ umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).
 """,
-    cfg = transition_support.apple_platforms_rule_base_transition,
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        {
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
+            "avoid_deps": attr.label_list(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+        },
+    ],
 )

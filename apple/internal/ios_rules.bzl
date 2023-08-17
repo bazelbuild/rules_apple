@@ -15,6 +15,14 @@
 """Implementation of iOS rules."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -72,6 +80,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -98,6 +110,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
@@ -116,6 +129,8 @@ load(
     "IosImessageExtensionBundleInfo",
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
+    "WatchosApplicationBundleInfo",
+    "WatchosSingleTargetApplicationBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
@@ -125,7 +140,7 @@ def _ios_application_impl(ctx):
     """Experimental implementation of ios_application."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.application,
     )
 
     actions = ctx.actions
@@ -453,7 +468,7 @@ def _ios_app_clip_impl(ctx):
     """Experimental implementation of ios_app_clip."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.app_clip,
     )
 
     actions = ctx.actions
@@ -726,7 +741,7 @@ def _ios_framework_impl(ctx):
     """Experimental implementation of ios_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     actions = ctx.actions
@@ -972,7 +987,7 @@ def _ios_extension_impl(ctx):
     """Experimental implementation of ios_extension."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.app_extension,
     )
 
     actions = ctx.actions
@@ -1219,7 +1234,7 @@ def _ios_dynamic_framework_impl(ctx):
     """Experimental implementation of ios_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -1504,7 +1519,7 @@ def _ios_static_framework_impl(ctx):
     """Implementation of ios_static_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.static_framework,
     )
 
     actions = ctx.actions
@@ -1642,7 +1657,7 @@ def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.messages_application,
     )
 
     actions = ctx.actions
@@ -1838,7 +1853,7 @@ def _ios_imessage_extension_impl(ctx):
     """Experimental implementation of ios_imessage_extension."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.messages_extension,
     )
 
     actions = ctx.actions
@@ -2069,7 +2084,7 @@ def _ios_sticker_pack_extension_impl(ctx):
     """Experimental implementation of ios_sticker_pack_extension."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.messages_sticker_pack_extension,
     )
 
     actions = ctx.actions
@@ -2250,57 +2265,374 @@ def _ios_sticker_pack_extension_impl(ctx):
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
-# Rule definitions for rules that use the Starlark linking API and the new rule_factory support.
-# TODO(b/118104491): Move these definitions into apple/ios.bzl, when there's no need to override
-# attributes.
-
-ios_application = rule_factory.create_apple_bundling_rule(
+ios_application = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_application_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.application,
+    archive_extension = ".ipa",
     doc = "Builds and bundles an iOS Application.",
+    is_executable = True,
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".appiconset",
+            icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.launch_images_attrs,
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.settings_bundle_attrs,
+        {
+            "_runner_template": attr.label(
+                cfg = "exec",
+                allow_single_file = True,
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
+            "alternate_icons": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the alternate app icons for the application. Each file must have a containing directory
+named after the alternate icon identifier.
+""",
+            ),
+            "app_clips": attr.label_list(
+                providers = [[AppleBundleInfo, IosAppClipBundleInfo]],
+                doc = """
+A list of iOS app clips to include in the final application bundle.
+""",
+            ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
+                doc = """
+A list of iOS application extensions to include in the final application bundle.
+""",
+            ),
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            "include_symbols_in_bundle": attr.bool(
+                default = False,
+                doc = """
+    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
+    files from all `{binary: .dSYM, ...}` pairs for the application and its
+    dependencies, then packages them under the `Symbols/` directory in the
+    final application bundle.
+    """,
+            ),
+            "launch_storyboard": attr.label(
+                allow_single_file = [".storyboard", ".xib"],
+                doc = """
+The `.storyboard` or `.xib` file that should be used as the launch screen for the application. The
+provided file will be compiled into the appropriate format (`.storyboardc` or `.nib`) and placed in
+the root of the final bundle. The generated file will also be registered in the bundle's
+Info.plist under the key `UILaunchStoryboardName`.
+""",
+            ),
+            # TODO(b/162600187): `sdk_frameworks` was never documented on `ios_application` but it
+            # leaked through due to the old macro passing it to the underlying `apple_binary`.
+            # Support this temporarily for a limited set of product types until we can migrate teams
+            # off the attribute, once explicit build targets are used to propagate linking
+            # information for system frameworks.
+            "sdk_frameworks": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`).
+`UIKit` and `Foundation` are always included, even if this attribute is
+provided and does not list them.
+
+This attribute is discouraged; in general, targets should list system
+framework dependencies in the library targets where that framework is used,
+not in the top-level bundle.
+""",
+            ),
+            "watch_application": attr.label(
+                providers = [
+                    [AppleBundleInfo, WatchosApplicationBundleInfo],
+                    [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
+                ],
+                doc = """
+A `watchos_application` target that represents an Apple Watch application or a
+`watchos_single_target_application` target that represents a single-target Apple Watch application
+that should be embedded in the application bundle.
+""",
+            ),
+        },
+    ],
 )
 
-ios_app_clip = rule_factory.create_apple_bundling_rule(
+ios_app_clip = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_app_clip_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.app_clip,
+    archive_extension = ".ipa",
     doc = "Builds and bundles an iOS App Clip.",
+    is_executable = True,
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".appiconset",
+            icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "_runner_template": attr.label(
+                cfg = "exec",
+                allow_single_file = True,
+                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            "launch_storyboard": attr.label(
+                allow_single_file = [".storyboard", ".xib"],
+                doc = """
+The `.storyboard` or `.xib` file that should be used as the launch screen for the app clip. The
+provided file will be compiled into the appropriate format (`.storyboardc` or `.nib`) and placed in
+the root of the final bundle. The generated file will also be registered in the bundle's
+Info.plist under the key `UILaunchStoryboardName`.
+""",
+            ),
+        },
+    ],
 )
 
-ios_extension = rule_factory.create_apple_bundling_rule(
+ios_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_extension_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.app_extension,
     doc = """Builds and bundles an iOS Application Extension.
 
 Most iOS app extensions use a plug-in-based architecture where the executable's entry point
 is provided by a system framework.
 However, iOS 14 introduced Widget Extensions that use a traditional `main` entry point
 (typically expressed through Swift's `@main` attribute).""",
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".appiconset",
+            icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/162600187): `sdk_frameworks` was never documented on `ios_application` but it
+            # leaked through due to the old macro passing it to the underlying `apple_binary`.
+            # Support this temporarily for a limited set of product types until we can migrate teams
+            # off the attribute, once explicit build targets are used to propagate linking
+            # information for system frameworks.
+            "sdk_frameworks": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`).
+`UIKit` and `Foundation` are always included, even if this attribute is
+provided and does not list them.
+
+This attribute is discouraged; in general, targets should list system
+framework dependencies in the library targets where that framework is used,
+not in the top-level bundle.
+""",
+            ),
+        },
+    ],
 )
 
-ios_framework = rule_factory.create_apple_bundling_rule(
+ios_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_framework_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.framework,
     doc = """Builds and bundles an iOS Dynamic Framework.
 
 To use this framework for your app and extensions, list it in the `frameworks` attributes
 of those `ios_application` and/or `ios_extension` rules.""",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            # TODO(b/251214758): Remove this attribute when all usages of ios_frameworks with hdrs
+            # are migrated to apple_xcframework.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
-ios_dynamic_framework = rule_factory.create_apple_bundling_rule(
+ios_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_dynamic_framework_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.framework,
     doc = "Builds and bundles an iOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+                swift_dynamic_framework_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "ios",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
-ios_static_framework = rule_factory.create_apple_bundling_rule(
+ios_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_static_framework_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.static_framework,
     doc = """Builds and bundles an iOS static framework for third-party distribution.
 
 A static framework is bundled like a dynamic framework except that the embedded
@@ -2339,28 +2671,191 @@ umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).""",
     cfg = transition_support.apple_platforms_rule_base_transition,
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = False,
+        ),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        {
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = transition_support.apple_platform_split_transition,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
+            "avoid_deps": attr.label_list(
+                cfg = transition_support.apple_platform_split_transition,
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+        },
+    ],
 )
 
-ios_imessage_application = rule_factory.create_apple_bundling_rule(
+ios_imessage_application = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_imessage_application_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.messages_application,
+    archive_extension = ".ipa",
     doc = """Builds and bundles an iOS iMessage Application.
 
 iOS iMessage applications do not have any dependencies, as it works mostly as a wrapper
 for either an iOS iMessage extension or a Sticker Pack extension.""",
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".appiconset",
+            icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "extension": attr.label(
+                mandatory = True,
+                providers = [
+                    [AppleBundleInfo, IosImessageExtensionBundleInfo],
+                    [AppleBundleInfo, IosStickerPackExtensionBundleInfo],
+                ],
+                doc = """
+Single label referencing either an ios_imessage_extension or ios_sticker_pack_extension target.
+Required.
+""",
+            ),
+        },
+    ],
 )
 
-ios_imessage_extension = rule_factory.create_apple_bundling_rule(
+ios_imessage_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_imessage_extension_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.messages_extension,
     doc = "Builds and bundles an iOS iMessage Extension.",
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".appiconset",
+            icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
-ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule(
+ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_sticker_pack_extension_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.messages_sticker_pack_extension,
     doc = "Builds and bundles an iOS Sticker Pack Extension.",
+    attrs = [
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".stickersiconset",
+            icon_parent_extension = ".xcstickers",
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.entitlements_attrs,
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "sticker_assets": attr.label_list(
+                allow_files = True,
+                doc = """
+List of sticker files to bundle. The collection of assets should be under a folder named
+`*.*.xcstickers`. The icons go in a `*.stickersiconset` (instead of `*.appiconset`); and the files
+for the stickers should all be in Sticker Pack directories, so `*.stickerpack/*.sticker` or
+`*.stickerpack/*.stickersequence`.
+""",
+            ),
+        },
+    ],
 )
