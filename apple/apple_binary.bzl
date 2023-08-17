@@ -26,6 +26,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
 
 def _linker_flag_for_sdk_dylib(dylib):
     """Returns a linker flag suitable for linking the given `sdk_dylib` value.
