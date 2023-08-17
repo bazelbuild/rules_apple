@@ -50,6 +50,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "WatchosApplicationBundleInfo",
+    "WatchosFrameworkBundleInfo",
     "WatchosSingleTargetApplicationBundleInfo",
     "WatchosXcTestBundleInfo",
 )
@@ -127,6 +128,16 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
             is_mandatory = True,
             providers = _WATCHOS_TEST_HOST_PROVIDERS,
         ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+        },
     ],
 )
 
@@ -176,6 +187,16 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
             aspects = rule_attrs.aspects.test_host_aspects,
             providers = _WATCHOS_TEST_HOST_PROVIDERS,
         ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+        },
     ],
 )
 

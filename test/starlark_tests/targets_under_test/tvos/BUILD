@@ -527,6 +527,7 @@ swift_library(
 
 tvos_ui_test(
     name = "ui_test",
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -584,6 +585,7 @@ tvos_ui_test(
 
 tvos_unit_test(
     name = "unit_test",
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
