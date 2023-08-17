@@ -80,16 +80,13 @@ apple_static_library = rule(
     implementation = _apple_static_library_impl,
     attrs = dicts.add(
         rule_attrs.common_tool_attrs,
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.static_library_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         {
-            "_cc_toolchain_forwarder": attr.label(
-                cfg = transition_support.apple_platform_split_transition,
-                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-                default =
-                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
-            ),
             "additional_linker_inputs": attr.label_list(
                 # Flag required for compile_one_dependency
                 flags = ["DIRECT_COMPILE_TIME_INPUT"],
