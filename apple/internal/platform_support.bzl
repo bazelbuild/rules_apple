@@ -14,19 +14,6 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items
@@ -127,44 +114,8 @@ def _platform_prerequisites(
         xcode_version_config = xcode_version_config,
     )
 
-def _platform_prerequisites_from_rule_ctx(ctx):
-    """Returns a struct containing information on the platform being targeted from a rule context.
-
-    Args:
-      ctx: The Starlark context for a rule.
-
-    Returns:
-      A struct representing the default collected platform information for that rule context.
-    """
-    device_families = getattr(ctx.attr, "families", None)
-    if not device_families:
-        rule_descriptor = rule_support.rule_descriptor(ctx)
-        device_families = rule_descriptor.allowed_device_families
-
-    deps = getattr(ctx.attr, "deps", None)
-    uses_swift = swift_support.uses_swift(deps) if deps else False
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-
-    return _platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        config_vars = ctx.var,
-        cpp_fragment = ctx.fragments.cpp,
-        device_families = device_families,
-        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
-        explicit_minimum_os = ctx.attr.minimum_os_version,
-        features = features,
-        objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
-        uses_swift = uses_swift,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
     platform_prerequisites = _platform_prerequisites,
-    platform_prerequisites_from_rule_ctx = _platform_prerequisites_from_rule_ctx,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )

@@ -20,10 +20,6 @@ load(
     "entitlements_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
@@ -106,6 +102,7 @@ def _register_binary_linking_action(
         extra_linkopts = [],
         extra_link_inputs = [],
         platform_prerequisites,
+        rule_descriptor,
         stamp):
     """Registers linking actions using the Starlark Apple binary linking API.
 
@@ -130,6 +127,10 @@ def _register_binary_linking_action(
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
         platform_prerequisites: The platform prerequisites.
+        rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
+            will define additional parameters required for linking, such as `rpaths` and
+            `extra_linkopts`. If `None`, these additional parameters will not be set on the linked
+            binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
@@ -195,9 +196,9 @@ def _register_binary_linking_action(
             )
             link_inputs.append(der_entitlements)
 
-    # Compatibility path for `apple_binary`, which does not have a product type.
-    if hasattr(ctx.attr, "_product_type"):
-        rule_descriptor = rule_support.rule_descriptor(ctx)
+    # TODO(b/248317958): Migrate rule_descriptor.rpaths and rule_descriptor.extra_linkopts as direct
+    # inputs of the extra_linkopts arg on this method.
+    if rule_descriptor:
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
         linkopts.extend(rule_descriptor.extra_linkopts)
 

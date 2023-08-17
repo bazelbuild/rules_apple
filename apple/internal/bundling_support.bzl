@@ -14,12 +14,12 @@
 
 """Low-level bundling name helpers."""
 
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-
-def _bundle_full_name(*, custom_bundle_extension, custom_bundle_name, label_name, rule_descriptor):
+def _bundle_full_name(
+        *,
+        custom_bundle_extension = None,
+        custom_bundle_name = None,
+        label_name,
+        rule_descriptor):
     """Returns a tuple containing information on the bundle file name.
 
     Args:
@@ -46,15 +46,6 @@ def _bundle_full_name(*, custom_bundle_extension, custom_bundle_name, label_name
         bundle_extension = rule_descriptor.bundle_extension
 
     return (bundle_name, bundle_extension)
-
-def _bundle_full_name_from_rule_ctx(ctx):
-    """Returns a tuple containing information on the bundle file name based on the rule context."""
-    return _bundle_full_name(
-        custom_bundle_extension = getattr(ctx.attr, "bundle_extension", ""),
-        custom_bundle_name = getattr(ctx.attr, "bundle_name", None),
-        label_name = ctx.label.name,
-        rule_descriptor = rule_support.rule_descriptor(ctx),
-    )
 
 def _ensure_single_xcassets_type(attr, files, extension, message = None):
     """Helper for when an xcassets catalog should have a single sub type.
@@ -162,7 +153,6 @@ def _ensure_path_format(attr, files, path_fragments_list, message = None):
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     bundle_full_name = _bundle_full_name,
-    bundle_full_name_from_rule_ctx = _bundle_full_name_from_rule_ctx,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
 )

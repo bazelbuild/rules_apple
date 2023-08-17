@@ -489,6 +489,9 @@ def _apple_xcframework_impl(ctx):
             ),
         ],
         platform_prerequisites = None,
+        # All required knowledge for 3P facing frameworks is passed directly through the given
+        # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.
+        rule_descriptor = None,
         stamp = ctx.attr.stamp,
     )
 
@@ -516,9 +519,9 @@ def _apple_xcframework_impl(ctx):
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
 
-        rule_descriptor = rule_support.rule_descriptor_no_ctx(
-            link_output.platform,
-            apple_product_type.framework,
+        rule_descriptor = rule_support.rule_descriptor(
+            platform_type = link_output.platform,
+            product_type = apple_product_type.framework,
         )
 
         platform_prerequisites = platform_support.platform_prerequisites(
@@ -1021,9 +1024,9 @@ def _apple_static_xcframework_impl(ctx):
         )
 
         # Bundle resources
-        rule_descriptor = rule_support.rule_descriptor_no_ctx(
-            link_output.platform,
-            apple_product_type.framework,
+        rule_descriptor = rule_support.rule_descriptor(
+            platform_type = link_output.platform,
+            product_type = apple_product_type.framework,
         )
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
