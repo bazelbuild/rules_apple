@@ -114,6 +114,76 @@ _COMMON_ATTRS = dicts.add(
     apple_support.action_required_attrs(),
 )
 
+def _platform_attrs(*, platform_type = None, add_environment_plist = False):
+    """Returns a dictionary for rules that must know about the Apple platform being targeted.
+
+    Args:
+        platform_type: A string value to indicate the default `platform_type`. If none is given, the
+            `platform_type` attribute will be assumed mandatory and must be given by the user.
+        add_environment_plist: Adds the private `_environment_plist` attribute for the given
+            `platform_type`. This requires that `platform_type` is defined by the rule and not the
+            user; if the `platform_type` argument is not set, this will raise an internal error.
+    """
+    platform_attrs = {
+        "minimum_deployment_os_version": attr.string(
+            mandatory = False,
+            doc = """
+A required string indicating the minimum deployment OS version supported by the target, represented as a
+dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is
+effective at compile time. Ensure version specific APIs are guarded with `available` clauses.
+""",
+        ),
+        # Minimum OS version is treated as mandatory on all Apple rules. This should always be given
+        # by the user or assigned by a macro on platform-aware rules.
+        "minimum_os_version": attr.string(
+            doc = """
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "9.0").
+""",
+            mandatory = True,
+        ),
+    }
+
+    if platform_type:
+        # If platform_type is given when the rule is constructed, treat the platform_type attribute
+        # as predefined and leave it undocumented. In this sense, the platform_type is treated as
+        # immutable and an implementation detail of linking even though it is not a private attr.
+        platform_attrs = dicts.add(platform_attrs, {
+            "platform_type": attr.string(default = platform_type),
+        })
+    else:
+        # Otherwise, require the user of the rule to define the platform_type.
+        platform_attrs = dicts.add(platform_attrs, {
+            "platform_type": attr.string(
+                doc = """
+The target Apple platform for which to create a binary. This dictates which SDK
+is used for compilation/linking and which flag is used to determine the
+architectures to target. For example, if `ios` is specified, then the output
+binaries/libraries will be created combining all architectures specified by
+`--ios_multi_cpus`. Options are:
+
+*   `ios`: architectures gathered from `--ios_multi_cpus`.
+*   `macos`: architectures gathered from `--macos_cpus`.
+*   `tvos`: architectures gathered from `--tvos_cpus`.
+*   `watchos`: architectures gathered from `--watchos_cpus`.
+""",
+                mandatory = True,
+            ),
+        })
+    if add_environment_plist:
+        if not platform_type:
+            fail("Internal Error: An environment plist attribute requires a platform_type to be " +
+                 "defined by the rule definition.")
+        platform_attrs = dicts.add(platform_attrs, {
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(
+                    platform_type,
+                ),
+            ),
+        })
+    return platform_attrs
+
 def _common_linking_api_attrs(*, cfg = transition_support.apple_platform_split_transition):
     """Returns dictionary of required attributes for Bazel Apple linking API's.
 
@@ -206,12 +276,6 @@ AppleTestRunnerInfo provider.
     "deps": attr.label_list(
         mandatory = True,
         aspects = [coverage_files_aspect],
-        providers = [AppleBundleInfo],
-    ),
-    # TODO(b/139430318): This attribute exists to apease the Tulsi gods and is not actually used by
-    # the test rule implementation, and should be removed.
-    # This is an implementation detail attribute, so it's not documented on purpose.
-    "test_host": attr.label(
         providers = [AppleBundleInfo],
     ),
     "_apple_coverage_support": attr.label(
@@ -334,6 +398,30 @@ bundle.
             ),
         },
     )
+
+def _test_host_attrs(
+        *,
+        aspects,
+        is_mandatory = False,
+        providers):
+    """Returns a dictionary of required attributes to handle the test host.
+
+    Args:
+        aspects: A list of aspects to apply to the test_host attribute.
+        is_mandatory: Bool to indicate if the test_host should be marked as mandatory such that the
+            test_host must be given explicitly by the user.
+        providers: A list of lists of providers. The resolved test_host must conform to all of the
+            providers mentioned in at least one of the inner lists, as the `providers` attribute on
+            `attr.label` requires. Can also be expressed as a list of providers for convenience, as
+            `attr.label`'s `providers` attribute allows.
+    """
+    return {
+        "test_host": attr.label(
+            aspects = aspects,
+            mandatory = is_mandatory,
+            providers = providers,
+        ),
+    }
 
 def _get_common_bundling_attributes(deps_cfg, rule_descriptor):
     """Returns a list of dictionaries with attributes common to all bundling rules."""
@@ -729,12 +817,13 @@ Info.plist under the key `UILaunchStoryboardName`.
             required_providers.append([AppleBundleInfo, IosImessageApplicationBundleInfo])
             test_host_mandatory = True
 
+        attrs.append(_test_host_attrs(
+            aspects = [framework_provider_aspect],
+            is_mandatory = test_host_mandatory,
+            providers = required_providers,
+        ))
+
         attrs.append({
-            "test_host": attr.label(
-                aspects = [framework_provider_aspect],
-                mandatory = test_host_mandatory,
-                providers = required_providers,
-            ),
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
                 default = Label(
                     "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
@@ -917,15 +1006,18 @@ fashion, such as CocoaPods.
         })
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
-        attrs.append({
-            "test_host": attr.label(
+        attrs.append(
+            _test_host_attrs(
                 aspects = [framework_provider_aspect],
-                mandatory = test_host_mandatory,
+                is_mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, MacosApplicationBundleInfo],
                     [AppleBundleInfo, MacosExtensionBundleInfo],
                 ],
             ),
+        )
+
+        attrs.append({
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
                 default = Label(
                     "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
@@ -1045,15 +1137,18 @@ fashion, such as a Cocoapod.
         })
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
-        attrs.append({
-            "test_host": attr.label(
+        attrs.append(
+            _test_host_attrs(
                 aspects = [framework_provider_aspect],
-                mandatory = test_host_mandatory,
+                is_mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, TvosApplicationBundleInfo],
                     [AppleBundleInfo, TvosExtensionBundleInfo],
                 ],
             ),
+        )
+
+        attrs.append({
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
                 default = Label(
                     "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
@@ -1199,15 +1294,18 @@ fashion, such as a Cocoapod.
         })
     elif _is_test_product_type(rule_descriptor.product_type):
         test_host_mandatory = rule_descriptor.product_type == apple_product_type.ui_test_bundle
-        attrs.append({
-            "test_host": attr.label(
+        attrs.append(
+            _test_host_attrs(
                 aspects = [framework_provider_aspect],
-                mandatory = test_host_mandatory,
+                is_mandatory = test_host_mandatory,
                 providers = [
                     [AppleBundleInfo, WatchosApplicationBundleInfo],
                     [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
                 ],
             ),
+        )
+
+        attrs.append({
             "_swizzle_absolute_xcttestsourcelocation": attr.label(
                 default = Label(
                     "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
@@ -1296,21 +1394,6 @@ def _create_apple_binary_rule(
     """Creates an Apple rule that produces a single binary output."""
     rule_attrs = [
         {
-            "minimum_deployment_os_version": attr.string(
-                mandatory = False,
-                doc = """
-A required string indicating the minimum deployment OS version supported by the target, represented as a
-dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is
-effective at compile time. Ensure version specific APIs are guarded with `available` clauses.
-""",
-            ),
-            "minimum_os_version": attr.string(
-                mandatory = True,
-                doc = """
-A required string indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "10.11").
-""",
-            ),
             "_allowlist_function_transition": attr.label(
                 default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
@@ -1321,36 +1404,10 @@ dotted version number (for example, "10.11").
         rule_attrs.extend([
             _COMMON_ATTRS,
             apple_toolchain_utils.shared_attrs(),
-            {
-                # TODO(kaipi): Make this attribute private when a platform_type is
-                # specified. It is required by the native linking API.
-                "platform_type": attr.string(default = platform_type),
-                "_environment_plist": attr.label(
-                    allow_single_file = True,
-                    default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(
-                        platform_type,
-                    ),
-                ),
-            },
+            _platform_attrs(platform_type = platform_type, add_environment_plist = True),
         ])
     else:
-        rule_attrs.append({
-            "platform_type": attr.string(
-                doc = """
-The target Apple platform for which to create a binary. This dictates which SDK
-is used for compilation/linking and which flag is used to determine the
-architectures to target. For example, if `ios` is specified, then the output
-binaries/libraries will be created combining all architectures specified by
-`--ios_multi_cpus`. Options are:
-
-*   `ios`: architectures gathered from `--ios_multi_cpus`.
-*   `macos`: architectures gathered from `--macos_cpus`.
-*   `tvos`: architectures gathered from `--tvos_cpus`.
-*   `watchos`: architectures gathered from `--watchos_cpus`.
-""",
-                mandatory = True,
-            ),
-        })
+        rule_attrs.append(_platform_attrs())
 
     if platform_type and product_type:
         rule_descriptor = rule_support.rule_descriptor(
@@ -1401,16 +1458,12 @@ def _create_apple_bundling_rule(
         cfg = transition_support.apple_rule_transition):
     """Creates an Apple bundling rule."""
     rule_attrs = [
-        {
-            # TODO(kaipi): Make this attribute private. It is required by the native linking
-            # API.
-            "platform_type": attr.string(default = platform_type),
-            "_product_type": attr.string(default = product_type),
-            "_environment_plist": attr.label(
-                allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(platform_type),
-            ),
-        },
+        dicts.add(
+            _platform_attrs(platform_type = platform_type, add_environment_plist = True),
+            {
+                "_product_type": attr.string(default = product_type),
+            },
+        ),
     ]
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -1475,10 +1528,19 @@ def _create_apple_bundling_rule(
 def _create_apple_test_rule(implementation, doc, platform_type):
     """Creates an Apple test rule."""
 
-    # TODO(cl/264421322): Once Tulsi propagates this change, remove this attribute.
-    extra_attrs = [{
-        "platform_type": attr.string(default = platform_type),
-    }]
+    # These attrs are exposed for IDE experiences via `bazel query` as long as these test rules are
+    # split between an actual test rule and a test bundle rule generated by a macro.
+    #
+    # These attrs are not required for linking the test rule itself. However, similarly named attrs
+    # are all used for linking the test bundle target that is an implementation detail of the macros
+    # that generate Apple tests. That information is still of interest to IDEs via `bazel query`.
+    ide_visible_attrs = [
+        # The private environment plist attr is omitted as it's of no use to IDE experiences.
+        _platform_attrs(platform_type = platform_type),
+        # The aspect is withheld to avoid unnecessary overhead in this instance of `test_host`, and
+        # the provider is unnecessarily generic to accomodate any possible value of `test_host`.
+        _test_host_attrs(aspects = [], providers = [[AppleBundleInfo]]),
+    ]
 
     return rule(
         implementation = implementation,
@@ -1486,7 +1548,7 @@ def _create_apple_test_rule(implementation, doc, platform_type):
             _COMMON_ATTRS,
             apple_toolchain_utils.shared_attrs(),
             _COMMON_TEST_ATTRS,
-            *extra_attrs
+            *ide_visible_attrs
         ),
         doc = doc,
         test = True,
