@@ -35,6 +35,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -46,11 +50,15 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "TvosApplicationBundleInfo",
+    "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
     "TvosXcTestBundleInfo",
 )
 
-_TVOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, TvosApplicationBundleInfo]]
+_TVOS_TEST_HOST_PROVIDERS = [
+    [AppleBundleInfo, TvosApplicationBundleInfo],
+    [AppleBundleInfo, TvosExtensionBundleInfo],
+]
 
 def _tvos_ui_test_bundle_impl(ctx):
     """Implementation of tvos_ui_test."""
@@ -88,7 +96,7 @@ _tvos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_att
     doc = "Builds and bundles an tvOS UI Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -97,7 +105,9 @@ _tvos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_att
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
@@ -157,7 +167,7 @@ _tvos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_a
     doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -166,7 +176,9 @@ _tvos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_a
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,

@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
@@ -409,7 +410,7 @@ def _tvos_dynamic_framework_impl(ctx):
     """Experimental implementation of tvos_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -1309,7 +1310,7 @@ tvos_application = rule_factory.create_apple_bundling_rule_with_attrs(
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1318,7 +1319,9 @@ tvos_application = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
@@ -1357,11 +1360,63 @@ that this target depends on.
     ],
 )
 
-tvos_dynamic_framework = rule_factory.create_apple_bundling_rule(
+tvos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _tvos_dynamic_framework_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.framework,
     doc = "Builds and bundles a tvOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+                swift_dynamic_framework_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
 tvos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
@@ -1369,7 +1424,7 @@ tvos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles a tvOS Extension.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1378,7 +1433,9 @@ tvos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
@@ -1412,7 +1469,7 @@ To use this framework for your app and extensions, list it in the frameworks att
 """,
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1421,7 +1478,9 @@ To use this framework for your app and extensions, list it in the frameworks att
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
@@ -1433,6 +1492,13 @@ To use this framework for your app and extensions, list it in the frameworks att
         ),
         rule_attrs.provisioning_profile_attrs(),
         {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
             "extension_safe": attr.bool(
                 default = False,
                 doc = """
@@ -1460,8 +1526,7 @@ _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
 tvos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _tvos_static_framework_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.static_framework,
+    cfg = transition_support.apple_platforms_rule_base_transition,
     doc = """
 Builds and bundles an tvOS static framework for third-party distribution.
 
@@ -1501,8 +1566,6 @@ umbrella header for Objetive-C module compatibility. This umbrella header and
 modulemap can be skipped by disabling the `swift.no_generated_header` feature (
 i.e. `--features=-swift.no_generated_header`).
 """,
-    cfg = transition_support.apple_platforms_rule_base_transition,
-    doc = "Builds and bundles a tvOS Static Framework.",
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1513,7 +1576,9 @@ i.e. `--features=-swift.no_generated_header`).
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
