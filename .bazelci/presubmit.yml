@@ -27,26 +27,8 @@ tasks:
     bazel: last_rc
     <<: *common
 
-  macos_latest_head_deps:
-    name: "Latest Bazel with Head Deps"
-    bazel: last_rc
-    shell_commands:
-    # Update the WORKSPACE to use head versions of some deps to ensure nothing
-    # has landed on them breaking this project.
-    - .bazelci/update_workspace_to_deps_heads.sh
-    <<: *common
-
   macos_last_green:
     name: "Last Green Bazel"
-    <<: *common
-    <<: *common_last_green
-
-  macos_last_green_head_deps:
-    name: "Last Green Bazel with Head Deps"
-    shell_commands:
-    # Update the WORKSPACE to use head versions of some deps to ensure nothing
-    # has landed on them breaking this project.
-    - .bazelci/update_workspace_to_deps_heads.sh
     <<: *common
     <<: *common_last_green
 
