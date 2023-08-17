@@ -312,6 +312,11 @@ _TEST_BUNDLE_ATTRS = {
     # ios_unit_test(name = "Foo") creates a :Foo.zip target.
     # This is an implementation detail attribute, so it's not documented on purpose.
     "test_bundle_output": attr.output(mandatory = True),
+    "_swizzle_absolute_xcttestsourcelocation": attr.label(
+        default = Label(
+            "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+        ),
+    ),
 }
 
 def _test_host_attrs(
