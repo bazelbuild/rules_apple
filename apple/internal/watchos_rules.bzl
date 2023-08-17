@@ -1556,7 +1556,7 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.app_icon_attrs(),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
@@ -1601,7 +1601,7 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles an watchOS Extension.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1611,7 +1611,7 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
@@ -1660,7 +1660,7 @@ To use this framework for your extensions, list it in the `frameworks` attribute
 those `watchos_extension` rules.""",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1671,7 +1671,7 @@ those `watchos_extension` rules.""",
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_factory.common_tool_attributes,
         rule_attrs.device_family_attrs(
@@ -1719,7 +1719,7 @@ watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles a watchOS dynamic framework that is consumable by Xcode.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1730,7 +1730,7 @@ watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_factory.common_tool_attributes,
         rule_attrs.device_family_attrs(
@@ -1853,7 +1853,7 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -1863,7 +1863,7 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,

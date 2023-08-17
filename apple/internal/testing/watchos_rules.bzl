@@ -35,6 +35,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -91,7 +95,7 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
     doc = "Builds and bundles an watchOS UI Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -101,7 +105,7 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
@@ -141,7 +145,7 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
     doc = "Builds and bundles an watchOS Unit Test Bundle. Internal target not to be depended upon.",
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -151,7 +155,7 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_wit
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
