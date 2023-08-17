@@ -400,58 +400,6 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
 
     return filtered_files
 
-def _objc_provider_with_dependencies(
-        *,
-        additional_objc_provider_fields = {},
-        additional_objc_providers = [],
-        alwayslink = False,
-        library = None,
-        dynamic_framework_file = None,
-        sdk_dylib = None,
-        sdk_framework = None,
-        static_framework_file = None,
-        weak_sdk_framework = None):
-    """Returns a new Objc provider which includes transitive Objc dependencies.
-
-    Args:
-        additional_objc_provider_fields: Additional fields to set for the Objc provider constructor.
-        additional_objc_providers: Additional Objc providers to merge with this target provider.
-        alwayslink: Boolean to indicate if force_load_library should be set with the static
-            framework file.
-        library: File referencing a static library.
-        dynamic_framework_file: File referencing a framework dynamic library.
-        sdk_dylib: List of Apple SDK dylibs to link. Defaults to None.
-        sdk_framework: List of Apple SDK frameworks to link. Defaults to None.
-        static_framework_file: File referencing a framework static library.
-        weak_sdk_framework: List of Apple SDK frameworks to weakly link. Defaults to None.
-    Returns:
-        apple_common.Objc provider
-    """
-    objc_provider_fields = {}
-    objc_provider_fields["providers"] = additional_objc_providers
-
-    if library:
-        objc_provider_fields["library"] = depset(library)
-
-    if dynamic_framework_file:
-        objc_provider_fields["dynamic_framework_file"] = depset(dynamic_framework_file)
-
-    if static_framework_file:
-        objc_provider_fields["imported_library"] = depset(static_framework_file)
-
-        if alwayslink:
-            objc_provider_fields["force_load_library"] = depset(static_framework_file)
-
-    if sdk_dylib:
-        objc_provider_fields["sdk_dylib"] = depset(sdk_dylib)
-    if sdk_framework:
-        objc_provider_fields["sdk_framework"] = depset(sdk_framework)
-    if weak_sdk_framework:
-        objc_provider_fields["weak_sdk_framework"] = depset(weak_sdk_framework)
-
-    objc_provider_fields.update(**additional_objc_provider_fields)
-    return apple_common.new_objc_provider(**objc_provider_fields)
-
 def _swift_info_from_module_interface(
         *,
         actions,
@@ -522,7 +470,6 @@ framework_import_support = struct(
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
-    objc_provider_with_dependencies = _objc_provider_with_dependencies,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )

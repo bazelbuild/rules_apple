@@ -71,9 +71,6 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
         link_result.output_groups,
     ]
 
-    if link_result.objc:
-        providers.append(link_result.objc)
-
     return providers
 
 apple_static_library = rule(

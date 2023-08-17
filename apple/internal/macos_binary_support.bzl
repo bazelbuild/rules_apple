@@ -146,7 +146,7 @@ def _macos_binary_infoplist_impl(ctx):
         version = ctx.attr.version,
     )
 
-    return linking_support.sectcreate_objc_provider(
+    return linking_support.sectcreate_cc_info(
         rule_label,
         "__TEXT",
         "__info_plist",
@@ -233,7 +233,7 @@ def _macos_command_line_launchdplist_impl(ctx):
         rule_label = rule_label,
     )
 
-    return linking_support.sectcreate_objc_provider(
+    return linking_support.sectcreate_cc_info(
         rule_label,
         "__TEXT",
         "__launchd_plist",
