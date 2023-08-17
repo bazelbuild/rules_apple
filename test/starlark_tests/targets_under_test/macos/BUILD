@@ -2448,6 +2448,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:additional.txt": "Additional",
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2513,6 +2514,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:additional.txt": "Additional",
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

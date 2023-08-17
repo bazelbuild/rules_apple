@@ -889,6 +889,7 @@ watchos_ui_test(
 
 watchos_ui_test(
     name = "single_target_ui_test",
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
@@ -902,6 +903,7 @@ watchos_ui_test(
 
 watchos_unit_test(
     name = "unit_test",
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],

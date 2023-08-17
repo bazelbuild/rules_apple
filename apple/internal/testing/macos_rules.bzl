@@ -50,6 +50,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "MacosApplicationBundleInfo",
+    "MacosFrameworkBundleInfo",
     "MacosXcTestBundleInfo",
 )
 
@@ -138,6 +139,16 @@ desired Contents subdirectory.
 """,
             ),
         },
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
+""",
+            ),
+        },
     ],
 )
 
@@ -204,6 +215,16 @@ corresponding value is the name of the subdirectory of Contents where they shoul
 
 The relative directory structure of filegroup contents is preserved when they are copied into the
 desired Contents subdirectory.
+""",
+            ),
+        },
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+that this target depends on.
 """,
             ),
         },
