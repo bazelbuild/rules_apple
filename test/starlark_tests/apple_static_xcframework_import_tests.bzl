@@ -175,7 +175,6 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
-        tags = [name, "manual"],  # TODO: Re-enable once CI is on Xcode 14.3+
     )
     archive_contents_test(
         name = "{}_links_watchos_arm64_32_macho_load_cmd_for_device_test".format(name),
@@ -189,7 +188,6 @@ def apple_static_xcframework_import_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        tags = [name, "manual"],  # TODO: Re-enable once CI is on Xcode 14.3+
     )
 
     # Verify tvos_application links XCFramework library for device and simulator architectures.
