@@ -1626,14 +1626,58 @@ A list of watchOS application extensions to include in the final watch extension
     ],
 )
 
-watchos_framework = rule_factory.create_apple_bundling_rule(
+watchos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_framework_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.framework,
     doc = """Builds and bundles a watchOS Dynamic Framework.
 
 To use this framework for your extensions, list it in the `frameworks` attributes of
 those `watchos_extension` rules.""",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = apple_common.multi_arch_split,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
 watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
@@ -1643,12 +1687,78 @@ watchos_dynamic_framework = rule_factory.create_apple_bundling_rule(
     doc = "Builds and bundles a watchOS dynamic framework that is consumable by Xcode.",
 )
 
-watchos_static_framework = rule_factory.create_apple_bundling_rule(
+_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
+
+watchos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _watchos_static_framework_impl,
-    platform_type = "watchos",
-    product_type = apple_product_type.static_framework,
-    doc = "Builds and bundles a watchOS Static Framework.",
     cfg = transition_support.apple_platforms_rule_base_transition,
+    doc = "Builds and bundles a watchOS Static Framework.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        {
+            "_emitswiftinterface": attr.bool(
+                default = True,
+                doc = "Private attribute to generate Swift interfaces for static frameworks.",
+            ),
+            "_cc_toolchain_forwarder": attr.label(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+                default =
+                    "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+            ),
+            "avoid_deps": attr.label_list(
+                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                doc = """
+A list of library targets on which this framework depends in order to compile, but the transitive
+closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "exclude_resources": attr.bool(
+                default = False,
+                doc = """
+Indicates whether resources should be excluded from the bundle. This can be used to avoid
+unnecessarily bundling resources if the static framework is being distributed in a different
+fashion, such as a Cocoapod.
+""",
+            ),
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+                doc = """
+A list of `.h` files that will be publicly exposed by this framework. These headers should have
+framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
+be generated that imports all of the headers listed here.
+""",
+            ),
+            "umbrella_header": attr.label(
+                allow_single_file = [".h"],
+                doc = """
+An optional single .h file to use as the umbrella header for this framework. Usually, this header
+will have the same name as this target, so that clients can load the header using the #import
+<MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
+umbrella header will be generated under the same name as this target.
+""",
+            ),
+        },
+    ],
 )
 
 watchos_single_target_application = rule_factory.create_apple_bundling_rule_with_attrs(
