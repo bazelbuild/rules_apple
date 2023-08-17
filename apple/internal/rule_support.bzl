@@ -763,7 +763,24 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "watchos": {
-        # watchos_application
+        # watchos_single_target_application
+        apple_product_type.application: _describe_rule_type(
+            additional_infoplist_values = {"WKApplication": True},
+            allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
+            app_icon_parent_extension = ".xcassets",
+            app_icon_extension = ".appiconset",
+            bundle_extension = ".app",
+            bundle_package_type = bundle_package_type.application,
+            deps_cfg = transition_support.apple_platform_split_transition,
+            product_type = apple_product_type.application,
+            requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                "@executable_path/Frameworks",
+            ],
+        ),
+        # watchos_application (watchOS 2 app bundle)
         apple_product_type.watch2_application: _describe_rule_type(
             additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
@@ -777,7 +794,7 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_pkginfo = True,
             stub_binary_path = "Library/Application Support/WatchKit/WK",
         ),
-        # watchos_extension
+        # watchos_extension (watchOS 2 app extension)
         apple_product_type.watch2_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
             allows_locale_trimming = True,

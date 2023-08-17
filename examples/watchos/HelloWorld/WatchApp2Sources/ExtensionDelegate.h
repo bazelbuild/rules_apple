@@ -1,4 +1,4 @@
-// Copyright 2017 The Bazel Authors. All rights reserved.
+// Copyright 2022 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
 #import <WatchKit/WatchKit.h>
 
-@interface InterfaceController : WKInterfaceController
-
-@property (nonatomic, weak) IBOutlet WKInterfaceLabel *statusLabel;
-@property (nonatomic, weak) IBOutlet WKInterfaceLabel *greetingLabel;
-
+@interface ExtensionDelegate : NSObject <WKExtensionDelegate>
 @end
