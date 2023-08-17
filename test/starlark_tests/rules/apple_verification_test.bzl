@@ -37,6 +37,9 @@ load(
     "paths",
 )
 
+_CUSTOM_BUILD_SETTINGS = build_settings.all_labels + [
+]
+
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
@@ -91,7 +94,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary["//command_line_option:features"] = existing_features
 
     # Build settings
-    for build_setting in build_settings.all_labels:
+    for build_setting in _CUSTOM_BUILD_SETTINGS:
         if build_setting in getattr(attr, "build_settings", []):
             build_setting_value = attr.build_settings[build_setting]
             build_setting_type = type(settings[build_setting])
@@ -100,7 +103,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             # settings can have many types. In order to set the correct type, we inspect
             # the default value from settings, and cast accordingly.
             if build_setting_type == "bool":
-                build_setting_value = bool(build_setting_value)
+                build_setting_value = build_setting_value.lower() in ("true", "yes", "1")
 
             output_dictionary[build_setting] = build_setting_value
         else:
@@ -112,21 +115,21 @@ apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
     inputs = [
         "//command_line_option:features",
-    ] + build_settings.all_labels,
+    ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
-        "//command_line_option:apple_generate_dsym",
-        "//command_line_option:apple_platforms",
-        "//command_line_option:compilation_mode",
         "//command_line_option:cpu",
-        "//command_line_option:features",
-        "//command_line_option:incompatible_enable_apple_toolchain_resolution",
-        "//command_line_option:ios_multi_cpus",
         "//command_line_option:ios_signing_cert_name",
+        "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
-        "//command_line_option:objc_enable_binary_stripping",
         "//command_line_option:tvos_cpus",
         "//command_line_option:watchos_cpus",
-    ] + build_settings.all_labels,
+        "//command_line_option:compilation_mode",
+        "//command_line_option:features",
+        "//command_line_option:apple_generate_dsym",
+        "//command_line_option:apple_platforms",
+        "//command_line_option:incompatible_enable_apple_toolchain_resolution",
+        "//command_line_option:objc_enable_binary_stripping",
+    ] + _CUSTOM_BUILD_SETTINGS,
 )
 
 def _apple_verification_test_impl(ctx):
@@ -264,7 +267,7 @@ considered to be an error if this is set with `cpus` as both opt into different 
 resolution.
 """,
         ),
-        "build_settings": attr.label_keyed_string_dict(
+        "build_settings": attr.string_dict(
             mandatory = False,
             doc = "Build settings for target under test.",
         ),
