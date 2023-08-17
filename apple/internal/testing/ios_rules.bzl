@@ -46,6 +46,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "IosApplicationBundleInfo",
+    "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageApplicationBundleInfo",
     "IosXcTestBundleInfo",
@@ -96,7 +97,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attr
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -117,6 +118,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attr
             is_mandatory = True,
             providers = [
                 [AppleBundleInfo, IosApplicationBundleInfo],
+                [AppleBundleInfo, IosExtensionBundleInfo],
                 [AppleBundleInfo, IosImessageApplicationBundleInfo],
             ],
         ),
@@ -172,7 +174,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_at
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = False),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -190,7 +192,10 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_at
         rule_attrs.test_bundle_attrs,
         rule_attrs.test_host_attrs(
             aspects = rule_attrs.aspects.test_host_aspects,
-            providers = [[AppleBundleInfo, IosApplicationBundleInfo]],
+            providers = [
+                [AppleBundleInfo, IosApplicationBundleInfo],
+                [AppleBundleInfo, IosExtensionBundleInfo],
+            ],
         ),
         {
             "frameworks": attr.label_list(

@@ -110,6 +110,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
@@ -1233,7 +1234,7 @@ def _ios_dynamic_framework_impl(ctx):
     """Experimental implementation of ios_dynamic_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
@@ -2284,7 +2285,7 @@ ios_application = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2304,6 +2305,13 @@ ios_application = rule_factory.create_apple_bundling_rule_with_attrs(
                 cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
+            ),
+            "alternate_icons": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the alternate app icons for the application. Each file must have a containing directory
+named after the alternate icon identifier.
+""",
             ),
             "app_clips": attr.label_list(
                 providers = [[AppleBundleInfo, IosAppClipBundleInfo]],
@@ -2396,7 +2404,7 @@ ios_app_clip = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2460,7 +2468,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2509,7 +2517,6 @@ ios_framework = rule_factory.create_apple_bundling_rule_with_attrs(
 
 To use this framework for your app and extensions, list it in the `frameworks` attributes
 of those `ios_application` and/or `ios_extension` rules.""",
-    doc = "Builds and bundles an iOS Dynamic Framework.",
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = apple_common.multi_arch_split,
@@ -2521,7 +2528,7 @@ of those `ios_application` and/or `ios_extension` rules.""",
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2534,6 +2541,13 @@ of those `ios_application` and/or `ios_extension` rules.""",
         ),
         rule_attrs.provisioning_profile_attrs(),
         {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
             "frameworks": attr.label_list(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
@@ -2558,11 +2572,63 @@ use only extension-safe APIs.
     ],
 )
 
-ios_dynamic_framework = rule_factory.create_apple_bundling_rule(
+ios_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
     implementation = _ios_dynamic_framework_impl,
-    platform_type = "ios",
-    product_type = apple_product_type.framework,
     doc = "Builds and bundles an iOS dynamic framework that is consumable by Xcode.",
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+                swift_dynamic_framework_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs,
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "ios",
+        ),
+        rule_attrs.provisioning_profile_attrs(),
+        {
+            "bundle_only": attr.bool(
+                default = False,
+                doc = """
+Avoid linking the dynamic framework, but still include it in the app. This is useful when you want
+to manually dlopen the framework at runtime.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+            # TODO(b/250090851): Document this attribute and its limitations.
+            "hdrs": attr.label_list(
+                allow_files = [".h"],
+            ),
+        },
+    ],
 )
 
 ios_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
@@ -2615,7 +2681,7 @@ i.e. `--features=-swift.no_generated_header`).""",
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2685,7 +2751,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2732,7 +2798,7 @@ ios_imessage_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
@@ -2767,7 +2833,7 @@ ios_sticker_pack_extension = rule_factory.create_apple_bundling_rule_with_attrs(
             icon_parent_extension = ".xcstickers",
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs,
+        rule_attrs.common_bundle_attrs(deps_cfg = apple_common.multi_arch_split),
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
