@@ -23,6 +23,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
@@ -80,8 +84,8 @@ apple_static_library = rule(
     implementation = _apple_static_library_impl,
     attrs = dicts.add(
         rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
-            cfg = transition_support.apple_platform_split_transition,
+        rule_attrs.static_library_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         {
             "_cc_toolchain_forwarder": attr.label(

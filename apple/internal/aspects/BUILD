@@ -25,6 +25,7 @@ bzl_library(
     visibility = [
         "//apple/internal:__pkg__",
         "//apple/internal/resource_rules:__pkg__",
+        "//apple/internal/testing:__pkg__",
     ],
     deps = [
         "//apple:providers",
