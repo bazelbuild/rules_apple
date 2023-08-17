@@ -87,9 +87,6 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
         archive_result.output_groups,
     ]
 
-    if archive_result.objc:
-        providers.append(archive_result.objc)
-
     return providers
 
 apple_static_library = rule_factory.create_apple_rule(
