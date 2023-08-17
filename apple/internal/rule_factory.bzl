@@ -15,10 +15,6 @@
 """Helpers for defining Apple bundling rules uniformly."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -27,29 +23,12 @@ load(
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
-    "framework_provider_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    "apple_resource_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
-    "swift_dynamic_framework_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleBundleVersionInfo",
     "AppleTestRunnerInfo",
 )
 load(
@@ -57,13 +36,6 @@ load(
     "dicts",
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
-
-def _is_test_product_type(product_type):
-    """Returns whether the given product type is for tests purposes or not."""
-    return product_type in (
-        apple_product_type.ui_test_bundle,
-        apple_product_type.unit_test_bundle,
-    )
 
 # Returns the common set of rule attributes to support Apple test rules.
 # TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
@@ -123,143 +95,6 @@ of the target will be used instead.
 """,
     ),
 }
-
-def _get_macos_binary_attrs(rule_descriptor):
-    """Returns a list of dictionaries with attributes for macOS binary rules."""
-    attrs = []
-
-    if rule_descriptor.requires_provisioning_profile:
-        attrs.append({
-            "provisioning_profile": attr.label(
-                allow_single_file = [rule_descriptor.provisioning_profile_extension],
-                doc = """
-The provisioning profile (`{profile_extension}` file) to use when creating the bundle. This value is
-optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
-required for device builds.
-""".format(profile_extension = rule_descriptor.provisioning_profile_extension),
-            ),
-        })
-
-    if rule_descriptor.product_type == apple_product_type.tool:
-        # TODO(b/250698827): Explicitly scope this attribute and its documentation exclusively to
-        # macos_command_line_application; there are internal macOS rules that set a product type of
-        # apple_product_type.tool.
-        attrs.append({
-            "launchdplists": attr.label_list(
-                allow_files = [".plist"],
-                doc = """
-A list of system wide and per-user daemon/agent configuration files, as specified by the launch
-plist manual that can be found via `man launchd.plist`. These are XML files that can be loaded into
-launchd with launchctl, and are required of command line applications that are intended to be used
-as launch daemons and agents on macOS. All `launchd.plist`s referenced by this attribute will be
-merged into a single plist and written directly into the `__TEXT`,`__launchd_plist` section of the
-linked binary.
-""",
-            ),
-        })
-
-    attrs.append({
-        "bundle_id": attr.string(
-            doc = """
-The bundle ID (reverse-DNS path followed by app name) of the command line application. If present,
-this value will be embedded in an Info.plist in the application binary.
-""",
-        ),
-        "infoplists": attr.label_list(
-            allow_files = [".plist"],
-            doc = """
-A list of .plist files that will be merged to form the Info.plist that represents the application
-and is embedded into the binary. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
-for what is supported.
-""",
-        ),
-        "version": attr.label(
-            providers = [[AppleBundleVersionInfo]],
-            doc = """
-An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
-""",
-        ),
-    })
-
-    return attrs
-
-def _create_apple_binary_rule(
-        implementation,
-        doc,
-        additional_attrs = {},
-        cfg = transition_support.apple_rule_transition,
-        platform_type = None,
-        product_type = None,
-        require_linking_attrs = True):
-    """Creates an Apple rule that produces a single binary output."""
-    attrs = [
-        {
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
-        },
-    ]
-
-    if platform_type:
-        attrs.extend([
-            rule_attrs.common_tool_attrs,
-            rule_attrs.platform_attrs(platform_type = platform_type, add_environment_plist = True),
-        ])
-    else:
-        attrs.append(rule_attrs.platform_attrs())
-
-    extra_deps_aspects = []
-    if product_type == apple_product_type.framework:
-        extra_deps_aspects.append(swift_dynamic_framework_aspect)
-
-    if platform_type and product_type:
-        rule_descriptor = rule_support.rule_descriptor(
-            platform_type = platform_type,
-            product_type = product_type,
-        )
-        is_executable = rule_descriptor.is_executable
-
-        if rule_descriptor.requires_deps:
-            attrs.append(rule_attrs.binary_linking_attrs(
-                deps_cfg = rule_descriptor.deps_cfg,
-                extra_deps_aspects = [
-                    apple_resource_aspect,
-                    framework_provider_aspect,
-                ] + extra_deps_aspects,
-                is_test_supporting_rule = _is_test_product_type(product_type),
-                requires_legacy_cc_toolchain = True,
-            ))
-
-        attrs.extend(
-            [
-                {"_product_type": attr.string(default = product_type)},
-            ] + _get_macos_binary_attrs(rule_descriptor),
-        )
-    else:
-        is_executable = False
-        if require_linking_attrs:
-            attrs.append(rule_attrs.binary_linking_attrs(
-                deps_cfg = transition_support.apple_platform_split_transition,
-                extra_deps_aspects = extra_deps_aspects,
-                is_test_supporting_rule = False,
-                requires_legacy_cc_toolchain = True,
-            ))
-        else:
-            attrs.append(rule_attrs.common_attrs)
-
-    attrs.append(additional_attrs)
-
-    return rule(
-        implementation = implementation,
-        attrs = dicts.add(*attrs),
-        cfg = cfg,
-        doc = doc,
-        executable = is_executable,
-        fragments = ["apple", "cpp", "objc"],
-        toolchains = use_cpp_toolchain(),
-    )
 
 def _create_apple_bundling_rule_with_attrs(
         *,
@@ -333,7 +168,6 @@ def _create_apple_test_rule(implementation, doc, platform_type):
     )
 
 rule_factory = struct(
-    create_apple_binary_rule = _create_apple_binary_rule,
     create_apple_bundling_rule_with_attrs = _create_apple_bundling_rule_with_attrs,
     create_apple_test_rule = _create_apple_test_rule,
 )
