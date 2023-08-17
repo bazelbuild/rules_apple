@@ -132,7 +132,7 @@ def _watchos_framework_impl(ctx):
     """Experimental implementation of watchos_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = ctx.attr._product_type,
+        product_type = apple_product_type.framework,
     )
 
     actions = ctx.actions
@@ -1583,6 +1583,14 @@ the final application bundle, unless a file's immediate containing directory is 
 which case it will be placed under a directory with the same name in the bundle.
 """,
             ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
         },
     ],
 )
@@ -1616,10 +1624,27 @@ watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
         rule_attrs.provisioning_profile_attrs(),
         rule_factory.common_tool_attributes,
         {
+            "application_extension": attr.bool(
+                default = False,
+                doc = """
+If `True`, this extension is an App Extension instead of a WatchKit Extension.
+It links the extension with the application extension point (`_NSExtensionMain`)
+instead of the WatchKit extension point (`_WKExtensionMain`), and has the
+`app_extension` `product_type` instead of `watch2_extension`.
+""",
+            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
                 doc = """
 A list of watchOS application extensions to include in the final watch extension bundle.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
 """,
             ),
         },
@@ -1855,6 +1880,14 @@ watchos_single_target_application = rule_factory.create_apple_bundling_rule_with
 A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
 the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
 which case it will be placed under a directory with the same name in the bundle.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
 """,
             ),
         },
