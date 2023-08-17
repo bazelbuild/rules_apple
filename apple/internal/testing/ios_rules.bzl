@@ -35,6 +35,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
