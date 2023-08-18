@@ -491,6 +491,7 @@ def _tvos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(

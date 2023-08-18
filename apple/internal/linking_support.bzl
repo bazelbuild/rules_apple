@@ -99,7 +99,7 @@ def _register_binary_linking_action(
         avoid_deps = [],
         bundle_loader = None,
         entitlements = None,
-        exported_symbols_lists = [],
+        exported_symbols_lists,
         extra_linkopts = [],
         extra_link_inputs = [],
         platform_prerequisites,
