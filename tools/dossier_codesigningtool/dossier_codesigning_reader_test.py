@@ -15,6 +15,7 @@
 """Tests for dossier_codesigningtool."""
 
 import concurrent.futures
+import os
 import pathlib
 import shutil
 import tempfile
@@ -69,7 +70,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     dossier_codesigning_reader._sign_bundle_with_manifest(
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_MANIFEST,
-        dossier_directory='/tmp/dossier/',
+        dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         override_codesign_identity='-',
         allowed_entitlements=None)
@@ -121,7 +122,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     dossier_codesigning_reader._sign_bundle_with_manifest(
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_MANIFEST,
-        dossier_directory='/tmp/dossier/',
+        dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         override_codesign_identity='-',
         allowed_entitlements=['test-an-entitlement'])
@@ -190,7 +191,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
       dossier_codesigning_reader._sign_bundle_with_manifest(
           root_bundle_path='/tmp/fake.app/',
           manifest=fake_manifest,
-          dossier_directory='/tmp/dossier/',
+          dossier_directory_path='/tmp/dossier/',
           codesign_path='/usr/bin/fake_codesign',
           allowed_entitlements=None)
 
@@ -201,7 +202,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     futures = dossier_codesigning_reader._sign_embedded_bundles_with_manifest(
         manifest=_FAKE_MANIFEST,
         root_bundle_path='/tmp/fake.app/',
-        dossier_directory='/tmp/dossier/',
+        dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         allowed_entitlements=None,
         codesign_identity='-',
@@ -310,7 +311,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
   @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
   @mock.patch.object(dossier_codesigning_reader,
                      'extract_zipped_dossier_if_required')
-  def test_app_bundle_args(
+  def test_app_bundle_inputs(
       self,
       mock_extract_dossier,
       mock_read_manifest,
@@ -338,8 +339,13 @@ class DossierCodesigningReaderTest(unittest.TestCase):
       )
       args.func(args)
 
+      # Fully expand this path as it's treated as a user-provided path in this
+      # particular case.
+      tmp_app_bundle_fullpath = os.path.realpath(
+          os.path.expanduser(tmp_app_bundle))
+
       mock_sign_bundle.assert_called_with(
-          tmp_app_bundle,
+          tmp_app_bundle_fullpath,
           _FAKE_MANIFEST,
           dossier_dir.path,
           tmp_fake_codesign.name,
@@ -348,30 +354,29 @@ class DossierCodesigningReaderTest(unittest.TestCase):
 
   @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
   @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
-  @mock.patch.object(dossier_codesigning_reader, '_extract_ipa')
+  @mock.patch.object(dossier_codesigning_reader, '_extract_archive')
   @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
   @mock.patch.object(dossier_codesigning_reader,
                      'extract_zipped_dossier_if_required')
-  def test_ipa_args(
+  def test_ipa_inputs(
       self,
       mock_extract_dossier,
       mock_read_manifest,
-      mock_extract_ipa,
+      mock_extract_archive,
       mock_sign_bundle,
       mock_package):
     with tempfile.NamedTemporaryFile() as tmp_fake_codesign, \
         tempfile.NamedTemporaryFile(suffix='.zip') as tmp_dossier_zip, \
-            tempfile.NamedTemporaryFile(suffix='.ipa') as tmp_ipa_archive:
+            tempfile.NamedTemporaryFile(suffix='.ipa') as tmp_ipa_archive, \
+                tempfile.TemporaryDirectory(suffix='.app') as tmp_app_bundle:
 
       dossier_dir = (
           dossier_codesigning_reader.DossierDirectory('/tmp/dossier/', False)
       )
 
-      tmp_app_bundle = tempfile.TemporaryDirectory(suffix='.app')
-
       mock_read_manifest.return_value = _FAKE_MANIFEST
       mock_extract_dossier.return_value = dossier_dir
-      mock_extract_ipa.return_value = tmp_app_bundle
+      mock_extract_archive.return_value = tmp_app_bundle
 
       required_args = [
           'sign',
@@ -395,38 +400,76 @@ class DossierCodesigningReaderTest(unittest.TestCase):
       )
       mock_package.assert_called_once()
 
-  def test_combined_zip_args(self):
-    required_args = [
-        'sign',
-        '--codesign', '/usr/bin/codesign',
-        '--output_artifact', '/tmp/dossier_output/output.zip',
-        'input.zip',
-    ]
+  @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
+  @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
+  @mock.patch.object(dossier_codesigning_reader, '_extract_archive')
+  @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
+  @mock.patch.object(tempfile, 'TemporaryDirectory')
+  def test_combined_zip_inputs(
+      self,
+      mock_temp_dir,
+      mock_read_manifest,
+      mock_extract_archive,
+      mock_sign_bundle,
+      mock_package):
+    with tempfile.NamedTemporaryFile() as tmp_fake_codesign, \
+        tempfile.NamedTemporaryFile(suffix='.zip') as tmp_combined_zip, \
+            tempfile.TemporaryDirectory(suffix='.app') as tmp_app_bundle:
 
-    args = dossier_codesigning_reader.generate_arg_parser().parse_args(
-        required_args
-    )
-    with self.assertRaises(OSError):
+      # Overriding TemporaryDirectory with a mocked instance that returns a path
+      # from the actual method TemporaryDirectory(), so that we can validate its
+      # path is being properly passed around, particularly for dossier handling.
+      temp_path = tempfile.TemporaryDirectory()
+
+      mock_temp_dir.return_value.__enter__.return_value = temp_path
+      mock_read_manifest.return_value = _FAKE_MANIFEST
+      mock_extract_archive.return_value = tmp_app_bundle
+
+      required_args = [
+          'sign',
+          '--codesign', tmp_fake_codesign.name,
+          '--output_artifact', '/tmp/dossier_output/output.ipa',
+          tmp_combined_zip.name,
+      ]
+
+      args = dossier_codesigning_reader.generate_arg_parser().parse_args(
+          required_args
+      )
       args.func(args)
+
+      mock_sign_bundle.assert_called_with(
+          tmp_app_bundle,
+          _FAKE_MANIFEST,
+          os.path.join(temp_path, 'dossier'),
+          tmp_fake_codesign.name,
+          None,
+      )
+      mock_package.assert_called_once()
 
   def test_ipa_extract_and_package_flow(self):
     try:
       working_dir = tempfile.mkdtemp()
 
-      extracted_bundle = dossier_codesigning_reader._extract_ipa(
-          working_dir, _IPA_WORKSPACE_PATH
+      extracted_bundle = dossier_codesigning_reader._extract_archive(
+          working_dir=working_dir,
+          app_bundle_subdir='Payload',
+          unsigned_archive_path=_IPA_WORKSPACE_PATH,
       )
+      # Using pathlib to compare the last two path components, making sure that
+      # the Payload subdir was preserved with the app bundle.
       extracted_bundle_path = pathlib.Path(extracted_bundle)
       self.assertListEqual(
           ['Payload', 'app.app'], list(extracted_bundle_path.parts)[-2:]
       )
       try:
         output_dir = tempfile.mkdtemp()
-        output_ipa_path = pathlib.Path(output_dir, 'output.ipa')
+        output_ipa_path = os.path.join(output_dir, 'output.ipa')
         dossier_codesigning_reader._package_ipa(
-            working_dir, str(output_ipa_path)
+            working_dir=working_dir,
+            app_bundle_subdir='Payload',
+            output_ipa=output_ipa_path,
         )
-        if not output_ipa_path.is_file():
+        if not os.path.isfile(output_ipa_path):
           self.fail('output ipa was not created!')
       finally:
         shutil.rmtree(output_dir)
