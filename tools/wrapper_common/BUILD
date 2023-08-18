@@ -7,7 +7,6 @@ py_library(
     visibility = [
         "//tools/bitcode_strip:__pkg__",
         "//tools/codesigningtool:__pkg__",
-        "//tools/dossier_codesigningtool:__pkg__",
         "//tools/imported_dynamic_framework_processor:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
         "//tools/xcarchivetool:__pkg__",
