@@ -45,9 +45,15 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
     families = platform_prerequisites.device_families
 
     for f in families:
-        number = _DEVICE_FAMILY_VALUES[f]
-        if number:
+        number = _DEVICE_FAMILY_VALUES.get(f, -1)
+        if number == -1:
+            fail("Unknown family value:`{}`. Valid values are:{}".format(
+                f,
+                _DEVICE_FAMILY_VALUES.keys(),
+            ))
+        elif number:
             family_ids.append(number)
+
     if family_ids:
         return family_ids
     return None
