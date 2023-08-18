@@ -288,7 +288,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    config_vars = ctx.var
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
