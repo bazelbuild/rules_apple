@@ -1049,6 +1049,7 @@ objc_library(
 
 apple_dynamic_xcframework_import(
     name = "watchos_imported_dynamic_xcframework",
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_watchos_xcframework"],
 )
@@ -1072,6 +1073,7 @@ generate_dynamic_xcframework(
             "i386",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # -----------------------------------------------------------------------------------------
@@ -1115,6 +1117,7 @@ objc_library(
 apple_static_xcframework_import(
     name = "watchos_imported_static_xcframework",
     features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_watchos_xcframework"],
 )
@@ -1138,6 +1141,7 @@ generate_static_xcframework(
             "i386",
         ],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------

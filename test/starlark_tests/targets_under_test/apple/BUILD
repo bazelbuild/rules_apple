@@ -216,6 +216,7 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:swift_datamodel",
     ],
+    tags = common.fixture_tags,
 )
 
 apple_core_data_model(
@@ -223,6 +224,7 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:objc_datamodel",
     ],
+    tags = common.fixture_tags,
 )
 
 apple_core_data_model(
@@ -231,6 +233,7 @@ apple_core_data_model(
         "//test/starlark_tests/resources:objc_datamodel",
         "//test/starlark_tests/resources:swift_datamodel",
     ],
+    tags = common.fixture_tags,
 )
 
 apple_core_data_model(
@@ -238,7 +241,7 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:no_code_generation_datamodel",
     ],
-    tags = ["manual"],
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -1111,36 +1114,42 @@ genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],
     cmd = "echo '#ifndef SDK_FRAMEWORK_H_\n#define SDK_FRAMEWORK_H_\n void doStuff(); \n#endif\n// SDK_FRAMEWORK_H_' > $@",
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "dummy_fmwk_objc_src",
     outs = ["DummyFmwk.m"],
     cmd = "echo '#import <Foundation/Foundation.h>\nvoid doStuff() { NSLog(@\"Framework method called\"); }' > $@",
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "dummy_fmwk_cc_src",
     outs = ["DummyFmwk.c"],
     cmd = "echo '#include <stdio.h>\nvoid doStuff() { printf(\"Framework method called\\n\"); }' > $@",
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "dummy_fmwk_swift_src",
     outs = ["DummyFmwk.swift"],
     cmd = "echo 'import Foundation\n@objc public class SharedClass: NSObject {\n@objc public func doSomethingShared() {\nNSLog(\"Doing something shared!\")\n}\n}\n' > $@",
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "dummy_fmwk_dependent_objc_src",
     outs = ["DummyFmwkDependent.m"],
     cmd = "echo '#import <Foundation/Foundation.h>\nvoid frameworkDependent() { NSLog(@\"frameworkDependent() called\"); }' > $@",
+    tags = common.fixture_tags,
 )
 
 genrule(
     name = "dummy_fmwk_dependent_cc_src",
     outs = ["DummyFmwkDependent.c"],
     cmd = "echo '#include <stdio.h>\nvoid frameworkDependent() { printf(\"frameworkDependent() called\\n\"); }' > $@",
+    tags = common.fixture_tags,
 )
 
 objc_library(
@@ -1227,6 +1236,7 @@ generate_static_xcframework(
         ],
         "ios": ["arm64"],
     },
+    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1253,4 +1263,5 @@ generate_dynamic_xcframework(
         ],
         "ios": ["arm64"],
     },
+    tags = common.fixture_tags,
 )

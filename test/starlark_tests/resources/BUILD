@@ -779,6 +779,7 @@ apple_resource_group(
     structured_resources = [
         "//test/testdata/resources:structured",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -956,6 +957,7 @@ genrule(
     name = "DummySwiftFile",
     outs = ["Dummy.swift"],
     cmd = "echo 'struct Dummy {}' > $@",
+    tags = common.fixture_tags,
 )
 
 filegroup(
