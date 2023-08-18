@@ -415,6 +415,8 @@ def _ios_application_impl(ctx):
         actions = actions,
         label_name = label.name,
     )
+
+    # TODO(b/254511920): Consider creating a custom build config for iOS simulator device/version.
     run_support.register_simulator_executable(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -425,6 +427,8 @@ def _ios_application_impl(ctx):
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
         runner_template = ctx.file._runner_template,
+        simulator_device = ctx.fragments.objc.ios_simulator_device,
+        simulator_version = ctx.fragments.objc.ios_simulator_version,
     )
 
     archive = outputs.archive(
@@ -688,6 +692,8 @@ def _ios_app_clip_impl(ctx):
         actions = actions,
         label_name = label.name,
     )
+
+    # TODO(b/254511920): Consider creating a custom build config for iOS simulator device/version.
     run_support.register_simulator_executable(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -698,6 +704,8 @@ def _ios_app_clip_impl(ctx):
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
         runner_template = ctx.file._runner_template,
+        simulator_device = ctx.fragments.objc.ios_simulator_device,
+        simulator_version = ctx.fragments.objc.ios_simulator_version,
     )
 
     archive = outputs.archive(
@@ -2310,12 +2318,8 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.provisioning_profile_attrs(),
         rule_attrs.settings_bundle_attrs,
+        rule_attrs.simulator_runner_template_attr,
         {
-            "_runner_template": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
-            ),
             "alternate_icons": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -2424,12 +2428,8 @@ ios_app_clip = rule_factory.create_apple_rule(
             add_environment_plist = True,
         ),
         rule_attrs.provisioning_profile_attrs(),
+        rule_attrs.simulator_runner_template_attr,
         {
-            "_runner_template": attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                default = Label("@build_bazel_rules_apple//apple/internal/templates:ios_sim_template"),
-            ),
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],

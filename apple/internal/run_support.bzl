@@ -29,7 +29,9 @@ def _register_simulator_executable(
         platform_prerequisites,
         predeclared_outputs,
         rule_descriptor,
-        runner_template):
+        runner_template,
+        simulator_device = None,
+        simulator_version = None):
     """Registers an action that runs the bundled app in the iOS simulator.
 
     Args:
@@ -42,11 +44,14 @@ def _register_simulator_executable(
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`
       rule_descriptor: The rule descriptor for the given rule.
       runner_template: The simulator runner template as a `File`.
+      simulator_device: The type of device (e.g. 'iPhone 6') to use when running on the simulator.
+      simulator_version: The SDK version of the simulator to use when running on the simulator.
     """
 
-    sim_device = str(platform_prerequisites.objc_fragment.ios_simulator_device or "")
-    sim_os_version = str(platform_prerequisites.objc_fragment.ios_simulator_version or "")
+    sim_device = str(simulator_device or "")
+    sim_os_version = str(simulator_version or "")
     minimum_os = str(platform_prerequisites.minimum_os)
+    platform_type = str(platform_prerequisites.platform_type)
     archive = outputs.archive(
         actions = actions,
         bundle_name = bundle_name,
@@ -64,9 +69,10 @@ def _register_simulator_executable(
         substitutions = {
             "%app_name%": bundle_name,
             "%ipa_file%": archive.short_path,
+            "%minimum_os%": minimum_os,
+            "%platform_type%": platform_type,
             "%sim_device%": sim_device,
             "%sim_os_version%": sim_os_version,
-            "%minimum_os%": minimum_os,
         },
     )
 
