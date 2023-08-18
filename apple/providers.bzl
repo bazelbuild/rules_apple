@@ -26,6 +26,15 @@ consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 """
 
+AppleBaseBundleIdInfo = provider(
+    doc = "Provides the base bundle ID prefix for an Apple rule.",
+    fields = {
+        "base_bundle_id": """
+`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
+""",
+    },
+)
+
 AppleBundleInfo = provider(
     doc = """
 This provider propagates general information about an Apple bundle that is not
@@ -317,6 +326,15 @@ dependency is an Apple resource bundle should use this provider to describe that
 requirement.
 """,
     fields = {},
+)
+
+AppleSharedCapabilityInfo = provider(
+    doc = "Provides information on a mergeable set of shared capabilities.",
+    fields = {
+        "base_bundle_id": """
+`String`. The bundle ID prefix, composed from an organization ID and an optional variant name.
+""",
+    },
 )
 
 AppleTestInfo = provider(

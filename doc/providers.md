@@ -14,6 +14,24 @@ consume the bundling rules as their own inputs should use these to handle the
 relevant information that they need.
 
 
+<a id="AppleBaseBundleIdInfo"></a>
+
+## AppleBaseBundleIdInfo
+
+<pre>
+AppleBaseBundleIdInfo(<a href="#AppleBaseBundleIdInfo-base_bundle_id">base_bundle_id</a>)
+</pre>
+
+Provides the base bundle ID prefix for an Apple rule.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleBaseBundleIdInfo-base_bundle_id"></a>base_bundle_id |  <code>String</code>. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
+
+
 <a id="AppleBinaryInfo"></a>
 
 ## AppleBinaryInfo
@@ -307,6 +325,24 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-owners"></a>owners |  <code>depset</code> of (resource, owner) pairs.    |
 | <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  <code>depset</code> of (processed resource, resource list) pairs.    |
 | <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  <code>depset</code> of unowned resources.    |
+
+
+<a id="AppleSharedCapabilityInfo"></a>
+
+## AppleSharedCapabilityInfo
+
+<pre>
+AppleSharedCapabilityInfo(<a href="#AppleSharedCapabilityInfo-base_bundle_id">base_bundle_id</a>)
+</pre>
+
+Provides information on a mergeable set of shared capabilities.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleSharedCapabilityInfo-base_bundle_id"></a>base_bundle_id |  <code>String</code>. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
 
 
 <a id="AppleStaticXcframeworkBundleInfo"></a>
