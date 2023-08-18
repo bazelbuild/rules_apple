@@ -17,6 +17,10 @@ https://docs.bazel.build/versions/0.27.0/skylark/testing.html#failure-testing
 """
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
     "asserts",
@@ -51,3 +55,9 @@ def make_analysis_failure_message_test(*, config_settings = {}):
     )
 
 analysis_failure_message_test = make_analysis_failure_message_test()
+
+analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels._use_tree_artifacts_outputs_skylib_workaround: True,
+    },
+)

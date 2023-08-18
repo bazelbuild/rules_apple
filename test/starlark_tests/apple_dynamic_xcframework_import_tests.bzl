@@ -17,6 +17,7 @@
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -333,12 +334,12 @@ def apple_dynamic_xcframework_import_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_imported_macos_xcframework_to_application_x86_64_build".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "x86_64",
         contains = [
-            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/Resources/Info.plist",
-            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         ],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [name],
@@ -347,8 +348,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         name = "{}_bundles_imported_macos_xcframework_to_application_arm64_build".format(name),
         build_type = "device",
         cpus = {"macos_cpus": ["arm64"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [name],
@@ -357,8 +358,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         name = "{}_bundles_imported_macos_xcframework_to_application_arm64e_build".format(name),
         build_type = "simulator",
         cpus = {"macos_cpus": ["arm64e"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_xcframework.framework/generated_dynamic_macos_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [name],
@@ -372,11 +373,50 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing XCFramework with versioned frameworks fails.
-    analysis_failure_message_test(
-        name = "{}_fails_with_versioned_frameworks_test".format(name),
+    # Verify macos_application links XCFramework versioned framework for device and simulator
+    # architectures.
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_xcframework_to_application_x86_64_build".format(name),
+        build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
-        expected_error = "apple_dynamic_xcframework_import rule does not yet support macOS versioned frameworks.",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        binary_test_architecture = "x86_64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_xcframework_to_application_arm64_build".format(name),
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_xcframework_to_application_arm64e_build".format(name),
+        build_type = "simulator",
+        cpus = {"macos_cpus": ["arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+
+    # Verify importing XCFramework with versioned frameworks and tree artifacts fails.
+    analysis_failure_message_with_tree_artifact_outputs_test(
+        name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        expected_error = (
+            "The apple_dynamic_xcframework_import rule does not yet support versioned " +
+            "frameworks with the experimental tree artifact feature/build setting."
+        ),
         tags = [name],
     )
 
