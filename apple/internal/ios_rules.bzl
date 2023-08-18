@@ -134,7 +134,6 @@ load(
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _ios_application_impl(ctx):
     """Implementation of ios_application."""
