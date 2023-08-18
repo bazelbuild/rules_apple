@@ -65,8 +65,10 @@ def _apple_intent_library_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
 
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_deployment_os = None,
