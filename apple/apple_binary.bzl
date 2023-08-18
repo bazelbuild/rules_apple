@@ -130,10 +130,6 @@ rule is being provided for the purpose of transitioning users from the built-in
 implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
-    predeclared_outputs = {
-        # Provided for compatibility with built-in `apple_binary` only.
-        "lipobin": "%{name}_lipobin",
-    },
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
