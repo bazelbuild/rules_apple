@@ -192,6 +192,32 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_contains_app_intents_metadata_bundle".format(name),
+        build_type = "simulator",
+        cpus = {"watchos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test app bundles transitive Metadata.appintents bundle from extension.
+    archive_contents_test(
+        name = "{}_with_ext_contains_app_intents_metadata_bundle".format(name),
+        build_type = "simulator",
+        cpus = {"watchos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/PlugIns/ext_with_app_intents.appex/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/PlugIns/ext_with_app_intents.appex/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

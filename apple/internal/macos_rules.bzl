@@ -164,6 +164,7 @@ def _macos_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
     bundle_verification_targets = [struct(target = ext) for ext in verification_targets]
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -225,6 +226,17 @@ def _macos_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     processor_partials = [
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            ctx = ctx,
+            deps = ctx.split_attr.app_intents,
+            disabled_features = ctx.disabled_features,
+            features = features,
+            grep_includes = ctx.file._grep_includes,
+            label = label,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.apple_bundle_info_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -2067,6 +2079,9 @@ simple command line tool as a standalone binary, use
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
+        rule_attrs.app_intents_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2077,6 +2092,9 @@ simple command line tool as a standalone binary, use
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),

@@ -1094,3 +1094,10 @@ objc_library(
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_old"],
 )
+
+swift_library(
+    name = "app_intent",
+    srcs = ["app_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    tags = common.fixture_tags,
+)
