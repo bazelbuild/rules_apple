@@ -38,11 +38,11 @@ _MOCK_XCFRAMEWORK_INFO_PLIST = {
             "SupportedPlatformVariant": "simulator"
         },
         {
-            "LibraryIdentifier": "watchos-i386-simulator",
+            "LibraryIdentifier": "watchos-x86_64-simulator",
             "LibraryPath": "MyFramework.framework",
-            "SupportedArchitectures": ["i386"],
+            "SupportedArchitectures": ["x86_64"],
             "SupportedPlatform": "watchos",
-            "SupportedPlatformVariant": "device"
+            "SupportedPlatformVariant": "simulator"
         }
     ],
     "CFBundlePackageType": "XFWK",
@@ -81,8 +81,8 @@ class XcframeworkProcessorToolTest(unittest.TestCase):
       xcframework_processor_tool._get_library_from_plist(
           info_plist=_MOCK_XCFRAMEWORK_INFO_PLIST,
           platform="watchos",
-          architecture="i386",
-          environment="simulator",
+          architecture="x86_64",
+          environment="device",
       )
 
   def test_get_library_from_plist_with_supported_target_triplet(self):
@@ -130,8 +130,8 @@ class XcframeworkProcessorToolTest(unittest.TestCase):
             "/path/to/imported.xcframework/ios-arm64/Headers/umbrella.h",
             "/path/to/imported.xcframework/ios-arm64_x86_64/libstatic.a",
             "/path/to/imported.xcframework/ios-arm64_x86_64/Headers/umbrella.h",
-            "/path/to/imported.xcframework/watchos-i386/libstatic.a",
-            "/path/to/imported.xcframework/watchos-i386/Headers/umbrella.h",
+            "/path/to/imported.xcframework/watchos-x86_64/libstatic.a",
+            "/path/to/imported.xcframework/watchos-x86_64/Headers/umbrella.h",
         ])
 
     expected_mkdirs_calls = [
