@@ -10,8 +10,11 @@ objc_library(
 
 objc_library(
     name = "SquarerTestsLib",
+    testonly = True,
     srcs = ["Tests/SquarerTests.m"],
-    deps = [":SquarerLib"],
+    deps = [
+        ":SquarerLib",
+    ],
 )
 
 ios_unit_test(
