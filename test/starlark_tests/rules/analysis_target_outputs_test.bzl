@@ -19,35 +19,22 @@ load(
     "build_settings_labels",
 )
 load(
+    "@build_bazel_rules_apple//test/starlark_tests/rules:assertions.bzl",
+    "assertions",
+)
+load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
-    "asserts",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
 )
 
 def _analysis_target_outputs_test_impl(ctx):
     env = analysistest.begin(ctx)
-    expected_outputs = sets.make(ctx.attr.expected_outputs)
     target_under_test = analysistest.target_under_test(env)
-    target_files = target_under_test.files.to_list()
-    all_outputs = sets.make([
-        paths.relativize(file.short_path, target_under_test.label.package)
-        for file in target_files
-    ])
 
-    # Test that the expected outputs are contained within actual outputs
-    asserts.new_set_equals(
-        env,
-        expected_outputs,
-        sets.intersection(all_outputs, expected_outputs),
-        "{} not contained in {}".format(sets.to_list(expected_outputs), sets.to_list(all_outputs)),
+    assertions.contains_files(
+        env = env,
+        expected_files = ctx.attr.expected_outputs,
+        actual_files = target_under_test.files.to_list(),
     )
 
     return analysistest.end(env)
