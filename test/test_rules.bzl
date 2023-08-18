@@ -103,7 +103,6 @@ def apple_shell_test(
         data = [
             src,
             "//:for_bazel_tests",
-            "//test:external_deps",
             "//test:apple_shell_testutils.sh",
             "//test/testdata/provisioning:integration_testing_profiles",
             "//test:unittest.bash",
