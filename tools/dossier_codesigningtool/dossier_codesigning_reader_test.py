@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for dossier_codesigningtool."""
+"""Tests for dossier_codesigningtool_reader."""
 
 import concurrent.futures
 import os
@@ -61,6 +61,8 @@ _FAKE_MANIFEST = {
 
 _IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
 
+_ADDITIONAL_SIGNING_KEYCHAIN = '/tmp/Library/Keychains/ios-dev-signing.keychain'
+
 
 class DossierCodesigningReaderTest(unittest.TestCase):
 
@@ -72,6 +74,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         manifest=_FAKE_MANIFEST,
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
+        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         override_codesign_identity='-',
         allowed_entitlements=None)
 
@@ -124,6 +127,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         manifest=_FAKE_MANIFEST,
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
+        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         override_codesign_identity='-',
         allowed_entitlements=['test-an-entitlement'])
 
@@ -192,6 +196,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           root_bundle_path='/tmp/fake.app/',
           manifest=fake_manifest,
           dossier_directory_path='/tmp/dossier/',
+          signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
           codesign_path='/usr/bin/fake_codesign',
           allowed_entitlements=None)
 
@@ -205,12 +210,19 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         allowed_entitlements=None,
+        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         codesign_identity='-',
         executor=executor)
     self.assertEqual(len(futures), 3)
     self.assertEqual(mock_sign_bundle.call_count, 3)
     default_args = (
-        '/tmp/dossier/', '/usr/bin/fake_codesign', None, '-', executor)
+        '/tmp/dossier/',
+        '/usr/bin/fake_codesign',
+        None,
+        _ADDITIONAL_SIGNING_KEYCHAIN,
+        '-',
+        executor,
+    )
     mock_sign_bundle.assert_has_calls([
         mock.call(
             '/tmp/fake.app/PlugIns/IntentsExtension.appex',
@@ -331,6 +343,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           'sign',
           '--codesign', tmp_fake_codesign.name,
           '--dossier', tmp_dossier_zip.name,
+          '--keychain', _ADDITIONAL_SIGNING_KEYCHAIN,
           tmp_app_bundle,
       ]
 
@@ -350,6 +363,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           dossier_dir.path,
           tmp_fake_codesign.name,
           None,
+          _ADDITIONAL_SIGNING_KEYCHAIN,
       )
 
   @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
@@ -383,6 +397,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           '--codesign', tmp_fake_codesign.name,
           '--dossier', tmp_dossier_zip.name,
           '--output_artifact', '/tmp/dossier_output/output.ipa',
+          '--keychain', _ADDITIONAL_SIGNING_KEYCHAIN,
           tmp_ipa_archive.name,
       ]
 
@@ -397,6 +412,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           dossier_dir.path,
           tmp_fake_codesign.name,
           None,
+          _ADDITIONAL_SIGNING_KEYCHAIN,
       )
       mock_package.assert_called_once()
 
@@ -429,6 +445,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           'sign',
           '--codesign', tmp_fake_codesign.name,
           '--output_artifact', '/tmp/dossier_output/output.ipa',
+          '--keychain', _ADDITIONAL_SIGNING_KEYCHAIN,
           tmp_combined_zip.name,
       ]
 
@@ -443,6 +460,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           os.path.join(temp_path, 'dossier'),
           tmp_fake_codesign.name,
           None,
+          _ADDITIONAL_SIGNING_KEYCHAIN,
       )
       mock_package.assert_called_once()
 

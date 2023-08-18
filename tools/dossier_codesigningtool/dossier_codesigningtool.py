@@ -25,9 +25,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Dict, List, Optional, Tuple, Union
 import uuid
 
 from tools.dossier_codesigningtool import dossier_codesigning_reader as dossier_reader
+
+# A type to access the leaf JSON values from a manifest.
+_ManifestJsonValue = Union[str, List[str], Dict[str, str]]
 
 
 class DossierDirectory(object):
@@ -96,7 +100,11 @@ def generate_arg_parser():
   identity_group.add_argument(
       '--infer_identity',
       action='store_true',
-      help='Infer the codesigning identity based on provisioning profile at signing time. If this option is passed, the provisioning profile is mandatory.'
+      help=(
+          'Infer the codesigning identity based on provisioning profile at'
+          ' signing time. If this option is passed, the provisioning profile is'
+          ' mandatory.'
+      ),
   )
   create_parser.add_argument(
       '--provisioning_profile',
@@ -109,14 +117,22 @@ def generate_arg_parser():
   create_parser.add_argument(
       '--embedded_dossier',
       action='append',
+      default=[],
       nargs=2,
-      help='Specifies an embedded bundle dossier to be included in created dossier. Should be in form [relative path of artifact dossier signs] [path to dossier]'
+      help=(
+          'Specifies an embedded bundle dossier to be included in created'
+          ' dossier. Should be in form [relative path of artifact dossier'
+          ' signs] [path to dossier]'
+      ),
   )
   create_parser.set_defaults(func=_create_dossier)
 
   embed_parser = subparsers.add_parser(
       'embed',
-      help='Embeds a dossier into an existing dossier. Only supports embedding at the top level of the existing dossier.'
+      help=(
+          'Embeds a dossier into an existing dossier. Only supports embedding'
+          ' at the top level of the existing dossier.'
+      ),
   )
   embed_parser.add_argument(
       '--dossier', required=True, help='Path to dossier location to edit.')
@@ -135,8 +151,11 @@ def generate_arg_parser():
   return parser
 
 
-def _extract_codesign_data(bundle_path, output_directory, unique_id,
-                           codesign_path):
+def _extract_codesign_data(
+    bundle_path: str,
+    output_directory: str,
+    unique_id: str,
+    codesign_path: str) -> Tuple[Optional[str], Optional[str]]:
   """Extracts codesigning data from the provided bundle to the output directory.
 
    Given a bundle_path will extract the entitlements file to the provided
@@ -167,26 +186,33 @@ def _extract_codesign_data(bundle_path, output_directory, unique_id,
   output, stderr = process.communicate()
   if process.poll() != 0:
     raise OSError('Fail to extract entitlements from bundle: %s' % stderr)
+
   if not output:
     return None, None
+
   signing_info = re.search(r'^Authority=(.*)$', str(stderr), re.MULTILINE)
   if signing_info:
     cert_authority = signing_info.group(1)
   else:
     cert_authority = None
-  plist = plistlib.loads(output)
+
+  plist = plistlib.loads(output.encode('utf-8'))
   if not plist:
     return None, cert_authority
+
   output_file_name = unique_id + '.entitlements'
   output_file_path = os.path.join(output_directory, output_file_name)
   output_file = open(output_file_path, 'w')
   output_file.write(output)
   output_file.close()
+
   return output_file_name, cert_authority
 
 
-def _copy_entitlements_file(original_entitlements_file_path, output_directory,
-                            unique_id):
+def _copy_entitlements_file(
+    original_entitlements_file_path: str,
+    output_directory: str,
+    unique_id: str) -> Optional[str]:
   """Copies an entitlements file from an original path to an output directory.
 
   Args:
@@ -211,8 +237,10 @@ def _copy_entitlements_file(original_entitlements_file_path, output_directory,
     return None
 
 
-def _copy_provisioning_profile(original_provisioning_profile_path,
-                               output_directory, unique_id):
+def _copy_provisioning_profile(
+    original_provisioning_profile_path: str,
+    output_directory: str,
+    unique_id: str) -> str:
   """Copies a provisioning profile file from its path to an output directory.
 
   Args:
@@ -225,7 +253,7 @@ def _copy_provisioning_profile(original_provisioning_profile_path,
   Returns:
     The filename relative to output_directory the profile was copied to.
   """
-  profile_extension = os.path.splitext(original_provisioning_profile_path)[1]
+  _, profile_extension = os.path.splitext(original_provisioning_profile_path)
   dest_provisioning_profile_filename = unique_id + profile_extension
   dest_provision_profile_path = os.path.join(output_directory,
                                              dest_provisioning_profile_filename)
@@ -233,7 +261,10 @@ def _copy_provisioning_profile(original_provisioning_profile_path,
   return dest_provisioning_profile_filename
 
 
-def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
+def _extract_provisioning_profile(
+    bundle_path: str,
+    output_directory: str,
+    unique_id: str) -> Optional[str]:
   """Extracts the profile for the provided bundle to a destination file name.
 
   Given a bundle_path will extract the profile file to the provided
@@ -264,10 +295,12 @@ def _extract_provisioning_profile(bundle_path, output_directory, unique_id):
                                     output_directory, unique_id)
 
 
-def _generate_manifest(codesign_identity=None,
-                       entitlement_file=None,
-                       provisioning_profile_file=None,
-                       embedded_bundle_manifests=None):
+def _generate_manifest(
+    codesign_identity: Optional[str],
+    entitlement_file: Optional[str],
+    provisioning_profile_file: Optional[str],
+    embedded_bundle_manifests: Optional[_ManifestJsonValue],
+) -> Dict[str, _ManifestJsonValue]:
   """Generates the manifest based on provided parameters.
 
   Given a set of code signing parameters, generates a manifest representation
@@ -303,8 +336,12 @@ def _generate_manifest(codesign_identity=None,
   return manifest
 
 
-def _embedded_manifests_for_path(bundle_path, dossier_directory,
-                                 target_directory, codesign_path):
+def _embedded_manifests_for_path(
+    bundle_path: str,
+    dossier_directory: str,
+    target_directory: str,
+    codesign_path: str,
+) -> List[Dict[str, _ManifestJsonValue]]:
   """Generates embedded manifests for a bundle in a sub-directory.
 
   Provided a bundle, output directory, and a target directory, traverses the
@@ -323,6 +360,10 @@ def _embedded_manifests_for_path(bundle_path, dossier_directory,
     A list of manifest contents with the contents they reference copied into
     dossier_directory, or an empty list if no bundles are codesigned.
   """
+  if target_directory not in _EMBEDDED_BUNDLE_DIRECTORY_NAMES:
+    raise ValueError(
+        'Invalid bundle directory for dossier manifest: %s' % target_directory)
+
   embedded_manifests = []
   target_directory_path = os.path.join(bundle_path, target_directory)
   if os.path.exists(target_directory_path):
@@ -341,8 +382,10 @@ def _embedded_manifests_for_path(bundle_path, dossier_directory,
   return embedded_manifests
 
 
-def _manifest_with_dossier_for_bundle(bundle_path, dossier_directory,
-                                      codesign_path):
+def _manifest_with_dossier_for_bundle(
+    bundle_path: str,
+    dossier_directory: str,
+    codesign_path: str) -> Optional[Dict[str, _ManifestJsonValue]]:
   """Generates a manifest and assets for a provided bundle.
 
   Provided a bundle and output directory, prepares a code signing dossier by
@@ -379,29 +422,44 @@ def _manifest_with_dossier_for_bundle(bundle_path, dossier_directory,
                             provisioning_profile, embedded_manifests)
 
 
-def _generate_manifest_dossier(args):
+def _generate_manifest_dossier(parsed_args: argparse.Namespace):
   """Generates a manifest dossier for provided args."""
-  bundle_path = args.bundle
-  dossier_directory = args.output
+  bundle_path = parsed_args.bundle
+  dossier_directory = parsed_args.output
+
   packaging_required = False
-  if args.zip:
+  if parsed_args.zip:
     dossier_directory = tempfile.mkdtemp()
     packaging_required = True
-  codesign_path = args.codesign
+
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
+
   manifest = _manifest_with_dossier_for_bundle(
-      os.path.abspath(bundle_path), dossier_directory, codesign_path)
-  manifest_file = open(
-      os.path.join(dossier_directory, dossier_reader.MANIFEST_FILENAME), 'w')
-  manifest_file.write(json.dumps(manifest, sort_keys=True))
-  manifest_file.close()
+      os.path.abspath(bundle_path), dossier_directory, parsed_args.codesign)
+
+  _write_manifest(manifest, dossier_directory)
   if packaging_required:
-    _zip_dossier(dossier_directory, args.output)
+    _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
 
 
-def _zip_dossier(dossier_path, destination_path):
+def _write_manifest(
+    manifest: Dict[str, _ManifestJsonValue],
+    dossier_directory: str) -> None:
+  """Writes a dossier manifest.json file at dossier_directory.
+
+  Args:
+    manifest: The dossier manifest to write.
+    dossier_directory: Target directory to write the manifest.json file.
+  """
+  manifest_file = os.path.join(
+      dossier_directory, dossier_reader.MANIFEST_FILENAME)
+  with open(manifest_file, 'w') as fp:
+    json.dump(manifest, fp, sort_keys=True)
+
+
+def _zip_dossier(dossier_path: str, destination_path: str) -> None:
   """Zips a dossier into a file.
 
   Args:
@@ -411,8 +469,16 @@ def _zip_dossier(dossier_path, destination_path):
   Raises:
     OSError: If unable to execute packaging command
   """
-  command = ('/usr/bin/zip', '-r', '-j', '-qX', '-0', destination_path,
-             dossier_path)
+  command = (
+      '/usr/bin/zip',
+      '--recurse-paths',
+      '--junk-paths',
+      '--quiet',
+      '--strip-extra',
+      '--compression-method', 'store',
+      destination_path,
+      dossier_path,
+  )
   process = subprocess.Popen(
       command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   _, stderr = process.communicate()
@@ -420,7 +486,9 @@ def _zip_dossier(dossier_path, destination_path):
     raise OSError('Fail to zip dossier: %s' % stderr)
 
 
-def _merge_dossier_contents(source_dossier_path, destination_dossier_path):
+def _merge_dossier_contents(
+    source_dossier_path: str,
+    destination_dossier_path: str) -> None:
   """Merges all files except the actual manifest from one dossier to another.
 
   Args:
@@ -436,112 +504,101 @@ def _merge_dossier_contents(source_dossier_path, destination_dossier_path):
         os.path.join(destination_dossier_path, filename))
 
 
-def _create_dossier(args):
+def _create_dossier(parsed_args: argparse.Namespace):
   """Creates a signing dossier.
 
   Provided a set of args from generate sub-command, creates a new dossier.
 
   Args:
-    args: A struct of arguments required for dossier creation that were
+    parsed_args: A struct of arguments required for dossier creation that were
       generated from an instance of argparse.ArgumentParser(...).
 
   Raises:
     SystemExit: If the identity can only be inferred and a provisioning profile
       was not provided.
   """
-  dossier_directory = args.output
+  dossier_directory = parsed_args.output
   packaging_required = False
-  if args.zip:
+  if parsed_args.zip:
     dossier_directory = tempfile.mkdtemp()
     packaging_required = True
   if not os.path.exists(dossier_directory):
     os.makedirs(dossier_directory)
   unique_id = str(uuid.uuid4())
+
   entitlements_filename = None
-  if hasattr(args, 'entitlements_file') and args.entitlements_file:
-    entitlements_filename = _copy_entitlements_file(args.entitlements_file,
+  entitlements_file = getattr(parsed_args, 'entitlements_file', None)
+  if entitlements_file:
+    entitlements_filename = _copy_entitlements_file(entitlements_file,
                                                     dossier_directory,
                                                     unique_id)
+
   provisioning_profile_filename = None
-  if hasattr(args, 'provisioning_profile') and args.provisioning_profile:
+  provisioning_profile = getattr(parsed_args, 'provisioning_profile', None)
+  if provisioning_profile:
     provisioning_profile_filename = _copy_provisioning_profile(
-        args.provisioning_profile, dossier_directory, unique_id)
-  if args.infer_identity and provisioning_profile_filename is None:
+        parsed_args.provisioning_profile, dossier_directory, unique_id)
+  if parsed_args.infer_identity and provisioning_profile_filename is None:
     raise SystemExit(
         'A provisioning profile must be provided to infer the signing identity')
+
   embedded_manifests = []
-  if hasattr(args, 'embedded_dossier') and args.embedded_dossier:
-    for embedded_dossier in args.embedded_dossier:
-      embedded_dossier_bundle_relative_path = embedded_dossier[0]
-      with dossier_reader.extract_zipped_dossier_if_required(
-          embedded_dossier[1]) as embedded_dossier_directory:
-        embedded_dossier_path = embedded_dossier_directory.path
-        _merge_dossier_contents(embedded_dossier_path, dossier_directory)
-        embedded_manifest = dossier_reader.read_manifest_from_dossier(
-            embedded_dossier_path)
-        embedded_manifest[
-            dossier_reader
-            .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-        embedded_manifests.append(embedded_manifest)
-  codesign_identity = None
-  if hasattr(args, 'codesign_identity') and args.codesign_identity:
-    codesign_identity = args.codesign_identity
+  for embedded_dossier in getattr(parsed_args, 'embedded_dossier', []):
+    embedded_dossier_bundle_relative_path = embedded_dossier[0]
+    with dossier_reader.extract_zipped_dossier_if_required(
+        embedded_dossier[1]) as embedded_dossier_directory:
+      embedded_dossier_path = embedded_dossier_directory.path
+      _merge_dossier_contents(embedded_dossier_path, dossier_directory)
+      embedded_manifest = dossier_reader.read_manifest_from_dossier(
+          embedded_dossier_path)
+      embedded_manifest[
+          dossier_reader
+          .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
+      embedded_manifests.append(embedded_manifest)
+
+  codesign_identity = getattr(parsed_args, 'codesign_identity', None)
   manifest = _generate_manifest(codesign_identity, entitlements_filename,
                                 provisioning_profile_filename,
                                 embedded_manifests)
-  with open(
-      os.path.join(dossier_directory, dossier_reader.MANIFEST_FILENAME),
-      'w') as fp:
-    fp.write(json.dumps(manifest, sort_keys=True))
+
+  _write_manifest(manifest, dossier_directory)
   if packaging_required:
-    _zip_dossier(dossier_directory, args.output)
+    _zip_dossier(dossier_directory, parsed_args.output)
     shutil.rmtree(dossier_directory)
 
 
-def _embed_dossier(args):
+def _embed_dossier(parsed_args):
   """Embeds an existing dossier into the specified dossier.
 
   Provided a set of args from generate sub-command, embeds a dossier in a
   dossier.
 
   Args:
-    args: A struct of arguments required for generating a dossier from a signed
-      bundle that were generated from an instance of
+    parsed_args: A struct of arguments required for generating a dossier from a
+      signed bundle that were generated from an instance of
       argparse.ArgumentParser(...).
 
   Raises:
     OSError: If any of specified dossiers are not found.
   """
-  embedded_dossier_bundle_relative_path = args.embedded_relative_artifact_path
-  with dossier_reader.extract_zipped_dossier_if_required(
-      args.dossier) as dossier_directory:
-    with dossier_reader.extract_zipped_dossier_if_required(
-        args.embedded_dossier_path) as embedded_dossier_directory:
-      embedded_dossier_path = embedded_dossier_directory.path
-      dossier_directory_path = dossier_directory.path
+  with (dossier_reader.extract_zipped_dossier_if_required(
+            parsed_args.dossier) as dossier_dir,
+        dossier_reader.extract_zipped_dossier_if_required(
+            parsed_args.embedded_dossier_path) as embedded_dossier_dir):
 
-      if not os.path.isdir(dossier_directory_path):
-        raise OSError('Dossier does not exist at path %s' %
-                      dossier_directory_path)
-      if not os.path.isdir(embedded_dossier_path):
-        raise OSError('Embedded dossier does not exist at path %s' %
-                      embedded_dossier_path)
-      manifest = dossier_reader.read_manifest_from_dossier(
-          dossier_directory_path)
-      embedded_manifest = dossier_reader.read_manifest_from_dossier(
-          embedded_dossier_path)
-      _merge_dossier_contents(embedded_dossier_path, dossier_directory_path)
-      embedded_manifest[
-          dossier_reader
-          .EMBEDDED_RELATIVE_PATH_KEY] = embedded_dossier_bundle_relative_path
-      manifest[dossier_reader.EMBEDDED_BUNDLE_MANIFESTS_KEY].append(
-          embedded_manifest)
-      with open(
-          os.path.join(dossier_directory_path,
-                       dossier_reader.MANIFEST_FILENAME), 'w') as fp:
-        fp.write(json.dumps(manifest, sort_keys=True))
-      if dossier_directory.unzipped:
-        _zip_dossier(dossier_directory_path, args.dossier)
+    manifest = dossier_reader.read_manifest_from_dossier(dossier_dir.path)
+    embedded_manifest = dossier_reader.read_manifest_from_dossier(
+        embedded_dossier_dir.path)
+
+    _merge_dossier_contents(embedded_dossier_dir.path, dossier_dir.path)
+    embedded_manifest[dossier_reader.EMBEDDED_RELATIVE_PATH_KEY] = (
+        parsed_args.embedded_relative_artifact_path)
+    manifest[dossier_reader.EMBEDDED_BUNDLE_MANIFESTS_KEY].append(
+        embedded_manifest)
+
+    _write_manifest(manifest, dossier_dir.path)
+    if dossier_dir.unzipped:
+      _zip_dossier(dossier_dir.path, parsed_args.dossier)
 
 
 if __name__ == '__main__':

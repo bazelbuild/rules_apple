@@ -25,6 +25,15 @@ py_library(
     ],
 )
 
+py_test(
+    name = "dossier_codesigningtool_lib_test",
+    srcs = ["dossier_codesigningtool_lib_test.py"],
+    python_version = "PY3",
+    deps = [
+        ":dossier_codesigningtool_lib",
+    ],
+)
+
 py_binary(
     name = "dossier_codesigning_reader",
     srcs = ["dossier_codesigning_reader.py"],
