@@ -2337,7 +2337,7 @@ ios_application = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.app_intents_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2350,7 +2350,7 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = apple_common.multi_arch_split,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_tool_attrs,
