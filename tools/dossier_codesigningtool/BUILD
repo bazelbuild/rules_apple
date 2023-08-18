@@ -8,7 +8,9 @@ py_binary(
     visibility = [
         "//apple/internal:__pkg__",
     ],
-    deps = [":dossier_codesigningtool_lib"],
+    deps = [
+        ":dossier_codesigningtool_lib",
+    ],
 )
 
 py_library(
@@ -18,16 +20,32 @@ py_library(
     visibility = [
         "//tools:__subpackages__",
     ],
-    deps = ["//tools/wrapper_common:execute"],
+    deps = [
+        ":dossier_codesigning_reader_lib",
+    ],
+)
+
+py_binary(
+    name = "dossier_codesigning_reader",
+    srcs = ["dossier_codesigning_reader.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [":dossier_codesigning_reader_lib"],
+)
+
+py_library(
+    name = "dossier_codesigning_reader_lib",
+    srcs = ["dossier_codesigning_reader.py"],
+    srcs_version = "PY3",
 )
 
 py_test(
-    name = "dossier_codesigningtool_test",
-    srcs = ["dossier_codesigningtool_test.py"],
+    name = "dossier_codesigning_reader_test",
+    srcs = ["dossier_codesigning_reader_test.py"],
     python_version = "PY3",
     tags = ["requires-darwin"],
     deps = [
-        ":dossier_codesigningtool_lib",
+        ":dossier_codesigning_reader_lib",
     ],
 )
 
