@@ -1007,27 +1007,6 @@ that requirement.
 
 
 
-<a id="WatchosSingleTargetApplicationBundleInfo"></a>
-
-## WatchosSingleTargetApplicationBundleInfo
-
-<pre>
-WatchosSingleTargetApplicationBundleInfo()
-</pre>
-
-
-Denotes that a target is a watchOS single target application.
-
-This provider does not contain any fields of its own at this time but is used as a "marker" to
-indicate that a target is specifically a watchOS single target application bundle (and not some
-other Apple bundle). Rule authors who wish to require that a dependency is a watchOS single target
-application should use this provider to describe that requirement.
-
-
-**FIELDS**
-
-
-
 <a id="WatchosStaticFrameworkBundleInfo"></a>
 
 ## WatchosStaticFrameworkBundleInfo

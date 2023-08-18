@@ -130,7 +130,6 @@ load(
     "IosStaticFrameworkBundleInfo",
     "IosStickerPackExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
-    "WatchosSingleTargetApplicationBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
@@ -2370,10 +2369,7 @@ not in the top-level bundle.
 """,
             ),
             "watch_application": attr.label(
-                providers = [
-                    [AppleBundleInfo, WatchosApplicationBundleInfo],
-                    [AppleBundleInfo, WatchosSingleTargetApplicationBundleInfo],
-                ],
+                providers = [[AppleBundleInfo, WatchosApplicationBundleInfo]],
                 doc = """
 A `watchos_application` target that represents an Apple Watch application or a
 `watchos_single_target_application` target that represents a single-target Apple Watch application

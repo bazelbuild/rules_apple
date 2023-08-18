@@ -115,7 +115,6 @@ load(
     "WatchosApplicationBundleInfo",
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
-    "WatchosSingleTargetApplicationBundleInfo",
     "WatchosStaticFrameworkBundleInfo",
 )
 load(
@@ -664,8 +663,14 @@ def _watchos_dynamic_framework_impl(ctx):
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
 
-    # TODO(b/241001744): Set the product type as apple_product_type.application if the attrs set
-    # on the rule match a criteria appropriate for watchOS single target applications.
+    if ctx.attr.deps:
+        return _watchos_single_target_application_impl(ctx)
+    else:
+        return _watchos_extension_based_application_impl(ctx)
+
+def _watchos_extension_based_application_impl(ctx):
+    """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.watch2_application,
@@ -1327,7 +1332,7 @@ def _watchos_static_framework_impl(ctx):
     ] + processor_result.providers
 
 def _watchos_single_target_application_impl(ctx):
-    """Implementation of watchos_single_target_application."""
+    """Implementation of watchos_application for single target watch applications."""
 
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_version_config.xcode_version() < apple_common.dotted_version("14.0"):
@@ -1340,8 +1345,14 @@ Resolved Xcode is version {xcode_version}.
     if minimum_os < apple_common.dotted_version("7.0"):
         fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
 
-    # TODO(b/241001744): Fold this implementation into the watchos_application rule, removing the
-    # need for separate rules.
+    if ctx.attr.extension:
+        fail("""
+Single-target watchOS applications do not support watchOS 2 extensions or their delegates.
+
+Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
+delegate is referenced in the single-target `watchos_application`'s `deps`.
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -1565,7 +1576,7 @@ Resolved Xcode is version {xcode_version}.
                 processor_result.output_groups,
             )
         ),
-        WatchosSingleTargetApplicationBundleInfo(),
+        WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
@@ -1573,6 +1584,15 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
     doc = "Builds and bundles an watchOS Application.",
     attrs = [
         rule_attrs.app_icon_attrs(),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
         rule_attrs.bundle_id_attrs(is_mandatory = True),
         rule_attrs.cc_toolchain_forwarder_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_bundle_attrs(
@@ -1590,11 +1610,20 @@ watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
         ),
         rule_attrs.provisioning_profile_attrs(),
         {
+            # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr and check for
+            # the incoming AppleBundleInfo product_type.
             "extension": attr.label(
                 providers = [
                     [AppleBundleInfo, WatchosExtensionBundleInfo],
                 ],
-                doc = "The `watchos_extension` that is bundled with the watch application.",
+                doc = """
+The watchOS 2 `watchos_extension` that is required to be bundled within a watchOS 2 application.
+
+It is considered an error if the watchOS 2 application extension is assigned to a single target
+watchOS application, which is constructed if the `watchos_application` target is assigned `deps`.
+
+This attribute will not support additional types of `watchos_extension`s in the future.
+""",
             ),
             "storyboards": attr.label_list(
                 allow_files = [".storyboard"],
@@ -1654,6 +1683,9 @@ instead of the WatchKit extension point (`_WKExtensionMain`), and has the
 `app_extension` `product_type` instead of `watch2_extension`.
 """,
             ),
+            # TODO(b/155313625): Support extensions within a `watchos_extension`, add validation to
+            # make sure that this is only possible within an extension that contains code for the
+            # watchOS 2 extension delegate and not other types of watchOS extensions.
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
                 doc = """
@@ -1856,56 +1888,6 @@ An optional single .h file to use as the umbrella header for this framework. Usu
 will have the same name as this target, so that clients can load the header using the #import
 <MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
 umbrella header will be generated under the same name as this target.
-""",
-            ),
-        },
-    ],
-)
-
-watchos_single_target_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_single_target_application_impl,
-    doc = "Builds and bundles a watchOS Single Target Application.",
-    attrs = [
-        rule_attrs.app_icon_attrs(),
-        rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-            extra_deps_aspects = [
-                apple_resource_aspect,
-                framework_provider_aspect,
-            ],
-            is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
-        ),
-        rule_attrs.bundle_id_attrs(is_mandatory = True),
-        rule_attrs.common_bundle_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
-        rule_attrs.common_tool_attrs,
-        rule_attrs.device_family_attrs(
-            allowed_families = rule_attrs.defaults.allowed_families.watchos,
-        ),
-        rule_attrs.entitlements_attrs,
-        rule_attrs.infoplist_attrs(),
-        rule_attrs.platform_attrs(
-            add_environment_plist = True,
-            platform_type = "watchos",
-        ),
-        rule_attrs.provisioning_profile_attrs(),
-        {
-            "storyboards": attr.label_list(
-                allow_files = [".storyboard"],
-                doc = """
-A list of `.storyboard` files, often localizable. These files are compiled and placed in the root of
-the final application bundle, unless a file's immediate containing directory is named `*.lproj`, in
-which case it will be placed under a directory with the same name in the bundle.
-""",
-            ),
-            "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
-                doc = """
-A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
-that this target depends on.
 """,
             ),
         },

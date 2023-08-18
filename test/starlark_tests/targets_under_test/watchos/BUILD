@@ -8,7 +8,6 @@ load(
     "watchos_dynamic_framework",
     "watchos_extension",
     "watchos_framework",
-    "watchos_single_target_application",
     "watchos_static_framework",
     "watchos_ui_test",
     "watchos_unit_test",
@@ -58,7 +57,7 @@ watchos_application(
     tags = common.fixture_tags,
 )
 
-watchos_single_target_application(
+watchos_application(
     name = "single_target_app",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
@@ -91,7 +90,7 @@ watchos_application(
     tags = common.fixture_tags,
 )
 
-watchos_single_target_application(
+watchos_application(
     name = "single_target_app_with_imported_fmwk",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
@@ -538,7 +537,7 @@ watchos_application(
     tags = common.fixture_tags,
 )
 
-watchos_single_target_application(
+watchos_application(
     name = "single_target_app_too_low_minos",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
@@ -547,6 +546,28 @@ watchos_single_target_application(
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     minimum_os_version = "6.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
+)
+
+watchos_application(
+    name = "single_target_app_with_watch2_ext",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extension = ":watchos_app_extension",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.single_target_app,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -720,7 +741,7 @@ watchos_application(
     tags = common.fixture_tags,
 )
 
-watchos_single_target_application(
+watchos_application(
     name = "watchos_single_target_app_swift_stable_abi",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
