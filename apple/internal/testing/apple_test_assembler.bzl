@@ -15,21 +15,36 @@
 """Helper methods for assembling the test targets."""
 
 # Attributes belonging to the bundling rules that should be removed from the test targets.
+#
+# The bundling rules link binaries while the test target impls do not. As a rule of thumb, if an
+# attr is required of linking and does not have a benefit to being exposed to cquery results,
+# grouping tests or BUILD visibility, it should be in this list rather than the shared list.
 _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
-        "deps",
         "bundle_id",
         "bundle_name",
+        "deps",
         "families",
         "frameworks",
         "infoplists",
         "linkopts",
-        "minimum_os_version",
         "provisioning_profile",
         "resources",
+        "stamp",
+    ]
+}
+
+# Attributes that should be explicitly shared between test targets and bundle rules without changes.
+_SHARED_TEST_BUNDLE_ATTRS = {
+    x: None
+    for x in [
+        "features",
+        "minimum_os_version",
+        "tags",
         "test_host",
+        "visibility",
     ]
 }
 
@@ -78,7 +93,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
 
     # Args to apply to the test and the bundle.
-    for x in ("visibility", "tags", "features"):
+    for x in _SHARED_TEST_BUNDLE_ATTRS:
         if x in test_attrs:
             bundle_attrs[x] = test_attrs[x]
 
@@ -100,9 +115,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     if runner:
         test_rule(
             name = name,
-            minimum_os_version = bundle_attrs.get("minimum_os_version"),
             runner = runner,
-            test_host = bundle_attrs.get("test_host"),
             deps = [":{}".format(test_bundle_name)],
             **test_attrs
         )
@@ -113,9 +126,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             tests.append(":{}".format(test_name))
             test_rule(
                 name = test_name,
-                minimum_os_version = bundle_attrs.get("minimum_os_version"),
                 runner = runner,
-                test_host = bundle_attrs.get("test_host"),
                 deps = [":{}".format(test_bundle_name)],
                 **test_attrs
             )
