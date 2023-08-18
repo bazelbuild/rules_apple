@@ -490,6 +490,24 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "ios_watchos_with_watchos_extension_and_symbols_in_bundle",
+    bundle_id = "com.google",
+    bundle_name = "companion",
+    families = ["iphone"],
+    include_symbols_in_bundle = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.arm_sim_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    watch_application = ":watchos_app_with_extension",
+    deps = [
+        ":swift_lib",
+    ],
+)
+
 watchos_extension(
     name = "watchos_app_extension",
     application_extension = True,

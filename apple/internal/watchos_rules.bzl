@@ -859,6 +859,15 @@ reproducible error case.".format(
             binary_artifact = binary_artifact,
             label_name = label.name,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = [ctx.attr.extension],
+            dsym_binaries = {},
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if platform_prerequisites.platform.is_device:
