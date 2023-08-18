@@ -571,6 +571,7 @@ generate_import_framework(
     src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
     archs = ["x86_64"],
     include_resource_bundle = True,
+    include_versioned_frameworks = False,
     libtype = "static",
     minimum_os_version = "11.11",
     sdk = "macosx",

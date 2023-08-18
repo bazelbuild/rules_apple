@@ -261,6 +261,7 @@ def _create_framework(
         headers,
         include_resource_bundle = False,
         include_versioned_frameworks = False,
+        is_dynamic,
         module_interfaces = [],
         target_os,
         xcode_config):
@@ -278,6 +279,7 @@ def _create_framework(
             the framework bundle (optional).
         include_versioned_frameworks: Boolean to indicate if the framework should include additional
             versions of the framework under the Versions directory.
+        is_dynamic: Whether the generated binary is dynamic.
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
         target_os: The target Apple OS for the generated framework bundle.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -315,6 +317,7 @@ def _create_framework(
                 framework_directory = framework_directory,
                 label = label,
                 library = library,
+                is_dynamic = is_dynamic,
                 xcode_config = xcode_config,
             ),
         )
@@ -394,6 +397,7 @@ def _copy_framework_library(
         framework_directory,
         label,
         library,
+        is_dynamic,
         xcode_config):
     """Copies a framework library into a target framework directory.
 
@@ -406,6 +410,7 @@ def _copy_framework_library(
         framework_directory: Target .framework directory to copy files to.
         label: Label of the target being built.
         library: The library for the framework bundle.
+        is_dynamic: Whether the generated binary is dynamic.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         File referencing copied framework library.
@@ -424,13 +429,16 @@ def _copy_framework_library(
             src = library.path,
             dest = framework_binary.path,
         )
-        install_name_tool_command = "install_name_tool -id {name} {file}".format(
-            name = "@rpath/{name}.framework/Versions/{version}/{name}".format(
-                name = bundle_name,
-                version = paths.basename(framework_directory),
-            ),
-            file = framework_binary.path,
-        )
+        if is_dynamic:
+            install_name_tool_command = "install_name_tool -id {name} {file}".format(
+                name = "@rpath/{name}.framework/Versions/{version}/{name}".format(
+                    name = bundle_name,
+                    version = paths.basename(framework_directory),
+                ),
+                file = framework_binary.path,
+            )
+        else:
+            install_name_tool_command = "true"
         apple_support.run_shell(
             actions = actions,
             apple_fragment = apple_fragment,
