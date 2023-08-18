@@ -118,10 +118,7 @@ ios_application(
     ],
     infoplists = [":Phone-Info.plist"],
     launch_storyboard = "//examples/resources:Launch.storyboard",
-    minimum_os_version = "9.0",
-    tags = [
-        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-    ],
+    minimum_os_version = "11.0",
     version = ":HelloWorldVersion",
     watch_application = ":HelloWorld-SingleTargetWatchApplication",
     deps = [":PhoneSources"],
@@ -136,9 +133,6 @@ watchos_application(
     storyboards = [
         "WatchResources/Interface.storyboard",
     ],
-    tags = [
-        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-    ],
     version = ":HelloWorldVersion",
     deps = [":SingleTargetWatchSources"],
 )
@@ -149,18 +143,9 @@ build_test(
     name = "ExamplesBuildTest",
     targets = [
         ":HelloWorld",
-        ":HelloWorld-WatchApplication",
-        ":HelloWorld-WatchExtension",
-    ],
-)
-
-build_test(
-    name = "ExamplesBuildTest-LatestXcodeBeta",
-    tags = [
-        "needs-xcode-latest-beta",  # TODO(b/246410415): Remove when Xcode 14 is widely available.
-    ],
-    targets = [
         ":HelloWorld-SingleTargetWatchHost",
         ":HelloWorld-SingleTargetWatchApplication",
+        ":HelloWorld-WatchApplication",
+        ":HelloWorld-WatchExtension",
     ],
 )
