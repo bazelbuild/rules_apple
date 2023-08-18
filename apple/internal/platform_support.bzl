@@ -61,6 +61,7 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
 def _platform_prerequisites(
         *,
         apple_fragment,
+        build_settings,
         config_vars,
         cpp_fragment = None,
         device_families,
@@ -75,6 +76,7 @@ def _platform_prerequisites(
 
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
+      build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
       device_families: The list of device families that apply to the target being built.
@@ -104,8 +106,10 @@ def _platform_prerequisites(
         minimum_deployment_os = minimum_os
 
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
+
     return struct(
         apple_fragment = apple_fragment,
+        build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         device_families = device_families,

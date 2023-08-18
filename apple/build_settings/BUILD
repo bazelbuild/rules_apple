@@ -1,22 +1,40 @@
 # Build settings used throughout rules_apple build rules.
 
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings",
+)
 
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
-# Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
-# parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframework_import.bzl
-bool_flag(
-    name = "parse_xcframework_info_plist",
-    build_setting_default = False,
-)
+[
+    bool_flag(
+        name = build_setting_name,
+        build_setting_default = build_setting_info.default,
+    )
+    for build_setting_name, build_setting_info in build_settings.items()
+    if type(build_setting_info.default) == "bool"
+]
+
+[
+    string_flag(
+        name = build_setting_name,
+        build_setting_default = build_setting_info.default,
+    )
+    for build_setting_name, build_setting_info in build_settings.items()
+    if type(build_setting_info.default) == "string"
+]
 
 bzl_library(
-    name = "attrs",
-    srcs = ["attrs.bzl"],
+    name = "build_settings",
+    srcs = ["build_settings.bzl"],
+    visibility = [
+        "//:__subpackages__",
+    ],
 )
 
 # Consumed by bazel tests.

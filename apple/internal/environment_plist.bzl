@@ -51,6 +51,7 @@ def _environment_plist_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = None,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_deployment_os = None,

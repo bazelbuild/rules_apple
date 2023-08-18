@@ -18,7 +18,10 @@ This rule is meant to be used only for rules_apple tests and are considered impl
 that may change at any time. Please do not depend on this rule.
 """
 
-load("@build_bazel_rules_apple//apple/build_settings:attrs.bzl", "build_settings")
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
@@ -37,7 +40,7 @@ load(
     "paths",
 )
 
-_CUSTOM_BUILD_SETTINGS = build_settings.all_labels + [
+_CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
 def _apple_verification_transition_impl(settings, attr):
@@ -56,7 +59,6 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
         "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
-        "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
@@ -94,9 +96,13 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
     output_dictionary["//command_line_option:features"] = existing_features
 
     # Build settings
+    test_build_settings = {
+        build_settings_labels.signing_certificate_name: "-",
+    }
+    test_build_settings.update(getattr(attr, "build_settings", {}))
     for build_setting in _CUSTOM_BUILD_SETTINGS:
-        if build_setting in getattr(attr, "build_settings", []):
-            build_setting_value = attr.build_settings[build_setting]
+        if build_setting in test_build_settings:
+            build_setting_value = test_build_settings[build_setting]
             build_setting_type = type(settings[build_setting])
 
             # The `build_settings` rule attribute requires string values. However, build
@@ -118,7 +124,6 @@ apple_verification_transition = transition(
     ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
         "//command_line_option:cpu",
-        "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
@@ -151,7 +156,7 @@ def _apple_verification_test_impl(ctx):
             apple_product_type.application,
             apple_product_type.app_clip,
             apple_product_type.messages_application,
-        ]:
+        ] and not archive.is_directory:
             archive_relative_bundle = paths.join("Payload", bundle_with_extension)
         else:
             archive_relative_bundle = bundle_with_extension

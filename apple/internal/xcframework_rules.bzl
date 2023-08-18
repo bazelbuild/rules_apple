@@ -452,19 +452,19 @@ def _create_xcframework_bundle(
     )
 
 def _apple_xcframework_impl(ctx):
-    """Experimental WIP implementation of apple_xcframework."""
-
-    if is_experimental_tree_artifact_enabled(config_vars = ctx.var):
-        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
-
+    """Implementation of apple_xcframework."""
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     deps = ctx.split_attr.deps
+
+    if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+        is_experimental_tree_artifact_enabled(config_vars = ctx.var)):
+        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
+             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
+             "set to 1 on the command line or in your active build configuration.")
 
     # Add the disable_legacy_signing feature to the list of features
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
@@ -544,6 +544,7 @@ def _apple_xcframework_impl(ctx):
 
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(
@@ -1010,6 +1011,7 @@ def _apple_static_xcframework_impl(ctx):
         )
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(

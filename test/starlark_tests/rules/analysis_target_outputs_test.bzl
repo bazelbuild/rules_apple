@@ -15,6 +15,10 @@
 "Starlark test for testing the outputs of analysis phase."
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
     "asserts",
@@ -74,5 +78,11 @@ def make_analysis_target_outputs_test(config_settings = {}):
 analysis_target_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
         "//command_line_option:compilation_mode": "opt",
+    },
+)
+
+analysis_target_tree_artifacts_outputs_test = make_analysis_target_outputs_test(
+    config_settings = {
+        build_settings_labels._use_tree_artifacts_outputs_skylib_workaround: True,
     },
 )

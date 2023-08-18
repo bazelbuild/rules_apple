@@ -46,6 +46,7 @@ bzl_library(
         "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
+        "//apple/internal:rule_attrs",
         "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
