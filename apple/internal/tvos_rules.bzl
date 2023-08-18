@@ -1369,7 +1369,6 @@ tvos_application = rule_factory.create_apple_rule(
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
-        rule_attrs.common_bundle_attrs,
         rule_attrs.common_tool_attrs,
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
