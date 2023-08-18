@@ -50,11 +50,18 @@ build_settings_labels = struct(
         )
         for build_setting_name in build_settings
     ],
-    **{
+    **({
         build_setting_name: "{package}:{target_name}".format(
             package = _BUILD_SETTINGS_PACKAGE,
             target_name = build_setting_name,
         )
         for build_setting_name in build_settings
-    }
+    } | {
+        # TODO: Remove https://github.com/bazelbuild/bazel/issues/19286
+        "_{}_skylib_workaround".format(build_setting_name): "@//apple/build_settings:{target_name}".format(
+            package = _BUILD_SETTINGS_PACKAGE,
+            target_name = build_setting_name,
+        )
+        for build_setting_name in build_settings
+    })
 )

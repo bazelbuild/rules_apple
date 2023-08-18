@@ -75,6 +75,6 @@ analysis_target_outputs_test = make_analysis_target_outputs_test(
 
 analysis_target_tree_artifacts_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
-        build_settings_labels.use_tree_artifacts_outputs: True,
+        build_settings_labels._use_tree_artifacts_outputs_skylib_workaround: True,
     },
 )
