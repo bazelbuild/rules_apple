@@ -75,7 +75,6 @@ def _describe_rule_type(
         bundle_locations = None,
         bundle_package_type = None,
         codesigning_exceptions = _CODESIGNING_EXCEPTIONS.none,
-        extra_linkopts = [],
         expose_non_archive_relative_output = False,
         product_type = None,
         requires_pkginfo = False,
@@ -99,7 +98,6 @@ def _describe_rule_type(
         expose_non_archive_relative_output: Whether or not to expose an output archive that ignores
             the `archive_relative` bundle location, to permit embedding within another target. Has no
             effect if `archive_relative` is empty.
-        extra_linkopts: Extra options to pass to the linker.
         product_type: The product type for this rule.
         requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
         requires_signing_for_device: Whether signing is required when building for devices (as
@@ -127,7 +125,6 @@ def _describe_rule_type(
         bundle_package_type = bundle_package_type,
         codesigning_exceptions = codesigning_exceptions,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
-        extra_linkopts = extra_linkopts,
         product_type = product_type,
         requires_pkginfo = requires_pkginfo,
         requires_signing_for_device = requires_signing_for_device,
@@ -143,7 +140,7 @@ _DEFAULT_MACOS_BUNDLE_LOCATIONS = _describe_bundle_locations(
 )
 
 # Descriptors for all possible platform/product type combinations.
-# TODO(b/248317958): Migrate extra_linkopts and rpaths to args on the linking_support methods.
+# TODO(b/248317958): Migrate rpaths to args on the linking_support methods.
 _RULE_TYPE_DESCRIPTORS = {
     "ios": {
         # ios_application
@@ -183,11 +180,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            extra_linkopts = [
-                "-fapplication-extension",
-                "-e",
-                "_NSExtensionMain",
-            ],
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
@@ -231,11 +223,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            extra_linkopts = [
-                "-fapplication-extension",
-                "-e",
-                "_NSExtensionMain",
-            ],
             product_type = apple_product_type.messages_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
@@ -267,10 +254,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -287,10 +270,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -341,11 +320,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            extra_linkopts = [
-                "-fapplication-extension",
-                "-e",
-                "_NSExtensionMain",
-            ],
             product_type = apple_product_type.app_extension,
             requires_signing_for_device = False,
             rpaths = [
@@ -389,13 +363,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".kext",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.kernel_extension,
-            # This was added for b/122473338, and should be removed eventually once symbol
-            # stripping is better-handled. It's redundant with an option added in the CROSSTOOL
-            # for the "kernel_extension" feature, but for now it's necessary to detect kext
-            # linking so CompilationSupport.java can apply the correct type of symbol stripping.
-            extra_linkopts = [
-                "-Wl,-kext",
-            ],
             product_type = apple_product_type.kernel_extension,
             requires_signing_for_device = False,
         ),
@@ -432,10 +399,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -453,10 +416,6 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -514,13 +473,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            extra_linkopts = [
-                "-e",
-                "_TVExtensionMain",
-                "-fapplication-extension",
-                "-framework",
-                "TVServices",
-            ],
             product_type = apple_product_type.app_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
@@ -558,10 +510,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -578,10 +526,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -626,9 +570,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
-            extra_linkopts = [
-                "-fapplication-extension",
-            ],
             product_type = apple_product_type.watch2_extension,
             rpaths = [
                 # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
@@ -666,10 +607,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.ui_test_bundle,
             requires_signing_for_device = False,
             rpaths = [
@@ -686,10 +623,6 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
-            extra_linkopts = [
-                "-framework",
-                "XCTest",
-            ],
             product_type = apple_product_type.unit_test_bundle,
             requires_signing_for_device = False,
             rpaths = [

@@ -955,12 +955,26 @@ def _watchos_extension_impl(ctx):
     )
     product_type = rule_descriptor.product_type
 
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
+    )
+
     # This extension should be treated as an App Extension instead of a WatchKit Extension.
     if ctx.attr.application_extension:
         extra_linkopts = ["-e", "_NSExtensionMain"]
         product_type = apple_product_type.app_extension
     else:
         extra_linkopts = ["-e", "_WKExtensionMain"]
+
+    extra_linkopts.append("-fapplication-extension")
 
     # This is required when building with watchOS SDK 6.0 or higher but with a minimum
     # deployment version lower than 6.0. See
@@ -978,18 +992,6 @@ def _watchos_extension_impl(ctx):
             # it already resolved the symbol from the framework.
             "-Wl,-force_load,/usr/lib/libWKExtensionMainLegacy.a",
         )
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        bundle_id = bundle_id,
-        entitlements_file = ctx.file.entitlements,
-        platform_prerequisites = platform_prerequisites,
-        product_type = product_type,
-        provisioning_profile = provisioning_profile,
-        rule_label = label,
-        validation_mode = ctx.attr.entitlements_validation,
-    )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,

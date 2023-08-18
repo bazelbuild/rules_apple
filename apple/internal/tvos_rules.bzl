@@ -992,10 +992,19 @@ def _tvos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    extra_linkopts = [
+        "-e",
+        "_TVExtensionMain",
+        "-fapplication-extension",
+        "-framework",
+        "TVServices",
+    ]
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
