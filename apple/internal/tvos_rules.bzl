@@ -178,8 +178,9 @@ def _tvos_application_impl(ctx):
         res_attrs = [
             "app_icons",
             "launch_images",
-            "strings",
+            "launch_storyboard",
             "resources",
+            "strings",
         ],
     )
 
@@ -290,7 +291,7 @@ def _tvos_application_impl(ctx):
             executable_name = executable_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
+            launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1348,6 +1349,15 @@ that this target depends on.
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
                 doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+            "launch_storyboard": attr.label(
+                allow_single_file = [".storyboard"],
+                doc = """
+The `.storyboard` file that should be used as the launch screen for the application. The provided
+file will be compiled into the appropriate format (`.storyboardc`) and placed in the root of the
+final bundle. The generated file will also be registered in the bundle's Info.plist under the key
+`UILaunchStoryboardName`.
+""",
             ),
             "_runner_template": attr.label(
                 cfg = "exec",
