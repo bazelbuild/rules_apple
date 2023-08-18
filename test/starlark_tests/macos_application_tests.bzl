@@ -19,6 +19,14 @@ load(
     "common",
 )
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -34,10 +42,6 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_target_actions_test",
 )
 
 def macos_application_test_suite(name):
@@ -245,6 +249,14 @@ def macos_application_test_suite(name):
         expected_values = {
             "LSMinimumSystemVersion": "11.0",
         },
+        tags = [name],
+    )
+
+    # Verify importing macOS versioned framework fails.
+    analysis_failure_message_test(
+        name = "{}_fails_with_versioned_framework_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
+        expected_error = "apple_dynamic_framework_import rule does not yet support macOS versioned frameworks.",
         tags = [name],
     )
 
