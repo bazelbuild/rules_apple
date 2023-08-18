@@ -17,6 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
