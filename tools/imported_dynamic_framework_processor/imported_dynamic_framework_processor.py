@@ -175,6 +175,23 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
 
 
+def _strip_bitcode(framework_binary, output_path):
+  """Strips any bitcode from the framework binary."""
+  path_from_framework = _relpath_from_framework(framework_binary)
+  if not path_from_framework:
+    return 1
+
+  temp_framework_path = os.path.join(output_path, path_from_framework)
+  # Creating intermediate directories is only required for macOS framework
+  # binaries which are not at the top-level directory, and are located under:
+  # '.framework/Versions/<version_id>/<framework_binary>'
+  temp_framework_dirs = os.path.dirname(temp_framework_path)
+  if not os.path.exists(temp_framework_dirs):
+    os.makedirs(temp_framework_dirs)
+
+  bitcode_strip.invoke(framework_binary, temp_framework_path)
+
+
 def _strip_or_copy_binary(
     *,
     framework_binary: str,
@@ -222,8 +239,7 @@ def _strip_or_copy_binary(
                             slices_needed)
 
   if strip_bitcode:
-    output_binary = os.path.join(output_path, os.path.basename(framework_binary))
-    bitcode_strip.invoke(output_binary, output_binary)
+    _strip_bitcode(framework_binary, output_path)
 
 
 def _get_parser():
@@ -318,6 +334,7 @@ def main() -> None:
         _strip_or_copy_binary(
             framework_binary=framework_file,
             output_path=args.temp_path,
+            strip_bitcode=args.strip_bitcode,
             requested_archs=args.slice)
       else:
         _copy_framework_file(
