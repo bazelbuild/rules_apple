@@ -16,8 +16,8 @@
 import unittest
 from unittest import mock
 
-from build_bazel_rules_apple.tools.imported_dynamic_framework_processor import imported_dynamic_framework_processor
-from build_bazel_rules_apple.tools.wrapper_common import lipo
+from tools.imported_dynamic_framework_processor import imported_dynamic_framework_processor
+from tools.wrapper_common import lipo
 
 
 class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
@@ -32,6 +32,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       imported_dynamic_framework_processor._strip_or_copy_binary(
           framework_binary="/tmp/path/to/fake/binary",
           output_path="/tmp/path/to/outputs",
+          strip_bitcode=False,
           requested_archs=["x86_64"])
 
   @mock.patch.object(lipo, "find_archs_for_binaries")
@@ -44,6 +45,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       imported_dynamic_framework_processor._strip_or_copy_binary(
           framework_binary="/tmp/path/to/fake/binary",
           output_path="/tmp/path/to/outputs",
+          strip_bitcode=False,
           requested_archs=["arm64"])
 
   @mock.patch.object(lipo, "find_archs_for_binaries")
@@ -57,6 +59,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     imported_dynamic_framework_processor._strip_or_copy_binary(
         framework_binary="/tmp/path/to/fake/binary",
         output_path="/tmp/path/to/outputs",
+        strip_bitcode=False,
         requested_archs=["arm64"])
 
     mock_copy_framework_file.assert_not_called()
@@ -76,6 +79,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     imported_dynamic_framework_processor._strip_or_copy_binary(
         framework_binary="/tmp/path/to/fake/binary",
         output_path="/tmp/path/to/outputs",
+        strip_bitcode=False,
         requested_archs=["arm64"])
 
     mock_strip_framework_binary.assert_not_called()
@@ -95,6 +99,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     imported_dynamic_framework_processor._strip_or_copy_binary(
         framework_binary="/tmp/path/to/fake/binary",
         output_path="/tmp/path/to/outputs",
+        strip_bitcode=False,
         requested_archs=["x86_64", "arm64"])
 
     mock_strip_framework_binary.assert_not_called()

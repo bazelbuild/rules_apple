@@ -193,8 +193,8 @@ def main() -> None:
 
   _strip_or_copy_binary(
       framework_binary=args.framework_binary,
-      strip_bitcode=args.strip_bitcode,
       output_path=args.temp_path,
+      strip_bitcode=args.strip_bitcode,
       requested_archs=args.slice)
 
   for framework_file in args.framework_file:
