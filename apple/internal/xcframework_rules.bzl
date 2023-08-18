@@ -484,6 +484,7 @@ def _apple_xcframework_impl(ctx):
         ctx,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
             # iOS, tvOS and watchOS single target app framework binaries live in
             # Application.app/Frameworks/Framework.framework/Framework

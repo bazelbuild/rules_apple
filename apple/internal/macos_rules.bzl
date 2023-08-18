@@ -215,6 +215,7 @@ def _macos_application_impl(ctx):
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -483,6 +484,7 @@ def _macos_bundle_impl(ctx):
         ctx,
         bundle_loader = ctx.attr.bundle_loader,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = ["-bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -707,6 +709,7 @@ def _macos_extension_impl(ctx):
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -946,6 +949,7 @@ def _macos_quick_look_plugin_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -1176,6 +1180,7 @@ def _macos_kernel_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -1395,6 +1400,7 @@ def _macos_spotlight_importer_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1612,6 +1618,7 @@ def _macos_xpc_service_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1811,6 +1818,7 @@ def _macos_command_line_application_impl(ctx):
         ctx,
         # Command-line applications do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1943,6 +1951,7 @@ def _macos_dylib_impl(ctx):
         ctx,
         # Dynamic libraries do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = ["-dynamiclib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -2621,6 +2630,7 @@ def _macos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -2885,6 +2895,7 @@ def _macos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,

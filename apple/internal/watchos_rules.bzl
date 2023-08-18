@@ -208,6 +208,7 @@ def _watchos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -469,6 +470,7 @@ def _watchos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -1006,6 +1008,7 @@ def _watchos_extension_impl(ctx):
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -1431,6 +1434,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
