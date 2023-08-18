@@ -101,9 +101,9 @@ def _register_binary_linking_action(
         entitlements = None,
         extra_linkopts = [],
         extra_link_inputs = [],
-        platform_prerequisites,
-        rule_descriptor,
-        stamp):
+        platform_prerequisites = None,
+        rule_descriptor = None,
+        stamp = -1):
     """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -126,7 +126,9 @@ def _register_binary_linking_action(
             of the binary.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
-        platform_prerequisites: The platform prerequisites.
+        platform_prerequisites: The platform prerequisites if one exists for the given rule. This
+            will define additional linking sections for entitlements. If `None`, entitlements
+            sections are not included.
         rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
             will define additional parameters required for linking, such as `rpaths`. If `None`,
             these additional parameters will not be set on the linked binary.
