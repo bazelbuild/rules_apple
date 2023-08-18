@@ -76,7 +76,7 @@ def ios_application_test_suite(name):
     analysis_target_tree_artifacts_outputs_test(
         name = "{}_tree_artifact_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        expected_outputs = ["app_minimal.app"],
+        expected_outputs = ["app_minimal_archive-root/Payload/app_minimal.app"],
         tags = [name],
     )
 
