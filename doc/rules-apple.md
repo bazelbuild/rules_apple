@@ -145,6 +145,18 @@ apple_static_library(<a href="#apple_static_library-name">name</a>, <a href="#ap
 </pre>
 
 
+This rule produces single- or multi-architecture ("fat") static libraries targeting
+Apple platforms.
+
+The `lipo` tool is used to combine files of multiple architectures. One of
+several flags may control which architectures are included in the output,
+depending on the value of the `platform_type` attribute.
+
+NOTE: In most situations, users should prefer the platform- and
+product-type-specific rules, such as `apple_static_xcframework`. This
+rule is being provided for the purpose of transitioning users from the built-in
+implementation of `apple_static_library` in Bazel core so that it can be removed.
+
 
 **ATTRIBUTES**
 
@@ -283,7 +295,7 @@ apple_xcframework(<a href="#apple_xcframework-name">name</a>, <a href="#apple_xc
                   <a href="#apple_xcframework-stamp">stamp</a>, <a href="#apple_xcframework-tvos">tvos</a>, <a href="#apple_xcframework-umbrella_header">umbrella_header</a>, <a href="#apple_xcframework-version">version</a>)
 </pre>
 
-
+Builds and bundles an XCFramework for third-party distribution.
 
 **ATTRIBUTES**
 
