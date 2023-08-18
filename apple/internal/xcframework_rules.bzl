@@ -72,6 +72,10 @@ load(
     "rule_attrs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -103,7 +107,6 @@ load(
     "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
@@ -755,8 +758,13 @@ def _apple_xcframework_impl(ctx):
     ]
     return processor_output
 
-apple_xcframework = rule(
-    attrs = dicts.add(
+apple_xcframework = rule_factory.create_apple_rule(
+    cfg = None,
+    doc = "Builds and bundles an XCFramework for third-party distribution.",
+    implementation = _apple_xcframework_impl,
+    predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
+    toolchains = [],
+    attrs = [
         rule_attrs.common_tool_attrs,
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
@@ -767,9 +775,6 @@ apple_xcframework = rule(
             requires_legacy_cc_toolchain = False,
         ),
         {
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
             "_environment_plist_files": attr.label_list(
                 default = [
                     "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
@@ -879,10 +884,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
         },
-    ),
-    fragments = ["apple", "objc", "cpp"],
-    implementation = _apple_xcframework_impl,
-    outputs = {"archive": "%{name}.xcframework.zip"},
+    ],
 )
 
 def _apple_static_xcframework_impl(ctx):
@@ -1090,10 +1092,13 @@ def _apple_static_xcframework_impl(ctx):
         ),
     ]
 
-apple_static_xcframework = rule(
-    implementation = _apple_static_xcframework_impl,
+apple_static_xcframework = rule_factory.create_apple_rule(
+    cfg = None,
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
-    attrs = dicts.add(
+    implementation = _apple_static_xcframework_impl,
+    predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
+    toolchains = [],
+    attrs = [
         rule_attrs.common_tool_attrs,
         rule_attrs.static_library_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
@@ -1106,9 +1111,6 @@ The desired name of the executable, if the bundle has an executable. If this att
 then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
 the target will be used instead.
 """,
-            ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
             "_environment_plist_ios": attr.label(
                 allow_single_file = True,
@@ -1190,7 +1192,5 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
         },
-    ),
-    fragments = ["apple", "objc", "cpp"],
-    outputs = {"archive": "%{name}.xcframework.zip"},
+    ],
 )

@@ -19,6 +19,10 @@ load(
     "rule_attrs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "rule_factory",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
 )
@@ -30,11 +34,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 def _apple_universal_binary_impl(ctx):
     inputs = [
@@ -67,9 +66,14 @@ def _apple_universal_binary_impl(ctx):
         ),
     ]
 
-apple_universal_binary = rule(
+apple_universal_binary = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_universal_binary_rule_transition,
+    doc = """
+This rule produces a multi-architecture ("fat") binary targeting Apple platforms.
+The `lipo` tool is used to combine built binaries of multiple architectures.
+""",
     implementation = _apple_universal_binary_impl,
-    attrs = dicts.add(
+    attrs = [
         rule_attrs.common_attrs,
         rule_attrs.platform_attrs(),
         {
@@ -99,12 +103,5 @@ additional flags when invoking Bazel.
 """,
             ),
         },
-    ),
-    cfg = transition_support.apple_universal_binary_rule_transition,
-    doc = """
-This rule produces a multi-architecture ("fat") binary targeting Apple platforms.
-The `lipo` tool is used to combine built binaries of multiple architectures.
-""",
-    fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    ],
 )

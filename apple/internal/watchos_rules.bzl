@@ -1579,9 +1579,10 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         WatchosApplicationBundleInfo(),
     ] + processor_result.providers
 
-watchos_application = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_application_impl,
+watchos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS Application.",
+    implementation = _watchos_application_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
@@ -1645,9 +1646,10 @@ that this target depends on.
     ],
 )
 
-watchos_extension = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_extension_impl,
+watchos_extension = rule_factory.create_apple_rule(
     doc = "Builds and bundles an watchOS Extension.",
+    implementation = _watchos_extension_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1704,12 +1706,13 @@ that this target depends on.
     ],
 )
 
-watchos_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_framework_impl,
+watchos_framework = rule_factory.create_apple_rule(
     doc = """Builds and bundles a watchOS Dynamic Framework.
 
 To use this framework for your extensions, list it in the `frameworks` attributes of
 those `watchos_extension` rules.""",
+    implementation = _watchos_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1766,9 +1769,10 @@ that this target depends on.
     ],
 )
 
-watchos_dynamic_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_dynamic_framework_impl,
+watchos_dynamic_framework = rule_factory.create_apple_rule(
     doc = "Builds and bundles a watchOS dynamic framework that is consumable by Xcode.",
+    implementation = _watchos_dynamic_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1827,10 +1831,11 @@ that this target depends on.
 
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
-watchos_static_framework = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _watchos_static_framework_impl,
+watchos_static_framework = rule_factory.create_apple_rule(
     cfg = transition_support.apple_platforms_rule_base_transition,
     doc = "Builds and bundles a watchOS Static Framework.",
+    implementation = _watchos_static_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,

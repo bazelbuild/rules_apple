@@ -87,9 +87,10 @@ def _ios_unit_test_impl(ctx):
     ]
 
 # Declare it with an underscore so it shows up that way in queries.
-_ios_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_ui_test_bundle_impl,
+_ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
+    implementation = _ios_ui_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -143,7 +144,6 @@ that this target depends on.
 ios_internal_ui_test_bundle = _ios_internal_ui_test_bundle
 
 ios_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _ios_ui_test_impl,
     doc = """iOS UI Test rule.
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
@@ -160,13 +160,15 @@ The following is a list of the `ios_ui_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
+    implementation = _ios_ui_test_impl,
     platform_type = "ios",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
-_ios_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule_with_attrs(
-    implementation = _ios_unit_test_bundle_impl,
+_ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
+    implementation = _ios_unit_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -218,7 +220,6 @@ that this target depends on.
 ios_internal_unit_test_bundle = _ios_internal_unit_test_bundle
 
 ios_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _ios_unit_test_impl,
     doc = """Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
@@ -240,5 +241,6 @@ To run the same test on multiple simulators/devices see
 The following is a list of the `ios_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).""",
+    implementation = _ios_unit_test_impl,
     platform_type = "ios",
 )

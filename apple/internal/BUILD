@@ -90,10 +90,9 @@ bzl_library(
     deps = [
         ":linking_support",
         ":rule_attrs",
+        ":rule_factory",
         ":transition_support",
         "//apple:providers",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )
 
@@ -368,8 +367,6 @@ bzl_library(
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )
 
@@ -689,6 +686,7 @@ bzl_library(
         ":processor",
         ":resources",
         ":rule_attrs",
+        ":rule_factory",
         ":rule_support",
         ":swift_support",
         ":transition_support",
@@ -696,7 +694,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/utils:files",
-        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
