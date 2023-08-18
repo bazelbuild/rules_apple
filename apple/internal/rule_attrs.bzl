@@ -73,6 +73,13 @@ _COMMON_TOOL_ATTRS = dicts.add(
     apple_toolchain_utils.shared_attrs(),
 )
 
+# Returns required attribute to use Starlark defined custom transitions
+_CUSTOM_TRANSITION_ALLOWLIST_ATTR = {
+    "_allowlist_function_transition": attr.label(
+        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+    ),
+}
+
 def _cc_toolchain_forwarder_attrs(*, deps_cfg):
     """Returns dictionary with the cc_toolchain_forwarder attribute for toolchain and platform info.
 
@@ -611,6 +618,7 @@ _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBun
 rule_attrs = struct(
     common_attrs = _COMMON_ATTRS,
     common_tool_attrs = _COMMON_TOOL_ATTRS,
+    custom_transition_allowlist_attr = _CUSTOM_TRANSITION_ALLOWLIST_ATTR,
     cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
     static_library_linking_attrs = _static_library_linking_attrs,
     binary_linking_attrs = _binary_linking_attrs,
