@@ -128,8 +128,7 @@ def _create_apple_rule(
 
     # Add required attribute for allowlisting custom Starlark transition.
     # attrs is redefined to allow define their own custom transition allowlist attr.
-    if cfg != apple_common.multi_arch_split:
-        attrs = [rule_attrs.custom_transition_allowlist_attr] + attrs
+    attrs = [rule_attrs.custom_transition_allowlist_attr] + attrs
 
     return rule(
         implementation = implementation,
