@@ -30,7 +30,7 @@ export MIN_OS_TVOS_NPLUS1="13.0"
 export MIN_OS_MACOS="10.13"
 export MIN_OS_MACOS_NPLUS1="10.14"
 
-export MIN_OS_WATCHOS="4.0"
+export MIN_OS_WATCHOS="7.0"
 
 # Usage: assert_exists <path>
 #
