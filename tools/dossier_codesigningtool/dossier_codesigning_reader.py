@@ -167,9 +167,8 @@ EMBEDDED_RELATIVE_PATH_KEY = 'embedded_relative_path'
 # The filename for a manifest within a manifest
 MANIFEST_FILENAME = 'manifest.json'
 
-# Allowed ipa subdirectories by Apple.
-IPA_SUBDIRS = [
-    'Payload',
+# All optional ipa subdirectories by Apple; 'Payload' is required of all IPAs.
+IPA_OPTIONAL_SUBDIRS = [
     'SwiftSupport',
     'WatchKitSupport2',
     'MessagesApplicationExtensionSupport',
@@ -417,12 +416,7 @@ def _extract_ipa(working_dir, unsigned_ipa_path):
   Raises:
     OSError: when app bundle is not found in extracted IPA.
   """
-  # The Python zipfile extractall method silently removes file permission bits.
-  # See https://bugs.python.org/issue15795. As workaround, use shell command
-  # unzip to support legacy usage.
-  # TODO(b/262610182): Consider replacing the `unzip` command with `ditto``.
-  subprocess.check_call(
-      ['unzip', '-q', '-o', unsigned_ipa_path, '-d', working_dir])
+  subprocess.check_call(['ditto', '-x', '-k', unsigned_ipa_path, working_dir])
 
   extracted_bundles = glob.glob('%s/Payload/*.app' % working_dir)
   if len(extracted_bundles) != 1:
@@ -438,13 +432,28 @@ def _package_ipa(working_dir, output_ipa):
     working_dir: String, the path to the folder which contains contents suitable
       for an unzipped IPA archive.
     output_ipa: String, a path to where the zipped IPA file should be placed.
+
+  Raises:
+    OSError: If a recognized 'Payload' sub directory could not be found.
   """
   print('Archiving IPA package %s.' % output_ipa)
-  # TODO(b/262610182): Consider replacing the `zip` command with `ditto``.
+  # Check that Payload exists; if not, then it can be assumed that we do not
+  # have the means to form a valid IPA.
+  ipa_payload_path = os.path.join(working_dir, 'Payload')
+  if not os.path.exists(ipa_payload_path):
+    raise OSError(
+        f'Could not find a Payload to build a valid IPA in: {ipa_payload_path}')
+  ipa_source_dirs = [ipa_payload_path]
+  for ipa_optional_subdir in IPA_OPTIONAL_SUBDIRS:
+    # Check that the optional sub directory exists within the working directory
+    # before adding it to the ditto cmd, to avoid noisy diagnostic messaging
+    # from ditto's stderr output.
+    ipa_subdir_path = os.path.join(working_dir, ipa_optional_subdir)
+    if os.path.exists(ipa_subdir_path):
+      ipa_source_dirs.append(ipa_subdir_path)
   subprocess.check_call(
-      ['zip', '--symlinks', '--quiet', '--recurse-paths', output_ipa] +
-      IPA_SUBDIRS,
-      cwd=working_dir)
+      ['ditto', '-c', '-k', '--norsrc', '--noextattr', '--keepParent'] +
+      ipa_source_dirs + [output_ipa])
 
 
 def _sign_bundle_with_manifest(
