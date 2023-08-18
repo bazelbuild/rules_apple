@@ -222,6 +222,42 @@ EOF
   assert_equals "2" "$atlasc_count"
 }
 
+function test_implementation_deps_resourcess() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "shared_lib",
+    data = [
+      "shared_res/foo.txt",
+    ],
+)
+objc_library(
+    name = "app_lib",
+    implementation_deps = [
+      ":lib",
+      ":shared_lib",
+    ],
+)
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":app_lib"],
+)
+EOF
+
+  mkdir -p app/shared_res
+  echo shared_res > app/shared_res/foo.txt
+
+    do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/foo.txt"
+}
+
 # Verify that the warning about 76x76 icons doesn't get displayed.
 function test_actool_hides_warning_about_76x76_icons() {
   create_common_files
