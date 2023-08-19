@@ -32,6 +32,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
 licenses(["notice"])
 
@@ -1317,15 +1318,37 @@ tvos_application(
 
 objc_library(
     name = "objc_lib_with_inner_lib_with_tvos_framework",
-    srcs = ["//test/starlark_tests/resources:main.m"],
+    srcs = [":objc_lib_with_inner_lib_with_tvos_framework_file"],
     tags = common.fixture_tags,
     deps = [":objc_lib_with_tvos_framework"],
 )
 
+write_file(
+    name = "objc_lib_with_inner_lib_with_tvos_framework_file",
+    out = "objc_lib_with_inner_lib_with_tvos_framework_file.m",
+    content = ["""
+int objc_lib_with_inner_lib_with_tvos_framework_function() {
+  return 0;
+}
+"""],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "objc_lib_with_tvos_framework",
-    srcs = ["//test/starlark_tests/resources:main.m"],
+    srcs = [":objc_lib_with_tvos_framework_file"],
     data = [":fmwk_with_structured_resources"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "objc_lib_with_tvos_framework_file",
+    out = "objc_lib_with_tvos_framework_file.m",
+    content = ["""
+int main() {
+  return 0;
+}
+"""],
     tags = common.fixture_tags,
 )
 
