@@ -68,7 +68,7 @@ def _codesignopts_from_rule_ctx(ctx):
     # buildifier: disable=print
     print("CTX ATTR: {v}".format(v = ctx.attr))
     # buildifier: disable=print
-    print("CTX CONFIGURATION: {v}".format(v = ctx.configuration))
+    print("CTX CONFIGURATION default_shell_env: {v}".format(v = ctx.configuration.default_shell_env))
     return [
         ctx.expand_make_variables("codesignopts", opt, {})
         for opt in ctx.attr.codesignopts
