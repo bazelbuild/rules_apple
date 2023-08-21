@@ -301,7 +301,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, "_swift_toolchain")
+        swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
