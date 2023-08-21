@@ -27,6 +27,7 @@ load(
     "//apple:resources.bzl",
     "apple_core_data_model",
     "apple_core_ml_library",
+    "swift_apple_core_ml_library",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -1313,7 +1314,7 @@ write_file(
     out = "core_ml_objc_lib.m",
     content = ["""
 #import <Foundation/Foundation.h>
-#import "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/SampleCoreML.h"
+#import "test/starlark_tests/targets_under_test/apple/SampleCoreML.h"
 
 @interface ObjcLib: NSObject
 @end
@@ -1332,7 +1333,7 @@ swift_library(
     srcs = [":core_ml_swift_lib_src"],
     tags = common.fixture_tags,
     deps = [
-        ":SampleCoreML",
+        ":SampleSwiftCoreML",
     ],
 )
 
@@ -1341,10 +1342,10 @@ write_file(
     out = "swift_lib.swift",
     content = ["""
 import Foundation
-import third_party_bazel_rules_rules_apple_test_starlark_tests_targets_under_test_apple_SampleCoreML
+import test_starlark_tests_targets_under_test_apple_SampleSwiftCoreML
 
 public struct SwiftLib {
-  public var mySample = sample()
+  public var mySample = try! sample(configuration: .init())
 }
 """],
     tags = common.fixture_tags,
@@ -1352,6 +1353,12 @@ public struct SwiftLib {
 
 apple_core_ml_library(
     name = "SampleCoreML",
+    mlmodel = "//test/testdata/resources:sample.mlmodel",
+    tags = common.fixture_tags,
+)
+
+swift_apple_core_ml_library(
+    name = "SampleSwiftCoreML",
     mlmodel = "//test/testdata/resources:sample.mlmodel",
     tags = common.fixture_tags,
 )
