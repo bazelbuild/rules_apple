@@ -714,8 +714,6 @@ def _post_process_and_sign_archive_action(
     print("Ipa post processor value: {v}".format(v = ipa_post_processor))
     # buildifier: disable=print
     print("Actions args: {v}".format(v = actions.args))
-    # buildifier: disable=print
-    print("Actions run shell env: {v}".format(v = actions.run_shell.env))
     run_on_darwin = any([signing_command_lines, ipa_post_processor_path])
     if run_on_darwin:
         apple_support.run(
@@ -734,6 +732,7 @@ def _post_process_and_sign_archive_action(
             progress_message = progress_message,
             tools = processing_tools,
             xcode_config = platform_prerequisites.xcode_version_config,
+            env = env,
         )
     else:
         actions.run(
