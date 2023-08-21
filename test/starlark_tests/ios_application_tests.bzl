@@ -747,6 +747,51 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # TODO(b/270375044): Add a test to handle the absence of a bundle_id when the attribute is made
+    # into a not mandatory attribute to accomodate shared_capabilities.
+
+    analysis_failure_message_test(
+        name = "{}_empty_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_empty_bundle_id",
+        expected_error = "Empty segment in bundle_id: \"\"",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_just_dot_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_just_dot_bundle_id",
+        expected_error = "Empty segment in bundle_id: \".\"",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_leading_dot_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_leading_dot_bundle_id",
+        expected_error = "Empty segment in bundle_id: \".my.bundle.id\"",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_trailing_dot_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_trailing_dot_bundle_id",
+        expected_error = "Empty segment in bundle_id: \"my.bundle.id.\"",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_double_dot_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_double_dot_bundle_id",
+        expected_error = "Empty segment in bundle_id: \"my..bundle.id\"",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_invalid_character_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_invalid_character_bundle_id",
+        expected_error = "Invalid character(s) in bundle_id: \"my#bundle\"",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
