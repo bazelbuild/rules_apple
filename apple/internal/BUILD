@@ -113,10 +113,7 @@ bzl_library(
 bzl_library(
     name = "apple_toolchains",
     srcs = ["apple_toolchains.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-        "//test/starlark_tests:__subpackages__",
-    ],
+    visibility = ["//apple:__subpackages__"],
     deps = [
         "@bazel_skylib//rules:common_settings",
     ],
@@ -594,9 +591,7 @@ bzl_library(
 bzl_library(
     name = "swift_support",
     srcs = ["swift_support.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
+    visibility = ["//apple:__subpackages__"],
     deps = [
         "//apple/internal/aspects:swift_usage_aspect",
     ],
