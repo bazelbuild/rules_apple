@@ -2964,7 +2964,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
     ],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
     test_host = ":app",
     test_host_is_bundle_loader = False,
     deps = [

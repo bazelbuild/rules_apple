@@ -591,7 +591,7 @@ objc_library(
     name = "objc_linkopt_lib",
     srcs = ["@bazel_tools//tools/objc:dummy.c"],
     linkopts = ["-Wl,-framework,CoreMotion"],
-    tags = FIXTURE_TAGS,
+    tags = common.fixture_tags,
 )
 
 objc_library(

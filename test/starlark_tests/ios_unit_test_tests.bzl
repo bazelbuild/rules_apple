@@ -39,7 +39,7 @@ load(
     "infoplist_contents_test",
 )
 load(
-    ":rules/action_command_line_test.bzl",
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
     "action_command_line_test",
 )
 
@@ -229,7 +229,7 @@ def ios_unit_test_test_suite(name):
         expected_argv = [
             "-bundle_loader",
             "app_lipobin",
-            "-Wl,-framework,CoreMotion",
+            "-framework CoreMotion",
         ],
         mnemonic = "ObjcLink",
         tags = [name],
@@ -241,7 +241,7 @@ def ios_unit_test_test_suite(name):
         not_expected_argv = [
             "-bundle_loader",
             "app_lipobin",
-            "-Wl,-framework,CoreMotion",
+            "-framework CoreMotion",
         ],
         mnemonic = "ObjcLink",
         tags = [name],
