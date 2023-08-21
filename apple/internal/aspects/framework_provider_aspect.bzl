@@ -66,14 +66,14 @@ framework_provider_aspect = aspect(
     implementation = _framework_provider_aspect_impl,
     attr_aspects = _FRAMEWORK_PROVIDERS_ASPECT_ATTRS,
     doc = """
-Aspect that collects frameworks providers from non-Apple rules targets
-(e.g. objc_library) to be packaged within the top-level application bundle .
+Aspect that collects transitive `AppleFrameworkImportInfo` providers from non-Apple rules targets
+(e.g. `objc_library` or `swift_library`) to be packaged within the top-level application bundle.
 
-Framework targets supported are:
-  - `apple_static_framework_import`
-  - `apple_dynamic_framework_import`
-  - `ios_framework`
-  - `tvos_framework`
-  - `watchos_framework`
+Supported framework and XCFramework rules are:
+
+*   `apple_dynamic_framework_import`
+*   `apple_dynamic_xcframework_import`
+*   `apple_static_framework_import`
+*   `apple_static_xcframework_import`
 """,
 )
