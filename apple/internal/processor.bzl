@@ -716,7 +716,7 @@ def _process(
         provisioning_profile = None,
         rule_descriptor,
         rule_label,
-        env = {}):
+        env = None):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
