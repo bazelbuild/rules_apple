@@ -350,8 +350,6 @@ def _ios_application_impl(ctx):
             ),
         )
 
-    # buildifier: disable=print
-    print("_ios_application_impl processor call. ctx.configuration.default_shell_env: {v}".format(v = ctx.configuration.default_shell_env))
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,

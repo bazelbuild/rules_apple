@@ -63,12 +63,6 @@ def _codesignopts_from_rule_ctx(ctx):
     Returns:
       The list of codesignopts
     """
-    # buildifier: disable=print
-    print("CTX VARIABLES: {v}".format(v = ctx.var))
-    # buildifier: disable=print
-    print("CTX ATTR: {v}".format(v = ctx.attr))
-    # buildifier: disable=print
-    print("CTX CONFIGURATION default_shell_env: {v}".format(v = ctx.configuration.default_shell_env))
     return [
         ctx.expand_make_variables("codesignopts", opt, {})
         for opt in ctx.attr.codesignopts
@@ -706,14 +700,6 @@ def _post_process_and_sign_archive_action(
     if should_compress:
         arguments.append("should_compress")
 
-    # buildifier: disable=print
-    print("Some arguments: {args}".format(args = arguments))
-    # buildifier: disable=print
-    print("Some features: {f}".format(f = features))
-    # buildifier: disable=print
-    print("Ipa post processor value: {v}".format(v = ipa_post_processor))
-    # buildifier: disable=print
-    print("Actions args: {v}".format(v = actions.args))
     run_on_darwin = any([signing_command_lines, ipa_post_processor_path])
     if run_on_darwin:
         apple_support.run(
