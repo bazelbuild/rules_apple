@@ -513,7 +513,7 @@ genrule(
             "ios_xcframework_bundling_static_fmwks",
         ]
         for platform_id in [
-            "ios-arm64",
+            "ios-arm64_arm64e",
             "ios-arm64_x86_64-simulator",
         ]
     ] + ["ios_xcframework_bundling_static_fmwks.xcframework/Info.plist"],
@@ -905,10 +905,13 @@ apple_static_xcframework(
             "x86_64",
             "arm64",
         ],
-        "device": ["arm64"],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
     },
     minimum_os_versions = {
-        "ios": "9.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -937,7 +940,7 @@ genrule(
             "resource_bundle.bundle/Info.plist",
         ]
         for platform_id in [
-            "ios-arm64",
+            "ios-arm64_arm64e",
             "ios-arm64_x86_64-simulator",
         ]
     ] + ["ios_static_xcframework_with_resources.xcframework/Info.plist"],
@@ -970,10 +973,13 @@ apple_static_xcframework(
             "x86_64",
             "arm64",
         ],
-        "device": ["arm64"],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
     },
     minimum_os_versions = {
-        "ios": "9.0",
+        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
