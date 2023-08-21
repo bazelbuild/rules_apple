@@ -350,6 +350,8 @@ def _ios_application_impl(ctx):
             ),
         )
 
+    # buildifier: disable=print
+    print("_ios_application_impl processor call. ctx.configuration.default_shell_env: {v}".format(v = ctx.configuration.default_shell_env))
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -369,6 +371,7 @@ def _ios_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     executable = outputs.executable(
@@ -618,6 +621,7 @@ def _ios_app_clip_impl(ctx):
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     executable = outputs.executable(
@@ -878,6 +882,7 @@ def _ios_framework_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [
@@ -1099,6 +1104,7 @@ def _ios_extension_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [
@@ -1341,6 +1347,7 @@ def _ios_dynamic_framework_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     providers = processor_result.providers
@@ -1499,6 +1506,7 @@ def _ios_static_framework_impl(ctx):
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [
@@ -1673,6 +1681,7 @@ def _ios_imessage_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [
@@ -1875,6 +1884,7 @@ def _ios_imessage_extension_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [
@@ -2048,6 +2058,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        env = ctx.configuration.default_shell_env,
     )
 
     return [

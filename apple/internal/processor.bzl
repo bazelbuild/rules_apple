@@ -476,7 +476,8 @@ def _bundle_post_process_and_sign(
         process_and_sign_template,
         provisioning_profile,
         rule_descriptor,
-        rule_label):
+        rule_label,
+        env = {}):
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
@@ -518,6 +519,14 @@ def _bundle_post_process_and_sign(
     transitive_signed_frameworks = depset(transitive = signed_frameworks_depsets)
 
     if tree_artifact_is_enabled:
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is true Some features: {v}".format(v = features))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is true Some platform_prerequisites: {v}".format(v = platform_prerequisites))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is true Some process_and_sign_template: {v}".format(v = process_and_sign_template))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is true Some features: {v}".format(v = features))
         extra_input_files = []
 
         if entitlements:
@@ -563,6 +572,14 @@ def _bundle_post_process_and_sign(
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is false Some features: {v}".format(v = features))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is false Some platform_prerequisites: {v}".format(v = platform_prerequisites))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is false Some process_and_sign_template: {v}".format(v = process_and_sign_template))
+        # buildifier: disable=print
+        print("tree_artifact_is_enabled is false Some features: {v}".format(v = features))
         # This output, while an intermediate artifact not exposed through the AppleBundleInfo
         # provider, is used by Tulsi for custom processing logic. (b/120221708)
         unprocessed_archive = intermediates.file(
@@ -683,6 +700,7 @@ def _bundle_post_process_and_sign(
                 resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
+                env = env
             )
 
 def _process(
