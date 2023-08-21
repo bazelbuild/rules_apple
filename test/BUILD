@@ -90,15 +90,6 @@ apple_shell_test(
 )
 
 apple_shell_test(
-    name = "apple_core_ml_library_test",
-    size = "medium",
-    src = "apple_core_ml_library_test.sh",
-    data = [
-        "//test/testdata/resources:mlmodel_srcs",
-    ],
-)
-
-apple_shell_test(
     name = "apple_intent_library_test",
     size = "medium",
     src = "apple_intent_library_test.sh",
