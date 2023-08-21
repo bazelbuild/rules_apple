@@ -158,6 +158,10 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
+    deps = [
+        "//apple:capabilities",
+        "//apple:providers",
+    ],
 )
 
 bzl_library(
