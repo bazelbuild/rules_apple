@@ -38,6 +38,10 @@ load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
+)
 
 def ios_unit_test_test_suite(name):
     """Test suite for ios_unit_test.
@@ -217,6 +221,29 @@ def ios_unit_test_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
+    )
+
+    action_command_line_test(
+        name = "{}_bundle_loader_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test.__internal__.__test_bundle",
+        expected_argv = [
+            "-bundle_loader",
+            "app_lipobin",
+            "-framework CoreMotion",
+        ],
+        mnemonic = "ObjcLink",
+        tags = [name],
+    )
+
+    action_command_line_test(
+        name = "{}_no_bundle_loader_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_no_bundle_loader.__internal__.__test_bundle",
+        not_expected_argv = [
+            "-bundle_loader",
+            "app_lipobin",
+            "-framework CoreMotion",
+        ],
+        mnemonic = "ObjcLink",
         tags = [name],
     )
 

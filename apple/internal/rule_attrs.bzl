@@ -404,6 +404,13 @@ def _test_host_attrs(
             mandatory = is_mandatory,
             providers = providers,
         ),
+        "test_host_is_bundle_loader": attr.bool(
+            default = True,
+            doc = """
+Whether the 'test_host' should be used as the -bundle_loader to allow testing
+the symbols from the test host app
+""",
+        ),
     }
 
 def _bundle_id_attrs(*, is_mandatory):
