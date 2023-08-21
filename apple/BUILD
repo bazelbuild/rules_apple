@@ -20,6 +20,7 @@ licenses(["notice"])
         "ios_x86_64",
         "ios_armv7",
         "ios_arm64",
+        "ios_arm64e",
         "ios_sim_arm64",
         "tvos_x86_64",
         "tvos_arm64",
