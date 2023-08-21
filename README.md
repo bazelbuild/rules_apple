@@ -32,16 +32,12 @@ Minimal example:
 
 ```python
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-objc_library(
-    name = "Lib",
-    srcs = glob([
-        "**/*.h",
-        "**/*.m",
-    ]),
-    data = [
-        ":Main.storyboard",
-    ],
+swift_library(
+    name = "MyLibrary",
+    srcs = glob(["**/*.swift"]),
+    data = [":Main.storyboard"],
 )
 
 # Links code from "deps" into an executable, collects and compiles resources
@@ -50,10 +46,13 @@ objc_library(
 ios_application(
     name = "App",
     bundle_id = "com.example.app",
-    families = ["iphone", "ipad"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
     infoplists = [":Info.plist"],
     minimum_os_version = "15.0",
-    deps = [":Lib"],
+    deps = [":MyLibrary"],
 )
 ```
 
