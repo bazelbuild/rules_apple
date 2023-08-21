@@ -173,6 +173,7 @@ def _register_binary_linking_action(
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device:
             fail("entitlements should be None when targeting a device")
+
         # Add an entitlements and a DER entitlements section, required of all Simulator builds that
         # define entitlements. This is never addressed by /usr/bin/codesign and must be done here.
         linkopts.append(
