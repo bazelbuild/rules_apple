@@ -1376,6 +1376,42 @@ tvos_application(
     ],
 )
 
+tvos_extension(
+    name = "ext_with_fmwks_from_objc_swift_libraries_using_data",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_tvos_framework",
+        ":swift_lib_with_tvos_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_framework(
+    name = "fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    bundle_id = "com.google.example.framework",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_tvos_framework",
+        ":swift_lib_with_tvos_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 tvos_extension(

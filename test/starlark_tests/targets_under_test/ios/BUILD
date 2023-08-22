@@ -4020,6 +4020,65 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+ios_extension(
+    name = "ext_with_fmwks_from_objc_swift_libraries_using_data",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+    hdrs = ["//test/starlark_tests/resources:common.h"],
+    bundle_id = "com.google.example.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_fmwks_from_objc_swift_libraries_using_data",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for importing XCFramework tests.
 

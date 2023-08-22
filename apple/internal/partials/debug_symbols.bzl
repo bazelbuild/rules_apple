@@ -20,6 +20,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -34,18 +38,6 @@ load(
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
-)
-
-_AppleDebugInfo = provider(
-    doc = "Private provider to propagate transitive debug symbol information.",
-    fields = {
-        "dsyms": """
-Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
-""",
-        "linkmaps": """
-Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
-""",
-    },
 )
 
 def _declare_linkmap(
@@ -280,9 +272,9 @@ def _debug_symbols_partial_impl(
         if AppleDsymBundleInfo in x
     ]
     deps_debug_info_providers = [
-        x[_AppleDebugInfo]
+        x[AppleDebugInfo]
         for x in debug_dependencies
-        if _AppleDebugInfo in x
+        if AppleDebugInfo in x
     ]
 
     debug_output_filename = bundle_name
@@ -361,7 +353,7 @@ def _debug_symbols_partial_impl(
             direct_dsyms = direct_dsym_bundles,
             transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),
-        _AppleDebugInfo(
+        AppleDebugInfo(
             dsyms = dsyms_group,
             linkmaps = linkmaps_group,
         ),

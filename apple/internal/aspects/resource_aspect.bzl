@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
@@ -42,6 +46,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
@@ -96,7 +101,7 @@ def _apple_resource_aspect_impl(target, ctx):
     if AppleResourceInfo in target:
         return []
 
-    providers = []
+    apple_resource_infos = []
     bucketize_args = {}
 
     # TODO(b/174858377) Follow up to see if we need to define output_discriminator for process_args
@@ -167,7 +172,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 resources = infoplists,
                 **bucketize_args
             )
-            providers.append(
+            apple_resource_infos.append(
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
@@ -190,7 +195,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 parent_dir_param = bundle_name,
                 **bucketize_args
             )
-            providers.append(
+            apple_resource_infos.append(
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
@@ -240,7 +245,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 resources = structured_files,
                 **bucketize_args
             )
-            providers.append(
+            apple_resource_infos.append(
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
@@ -257,7 +262,7 @@ def _apple_resource_aspect_impl(target, ctx):
             resources.bundle_relative_parent_dir,
             extension = "bundle",
         )
-        providers.append(
+        apple_resource_infos.append(
             resources.bucketize_typed(
                 collect_framework_import_bundle_files,
                 owner = owner,
@@ -267,38 +272,78 @@ def _apple_resource_aspect_impl(target, ctx):
         )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
-    inherited_providers = []
+    apple_debug_infos = []
+    apple_dsym_bundle_infos = []
+    inherited_apple_resource_infos = []
     provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
-            inherited_providers.extend([
+            targets = getattr(ctx.rule.attr, attr)
+
+            inherited_apple_resource_infos.extend([
                 x[AppleResourceInfo]
-                for x in getattr(ctx.rule.attr, attr)
+                for x in targets
                 if AppleResourceInfo in x and
                    # Filter Apple framework targets to avoid propagating and bundling
                    # framework resources to the top-level target (eg. ios_application).
                    AppleFrameworkBundleInfo not in x
             ])
-    if inherited_providers and bundle_name:
+
+            # Propagate AppleDebugInfo providers from dependencies required for the debug_symbols
+            # partial.
+            apple_debug_infos.extend([
+                x[AppleDebugInfo]
+                for x in targets
+                if AppleDebugInfo in x
+            ])
+            apple_dsym_bundle_infos.extend([
+                x[AppleDsymBundleInfo]
+                for x in targets
+                if AppleDsymBundleInfo in x
+            ])
+
+    if inherited_apple_resource_infos and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.
         merged_inherited_provider = resources.merge_providers(
             default_owner = owner,
-            providers = inherited_providers,
+            providers = inherited_apple_resource_infos,
         )
-        providers.append(resources.nest_in_bundle(
+        apple_resource_infos.append(resources.nest_in_bundle(
             provider_to_nest = merged_inherited_provider,
             nesting_bundle_dir = bundle_name,
         ))
-    elif inherited_providers:
-        providers.extend(inherited_providers)
+    elif inherited_apple_resource_infos:
+        apple_resource_infos.extend(inherited_apple_resource_infos)
 
-    if providers:
+    providers = []
+    if apple_resource_infos:
         # If any providers were collected, merge them.
-        return [resources.merge_providers(
-            default_owner = owner,
-            providers = providers,
-        )]
-    return []
+        providers.append(
+            resources.merge_providers(
+                default_owner = owner,
+                providers = apple_resource_infos,
+            ),
+        )
+
+    if apple_debug_infos:
+        providers.append(
+            AppleDebugInfo(
+                dsyms = depset(transitive = [x.dsyms for x in apple_debug_infos]),
+                linkmaps = depset(transitive = [x.linkmaps for x in apple_debug_infos]),
+            ),
+        )
+
+    if apple_dsym_bundle_infos:
+        providers.append(
+            AppleDsymBundleInfo(
+                direct_dsyms = [],
+                transitive_dsyms = depset(
+                    transitive = [x.transitive_dsyms for x in apple_dsym_bundle_infos],
+                ),
+            ),
+        )
+
+    return providers
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
