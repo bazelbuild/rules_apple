@@ -262,7 +262,7 @@ def _apple_resource_aspect_impl(target, ctx):
             resources.bundle_relative_parent_dir,
             extension = "bundle",
         )
-        providers.append(
+        apple_resource_infos.append(
             resources.bucketize_typed(
                 collect_framework_import_bundle_files,
                 owner = owner,
