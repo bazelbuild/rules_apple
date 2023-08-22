@@ -353,7 +353,10 @@ def _should_emit_swiftinterface(attr, is_xcframework = False):
     # TODO(b/239957001): Delete all this when everyone is migrated to the new
     # `library_evolution` attribute on `swift_library`.
     features = getattr(attr, "features", [])
-    if "apple.no_legacy_swiftinterface" in features:
+
+    # Post cl/558262406, features could be a SelectorList
+    # TODO: @aranguyen b/297016619
+    if type(features) == "list" and "apple.no_legacy_swiftinterface" in features:
         return False
 
     # iOS and tvOS static frameworks require underlying swift_library targets generate a Swift
