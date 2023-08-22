@@ -2750,7 +2750,10 @@ ios_application(
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
-    features = ["-swift.layering_check"],
+    features = [
+        "-swift.layering_check",
+        "apple._import_framework_via_swiftinterface",
+    ],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework"],
