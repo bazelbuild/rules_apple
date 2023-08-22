@@ -16,6 +16,8 @@ x_defaults:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
     bazel: last_green
+    build_flags:
+      - --incompatible_objc_provider_remove_linking_info
     test_flags:
       - --test_tag_filters=-skipci
 
