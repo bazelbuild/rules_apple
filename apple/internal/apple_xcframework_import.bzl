@@ -671,7 +671,7 @@ def _apple_static_xcframework_import_impl(ctx):
     )
     providers.append(cc_info)
 
-    if xcframework_library.swift_module_interface:
+    if False and xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
         swift_toolchain = ctx.attr._toolchain[SwiftToolchainInfo]
         providers.append(
