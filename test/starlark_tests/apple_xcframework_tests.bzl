@@ -32,10 +32,6 @@ load(
     "archive_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
-)
-load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -246,43 +242,28 @@ def apple_xcframework_test_suite(name):
     #         debugging experience, and would not be effectively represented through this particular
     #         public provider interface.
     #
-    dsyms_test(
-        name = "{}_device_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework"],
-        architectures = ["arm64"],
-        check_public_provider = False,
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_device",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_simulator",
+        ],
         tags = [name],
     )
-
-    dsyms_test(
-        name = "{}_simulator_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework"],
-        architectures = ["x86_64"],
-        check_public_provider = False,
-        tags = [name],
-    )
-
-    dsyms_test(
-        name = "{}_fat_device_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_fat_frameworks_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework"],
-        architectures = ["arm64", "arm64e"],
-        check_public_provider = False,
-        tags = [name],
-    )
-
-    dsyms_test(
-        name = "{}_fat_simulator_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
-        architectures = ["x86_64", "arm64"],
-        check_public_provider = False,
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_device",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator",
+        ],
         tags = [name],
     )
 
