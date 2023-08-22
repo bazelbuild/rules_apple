@@ -299,7 +299,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_files = depset(framework_imports),
     ))
 
-    if framework.swift_interface_imports:
+    if False and framework.swift_interface_imports:
         # Create SwiftInfo provider
         swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
