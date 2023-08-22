@@ -68,6 +68,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
     """
     info_plist = None
     bundle_name = None
+    swift_module_name = None
 
     framework_files = []
     xcframework_files = []
@@ -78,6 +79,11 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
         if not info_plist and is_bundle_root_file and file.basename == "Info.plist":
             bundle_name, _ = paths.split_extension(parent_dir_name)
             info_plist = file
+            continue
+
+        if not swift_module_name and parent_dir_name.endswith(".swiftmodule"):
+            swift_module_name, _ = paths.split_extension(parent_dir_name)
+            print("swift_module_name: {}".format(swift_module_name))
             continue
 
         if ".framework/" in file.short_path:
@@ -105,6 +111,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
         files = files,
         files_by_category = files_by_category,
         info_plist = info_plist,
+        swift_module_name = swift_module_name,
     )
 
 def _get_xcframework_library(
@@ -196,6 +203,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
     headers = filter_by_library_identifier(files_by_category.header_imports)
     module_maps = filter_by_library_identifier(files_by_category.module_map_imports)
+    print("module_maps", module_maps)
 
     swiftmodules = framework_import_support.get_swift_module_files_with_target_triplet(
         swift_module_files = filter_by_library_identifier(
@@ -540,9 +548,11 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
-                module_name = xcframework.bundle_name,
+                module_name = xcframework.swift_module_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,
+                framework_includes = xcframework_library.framework_includes,
+                module_map_imports = [xcframework_library.clang_module_map],
             ),
         )
     else:
@@ -681,9 +691,11 @@ def _apple_static_xcframework_import_impl(ctx):
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
-                module_name = xcframework.bundle_name,
+                module_name = xcframework.swift_module_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,
+                framework_includes = xcframework_library.framework_includes,
+                module_map_imports = [xcframework_library.clang_module_map],
             ),
         )
     else:

@@ -473,6 +473,8 @@ def _swift_info_from_module_interface(
         disabled_features,
         features,
         module_name,
+        module_map_imports,
+        framework_includes,
         swift_toolchain,
         swiftinterface_file):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
@@ -491,13 +493,42 @@ def _swift_info_from_module_interface(
         A SwiftInfo provider.
     """
     swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
+
+    ccs = [
+        dep[CcInfo].compilation_context
+        for dep in deps
+        if CcInfo in dep
+    ]
+
+    if module_map_imports:
+        print("creating module map for", module_name)
+        this_module = swift_common.create_swift_info(
+            modules = [
+                swift_common.create_module(
+                    name = module_name,
+                    clang = swift_common.create_clang_module(
+                        compilation_context = None,
+                        # cc_common.create_compilation_context(
+                        #     framework_includes = depset(framework_includes),
+                        # ),
+                        module_map = module_map_imports[0],
+                    ),
+                ),
+            ],
+        )
+        swift_infos.append(this_module)
+
+        ccs.append(
+            cc_common.create_compilation_context(
+                framework_includes = depset(framework_includes),
+            ),
+        )
+    if module_name == "MapboxCommon":
+        if not framework_includes:
+            fail("fasjkdlfjk")
     module_context = swift_common.compile_module_interface(
         actions = actions,
-        compilation_contexts = [
-            dep[CcInfo].compilation_context
-            for dep in deps
-            if CcInfo in dep
-        ],
+        compilation_contexts = ccs,
         feature_configuration = swift_common.configure_features(
             ctx = ctx,
             swift_toolchain = swift_toolchain,

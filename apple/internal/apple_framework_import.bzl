@@ -446,6 +446,7 @@ def _apple_static_framework_import_impl(ctx):
         ),
     )
 
+    fail("not here")
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
         swift_toolchain = ctx.attr._swift_toolchain[SwiftToolchainInfo]
@@ -463,6 +464,7 @@ def _apple_static_framework_import_impl(ctx):
                 module_name = framework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = swiftinterface_files[0],
+                module_map_files = framework.module_map_imports,
             ),
         )
     else:
