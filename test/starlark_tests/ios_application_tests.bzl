@@ -49,8 +49,8 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -441,29 +441,74 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        expected_direct_dsyms = ["app_dsyms/app.app"],
-        expected_transitive_dsyms = ["app_dsyms/app.app"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_dsyms/app.app.dSYM/Contents/Info.plist",
+            "app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_direct_dsyms = [
+            "dSYMs/app_dsyms/app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app_dsyms/app.app.dSYM",
+        ],
         tags = [name],
     )
 
-    dsyms_test(
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_transitive_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Info.plist",
+            "app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_ext_and_fmwk_provisioned",
+            "ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM/Contents/Info.plist",
+            "ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwk_provisioned",
+            "fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
         name = "{}_transitive_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
-        expected_direct_dsyms = ["app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app"],
-        expected_transitive_dsyms = ["app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app", "ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex", "fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework"],
+        expected_direct_dsyms = [
+            "dSYMs/app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM",
+            "dSYMs/ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM",
+            "dSYMs/app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM",
+        ],
         tags = [name],
     )
 
-    dsyms_test(
+    apple_dsym_bundle_info_test(
         name = "{}_custom_executable_name_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
-        expected_direct_dsyms = ["app_with_custom_executable_name_dsyms/custom_bundle_name.app"],
-        expected_transitive_dsyms = ["app_with_custom_executable_name_dsyms/custom_bundle_name.app"],
-        expected_binaries = [
+        expected_direct_dsyms = [
+            "dSYMs/app_with_custom_executable_name_dsyms/custom_bundle_name.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app_with_custom_executable_name_dsyms/custom_bundle_name.app.dSYM",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_custom_executable_name_dsyms_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_executable_name",
+        output_group_name = "dsyms",
+        expected_outputs = [
             "app_with_custom_executable_name_dsyms/custom_bundle_name.app.dSYM/Contents/Resources/DWARF/app.exe",
+            "app_with_custom_executable_name_dsyms/custom_bundle_name.app.dSYM/Contents/Info.plist",
         ],
         tags = [name],
     )

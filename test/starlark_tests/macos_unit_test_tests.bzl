@@ -23,16 +23,20 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:dsyms_test.bzl",
-    "dsyms_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -87,11 +91,23 @@ def macos_unit_test_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test",
-        expected_direct_dsyms = ["unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest"],
-        expected_transitive_dsyms = ["unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest", "app_dsyms/app.app"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_dsyms/app.app.dSYM/Contents/Info.plist",
+            "app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app",
+            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Info.plist",
+            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test",
+        expected_direct_dsyms = ["dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app_dsyms/app.app.dSYM", "dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
         tags = [name],
     )
 
