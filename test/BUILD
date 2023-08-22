@@ -212,7 +212,7 @@ apple_shell_test(
     size = "large",
     src = "ios_xctestrun_runner_unit_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=x86_64,sim_arm64",
     ],
     tags = common.skip_ci_tags,
 )
@@ -222,7 +222,7 @@ apple_shell_test(
     size = "large",
     src = "ios_xctestrun_runner_ui_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=x86_64,sim_arm64",
     ],
     tags = common.skip_ci_tags,
 )
@@ -243,7 +243,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_unit_test_14.x.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=x86_64,sim_arm64",
     ],
     tags = common.skip_ci_tags,
 )
