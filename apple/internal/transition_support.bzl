@@ -197,7 +197,7 @@ def _command_line_options(
         "//command_line_option:apple_platforms": apple_platforms,
         # `apple_split_cpu` is used by the Bazel Apple configuration distinguisher to distinguish
         # architecture and environment, therefore we set `environment_arch` when it is available.
-        "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
+        "//command_line_option:apple_split_cpu": environment_arch,
         "//command_line_option:compiler": None,
         "//command_line_option:cpu": cpu_string,
         "//command_line_option:crosstool_top": (
