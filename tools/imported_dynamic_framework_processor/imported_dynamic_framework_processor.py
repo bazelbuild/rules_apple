@@ -30,6 +30,7 @@ For more information, see Apple's documentation on framework bundles:
 https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/FrameworkAnatomy.html
 """
 
+import argparse
 import os
 import re
 import shutil
@@ -246,7 +247,9 @@ def _strip_or_copy_binary(
 
 def _get_parser():
   """Returns command line arguments parser extending codesigningtool parser."""
-  parser = codesigningtool.generate_arg_parser()
+  parser = argparse.ArgumentParser(
+      description="imported dynamic framework processor")
+
   parser.add_argument(
       "--framework_binary", type=str, required=True,
       help="path to a binary file scoped to one of the imported frameworks"
@@ -275,6 +278,18 @@ def _get_parser():
       "--output_zip", type=str, required=True, help="path to save the zip file "
       "containing a codesigned, lipoed version of the imported framework"
   )
+
+  # Add mutually exclusive flags:
+  #   - '--disable_signing' to disable code signing.
+  #   - An argument group containing codesigningtool args.
+  mutex_group = parser.add_mutually_exclusive_group()
+  mutex_group.add_argument(
+      "--disable_signing",
+      action="store_true",
+      help="Disables code signing for imported frameworks.",
+  )
+  codesigningtool_args = mutex_group.add_argument_group()
+  codesigningtool.add_parser_arguments(codesigningtool_args)
 
   return parser
 
@@ -362,9 +377,10 @@ def main() -> None:
     args.target_to_sign = [version_dir]
 
   # Attempt to sign the framework, check for an error when signing.
-  status_code = codesigningtool.main(args)
-  if status_code:
-    return status_code
+  if not args.disable_signing:
+    status_code = codesigningtool.find_identity_and_sign_bundle_paths(args)
+    if status_code:
+      return status_code
 
   # Update modified timestamps and create archive using ditto.
   _update_modified_timestamps(args.temp_path)
