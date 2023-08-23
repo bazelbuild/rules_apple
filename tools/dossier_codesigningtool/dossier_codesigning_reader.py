@@ -579,22 +579,25 @@ def _sign_bundle_with_manifest(
         'Signing failed - codesigning identity not specified in manifest '
         'and unable to infer identity.')
 
-  entitlements_filename = manifest.get(ENTITLEMENTS_KEY)
-  entitlements_source_path = os.path.join(dossier_directory_path,
-                                          entitlements_filename)
-
   with tempfile.TemporaryDirectory() as working_dir:
     print('Working dir for temp signing artifacts created: %s' % working_dir)
-    if allowed_entitlements:
-      _, entitlements_for_signing_path = tempfile.mkstemp(
-          dir=working_dir, suffix='.plist')
-
-      _generate_entitlements_for_signing(
-          src=entitlements_source_path,
-          allowed_entitlements=allowed_entitlements,
-          dest=entitlements_for_signing_path)
-    else:
+    entitlements_filename = manifest.get(ENTITLEMENTS_KEY)
+    entitlements_for_signing_path = None
+    if entitlements_filename:
+      entitlements_source_path = os.path.join(
+          dossier_directory_path, entitlements_filename
+      )
       entitlements_for_signing_path = entitlements_source_path
+      if allowed_entitlements:
+        _, entitlements_for_signing_path = tempfile.mkstemp(
+            dir=working_dir, suffix='.plist'
+        )
+
+        _generate_entitlements_for_signing(
+            src=entitlements_source_path,
+            allowed_entitlements=allowed_entitlements,
+            dest=entitlements_for_signing_path,
+        )
 
     # submit each embedded manifest to sign concurrently
     codesign_futures = _sign_embedded_bundles_with_manifest(
@@ -691,7 +694,7 @@ def _wait_embedded_manifest_futures(
     future_list: List of Future instances to watch for completition or failure.
 
   Raises:
-    SystemExit: if any of the Futures raised an exception.
+    The exception from the codesign task
   """
   done_futures, not_done_futures = concurrent.futures.wait(
       future_list, return_when=concurrent.futures.FIRST_EXCEPTION)
@@ -701,10 +704,15 @@ def _wait_embedded_manifest_futures(
     not_done_future.cancel()
 
   if any(exceptions):
-    errors = '\n\n'.join(
-        f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1))
-    raise SystemExit(
-        f'Signing failed - one or more codesign tasks failed:\n{errors}')
+    exceptions = [e for e in exceptions if e is not None]
+    if len(exceptions) > 1:
+      print(
+          'Multiple codesign tasks failed:\n'
+          + '\n\n'.join(
+              f'\t{i}) {repr(e)}' for i, e in enumerate(exceptions, start=1)
+          )
+      )
+    raise exceptions[0]
 
 
 def _extract_zipped_dossier(zipped_dossier_path):
