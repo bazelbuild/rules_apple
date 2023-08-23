@@ -24,7 +24,8 @@ part on the language used for XCFramework library identifiers:
     keys out of necessity to distinguish new "cpu"s from an existing Apple "cpu" when a new
     Crosstool-provided toolchain is established.
 
-- `platform_type`s represent the Apple OS being built for ("ios", "macos", "tvos", "watchos").
+- `platform_type`s represent the Apple OS being built for ("ios", "macos", "tvos", "visionos",
+    "watchos").
 
 - `cpu`s are keys to match a Crosstool-provided toolchain ("ios_sim_arm64", "ios_x86_64").
     Essentially it is a raw key that implicitly references the other three values for the purpose of
@@ -37,6 +38,7 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "ios": "//command_line_option:ios_multi_cpus",
     "macos": "//command_line_option:macos_cpus",
     "tvos": "//command_line_option:tvos_cpus",
+    "visionos": "//command_line_option:visionos_cpus",
     "watchos": "//command_line_option:watchos_cpus",
 }
 
@@ -50,8 +52,8 @@ def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
     Args:
-        platform_type: A string denoting the platform type; `"ios"`, `"macos"`,
-            `"tvos"`, or `"watchos"`.
+        platform_type: A string denoting the platform type; `"ios"`, `"macos"`, `"tvos"`,
+            "visionos", or `"watchos"`.
 
     Returns:
         The `"//command_line_option:..."` string that is used as the key for the CPUs flag of the
@@ -68,7 +70,7 @@ def _environment_archs(platform_type, settings):
 
     Args:
         platform_type: A string denoting the platform type; `"ios"`, `"macos"`,
-            `"tvos"`, or `"watchos"`.
+            `"tvos"`, `"visionos"`, or `"watchos"`.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -96,7 +98,7 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
-            `"macos"`, `"tvos"`, or `"watchos"`).
+            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition. If not defined, defaults to an empty dictionary. Used as a fallback if the
@@ -134,6 +136,13 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
         return "tvos_x86_64"
+    if platform_type == "visionos":
+        if environment_arch:
+            return "visionos_{}".format(environment_arch)
+        visionos_cpus = settings["//command_line_option:visionos_cpus"]
+        if visionos_cpus:
+            return "visionos_{}".format(visionos_cpus[0])
+        return "visionos_x86_64"
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
@@ -159,7 +168,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
-            `"macos"`, `"tvos"`, or `"watchos"`).
+            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
 
     Returns:
         True if the architecture is supported for the given config, False otherwise.
@@ -198,7 +207,7 @@ def _command_line_options(
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
-            `"macos"`, `"tvos"`, or `"watchos"`).
+            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -236,6 +245,7 @@ def _command_line_options(
             platform = "macos",
             platform_type = platform_type,
         ),
+        "//command_line_option:minimum_os_version": minimum_os_version,
         "//command_line_option:tvos_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "tvos",
@@ -262,7 +272,7 @@ def _xcframework_split_attr_key(*, arch, environment, platform_type):
             for environment. Typically `device` or `simulator`.
         platform_type: The platform of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
-            for platform. For example, `ios`, `macos`, `tvos` or `watchos`.
+            for platform. For example, `ios`, `macos`, `tvos`, `visionos` or `watchos`.
 
     Returns:
         A string representing the key for this target build found within the XCFramework with a
@@ -298,7 +308,7 @@ def _command_line_options_for_xcframework_platform(
         platform_attr: The attribute for the apple platform specifying in dictionary form which
             architectures to build for given a target environment as the key for this platform.
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
-            `"macos"`, `"tvos"`, or `"watchos"`).
+            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -360,6 +370,7 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
+    "//command_line_option:visionos_cpus",
     "//command_line_option:watchos_cpus",
 ]
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
@@ -381,6 +392,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
     "//command_line_option:macos_minimum_os",
+    "//command_line_option:minimum_os_version",
     "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
@@ -390,6 +402,7 @@ _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_ou
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
+    "//command_line_option:visionos_cpus",
     "//command_line_option:watchos_cpus",
 ]
 
@@ -591,6 +604,7 @@ def _xcframework_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     output_dictionary = {}
 
+    # TODO(b/288582842): Update for visionOS when we're ready to support it in XCFramework rules.
     for platform_type in ["ios", "tvos", "watchos", "macos"]:
         if not hasattr(attr, platform_type):
             continue
