@@ -77,6 +77,13 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "xctestrun_bundle_creator",
+    srcs = ["xctestrun_bundle_creator.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
+)
+
 ios_test_runner(
     name = "ios_default_runner",
     # Used by the rule implementations, so it needs to be public; but
