@@ -182,6 +182,15 @@ def _command_line_options(
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
 
+    cpu_string = _cpu_string(
+        environment_arch = environment_arch,
+        platform_type = platform_type,
+        settings = settings,
+    )
+
+    if not environment_arch:
+        environment_arch = cpu_string.split("_", 1)[1]
+
     output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
@@ -190,11 +199,7 @@ def _command_line_options(
         # architecture and environment, therefore we set `environment_arch` when it is available.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
-        "//command_line_option:cpu": _cpu_string(
-            environment_arch = environment_arch,
-            platform_type = platform_type,
-            settings = settings,
-        ),
+        "//command_line_option:cpu": cpu_string,
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
         ),
