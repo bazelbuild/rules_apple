@@ -93,6 +93,15 @@ def watchos_ui_test_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test_with_base_bundle_id_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.ui-test-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

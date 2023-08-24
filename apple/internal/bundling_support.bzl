@@ -19,9 +19,24 @@ load(
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
 )
-load(
-    "@build_bazel_rules_apple//apple:capabilities.bzl",
-    "bundle_id_suffix_source",
+
+# Predeclared defaults for the suffix of a given bundle ID.
+#
+# These values are used internally for the rules that support the `bundle_id_suffix` attribute to
+# set the desired behavior, allowing for complex scenarios like allowing users to set empty strings
+# as the suffix without tripping over "falsey" values in Starlark, or sourcing the bundle_name
+# attribute.
+#
+# * `bundle_name`: Source the default bundle ID suffix from the evaluated bundle name.
+# * `no_suffix`: Derive the bundle ID entirely from the base bundle ID, omitting the suffix.
+# * `watchos_app`: Predeclared string for watchOS applications. This suffix is required.
+# * `watchos2_app_extension`: Predeclared string for watchOS 2 application extensions. This suffix
+#   is required.
+bundle_id_suffix_default = struct(
+    bundle_name = "bundle_name",  # Predeclared string with invalid bundle ID characters.
+    no_suffix = "_",  # Predeclared string with invalid bundle ID characters.
+    watchos_app = "watchkitapp",
+    watchos2_app_extension = "watchkitapp.watchkitextension",
 )
 
 def _bundle_full_name(
@@ -57,32 +72,32 @@ def _bundle_full_name(
 
     return (bundle_name, bundle_extension)
 
-def _preferred_bundle_suffix(*, bundle_id_suffix, bundle_name, suffix_source):
+def _preferred_bundle_suffix(*, bundle_id_suffix, bundle_name, suffix_default):
     """Returns the preferred bundle_id_suffix from all sources of truth.
 
     Args:
       bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
       bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
-          suffix_source is `bundle_id_suffix_source.bundle_name`.
-      suffix_source: String. A rule-specified string to indicate what the bundle ID suffix should
-          be sourced from by default. This is to allow the user a full degree of customization
+          suffix_default is `bundle_id_suffix_default.bundle_name`.
+      suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+          the rule attribute by default. This is to allow the user a full degree of customization
           depending on the value for bundle_id_suffix they wish to specify.
 
     Returns:
       A string representing the bundle ID suffix determined for the target that can be appended to
       the target's base bundle ID.
     """
-    if suffix_source == bundle_id_suffix:
-        if suffix_source == bundle_id_suffix_source.bundle_name:
+    if suffix_default == bundle_id_suffix:
+        if suffix_default == bundle_id_suffix_default.bundle_name:
             return bundle_name
-        elif suffix_source == bundle_id_suffix_source.no_suffix:
+        elif suffix_default == bundle_id_suffix_default.no_suffix:
             return ""
         else:
-            return suffix_source
+            return suffix_default
     else:
         return bundle_id_suffix
 
-def _preferred_full_bundle_id(*, base_bundle_id, bundle_id_suffix, bundle_name, suffix_source):
+def _preferred_full_bundle_id(*, base_bundle_id, bundle_id_suffix, bundle_name, suffix_default):
     """Returns the full bundle ID from a known base_bundle_id and other source of truth.
 
     Args:
@@ -91,9 +106,9 @@ def _preferred_full_bundle_id(*, base_bundle_id, bundle_id_suffix, bundle_name, 
           or entitlements. Optional.
       bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
       bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
-          suffix_source is `bundle_id_suffix_source.bundle_name`.
-      suffix_source: String. A rule-specified string to indicate what the bundle ID suffix should
-          be sourced from by default. This is to allow the user a full degree of customization
+          suffix_default is `bundle_id_suffix_default.bundle_name`.
+      suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+          the rule attribute by default. This is to allow the user a full degree of customization
           depending on the value for bundle_id_suffix they wish to specify.
 
     Returns:
@@ -102,7 +117,7 @@ def _preferred_full_bundle_id(*, base_bundle_id, bundle_id_suffix, bundle_name, 
     preferred_bundle_suffix = _preferred_bundle_suffix(
         bundle_id_suffix = bundle_id_suffix,
         bundle_name = bundle_name,
-        suffix_source = suffix_source,
+        suffix_default = suffix_default,
     )
     if preferred_bundle_suffix:
         return base_bundle_id + "." + preferred_bundle_suffix
@@ -129,11 +144,15 @@ def _base_bundle_id_from_shared_capabilities(shared_capabilities):
             elif capability_info.base_bundle_id != base_bundle_id:
                 fail("""
 Error: Received conflicting base bundle IDs from more than one assigned Apple shared capability.
+
 Found \"{conflicting_base}\" which does not match previously defined \"{base_bundle_id}\".
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """.format(
                     base_bundle_id = base_bundle_id,
                     conflicting_base = capability_info.base_bundle_id,
                 ))
+
     return base_bundle_id
 
 def _bundle_full_id(
@@ -142,7 +161,7 @@ def _bundle_full_id(
         bundle_id,
         bundle_id_suffix,
         bundle_name,
-        suffix_source,
+        suffix_default,
         shared_capabilities = None):
     """Returns the full bundle ID for a bundle rule output given all possible sources of truth.
 
@@ -154,9 +173,9 @@ def _bundle_full_id(
             target does not have a base_bundle_id or shared_capabilities set.
         bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
         bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
-            suffix_source is `bundle_id_suffix_source.bundle_name`.
-        suffix_source: String. A rule-specified string to indicate what the bundle ID suffix should
-            be sourced from by default. This is to allow the user a full degree of customization
+            suffix_default is `bundle_id_suffix_default.bundle_name`.
+        suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+            the rule attribute by default. This is to allow the user a full degree of customization
             depending on the value for bundle_id_suffix they wish to specify.
         shared_capabilities: A list of shared `apple_capability_set` targets to represent the
             capabilities that a code sign aware Apple bundle rule output should have. Use this for
@@ -177,22 +196,29 @@ on the Apple BUILD Rules.
             return bundle_id
 
         fail("""
-Error: There are no attributes set on this target that can be used to determine a bundle ID. Need a
-bundle_id or a reference to an apple_base_bundle_id target coming from the rule or (when applicable)
-exactly one of the `apple_capability_set` targets found within its shared_capabilities.
+Error: There are no attributes set on this target that can be used to determine a bundle ID.
+
+Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
+applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
 
     if base_bundle_id:
         if bundle_id:
             fail("""
-Error: Found a bundle_id provided with base_bundle_id. This is ambiguous. Please remove one of the
-two from your rule definition.
+Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
+
+Please remove one of the two from your rule definition.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
         return _preferred_full_bundle_id(
             base_bundle_id = base_bundle_id[AppleBaseBundleIdInfo].base_bundle_id,
             bundle_id_suffix = bundle_id_suffix,
             bundle_name = bundle_name,
-            suffix_source = suffix_source,
+            suffix_default = suffix_default,
         )
 
     capability_base_bundle_id = _base_bundle_id_from_shared_capabilities(shared_capabilities)
@@ -201,18 +227,25 @@ two from your rule definition.
         fail("""
 Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
 Found none.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
     if bundle_id:
         fail("""
 Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining a `base_bundle_id`.
+
 This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
 `shared_capabilities` without a `base_bundle_id`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
 """)
+
     return _preferred_full_bundle_id(
         base_bundle_id = capability_base_bundle_id,
         bundle_id_suffix = bundle_id_suffix,
         bundle_name = bundle_name,
-        suffix_source = suffix_source,
+        suffix_default = suffix_default,
     )
 
 def _ensure_single_xcassets_type(attr, files, extension, message = None):
@@ -318,10 +351,35 @@ def _ensure_path_format(attr, files, path_fragments_list, message = None):
         formatted_paths = "[\n  %s\n]" % ",\n  ".join(bad_paths.keys())
         fail("%s, but found the following: %s" % (message, formatted_paths), attr)
 
+def _validate_bundle_id(bundle_id):
+    """Ensure the value is a valid bundle it or fail the build.
+
+    Args:
+      bundle_id: The string to check.
+    """
+
+    # Make sure the bundle id seems like a valid one. Apple's docs for
+    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
+    # only they they specifically document is the character set, so the other
+    # two checks here are just added safety to catch likely errors by developers
+    # setting things up.
+    bundle_id_parts = bundle_id.split(".")
+    for part in bundle_id_parts:
+        if part == "":
+            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
+        if not part.isalnum():
+            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
+            # handled by the split(), so just have to check for '-'.
+            for i in range(len(part)):
+                ch = part[i]
+                if ch != "-" and not ch.isalnum():
+                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
+
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     bundle_full_name = _bundle_full_name,
     bundle_full_id = _bundle_full_id,
     ensure_path_format = _ensure_path_format,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
+    validate_bundle_id = _validate_bundle_id,
 )

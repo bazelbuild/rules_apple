@@ -134,6 +134,18 @@ def macos_dylib_test_suite(name):
         tags = [name],
     )
 
+    binary_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_with_base_bundle_id_derived_bundle_id",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        embedded_plist_test_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.dylib-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

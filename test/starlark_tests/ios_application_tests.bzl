@@ -27,6 +27,10 @@ load(
     "apple_verification_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_tree_artifacts_outputs_test",
 )
@@ -63,10 +67,6 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
-)
-load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
 )
 
 def ios_application_test_suite(name):
@@ -850,13 +850,27 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
-    # TODO(b/270375044): Add a test to handle the absence of a bundle_id when the attribute is made
-    # into a not mandatory attribute to accomodate shared_capabilities.
+    analysis_failure_message_test(
+        name = "{}_no_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_bundle_id",
+        expected_error = """
+Error: There are no attributes set on this target that can be used to determine a bundle ID.
+
+Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
+applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
+""",
+        tags = [name],
+    )
 
     analysis_failure_message_test(
         name = "{}_empty_bundle_id_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_empty_bundle_id",
-        expected_error = "Empty segment in bundle_id: \"\"",
+        expected_error = """
+Error: There are no attributes set on this target that can be used to determine a bundle ID.
+
+Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
+applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
+""",
         tags = [name],
     )
 
@@ -892,6 +906,57 @@ def ios_application_test_suite(name):
         name = "{}_invalid_character_bundle_id_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_invalid_character_bundle_id",
         expected_error = "Invalid character(s) in bundle_id: \"my#bundle\"",
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_custom_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_custom_bundle_id_suffix_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.bundle-id-suffix",
+        },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_ambiguous_shared_capabilities_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ambiguous_shared_capabilities_bundle_id",
+        expected_error = """
+Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining a `base_bundle_id`.
+
+This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
+`shared_capabilities` without a `base_bundle_id`.
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_absent_shared_capabilities_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_absent_shared_capabilities_bundle_id",
+        expected_error = """
+Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
+Found none.
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_conflicting_shared_capabilities_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_conflicting_shared_capabilities_bundle_id",
+        expected_error = """
+Error: Received conflicting base bundle IDs from more than one assigned Apple shared capability.
+
+Found "com.bazel.app.example" which does not match previously defined "com.altbazel.app.example".
+""",
         tags = [name],
     )
 

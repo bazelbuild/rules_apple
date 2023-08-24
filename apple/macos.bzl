@@ -107,17 +107,20 @@ def macos_command_line_application(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     launchdplists = binary_args.get("launchdplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
+            base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
+            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,
@@ -161,16 +164,19 @@ def macos_dylib(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
+            base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
+            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,

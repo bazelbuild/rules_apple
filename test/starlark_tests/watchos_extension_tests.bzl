@@ -290,6 +290,15 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.watchkitapp.watchkitextension",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

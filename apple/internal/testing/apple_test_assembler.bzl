@@ -23,9 +23,11 @@ _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
-        "bundle_id",
-        "bundle_name",
         "deps",
+        "base_bundle_id",
+        "bundle_id",
+        "bundle_id_suffix",
+        "bundle_name",
         "families",
         "frameworks",
         "infoplists",
