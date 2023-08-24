@@ -60,6 +60,15 @@ def _apple_universal_binary_impl(ctx):
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
+    # The apple_universal_binary doesn't have its own `data` attribute, so there's no runfiles to
+    # collect from itself.
+    runfiles = ctx.runfiles()
+    transitive_runfiles = [
+        target[DefaultInfo].default_runfiles
+        for target in ctx.split_attr.binary.values()
+    ]
+    runfiles = runfiles.merge_all(transitive_runfiles)
+
     return [
         new_applebinaryinfo(
             binary = fat_binary,
@@ -67,6 +76,7 @@ def _apple_universal_binary_impl(ctx):
         DefaultInfo(
             executable = fat_binary,
             files = depset([fat_binary]),
+            runfiles = runfiles,
         ),
     ]
 
