@@ -61,6 +61,7 @@ def _apple_core_data_model_impl(ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
+        explicit_minimum_os = ctx.fragments.cpp.minimum_os_version(),
         objc_fragment = None,
         platform_type_string = str(
             ctx.fragments.apple.single_arch_platform.platform_type,
@@ -120,7 +121,7 @@ apple_core_data_model = rule(
             ),
         },
     ),
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     doc = """
 This rule takes a Core Data model definition from a .xcdatamodeld bundle
 and generates Swift or Objective-C source files that can be added as a

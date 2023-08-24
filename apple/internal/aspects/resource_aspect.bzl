@@ -62,7 +62,9 @@ visibility("//apple/internal/...")
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
+    apple_fragment = aspect_ctx.fragments.apple
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(aspect_ctx)
+    cpp_fragment = aspect_ctx.fragments.cpp
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
@@ -70,13 +72,13 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     # aspect, or the list of allowed device families can be determined independently of the
     # rule_descriptor.
     return platform_support.platform_prerequisites(
-        apple_fragment = aspect_ctx.fragments.apple,
+        apple_fragment = apple_fragment,
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
         device_families = None,
-        explicit_minimum_os = None,
+        explicit_minimum_os = cpp_fragment.minimum_os_version(),
         objc_fragment = None,
-        platform_type_string = str(aspect_ctx.fragments.apple.single_arch_platform.platform_type),
+        platform_type_string = str(apple_fragment.single_arch_platform.platform_type),
         uses_swift = uses_swift,
         xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -317,7 +319,7 @@ apple_resource_aspect = aspect(
         apple_toolchain_utils.shared_attrs(),
     ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
 bundling rule.""",
 )

@@ -73,6 +73,7 @@ def _apple_core_ml_library_impl(ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
+        explicit_minimum_os = ctx.fragments.cpp.minimum_os_version(),
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
@@ -131,7 +132,7 @@ Label to a single mlmodel file from which to generate sources and compile into m
         },
     ),
     output_to_genfiles = True,
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     outputs = {
         "source": "%{name}.m",
     },

@@ -71,6 +71,7 @@ def _compile_datamodels(
     "Compiles datamodels into mom files."
     output_files = []
     module_name = swift_module or label_name
+    processed_origins = {}
     for datamodel_path, files in datamodel_groups.items():
         datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
 
@@ -92,6 +93,8 @@ def _compile_datamodels(
                 file_name = datamodel_name + ".mom",
             )
 
+        input_files = files.to_list()
+        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_datamodels(
             actions = actions,
             datamodel_path = datamodel_path,
@@ -105,7 +108,10 @@ def _compile_datamodels(
             (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
         )
 
-    return output_files
+    return struct(
+        files = output_files,
+        processed_origins = processed_origins,
+    )
 
 def _compile_mappingmodels(
         *,
@@ -118,7 +124,8 @@ def _compile_mappingmodels(
         resolved_xctoolrunner):
     """Compiles mapping models into cdm files."""
     output_files = []
-    for mappingmodel_path, input_files in mappingmodel_groups.items():
+    processed_origins = {}
+    for mappingmodel_path, files in mappingmodel_groups.items():
         compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
         output_file = intermediates.file(
             actions = actions,
@@ -127,9 +134,11 @@ def _compile_mappingmodels(
             file_name = paths.join(parent_dir or "", compiled_model_name),
         )
 
+        input_files = files.to_list()
+        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_mappingmodel(
             actions = actions,
-            input_files = input_files.to_list(),
+            input_files = input_files,
             mappingmodel_path = mappingmodel_path,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
@@ -140,7 +149,10 @@ def _compile_mappingmodels(
             (processor.location.resource, parent_dir, depset(direct = [output_file])),
         )
 
-    return output_files
+    return struct(
+        files = output_files,
+        processed_origins = processed_origins,
+    )
 
 def _asset_catalogs(
         *,
@@ -211,6 +223,7 @@ def _datamodels(
     standalone_datamodels = []
     grouped_datamodels = []
     mappingmodels = []
+    processed_origins = {}
 
     # Split the datamodels into whether they are inside an xcdatamodeld bundle or not.
     for datamodel in datamodel_files:
@@ -242,7 +255,7 @@ def _datamodels(
         attr = "resources",
     )
 
-    output_files = list(_compile_datamodels(
+    compiled_data_outputs = _compile_datamodels(
         actions = actions,
         datamodel_groups = datamodel_groups,
         label_name = rule_label.name,
@@ -251,8 +264,10 @@ def _datamodels(
         platform_prerequisites = platform_prerequisites,
         resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         swift_module = swift_module,
-    ))
-    output_files.extend(_compile_mappingmodels(
+    )
+    processed_origins.update(compiled_data_outputs.processed_origins)
+
+    compiled_mapping_outputs = _compile_mappingmodels(
         actions = actions,
         label_name = rule_label.name,
         output_discriminator = output_discriminator,
@@ -260,9 +275,13 @@ def _datamodels(
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
         resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
-    ))
+    )
+    processed_origins.update(compiled_mapping_outputs.processed_origins)
 
-    return struct(files = output_files)
+    return struct(
+        files = compiled_data_outputs.files + compiled_mapping_outputs.files,
+        processed_origins = processed_origins,
+    )
 
 def _infoplists(
         *,
