@@ -174,6 +174,7 @@ def _resources_partial_impl(
         bundle_id,
         bundle_name,
         executable_name,
+        include_executable_name,
         bundle_verification_targets,
         environment_plist,
         launch_storyboard,
@@ -345,6 +346,7 @@ def _resources_partial_impl(
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
                 executable_name = executable_name,
+                include_executable_name = include_executable_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
@@ -375,6 +377,7 @@ def resources_partial(
         bundle_id = None,
         bundle_name,
         executable_name,
+        include_executable_name = True,
         bundle_verification_targets = [],
         environment_plist,
         launch_storyboard,
@@ -402,6 +405,9 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
+        include_executable_name: If True, the executable name will be added to
+            the plist in the `CFBundleExecutable` key. This is mainly intended for
+            plists embedded in a command line tool which don't need this value.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
@@ -436,7 +442,8 @@ def resources_partial(
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
-        executable_name = executable_name or bundle_name,
+        executable_name = executable_name,
+        include_executable_name = include_executable_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         launch_storyboard = launch_storyboard,
