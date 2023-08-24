@@ -84,7 +84,21 @@ def ios_application_test_suite(name):
     analysis_target_tree_artifacts_outputs_test(
         name = "{}_tree_artifact_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        expected_outputs = ["app_minimal_archive-root/Payload/app_minimal.app"],
+        expected_outputs = ["app_minimal.app"],
+        tags = [name],
+    )
+
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_duplicate_bundle_target1_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_duplicate_bundle",
+        expected_outputs = ["app_with_duplicate_bundle.app"],
+        tags = [name],
+    )
+
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_duplicate_bundle_target2_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_duplicate_bundle_beta",
+        expected_outputs = ["app_with_duplicate_bundle_beta_archive-root/Payload/app_with_duplicate_bundle.app"],
         tags = [name],
     )
 
@@ -446,8 +460,8 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         output_group_name = "dsyms",
         expected_outputs = [
-            "app_dsyms/app.app.dSYM/Contents/Info.plist",
-            "app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app",
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
         ],
         tags = [name],
     )
@@ -455,10 +469,10 @@ def ios_application_test_suite(name):
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         expected_direct_dsyms = [
-            "dSYMs/app_dsyms/app.app.dSYM",
+            "dSYMs/app.app.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/app_dsyms/app.app.dSYM",
+            "dSYMs/app.app.dSYM",
         ],
         tags = [name],
     )
@@ -468,12 +482,12 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         output_group_name = "dsyms",
         expected_outputs = [
-            "app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Info.plist",
-            "app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_ext_and_fmwk_provisioned",
-            "ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM/Contents/Info.plist",
-            "ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwk_provisioned",
-            "fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning",
+            "app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Info.plist",
+            "app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_ext_and_fmwk_provisioned",
+            "ext_with_fmwk_provisioned.appex.dSYM/Contents/Info.plist",
+            "ext_with_fmwk_provisioned.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwk_provisioned",
+            "fmwk_with_provisioning.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning",
         ],
         tags = [name],
     )
@@ -481,12 +495,12 @@ def ios_application_test_suite(name):
         name = "{}_transitive_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         expected_direct_dsyms = [
-            "dSYMs/app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM",
+            "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/fmwk_with_provisioning_dsyms/fmwk_with_provisioning.framework.dSYM",
-            "dSYMs/ext_with_fmwk_provisioned_dsyms/ext_with_fmwk_provisioned.appex.dSYM",
-            "dSYMs/app_with_ext_and_fmwk_provisioned_dsyms/app_with_ext_and_fmwk_provisioned.app.dSYM",
+            "dSYMs/fmwk_with_provisioning.framework.dSYM",
+            "dSYMs/ext_with_fmwk_provisioned.appex.dSYM",
+            "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
         ],
         tags = [name],
     )
@@ -800,17 +814,17 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
         expected_outputs = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_dsyms/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Info.plist",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_dsyms/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Info.plist",
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
             # Frameworks
-            "fmwk_dsyms/fmwk.framework.dSYM/Contents/Info.plist",
-            "fmwk_dsyms/fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk",
-            "fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
-            "fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle",
-            "fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM/Contents/Info.plist",
-            "fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version",
-            "fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources",
+            "fmwk.framework.dSYM/Contents/Info.plist",
+            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle",
+            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
+            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version",
+            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources",
         ],
         tags = [name],
     )
@@ -838,14 +852,14 @@ def ios_application_test_suite(name):
         name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         expected_direct_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_dsyms/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_dsyms/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-            "dSYMs/fmwk_dsyms/fmwk.framework.dSYM",
-            "dSYMs/fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM",
-            "dSYMs/fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM",
-            "dSYMs/fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM",
+            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+            "dSYMs/fmwk.framework.dSYM",
+            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "dSYMs/fmwk_no_version.framework.dSYM",
+            "dSYMs/fmwk_with_resources.framework.dSYM",
         ],
         tags = [name],
     )

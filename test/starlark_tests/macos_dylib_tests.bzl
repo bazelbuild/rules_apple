@@ -92,16 +92,16 @@ def macos_dylib_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
         output_group_name = "dsyms",
         expected_outputs = [
-            "dylib_dsyms/dylib.dSYM/Contents/Info.plist",
-            "dylib_dsyms/dylib.dSYM/Contents/Resources/DWARF/dylib",
+            "dylib.dSYM/Contents/Info.plist",
+            "dylib.dSYM/Contents/Resources/DWARF/dylib",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
-        expected_direct_dsyms = ["dSYMs/dylib_dsyms/dylib.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/dylib_dsyms/dylib.dSYM"],
+        expected_direct_dsyms = ["dSYMs/dylib.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/dylib.dSYM"],
         tags = [name],
     )
 

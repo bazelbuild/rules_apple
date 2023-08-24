@@ -158,16 +158,16 @@ def macos_bundle_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         output_group_name = "dsyms",
         expected_outputs = [
-            "bundle_dsyms/bundle.bundle.dSYM/Contents/Info.plist",
-            "bundle_dsyms/bundle.bundle.dSYM/Contents/Resources/DWARF/bundle",
+            "bundle.bundle.dSYM/Contents/Info.plist",
+            "bundle.bundle.dSYM/Contents/Resources/DWARF/bundle",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        expected_direct_dsyms = ["dSYMs/bundle_dsyms/bundle.bundle.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/bundle_dsyms/bundle.bundle.dSYM"],
+        expected_direct_dsyms = ["dSYMs/bundle.bundle.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/bundle.bundle.dSYM"],
         tags = [name],
     )
 

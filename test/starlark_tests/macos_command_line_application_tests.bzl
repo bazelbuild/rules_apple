@@ -153,16 +153,16 @@ def macos_command_line_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         output_group_name = "dsyms",
         expected_outputs = [
-            "cmd_app_basic_dsyms/cmd_app_basic.dSYM/Contents/Info.plist",
-            "cmd_app_basic_dsyms/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic",
+            "cmd_app_basic.dSYM/Contents/Info.plist",
+            "cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_direct_dsyms = ["dSYMs/cmd_app_basic_dsyms/cmd_app_basic.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/cmd_app_basic_dsyms/cmd_app_basic.dSYM"],
+        expected_direct_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
         tags = [name],
     )
 
@@ -229,7 +229,7 @@ def macos_command_line_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
         apple_generate_dsym = True,
         output_group_name = "dsyms",
-        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic_version_dsyms/cmd_app_basic_version.dSYM/Contents/Info.plist",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic_version.dSYM/Contents/Info.plist",
         expected_values = {
             "CFBundleShortVersionString": "1.2",
             "CFBundleVersion": "1.2.3",

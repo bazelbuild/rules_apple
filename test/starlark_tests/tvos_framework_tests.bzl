@@ -273,12 +273,12 @@ def tvos_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
         expected_outputs = [
-            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_dsyms/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_dsyms/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Resources/DWARF/fmwk_with_fmwks_from_objc_swift_libraries_using_data",
-            "fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles",
-            "fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Resources/DWARF/fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources",
         ],
         tags = [name],
     )
@@ -302,12 +302,12 @@ def tvos_framework_test_suite(name):
         name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
         expected_direct_dsyms = [
-            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data_dsyms/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data_dsyms/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
-            "dSYMs/fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM",
-            "dSYMs/fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM",
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
+            "dSYMs/fmwk_with_structured_resources.framework.dSYM",
         ],
         tags = [name],
     )
