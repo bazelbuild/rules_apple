@@ -58,16 +58,16 @@ def tvos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext_dsyms/ext.appex.dSYM/Contents/Info.plist",
-            "ext_dsyms/ext.appex.dSYM/Contents/Resources/DWARF/ext",
+            "ext.appex.dSYM/Contents/Info.plist",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
-        expected_direct_dsyms = ["dSYMs/ext_dsyms/ext.appex.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/ext_dsyms/ext.appex.dSYM"],
+        expected_direct_dsyms = ["dSYMs/ext.appex.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/ext.appex.dSYM"],
         tags = [name],
     )
 
@@ -148,12 +148,12 @@ def tvos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_fmwks_from_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Info.plist",
-            "ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data",
-            "fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles",
-            "fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Info.plist",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources",
         ],
         tags = [name],
     )
@@ -177,12 +177,12 @@ def tvos_extension_test_suite(name):
         name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_fmwks_from_objc_swift_libraries_using_data",
         expected_direct_dsyms = [
-            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
-            "dSYMs/fmwk_with_resource_bundles_dsyms/fmwk_with_resource_bundles.framework.dSYM",
-            "dSYMs/fmwk_with_structured_resources_dsyms/fmwk_with_structured_resources.framework.dSYM",
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+            "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
+            "dSYMs/fmwk_with_structured_resources.framework.dSYM",
         ],
         tags = [name],
     )

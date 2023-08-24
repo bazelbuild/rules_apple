@@ -266,8 +266,8 @@ def macos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         output_group_name = "dsyms",
         expected_outputs = [
-            "app_dsyms/app.app.dSYM/Contents/Info.plist",
-            "app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app",
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
         ],
         tags = [name],
     )
@@ -275,10 +275,10 @@ def macos_application_test_suite(name):
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         expected_direct_dsyms = [
-            "dSYMs/app_dsyms/app.app.dSYM",
+            "dSYMs/app.app.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/app_dsyms/app.app.dSYM",
+            "dSYMs/app.app.dSYM",
         ],
         tags = [name],
     )

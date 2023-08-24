@@ -62,18 +62,18 @@ def tvos_unit_test_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
         output_group_name = "dsyms",
         expected_outputs = [
-            "app_dsyms/app.app.dSYM/Contents/Info.plist",
-            "app_dsyms/app.app.dSYM/Contents/Resources/DWARF/app",
-            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Info.plist",
-            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
+            "unit_test.xctest.dSYM/Contents/Info.plist",
+            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
-        expected_direct_dsyms = ["dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/app_dsyms/app.app.dSYM", "dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
+        expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/unit_test.xctest.dSYM"],
         tags = [name],
     )
 

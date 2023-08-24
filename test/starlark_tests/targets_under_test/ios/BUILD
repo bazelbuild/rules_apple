@@ -4688,3 +4688,35 @@ ios_unit_test(
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
+
+ios_application(
+    name = "app_with_duplicate_bundle",
+    bundle_id = "com.google.example",
+    bundle_name = "app_with_duplicate_bundle",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_duplicate_bundle_beta",
+    bundle_id = "com.google.example",
+    bundle_name = "app_with_duplicate_bundle",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)

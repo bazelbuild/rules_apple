@@ -47,11 +47,14 @@ def _archive(
         platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
-        archive_relative_path = rule_descriptor.bundle_locations.archive_relative
-        root_path = label_name + "_archive-root"
-        return actions.declare_directory(
-            paths.join(root_path, archive_relative_path, bundle_name_with_extension),
-        )
+        if bundle_name != label_name:
+            archive_relative_path = rule_descriptor.bundle_locations.archive_relative
+            root_path = label_name + "_archive-root"
+            return actions.declare_directory(
+                paths.join(root_path, archive_relative_path, bundle_name_with_extension),
+            )
+
+        return actions.declare_directory(bundle_name_with_extension)
     return predeclared_outputs.archive
 
 def _archive_for_embedding(

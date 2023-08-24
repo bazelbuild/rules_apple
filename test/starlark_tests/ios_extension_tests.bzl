@@ -96,16 +96,16 @@ def ios_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext_dsyms/ext.appex.dSYM/Contents/Info.plist",
-            "ext_dsyms/ext.appex.dSYM/Contents/Resources/DWARF/ext",
+            "ext.appex.dSYM/Contents/Info.plist",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
-        expected_direct_dsyms = ["dSYMs/ext_dsyms/ext.appex.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/ext_dsyms/ext.appex.dSYM"],
+        expected_direct_dsyms = ["dSYMs/ext.appex.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/ext.appex.dSYM"],
         tags = [name],
     )
 
@@ -255,14 +255,14 @@ def ios_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwks_from_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Info.plist",
-            "ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data",
-            "fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
-            "fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle",
-            "fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM/Contents/Info.plist",
-            "fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version",
-            "fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Info.plist",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwks_from_objc_swift_libraries_using_data",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle",
+            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
+            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version",
+            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources",
         ],
         tags = [name],
     )
@@ -288,13 +288,13 @@ def ios_extension_test_suite(name):
         name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwks_from_objc_swift_libraries_using_data",
         expected_direct_dsyms = [
-            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
         ],
         expected_transitive_dsyms = [
-            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data_dsyms/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
-            "dSYMs/fmwk_min_os_baseline_with_bundle_dsyms/fmwk_min_os_baseline_with_bundle.framework.dSYM",
-            "dSYMs/fmwk_no_version_dsyms/fmwk_no_version.framework.dSYM",
-            "dSYMs/fmwk_with_resources_dsyms/fmwk_with_resources.framework.dSYM",
+            "dSYMs/ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "dSYMs/fmwk_no_version.framework.dSYM",
+            "dSYMs/fmwk_with_resources.framework.dSYM",
         ],
         tags = [name],
     )

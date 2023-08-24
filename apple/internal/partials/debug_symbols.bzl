@@ -196,7 +196,10 @@ def _bundle_dsym_files(
       artifact representation of a .dSYM bundle with the binaries lipoed together as one binary.
     """
     dsym_bundle_name_with_extension = debug_output_filename + bundle_extension
-    dsym_bundle_name = paths.join(label_name + "_dsyms", dsym_bundle_name_with_extension + ".dSYM")
+    if debug_output_filename != label_name.split(".__internal__.")[0]:
+        dsym_bundle_name = paths.join(label_name + "_dsyms", dsym_bundle_name_with_extension + ".dSYM")
+    else:
+        dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
     output_files = []
     dsym_bundle_dir = None
 
