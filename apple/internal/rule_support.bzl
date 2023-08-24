@@ -48,6 +48,7 @@ def _describe_bundle_locations(
         bundle_relative_contents = "",
         contents_relative_app_clips = "AppClips",
         contents_relative_binary = "",
+        contents_relative_extensions = "Extensions",
         contents_relative_frameworks = "Frameworks",
         contents_relative_plugins = "PlugIns",
         contents_relative_resources = "",
@@ -59,6 +60,7 @@ def _describe_bundle_locations(
         bundle_relative_contents = bundle_relative_contents,
         contents_relative_app_clips = contents_relative_app_clips,
         contents_relative_binary = contents_relative_binary,
+        contents_relative_extensions = contents_relative_extensions,
         contents_relative_frameworks = contents_relative_frameworks,
         contents_relative_plugins = contents_relative_plugins,
         contents_relative_resources = contents_relative_resources,
@@ -174,7 +176,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
-        # ios_extension
+        # ios_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             allows_locale_trimming = True,
@@ -186,6 +188,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
                 # or Application.app/Frameworks
                 "@executable_path/Frameworks",
+                "@executable_path/../../Frameworks",
+            ],
+        ),
+        # ios_extension (ExtensionKit)
+        apple_product_type.extensionkit_extension: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.extensionkit_extension,
+            rpaths = [
+                # ExtensionKit binaries live in Application.app/Extensions/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
         ),
@@ -313,7 +328,7 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.dylib,
             requires_signing_for_device = False,
         ),
-        # macos_extension
+        # macos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
             allows_locale_trimming = True,
@@ -329,6 +344,22 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Contents/PlugIns/Extension.appex/Contents/Frameworks
                 # or Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
+                "@executable_path/../../../../Frameworks",
+            ],
+        ),
+        # macos_extension (ExtensionKit)
+        apple_product_type.extensionkit_extension: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.extensionkit_extension,
+            requires_signing_for_device = False,
+            rpaths = [
+                # ExtensionKit binaries live in
+                # Application.app/Contents/Extensions/Extension.appex/Contents/MacOS/Extension
+                # Frameworks are packaged in Application.app/Contents/Frameworks
                 "@executable_path/../../../../Frameworks",
             ],
         ),
@@ -467,7 +498,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
-        # tvos_extension
+        # tvos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["tv"],
             allows_locale_trimming = True,
@@ -479,6 +510,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks
                 # or Application.app/Frameworks
                 "@executable_path/Frameworks",
+                "@executable_path/../../Frameworks",
+            ],
+        ),
+        # tvos_extension (ExtensionKit)
+        apple_product_type.extensionkit_extension: _describe_rule_type(
+            allowed_device_families = ["tv"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.extensionkit_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/Extensions/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/../../Frameworks",
             ],
         ),

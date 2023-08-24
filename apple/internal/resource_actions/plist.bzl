@@ -192,6 +192,7 @@ def merge_root_infoplists(
         child_plists = [],
         child_required_values = [],
         environment_plist,
+        extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
         launch_storyboard,
@@ -223,6 +224,8 @@ def merge_root_infoplists(
           pair, see plisttool's `child_plist_required_values`, as this is passed
           straight through to it.
       environment_plist: An executable file referencing the environment_plist tool.
+      extensionkit_keys_required: If True, the merged Info.plist file must include entries for
+          EXAppExtensionAttributes and EXExtensionPointIdentifier, and have no NSExtension key.
       include_executable_name: If True, the executable name will be added to
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
@@ -231,7 +234,7 @@ def merge_root_infoplists(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
-        required.
+          required.
       output_plist: The file reference for the merged output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_plisttool: A struct referencing the resolved plist tool.
@@ -298,6 +301,9 @@ def merge_root_infoplists(
         info_plist_options["child_plist_required_values"] = struct(
             **{str(p.owner): v for (p, v) in child_required_values}
         )
+
+    if extensionkit_keys_required:
+        info_plist_options["extensionkit_keys_required"] = True
 
     if (version != None and AppleBundleVersionInfo in version):
         version_info = version[AppleBundleVersionInfo]

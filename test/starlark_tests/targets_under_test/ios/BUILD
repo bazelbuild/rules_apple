@@ -1137,6 +1137,25 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_extensionkit_ext",
+    bundle_id = "com.google.example",
+    extensions = [":extensionkit_ext"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_ext_and_fmwk_provisioned",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
@@ -1257,6 +1276,26 @@ ios_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "extensionkit_ext",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensionkit_extension = True,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 

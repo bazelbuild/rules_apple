@@ -308,6 +308,16 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test that an ExtensionKit extension is bundled in Extensions and not PlugIns.
+    archive_contents_test(
+        name = "{}_extensionkit_bundling_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_extensionkit_ext",
+        contains = ["$BUNDLE_ROOT/Extensions/extensionkit_ext.appex/extensionkit_ext"],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/extensionkit_ext.appex/extensionkit_ext"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -1039,10 +1039,15 @@ def _ios_framework_impl(ctx):
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
-    """Experimental implementation of ios_extension."""
+    """Implementation of ios_extension."""
+
+    product_type = apple_product_type.app_extension
+    if ctx.attr.extensionkit_extension:
+        product_type = apple_product_type.extensionkit_extension
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.app_extension,
+        product_type = product_type,
     )
 
     actions = ctx.actions
@@ -1140,6 +1145,14 @@ def _ios_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    embedded_bundles_args = {}
+    if rule_descriptor.product_type == apple_product_type.app_extension:
+        embedded_bundles_args["plugins"] = [archive_for_embedding]
+    elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
+        embedded_bundles_args["extensions"] = [archive_for_embedding]
+    else:
+        fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
+
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
@@ -1208,7 +1221,7 @@ def _ios_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive_for_embedding],
+            **embedded_bundles_args
         ),
         partials.extension_safe_validation_partial(
             is_extension_safe = True,
@@ -1223,6 +1236,7 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
+            extensionkit_keys_required = ctx.attr.extensionkit_extension,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -2579,6 +2593,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
+        rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",

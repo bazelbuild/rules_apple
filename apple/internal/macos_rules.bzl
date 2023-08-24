@@ -670,10 +670,15 @@ def _macos_bundle_impl(ctx):
     ] + processor_result.providers
 
 def _macos_extension_impl(ctx):
-    """Experimental implementation of macos_extension."""
+    """Implementation of macos_extension."""
+
+    product_type = apple_product_type.app_extension
+    if ctx.attr.extensionkit_extension:
+        product_type = apple_product_type.extensionkit_extension
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.app_extension,
+        product_type = product_type,
     )
 
     actions = ctx.actions
@@ -769,6 +774,14 @@ def _macos_extension_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    embedded_bundles_args = {}
+    if rule_descriptor.product_type == apple_product_type.app_extension:
+        embedded_bundles_args["plugins"] = [archive]
+    elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
+        embedded_bundles_args["extensions"] = [archive]
+    else:
+        fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
+
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -831,7 +844,7 @@ def _macos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive],
+            **embedded_bundles_args
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -844,6 +857,7 @@ def _macos_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
+            extensionkit_keys_required = ctx.attr.extensionkit_extension,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -2302,6 +2316,7 @@ point (typically expressed through Swift's `@main` attribute).""",
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
         ),
+        rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,

@@ -1185,6 +1185,20 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_with_extensionkit_ext",
+    bundle_id = "com.google.example",
+    extensions = [":extensionkit_ext"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 macos_extension(
     name = "ext",
     additional_contents = {
@@ -1194,6 +1208,24 @@ macos_extension(
     bundle_id = "com.google.example.ext",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "extensionkit_ext",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    bundle_id = "com.google.example.ext",
+    extensionkit_extension = True,
+    infoplists = [
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
