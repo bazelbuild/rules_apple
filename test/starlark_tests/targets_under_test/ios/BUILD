@@ -13,6 +13,7 @@ load(
     "ios_extension",
     "ios_framework",
     "ios_imessage_application",
+    "ios_imessage_extension",
     "ios_static_framework",
     "ios_sticker_pack_extension",
     "ios_ui_test",
@@ -2790,7 +2791,7 @@ generate_static_xcframework(
 ios_imessage_application(
     name = "imessage_app",
     bundle_id = "com.google.example",
-    extension = ":sticker_ext",
+    extension = ":imessage_ext",
     families = [
         "iphone",
         "ipad",
@@ -2801,6 +2802,45 @@ ios_imessage_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
+)
+
+ios_imessage_extension(
+    name = "imessage_ext",
+    app_icons = ["//test/testdata/resources:message_ext_app_icon_ios"],
+    bundle_id = "com.google.example.MessagesExtension",
+    bundle_name = "imessage-ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:MessagesExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_imessage_extension(
+    name = "imessage_ext_with_wrong_appicons",
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
+    bundle_id = "com.google.example.MessagesExtension",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:MessagesExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_sticker_pack_extension(
@@ -4553,7 +4593,7 @@ ios_framework(
 ios_imessage_application(
     name = "imessage_app_with_capability_set_derived_bundle_id",
     bundle_name = "imessage-app-with-capability-set-derived-bundle-id",
-    extension = ":sticker_ext_with_capability_set_derived_bundle_id",
+    extension = ":imessage_ext_with_capability_set_derived_bundle_id",
     families = [
         "iphone",
         "ipad",
@@ -4566,6 +4606,27 @@ ios_imessage_application(
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
     tags = common.fixture_tags,
+)
+
+ios_imessage_extension(
+    name = "imessage_ext_with_capability_set_derived_bundle_id",
+    bundle_name = "MessagesExtension",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:MessagesExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 ios_sticker_pack_extension(

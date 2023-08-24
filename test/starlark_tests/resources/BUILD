@@ -309,6 +309,9 @@ objc_library(
     name = "objc_test_lib",
     testonly = True,
     srcs = ["test.m"],
+    sdk_frameworks = [
+        "XCTest",
+    ],
     tags = common.fixture_tags,
     deps = [
     ],
