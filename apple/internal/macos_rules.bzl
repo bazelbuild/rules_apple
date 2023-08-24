@@ -123,7 +123,6 @@ load(
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
