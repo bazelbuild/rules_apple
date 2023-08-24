@@ -483,6 +483,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             ),
         )
 
+    # ME: At this point we need to optinally add a partial to construct the xctestrun bundle
+
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -501,6 +503,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         rule_descriptor = rule_descriptor,
         rule_label = label,
     )
+
+    # ME: Find a way to package the created xctestrun bundle into the archive.
 
     archive = outputs.archive(
         actions = actions,
