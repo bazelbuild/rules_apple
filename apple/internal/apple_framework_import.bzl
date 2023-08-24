@@ -486,7 +486,7 @@ apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
     fragments = ["cpp"],
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(
@@ -556,7 +556,7 @@ apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
     fragments = ["cpp", "objc"],
     attrs = dicts.add(
-        rule_attrs.common_tool_attrs,
+        rule_attrs.common_tool_attrs(),
         swift_common.toolchain_attrs(toolchain_attr_name = "_swift_toolchain"),
         {
             "framework_imports": attr.label_list(

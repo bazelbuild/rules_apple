@@ -67,32 +67,34 @@ load(
     "dicts",
 )
 
-# Private attributes on all rules; these should be included in all rule attributes.
-_COMMON_ATTRS = dicts.add(
-    {
-        "_grep_includes": attr.label(
-            cfg = "exec",
-            allow_single_file = True,
-            executable = True,
-            default = Label("@bazel_tools//tools/cpp:grep-includes"),
+def _common_attrs():
+    """Private attributes on all rules; these should be included in all rule attributes."""
+    return dicts.add(
+        {
+            "_grep_includes": attr.label(
+                cfg = "exec",
+                allow_single_file = True,
+                executable = True,
+                default = Label("@bazel_tools//tools/cpp:grep-includes"),
+            ),
+        },
+        apple_support.action_required_attrs(),
+    )
+
+def _common_tool_attrs():
+    """Returns the set of attributes to support rules that need rules_apple tools and toolchains."""
+    return dicts.add(
+        _common_attrs(),
+        apple_toolchain_utils.shared_attrs(),
+    )
+
+def _custom_transition_allowlist_attr():
+    """Returns the required attribute to use Starlark defined custom transitions."""
+    return {
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
-    },
-    apple_support.action_required_attrs(),
-)
-
-# Returns the common set of attributes to support rules that leverage rules_apple tools and their
-# associated toolchains.
-_COMMON_TOOL_ATTRS = dicts.add(
-    _COMMON_ATTRS,
-    apple_toolchain_utils.shared_attrs(),
-)
-
-# Returns required attribute to use Starlark defined custom transitions
-_CUSTOM_TRANSITION_ALLOWLIST_ATTR = {
-    "_allowlist_function_transition": attr.label(
-        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-    ),
-}
+    }
 
 def _app_intents_attrs(*, deps_cfg):
     """Returns a dictionary with the attribute for Apple platform rules supporting AppIntents.
@@ -141,7 +143,7 @@ def _common_linking_api_attrs(*, deps_cfg):
             To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
             use the same transition.
     """
-    return dicts.add(_COMMON_ATTRS, {
+    return dicts.add(_common_attrs(), {
         # TODO(b/251837356): Replace with the _cc_toolchain_forwarder attr when native code doesn't
         # require that this attr be called `_child_configuration_dummy` in Bazel linking APIs.
         "_child_configuration_dummy": attr.label(
@@ -374,19 +376,20 @@ binaries/libraries will be created combining all architectures specified by
         })
     return platform_attrs
 
-# Attributes required for rules that are built to support test rules like ios_unit_test.
-_TEST_BUNDLE_ATTRS = {
-    # We need to add an explicit output attribute so that the output file name from the test
-    # bundle target matches the test name, otherwise, it we'd be breaking the assumption that
-    # ios_unit_test(name = "Foo") creates a :Foo.zip target.
-    # This is an implementation detail attribute, so it's not documented on purpose.
-    "test_bundle_output": attr.output(mandatory = True),
-    "_swizzle_absolute_xcttestsourcelocation": attr.label(
-        default = Label(
-            "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+def _test_bundle_attrs():
+    """Attributes required for rules that are built to support test rules like ios_unit_test."""
+    return {
+        # We need to add an explicit output attribute so that the output file name from the test
+        # bundle target matches the test name, otherwise, it we'd be breaking the assumption that
+        # ios_unit_test(name = "Foo") creates a :Foo.zip target.
+        # This is an implementation detail attribute, so it's not documented on purpose.
+        "test_bundle_output": attr.output(mandatory = True),
+        "_swizzle_absolute_xcttestsourcelocation": attr.label(
+            default = Label(
+                "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+            ),
         ),
-    ),
-}
+    }
 
 def _test_host_attrs(
         *,
@@ -558,8 +561,8 @@ for what is supported.
         ),
     }
 
-# Returns a dictionary of rule attributes common to all rules that produce Apple bundles.
 def _common_bundle_attrs(*, deps_cfg):
+    """Returns a dictionary of rule attributes common to all rules that produce Apple bundles."""
     return {
         "bundle_name": attr.string(
             mandatory = False,
@@ -623,7 +626,8 @@ def _device_family_attrs(*, allowed_families, is_mandatory = False):
     Args:
         allowed_families: List of strings representing valid device families to compile assets
             compatible for the given target.
-        is_mandatory: Boolean. If `True`, the `families` attribute must be set by the user. Optional.
+        is_mandatory: Boolean. If `True`, the `families` attribute must be set by the user.
+            Optional.
     """
     extra_args = {}
     if not is_mandatory:
@@ -662,42 +666,44 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
         ),
     }
 
-# Returns the attribute required to support launch images for a given target.
-_LAUNCH_IMAGES_ATTRS = {
-    "launch_images": attr.label_list(
-        allow_files = True,
-        doc = """
+def _launch_images_attrs():
+    """Returns the attribute required to support launch images for a given target."""
+    return {
+        "launch_images": attr.label_list(
+            allow_files = True,
+            doc = """
 Files that comprise the launch images for the application. Each file must have a containing
 directory named `*.xcassets/*.launchimage` and there may be only one such `.launchimage` directory
 in the list.
 """,
-    ),
-}
+        ),
+    }
 
-# Returns the attribute required to support settings bundles for a given target.
-_SETTINGS_BUNDLE_ATTRS = {
-    "settings_bundle": attr.label(
-        aspects = [apple_resource_aspect],
-        providers = [["objc"], [AppleResourceBundleInfo], [apple_common.Objc]],
-        doc = """
+def _settings_bundle_attrs():
+    """Returns the attribute required to support settings bundles for a given target."""
+    return {
+        "settings_bundle": attr.label(
+            aspects = [apple_resource_aspect],
+            providers = [["objc"], [AppleResourceBundleInfo], [apple_common.Objc]],
+            doc = """
 A resource bundle (e.g. `apple_bundle_import`) target that contains the files that make up the
 application's settings bundle. These files will be copied into the root of the final application
 bundle in a directory named `Settings.bundle`.
 """,
-    ),
-}
-
-# Returns the attribute required to launch a *_application target using
-# an Apple simulator (through apple_simulator.template.py) with `bazel run`.
-_SIMULATOR_RUNNER_TEMPLATE_ATTR = {
-    "_runner_template": attr.label(
-        cfg = "exec",
-        allow_single_file = True,
-        default = Label(
-            "@build_bazel_rules_apple//apple/internal/templates:apple_simulator_template",
         ),
-    ),
-}
+    }
+
+def _simulator_runner_template_attr():
+    """Returns the attribute required to `bazel run` a *_application target with an Apple sim."""
+    return {
+        "_runner_template": attr.label(
+            cfg = "exec",
+            allow_single_file = True,
+            default = Label(
+                "@build_bazel_rules_apple//apple/internal/templates:apple_simulator_template",
+            ),
+        ),
+    }
 
 # Returns the aspects required to support a test host for a given target.
 _TEST_HOST_ASPECTS = [framework_provider_aspect]
@@ -711,19 +717,19 @@ rule_attrs = struct(
     aspects = struct(test_host_aspects = _TEST_HOST_ASPECTS),
     binary_linking_attrs = _binary_linking_attrs,
     cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
-    common_attrs = _COMMON_ATTRS,
+    common_attrs = _common_attrs,
     common_bundle_attrs = _common_bundle_attrs,
-    common_tool_attrs = _COMMON_TOOL_ATTRS,
-    custom_transition_allowlist_attr = _CUSTOM_TRANSITION_ALLOWLIST_ATTR,
+    common_tool_attrs = _common_tool_attrs,
+    custom_transition_allowlist_attr = _custom_transition_allowlist_attr,
     device_family_attrs = _device_family_attrs,
     infoplist_attrs = _infoplist_attrs,
-    launch_images_attrs = _LAUNCH_IMAGES_ATTRS,
+    launch_images_attrs = _launch_images_attrs,
     platform_attrs = _platform_attrs,
-    settings_bundle_attrs = _SETTINGS_BUNDLE_ATTRS,
+    settings_bundle_attrs = _settings_bundle_attrs,
     signing_attrs = _signing_attrs,
-    simulator_runner_template_attr = _SIMULATOR_RUNNER_TEMPLATE_ATTR,
+    simulator_runner_template_attr = _simulator_runner_template_attr,
     static_library_linking_attrs = _static_library_linking_attrs,
-    test_bundle_attrs = _TEST_BUNDLE_ATTRS,
+    test_bundle_attrs = _test_bundle_attrs,
     test_host_attrs = _test_host_attrs,
     defaults = struct(
         allowed_families = struct(
