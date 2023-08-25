@@ -289,6 +289,8 @@ def _watchos_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -555,6 +557,8 @@ def _watchos_dynamic_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -875,6 +879,8 @@ reproducible error case.".format(
             executable_name = executable_name,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -1161,6 +1167,8 @@ def _watchos_extension_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -1601,6 +1609,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -1688,7 +1698,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an watchOS Application.",
+    doc = "Builds and bundles a watchOS Application.",
     implementation = _watchos_application_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
@@ -1760,7 +1770,7 @@ that this target depends on.
 )
 
 watchos_extension = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an watchOS Extension.",
+    doc = "Builds and bundles a watchOS Extension.",
     implementation = _watchos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [

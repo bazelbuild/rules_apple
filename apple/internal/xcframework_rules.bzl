@@ -631,7 +631,10 @@ def _apple_xcframework_impl(ctx):
                 executable_name = executable_name,
                 label_name = label.name,
                 linkmaps = link_output.linkmaps,
+                output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
+                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                rule_label = label,
                 version = ctx.attr.version,
             ),
             partials.resources_partial(

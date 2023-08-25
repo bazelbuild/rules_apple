@@ -125,7 +125,7 @@ rules (applications, extensions, frameworks, test bundles, and so forth).
 ## AppleBundleVersionInfo
 
 <pre>
-AppleBundleVersionInfo(<a href="#AppleBundleVersionInfo-build_version">build_version</a>, <a href="#AppleBundleVersionInfo-short_version_string">short_version_string</a>, <a href="#AppleBundleVersionInfo-version_file">version_file</a>)
+AppleBundleVersionInfo(<a href="#AppleBundleVersionInfo-version_file">version_file</a>)
 </pre>
 
 Provides versioning information for an Apple bundle.
@@ -135,9 +135,7 @@ Provides versioning information for an Apple bundle.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBundleVersionInfo-build_version"></a>build_version |  'String'. A version string for an Info.plist which corresponds to <code>CFBundleVersion</code>. Mandatory if <code>short_version_string</code> is set.    |
-| <a id="AppleBundleVersionInfo-short_version_string"></a>short_version_string |  'String'. A version string for an Info.plist which corresponds to <code>CFBundleShortVersionString</code>.    |
-| <a id="AppleBundleVersionInfo-version_file"></a>version_file |  A <code>File</code> containing JSON-formatted text describing the version number information propagated by the target.<br><br>It contains two keys:<br><br>*   <code>build_version</code>, which corresponds to <code>CFBundleVersion</code>.<br><br>*   <code>short_version_string</code>, which corresponds to <code>CFBundleShortVersionString</code>.    |
+| <a id="AppleBundleVersionInfo-version_file"></a>version_file |  Required. A <code>File</code> containing JSON-formatted text describing the version number information propagated by the target.<br><br>It contains two keys:<br><br>*   <code>build_version</code>, which corresponds to <code>CFBundleVersion</code>.<br><br>*   <code>short_version_string</code>, which corresponds to <code>CFBundleShortVersionString</code>.    |
 
 
 <a id="AppleDsymBundleInfo"></a>
