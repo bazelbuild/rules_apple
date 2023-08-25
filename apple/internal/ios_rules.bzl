@@ -270,7 +270,6 @@ def _ios_application_impl(ctx):
             deps = ctx.split_attr.app_intents,
             disabled_features = ctx.disabled_features,
             features = features,
-            grep_includes = ctx.file._grep_includes,
             label = label,
             platform_prerequisites = platform_prerequisites,
         ),
