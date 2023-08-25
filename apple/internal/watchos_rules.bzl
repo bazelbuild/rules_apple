@@ -692,12 +692,8 @@ def _watchos_extension_based_application_impl(ctx):
 
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os >= apple_common.dotted_version("9.0"):
-        # There is no way to issue a warning, so print is the only way to message before fail-ing.
-        # buildifier: disable=print
-        print("""
-WARNING: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
-
-This will soon be an error.
+        fail("""
+Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
 
 watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying on
 an app delegate via deps rather than a watchOS 2 extension.
