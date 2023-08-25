@@ -18,13 +18,14 @@ import concurrent.futures
 import contextlib
 import io
 import os
-import pathlib
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
 
 from tools.dossier_codesigningtool import dossier_codesigning_reader
+
 
 _FAKE_MANIFEST = {
     'codesign_identity': '-',
@@ -57,18 +58,20 @@ _FAKE_MANIFEST = {
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': 'PlugIns/WatchExtension.appex',
                 'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision'
+                'provisioning_profile': 'fake.mobileprovision',
             }],
             'embedded_relative_path': 'Watch/WatchApp.app',
             'entitlements': 'fake.entitlements',
-            'provisioning_profile': 'fake.mobileprovision'
-        }
+            'provisioning_profile': 'fake.mobileprovision',
+        },
     ],
     'entitlements': 'fake.entitlements',
-    'provisioning_profile': 'fake.mobileprovision'
+    'provisioning_profile': 'fake.mobileprovision',
 }
 
 _IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
+_IPA_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion.ipa'
+_COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion_dossier_with_bundle.zip'
 
 _ADDITIONAL_SIGNING_KEYCHAIN = '/tmp/Library/Keychains/ios-dev-signing.keychain'
 
@@ -244,7 +247,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         codesign_identity='-',
         executor=executor)
-    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+    dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertEqual(len(futures), 4)
     self.assertEqual(mock_sign_bundle.call_count, 4)
     default_args = (
@@ -322,29 +325,32 @@ class DossierCodesigningReaderTest(unittest.TestCase):
     mock_copy.assert_called_with(
         '/tmp/fake.mobile', '/tmp/fake.app/Contents/embedded.mobile')
 
-  def test_wait_embedded_manifest_futures_reraises_exception(self):
+  def test_wait_signing_futures_reraises_exception(self):
     future_with_exception = concurrent.futures.Future()
     future_with_exception.set_exception(RuntimeError)
 
     future_with_no_exception = concurrent.futures.Future()
     future_with_no_exception.set_result(None)
-    futures = [future_with_exception, future_with_no_exception]
+    futures = [
+        dossier_codesigning_reader.SigningFuture(future_with_exception, 'n1'),
+        dossier_codesigning_reader.SigningFuture(future_with_no_exception, 'n2')
+    ]
 
     stdout = io.StringIO()
     with self.assertRaises(RuntimeError), contextlib.redirect_stdout(stdout):
-      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+      dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertNotRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
 
-  def test_wait_embedded_manifest_futures_does_not_raises_exception(self):
+  def test_wait_signing_futures_does_not_raises_exception(self):
     futures = []
     for _ in range(3):
       future = concurrent.futures.Future()
       future.set_result(None)
-      futures.append(future)
-    dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
+      futures.append(dossier_codesigning_reader.SigningFuture(future, 'note'))
+    dossier_codesigning_reader._wait_signing_futures(futures)
 
   @mock.patch('concurrent.futures.wait')
-  def test_wait_embedded_manifest_futures_cancel_futures(self, mock_wait):
+  def test_wait_signing_futures_cancel_futures(self, mock_wait):
     mock_future_done = mock.Mock()
     mock_future_exception = mock.Mock()
     mock_future_not_done = mock.Mock()
@@ -354,12 +360,15 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         [mock_future_exception, mock_future_done], [mock_future_not_done])
 
     futures = [
-        mock_future_exception, mock_future_done, mock_future_not_done]
+        dossier_codesigning_reader.SigningFuture(mock_future_exception, 'n1'),
+        dossier_codesigning_reader.SigningFuture(mock_future_done, 'n2'),
+        dossier_codesigning_reader.SigningFuture(mock_future_not_done, 'n3')
+    ]
 
     stdout = io.StringIO()
     with self.assertRaises(EOFError), contextlib.redirect_stdout(stdout):
-      dossier_codesigning_reader._wait_embedded_manifest_futures(futures)
-    self.assertRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
+      dossier_codesigning_reader._wait_signing_futures(futures)
+    self.assertRegex(stdout.getvalue(), r'Codesign task\(s\) failed\:')
 
     mock_future_not_done.cancel.assert_called()
     mock_future_exception.cancel.assert_not_called()
@@ -510,36 +519,58 @@ class DossierCodesigningReaderTest(unittest.TestCase):
       )
       mock_package.assert_called_once()
 
-  def test_ipa_extract_and_package_flow(self):
-    try:
-      working_dir = tempfile.mkdtemp()
 
-      extracted_bundle = dossier_codesigning_reader._extract_archive(
+  def _test_extract_and_package_flow(
+      self, unsigned_archive_path, app_name, app_bundle_subdir, expected_folders
+  ):
+    working_dir = tempfile.mkdtemp()
+    try:
+      extracted_input_path = dossier_codesigning_reader._extract_archive(
           working_dir=working_dir,
-          app_bundle_subdir='Payload',
-          unsigned_archive_path=_IPA_WORKSPACE_PATH,
+          app_bundle_subdir=app_bundle_subdir,
+          unsigned_archive_path=unsigned_archive_path,
       )
-      # Using pathlib to compare the last two path components, making sure that
-      # the Payload subdir was preserved with the app bundle.
-      extracted_bundle_path = pathlib.Path(extracted_bundle)
-      self.assertListEqual(
-          ['Payload', 'app.app'], list(extracted_bundle_path.parts)[-2:]
+      self.assertEqual(
+          os.path.join(working_dir, app_bundle_subdir, 'Payload', app_name),
+          extracted_input_path
       )
+      output_dir = tempfile.mkdtemp()
       try:
-        output_dir = tempfile.mkdtemp()
         output_ipa_path = os.path.join(output_dir, 'output.ipa')
         dossier_codesigning_reader._package_ipa(
             working_dir=working_dir,
-            app_bundle_subdir='Payload',
+            app_bundle_subdir=app_bundle_subdir,
             output_ipa=output_ipa_path,
         )
         if not os.path.isfile(output_ipa_path):
           self.fail('output ipa was not created!')
+        extracted_output_path = os.path.join(output_dir, 'extracted')
+        subprocess.check_call(
+            ['ditto', '-x', '-k', output_ipa_path, extracted_output_path])
+        for folder in expected_folders:
+          if not os.path.exists(os.path.join(extracted_output_path, folder)):
+            self.fail(f'"{folder}" not found in output IPA!')
       finally:
         shutil.rmtree(output_dir)
     finally:
       shutil.rmtree(working_dir)
 
+
+  def test_extract_and_package_flow1(self):
+    self._test_extract_and_package_flow(
+        _IPA_WORKSPACE_PATH, 'app.app', '', ['Payload'])
+
+
+  def test_extract_and_package_flow2(self):
+    self._test_extract_and_package_flow(
+        _IPA_W_WATCHOS_WORKSPACE_PATH, 'app_companion.app',
+        '', ['Payload', 'WatchKitSupport2'])
+
+
+  def test_extract_and_package_flow3(self):
+    self._test_extract_and_package_flow(
+        _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH, 'app_companion.app',
+        'bundle', ['Payload', 'WatchKitSupport2'])
 
 if __name__ == '__main__':
   unittest.main()
