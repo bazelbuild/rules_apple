@@ -289,6 +289,8 @@ def _watchos_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
@@ -555,6 +557,8 @@ def _watchos_dynamic_framework_impl(ctx):
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(

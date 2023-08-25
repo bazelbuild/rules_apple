@@ -229,7 +229,7 @@ def macos_command_line_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         apple_generate_dsym = True,
         output_group_name = "dsyms",
-        plist_test_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
         expected_values = {
             "CFBundleIdentifier": "com.apple.xcode.dsym.cmd_app_basic.dSYM",
             "CFBundleShortVersionString": "1.0",

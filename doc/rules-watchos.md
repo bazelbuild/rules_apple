@@ -16,7 +16,7 @@ watchos_application(<a href="#watchos_application-name">name</a>, <a href="#watc
                     <a href="#watchos_application-version">version</a>)
 </pre>
 
-Builds and bundles an watchOS Application.
+Builds and bundles a watchOS Application.
 
 **ATTRIBUTES**
 
@@ -152,7 +152,7 @@ watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_
                   <a href="#watchos_extension-provisioning_profile">provisioning_profile</a>, <a href="#watchos_extension-resources">resources</a>, <a href="#watchos_extension-shared_capabilities">shared_capabilities</a>, <a href="#watchos_extension-stamp">stamp</a>, <a href="#watchos_extension-strings">strings</a>, <a href="#watchos_extension-version">version</a>)
 </pre>
 
-Builds and bundles an watchOS Extension.
+Builds and bundles a watchOS Extension.
 
 **ATTRIBUTES**
 
