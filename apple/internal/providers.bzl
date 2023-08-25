@@ -155,6 +155,44 @@ set to true for the extension but false for the application.
     init = _make_banned_init(provider_name = "AppleBundleInfo"),
 )
 
+AppleBundleVersionInfo, new_applebundleversioninfo = provider(
+    doc = "Provides versioning information for an Apple bundle.",
+    fields = {
+        "version_file": """
+Required. A `File` containing JSON-formatted text describing the version number information
+propagated by the target.
+
+It contains two keys:
+
+*   `build_version`, which corresponds to `CFBundleVersion`.
+
+*   `short_version_string`, which corresponds to `CFBundleShortVersionString`.
+""",
+    },
+    init = _make_banned_init(
+        provider_name = "AppleBundleVersionInfo",
+        preferred_public_factory = "make_apple_bundle_version_info(...)",
+    ),
+)
+
+def make_apple_bundle_version_info(*, version_file):
+    """Creates a new instance of the `AppleBundleVersionInfo` provider.
+
+    Args:
+        version_file: Required. See the docs on `AppleBundleVersionInfo`.
+
+    Returns:
+        A new `AppleBundleVersionInfo` provider based on the supplied arguments.
+    """
+    if type(version_file) != "File":
+        fail("""
+Error: Expected "version_file" to be of type "File".
+
+Received unexpected type "{actual_type}".
+""".format(actual_type = type(version_file)))
+
+    return new_applebundleversioninfo(version_file = version_file)
+
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
@@ -441,14 +479,12 @@ def make_apple_test_runner_info(**kwargs):
         A new `AppleTestRunnerInfo` provider based on the supplied arguments.
     """
     if "test_runner_template" not in kwargs or not kwargs["test_runner_template"]:
-        fail(
-            """
+        fail("""
 Error: Could not find the required argument "test_runner_template" needed to build an
 AppleTestRunner provider.
 
 Received the following arguments for make_apple_test_runner_info: {kwargs}
-""".format(kwargs = ", ".join(kwargs.keys())),
-        )
+""".format(kwargs = ", ".join(kwargs.keys())))
 
     return new_appletestrunnerinfo(**kwargs)
 
