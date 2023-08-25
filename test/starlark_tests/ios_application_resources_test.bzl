@@ -74,7 +74,9 @@ def ios_application_resources_test_suite(name):
             "$BUNDLE_ROOT/launch_screen_ios~ipad.nib/runtime.nib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_launch_storyboard_as_xib",
-        tags = [name],
+        tags = [
+            name,
+        ],
     )
 
     # Tests that empty strings files can be processed.
