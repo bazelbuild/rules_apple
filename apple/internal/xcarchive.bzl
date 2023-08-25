@@ -3,6 +3,10 @@ Rule for packaging a bundle into a .xcarchive.
 """
 
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo"
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
@@ -40,7 +44,7 @@ def _xcarchive_impl(ctx):
     )
 
     # Limiting the contents of AppleBinaryInfo to what is necessary for testing and validation.
-    xcarchive_binary_info = AppleBinaryInfo(
+    xcarchive_binary_info = new_applebinaryinfo(
         binary = xcarchive,
         infoplist = None,
         product_type = None,

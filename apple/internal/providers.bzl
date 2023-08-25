@@ -255,7 +255,7 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
             transitive_sets.append(framework_info.framework_imports)
         build_archs.append(framework_info.build_archs)
 
-    return AppleFrameworkImportInfo(
+    return new_appleframeworkimportinfo(
         debug_info_binaries = depset(transitive = transitive_debug_info_binaries),
         dsym_imports = depset(transitive = transitive_dsyms),
         framework_imports = depset(transitive = transitive_sets),
