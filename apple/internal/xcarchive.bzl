@@ -4,7 +4,7 @@ Rule for packaging a bundle into a .xcarchive.
 
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "new_applebinaryinfo"
+    "new_applebinaryinfo",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
