@@ -3,14 +3,13 @@ Rule for packaging a bundle into a .xcarchive.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "new_applebinaryinfo",
-)
-load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
     "AppleBundleInfo",
     "AppleDsymBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
 )
 
 def _xcarchive_impl(ctx):
