@@ -24,7 +24,6 @@ import tempfile
 import unittest
 from unittest import mock
 
-from absl.testing import parameterized
 from tools.dossier_codesigningtool import dossier_codesigning_reader
 
 
@@ -77,7 +76,7 @@ _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test
 _ADDITIONAL_SIGNING_KEYCHAIN = '/tmp/Library/Keychains/ios-dev-signing.keychain'
 
 
-class DossierCodesigningReaderTest(parameterized.TestCase):
+class DossierCodesigningReaderTest(unittest.TestCase):
 
   @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
   def test_sign_bundle_with_manifest_codesign_invocations(self, mock_codesign):
@@ -520,29 +519,8 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
       )
       mock_package.assert_called_once()
 
-  @parameterized.named_parameters(
-      (
-          'plain_ipa',
-          _IPA_WORKSPACE_PATH,
-          'app.app',
-          '',
-          ['Payload']),
-      (
-          'watchos_ipa',
-          _IPA_W_WATCHOS_WORKSPACE_PATH,
-          'app_companion.app',
-          '',
-          ['Payload', 'WatchKitSupport2'],
-      ),
-      (
-          'watchos_combined_zip',
-          _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH,
-          'app_companion.app',
-          'bundle',
-          ['Payload', 'WatchKitSupport2'],
-      ),
-  )
-  def test_extract_and_package_flow(
+
+  def _test_extract_and_package_flow(
       self, unsigned_archive_path, app_name, app_bundle_subdir, expected_folders
   ):
     working_dir = tempfile.mkdtemp()
@@ -577,6 +555,22 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
     finally:
       shutil.rmtree(working_dir)
 
+
+  def test_extract_and_package_flow1(self):
+    self._test_extract_and_package_flow(
+        _IPA_WORKSPACE_PATH, 'app.app', '', ['Payload'])
+
+
+  def test_extract_and_package_flow2(self):
+    self._test_extract_and_package_flow(
+        _IPA_W_WATCHOS_WORKSPACE_PATH, 'app_companion.app',
+        '', ['Payload', 'WatchKitSupport2'])
+
+
+  def test_extract_and_package_flow3(self):
+    self._test_extract_and_package_flow(
+        _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH, 'app_companion.app',
+        'bundle', ['Payload', 'WatchKitSupport2'])
 
 if __name__ == '__main__':
   unittest.main()

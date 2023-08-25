@@ -21,7 +21,7 @@ import unittest
 from unittest import mock
 import zipfile
 
-from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesigningtool
+from tools.dossier_codesigningtool import dossier_codesigningtool
 
 _FAKE_CODESIGN_STDERR_WITH_ADHOC_SIGNING = """\
 Executable=/tmp/app_minimal.app/app_minimal
