@@ -61,6 +61,18 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
+    "new_appleframeworkbundleinfo",
+    "new_macosapplicationbundleinfo",
+    "new_macosbundlebundleinfo",
+    "new_macosextensionbundleinfo",
+    "new_macoskernelextensionbundleinfo",
+    "new_macosquicklookpluginbundleinfo",
+    "new_macosspotlightimporterbundleinfo",
+    "new_macosxpcservicebundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -119,19 +131,12 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleFrameworkBundleInfo",
     "ApplePlatformInfo",
-    "MacosApplicationBundleInfo",
-    "MacosBundleBundleInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
-    "MacosKernelExtensionBundleInfo",
-    "MacosQuickLookPluginBundleInfo",
-    "MacosSpotlightImporterBundleInfo",
     "MacosStaticFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
 )
@@ -423,7 +428,7 @@ def _macos_application_impl(ctx):
                 files = [archive],
             ),
         ),
-        MacosApplicationBundleInfo(),
+        new_macosapplicationbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -658,7 +663,7 @@ def _macos_bundle_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosBundleBundleInfo(),
+        new_macosbundlebundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -921,11 +926,11 @@ def _macos_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosExtensionBundleInfo(),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
             objc = link_result.objc,
         ),
+        new_macosextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1166,7 +1171,7 @@ def _macos_quick_look_plugin_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        MacosQuickLookPluginBundleInfo(),
+        new_macosquicklookpluginbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1408,7 +1413,7 @@ def _macos_kernel_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosKernelExtensionBundleInfo(),
+        new_macoskernelextensionbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1636,7 +1641,7 @@ def _macos_spotlight_importer_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosSpotlightImporterBundleInfo(),
+        new_macosspotlightimporterbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1864,7 +1869,7 @@ def _macos_xpc_service_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        MacosXPCServiceBundleInfo(),
+        new_macosxpcservicebundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
@@ -1982,7 +1987,7 @@ def _macos_command_line_application_impl(ctx):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             infoplist = infoplist,
             product_type = rule_descriptor.product_type,
@@ -2114,7 +2119,7 @@ def _macos_dylib_impl(ctx):
     infoplist = infoplists[0] if infoplists else None
 
     return [
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = output_file,
             infoplist = infoplist,
             product_type = rule_descriptor.product_type,
@@ -2883,8 +2888,8 @@ def _macos_framework_impl(ctx):
 
     return [
         DefaultInfo(files = processor_result.output_files),
-        AppleFrameworkBundleInfo(),
         MacosFrameworkBundleInfo(),
+        new_appleframeworkbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,

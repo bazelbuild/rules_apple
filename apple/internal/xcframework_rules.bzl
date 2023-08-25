@@ -64,6 +64,12 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebundleinfo",
+    "new_applestaticxcframeworkbundleinfo",
+    "new_applexcframeworkbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -101,10 +107,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleStaticXcframeworkBundleInfo",
-    "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
@@ -754,7 +757,7 @@ def _apple_xcframework_impl(ctx):
 
     processor_output = [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
-        AppleBundleInfo(
+        new_applebundleinfo(
             archive = ctx.outputs.archive,
             bundle_extension = ".xcframework",
             bundle_id = nested_bundle_id,
@@ -763,7 +766,7 @@ def _apple_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleXcframeworkBundleInfo(),
+        new_applexcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([ctx.outputs.archive], transitive = framework_output_files),
         ),
@@ -1096,7 +1099,7 @@ def _apple_static_xcframework_impl(ctx):
 
     return [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
-        AppleBundleInfo(
+        new_applebundleinfo(
             archive = outputs_archive,
             bundle_extension = ".xcframework",
             bundle_name = bundle_name,
@@ -1104,7 +1107,7 @@ def _apple_static_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleStaticXcframeworkBundleInfo(),
+        new_applestaticxcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([outputs_archive]),
         ),

@@ -15,8 +15,8 @@
 """Implementation of apple_resource_bundle rule."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceBundleInfo",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
 )
 
 def _apple_resource_bundle_impl(_ctx):
@@ -28,7 +28,7 @@ def _apple_resource_bundle_impl(_ctx):
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
-        AppleResourceBundleInfo(),
+        new_appleresourcebundleinfo(),
     ]
 
 apple_resource_bundle = rule(

@@ -26,7 +26,7 @@ bzl_library(
     name = "ios_test_runner",
     srcs = ["ios_test_runner.bzl"],
     deps = [
-        "//apple/testing:apple_test_rules",
+        "//apple:providers",
     ],
 )
 
@@ -34,7 +34,7 @@ bzl_library(
     name = "macos_test_runner",
     srcs = ["macos_test_runner.bzl"],
     deps = [
-        "//apple/testing:apple_test_rules",
+        "//apple:providers",
         "@build_bazel_apple_support//lib:xcode_support",
     ],
 )
@@ -43,7 +43,7 @@ bzl_library(
     name = "tvos_test_runner",
     srcs = ["tvos_test_runner.bzl"],
     deps = [
-        "//apple/testing:apple_test_rules",
+        "//apple:providers",
     ],
 )
 
@@ -51,7 +51,7 @@ bzl_library(
     name = "watchos_test_runner",
     srcs = ["watchos_test_runner.bzl"],
     deps = [
-        "//apple/testing:apple_test_rules",
+        "//apple:providers",
     ],
 )
 

@@ -17,7 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
-    "merge_apple_framework_import_info",
+    "apple_provider",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
@@ -51,7 +51,7 @@ def _framework_provider_aspect_impl(target, ctx):
             if AppleEmbeddableInfo in dep_target and ctx.rule.kind == "objc_library":
                 apple_embeddable_infos.append(dep_target[AppleEmbeddableInfo])
 
-    apple_framework_info = merge_apple_framework_import_info(apple_framework_infos)
+    apple_framework_info = apple_provider.merge_apple_framework_import_info(apple_framework_infos)
     apple_embeddable_info = embeddable_info.merge_providers(apple_embeddable_infos)
 
     providers = []

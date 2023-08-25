@@ -24,6 +24,6 @@ bzl_library(
     srcs = ["dummy_test_runner.bzl"],
     visibility = ["//visibility:private"],
     deps = [
-        "//apple/testing:apple_test_rules",
+        "//apple:providers",
     ],
 )

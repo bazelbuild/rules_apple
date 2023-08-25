@@ -60,6 +60,11 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleextraoutputsinfo",
+    "new_appletestinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -78,7 +83,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
     "AppleTestInfo",
 )
 load(
@@ -177,7 +181,7 @@ def _apple_test_info_aspect_impl(target, ctx):
     non_arc_sources = _collect_files(ctx.rule.attr, ["non_arc_srcs"])
     sources = _collect_files(ctx.rule.attr, ["srcs", "hdrs", "textual_hdrs"])
 
-    return [AppleTestInfo(
+    return [new_appletestinfo(
         includes = depset(transitive = includes),
         module_maps = depset(transitive = module_maps),
         non_arc_sources = non_arc_sources,
@@ -233,7 +237,7 @@ def _apple_test_info_provider(deps, test_bundle, test_host):
         if len(module_names) == 1:
             module_name = module_names[0]
 
-    return AppleTestInfo(
+    return new_appletestinfo(
         deps = depset(dep_labels),
         includes = depset(transitive = transitive_includes),
         module_maps = depset(transitive = transitive_module_maps),
@@ -559,7 +563,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             ctx,
             dependency_attributes = ["deps", "test_host"],
         ),
-        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
+        new_appleextraoutputsinfo(files = depset(filtered_outputs)),
         DefaultInfo(files = output_files),
         OutputGroupInfo(
             **outputs.merge_output_groups(

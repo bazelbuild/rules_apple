@@ -15,8 +15,8 @@
 """tvOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunnerInfo",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "apple_provider",
 )
 
 def _get_template_substitutions(*, device_type, os_version, testrunner):
@@ -49,7 +49,7 @@ def _tvos_test_runner_impl(ctx):
         ),
     )
     return [
-        AppleTestRunnerInfo(
+        apple_provider.make_apple_test_runner_info(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
             execution_environment = _get_execution_environment(

@@ -59,6 +59,7 @@ bzl_library(
     deps = [
         ":providers",
         "//apple/internal:linking_support",
+        "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
@@ -86,6 +87,7 @@ bzl_library(
     srcs = ["cc_toolchain_forwarder.bzl"],
     deps = [
         ":providers",
+        "//apple/internal:providers",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     ],
 )
@@ -146,6 +148,9 @@ bzl_library(
 bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
+    deps = [
+        "//apple/internal:providers",
+    ],
 )
 
 bzl_library(
