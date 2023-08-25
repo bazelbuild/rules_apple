@@ -39,4 +39,4 @@ tasks:
     - "doc/..."
     <<: *common_last_green
 
-buildifier: latest
+buildifier: 6.3.2
