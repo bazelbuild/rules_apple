@@ -39,3 +39,26 @@ http_archive(
     strip_prefix = "stardoc-97c0751114ad83b22877e05f3cbcda4ab5d77de5",
     url = "https://github.com/bazelbuild/stardoc/archive/97c0751114ad83b22877e05f3cbcda4ab5d77de5.tar.gz",
 )
+
+http_archive(
+    name = "rules_python",
+    sha256 = "5868e73107a8e85d8f323806e60cad7283f34b32163ea6ff1020cf27abef6036",
+    strip_prefix = "rules_python-0.25.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.25.0/rules_python-0.25.0.tar.gz",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
+
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "pip",
+    python_interpreter = "/usr/bin/python3",
+    requirements_lock = "//test:requirements.txt",
+)
+
+load("@pip//:requirements.bzl", "install_deps")
+
+install_deps()

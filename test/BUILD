@@ -16,6 +16,7 @@ load(
     "apple_shell_test",
 )
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirements")
 
 licenses(["notice"])
 
@@ -264,5 +265,12 @@ apple_shell_test(
     data = [
         "//test/testdata/resources:resource_data_deps_ios",
         "//test/testdata/resources:resource_data_deps_platform_independent",
+    ],
+)
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = [
+        "--resolver=backtracking",
     ],
 )

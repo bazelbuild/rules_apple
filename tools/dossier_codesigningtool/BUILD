@@ -1,3 +1,5 @@
+load("@pip//:requirements.bzl", "requirement")
+
 licenses(["notice"])
 
 py_binary(
@@ -67,7 +69,7 @@ py_test(
     tags = ["requires-darwin"],
     deps = [
         ":dossier_codesigning_reader_lib",
-        "@absl_py//absl/testing:parameterized",
+        requirement("absl-py"),
     ],
 )
 

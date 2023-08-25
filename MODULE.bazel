@@ -22,3 +22,19 @@ use_repo(provisioning_profile_repository, "local_provisioning_profiles")
 
 apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
 use_repo(apple_cc_configure, "local_config_apple_cc")
+
+bazel_dep(name = "rules_python", version = "0.25.0", dev_dependency = True)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.9",
+)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
+pip.parse(
+    hub_name = "pip",
+    python_version = "3.9",
+    requirements_lock = "//test:requirements.txt",
+)
+use_repo(pip, "pip")
