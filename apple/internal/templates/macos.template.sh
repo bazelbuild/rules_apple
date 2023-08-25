@@ -26,12 +26,20 @@ if [ -d '%app_path%' ]; then
   readonly APP_DIR="%app_path%"
 else
   readonly TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/bazel_temp.XXXXXX")
-  trap 'rm -rf "${TEMP_DIR}"' ERR EXIT
+  trap 'rm -rf "${TEMP_DIR}"' EXIT
   # The app bundle is contained within an compressed archive (zip)
   # Unpack the archive
   unzip -qq '%app_path%' -d "${TEMP_DIR}"
   readonly APP_DIR="${TEMP_DIR}/%app_name%.app"
 fi
+
+# Clean out all the old symbols from previous runs.
+symbolscache --quiet delete --tag Bazel compact
+# This adds the symbols to the CoreSymbolication so they can be easily found
+# without having spotlight index them.
+# Not cleaning up as part of a trap because the symbols may be accessed
+# after the trap has run in the case of a crash.
+find -L "$(dirname %app_path%)" -path "*.dSYM/Contents/Resources/DWARF/*" -exec symbolscache --quiet add --tag Bazel {} \;
 
 # Get the bundle executable name of the app. Read this from the plist in case it
 # differs from the app name.
@@ -39,6 +47,6 @@ readonly BUNDLE_INFO_PLIST="${APP_DIR}/Contents/Info.plist"
 readonly BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "${BUNDLE_INFO_PLIST}")
 
 # Launch the app binary
-# Do *not* use `exec` here becaues we need the clean up done by the trap to run after the 
-# executable has been run.
+# Do *not* use exec here because we want the trap above to execute after the
+# executable has run.
 "${APP_DIR}/Contents/MacOS/${BUNDLE_EXECUTABLE}" "$@"

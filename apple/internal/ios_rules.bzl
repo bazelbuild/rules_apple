@@ -475,6 +475,8 @@ def _ios_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    dsyms = outputs.dsyms(processor_result = processor_result)
+
     return [
         # TODO(b/121155041): Should we do the same for ios_framework and ios_extension?
         coverage_common.instrumented_files_info(ctx, dependency_attributes = ["deps"]),
@@ -483,6 +485,7 @@ def _ios_application_impl(ctx):
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
+                transitive_files = dsyms,
             ),
         ),
         new_iosapplicationbundleinfo(),

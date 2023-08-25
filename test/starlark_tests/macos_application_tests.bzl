@@ -27,6 +27,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
+    "analysis_runfiles_dsym_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
@@ -279,6 +283,16 @@ def macos_application_test_suite(name):
         ],
         expected_transitive_dsyms = [
             "dSYMs/app.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsym_test(
+        name = "{}_runfiles_dsym_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_runfiles = [
+            "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Resources/DWARF/app",
+            "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Info.plist",
         ],
         tags = [name],
     )

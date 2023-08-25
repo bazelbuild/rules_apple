@@ -420,6 +420,7 @@ def _macos_application_impl(ctx):
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
     )
+    dsyms = outputs.dsyms(processor_result = processor_result)
 
     return [
         coverage_common.instrumented_files_info(ctx, dependency_attributes = ["deps"]),
@@ -428,6 +429,7 @@ def _macos_application_impl(ctx):
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
+                transitive_files = dsyms,
             ),
         ),
         new_macosapplicationbundleinfo(),
@@ -2002,6 +2004,8 @@ def _macos_command_line_application_impl(ctx):
     if clang_rt_dylibs.should_package_clang_runtime(features = features):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
+    dsyms = outputs.dsyms(processor_result = processor_result)
+
     return [
         new_applebinaryinfo(
             binary = output_file,
@@ -2014,7 +2018,10 @@ def _macos_command_line_application_impl(ctx):
                 depset([output_file]),
                 processor_result.output_files,
             ]),
-            runfiles = ctx.runfiles(runfiles),
+            runfiles = ctx.runfiles(
+                files = runfiles,
+                transitive_files = dsyms,
+            ),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
