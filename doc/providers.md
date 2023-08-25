@@ -8,10 +8,13 @@ Most users will not need to use these providers to simply create and build Apple
 targets, but if you want to write your own custom rules that interact with these
 rules, then you will use these providers to communicate between them.
 
-These providers are part of the public API of the bundling rules. Other rules
-that want to propagate information to the bundling rules or that want to
-consume the bundling rules as their own inputs should use these to handle the
-relevant information that they need.
+These providers are part of the public API of the bundling rules. Other rules that want to propagate
+information to the bundling rules or that want to consume the bundling rules as their own inputs
+should use these to handle the relevant information that they need.
+
+Public initializers must be defined in apple:providers.bzl instead of apple/internal:providers.bzl.
+These should build from the "raw initializer" where possible, but not export it, to allow for a safe
+boundary with well-defined public APIs for broader usage.
 
 
 <a id="AppleBaseBundleIdInfo"></a>
@@ -84,7 +87,7 @@ target.
 
 <pre>
 AppleBundleInfo(<a href="#AppleBundleInfo-archive">archive</a>, <a href="#AppleBundleInfo-archive_root">archive_root</a>, <a href="#AppleBundleInfo-binary">binary</a>, <a href="#AppleBundleInfo-bundle_extension">bundle_extension</a>, <a href="#AppleBundleInfo-bundle_id">bundle_id</a>, <a href="#AppleBundleInfo-bundle_name">bundle_name</a>,
-                <a href="#AppleBundleInfo-executable_name">executable_name</a>, <a href="#AppleBundleInfo-entitlements">entitlements</a>, <a href="#AppleBundleInfo-extension_safe">extension_safe</a>, <a href="#AppleBundleInfo-infoplist">infoplist</a>,
+                <a href="#AppleBundleInfo-entitlements">entitlements</a>, <a href="#AppleBundleInfo-executable_name">executable_name</a>, <a href="#AppleBundleInfo-extension_safe">extension_safe</a>, <a href="#AppleBundleInfo-infoplist">infoplist</a>,
                 <a href="#AppleBundleInfo-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#AppleBundleInfo-minimum_os_version">minimum_os_version</a>, <a href="#AppleBundleInfo-platform_type">platform_type</a>, <a href="#AppleBundleInfo-product_type">product_type</a>,
                 <a href="#AppleBundleInfo-uses_swift">uses_swift</a>)
 </pre>
@@ -106,8 +109,8 @@ rules (applications, extensions, frameworks, test bundles, and so forth).
 | <a id="AppleBundleInfo-bundle_extension"></a>bundle_extension |  <code>String</code>. The bundle extension.    |
 | <a id="AppleBundleInfo-bundle_id"></a>bundle_id |  <code>String</code>. The bundle identifier (i.e., <code>CFBundleIdentifier</code> in <code>Info.plist</code>) of the bundle.    |
 | <a id="AppleBundleInfo-bundle_name"></a>bundle_name |  <code>String</code>. The name of the bundle, without the extension.    |
-| <a id="AppleBundleInfo-executable_name"></a>executable_name |  <code>string</code>. The name of the executable that was bundled.    |
 | <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used, if any.    |
+| <a id="AppleBundleInfo-executable_name"></a>executable_name |  <code>string</code>. The name of the executable that was bundled.    |
 | <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  <code>Boolean</code>. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
 | <a id="AppleBundleInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> file for the bundle.    |
 | <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  <code>string</code>. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support. This is different from <code>minimum_os_version</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.    |
@@ -1086,12 +1089,34 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 
 
 
-<a id="merge_apple_framework_import_info"></a>
+<a id="apple_provider.make_apple_test_runner_info"></a>
 
-## merge_apple_framework_import_info
+## apple_provider.make_apple_test_runner_info
 
 <pre>
-merge_apple_framework_import_info(<a href="#merge_apple_framework_import_info-apple_framework_import_infos">apple_framework_import_infos</a>)
+apple_provider.make_apple_test_runner_info(<a href="#apple_provider.make_apple_test_runner_info-kwargs">kwargs</a>)
+</pre>
+
+Creates a new instance of the AppleTestRunnerInfo provider.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="apple_provider.make_apple_test_runner_info-kwargs"></a>kwargs |  A set of keyword arguments expected to match the fields of <code>AppleTestRunnerInfo</code>. See the documentation for <code>AppleTestRunnerInfo</code> for what these must be.   |  none |
+
+**RETURNS**
+
+A new `AppleTestRunnerInfo` provider based on the supplied arguments.
+
+
+<a id="apple_provider.merge_apple_framework_import_info"></a>
+
+## apple_provider.merge_apple_framework_import_info
+
+<pre>
+apple_provider.merge_apple_framework_import_info(<a href="#apple_provider.merge_apple_framework_import_info-apple_framework_import_infos">apple_framework_import_infos</a>)
 </pre>
 
 Merges multiple `AppleFrameworkImportInfo` into one.
@@ -1101,7 +1126,7 @@ Merges multiple `AppleFrameworkImportInfo` into one.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
+| <a id="apple_provider.merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
 
 **RETURNS**
 
