@@ -3,7 +3,10 @@ An iOS test runner rule that uses xctestrun files to run unit test bundles on
 simulators. This rule currently doesn't support UI tests or running on device.
 """
 
-load("@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl", "AppleTestRunnerInfo")
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "apple_provider",
+)
 
 def _get_template_substitutions(
         *,
@@ -70,7 +73,7 @@ def _ios_xctestrun_runner_impl(ctx):
     )
 
     return [
-        AppleTestRunnerInfo(
+        apple_provider.make_apple_test_runner_info(
             execution_environment = _get_execution_environment(ctx),
             execution_requirements = {"requires-darwin": ""},
             test_runner_template = ctx.outputs.test_runner_template,
