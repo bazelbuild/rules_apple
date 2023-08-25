@@ -854,6 +854,37 @@ apple_xcframework(
     deps = [":SwiftFmwkWithGenHeader"],
 )
 
+# Reserved as an input for import_dynamic_(xc)framework rules; must be referenced as a List of Files
+# as an input to one of such rules.
+apple_xcframework(
+    name = "ios_swift_3p_xcframework_with_generated_header",
+    bundle_id = "com.google.example",
+    bundle_name = "Swift3PFmwkWithGenHeader",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":Swift3PFmwkWithGenHeader"],
+)
+
 apple_xcframework(
     name = "ios_dynamic_xcframework_with_umbrella_header_conflict",
     bundle_id = "com.google.example",
@@ -1202,6 +1233,17 @@ swift_library(
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
     module_name = "SwiftFmwkWithGenHeader",
+    tags = common.fixture_tags,
+)
+
+# Reserved as an input for import_dynamic_(xc)framework rules; referenced by an apple_xcframework
+# rule treated as a List of Files that properly declares a bundle_name matching this module_name.
+swift_library(
+    name = "Swift3PFmwkWithGenHeader",
+    srcs = ["DummyFmwk.swift"],
+    features = ["swift.enable_library_evolution"],
+    generates_header = True,
+    module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,
 )
 
