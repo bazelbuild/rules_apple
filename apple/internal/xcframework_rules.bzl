@@ -103,6 +103,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
+    "ApplePlatformInfo",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
@@ -541,8 +542,11 @@ def _apple_xcframework_impl(ctx):
             product_type = apple_product_type.framework,
         )
 
+        cc_toolchain = ctx.split_attr._cc_toolchain_forwarder[link_output.split_attr_keys[0]]
+        apple_platform_info = cc_toolchain[ApplePlatformInfo]
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            apple_platform_info = apple_platform_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
@@ -769,14 +773,17 @@ def _apple_xcframework_impl(ctx):
     return processor_output
 
 apple_xcframework = rule_factory.create_apple_rule(
-    cfg = None,
+    cfg = transition_support.xcframework_base_transition,
     doc = "Builds and bundles an XCFramework for third-party distribution.",
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     attrs = [
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.xcframework_split_transition,
+        ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.xcframework_transition,
+            deps_cfg = transition_support.xcframework_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
             ],
@@ -806,7 +813,7 @@ frameworks. If this attribute is not set, then the name of the target will be us
             "data": attr.label_list(
                 allow_files = True,
                 aspects = [apple_resource_aspect],
-                cfg = transition_support.xcframework_transition,
+                cfg = transition_support.xcframework_split_transition,
                 doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within each of the embedded framework bundles.
@@ -822,7 +829,7 @@ Currently, this only affects processing of `ios` resources.
             "infoplists": attr.label_list(
                 allow_empty = False,
                 allow_files = [".plist"],
-                cfg = transition_support.xcframework_transition,
+                cfg = transition_support.xcframework_split_transition,
                 doc = """
 A list of .plist files that will be merged to form the Info.plist for each of the embedded
 frameworks. At least one file must be specified. Please see
@@ -1040,12 +1047,12 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     attrs = [
         rule_attrs.common_tool_attrs(),
         rule_attrs.static_library_linking_attrs(
-            deps_cfg = transition_support.xcframework_transition,
+            deps_cfg = transition_support.xcframework_split_transition,
         ),
         {
             "avoid_deps": attr.label_list(
                 allow_files = True,
-                cfg = transition_support.xcframework_transition,
+                cfg = transition_support.xcframework_split_transition,
                 mandatory = False,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
@@ -1062,7 +1069,7 @@ static libraries. If this attribute is not set, then the name of the target will
             "deps": attr.label_list(
                 aspects = [swift_usage_aspect],
                 allow_files = True,
-                cfg = transition_support.xcframework_transition,
+                cfg = transition_support.xcframework_split_transition,
                 mandatory = True,
                 doc = """
 A list of files directly referencing libraries to be represented for each given platform split in
@@ -1086,7 +1093,7 @@ as keys.
             ),
             "public_hdrs": attr.label_list(
                 allow_files = [".h"],
-                cfg = transition_support.xcframework_transition,
+                cfg = transition_support.xcframework_split_transition,
                 doc = """
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded libraries. These header files will be embedded within each platform split,

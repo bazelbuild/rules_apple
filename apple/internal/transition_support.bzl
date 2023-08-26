@@ -623,7 +623,26 @@ _apple_platform_split_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
-def _xcframework_transition_impl(settings, attr):
+def _xcframework_base_transition_impl(settings, _):
+    """Rule transition for XCFramework rules producing SDK-adjacent artifacts."""
+
+    # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
+    # incoming settings meant for other platforms overriding the settings for the xcframework rule's
+    # underlying actions, and allow for toolchain resolution in the future.
+    return _command_line_options(
+        environment_arch = _DEFAULT_ARCH,
+        minimum_os_version = None,
+        platform_type = "macos",
+        settings = settings,
+    )
+
+_xcframework_base_transition = transition(
+    implementation = _xcframework_base_transition_impl,
+    inputs = _apple_rule_common_transition_inputs,
+    outputs = _apple_rule_base_transition_outputs,
+)
+
+def _xcframework_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     output_dictionary = {}
 
@@ -646,8 +665,8 @@ def _xcframework_transition_impl(settings, attr):
         output_dictionary = dicts.add(command_line_options, output_dictionary)
     return output_dictionary
 
-_xcframework_transition = transition(
-    implementation = _xcframework_transition_impl,
+_xcframework_split_transition = transition(
+    implementation = _xcframework_split_transition_impl,
     inputs = _apple_rule_common_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
@@ -658,6 +677,7 @@ transition_support = struct(
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
+    xcframework_base_transition = _xcframework_base_transition,
     xcframework_split_attr_key = _xcframework_split_attr_key,
-    xcframework_transition = _xcframework_transition,
+    xcframework_split_transition = _xcframework_split_transition,
 )
