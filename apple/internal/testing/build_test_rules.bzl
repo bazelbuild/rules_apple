@@ -18,23 +18,47 @@ load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBinaryInfo",
+    "AppleDsymBundleInfo",
+)
 
 _PASSING_TEST_SCRIPT = """\
 #!/bin/bash
 exit 0
 """
 
+# These providers mark major Apple targets that already contain transitions so
+# there is no reason for a `PLATFORM_build_test` to wrap one of these, instead
+# a plan `build_test` should be used.
+_BLOCKED_PROVIDERS = [
+    AppleBinaryInfo,
+    AppleDsymBundleInfo,
+]
+
 def _apple_build_test_rule_impl(ctx):
     if ctx.attr.platform_type != ctx.attr._platform_type:
         fail((
             "The 'platform_type' attribute of '{}' is an implementation " +
             "detail and will be removed in the future; do not change it."
-        ).format(ctx.rule.kind))
+        ).format(ctx.attr._platform_type + "_build_test"))
 
     # TODO: b/293611241 - Check if the targets return any providers that
     # indicate that it would be better tested with a regular `build_test`
     # instead, and fail with a useful error message.
     targets = ctx.attr.targets
+    for target in targets:
+        for p in _BLOCKED_PROVIDERS:
+            if p in target:
+                fail((
+                    "'{target_label}' builds a bundle and should just be " +
+                    " wrapped with a 'build_test' and not '{rule_kind}'."
+                ).format(
+                    target_label = target.label,
+                    rule_kind = ctx.attr._platform_type + "_build_test",
+                ))
+
     transitive_files = [target[DefaultInfo].files for target in targets]
 
     # The test's executable is a vacuously passing script. We pass all of the
