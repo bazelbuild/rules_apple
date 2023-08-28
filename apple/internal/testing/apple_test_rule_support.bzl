@@ -246,7 +246,7 @@ def _apple_test_rule_impl(ctx, test_type):
         test_host_bundle_name = test_host_attr[AppleBundleInfo].bundle_name
 
     direct_runfiles = []
-    transitive_runfiles = []
+    transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
 
     if ctx.file.test_coverage_manifest:
         direct_runfiles.append(ctx.file.test_coverage_manifest)
