@@ -110,7 +110,7 @@ number (for example, `"9.0"`).
                 doc = "The targets to check for successful build.",
             ),
             # This is a public attribute due to an implementation detail of
-            # `transition_support.apple_platform_split_transition`. The private attribute of the
+            # `apple_platform_split_transition`. The private attribute of the
             # same name is used in the implementation function to verify that
             # the user has not modified it.
             "platform_type": attr.string(default = platform_type),
