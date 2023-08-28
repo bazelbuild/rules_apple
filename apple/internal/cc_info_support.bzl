@@ -35,12 +35,13 @@ def _get_all_deps(*, deps, split_deps_keys = []):
         all_deps += deps[split_deps_key]
     return all_deps
 
-def _get_sdk_frameworks(*, deps, split_deps_keys = []):
+def _get_sdk_frameworks(*, deps, split_deps_keys = [], include_weak = False):
     """Returns a depset of SDK frameworks linked to dependencies.
 
     Args:
         deps: Label list of (split) dependencies to traverse.
         split_deps_keys: (optional) List of split attribute keys to use on split deps.
+        include_weak: include weak frameworks in the depset
     Returns
         Depset of SDK framework strings linked to dependencies.
     """
@@ -52,9 +53,11 @@ def _get_sdk_frameworks(*, deps, split_deps_keys = []):
             continue
         for linker_input in dep[CcInfo].linking_context.linker_inputs.to_list():
             for index, user_link_flag in enumerate(linker_input.user_link_flags):
-                if user_link_flag == "-framework":
+                if (user_link_flag == "-framework" or
+                    (include_weak and user_link_flag == "-weak_framework")):
                     sdk_frameworks.append(linker_input.user_link_flags[index + 1])
-                elif user_link_flag.startswith("-Wl,-framework,"):
+                elif (user_link_flag.startswith("-Wl,-framework,") or
+                      (include_weak and user_link_flag.startswith("-Wl,-weak_framework,"))):
                     sdk_frameworks.append(user_link_flag.split(",")[-1])
 
     return depset(sdk_frameworks)
