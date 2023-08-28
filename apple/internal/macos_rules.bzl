@@ -398,17 +398,6 @@ def _macos_application_impl(ctx):
         actions = actions,
         label_name = label.name,
     )
-    run_support.register_macos_executable(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label.name,
-        output = executable,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        rule_descriptor = rule_descriptor,
-        runner_template = ctx.file._runner_template,
-    )
 
     archive = outputs.archive(
         actions = actions,
@@ -420,6 +409,14 @@ def _macos_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
     dsyms = outputs.dsyms(processor_result = processor_result)
+
+    run_support.register_macos_executable(
+        actions = actions,
+        archive = archive,
+        bundle_name = bundle_name,
+        output = executable,
+        runner_template = ctx.file._runner_template,
+    )
 
     return [
         coverage_common.instrumented_files_info(ctx, dependency_attributes = ["deps"]),
