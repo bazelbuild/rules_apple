@@ -126,13 +126,12 @@ def _create_apple_rule(
     if predeclared_outputs:
         extra_args["outputs"] = predeclared_outputs
 
-    # Add required attribute for allowlisting custom Starlark transition.
-    # attrs is redefined to allow define their own custom transition allowlist attr.
-    attrs = [rule_attrs.custom_transition_allowlist_attr()] + attrs
-
     return rule(
         implementation = implementation,
-        attrs = dicts.add(*attrs),
+        attrs = dicts.add(
+            rule_attrs.custom_transition_allowlist_attr(),
+            *attrs
+        ),
         cfg = cfg,
         doc = doc,
         executable = is_executable,
