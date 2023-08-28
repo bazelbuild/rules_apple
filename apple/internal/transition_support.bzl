@@ -373,7 +373,7 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
-] + ["//command_line_option:visionos_cpus"] if _supports_visionos else []
+] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
     "//command_line_option:apple_platforms",
     "//command_line_option:incompatible_enable_apple_toolchain_resolution",
@@ -404,7 +404,7 @@ _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_ou
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
-] + ["//command_line_option:visionos_cpus"] if _supports_visionos else []
+] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
 
 _apple_rule_base_transition = transition(
     implementation = _apple_rule_base_transition_impl,
@@ -477,6 +477,8 @@ def _apple_universal_binary_rule_transition_impl(settings, attr):
     # of the transition; the build will fail at analysis time if any are
     # missing.
     for other_type, flag in _PLATFORM_TYPE_TO_CPUS_FLAG.items():
+        if not _supports_visionos and other_type == "visionos":
+            continue
         if forced_cpus and platform_type == other_type:
             new_settings[flag] = forced_cpus
         else:
