@@ -31,6 +31,9 @@ def _apple_build_test_rule_impl(ctx):
             "detail and will be removed in the future; do not change it."
         ).format(ctx.rule.kind))
 
+    # TODO: b/293611241 - Check if the targets return any providers that
+    # indicate that it would be better tested with a regular `build_test`
+    # instead, and fail with a useful error message.
     targets = ctx.attr.targets
     transitive_files = [target[DefaultInfo].files for target in targets]
 
@@ -81,13 +84,6 @@ number (for example, `"9.0"`).
             "targets": attr.label_list(
                 cfg = transition_support.apple_platform_split_transition,
                 doc = "The targets to check for successful build.",
-                # Since `CcInfo` is the currency provider for rules that
-                # propagate libraries for linking to Apple bundles, this is
-                # sufficient to cover C++, Objective-C, and Swift rules.
-                # TODO(b/161808913): When we can support resource processing,
-                # add the resource providers so that standalone resource
-                # targets can also be included here.
-                providers = [[CcInfo]],
             ),
             # This is a public attribute due to an implementation detail of
             # `transition_support.apple_platform_split_transition`. The private attribute of the
