@@ -59,15 +59,11 @@ def _target_arch_from_rule_ctx(ctx):
 
 def _target_environment_from_rule_ctx(ctx):
     """Returns a `String` representing the selected environment (e.g. "device", "simulator")."""
-    device_constraint = ctx.attr._apple_device_constraint[platform_common.ConstraintValueInfo]
     simulator_constraint = ctx.attr._apple_simulator_constraint[platform_common.ConstraintValueInfo]
-
-    if ctx.target_platform_has_constraint(device_constraint):
-        return "device"
-    elif ctx.target_platform_has_constraint(simulator_constraint):
+    if ctx.target_platform_has_constraint(simulator_constraint):
         return "simulator"
-    fail("ERROR: A valid Apple environment (device, simulator) constraint could not be found from" +
-         " the resolved toolchain.")
+
+    return "device"
 
 def _cc_toolchain_forwarder_impl(ctx):
     return [
