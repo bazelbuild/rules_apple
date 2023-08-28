@@ -163,7 +163,7 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     launch_storyboard = "//test/starlark_tests/resources:launch_screen_ios.xib",
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
