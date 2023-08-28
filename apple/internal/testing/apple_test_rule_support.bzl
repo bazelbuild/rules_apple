@@ -143,13 +143,12 @@ def _get_template_substitutions(
     }
     return {"%(" + k + ")s": substitutions[k] for k in substitutions}
 
-def _get_coverage_execution_environment(*, covered_binaries, gcov_runfiles_path):
+def _get_coverage_execution_environment(*, covered_binaries):
     """Returns environment variables required for test coverage support.
 
     Args:
         covered_binaries: String. The `depset` of files representing the binaries that are being
             tested under a coverage run.
-        gcov_runfiles_path: String. The location of gcov necessary for running the coverage test.
 
     Returns:
         A new dictionary with the required environment variables for retrieving Apple coverage
@@ -159,7 +158,6 @@ def _get_coverage_execution_environment(*, covered_binaries, gcov_runfiles_path)
 
     return {
         "APPLE_COVERAGE": "1",
-        "COVERAGE_GCOV_PATH": gcov_runfiles_path,
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
@@ -262,26 +260,17 @@ def _apple_test_rule_impl(ctx, test_type):
     if ctx.configuration.coverage_enabled:
         apple_coverage_support_files = ctx.attr._apple_coverage_support.files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
-        gcov_files = ctx.attr._gcov.files
-        mcov_files = ctx.attr._mcov.files
 
         execution_environment = dicts.add(
             execution_environment,
             _get_coverage_execution_environment(
                 covered_binaries = covered_binaries,
-                gcov_runfiles_path = "/".join([
-                    "runfiles",
-                    ctx.workspace_name,
-                    gcov_files.to_list()[1].path,
-                ]),
             ),
         )
 
         transitive_runfiles.extend([
             apple_coverage_support_files,
             covered_binaries,
-            gcov_files,
-            mcov_files,
             test_bundle_target[_CoverageFilesInfo].coverage_files,
         ])
 
