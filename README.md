@@ -1,7 +1,5 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
-[![Build status](https://badge.buildkite.com/cecd8d6951d939c6814f043af2935158f0556cb6c5fef3cb75.svg?branch=master)](https://buildkite.com/bazel/rules-apple-darwin)
-
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms.
 
@@ -23,8 +21,11 @@ repository.
 
 ## Quick setup
 
-Copy the `WORKSPACE` snippet from [the releases
+1. Copy the latest `MODULE.bazel` or `WORKSPACE` snippet from [the releases
 page](https://github.com/bazelbuild/rules_apple/releases).
+2. Copy the
+[`platform_mappings`](https://github.com/bazelbuild/rules_apple/blob/master/platform_mappings)
+file to the root of your repo
 
 ## Examples
 
@@ -69,8 +70,8 @@ You can also see the supported bazel versions in the notes for each
 release on the [releases
 page](https://github.com/bazelbuild/rules_apple/releases).
 
-Besides these constraint this repo follows [semver](https://semver.org/)
-as best as we can since the 1.0.0 release.
+Besides these constraints this repo follows
+[semver](https://semver.org/) as best as we can since the 1.0.0 release.
 
 | Bazel release | Minimum supported rules version | Final supported rules version | Supporting Branch |
 |:-------------------:|:-------------------:|:-------------------------:|:-------------------------:|
