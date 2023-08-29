@@ -47,6 +47,18 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "watchos": "//command_line_option:watchos_cpus",
 }
 
+_IOS_ARCH_TO_EARLIEST_WATCHOS = {
+    "x86_64": "x86_64",
+    "sim_arm64": "arm64",
+    "arm64": "armv7k",
+}
+
+_IOS_ARCH_TO_64_BIT_WATCHOS = {
+    "x86_64": "x86_64",
+    "sim_arm64": "arm64",
+    "arm64": "arm64_32",
+}
+
 # Set the default architecture for all platforms as 64-bit Intel.
 # TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
 # Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
@@ -70,12 +82,63 @@ def _platform_specific_cpu_setting_name(platform_type):
         fail("ERROR: Unknown platform type: {}".format(platform_type))
     return flag
 
-def _environment_archs(platform_type, settings):
+def _environment_arch_from_cpu(*, cpu_value, platform_prefix):
+    """Returns a specific platform's environment arch if found from the `--cpu` command line option.
+
+    Args:
+        cpu_value: String found from an incoming `--cpu` value.
+        platform_prefix: The platform prefix to search for within the incoming `--cpu` string.
+
+    Returns:
+        The value following the platform_prefix if it was found in the incoming `--cpu` value, which
+            is expected to be a valid environment arch, or `None`.
+    """
+    if cpu_value.startswith(platform_prefix):
+        return cpu_value[len(platform_prefix):]
+    return None
+
+def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settings):
+    """Returns a set of watchOS environment archs based on incoming iOS archs.
+
+    Args:
+        cpu_value: String found from an incoming `--cpu` value.
+        minimum_os_version: A string coming directly from a rule's `minimum_os_version` attribute.
+        settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
+            the settings argument found on the implementation function of the current Starlark
+            transition.
+
+    Returns:
+        A list of watchOS environment archs if any were found from the iOS environment archs, or an
+            empty list if none were found.
+    """
+    environment_archs = []
+    ios_archs = settings[_platform_specific_cpu_setting_name("ios")]
+    if not ios_archs:
+        ios_arch = _environment_arch_from_cpu(
+            cpu_value = cpu_value,
+            platform_prefix = "ios_",
+        )
+        if ios_arch:
+            ios_archs = [ios_arch]
+    if ios_archs:
+        # Make sure to return a fallback compatible with the rule's assigned minimum OS.
+        ios_to_watchos_arch_dict = _IOS_ARCH_TO_64_BIT_WATCHOS
+        if apple_common.dotted_version(minimum_os_version) < apple_common.dotted_version("9.0"):
+            ios_to_watchos_arch_dict = _IOS_ARCH_TO_EARLIEST_WATCHOS
+        environment_archs = [
+            ios_to_watchos_arch_dict[arch]
+            for arch in ios_archs
+            if ios_to_watchos_arch_dict.get(arch)
+        ]
+    return environment_archs
+
+def _environment_archs(platform_type, minimum_os_version, settings):
     """Returns a full set of environment archs from the incoming command line options.
 
     Args:
         platform_type: A string denoting the platform type; `"ios"`, `"macos"`,
             `"tvos"`, `"visionos"`, or `"watchos"`.
+        minimum_os_version: A string coming directly from a rule's `minimum_os_version` attribute.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -86,11 +149,30 @@ def _environment_archs(platform_type, settings):
     """
     environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
     if not environment_archs:
+        cpu_value = settings["//command_line_option:cpu"]
         if platform_type == "ios":
-            # Legacy exception to interpret the --cpu as an iOS arch.
-            cpu_value = settings["//command_line_option:cpu"]
-            if cpu_value.startswith("ios_"):
-                environment_archs = [cpu_value[4:]]
+            # Legacy handling to interpret the --cpu as an iOS environment arch.
+            ios_arch = _environment_arch_from_cpu(
+                cpu_value = cpu_value,
+                platform_prefix = "ios_",
+            )
+            if ios_arch:
+                environment_archs = [ios_arch]
+        if platform_type == "watchos":
+            # Interpret the --cpu as a watchOS environment arch; often will be set by a transition.
+            watchos_arch = _environment_arch_from_cpu(
+                cpu_value = cpu_value,
+                platform_prefix = "watchos_",
+            )
+            if watchos_arch:
+                environment_archs = [watchos_arch]
+            else:
+                # If not found, generate watchOS archs via incoming iOS environment arch(s).
+                environment_archs = _watchos_environment_archs_from_ios(
+                    cpu_value = cpu_value,
+                    minimum_os_version = minimum_os_version,
+                    settings = settings,
+                )
         if not environment_archs:
             environment_archs = [_DEFAULT_ARCH]
     return environment_archs
@@ -374,11 +456,12 @@ def _should_emit_swiftinterface(attr, is_xcframework = False):
 
 def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
+    minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     return _command_line_options(
         emit_swiftinterface = _should_emit_swiftinterface(attr),
-        environment_arch = _environment_archs(platform_type, settings)[0],
-        minimum_os_version = attr.minimum_os_version,
+        environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
+        minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         settings = settings,
     )
@@ -439,16 +522,17 @@ _apple_rule_base_transition = transition(
 
 def _apple_platforms_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms and the Starlark split transition."""
+    minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
-        environment_arch = _environment_archs(platform_type, settings)[0]
+        environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
         emit_swiftinterface = _should_emit_swiftinterface(attr),
         environment_arch = environment_arch,
-        minimum_os_version = attr.minimum_os_version,
+        minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         settings = settings,
     )
@@ -550,8 +634,9 @@ def _apple_platform_split_transition_impl(settings, attr):
                 )
 
     else:
+        minimum_os_version = attr.minimum_os_version
         platform_type = attr.platform_type
-        for environment_arch in _environment_archs(platform_type, settings):
+        for environment_arch in _environment_archs(platform_type, minimum_os_version, settings):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
                 platform_type = platform_type,
@@ -560,7 +645,6 @@ def _apple_platform_split_transition_impl(settings, attr):
             if found_cpu in output_dictionary:
                 continue
 
-            minimum_os_version = attr.minimum_os_version
             environment_arch_is_supported = _is_arch_supported_for_target_tuple(
                 environment_arch = environment_arch,
                 minimum_os_version = minimum_os_version,

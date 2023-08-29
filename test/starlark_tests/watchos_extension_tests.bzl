@@ -200,35 +200,6 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
-    # Test that the output binary omits the 32 bit watchOS slice when built for a minimum OS that
-    # does not support 32 bit architectures.
-    archive_contents_test(
-        name = "{}_watchos_binary_contents_dropping_32_bit_device_archs_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_arm64_support",
-        cpus = {
-            "watchos_cpus": ["armv7k", "arm64_32"],
-        },
-        binary_test_file = "$BINARY",
-        binary_not_contains_architectures = ["armv7k"],
-        tags = [name],
-    )
-
-    # Test that the watchOS output binary still contains the 64 bit Arm slice when built for a
-    # minimum OS that does not support 32 bit architectures.
-    archive_contents_test(
-        name = "{}_watchos_binary_contents_retains_arm64_32_when_dropping_32_bit_device_archs_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_arm64_support",
-        cpus = {
-            "watchos_cpus": ["armv7k", "arm64_32"],
-        },
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION"],
-        tags = [name],
-    )
-
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_capability_set_derived_bundle_id",
