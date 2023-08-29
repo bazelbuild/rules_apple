@@ -15,8 +15,8 @@
 """apple_static_library Starlark implementation"""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
@@ -35,11 +35,28 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "ApplePlatformInfo",
 )
 
 def _apple_static_library_impl(ctx):
+    # Fail early if using the not yet fully supported visionOS platform type outside of testing.
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    if ctx.attr.platform_type == "visionos":
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("visionOS support for the apple_static_library rule is still a work in progress.")
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+        if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+            fail("""
+visionOS static libraries require a visionOS SDK provided by Xcode 15 or later.
+
+Resolved Xcode is version {xcode_version}.
+""".format(xcode_version = str(xcode_version_config.xcode_version())))
+
     # Most validation of the platform type and minimum version OS currently happens in
     # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
