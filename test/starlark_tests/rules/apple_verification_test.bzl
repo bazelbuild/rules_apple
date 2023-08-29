@@ -71,12 +71,14 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             "//command_line_option:ios_multi_cpus": "x86_64",
             "//command_line_option:tvos_cpus": "x86_64",
             "//command_line_option:watchos_cpus": "x86_64",
+            "//command_line_option:visionos_cpus": "sim_arm64",
         })
     else:
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
             "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+            "//command_line_option:visionos_cpus": "arm64",
         })
 
     if has_apple_platforms:
@@ -128,6 +130,7 @@ apple_verification_transition = transition(
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
+        "//command_line_option:visionos_cpus",
         "//command_line_option:watchos_cpus",
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
