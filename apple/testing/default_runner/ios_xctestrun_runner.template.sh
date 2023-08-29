@@ -351,7 +351,7 @@ if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
 fi
 
 should_use_xcodebuild=false
-if [[ -n "$build_for_device" ]]; then
+if [[ "$build_for_device" == true  ]]; then
   echo "note: Using 'xcodebuild' because build for device was requested"
   should_use_xcodebuild=true
 fi
