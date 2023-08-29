@@ -227,13 +227,15 @@ watchos_application(
     name = "app_arm64_support",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
-    extension = ":ext_arm64_support",
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.arm64_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
 )
 
 watchos_extension(
@@ -369,25 +371,6 @@ watchos_extension(
     tags = common.fixture_tags,
 )
 
-watchos_extension(
-    name = "ext_arm64_support",
-    bundle_id = "com.google.example.ext",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.arm64_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    resources = [
-        "//test/starlark_tests/resources:example_filegroup",
-        "//test/starlark_tests/resources:localization",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
 ios_application(
     name = "app_companion",
     bundle_id = "com.google",
@@ -403,6 +386,26 @@ ios_application(
         "//tools/dossier_codesigningtool:__pkg__",
     ],
     watch_application = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_companion_arm64_support",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
+    watch_application = ":app_arm64_support",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
