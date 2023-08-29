@@ -48,27 +48,24 @@ def generate_app_intents_metadata_bundle(
     )
 
     args = actions.args()
+    args.add("/usr/bin/xcrun")
     args.add("appintentsmetadataprocessor")
 
     args.add("--binary-file", bundle_binary)
     args.add("--module-name", label.name)
     args.add("--output", output.dirname)
     args.add_all("--source-files", source_files)
-    args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     args.add_all(target_triples, before_each = "--target-triple")
-    args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
-        xcode_path = apple_support.path_placeholders.xcode(),
-    ))
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
         # TODO(b/295227222): Generate app intents metadata with --compile-time-extraction using
         # .swiftconstvals instead of --legacy-extraction at the earliest convenience.
         args.add("--legacy-extraction")
 
-    apple_support.run(
+    apple_support.run_shell(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
-        executable = "/usr/bin/xcrun",
+        command = 'set -euo pipefail; if ! output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1); then echo "$output"  >&2 && exit 1; fi',
         inputs = depset([bundle_binary], transitive = [depset(source_files)]),
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
