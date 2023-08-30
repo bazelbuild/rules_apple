@@ -14,6 +14,7 @@
 
 """Support methods for handling artifacts from SwiftInfo providers."""
 
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
@@ -22,7 +23,6 @@ load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
-load("@bazel_skylib//lib:sets.bzl", "sets")
 
 visibility([
     "//apple/...",

@@ -1,4 +1,9 @@
 load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_bundle",
@@ -9,11 +14,6 @@ load(
     "macos_quick_look_plugin",
     "macos_ui_test",
     "macos_unit_test",
-)
-load(
-    "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
-    "apple_dynamic_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",

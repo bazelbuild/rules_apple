@@ -1,4 +1,14 @@
 load(
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
+    "swift_library",
+)
+load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
+    "apple_static_xcframework_import",
+)
+load(
     "//apple:ios.bzl",
     "ios_application",
 )
@@ -8,12 +18,6 @@ load(
     "watchos_extension",
     "watchos_ui_test",
     "watchos_unit_test",
-)
-load(
-    "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
-    "apple_dynamic_xcframework_import",
-    "apple_static_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -27,10 +31,6 @@ load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
     "generate_static_xcframework",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift_library.bzl",
-    "swift_library",
 )
 
 licenses(["notice"])

@@ -15,8 +15,22 @@
 """Implementation of watchOS rules."""
 
 load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "ApplePlatformInfo",
+    "WatchosExtensionBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
@@ -95,20 +109,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "ApplePlatformInfo",
-    "WatchosExtensionBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
-    "@bazel_skylib//lib:sets.bzl",
-    "sets",
 )
 
 visibility([

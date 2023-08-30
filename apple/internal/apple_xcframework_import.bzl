@@ -14,7 +14,11 @@
 
 """Implementation of XCFramework import rules."""
 
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "apple_toolchain_utils",
@@ -37,15 +41,11 @@ load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
     "swift_clang_module_aspect",
 )
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 visibility([
     "//apple/...",

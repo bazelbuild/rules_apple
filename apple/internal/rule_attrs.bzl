@@ -15,8 +15,24 @@
 """Common sets of attributes to be shared between the Apple rules."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBaseBundleIdInfo",
+    "AppleBundleVersionInfo",
+    "ApplePlatformInfo",
+    "AppleResourceBundleInfo",
+    "AppleSharedCapabilityInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -47,24 +63,8 @@ load(
     "apple_test_info_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
-    "entitlements_validation_mode",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBaseBundleIdInfo",
-    "AppleBundleVersionInfo",
-    "ApplePlatformInfo",
-    "AppleResourceBundleInfo",
-    "AppleSharedCapabilityInfo",
-)
-load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
 )
 
 visibility([

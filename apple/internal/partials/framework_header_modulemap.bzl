@@ -15,6 +15,10 @@
 """Partial implementation for bundling header and modulemaps for external-facing frameworks."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:clang_modulemap_support.bzl",
     "clang_modulemap_support",
 )
@@ -25,10 +29,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 visibility("//apple/...")

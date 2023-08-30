@@ -32,6 +32,14 @@ All methods in this file follow this convention:
 """
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -46,14 +54,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 visibility("//apple/internal/...")

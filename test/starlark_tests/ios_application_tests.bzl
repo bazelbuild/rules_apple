@@ -15,20 +15,16 @@
 """ios_application Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 load(
-    "//test/starlark_tests/rules:apple_verification_test.bzl",
-    "apple_verification_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -40,29 +36,33 @@ load(
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "apple_symbols_file_test",
     "archive_contents_test",
-)
-load(
-    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_files_test",
-)
-load(
-    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:linkmap_test.bzl",
+    "linkmap_test",
+)
+load(
     "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
     "output_group_zip_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:linkmap_test.bzl",
-    "linkmap_test",
+    ":common.bzl",
+    "common",
 )
 
 visibility("private")

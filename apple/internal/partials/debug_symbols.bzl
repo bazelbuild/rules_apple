@@ -15,8 +15,21 @@
 """Partial implementation for debug symbol file processing."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
+    "AppleDsymBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -37,19 +50,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
-    "AppleDsymBundleInfo",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
 )
 
 visibility("//apple/...")

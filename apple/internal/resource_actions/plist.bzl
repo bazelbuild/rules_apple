@@ -15,8 +15,20 @@
 """Plist related actions."""
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -25,18 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
 )
 
 visibility("//apple/internal/...")

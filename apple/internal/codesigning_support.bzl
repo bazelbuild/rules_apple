@@ -15,12 +15,16 @@
 """Actions related to codesigning."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -31,12 +35,8 @@ load(
     "rule_support",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 visibility([

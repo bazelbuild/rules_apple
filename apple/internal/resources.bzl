@@ -64,6 +64,18 @@ This file provides methods to easily:
 """
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
 )
@@ -78,18 +90,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:types.bzl",
-    "types",
 )
 
 visibility([

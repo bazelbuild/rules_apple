@@ -14,21 +14,25 @@
 
 """Implementation of iOS rules."""
 
+load("@bazel_skylib//lib:collections.bzl", "collections")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
-    "framework_provider_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
-    "apple_resource_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "ApplePlatformInfo",
+    "IosAppClipBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageExtensionBundleInfo",
+    "WatchosApplicationBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
@@ -66,10 +70,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -115,18 +115,18 @@ load(
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "ApplePlatformInfo",
-    "IosAppClipBundleInfo",
-    "IosExtensionBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosImessageExtensionBundleInfo",
-    "WatchosApplicationBundleInfo",
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
-load("@bazel_skylib//lib:collections.bzl", "collections")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 visibility([
     "//apple/...",

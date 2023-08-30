@@ -15,20 +15,33 @@
 """Helper methods for implementing the test bundles."""
 
 load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleTestInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
@@ -60,10 +73,6 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
@@ -76,17 +85,8 @@ load(
     "clang_rt_dylibs",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleTestInfo",
-)
-load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
-)
-load(
-    "@bazel_skylib//lib:types.bzl",
-    "types",
 )
 
 visibility("//apple/...")

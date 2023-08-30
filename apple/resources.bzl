@@ -19,6 +19,10 @@ load(
     _apple_bundle_import = "apple_bundle_import",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
+    _apple_core_data_model = "apple_core_data_model",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_ml_library.bzl",
     _apple_core_ml_library = "apple_core_ml_library",
 )
@@ -29,10 +33,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
-    _apple_core_data_model = "apple_core_data_model",
 )
 
 visibility("public")

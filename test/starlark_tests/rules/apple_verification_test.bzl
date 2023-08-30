@@ -19,12 +19,12 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
-    "apple_product_type",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -32,12 +32,12 @@ load(
     "AppleBundleInfo",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "apple_product_type",
 )
 
 visibility("//test/starlark_tests/...")

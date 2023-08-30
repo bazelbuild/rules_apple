@@ -21,12 +21,17 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -50,17 +55,12 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceInfo",
+    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "resources_support",
 )
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 
 visibility("//apple/...")

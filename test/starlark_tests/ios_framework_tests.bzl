@@ -15,10 +15,6 @@
 """ios_framework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -41,6 +37,10 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 visibility("private")

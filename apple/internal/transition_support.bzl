@@ -51,12 +51,14 @@ _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
     "arm64": "armv7k",
+    "arm64e": "armv7k",
 }
 
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
     "arm64": "arm64_32",
+    "arm64e": "arm64_32",
 }
 
 # Set the default architecture for all platforms as 64-bit Intel.

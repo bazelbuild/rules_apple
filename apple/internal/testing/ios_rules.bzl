@@ -15,12 +15,11 @@
 """Implementation of iOS test rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
-    "apple_test_rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "IosApplicationBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageApplicationBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -55,11 +54,12 @@ load(
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "IosApplicationBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosImessageApplicationBundleInfo",
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
+    "apple_test_bundle_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
+    "apple_test_rule_support",
 )
 
 visibility("//apple/...")

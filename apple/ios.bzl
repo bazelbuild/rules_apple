@@ -15,6 +15,16 @@
 """Bazel rules for creating iOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    _ios_app_clip = "ios_app_clip",
+    _ios_application = "ios_application",
+    _ios_extension = "ios_extension",
+    _ios_framework = "ios_framework",
+    _ios_imessage_application = "ios_imessage_application",
+    _ios_imessage_extension = "ios_imessage_extension",
+    _ios_static_framework = "ios_static_framework",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
@@ -28,16 +38,6 @@ load(
     _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
-    _ios_app_clip = "ios_app_clip",
-    _ios_application = "ios_application",
-    _ios_extension = "ios_extension",
-    _ios_framework = "ios_framework",
-    _ios_imessage_application = "ios_imessage_application",
-    _ios_imessage_extension = "ios_imessage_extension",
-    _ios_static_framework = "ios_static_framework",
 )
 
 visibility("public")

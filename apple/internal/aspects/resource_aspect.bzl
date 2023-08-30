@@ -14,13 +14,20 @@
 
 """Implementation of the resource propagation aspect."""
 
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleDsymBundleInfo",
+    "AppleFrameworkBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -43,19 +50,12 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleDsymBundleInfo",
-    "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
-)
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 visibility("//apple/internal/...")

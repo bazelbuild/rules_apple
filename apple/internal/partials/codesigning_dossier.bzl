@@ -15,8 +15,16 @@
 """Partial implementation for codesigning dossier file generation."""
 
 load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
@@ -37,14 +45,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
 )
 
 visibility("//apple/...")

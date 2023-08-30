@@ -15,6 +15,14 @@
 """Partial implementation for Swift dylib processing for bundles."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -29,14 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 visibility("//apple/...")

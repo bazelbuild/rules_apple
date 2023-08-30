@@ -34,9 +34,14 @@ load(
     "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -51,20 +56,20 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
+    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "framework_import_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
-    "SwiftUsageInfo",
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "SwiftUsageInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
@@ -74,11 +79,6 @@ load(
     "@build_bazel_rules_swift//swift:swift_common.bzl",
     "swift_common",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
-    "framework_import_support",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 
 visibility([
     "//apple/...",

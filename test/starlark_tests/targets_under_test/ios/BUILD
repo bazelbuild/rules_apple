@@ -1,3 +1,8 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
+    "swift_library",
+)
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
@@ -22,23 +27,18 @@ load(
     "apple_resource_group",
 )
 load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
     "//test/starlark_tests:common.bzl",
     "common",
+)
+load(
+    "//test/starlark_tests/rules:generate_framework.bzl",
+    "generate_import_framework",
 )
 load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
     "generate_static_xcframework",
 )
-load(
-    "@build_bazel_rules_swift//swift:swift_library.bzl",
-    "swift_library",
-)
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
 licenses(["notice"])
 

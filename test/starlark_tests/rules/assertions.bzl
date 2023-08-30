@@ -15,17 +15,17 @@
 """Starlark analysis test assertions for tests."""
 
 load(
-    "@bazel_skylib//lib:unittest.bzl",
-    "analysistest",
-    "asserts",
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
+    "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
+    "asserts",
 )
 
 visibility("//test/starlark_tests/...")

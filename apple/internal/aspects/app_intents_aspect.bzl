@@ -14,11 +14,11 @@
 
 """Implementation of the aspect that propagates AppIntentsInfo providers."""
 
+load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsInfo",
 )
-load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 
 visibility("//apple/internal/...")
 
