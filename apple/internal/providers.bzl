@@ -23,11 +23,6 @@ These should build from the raw initializer where possible, but not export it, t
 boundary with well-defined public APIs for broader usage.
 """
 
-visibility([
-    "//apple/...",
-    "//test/...",
-])
-
 def _make_banned_init(*, preferred_public_factory = None, provider_name):
     """Generates a lambda with a fail(...) for providers to dictate preferred initializer patterns.
 
