@@ -44,12 +44,6 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "watchos": "//command_line_option:watchos_cpus",
 }
 
-# Set the default architecture for all platforms as 64-bit Intel.
-# TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
-# Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
-# dispatched the invocation.
-_DEFAULT_ARCH = "x86_64"
-
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
@@ -89,7 +83,13 @@ def _environment_archs(platform_type, settings):
             if cpu_value.startswith("ios_"):
                 environment_archs = [cpu_value[4:]]
         if not environment_archs:
-            environment_archs = [_DEFAULT_ARCH]
+            environment_archs = [
+                _cpu_string(
+                    environment_arch = None,
+                    platform_type = platform_type,
+                    settings = settings,
+                ).split("_", 1)[1],
+            ]
     return environment_archs
 
 def _cpu_string(*, environment_arch, platform_type, settings = {}):
