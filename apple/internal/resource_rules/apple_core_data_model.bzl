@@ -21,14 +21,19 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -52,15 +57,20 @@ def _apple_core_data_model_impl(ctx):
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(
             ctx.fragments.apple.single_arch_platform.platform_type,
@@ -106,7 +116,7 @@ def _apple_core_data_model_impl(ctx):
 apple_core_data_model = rule(
     implementation = _apple_core_data_model_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
         apple_support.action_required_attrs(),
         {
             "srcs": attr.label_list(

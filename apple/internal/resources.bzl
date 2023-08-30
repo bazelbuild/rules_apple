@@ -66,7 +66,10 @@ This file provides methods to easily:
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourceinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
@@ -243,7 +246,6 @@ def _bucketize_data(
             # For each type of resource, place in the appropriate bucket.
             if AppleFrameworkBundleInfo in target:
                 if "framework.dSYM/" in resource_short_path or resource.extension == "linkmap":
-                    # TODO(b/271168739): Propagate AppleDebugSymbolsInfo and _AppleDebugInfo providers.
                     # Ignore dSYM bundle and linkmap since the debug symbols partial is
                     # responsible for propagating this up the dependency graph.
                     continue
@@ -333,7 +335,7 @@ def _bucketize(
         parent_dir_param = parent_dir_param,
         allowed_buckets = allowed_buckets,
     )
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -427,7 +429,7 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
         resources = resources,
     )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -532,7 +534,7 @@ def _process_bucketized_data(
                     else:
                         unowned_resources.append(processed_file.short_path)
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(bucketized_owners),
         unowned_resources = depset(unowned_resources),
         processed_origins = depset(processed_origins),
@@ -670,7 +672,7 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
                 "rules_apple, please file a bug with reproduction steps.",
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
         processed_origins = processed_origins,
@@ -698,16 +700,23 @@ def _minimize(*, bucket):
     swift_module_by_key = {}
 
     for parent_dir, swift_module, resources in bucket:
-        key = "_".join([parent_dir or "@root", swift_module or "@root"])
+        # TODO(b/275385433): Audit Starlark performance of different string interpolation methods.
+        # Particularly for the resource aspect, using the '%' operator yielded better results than
+        # using `str.format` and string concatenation.
+        key = "%s_%s" % (parent_dir or "@root", swift_module or "@root")
+
         if parent_dir:
             parent_dir_by_key[key] = parent_dir
         if swift_module:
             swift_module_by_key[key] = swift_module
 
-        resources_by_key.setdefault(
-            key,
-            [],
-        ).append(resources)
+        # TODO(b/275385433): Audit Starlark performance of `dict.setdefault` vs. if/else statements.
+        # Particularly for the resource aspect, using if/else statements yielded better results than
+        # using `dict.setdefault` (from apple/internal/resources.bzl).
+        if key in resources_by_key:
+            resources_by_key[key].append(resources)
+        else:
+            resources_by_key[key] = [resources]
 
     return [
         (parent_dir_by_key.get(k, None), swift_module_by_key.get(k, None), depset(transitive = r))
@@ -743,7 +752,7 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
                 (nested_parent_dir, swift_module, files),
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
         processed_origins = getattr(provider_to_nest, "processed_origins", None),

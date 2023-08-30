@@ -15,21 +15,39 @@
 """Helper methods for assembling the test targets."""
 
 # Attributes belonging to the bundling rules that should be removed from the test targets.
+#
+# The bundling rules link binaries while the test target impls do not. As a rule of thumb, if an
+# attr is required of linking and does not have a benefit to being exposed to cquery results,
+# grouping tests or BUILD visibility, it should be in this list rather than the shared list.
 _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
         "deps",
+        "base_bundle_id",
         "bundle_id",
+        "bundle_id_suffix",
         "bundle_name",
         "families",
         "frameworks",
         "infoplists",
         "linkopts",
-        "minimum_os_version",
         "provisioning_profile",
         "resources",
+        "stamp",
+    ]
+}
+
+# Attributes that should be explicitly shared between test targets and bundle rules without changes.
+_SHARED_TEST_BUNDLE_ATTRS = {
+    x: None
+    for x in [
+        "features",
+        "minimum_os_version",
+        "tags",
         "test_host",
+        "test_host_is_bundle_loader",
+        "visibility",
     ]
 }
 
@@ -74,18 +92,18 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     elif not runner and not runners:
         fail("Must specify one of runner or runners.")
 
+    test_bundle_name = name + ".__internal__.__test_bundle"
+
     test_attrs = {k: v for (k, v) in kwargs.items() if k not in _BUNDLE_ATTRS}
     bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
 
     # Args to apply to the test and the bundle.
-    for x in ("visibility", "tags", "features"):
+    for x in _SHARED_TEST_BUNDLE_ATTRS:
         if x in test_attrs:
             bundle_attrs[x] = test_attrs[x]
 
     # `bundle_name` is either provided or the default is `name`.
     bundle_name = bundle_attrs.pop("bundle_name", name)
-
-    test_bundle_name = bundle_name + ".__internal__.__test_bundle"
 
     # Ideally this target should be private, but the outputs should not be private, so we're
     # explicitly using the same visibility as the test (or None if none was set).
@@ -101,7 +119,6 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         test_rule(
             name = name,
             runner = runner,
-            test_host = bundle_attrs.get("test_host"),
             deps = [":{}".format(test_bundle_name)],
             **test_attrs
         )
@@ -113,7 +130,6 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             test_rule(
                 name = test_name,
                 runner = runner,
-                test_host = bundle_attrs.get("test_host"),
                 deps = [":{}".format(test_bundle_name)],
                 **test_attrs
             )

@@ -27,6 +27,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -190,30 +194,6 @@ def _extract_signing_info(
         profile_metadata = profile_metadata,
     )
 
-def _validate_bundle_id(bundle_id):
-    """Ensure the value is a valid bundle it or fail the build.
-
-    Args:
-      bundle_id: The string to check.
-    """
-
-    # Make sure the bundle id seems like a valid one. Apple's docs for
-    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
-    # only they they specifically document is the character set, so the other
-    # two checks here are just added safety to catch likely errors by developers
-    # setting things up.
-    bundle_id_parts = bundle_id.split(".")
-    for part in bundle_id_parts:
-        if part == "":
-            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
-        if not part.isalnum():
-            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
-            # handled by the split(), so just have to check for '-'.
-            for i in range(len(part)):
-                ch = part[i]
-                if ch != "-" and not ch.isalnum():
-                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
-
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
@@ -266,11 +246,7 @@ def _process_entitlements(
         are no entitlements being used in the build or no entitlements should be
         embedded via linking.
     """
-
-    # TODO(b/192450981): Move bundle ID validation out of entitlements
-    # processing and to a more common location so that rules that don't use
-    # entitlements also get validated.
-    _validate_bundle_id(bundle_id)
+    bundling_support.validate_bundle_id(bundle_id)
 
     signing_info = _extract_signing_info(
         actions = actions,
@@ -387,6 +363,56 @@ def _process_entitlements(
         linking = final_entitlements,
     )
 
+def _generate_der_entitlements(
+        *,
+        actions,
+        apple_fragment,
+        entitlements,
+        label_name,
+        xcode_version_config):
+    """Creates a DER formatted entitlements file given an existing entitlements plist.
+
+    This converts an entitlements plist into a DER encoded representation identical to that of a
+    provisioning profile's "Entitlements" section under the "DER-Encoded-Profile" plist property.
+
+    See Apple's TN3125 for more details on this representation of DER.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      entitlements: The entitlements file to sign with.
+      label_name: The name of the target being built.
+      xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+
+    Returns:
+      A `File` referencing the generated DER formatted entitlements.
+    """
+
+    der_entitlements = actions.declare_file(
+        "entitlements/%s.der" % label_name,
+    )
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [
+            "query",
+            "-f",
+            "xml",
+            "-i",
+            entitlements.path,
+            "-o",
+            der_entitlements.path,
+            "--raw",
+        ],
+        executable = "/usr/bin/derq",
+        inputs = [entitlements],
+        mnemonic = "ProcessDEREntitlements",
+        outputs = [der_entitlements],
+        xcode_config = xcode_version_config,
+    )
+    return der_entitlements
+
 entitlements_support = struct(
+    generate_der_entitlements = _generate_der_entitlements,
     process_entitlements = _process_entitlements,
 )

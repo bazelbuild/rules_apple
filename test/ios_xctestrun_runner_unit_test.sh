@@ -296,7 +296,7 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     env = test_env,
-    runner = ":ios_x86_64_sim_ruse_disabled_runner",
+    runner = ":ios_x86_64_sim_reuse_disabled_runner",
 )
 
 swift_library(
@@ -706,30 +706,24 @@ function test_ios_unit_test_with_host_with_env() {
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
 
-# TODO (https://github.com/bazelbuild/rules_apple/issues/1879): Enable once
-# `--command_line_args` is supported
-#
-# function test_ios_unit_test_dot_separated_command_line_args() {
-#   create_sim_runners
-#   create_ios_unit_argtest arg1 arg2 arg3
-#   do_ios_test //ios:ArgUnitTest \
-#     --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
-#
-#   expect_log "Test Suite 'ArgUnitTest' passed"
-# }
+function test_ios_unit_test_dot_separated_command_line_args() {
+  create_sim_runners
+  create_ios_unit_argtest arg1 arg2 arg3
+  do_ios_test //ios:ArgUnitTest \
+    --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
 
-# TODO (https://github.com/bazelbuild/rules_apple/issues/1879): Enable once
-# `--command_line_args` is supported
-#
-# function test_ios_unit_test_multiple_command_line_args() {
-#   create_sim_runners
-#   create_ios_unit_argtest arg1 arg2
-#   do_ios_test //ios:ArgUnitTest \
-#     --test_arg="--command_line_args=arg1" \
-#     --test_arg="--command_line_args=arg2" || fail "should pass"
-#
-#   expect_log "Test Suite 'ArgUnitTest' passed"
-# }
+  expect_log "Test Suite 'ArgUnitTest' passed"
+}
+
+function test_ios_unit_test_multiple_command_line_args() {
+  create_sim_runners
+  create_ios_unit_argtest arg1 arg2
+  do_ios_test //ios:ArgUnitTest \
+    --test_arg="--command_line_args=arg1" \
+    --test_arg="--command_line_args=arg2" || fail "should pass"
+
+  expect_log "Test Suite 'ArgUnitTest' passed"
+}
 
 function test_ios_unit_other_arg() {
   create_sim_runners

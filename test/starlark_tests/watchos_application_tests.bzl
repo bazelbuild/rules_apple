@@ -19,19 +19,24 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+    "binary_contents_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
 
@@ -111,6 +116,57 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that the output multi-arch stub binary is identified as watchOS simulator via the Mach-O
+    # load command LC_BUILD_VERSION for the arm64 binary slice, and that 32-bit archs are
+    # eliminated.
+    binary_contents_test(
+        name = "{}_simulator_multiarch_platform_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        cpus = {
+            "watchos_cpus": ["x86_64", "arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["i386", "arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Test that the output multi-arch stub binary is identified as watchOS device via the Mach-O
+    # load command LC_VERSION_MIN_WATCHOS for the arm64_32 binary slice, and that 64-bit archs are
+    # eliminated.
+    binary_contents_test(
+        name = "{}_device_multiarch_arm32_platform_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        cpus = {
+            "watchos_cpus": ["armv7k", "arm64_32"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+        binary_not_contains_architectures = ["arm64e", "arm64"],
+        binary_test_architecture = "arm64_32",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
+        tags = [name],
+    )
+
+    # Test that the output binary for a single arch build is identified as watchOS device via the
+    # Mach-O load command LC_VERSION_MIN_WATCHOS for the arm64_32 binary slice, and that the 64-bit
+    # archs and the armv7k arch are eliminated.
+    binary_contents_test(
+        name = "{}_device_arm64_32_platform_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        cpus = {
+            "watchos_cpus": ["arm64_32"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+        binary_not_contains_architectures = ["armv7k", "arm64e", "arm64"],
+        binary_test_architecture = "arm64_32",
+        macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
+        tags = [name],
+    )
+
     # Tests inclusion of extensions within Watch extensions
     archive_contents_test(
         name = "{}_contains_watchos_extension_extension".format(name),
@@ -119,6 +175,53 @@ def watchos_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
         ],
+        tags = [name],
+    )
+
+    # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
+    archive_contents_test(
+        name = "{}_contains_tsan_dylib_device_test".format(name),
+        build_type = "simulator",
+        cpus = {
+            # Thread sanitizer support does not exist for the 32 bit Intel simulator; force the
+            # build to be 64 bit to get around this issue.
+            "watchos_cpus": ["x86_64"],
+        },
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libclang_rt.tsan_watchossim_dynamic.dylib",
+        ],
+        sanitizer = "tsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",
+        tags = [name],
+    )
+
+    # Test app with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_contains_app_intents_metadata_bundle".format(name),
+        build_type = "simulator",
+        cpus = {"watchos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.watchkitapp",
+        },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_watchos_single_target_application_required_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_invalid_watchos_version",
+        expected_error = "Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.",
         tags = [name],
     )
 

@@ -18,6 +18,7 @@ objc_library(
     data = [
         "Resources/Main.storyboard",
     ],
+    tags = ["manual"],
 )
 
 apple_bundle_version(
@@ -35,7 +36,7 @@ ios_application(
     ],
     infoplists = [":Info.plist"],
     launch_storyboard = "//examples/resources:Launch.storyboard",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

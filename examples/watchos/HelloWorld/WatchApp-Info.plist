@@ -19,7 +19,5 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>com.example.hello-world</string>
-	<key>WKWatchKitApp</key>
-	<true/>
 </dict>
 </plist>

@@ -31,23 +31,29 @@ load(
     "paths",
 )
 
-# TODO: Investigate if executable_name is needed here
-# buildifier: disable=unused-variable
 def _archive(
         *,
         actions,
         bundle_extension,
         bundle_name,
-        executable_name = None,
+        label_name,
         platform_prerequisites,
-        predeclared_outputs):
+        predeclared_outputs,
+        rule_descriptor):
     """Returns a file reference for this target's archive."""
     bundle_name_with_extension = bundle_name + bundle_extension
 
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
+        if bundle_name != label_name:
+            archive_relative_path = rule_descriptor.bundle_locations.archive_relative
+            root_path = label_name + "_archive-root"
+            return actions.declare_directory(
+                paths.join(root_path, archive_relative_path, bundle_name_with_extension),
+            )
+
         return actions.declare_directory(bundle_name_with_extension)
     return predeclared_outputs.archive
 
@@ -56,7 +62,6 @@ def _archive_for_embedding(
         actions,
         bundle_name,
         bundle_extension,
-        executable_name,
         label_name,
         platform_prerequisites,
         predeclared_outputs,
@@ -74,9 +79,10 @@ def _archive_for_embedding(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            executable_name = executable_name,
+            label_name = label_name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
         )
 
 def _binary(*, actions, bundle_name, executable_name, label_name, output_discriminator):
@@ -93,6 +99,14 @@ def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return actions.declare_file(label_name)
 
+def _dsyms(*, processor_result):
+    """Returns a depset of all of the dsyms from the result."""
+    dsyms = []
+    for provider in processor_result.providers:
+        if getattr(provider, "dsyms", None):
+            dsyms.append(provider.dsyms)
+    return depset(transitive = dsyms)
+
 def _infoplist(*, actions, label_name, output_discriminator):
     """Returns a file reference for this target's Info.plist file."""
     return intermediates.file(
@@ -105,11 +119,14 @@ def _infoplist(*, actions, label_name, output_discriminator):
 def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
         return False
-    return rule_descriptor.bundle_locations.archive_relative != "" and rule_descriptor.expose_non_archive_relative_output
+    return (
+        rule_descriptor.bundle_locations.archive_relative != "" and
+        rule_descriptor.expose_non_archive_relative_output
+    )
 
 def _merge_output_groups(*output_groups_list):
     """Merges a list of output group dictionaries into a single dictionary.
@@ -162,6 +179,7 @@ outputs = struct(
     archive = _archive,
     archive_for_embedding = _archive_for_embedding,
     binary = _binary,
+    dsyms = _dsyms,
     executable = _executable,
     infoplist = _infoplist,
     merge_output_groups = _merge_output_groups,

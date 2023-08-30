@@ -357,14 +357,21 @@ function assert_frameworks_not_resigned_given_output() {
 }
 
 
-# Usage: current_archs <platform>
+# Usage: current_archs <platform> <keep_sim_string>
 #
 # Prints the architectures for the given platform that were specified in the
 # configuration used to run the current test. For multiple architectures, the
 # values will be printed on separate lines; the output here is typically meant
 # to be captured into an array.
+#
+# `platform` should be a label for an apple platform type we want to get the
+# list of available architectures from, such as "ios".
+#
+# `keep_sim_string` should be a boolean to indicate if we want to keep the
+# "sim_" substrings in the architecture results. This is false by default.
 function current_archs() {
   local platform="$1"
+  local keep_sim_string="${2:-false}"
   if [[ "$platform" == ios ]]; then
     # Fudge the ios platform name to match the expected command line option.
     platform=ios_multi
@@ -373,7 +380,12 @@ function current_archs() {
   for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     case "$option" in
       --"${platform}"_cpus=*)
-        value="$(echo "$option" | cut -d= -f2)"
+        if [[ "$keep_sim_string" = true ]]; then
+          value="$(echo "$option" | cut -d= -f2)"
+        else
+          # Eliminate `sim_` prefixes from `cpu`s as it is not part of the arch.
+          value="$(echo "$option" | cut -d= -f2 | sed 's/sim_//g')"
+        fi
         echo "$value" | tr "," "\n"
         return
         ;;
@@ -507,10 +519,14 @@ function do_action() {
 # under multiple configurations.
 function is_device_build() {
   local platform="$1"
-  local archs="$(current_archs "$platform")"
+  local archs="$(current_archs "$platform" true)"
 
   # For simplicity, we just test the entire architecture list string and assume
   # users aren't writing tests with multiple incompatible architectures.
+  #
+  # This just happens to work given our current formatting for simulator archs
+  # which are `arm`, as when passed as arguments to Apple multi CPU flags, they
+  # will be of the form `sim_arm64` instead of `arm64`.
   [[ "$platform" == macos ]] || [[ "$archs" == arm* ]]
 }
 
@@ -666,4 +682,44 @@ function assert_strings_is_text() {
   local archive="$1"
   local path_in_archive="$2"
   assert_plist_is_text "$archive" "$path_in_archive"
+}
+
+
+# Usage: assert_permissions_equal <file> <expected_permissions>
+#
+# Asserts a file (numerical) permissions from `file` are equal to an
+# expected (numerical) permissions.
+#
+# This functions allows two types of assertions:
+#
+#   1) Test using 'user', 'group', and 'other' permissions bits.
+#
+#     Example: 755 -> rwxr-xr-x
+#
+#   2) Test using all permissions bits:
+#     - file type bits.
+#     - sticky bit.
+#     - (user, group, and other) permissions bits.
+#
+#     Examples:
+#       120755 -> lrwxr-xr-x (symbolic link)
+#       100755 -> -rwxr-xr-x (regular file)
+#       40755 -> drwxr-xr-x (directory)
+function assert_permissions_equal() {
+  local file="$1"
+  local expected_permissions="$2"
+
+  local actual_permissions
+  # Check if the expected permissions string has 3 digits.
+  # If true, assertion will use user/group/other permissions bits.
+  # Otherwise assertion will use all permissions bits.
+  if [[ ${#expected_permissions} == 3 ]]; then
+    # Test using 'user', 'group', and 'other' permissions bits.
+    actual_permissions=$(stat -f "%Lp" "$file")
+  else
+    # Test using all permissions bits.
+    actual_permissions=$(stat -f "%p" "$file")
+  fi
+
+  assert_equals "$expected_permissions" "$actual_permissions"
 }

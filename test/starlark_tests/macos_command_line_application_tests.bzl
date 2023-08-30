@@ -19,19 +19,27 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
+    "analysis_runfiles_dsym_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "binary_contents_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
-)
-load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 
@@ -144,11 +152,21 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_direct_dsyms = ["cmd_app_basic"],
-        expected_transitive_dsyms = ["cmd_app_basic"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "cmd_app_basic.dSYM/Contents/Info.plist",
+            "cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        expected_direct_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
         tags = [name],
     )
 
@@ -171,6 +189,79 @@ def macos_command_line_application_test_suite(name):
             "DTSDKBuild": "*",
             "DTSDKName": "macosx*",
             "LSMinimumSystemVersion": "10.13",
+        },
+        tags = [name],
+    )
+
+    analysis_runfiles_dsym_test(
+        name = "{}_runfiles_dsym_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        expected_runfiles = [
+            "test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic",
+            "test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_version_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        embedded_plist_test_values = {
+            "BuildMachineOSBuild": "*",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "1.2.3",
+            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+            "DTPlatformBuild": "*",
+            "DTPlatformName": "macosx",
+            "DTPlatformVersion": "*",
+            "DTSDKBuild": "*",
+            "DTSDKName": "macosx*",
+            "DTXcode": "*",
+            "DTXcodeBuild": "*",
+            "LSMinimumSystemVersion": "10.13",
+        },
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_with_base_bundle_id_derived_bundle_id",
+        binary_test_file = "$BINARY",
+        compilation_mode = "opt",
+        embedded_plist_test_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.cmd-app-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_default_dsym_version_in_info_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleIdentifier": "com.apple.xcode.dsym.cmd_app_basic.dSYM",
+            "CFBundleShortVersionString": "1.0",
+            "CFBundleVersion": "1",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_dsym_version_in_info_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_version",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/macos/cmd_app_basic_version.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleIdentifier": "com.apple.xcode.dsym.cmd_app_basic_version.dSYM",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "1.2.3",
         },
         tags = [name],
     )

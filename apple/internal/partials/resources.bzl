@@ -174,8 +174,10 @@ def _resources_partial_impl(
         bundle_id,
         bundle_name,
         executable_name,
+        include_executable_name,
         bundle_verification_targets,
         environment_plist,
+        extensionkit_keys_required,
         launch_storyboard,
         output_discriminator,
         platform_prerequisites,
@@ -345,9 +347,11 @@ def _resources_partial_impl(
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
                 executable_name = executable_name,
+                include_executable_name = include_executable_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
+                extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
@@ -375,8 +379,10 @@ def resources_partial(
         bundle_id = None,
         bundle_name,
         executable_name,
+        include_executable_name = True,
         bundle_verification_targets = [],
         environment_plist,
+        extensionkit_keys_required = False,
         launch_storyboard,
         output_discriminator = None,
         platform_prerequisites,
@@ -402,11 +408,16 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
+        include_executable_name: If True, the executable name will be added to
+            the plist in the `CFBundleExecutable` key. This is mainly intended for
+            plists embedded in a command line tool which don't need this value.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
+        extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are
+            correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
@@ -437,8 +448,10 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        include_executable_name = include_executable_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
+        extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

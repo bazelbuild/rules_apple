@@ -19,19 +19,23 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_failure_message_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
-)
-load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 
@@ -49,11 +53,23 @@ def tvos_ui_test_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest"],
-        expected_transitive_dsyms = ["ui_test.xctest", "app.app"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
+            "ui_test.xctest.dSYM/Contents/Info.plist",
+            "ui_test.xctest.dSYM/Contents/Resources/DWARF/ui_test",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test",
+        expected_direct_dsyms = ["dSYMs/ui_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/ui_test.xctest.dSYM"],
         tags = [name],
     )
 
@@ -94,6 +110,15 @@ def tvos_ui_test_test_suite(name):
         name = "{}_test_bundle_id_same_as_test_host_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test_invalid_bundle_id",
         expected_error = "The test bundle's identifier of 'com.google.example' can't be the same as the test host's bundle identifier. Please change one of them.",
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test_with_base_bundle_id_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.ui-test-with-base-bundle-id-derived-bundle-id",
+        },
         tags = [name],
     )
 

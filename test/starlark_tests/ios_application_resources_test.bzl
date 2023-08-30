@@ -19,15 +19,15 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_failure_message_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 
@@ -62,12 +62,17 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
-    # Tests that various xib files can be used as launch_storyboards, specifically
-    # in a mode that outputs multiple files per XIB.
+    # Tests that various xib files can be used as launch_storyboards. As of Xcode 14.3.1, xibs
+    # targeting the oldest supported iOS output a single binary nib supporting iPad and iPhones,
+    # unlike past versions that could provide a "nib bundle" with separate binary nibs for iPad and
+    # iPhone.
     archive_contents_test(
         name = "{}_xib_as_launchscreen_test".format(name),
         build_type = "device",
         contains = [
+            "$BUNDLE_ROOT/launch_screen_ios.nib",
+        ],
+        not_contains = [
             "$BUNDLE_ROOT/launch_screen_ios~iphone.nib/runtime.nib",
             "$BUNDLE_ROOT/launch_screen_ios~ipad.nib/runtime.nib",
         ],

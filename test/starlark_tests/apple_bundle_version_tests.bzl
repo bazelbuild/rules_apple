@@ -15,11 +15,11 @@
 """apple_bundle_version Starlark tests."""
 
 load(
-    ":rules/analysis_failure_message_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 

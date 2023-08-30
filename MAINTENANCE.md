@@ -112,8 +112,6 @@ is the recommended process:
 - Update the `apple/repositories.bzl` and `MODULE.bazel` files in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
-- Merge the automatically submitted PRs that update the `MODULE.bazel`
-  versions.
 
 ### Notes
 

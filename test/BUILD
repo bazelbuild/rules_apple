@@ -90,15 +90,6 @@ apple_shell_test(
 )
 
 apple_shell_test(
-    name = "apple_core_ml_library_test",
-    size = "medium",
-    src = "apple_core_ml_library_test.sh",
-    data = [
-        "//test/testdata/resources:mlmodel_srcs",
-    ],
-)
-
-apple_shell_test(
     name = "apple_intent_library_test",
     size = "medium",
     src = "apple_intent_library_test.sh",
@@ -112,10 +103,6 @@ apple_multi_shell_test(
     size = "large",
     src = "ios_application_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -143,10 +130,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "ios_extension_test.sh",
     configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -164,10 +147,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "macos_application_test.sh",
     configurations = MACOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_dylib",
-        "//test/testdata/binaries:empty_staticlib",
-    ],
 )
 
 apple_multi_shell_test(
@@ -216,17 +195,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "tvos_framework_test",
-    size = "large",
-    src = "tvos_framework_test.sh",
-    configurations = TVOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/binaries:empty_tvos_dylib",
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-    ],
-)
-
-apple_multi_shell_test(
     name = "watchos_application_test",
     size = "medium",
     src = "watchos_application_test.sh",
@@ -244,7 +212,7 @@ apple_shell_test(
     size = "large",
     src = "ios_xctestrun_runner_unit_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     tags = common.skip_ci_tags,
 )
@@ -254,7 +222,7 @@ apple_shell_test(
     size = "large",
     src = "ios_xctestrun_runner_ui_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     tags = common.skip_ci_tags,
 )
@@ -264,7 +232,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_unit_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     flaky = 1,
     tags = common.skip_ci_tags,
@@ -275,7 +243,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_unit_test_14.x.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64,sim_arm64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     tags = common.skip_ci_tags,
 )
@@ -285,7 +253,7 @@ apple_shell_test(
     size = "large",
     src = "ios_test_runner_ui_test.sh",
     args = [
-        "--ios_multi_cpus=i386,x86_64",
+        "--ios_multi_cpus=sim_arm64,x86_64",
     ],
 )
 

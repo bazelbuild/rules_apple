@@ -17,8 +17,8 @@ A rule for generating the environment plist
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
@@ -33,6 +33,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -40,14 +44,19 @@ load(
 def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = None,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
@@ -74,7 +83,7 @@ def _environment_plist_impl(ctx):
 
 environment_plist = rule(
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
         {
             "platform_type": attr.string(
                 mandatory = True,

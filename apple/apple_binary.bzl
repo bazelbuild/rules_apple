@@ -19,8 +19,16 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
 )
 
 def _linker_flag_for_sdk_dylib(dylib):
@@ -70,8 +78,10 @@ def _apple_binary_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         bundle_loader = bundle_loader,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
+        rule_descriptor = None,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -106,69 +116,7 @@ def _apple_binary_impl(ctx):
 
     return providers
 
-apple_binary = rule_factory.create_apple_binary_rule(
-    additional_attrs = {
-        "binary_type": attr.string(
-            default = "executable",
-            doc = """
-The type of binary that this target should build. Option are:
-
-*   `dylib`: The output binary is meant to be loaded at load time (when
-    the operating system is loading the binary into memory) and cannot
-    be unloaded.
-*   `executable` (default): The output binary is an executable and must
-    implement the `main` function.
-*   `loadable_bundle`: The output binary is a loadable bundle that may be
-    loaded at runtime. When building a bundle, you may also pass a
-    `bundle_loader` binary that is an executable that contains symbols
-    referenced by but not implemented in the loadable bundle.
-""",
-            values = ["dylib", "executable", "loadable_bundle"],
-        ),
-        "bundle_loader": attr.label(
-            doc = """
-The target representing the executable that will be loading this bundle.
-Undefined symbols from the bundle are checked against this executable during
-linking as if it were one of the dynamic libraries the bundle was linked with.
-""",
-            providers = [apple_common.AppleExecutableBinary],
-        ),
-        "data": attr.label_list(allow_files = True),
-        "sdk_dylibs": attr.string_list(
-            allow_empty = True,
-            doc = """
-Names of SDK `.dylib` libraries to link with (e.g., `libz` or `libarchive`).
-`libc++` is included automatically if the binary has any C++ or Objective-C++
-sources in its dependency tree. When linking a binary, all libraries named in
-that binary's transitive dependency graph are used.
-""",
-        ),
-        "sdk_frameworks": attr.string_list(
-            allow_empty = True,
-            doc = """
-Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`).
-`UIKit` and `Foundation` are always included, even if this attribute is
-provided and does not list them.
-
-This attribute is discouraged; in general, targets should list system
-framework dependencies in the library targets where that framework is used,
-not in the top-level bundle.
-""",
-        ),
-        "weak_sdk_frameworks": attr.string_list(
-            allow_empty = True,
-            doc = """
-Names of SDK frameworks to weakly link with (e.g., `MediaAccessibility`).
-Unlike regularly linked SDK frameworks, symbols from weakly linked
-frameworks do not cause the binary to fail to load if they are not present in
-the version of the framework available at runtime.
-
-This attribute is discouraged; in general, targets should list system
-framework dependencies in the library targets where that framework is used,
-not in the top-level bundle.
-""",
-        ),
-    },
+apple_binary = rule_factory.create_apple_rule(
     doc = """
 This rule produces single- or multi-architecture ("fat") binaries targeting
 Apple platforms.
@@ -183,4 +131,74 @@ rule is being provided for the purpose of transitioning users from the built-in
 implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.platform_attrs(),
+        {
+            "binary_type": attr.string(
+                default = "executable",
+                doc = """
+The type of binary that this target should build. Option are:
+
+*   `dylib`: The output binary is meant to be loaded at load time (when
+    the operating system is loading the binary into memory) and cannot
+    be unloaded.
+*   `executable` (default): The output binary is an executable and must
+    implement the `main` function.
+*   `loadable_bundle`: The output binary is a loadable bundle that may be
+    loaded at runtime. When building a bundle, you may also pass a
+    `bundle_loader` binary that is an executable that contains symbols
+    referenced by but not implemented in the loadable bundle.
+""",
+                values = ["dylib", "executable", "loadable_bundle"],
+            ),
+            "bundle_loader": attr.label(
+                doc = """
+The target representing the executable that will be loading this bundle.
+Undefined symbols from the bundle are checked against this executable during
+linking as if it were one of the dynamic libraries the bundle was linked with.
+""",
+                providers = [apple_common.AppleExecutableBinary],
+            ),
+            "data": attr.label_list(allow_files = True),
+            "sdk_dylibs": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK `.dylib` libraries to link with (e.g., `libz` or `libarchive`).
+`libc++` is included automatically if the binary has any C++ or Objective-C++
+sources in its dependency tree. When linking a binary, all libraries named in
+that binary's transitive dependency graph are used.
+""",
+            ),
+            "sdk_frameworks": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`).
+`UIKit` and `Foundation` are always included, even if this attribute is
+provided and does not list them.
+
+This attribute is discouraged; in general, targets should list system
+framework dependencies in the library targets where that framework is used,
+not in the top-level bundle.
+""",
+            ),
+            "weak_sdk_frameworks": attr.string_list(
+                allow_empty = True,
+                doc = """
+Names of SDK frameworks to weakly link with (e.g., `MediaAccessibility`).
+Unlike regularly linked SDK frameworks, symbols from weakly linked
+frameworks do not cause the binary to fail to load if they are not present in
+the version of the framework available at runtime.
+
+This attribute is discouraged; in general, targets should list system
+framework dependencies in the library targets where that framework is used,
+not in the top-level bundle.
+""",
+            ),
+        },
+    ],
 )

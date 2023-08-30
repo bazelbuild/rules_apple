@@ -21,6 +21,7 @@ fi
 custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 device_id=""
+command_line_args=(%(command_line_args)s)
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -33,6 +34,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --destination=platform=iOS,id=*)
       device_id="${arg##*=}"
+      ;;
+    --command_line_args=*)
+      command_line_args+=("${arg##*=}")
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -105,6 +109,19 @@ function escape() {
   escaped=${escaped//'"'/&quot;}
   echo "$escaped"
 }
+
+# Gather command line arguments for `CommandLineArguments` in the xctestrun file
+xctestrun_cmd_line_args_section=""
+if [[ -n "${command_line_args:-}" ]]; then
+  xctestrun_cmd_line_args_section="\n"
+  saved_IFS=$IFS
+  IFS=","
+  for cmd_line_arg in ${command_line_args[@]}; do
+    xctestrun_cmd_line_args_section+="      <string>$cmd_line_arg</string>\n"
+  done
+  IFS=$saved_IFS
+  xctestrun_cmd_line_args_section="    <key>CommandLineArguments</key>\n    <array>$xctestrun_cmd_line_args_section    </array>"
+fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
@@ -327,11 +344,17 @@ readonly testlog=$test_tmp_dir/test.log
 
 test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
 intel_simulator_hack=false
+architecture="arm64"
 if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
   intel_simulator_hack=true
+  architecture="x86_64"
 fi
 
 should_use_xcodebuild=false
+if [[ "$build_for_device" == true  ]]; then
+  echo "note: Using 'xcodebuild' because build for device was requested"
+  should_use_xcodebuild=true
+fi
 if [[ -n "$test_host_path" ]]; then
   echo "note: Using 'xcodebuild' because test host was provided"
   should_use_xcodebuild=true
@@ -343,6 +366,10 @@ if [[ "%(test_order)s" == random ]]; then
 fi
 if [[ "$create_xcresult_bundle" == true ]]; then
   echo "note: Using 'xcodebuild' because XCResult bundle was requested"
+  should_use_xcodebuild=true
+fi
+if [[ -n "$xctestrun_cmd_line_args_section" ]]; then
+  echo "note: Using 'xcodebuild' because '--command_line_args' was provided"
   should_use_xcodebuild=true
 fi
 if [[ -n "$xctestrun_skip_test_section" || -n "$xctestrun_only_test_section" ]]; then
@@ -373,11 +400,14 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
     -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
     -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
-    -e "s@BAZEL_COVERAGE_PROFRAW@$profraw@g" \
     -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
+    -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
+    -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
+    -e "s@BAZEL_TEST_BUNDLE_NAME@$test_bundle_name.xctest@g" \
+    -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
 
@@ -454,6 +484,7 @@ fi
 # are likely other cases we can add to this in the future. FB7801959
 if grep -q \
   -e "^Fatal error:" \
+  -e "^.*:[0-9]\+:\sFatal error:" \
   -e "^libc++abi.dylib: terminating with uncaught exception" \
   "$testlog"
 then
@@ -466,8 +497,11 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
   exit 0
 fi
 
-readonly profdata="$test_tmp_dir/coverage.profdata"
-xcrun llvm-profdata merge "$profraw" --output "$profdata"
+profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+if [[ "$should_use_xcodebuild" == false ]]; then
+  profdata="$test_tmp_dir/coverage.profdata"
+  xcrun llvm-profdata merge "$profraw" --output "$profdata"
+fi
 
 lcov_args=(
   -instr-profile "$profdata"

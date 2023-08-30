@@ -12,6 +12,26 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 bzl_library(
+    name = "app_intents_info",
+    srcs = ["app_intents_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used both
+        # by the `app_intents_aspect` and `app_intents_metadata_bundle` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "apple_debug_info",
+    srcs = ["apple_debug_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used both
+        # by the `resource_aspect` and `debug_symbols` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "embeddable_info",
     srcs = ["embeddable_info.bzl"],
     visibility = [

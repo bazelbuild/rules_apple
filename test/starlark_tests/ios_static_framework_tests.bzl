@@ -19,11 +19,11 @@ load(
     "common",
 )
 load(
-    ":rules/analysis_failure_message_test.bzl",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 
@@ -64,7 +64,7 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
-        name = "{}_swift_x86_64_builds".format(name),
+        name = "{}_swift_x86_64_builds_using_ios_multi_cpus".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         cpus = {
@@ -73,6 +73,36 @@ def ios_static_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+
+    # Tests Swift ios_static_framework builds correctly for apple_platforms.
+    archive_contents_test(
+        name = "{}_swift_sim_arm64_builds_using_apple_platforms".format(name),
+        apple_platforms = [
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
+        ],
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_x86_64_builds_using_apple_platforms".format(name),
+        apple_platforms = [
+            "@build_bazel_apple_support//platforms:ios_sim_arm64",
+            "@build_bazel_apple_support//platforms:ios_x86_64",
+        ],
+        build_type = "simulator",
+        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
@@ -155,10 +185,10 @@ def ios_static_framework_test_suite(name):
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
         contains = [
-            "$BUNDLE_ROOT/Headers/SwiftFmwkWithGenHeader.h",
+            "$BUNDLE_ROOT/Headers/SwiftStaticFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/Modules/SwiftStaticFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/Modules/SwiftStaticFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
         tags = [name],
     )
@@ -191,12 +221,12 @@ def ios_static_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:static_framework_with_generated_header",
         contains = [
-            "$ARCHIVE_ROOT/SwiftFmwkWithGenHeader.framework/SwiftFmwkWithGenHeader",
+            "$ARCHIVE_ROOT/SwiftStaticFmwkWithGenHeader.framework/SwiftStaticFmwkWithGenHeader",
         ],
         text_test_file = "$BUNDLE_ROOT/Modules/module.modulemap",
         text_test_values = [
-            "module SwiftFmwkWithGenHeader",
-            "header \"SwiftFmwkWithGenHeader.h\"",
+            "module SwiftStaticFmwkWithGenHeader",
+            "header \"SwiftStaticFmwkWithGenHeader.h\"",
         ],
         tags = [name],
     )

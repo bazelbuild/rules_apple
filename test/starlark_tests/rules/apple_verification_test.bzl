@@ -19,6 +19,10 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
@@ -36,15 +40,30 @@ load(
     "paths",
 )
 
+_CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
+]
+
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
+    has_apple_platforms = True if getattr(attr, "apple_platforms", []) else False
+    has_apple_cpus = True if getattr(attr, "cpus", {}) else False
+
+    # Kept mutually exclusive as a preference to test new-style toolchain resolution separately from
+    # old-style toolchain resolution.
+    if has_apple_platforms and has_apple_cpus:
+        fail("""
+Internal Error: A verification test should only specify `apple_platforms` or `cpus`, but not both.
+""")
+
     output_dictionary = {
+        "//command_line_option:apple_platforms": [],
         "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
-        "//command_line_option:ios_signing_cert_name": "-",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
-        "//command_line_option:apple_generate_dsym": attr.apple_generate_dsym,
+        "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
+        "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
+        "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -54,16 +73,21 @@ def _apple_verification_transition_impl(settings, attr):
         })
     else:
         output_dictionary.update({
-            "//command_line_option:ios_multi_cpus": "arm64",
+            "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
             "//command_line_option:watchos_cpus": "arm64_32,armv7k",
         })
 
-    if hasattr(attr, "cpus"):
+    if has_apple_platforms:
+        output_dictionary.update({
+            "//command_line_option:apple_platforms": ",".join(attr.apple_platforms),
+        })
+    elif has_apple_cpus:
         for cpu_option, cpus in attr.cpus.items():
             command_line_option = "//command_line_option:%s" % cpu_option
             output_dictionary.update({command_line_option: ",".join(cpus)})
 
+    # Features
     existing_features = settings.get("//command_line_option:features") or []
     if hasattr(attr, "target_features"):
         existing_features.extend(attr.target_features)
@@ -71,16 +95,35 @@ def _apple_verification_transition_impl(settings, attr):
         existing_features.append(attr.sanitizer)
     output_dictionary["//command_line_option:features"] = existing_features
 
+    # Build settings
+    test_build_settings = {
+        build_settings_labels.signing_certificate_name: "-",
+    }
+    test_build_settings.update(getattr(attr, "build_settings", {}))
+    for build_setting in _CUSTOM_BUILD_SETTINGS:
+        if build_setting in test_build_settings:
+            build_setting_value = test_build_settings[build_setting]
+            build_setting_type = type(settings[build_setting])
+
+            # The `build_settings` rule attribute requires string values. However, build
+            # settings can have many types. In order to set the correct type, we inspect
+            # the default value from settings, and cast accordingly.
+            if build_setting_type == "bool":
+                build_setting_value = build_setting_value.lower() in ("true", "yes", "1")
+
+            output_dictionary[build_setting] = build_setting_value
+        else:
+            output_dictionary[build_setting] = settings[build_setting]
+
     return output_dictionary
 
 apple_verification_transition = transition(
     implementation = _apple_verification_transition_impl,
     inputs = [
         "//command_line_option:features",
-    ],
+    ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
         "//command_line_option:cpu",
-        "//command_line_option:ios_signing_cert_name",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
@@ -88,7 +131,10 @@ apple_verification_transition = transition(
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
         "//command_line_option:apple_generate_dsym",
-    ],
+        "//command_line_option:apple_platforms",
+        "//command_line_option:incompatible_enable_apple_toolchain_resolution",
+        "//command_line_option:objc_enable_binary_stripping",
+    ] + _CUSTOM_BUILD_SETTINGS,
 )
 
 def _apple_verification_test_impl(ctx):
@@ -110,7 +156,7 @@ def _apple_verification_test_impl(ctx):
             apple_product_type.application,
             apple_product_type.app_clip,
             apple_product_type.messages_application,
-        ]:
+        ] and not archive.is_directory:
             archive_relative_bundle = paths.join("Payload", bundle_with_extension)
         else:
             archive_relative_bundle = bundle_with_extension
@@ -167,9 +213,16 @@ def _apple_verification_test_impl(ctx):
         is_executable = True,
     )
 
+    # Apply knowledge of the Xcode version to the test environnment
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_version_split = str(xcode_config.xcode_version()).split(".")
+    xcode_versions_separated = len(xcode_version_split)
+
     # Extra test environment to set during the test.
     test_env = {
         "BUILD_TYPE": ctx.attr.build_type,
+        "XCODE_VERSION_MAJOR": xcode_version_split[0] if xcode_versions_separated >= 1 else 0,
+        "XCODE_VERSION_MINOR": xcode_version_split[1] if xcode_versions_separated >= 2 else 0,
     }
 
     # Create APPLE_TEST_ENV_# environmental variables for each `env` attribute that are transformed
@@ -179,8 +232,6 @@ def _apple_verification_test_impl(ctx):
     for key in ctx.attr.env:
         for num, value in enumerate(ctx.attr.env[key]):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
-
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),
@@ -207,6 +258,24 @@ apple_verification_test = rule(
 A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
 """,
         ),
+        "apple_generate_dsym": attr.bool(
+            default = False,
+            doc = """
+If true, generates .dSYM debug symbol bundles for the target(s) under test.
+""",
+        ),
+        "apple_platforms": attr.string_list(
+            doc = """
+List of strings representing Apple platform definitions to resolve. When set, this opts into
+toolchain resolution to select the Apple SDK for Apple rules (Starlark and native). Currently it is
+considered to be an error if this is set with `cpus` as both opt into different means of toolchain
+resolution.
+""",
+        ),
+        "build_settings": attr.string_dict(
+            mandatory = False,
+            doc = "Build settings for target under test.",
+        ),
         "build_type": attr.string(
             mandatory = True,
             values = ["simulator", "device"],
@@ -222,16 +291,20 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
 """,
             default = "fastbuild",
         ),
-        "apple_generate_dsym": attr.bool(
-            default = False,
-            doc = """
-If true, generates .dSYM debug symbol bundles for the target(s) under test.
-""",
-        ),
         "cpus": attr.string_list_dict(
             doc = """
 Dictionary of command line options cpu flags (e.g. ios_multi_cpus, macos_cpus) and the list of
-cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']})
+cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']}) Currently it is
+considered to be an error if this is set with `apple_platforms` as both opt into different means of
+toolchain resolution.
+""",
+        ),
+        "objc_enable_binary_stripping": attr.bool(
+            default = False,
+            doc = """
+Whether to perform symbol and dead-code strippings on linked binaries. Binary
+strippings will be performed if both this flag and --compilation_mode=opt are
+specified.
 """,
         ),
         "sanitizer": attr.string(

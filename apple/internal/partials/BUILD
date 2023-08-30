@@ -21,14 +21,29 @@ bzl_library(
 )
 
 bzl_library(
+    name = "app_intents_metadata_bundle",
+    srcs = ["app_intents_metadata_bundle.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:linking_support",
+        "//apple/internal:processor",
+        "//apple/internal/providers:app_intents_info",
+        "//apple/internal/resource_actions:app_intents",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
     name = "apple_bundle_info",
     srcs = ["apple_bundle_info.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:outputs",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
     ],
 )
@@ -84,6 +99,9 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:codesigning_support",
+        "//apple/internal:experimental",
+        "//apple/internal:intermediates",
+        "//apple/internal:outputs",
         "//apple/internal:processor",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",
@@ -99,6 +117,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:intermediates",
+        "//apple/internal:providers",
+        "//apple/internal:resource_actions",
+        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",

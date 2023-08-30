@@ -19,7 +19,7 @@ load(
     "common",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 
@@ -255,8 +255,8 @@ def apple_static_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_resources",
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/Info.plist",
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/custom_apple_resource_info.out",
         ],
         tags = [name],
     )

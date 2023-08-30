@@ -14,7 +14,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        "//apple/internal:providers",
         "//apple/internal:resources",
         "@bazel_skylib//lib:partial",
     ],
@@ -46,6 +46,7 @@ bzl_library(
         "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
+        "//apple/internal:rule_attrs",
         "//apple/internal:swift_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
@@ -64,7 +65,7 @@ bzl_library(
         "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
-        "//apple/internal:rule_factory",
+        "//apple/internal:rule_attrs",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
@@ -78,7 +79,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        "//apple/internal:providers",
     ],
 )
 

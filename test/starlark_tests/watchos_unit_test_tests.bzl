@@ -19,15 +19,19 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
-)
-load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 
@@ -45,11 +49,21 @@ def watchos_unit_test_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
-        expected_direct_dsyms = ["unit_test.xctest"],
-        expected_transitive_dsyms = ["unit_test.xctest"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "unit_test.xctest.dSYM/Contents/Info.plist",
+            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
+        expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
         tags = [name],
     )
 
@@ -73,6 +87,15 @@ def watchos_unit_test_test_suite(name):
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_watchos.test_runner_support,
             "UIDeviceFamily:0": "4",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test_with_base_bundle_id_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.unit-test-with-base-bundle-id-derived-bundle-id",
         },
         tags = [name],
     )

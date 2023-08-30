@@ -36,6 +36,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -60,8 +64,18 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebundleinfo",
+    "new_applestaticxcframeworkbundleinfo",
+    "new_applexcframeworkbundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
@@ -88,14 +102,14 @@ load(
     "swift_usage_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
+    "files",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "AppleStaticXcframeworkBundleInfo",
-    "AppleXcframeworkBundleInfo",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
@@ -178,7 +192,7 @@ def _group_link_outputs_by_library_identifier(
         uses_swift = False
         for link_output in link_outputs:
             split_attr_key = transition_support.xcframework_split_attr_key(
-                cpu = link_output.architecture,
+                arch = link_output.architecture,
                 environment = link_output.environment,
                 platform_type = link_output.platform,
             )
@@ -441,19 +455,19 @@ def _create_xcframework_bundle(
     )
 
 def _apple_xcframework_impl(ctx):
-    """Experimental WIP implementation of apple_xcframework."""
-
-    if is_experimental_tree_artifact_enabled(config_vars = ctx.var):
-        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
-
+    """Implementation of apple_xcframework."""
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     deps = ctx.split_attr.deps
+
+    if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+        is_experimental_tree_artifact_enabled(config_vars = ctx.var)):
+        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
+             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
+             "set to 1 on the command line or in your active build configuration.")
 
     # Add the disable_legacy_signing feature to the list of features
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
@@ -473,7 +487,22 @@ def _apple_xcframework_impl(ctx):
         ctx,
         # Frameworks do not have entitlements.
         entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
+            # iOS, tvOS and watchOS single target app framework binaries live in
+            # Application.app/Frameworks/Framework.framework/Framework
+            # watchOS 2 extension-dependent app framework binaries live in
+            # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
+            #
+            # iOS, tvOS and watchOS single target app frameworks are packaged in executable as
+            # Application.app/Frameworks
+            # watchOS 2 extension-dependent app frameworks are packaged in executable as
+            # Application.app/PlugIns/Extension.appex/Frameworks
+            #
+            # While different, these resolve to the same paths relative to their respective
+            # executables. Only macOS (which is not yet supported) is an outlier; this will require
+            # changes to native Bazel linking logic for Apple binary targets.
+            "-Wl,-rpath,@executable_path/Frameworks",
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
                 extension = nested_bundle_extension,
@@ -481,6 +510,9 @@ def _apple_xcframework_impl(ctx):
             ),
         ],
         platform_prerequisites = None,
+        # All required knowledge for 3P facing frameworks is passed directly through the given
+        # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.
+        rule_descriptor = None,
         stamp = ctx.attr.stamp,
     )
 
@@ -500,28 +532,33 @@ def _apple_xcframework_impl(ctx):
     framework_output_files = []
     framework_output_groups = []
 
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
 
-        rule_descriptor = rule_support.rule_descriptor_no_ctx(
-            link_output.platform,
-            apple_product_type.framework,
+        rule_descriptor = rule_support.rule_descriptor(
+            platform_type = link_output.platform,
+            product_type = apple_product_type.framework,
         )
 
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(
                 link_output.platform,
                 default = rule_descriptor.allowed_device_families,
             ),
-            disabled_features = ctx.disabled_features,
             explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_versions.get(
                 link_output.platform,
             ),
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
-            features = ctx.features,
+            features = features,
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
@@ -554,6 +591,13 @@ def _apple_xcframework_impl(ctx):
             split_attr_keys = link_output.split_attr_keys,
         )
 
+        environment_plist = files.get_file_with_name(
+            name = "environment_plist_{platform}".format(
+                platform = link_output.platform,
+            ),
+            files = ctx.files._environment_plist_files,
+        )
+
         processor_partials = [
             partials.apple_bundle_info_partial(
                 actions = actions,
@@ -567,6 +611,7 @@ def _apple_xcframework_impl(ctx):
                 platform_prerequisites = platform_prerequisites,
                 predeclared_outputs = overridden_predeclared_outputs,
                 product_type = rule_descriptor.product_type,
+                rule_descriptor = rule_descriptor,
             ),
             partials.binary_partial(
                 actions = actions,
@@ -584,8 +629,13 @@ def _apple_xcframework_impl(ctx):
                 dsym_binaries = link_output.dsym_binaries,
                 dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                 executable_name = executable_name,
+                label_name = label.name,
                 linkmaps = link_output.linkmaps,
+                output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
+                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                rule_label = label,
+                version = ctx.attr.version,
             ),
             partials.resources_partial(
                 actions = actions,
@@ -593,8 +643,7 @@ def _apple_xcframework_impl(ctx):
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
-                # TODO(b/174858377): Select which environment_plist to use based on Apple platform.
-                environment_plist = ctx.file._environment_plist_ios,
+                environment_plist = environment_plist,
                 executable_name = executable_name,
                 launch_storyboard = None,
                 output_discriminator = library_identifier,
@@ -645,7 +694,6 @@ def _apple_xcframework_impl(ctx):
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
-            executable_name = executable_name,
             features = features,
             ipa_post_processor = None,
             output_discriminator = library_identifier,
@@ -712,7 +760,7 @@ def _apple_xcframework_impl(ctx):
 
     processor_output = [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
-        AppleBundleInfo(
+        new_applebundleinfo(
             archive = ctx.outputs.archive,
             bundle_extension = ".xcframework",
             bundle_id = nested_bundle_id,
@@ -721,7 +769,7 @@ def _apple_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleXcframeworkBundleInfo(),
+        new_applexcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([ctx.outputs.archive], transitive = framework_output_files),
         ),
@@ -733,19 +781,28 @@ def _apple_xcframework_impl(ctx):
     ]
     return processor_output
 
-apple_xcframework = rule(
-    attrs = dicts.add(
-        rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_binary_attrs(
-            cfg = transition_support.xcframework_transition,
+apple_xcframework = rule_factory.create_apple_rule(
+    cfg = None,
+    doc = "Builds and bundles an XCFramework for third-party distribution.",
+    implementation = _apple_xcframework_impl,
+    predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
+    toolchains = [],
+    attrs = [
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.xcframework_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = False,
         ),
         {
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
-            "_environment_plist_ios": attr.label(
-                allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            "_environment_plist_files": attr.label_list(
+                default = [
+                    "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                    "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+                ],
             ),
             "bundle_id": attr.string(
                 mandatory = True,
@@ -777,25 +834,6 @@ values are `iphone` and `ipad` for `ios`; at least one must be specified if a pl
 Currently, this only affects processing of `ios` resources.
 """,
             ),
-            "exported_symbols_lists": attr.label_list(
-                allow_files = True,
-                doc = """
-A list of targets containing exported symbols lists files for the linker to control symbol
-resolution.
-
-Each file is expected to have a list of global symbol names that will remain as global symbols in
-the compiled binary owned by this framework. All other global symbols will be treated as if they
-were marked as `__private_extern__` (aka `visibility=hidden`) and will not be global in the output
-file.
-
-See the man page documentation for `ld(1)` on macOS for more details.
-""",
-            ),
-            "linkopts": attr.string_list(
-                doc = """
-A list of strings representing extra flags that should be passed to the linker.
-""",
-            ),
             "infoplists": attr.label_list(
                 allow_empty = False,
                 allow_files = [".plist"],
@@ -810,7 +848,14 @@ for what is supported.
             ),
             "ios": attr.string_list_dict(
                 doc = """
-A dictionary of strings indicating which platform variants should be built for the `ios` platform (
+A dictionary of strings indicating which platform variants should be built for the iOS platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "tvos": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built for the tvOS platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
@@ -827,8 +872,13 @@ at compile time. Ensure version specific APIs are guarded with `available` claus
             "minimum_os_versions": attr.string_dict(
                 doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
-as keys.
+dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`,
+or `tvos` as keys:
+
+    minimum_os_versions = {
+        "ios": "13.0",
+        "tvos": "15.0",
+    }
 """,
                 mandatory = True,
             ),
@@ -840,34 +890,11 @@ each of these embedded frameworks. These header files will be embedded within ea
 typically in a subdirectory such as `Headers`.
 """,
             ),
-            "stamp": attr.int(
-                default = -1,
-                doc = """
-Enable link stamping. Whether to encode build information into the binaries. Possible values:
-
-*   `stamp = 1`: Stamp the build information into the binaries. Stamped binaries are only rebuilt
-    when their dependencies change. Use this if there are tests that depend on the build
-    information.
-*   `stamp = 0`: Always replace build information by constant values. This gives good build
-    result caching.
-*   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.
-""",
-                values = [-1, 0, 1],
-            ),
             "version": attr.label(
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
-""",
-            ),
-            "deps": attr.label_list(
-                aspects = [apple_resource_aspect, swift_usage_aspect],
-                cfg = transition_support.xcframework_transition,
-                doc = """
-A list of dependencies targets that will be linked into this each of the framework target's
-individual binaries. Any resources, such as asset catalogs, that are referenced by those targets
-will also be transitively included in the framework bundles.
 """,
             ),
             "umbrella_header": attr.label(
@@ -880,10 +907,7 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
         },
-    ),
-    fragments = ["apple", "objc", "cpp"],
-    implementation = _apple_xcframework_impl,
-    outputs = {"archive": "%{name}.xcframework.zip"},
+    ],
 )
 
 def _apple_static_xcframework_impl(ctx):
@@ -897,6 +921,10 @@ def _apple_static_xcframework_impl(ctx):
     deps = ctx.split_attr.deps
     label = ctx.label
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
@@ -984,24 +1012,24 @@ def _apple_static_xcframework_impl(ctx):
         )
 
         # Bundle resources
-        rule_descriptor = rule_support.rule_descriptor_no_ctx(
-            link_output.platform,
-            apple_product_type.framework,
+        rule_descriptor = rule_support.rule_descriptor(
+            platform_type = link_output.platform,
+            product_type = apple_product_type.framework,
         )
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(
                 link_output.platform,
                 default = rule_descriptor.allowed_device_families,
             ),
-            disabled_features = ctx.disabled_features,
             explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_versions.get(
                 link_output.platform,
             ),
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
-            features = ctx.features,
+            features = features,
             objc_fragment = ctx.fragments.objc,
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
@@ -1074,7 +1102,7 @@ def _apple_static_xcframework_impl(ctx):
 
     return [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
-        AppleBundleInfo(
+        new_applebundleinfo(
             archive = outputs_archive,
             bundle_extension = ".xcframework",
             bundle_name = bundle_name,
@@ -1082,19 +1110,22 @@ def _apple_static_xcframework_impl(ctx):
             infoplist = root_info_plist,
             platform_type = None,
         ),
-        AppleStaticXcframeworkBundleInfo(),
+        new_applestaticxcframeworkbundleinfo(),
         DefaultInfo(
             files = depset([outputs_archive]),
         ),
     ]
 
-apple_static_xcframework = rule(
-    implementation = _apple_static_xcframework_impl,
+apple_static_xcframework = rule_factory.create_apple_rule(
+    cfg = None,
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
-    attrs = dicts.add(
-        rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
-            cfg = transition_support.xcframework_transition,
+    implementation = _apple_static_xcframework_impl,
+    predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
+    toolchains = [],
+    attrs = [
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.static_library_linking_attrs(
+            deps_cfg = transition_support.xcframework_transition,
         ),
         {
             "executable_name": attr.string(
@@ -1104,9 +1135,6 @@ The desired name of the executable, if the bundle has an executable. If this att
 then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
 the target will be used instead.
 """,
-            ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
             "_environment_plist_ios": attr.label(
                 allow_single_file = True,
@@ -1188,7 +1216,5 @@ umbrella header will be generated under the same name as this target.
 """,
             ),
         },
-    ),
-    fragments = ["apple", "objc", "cpp"],
-    outputs = {"archive": "%{name}.xcframework.zip"},
+    ],
 )

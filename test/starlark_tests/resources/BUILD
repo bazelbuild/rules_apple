@@ -13,7 +13,7 @@ load(
     "common",
 )
 load(
-    "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
+    "//test/starlark_tests/rules:dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
 )
 
@@ -28,8 +28,13 @@ package(
 # package.
 exports_files(
     glob(["**"]),
-    visibility = ["//test/starlark_tests:__subpackages__"],
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
 )
+
+# --------------------------------------------------------------------------------
+# Objective-C common.h libraries
 
 objc_library(
     name = "objc_common_lib",
@@ -100,6 +105,40 @@ objc_library(
     ],
 )
 
+# --------------------------------------------------------------------------------
+# Objective-C main.m libraries
+
+objc_library(
+    name = "objc_main_lib",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_sdk_dylibs",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_dylibs = ["libz"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_sdk_fmwks",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_frameworks = ["CoreData"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [
+        ":structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "another_objc_shared_lib_with_transitive_resources",
     srcs = ["shared.m"],
@@ -136,7 +175,7 @@ objc_library(
 # Objective-C main.m libraries
 
 objc_library(
-    name = "objc_main_lib",
+    name = "objc_main_lib_with_common_lib",
     srcs = ["main.m"],
     tags = common.fixture_tags,
     deps = [
@@ -145,19 +184,26 @@ objc_library(
 )
 
 objc_library(
-    name = "objc_lib_with_sdk_dylibs",
-    srcs = ["common.m"],
-    hdrs = ["common.h"],
-    sdk_dylibs = ["libz"],
+    name = "objc_main_lib_with_structured_images",
+    srcs = ["main.m"],
+    data = [":structured_image_resources"],
     tags = common.fixture_tags,
 )
 
 objc_library(
-    name = "objc_lib_with_sdk_fmwks",
-    srcs = ["common.m"],
-    hdrs = ["common.h"],
-    sdk_frameworks = ["CoreData"],
+    name = "objc_main_lib_with_transitive_structured_images",
+    srcs = ["main.m"],
     tags = common.fixture_tags,
+    deps = [":objc_common_lib_with_structured_images"],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_resource_bundles",
+    ],
 )
 
 swift_library(
@@ -255,17 +301,32 @@ swift_library(
     tags = common.fixture_tags,
 )
 
-objc_library(
-    name = "objc_test_lib",
-    srcs = ["test.m"],
+swift_library(
+    name = "watchkit_single_target_app_main_lib",
+    srcs = ["WatchKitAppMain.swift"],
     tags = common.fixture_tags,
 )
 
 objc_library(
+    name = "objc_test_lib",
+    testonly = True,
+    srcs = ["test.m"],
+    sdk_frameworks = [
+        "XCTest",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+objc_library(
     name = "objc_swift_depending_test_lib",
+    testonly = True,
     srcs = ["test.m"],
     tags = common.fixture_tags,
-    deps = [":swift_uikit_appdelegate"],
+    deps = [
+        ":swift_uikit_appdelegate",
+    ],
 )
 
 swift_library(
@@ -383,17 +444,7 @@ apple_resource_group(
 )
 
 objc_library(
-    name = "objc_lib_with_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
-    data = [
-        ":structured_resources",
-    ],
-    tags = common.fixture_tags,
-)
-
-objc_library(
     name = "structured_resources_in_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":structured_resources_in_resources",
     ],
@@ -409,7 +460,6 @@ apple_resource_group(
 
 objc_library(
     name = "processed_resources_in_structured_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":processed_resources_in_structured_resources",
     ],
@@ -543,8 +593,14 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_linkopt_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    linkopts = ["-Wl,-framework,CoreMotion"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "ios_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":assets",
         ":mapping_model",
@@ -578,7 +634,6 @@ objc_library(
 
 objc_library(
     name = "ios_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":localized_generic_resources",
         ":localized_plists",
@@ -591,7 +646,6 @@ objc_library(
 
 objc_library(
     name = "apple_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":mapping_model",
         ":nonlocalized.plist",
@@ -605,7 +659,6 @@ objc_library(
 
 objc_library(
     name = "apple_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":localized_generic_resources",
         ":localized_plists",
@@ -732,6 +785,7 @@ apple_resource_group(
     structured_resources = [
         "//test/testdata/resources:structured",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -909,6 +963,7 @@ genrule(
     name = "DummySwiftFile",
     outs = ["Dummy.swift"],
     cmd = "echo 'struct Dummy {}' > $@",
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -1046,4 +1101,11 @@ objc_library(
     srcs = [":objc_importing_imported_static_xcfw"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_old"],
+)
+
+swift_library(
+    name = "app_intent",
+    srcs = ["app_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    tags = common.fixture_tags,
 )

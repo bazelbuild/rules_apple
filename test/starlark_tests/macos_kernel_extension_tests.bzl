@@ -15,21 +15,25 @@
 """macos_kernel_extension Starlark tests."""
 
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
     "make_analysis_target_actions_test",
 )
 load(
-    ":rules/analysis_target_outputs_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
+    "infoplist_contents_test",
 )
 
 _analysis_arm64_macos_cpu_test = make_analysis_target_actions_test(
@@ -132,6 +136,15 @@ def macos_kernel_extension_test_suite(name):
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         binary_not_contains_symbols = ["_dontCallMeShared"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:kext_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example",
+        },
         tags = [name],
     )
 

@@ -82,7 +82,7 @@ def binary_partial(
         actions = actions,
         binary_artifact = binary_artifact,
         bundle_name = bundle_name,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
         label_name = label_name,
         output_discriminator = output_discriminator,
     )

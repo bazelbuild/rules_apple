@@ -20,28 +20,37 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appledsymbundleinfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleVersionInfo",
     "AppleDsymBundleInfo",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-
-_AppleDebugInfo = provider(
-    doc = "Private provider to propagate transitive debug symbol information.",
-    fields = {
-        "dsyms": """
-Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
-""",
-        "linkmaps": """
-Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
-""",
-    },
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _declare_linkmap(
@@ -159,6 +168,80 @@ cp $flags '%s' '%s'
 
     return [output_binary]
 
+def _generate_dsym_info_plist(
+        actions,
+        dsym_bundle_name,
+        dsym_info_plist_template,
+        output_discriminator,
+        platform_prerequisites,
+        resolved_plisttool,
+        rule_label,
+        version):
+    """Generates an XML Info.plist appropriate for a dSYM bundle.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      dsym_bundle_name: The full name of the dSYM bundle, including its extension.
+      dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_plisttool: A struct referencing the resolved plist tool.
+      rule_label: The label of the target being analyzed.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
+
+    Returns:
+      A File representing the generated Info.plist for the dSYM bundle.
+    """
+    plisttool_input_files = [dsym_info_plist_template]
+
+    info_plist_options = struct()
+    if version != None and AppleBundleVersionInfo in version:
+        version_info = version[AppleBundleVersionInfo]
+        info_plist_options = struct(
+            version_keys_required = True,
+            version_file = version_info.version_file.path,
+        )
+        plisttool_input_files.append(version_info.version_file)
+
+    dsym_bundle_id = "com.apple.xcode.dsym." + dsym_bundle_name
+
+    dsym_plist = actions.declare_file(
+        "%s/Contents/Info.plist" % dsym_bundle_name,
+    )
+
+    control = struct(
+        binary = False,
+        info_plist_options = info_plist_options,
+        output = dsym_plist.path,
+        plists = [dsym_info_plist_template.path],
+        target = str(rule_label),
+        variable_substitutions = struct(
+            CFBundleIdentifier = dsym_bundle_id,
+        ),
+    )
+    control_file = intermediates.file(
+        actions = actions,
+        target_name = rule_label.name,
+        output_discriminator = output_discriminator,
+        file_name = "%s-dsym-control" % dsym_plist.basename,
+    )
+    actions.write(
+        output = control_file,
+        content = control.to_json(),
+    )
+
+    resource_actions.plisttool_action(
+        actions = actions,
+        control_file = control_file,
+        inputs = plisttool_input_files,
+        mnemonic = "CompileDSYMInfoPlist",
+        outputs = [dsym_plist],
+        platform_prerequisites = platform_prerequisites,
+        resolved_plisttool = resolved_plisttool,
+    )
+    return dsym_plist
+
 def _bundle_dsym_files(
         *,
         actions,
@@ -167,7 +250,12 @@ def _bundle_dsym_files(
         dsym_binaries = {},
         dsym_info_plist_template,
         dsym_output_filename,
-        platform_prerequisites):
+        label_name,
+        output_discriminator,
+        platform_prerequisites,
+        resolved_plisttool,
+        rule_label,
+        version):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
 
     The generated bundle will have the same name as the bundle being built (including its
@@ -187,7 +275,13 @@ def _bundle_dsym_files(
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       dsym_output_filename: The dSYM binary file name.
+      label_name: The name of the target.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_plisttool: A struct referencing the resolved plist tool.
+      rule_label: The label of the target being analyzed.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
     Returns:
       A tuple where the first argument is a list of files that comprise the .dSYM bundle, which
@@ -195,7 +289,10 @@ def _bundle_dsym_files(
       artifact representation of a .dSYM bundle with the binaries lipoed together as one binary.
     """
     dsym_bundle_name_with_extension = debug_output_filename + bundle_extension
-    dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
+    if debug_output_filename != label_name.split(".__internal__.")[0]:
+        dsym_bundle_name = paths.join(label_name + "_dsyms", dsym_bundle_name_with_extension + ".dSYM")
+    else:
+        dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
 
     output_files = []
     dsym_bundle_dir = None
@@ -214,26 +311,20 @@ def _bundle_dsym_files(
             platform_prerequisites = platform_prerequisites,
         )
 
-        # If we found any outputs, create the Info.plist for the bundle as well; otherwise, we just
-        # return the empty list. The plist generated by dsymutil only varies based on the bundle
-        # name, so we regenerate it here rather than propagate the other one from the apple_binary.
-        # (See https://github.com/llvm-mirror/llvm/blob/master/tools/dsymutil/dsymutil.cpp)
-        dsym_plist = actions.declare_file(
-            "%s/Contents/Info.plist" % dsym_bundle_name,
+        # If we found any binaries, create the Info.plist for the bundle as well.
+        dsym_plist = _generate_dsym_info_plist(
+            actions = actions,
+            dsym_bundle_name = dsym_bundle_name,
+            dsym_info_plist_template = dsym_info_plist_template,
+            output_discriminator = output_discriminator,
+            platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = resolved_plisttool,
+            rule_label = rule_label,
+            version = version,
         )
         output_files.append(dsym_plist)
-        dsym_relpath = "Contents/Info.plist"
-        actions.expand_template(
-            output = dsym_plist,
-            template = dsym_info_plist_template,
-            substitutions = {
-                "%bundle_name_with_extension%": dsym_bundle_name_with_extension,
-            },
-        )
-
-        plist_command = ("cp {dsym_plist_path} ${{OUTPUT_DIR}}/{dsym_relpath_path}").format(
+        plist_command = ("cp {dsym_plist_path} ${{OUTPUT_DIR}}/Contents/Info.plist").format(
             dsym_plist_path = dsym_plist.path,
-            dsym_relpath_path = dsym_relpath,
         )
 
         # Put the tree artifact dSYMs in a subdirectory to avoid conflicts with the legacy dSYMs
@@ -264,9 +355,14 @@ def _debug_symbols_partial_impl(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name,
+        executable_name = None,
+        label_name,
         linkmaps = {},
-        platform_prerequisites):
+        output_discriminator = None,
+        platform_prerequisites,
+        resolved_plisttool,
+        rule_label,
+        version):
     """Implementation for the debug symbols processing partial."""
     deps_dsym_bundle_providers = [
         x[AppleDsymBundleInfo]
@@ -274,9 +370,9 @@ def _debug_symbols_partial_impl(
         if AppleDsymBundleInfo in x
     ]
     deps_debug_info_providers = [
-        x[_AppleDebugInfo]
+        x[AppleDebugInfo]
         for x in debug_dependencies
-        if _AppleDebugInfo in x
+        if AppleDebugInfo in x
     ]
 
     debug_output_filename = bundle_name
@@ -296,7 +392,7 @@ def _debug_symbols_partial_impl(
 
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
-            dsym_output_filename = executable_name
+            dsym_output_filename = executable_name or bundle_name
             if debug_discriminator:
                 dsym_output_filename += "_" + debug_discriminator
             dsym_files, dsym_bundle_dir = _bundle_dsym_files(
@@ -306,7 +402,12 @@ def _debug_symbols_partial_impl(
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
                 dsym_output_filename = dsym_output_filename,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
+                resolved_plisttool = resolved_plisttool,
+                rule_label = rule_label,
+                version = version,
             )
             if dsym_bundle_dir:
                 direct_dsym_bundles.append(dsym_bundle_dir)
@@ -350,11 +451,11 @@ def _debug_symbols_partial_impl(
         output_files = depset(direct_output_dsyms + direct_linkmaps)
 
     output_providers.extend([
-        AppleDsymBundleInfo(
+        new_appledsymbundleinfo(
             direct_dsyms = direct_dsym_bundles,
             transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),
-        _AppleDebugInfo(
+        AppleDebugInfo(
             dsyms = dsyms_group,
             linkmaps = linkmaps_group,
         ),
@@ -378,9 +479,14 @@ def debug_symbols_partial(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name,
+        executable_name = None,
+        label_name,
         linkmaps = {},
-        platform_prerequisites):
+        output_discriminator = None,
+        platform_prerequisites,
+        resolved_plisttool,
+        rule_label,
+        version):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -402,8 +508,14 @@ def debug_symbols_partial(
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       executable_name: The name of the output DWARF executable.
+      label_name: The name of the target.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      resolved_plisttool: A struct referencing the resolved plist tool.
+      rule_label: The label of the target being analyzed.
+      version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
     Returns:
       A partial that returns the debug output files, if any were requested.
@@ -417,7 +529,12 @@ def debug_symbols_partial(
         debug_discriminator = debug_discriminator,
         dsym_binaries = dsym_binaries,
         dsym_info_plist_template = dsym_info_plist_template,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
+        label_name = label_name,
         linkmaps = linkmaps,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        resolved_plisttool = resolved_plisttool,
+        rule_label = rule_label,
+        version = version,
     )

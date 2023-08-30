@@ -30,6 +30,7 @@ _skip_ci_tags = [
 # The current baseline for iOS is version 12.0, based on when the arm64e architecture was
 # introduced.
 _min_os_ios = struct(
+    app_intents_support = "16.0",
     appclip_support = "14.0",
     arm_sim_support = "14.0",
     baseline = "12.0",
@@ -39,6 +40,7 @@ _min_os_ios = struct(
 )
 
 _min_os_macos = struct(
+    app_intents_support = "13.0",
     arm64_support = "11.0",
     baseline = "10.13",
 )
@@ -46,16 +48,21 @@ _min_os_macos = struct(
 # The current baseline for tvOS is version 12.0, based on when the arm64e architecture was
 # introduced.
 _min_os_tvos = struct(
+    app_intents_support = "16.0",
     arm_sim_support = "14.0",
     baseline = "12.0",
+    nplus1 = "13.0",
     oldest_supported = "11.0",
     stable_swift_abi = "12.2",
 )
 
 _min_os_watchos = struct(
+    app_intents_support = "9.0",
     arm64_support = "9.0",
     arm_sim_support = "7.0",
     baseline = "4.0",
+    requires_single_target_app = "9.0",
+    single_target_app = "7.0",
     stable_swift_abi = "6.0",
     test_runner_support = "7.4",
 )

@@ -19,15 +19,15 @@ load(
     "common",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 
@@ -77,6 +77,15 @@ def ios_sticker_pack_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext",
         binary_test_file = "$BUNDLE_ROOT/sticker_ext",
         macho_load_commands_contain = ["segname __LLVM"],  # TODO: This might need to change in the future to not contain bitcode
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.sticker-ext-with-capability-set-derived-bundle-id",
+        },
         tags = [name],
     )
 

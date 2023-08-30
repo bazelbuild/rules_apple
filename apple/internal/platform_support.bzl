@@ -14,19 +14,6 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items
@@ -59,9 +46,15 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
     families = platform_prerequisites.device_families
 
     for f in families:
-        number = _DEVICE_FAMILY_VALUES[f]
-        if number:
+        number = _DEVICE_FAMILY_VALUES.get(f, -1)
+        if number == -1:
+            fail("Unknown family value:`{}`. Valid values are:{}".format(
+                f,
+                _DEVICE_FAMILY_VALUES.keys(),
+            ))
+        elif number:
             family_ids.append(number)
+
     if family_ids:
         return family_ids
     return None
@@ -69,10 +62,10 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
 def _platform_prerequisites(
         *,
         apple_fragment,
+        build_settings,
         config_vars,
         cpp_fragment = None,
         device_families,
-        disabled_features,
         explicit_minimum_deployment_os,
         explicit_minimum_os,
         features,
@@ -84,13 +77,13 @@ def _platform_prerequisites(
 
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
+      build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
       device_families: The list of device families that apply to the target being built.
-      disabled_features: The list of disabled features applied to the target.
       explicit_minimum_deployment_os: A dotted version string indicating minimum deployment OS desired.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
-      features: The list of features applied to the target.
+      features: The list of enabled features applied to the target.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
@@ -114,17 +107,13 @@ def _platform_prerequisites(
         minimum_deployment_os = minimum_os
 
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
-    features = features_support.compute_enabled_features(
-        requested_features = features or [],
-        unsupported_features = disabled_features or [],
-    )
 
     return struct(
         apple_fragment = apple_fragment,
+        build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         device_families = device_families,
-        disabled_features = disabled_features,
         features = features,
         minimum_deployment_os = minimum_deployment_os,
         minimum_os = minimum_os,
@@ -136,41 +125,8 @@ def _platform_prerequisites(
         xcode_version_config = xcode_version_config,
     )
 
-def _platform_prerequisites_from_rule_ctx(ctx):
-    """Returns a struct containing information on the platform being targeted from a rule context.
-
-    Args:
-      ctx: The Starlark context for a rule.
-
-    Returns:
-      A struct representing the default collected platform information for that rule context.
-    """
-    device_families = getattr(ctx.attr, "families", None)
-    if not device_families:
-        rule_descriptor = rule_support.rule_descriptor(ctx)
-        device_families = rule_descriptor.allowed_device_families
-
-    deps = getattr(ctx.attr, "deps", None)
-    uses_swift = swift_support.uses_swift(deps) if deps else False
-
-    return _platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        config_vars = ctx.var,
-        cpp_fragment = ctx.fragments.cpp,
-        device_families = device_families,
-        disabled_features = ctx.disabled_features,
-        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
-        explicit_minimum_os = ctx.attr.minimum_os_version,
-        features = ctx.features,
-        objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
-        uses_swift = uses_swift,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
     platform_prerequisites = _platform_prerequisites,
-    platform_prerequisites_from_rule_ctx = _platform_prerequisites_from_rule_ctx,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )

@@ -15,7 +15,7 @@
 """watchos_static_framework Starlark tests."""
 
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 

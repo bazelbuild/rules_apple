@@ -207,7 +207,8 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     # multiple imagesets (b/139094648)
     warnings = [
         "is used by multiple", "1024x1024",
-        "Launch images are deprecated in iOS 13.0"
+        "Launch images are deprecated in iOS 13.0",
+        "Launch images are deprecated in tvOS 13.0"
     ]
     for warning in warnings:
       if warning in line:

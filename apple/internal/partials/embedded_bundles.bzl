@@ -50,16 +50,20 @@ def _embedded_bundles_partial_impl(
     # Map of embedded bundle type to their final location in the top-level bundle.
     bundle_type_to_location = {
         "app_clips": processor.location.app_clip,
+        "extensions": processor.location.extension,
         "frameworks": processor.location.framework,
         "plugins": processor.location.plugin,
         "watch_bundles": processor.location.watch,
         "xpc_services": processor.location.xpc_service,
     }
 
-    config_vars = platform_prerequisites.config_vars
     transitive_bundles = dict()
     bundles_to_embed = []
     embeddedable_info_fields = {}
+
+    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
+        platform_prerequisites = platform_prerequisites,
+    )
 
     for bundle_type, bundle_location in bundle_type_to_location.items():
         for provider in embeddable_providers:
@@ -78,7 +82,7 @@ def _embedded_bundles_partial_impl(
                 # With tree artifacts, we need to set the parent_dir of the file to be the basename
                 # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
                 # be too many embedded targets per top-level bundle.
-                if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+                if tree_artifact_enabled:
                     for bundle in transitive_depset.to_list():
                         bundles_to_embed.append(
                             (bundle_location, bundle.basename, depset([bundle])),
@@ -103,7 +107,7 @@ def _embedded_bundles_partial_impl(
     # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
     # extracted.
     partial_output_fields = {}
-    if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+    if tree_artifact_enabled:
         partial_output_fields["bundle_files"] = bundles_to_embed
     else:
         partial_output_fields["bundle_zips"] = bundles_to_embed
@@ -145,6 +149,7 @@ def embedded_bundles_partial(
         app_clips = [],
         bundle_embedded_bundles = False,
         embeddable_targets = [],
+        extensions = [],
         frameworks = [],
         platform_prerequisites,
         plugins = [],
@@ -154,9 +159,9 @@ def embedded_bundles_partial(
     """Constructor for the embedded bundles processing partial.
 
     This partial is used to propagate and package embedded bundles into their respective locations
-    inside top level bundling targets. Embeddable bundles are considered to be
-    frameworks, plugins (i.e. extensions) and watchOS applications in the case of
-    ios_application.
+    inside top level bundling targets. Embeddable bundles are considered to be extensions (i.e.
+    ExtensionKit extensions), frameworks, plugins (i.e. NSExtension extensions) and watchOS
+    applications in the case of ios_application.
 
     Args:
         app_clips: List of plugin bundles that should be propagated downstream for a top level
@@ -166,6 +171,8 @@ def embedded_bundles_partial(
             embeddable bundles will be propagated downstream for a top level target to bundle them.
         embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
             propagate.
+        extensions: List of ExtensionKit extension bundles that should be propagated downstream for
+            a top level target to bundle inside `Extensions`.
         frameworks: List of framework bundles that should be propagated downstream for a top level
             target to bundle inside `Frameworks`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -186,6 +193,7 @@ def embedded_bundles_partial(
         app_clips = app_clips,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
+        extensions = extensions,
         frameworks = frameworks,
         platform_prerequisites = platform_prerequisites,
         plugins = plugins,

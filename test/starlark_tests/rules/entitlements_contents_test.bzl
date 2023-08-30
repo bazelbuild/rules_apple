@@ -24,7 +24,7 @@ rule.
 """
 
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
 load(

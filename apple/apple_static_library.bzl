@@ -23,22 +23,37 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applebinaryinfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "ApplePlatformInfo",
 )
 
 def _apple_static_library_impl(ctx):
-    # Validation of the platform type and minimum version OS currently happen in
-    # `transition_support.apple_platform_transition`, either implicitly through native
+    # Most validation of the platform type and minimum version OS currently happens in
+    # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
+
+    # Validate that the resolved platform matches the platform_type attr.
+    for toolchain_key, resolved_toolchain in ctx.split_attr._cc_toolchain_forwarder.items():
+        if resolved_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
+            fail("""
+ERROR: Unexpected resolved platform:
+Expected Apple platform type of "{platform_type}", but that was not found in {toolchain_key}.
+""".format(
+                platform_type = ctx.attr.platform_type,
+                toolchain_key = toolchain_key,
+            ))
 
     link_result = linking_support.register_static_library_linking_action(ctx = ctx)
 
@@ -49,22 +64,46 @@ def _apple_static_library_impl(ctx):
         collect_data = True,
     )
 
-    return [
+    providers = [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
-        AppleBinaryInfo(
+        new_applebinaryinfo(
             binary = link_result.library,
             infoplist = None,
         ),
-        link_result.objc,
         link_result.output_groups,
     ]
 
-apple_static_library = rule(
+    if link_result.objc:
+        providers.append(link_result.objc)
+
+    return providers
+
+apple_static_library = rule_factory.create_apple_rule(
+    cfg = None,
+    doc = """
+This rule produces single- or multi-architecture ("fat") static libraries targeting
+Apple platforms.
+
+The `lipo` tool is used to combine files of multiple architectures. One of
+several flags may control which architectures are included in the output,
+depending on the value of the `platform_type` attribute.
+
+NOTE: In most situations, users should prefer the platform- and
+product-type-specific rules, such as `apple_static_xcframework`. This
+rule is being provided for the purpose of transitioning users from the built-in
+implementation of `apple_static_library` in Bazel core so that it can be removed.
+""",
     implementation = _apple_static_library_impl,
-    attrs = dicts.add(
-        rule_factory.common_tool_attributes,
-        rule_factory.common_bazel_attributes.link_multi_arch_static_library_attrs(
-            cfg = transition_support.apple_platform_split_transition,
+    predeclared_outputs = {
+        "lipo_archive": "%{name}_lipo.a",
+    },
+    attrs = [
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.static_library_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         {
             "additional_linker_inputs": attr.label_list(
@@ -78,8 +117,6 @@ A list of input files to be passed to the linker.
             "avoid_deps": attr.label_list(
                 cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
-                # Flag required for compile_one_dependency
-                flags = ["DIRECT_COMPILE_TIME_INPUT"],
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
@@ -94,8 +131,6 @@ Files to be made available to the library archive upon execution.
             "deps": attr.label_list(
                 cfg = transition_support.apple_platform_split_transition,
                 providers = [CcInfo],
-                # Flag required for compile_one_dependency
-                flags = ["DIRECT_COMPILE_TIME_INPUT"],
                 doc = """
 A list of dependencies targets that will be linked into this target's binary. Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
@@ -161,14 +196,6 @@ framework dependencies in the library targets where that framework is used,
 not in the top-level bundle.
 """,
             ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-            ),
         },
-    ),
-    outputs = {
-        "lipo_archive": "%{name}_lipo.a",
-    },
-    fragments = ["objc", "apple", "cpp"],
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    ],
 )

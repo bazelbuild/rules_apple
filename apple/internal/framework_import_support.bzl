@@ -14,8 +14,11 @@
 
 """Support methods for Apple framework import rules."""
 
+load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
+load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("@build_bazel_rules_apple//apple/internal/utils:defines.bzl", "defines")
+load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
@@ -34,7 +37,6 @@ def _cc_info_with_dependencies(
         disabled_features,
         features,
         framework_includes = [],
-        grep_includes,
         header_imports,
         kind,
         label,
@@ -55,7 +57,6 @@ def _cc_info_with_dependencies(
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
         framework_includes: List of Apple framework search paths (defaults to: []).
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         header_imports: List of imported header files.
         includes: List of included headers search paths (defaults to: []).
         kind: whether the framework is "static" or "dynamic".
@@ -92,7 +93,6 @@ def _cc_info_with_dependencies(
         includes = includes,
         compilation_contexts = dep_compilation_contexts,
         language = "objc",
-        grep_includes = grep_includes,
     )
 
     linking_contexts = [cc_info.linking_context for cc_info in all_cc_infos]
@@ -145,6 +145,7 @@ def _classify_file_imports(config_vars, import_files):
             - header_imports: Objective-C(++) header imports.
             - module_map_imports: Clang modulemap imports.
             - swift_module_imports: Swift module imports.
+            - swift_interface_imports: Swift module interface imports.
             - bundling_imports: Unclassified imports.
     """
     bundling_imports = []
@@ -152,6 +153,7 @@ def _classify_file_imports(config_vars, import_files):
     header_imports = []
     module_map_imports = []
     swift_module_imports = []
+    swift_interface_imports = []
     for file in import_files:
         # Extension matching
         file_extension = file.extension
@@ -175,15 +177,22 @@ def _classify_file_imports(config_vars, import_files):
                 header_imports.append(file)
             module_map_imports.append(file)
             continue
-        if file_extension in ["swiftmodule", "swiftinterface"]:
+        if file_extension == "swiftmodule":
             # Add Swift's module files to header_imports so
             # that they are correctly included in the build
             # by Bazel but they aren't processed in any way
             header_imports.append(file)
             swift_module_imports.append(file)
             continue
+        if file_extension == "swiftinterface":
+            # Add Swift's interface files to header_imports so
+            # that they are correctly included in the build
+            # by Bazel but they aren't processed in any way
+            header_imports.append(file)
+            swift_interface_imports.append(file)
+            continue
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
-            # Ignore swiftdoc files, they don't matter in the build, only for IDEs
+            # Ignore swiftdoc files, they don't matter in the build, only for IDEs.
             continue
         if file_extension == "a":
             binary_imports.append(file)
@@ -202,6 +211,7 @@ def _classify_file_imports(config_vars, import_files):
         binary_imports = binary_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
+        swift_interface_imports = swift_interface_imports,
         swift_module_imports = swift_module_imports,
         bundling_imports = bundling_imports,
     )
@@ -220,6 +230,7 @@ def _classify_framework_imports(config_vars, framework_imports):
             - header_imports: Apple framework header imports.
             - module_map_imports: Apple framework modulemap imports.
             - swift_module_imports: Apple framework swiftmodule imports.
+            - swift_interface_imports: Apple framework Swift module interface imports.
     """
     framework_imports_by_category = _classify_file_imports(config_vars, framework_imports)
 
@@ -250,6 +261,7 @@ def _classify_framework_imports(config_vars, framework_imports):
         bundling_imports = bundling_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
+        swift_interface_imports = framework_imports_by_category.swift_interface_imports,
         swift_module_imports = framework_imports_by_category.swift_module_imports,
     )
 
@@ -333,7 +345,7 @@ def _framework_import_info_with_dependencies(
             hasattr(dep[AppleFrameworkImportInfo], "framework_imports"))
     ]
 
-    return AppleFrameworkImportInfo(
+    return new_appleframeworkimportinfo(
         build_archs = depset(build_archs),
         debug_info_binaries = depset(debug_info_binaries),
         dsym_imports = depset(dsyms),
@@ -342,6 +354,62 @@ def _framework_import_info_with_dependencies(
             transitive = transitive_framework_imports,
         ),
     )
+
+def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_files):
+    """Filters Swift module files for a target triplet.
+
+    Traverses a list of Swift module files (.swiftdoc, .swiftinterface, .swiftmodule) and selects
+    the effective files based on target triplet. This method supports filtering for multiple
+    Swift module directories (e.g. XCFramework bundles).
+
+    Args:
+        target_triplet: Effective target triplet from CcToolchainInfo provider.
+        swift_module_files: List of Swift module files to filter using target triplet.
+    Returns:
+        List of Swift module files for given target_triplet.
+    """
+    files_by_module = group_files_by_directory(
+        files = swift_module_files,
+        extensions = ["swiftmodule"],
+        attr = "swift_module_files",
+    )
+
+    filtered_files = []
+    for _module, module_files in files_by_module.items():
+        # Environment suffix is stripped for device interfaces.
+        environment = ""
+        if target_triplet.environment != "device":
+            environment = "-" + target_triplet.environment
+
+        target_triplet_file = files.get_file_with_name(
+            files = module_files.to_list(),
+            name = "{architecture}-{vendor}-{os}{environment}".format(
+                architecture = target_triplet.architecture,
+                environment = environment,
+                os = target_triplet.os,
+                vendor = target_triplet.vendor,
+            ),
+        )
+        architecture_file = files.get_file_with_name(
+            files = module_files.to_list(),
+            name = target_triplet.architecture,
+        )
+        filtered_files.append(target_triplet_file or architecture_file)
+
+    return filtered_files
+
+def _has_versioned_framework_files(framework_files):
+    """Returns True if there are any versioned framework files (i.e. under Versions/ directory).
+
+    Args:
+        framework_files: List of File references for imported framework or XCFramework files.
+    Returns:
+        True if framework files include any versioned frameworks. False otherwise.
+    """
+    for f in framework_files:
+        if ".framework/Versions/" in f.short_path:
+            return True
+    return False
 
 def _objc_provider_with_dependencies(
         *,
@@ -395,6 +463,56 @@ def _objc_provider_with_dependencies(
     objc_provider_fields.update(**additional_objc_provider_fields)
     return apple_common.new_objc_provider(**objc_provider_fields)
 
+def _swift_info_from_module_interface(
+        *,
+        actions,
+        ctx,
+        deps,
+        disabled_features,
+        features,
+        module_name,
+        swift_toolchain,
+        swiftinterface_file):
+    """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
+
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        ctx: The Starlark context for a rule target being built.
+        deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
+        disabled_features: List of features to be disabled for cc_common.compile
+        features: List of features to be enabled for cc_common.compile.
+        module_name: Swift module name.
+        swift_toolchain: SwiftToolchainInfo provider for current target.
+        swiftinterface_file: `.swiftinterface` File to compile.
+    Returns:
+        A SwiftInfo provider.
+    """
+    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
+    module_context = swift_common.compile_module_interface(
+        actions = actions,
+        compilation_contexts = [
+            dep[CcInfo].compilation_context
+            for dep in deps
+            if CcInfo in dep
+        ],
+        feature_configuration = swift_common.configure_features(
+            ctx = ctx,
+            swift_toolchain = swift_toolchain,
+            requested_features = features,
+            unsupported_features = disabled_features,
+        ),
+        module_name = module_name,
+        swiftinterface_file = swiftinterface_file,
+        swift_infos = swift_infos,
+        swift_toolchain = swift_toolchain,
+    )
+
+    return swift_common.create_swift_info(
+        modules = [module_context],
+        swift_infos = swift_infos,
+    )
+
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
     if not module_map_imports:
@@ -414,6 +532,9 @@ framework_import_support = struct(
     classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
+    get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
+    has_versioned_framework_files = _has_versioned_framework_files,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,
+    swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )

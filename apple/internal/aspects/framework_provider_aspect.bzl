@@ -17,7 +17,7 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
-    "merge_apple_framework_import_info",
+    "apple_provider",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
@@ -51,7 +51,7 @@ def _framework_provider_aspect_impl(target, ctx):
             if AppleEmbeddableInfo in dep_target and ctx.rule.kind == "objc_library":
                 apple_embeddable_infos.append(dep_target[AppleEmbeddableInfo])
 
-    apple_framework_info = merge_apple_framework_import_info(apple_framework_infos)
+    apple_framework_info = apple_provider.merge_apple_framework_import_info(apple_framework_infos)
     apple_embeddable_info = embeddable_info.merge_providers(apple_embeddable_infos)
 
     providers = []
@@ -66,15 +66,15 @@ framework_provider_aspect = aspect(
     implementation = _framework_provider_aspect_impl,
     attr_aspects = _FRAMEWORK_PROVIDERS_ASPECT_ATTRS,
     doc = """
-Aspect that collects frameworks providers from non-Apple rules targets
-(e.g. objc_library) to be packaged within the top-level application bundle .
+Aspect that collects transitive `AppleFrameworkImportInfo` providers from non-Apple rules targets
+(e.g. `objc_library` or `swift_library`) to be packaged within the top-level application bundle.
 
-Framework targets supported are:
-  - `apple_static_framework_import`
-  - `apple_dynamic_framework_import`
-  - `ios_framework`
-  - `tvos_framework`
+Supported framework and XCFramework rules are:
+
+*   `apple_dynamic_framework_import`
+*   `apple_dynamic_xcframework_import`
+*   `apple_static_framework_import`
   - `visionos_framework`
-  - `watchos_framework`
+*   `apple_static_xcframework_import`
 """,
 )

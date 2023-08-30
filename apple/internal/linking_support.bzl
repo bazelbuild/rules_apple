@@ -16,8 +16,8 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
@@ -99,10 +99,12 @@ def _register_binary_linking_action(
         avoid_deps = [],
         bundle_loader = None,
         entitlements = None,
+        exported_symbols_lists,
         extra_linkopts = [],
         extra_link_inputs = [],
-        platform_prerequisites,
-        stamp):
+        platform_prerequisites = None,
+        rule_descriptor = None,
+        stamp = -1):
     """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -121,11 +123,20 @@ def _register_binary_linking_action(
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
         entitlements: An optional `File` that provides the processed entitlements for the
-            binary or bundle being built. The entitlements will be embedded in a special section
-            of the binary.
+            binary or bundle being built. If the build is targeting a simulator environment,
+            the entitlements will be embedded in a special section of the binary; when
+            targeting non-simulator environments, this file is ignored (it is assumed that
+            the entitlements will be provided during code signing).
+        exported_symbols_lists: List of `File`s containing exported symbols lists for the linker
+            to control symbol resolution.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
-        platform_prerequisites: The platform prerequisites.
+        platform_prerequisites: The platform prerequisites if one exists for the given rule. This
+            will define additional linking sections for entitlements. If `None`, entitlements
+            sections are not included.
+        rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
+            will define additional parameters required for linking, such as `rpaths`. If `None`,
+            these additional parameters will not be set on the linked binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
@@ -153,7 +164,7 @@ def _register_binary_linking_action(
     link_inputs = []
 
     # Add linkopts/linker inputs that are common to all the rules.
-    for exported_symbols_list in ctx.files.exported_symbols_lists:
+    for exported_symbols_list in exported_symbols_lists:
         linkopts.append(
             "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
         )
@@ -162,6 +173,9 @@ def _register_binary_linking_action(
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device:
             fail("entitlements should be None when targeting a device")
+
+        # Add an entitlements and a DER entitlements section, required of all Simulator builds that
+        # define entitlements. This is never addressed by /usr/bin/codesign and must be done here.
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(
                 segment = "__TEXT",
@@ -171,11 +185,26 @@ def _register_binary_linking_action(
         )
         link_inputs.append(entitlements)
 
-    # Compatibility path for `apple_binary`, which does not have a product type.
-    if hasattr(ctx.attr, "_product_type"):
-        rule_descriptor = rule_support.rule_descriptor(ctx)
+        der_entitlements = entitlements_support.generate_der_entitlements(
+            actions = ctx.actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            entitlements = entitlements,
+            label_name = ctx.label.name,
+            xcode_version_config = platform_prerequisites.xcode_version_config,
+        )
+        linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__ents_der",
+                file = der_entitlements.path,
+            ),
+        )
+        link_inputs.append(der_entitlements)
+
+    # TODO(b/248317958): Migrate rule_descriptor.rpaths as direct inputs of the extra_linkopts arg
+    # on this method.
+    if rule_descriptor:
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
-        linkopts.extend(rule_descriptor.extra_linkopts)
 
     linkopts.extend(extra_linkopts)
     link_inputs.extend(extra_link_inputs)
@@ -213,7 +242,7 @@ def _register_binary_linking_action(
         binary = fat_binary,
         cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
-        objc = linking_outputs.objc,
+        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
@@ -253,12 +282,12 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
-        objc = linking_outputs.objc,
+        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
 
-def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
     """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
 
     Args:
@@ -291,7 +320,6 @@ def _link_multi_arch_binary(
         deps,
         disabled_features,
         features,
-        grep_includes = None,
         label,
         stamp = -1,
         user_link_flags = []):
@@ -316,7 +344,6 @@ def _link_multi_arch_binary(
             to retrieve transitive CcInfo providers for C++ linking action.
         disabled_features: List of features to be disabled for C++ actions.
         features: List of features to be enabled for C++ actions.
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         label: Label for the current target (`ctx.label`).
         stamp: Boolean to indicate whether to include build information in the linked binary.
             If 1, build information is always included.
@@ -381,7 +408,6 @@ def _link_multi_arch_binary(
             additional_inputs = additional_inputs,
             cc_toolchain = cc_toolchain,
             feature_configuration = feature_configuration,
-            grep_includes = grep_includes,
             linking_contexts = cc_linking_contexts,
             name = output_name,
             stamp = stamp,

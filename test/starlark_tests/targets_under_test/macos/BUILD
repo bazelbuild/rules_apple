@@ -20,6 +20,8 @@ load(
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
+    "apple_static_framework_import",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -30,10 +32,15 @@ load(
     "common",
 )
 load(
-    "//test/testdata/fmwk:generate_framework.bzl",
+    "//test/starlark_tests/rules:generate_framework.bzl",
     "generate_import_framework",
 )
+load("//test/starlark_tests/rules:generate_framework_dsym.bzl", "generate_import_framework_dsym")
 load("//test/testdata/rules:substitution.bzl", "substitution")
+load(
+    "//test/starlark_tests/rules:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+)
 
 licenses(["notice"])
 
@@ -431,7 +438,7 @@ swift_library(
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFramework",
+        ":macOSImportedDynamicFramework",
     ],
 )
 
@@ -459,7 +466,7 @@ swift_library(
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     deps = [
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedStaticFramework",
+        ":macOSImportedStaticFramework",
     ],
 )
 
@@ -551,6 +558,23 @@ macos_static_framework(
     exclude_resources = False,
     minimum_os_version = common.min_os_macos.baseline,
     deps = [":static_framework_lib_with_resources"],
+)
+
+apple_static_framework_import(
+    name = "macOSImportedStaticFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":macOSStaticFramework"],
+)
+
+generate_import_framework(
+    name = "macOSStaticFramework",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    include_versioned_frameworks = False,
+    libtype = "static",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
 )
 
 genrule(
@@ -919,7 +943,7 @@ macos_application(
         "//test/starlark_tests/resources:bundle_library_apple_lib",
         "//test/starlark_tests/resources:empty_strings_file_lib",
         "//test/starlark_tests/resources:nested_bundle_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
     ],
 )
 
@@ -986,22 +1010,7 @@ macos_application(
 )
 
 macos_application(
-    name = "app_with_different_extension",
-    bundle_extension = "xpc",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-macos_application(
     name = "app_with_minimum_deployment_os_version",
-    bundle_extension = "xpc",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1176,6 +1185,20 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_with_extensionkit_ext",
+    bundle_id = "com.google.example",
+    extensions = [":extensionkit_ext"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 macos_extension(
     name = "ext",
     additional_contents = {
@@ -1185,6 +1208,24 @@ macos_extension(
     bundle_id = "com.google.example.ext",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "extensionkit_ext",
+    additional_contents = {
+        "//test/starlark_tests/resources:additional.txt": "Additional",
+        "//test/starlark_tests/resources:all_nested": "Nested",
+    },
+    bundle_id = "com.google.example.ext",
+    extensionkit_extension = True,
+    infoplists = [
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
@@ -1207,6 +1248,9 @@ macos_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic framework import tests.
 
 macos_application(
     name = "app_with_imported_fmwk",
@@ -1318,6 +1362,61 @@ macos_extension(
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
     ],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFramework",
+    features = ["-swift.layering_check"],
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithDsym",
+    dsym_imports = [":macOSDynamicFrameworkDsym"],
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFramework",
+    archs = ["x86_64"],
+    include_resource_bundle = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
+)
+
+generate_import_framework_dsym(
+    name = "macOSDynamicFrameworkDsym",
+    framework_imports = [":macOSDynamicFramework"],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithBitcode",
+    framework_imports = [":macOSDynamicFrameworkWithBitcode"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFrameworkWithBitcode",
+    src = "//test/starlark_tests/resources/frameworks:SharedClass.m",
+    archs = ["x86_64"],
+    embed_bitcode = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFrameworkWithDebugInfo",
+    framework_imports = [":macOSDynamicFrameworkWithDebugInfo"],
+)
+
+generate_import_framework(
+    name = "macOSDynamicFrameworkWithDebugInfo",
+    archs = ["x86_64"],
+    embed_debug_info = True,
+    libtype = "dynamic",
+    minimum_os_version = "11.11",
+    sdk = "macosx",
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1913,8 +2012,8 @@ macos_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedDynamicFramework",
         "//test/starlark_tests/resources:objc_shared_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFramework",
     ],
 )
 
@@ -1996,8 +2095,8 @@ macos_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedStaticFramework",
         "//test/starlark_tests/resources:objc_shared_lib_with_resources",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedStaticFramework",
     ],
 )
 
@@ -2018,9 +2117,144 @@ apple_dynamic_framework_import(
 generate_import_framework(
     name = "generated_macos_dynamic_fmwk",
     archs = ["x86_64"],
+    include_versioned_frameworks = False,
     libtype = "dynamic",
     minimum_os_version = common.min_os_macos.baseline,
     sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_imported_versioned_fmwk",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_versioned_fmwk_depending_lib",
+    tags = common.fixture_tags,
+    deps = [":imported_dynamic_versioned_fmwk"],
+)
+
+apple_dynamic_framework_import(
+    name = "imported_dynamic_versioned_fmwk",
+    framework_imports = [":generated_macos_dynamic_versioned_fmwk"],
+    tags = common.fixture_tags,
+)
+
+generate_import_framework(
+    name = "generated_macos_dynamic_versioned_fmwk",
+    archs = ["x86_64"],
+    libtype = "dynamic",
+    minimum_os_version = common.min_os_macos.baseline,
+    sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple dynamic XCFramework import tests.
+
+macos_application(
+    name = "app_with_imported_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":macos_imported_dynamic_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "macos_imported_dynamic_xcframework",
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_macos_xcframework"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_macos_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    include_versioned_frameworks = False,
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_imported_dynamic_versioned_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_versioned_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":imported_dynamic_versioned_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "imported_dynamic_versioned_xcframework",
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_macos_versioned_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+        ],
+    },
     tags = common.fixture_tags,
 )
 
@@ -2131,7 +2365,7 @@ macos_command_line_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
     ],
 )
 
@@ -2198,6 +2432,16 @@ macos_command_line_application(
     linkopts = ["-dead_strip"],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_basic_version",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    version = "//test/starlark_tests/targets_under_test/apple:manual_1_2_build_1_2_3_version",
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
@@ -2334,6 +2578,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:additional.txt": "Additional",
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2399,6 +2644,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:additional.txt": "Additional",
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
+    frameworks = [":fmwk"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2498,4 +2744,164 @@ filegroup(
     # into runfiles, while `srcs` puts them into the default outputs.
     data = ["runfile2.txt"],
     tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for AppIntents
+
+macos_application(
+    name = "app_with_app_intents",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
+
+macos_application(
+    name = "app_with_capability_set_derived_bundle_id",
+    bundle_name = "app-with-capability-set-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle_with_capability_set_derived_bundle_id",
+    bundle_name = "bundle-with-capability-set-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-nopackage.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_command_line_application(
+    name = "cmd_app_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "cmd-app-with-base-bundle-id-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-nopackage.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
+    ],
+)
+
+macos_dylib(
+    name = "dylib_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "dylib-with-base-bundle-id-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-nopackage.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_extension(
+    name = "ext_with_capability_set_derived_bundle_id",
+    bundle_name = "ext-with-capability-set-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_kernel_extension(
+    name = "kext_with_capability_set_derived_bundle_id",
+    bundle_name = "kext-with-capability-set-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-nopackage.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)
+
+macos_quick_look_plugin(
+    name = "ql_plugin_with_capability_set_derived_bundle_id",
+    bundle_name = "ql-plugin-with-capability-set-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_ui_test(
+    name = "ui_test_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "ui-test-with-base-bundle-id-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "unit-test-with-base-bundle-id-derived-bundle-id",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )

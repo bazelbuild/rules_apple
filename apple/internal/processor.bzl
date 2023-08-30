@@ -44,6 +44,7 @@ Location types can be:
   - binary: Files are to be placed in the binary section of the bundle.
   - bundle: Files are to be placed at the root of the bundle.
   - content: Files are to be placed in the contents section of the bundle.
+  - extension: Files are to be placed in the Extensions section of the bundle.
   - framework: Files are to be placed in the Frameworks section of the bundle.
   - plugin: Files are to be placed in the PlugIns section of the bundle.
   - resources: Files are to be placed in the resources section of the bundle.
@@ -107,6 +108,7 @@ _LOCATION_ENUM = struct(
     binary = "binary",
     bundle = "bundle",
     content = "content",
+    extension = "extension",
     framework = "framework",
     plugin = "plugin",
     resource = "resource",
@@ -195,6 +197,10 @@ def _archive_paths(
         ),
         _LOCATION_ENUM.bundle: bundle_path,
         _LOCATION_ENUM.content: contents_path,
+        _LOCATION_ENUM.extension: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_extensions,
+        ),
         _LOCATION_ENUM.framework: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_frameworks,
@@ -288,7 +294,7 @@ def _bundle_partial_outputs_files(
                             base_locales.append(locale)
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
 
     location_to_paths = _archive_paths(
@@ -465,7 +471,6 @@ def _bundle_post_process_and_sign(
         codesign_inputs,
         codesignopts,
         entitlements,
-        executable_name,
         features,
         ipa_post_processor,
         output_archive,
@@ -488,7 +493,6 @@ def _bundle_post_process_and_sign(
         codesign_inputs: Extra inputs needed for the `codesign` tool.
         codesignopts: Extra options to pass to the `codesign` tool.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-        executable_name: The name of the output executable.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         output_archive: The file representing the final bundled, post-processed and signed archive.
@@ -503,7 +507,7 @@ def _bundle_post_process_and_sign(
         rule_label: The label of the target being analyzed.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,
@@ -624,7 +628,6 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
-                executable_name = executable_name,
                 label_name = rule_label.name,
                 rule_descriptor = rule_descriptor,
                 platform_prerequisites = platform_prerequisites,
@@ -696,7 +699,6 @@ def _process(
         codesign_inputs = [],
         codesignopts = [],
         entitlements = None,
-        executable_name,
         features,
         ipa_post_processor,
         output_discriminator = None,
@@ -720,7 +722,6 @@ def _process(
       codesign_inputs: Extra inputs needed for the `codesign` tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-      executable_name: The name of the output executable.
       features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -747,8 +748,10 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            label_name = rule_label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
         )
         _bundle_post_process_and_sign(
             actions = actions,
@@ -758,7 +761,6 @@ def _process(
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
             codesignopts = codesignopts,
-            executable_name = executable_name,
             entitlements = entitlements,
             features = features,
             ipa_post_processor = ipa_post_processor,
