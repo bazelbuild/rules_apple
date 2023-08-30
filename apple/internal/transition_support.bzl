@@ -122,11 +122,11 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
             return "ios_sim_arm64"
         return "ios_x86_64"
     if platform_type == "visionos":
-        if cpu:
-            return "visionos_{}".format(cpu)
-        cpus = settings["//command_line_option:visionos_cpus"]
-        if cpus:
-            return "visionos_{}".format(cpus[0])
+        if environment_arch:
+            return "visionos_{}".format(environment_arch)
+        visionos_cpus = settings["//command_line_option:visionos_cpus"]
+        if visionos_cpus:
+            return "visionos_{}".format(visionos_cpus[0])
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("visionos_"):
             return cpu_value
@@ -384,7 +384,6 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
-    "//command_line_option:visionos_cpus",
     "//command_line_option:watchos_cpus",
 ] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
@@ -416,7 +415,6 @@ _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_ou
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
-    "//command_line_option:visionos_cpus",
     "//command_line_option:watchos_cpus",
 ] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
 

@@ -740,6 +740,7 @@ rule_attrs = struct(
             macos = ["mac"],
             tvos = ["tv"],
             watchos = ["watch"],
+            visionos = ["reality"],
         ),
         test_bundle_infoplist = _test_bundle_infoplist,
     ),

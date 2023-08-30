@@ -15,8 +15,8 @@
 """visionOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunnerInfo",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "apple_provider",
 )
 
 def _get_template_substitutions(*, device_type, os_version, testrunner):
@@ -33,7 +33,7 @@ def _get_execution_environment(*, xcode_config):
     execution_environment = {}
     xcode_version = str(xcode_config.xcode_version())
     if xcode_version:
-        execution_environment["XCODE_VERSION"] = xcode_version
+        execution_environment["XCODE_VERSION_OVERRIDE"] = xcode_version
 
     return execution_environment
 
@@ -49,7 +49,7 @@ def _visionos_test_runner_impl(ctx):
         ),
     )
     return [
-        AppleTestRunnerInfo(
+        apple_provider.make_apple_test_runner_info(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
             execution_environment = _get_execution_environment(
@@ -84,7 +84,7 @@ the runner. In most common cases, this should not be used.
             default = "",
             doc = """
 The os version of the visionOS simulator to run test. The supported os versions
-correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 6.0, 7.1.
+correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 1.0'.
 By default, it is the latest supported version of the device type.'
 """,
         ),

@@ -1,4 +1,4 @@
-# Copyright 2021 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of visionos test rules."""
+"""Implementation of tvOS test rules."""
 
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
@@ -27,68 +27,225 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_visionosxctestbundleinfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "VisionosXcTestBundleInfo",
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "TvosApplicationBundleInfo",
+    "TvosExtensionBundleInfo",
+    "TvosFrameworkBundleInfo",
+)
+
+_TVOS_TEST_HOST_PROVIDERS = [
+    [AppleBundleInfo, TvosApplicationBundleInfo],
+    [AppleBundleInfo, TvosExtensionBundleInfo],
+]
 
 def _visionos_ui_test_bundle_impl(ctx):
     """Implementation of visionos_ui_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        VisionosXcTestBundleInfo(),
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.ui_test_bundle,
+    ) + [
+        new_visionosxctestbundleinfo(),
     ]
 
 def _visionos_unit_test_bundle_impl(ctx):
     """Implementation of visionos_unit_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        VisionosXcTestBundleInfo(),
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.unit_test_bundle,
+    ) + [
+        new_visionosxctestbundleinfo(),
     ]
 
 def _visionos_ui_test_impl(ctx):
     """Implementation of visionos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        VisionosXcTestBundleInfo(),
+        new_visionosxctestbundleinfo(),
     ]
 
 def _visionos_unit_test_impl(ctx):
     """Implementation of visionos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        VisionosXcTestBundleInfo(),
+        new_visionosxctestbundleinfo(),
     ]
 
-# Declare it with an underscore so it shows up that way in queries.
-_visionos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+# Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
+_visionos_internal_ui_test_bundle = rule_factory.create_apple_rule(
+    doc = "Builds and bundles an tvOS UI Test Bundle. Internal target not to be depended upon.",
     implementation = _visionos_ui_test_bundle_impl,
-    platform_type = "visionos",
-    product_type = apple_product_type.ui_test_bundle,
-    doc = "Builds and bundles an visionos UI Test Bundle.  Internal target not to be depended upon.",
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.visionos,
+            is_mandatory = False,
+        ),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "visionos",
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+            supports_capabilities = False,
+        ),
+        rule_attrs.test_bundle_attrs(),
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            is_mandatory = True,
+            providers = _TVOS_TEST_HOST_PROVIDERS,
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
 visionos_internal_ui_test_bundle = _visionos_internal_ui_test_bundle
 
 visionos_ui_test = rule_factory.create_apple_test_rule(
+    doc = """
+Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+Note: tvOS UI tests are not currently supported in the default test runner.
+
+The following is a list of the `visionos_ui_test` specific attributes; for a list of
+the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
     implementation = _visionos_ui_test_impl,
-    doc = "visionos UI Test rule.",
     platform_type = "visionos",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
-_visionos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
+_visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
+    doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
     implementation = _visionos_unit_test_bundle_impl,
-    platform_type = "visionos",
-    product_type = apple_product_type.unit_test_bundle,
-    doc = "Builds and bundles an visionos Unit Test Bundle. Internal target not to be depended upon.",
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.visionos,
+            is_mandatory = False,
+        ),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "visionos",
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+            supports_capabilities = False,
+        ),
+        rule_attrs.test_bundle_attrs(),
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            providers = _TVOS_TEST_HOST_PROVIDERS,
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
 visionos_internal_unit_test_bundle = _visionos_internal_unit_test_bundle
 
 visionos_unit_test = rule_factory.create_apple_test_rule(
+    doc = """
+Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`. When using Tulsi to run
+tests built with this target, `runner` will not be used since Xcode is the test
+runner in that case.
+
+Note: tvOS unit tests are not currently supported in the default test runner.
+
+`visionos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `visionos_application` target, the tests will run
+within that application's context. If no `test_host` is provided, the tests will
+run outside the context of a tvOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about app and library testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+The following is a list of the `visionos_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
     implementation = _visionos_unit_test_impl,
-    doc = "visionos Unit Test rule.",
     platform_type = "visionos",
 )
