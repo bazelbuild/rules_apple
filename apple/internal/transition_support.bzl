@@ -61,6 +61,30 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "arm64e": "arm64_32",
 }
 
+# Following map provides and ad-hoc platform mapping
+# It's no longer needed once --apple_platforms is set everywhere and toolchain resolution enabled
+_CPU_TO_PLATFORM = {
+    "darwin_x86_64": "//buildenv/platforms/apple:darwin_x86_64",
+    "darwin_arm64": "//buildenv/platforms/apple:darwin_arm64",
+    "darwin_arm64e": "//buildenv/platforms/apple:darwin_arm64e",
+    "ios_x86_64": "//buildenv/platforms/apple/simulator:ios_x86_64",
+    "ios_arm64": "//buildenv/platforms/apple:ios_arm64",
+    "ios_sim_arm64": "//buildenv/platforms/apple/simulator:ios_arm64",
+    "ios_arm64e": "//buildenv/platforms/apple:ios_arm64e",
+    "tvos_sim_arm64": "//buildenv/platforms/apple/simulator:tvos_arm64",
+    "tvos_arm64": "//buildenv/platforms/apple:tvos_arm64",
+    "tvos_x86_64": "//buildenv/platforms/apple/simulator:tvos_x86_64",
+    "visionos_arm64": "//buildenv/platforms/apple:visionos_arm64",
+    "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
+    "visionos_x86_64": "//buildenv/platforms/apple/simulator:visionos_x86_64",
+    "watchos_armv7k": "//buildenv/platforms/apple:watchos_armv7k",
+    "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
+    "watchos_device_arm64": "//buildenv/platforms/apple:watchos_arm64",
+    "watchos_device_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
+    "watchos_arm64_32": "//buildenv/platforms/apple:watchos_arm64_32",
+    "watchos_x86_64": "//buildenv/platforms/apple/simulator:watchos_x86_64",
+}
+
 # Set the default architecture for all platforms as 64-bit Intel.
 # TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
 # Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
@@ -299,7 +323,11 @@ def _command_line_options(
     Returns:
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
-
+    cpu = _cpu_string(
+        environment_arch = environment_arch,
+        platform_type = platform_type,
+        settings = settings,
+    )
     output_dictionary = {
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
@@ -308,17 +336,13 @@ def _command_line_options(
         # architecture and environment, therefore we set `environment_arch` when it is available.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
-        "//command_line_option:cpu": _cpu_string(
-            environment_arch = environment_arch,
-            platform_type = platform_type,
-            settings = settings,
-        ),
+        "//command_line_option:cpu": cpu,
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
-        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [],
+        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [_CPU_TO_PLATFORM[cpu]],
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
