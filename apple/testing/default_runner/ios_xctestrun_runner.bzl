@@ -68,7 +68,7 @@ def _ios_xctestrun_runner_impl(ctx):
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
     xctestrun_creator = ctx.actions.declare_file(
-        "{}-xctestrun-creator.sh".format(ctx.label.name)
+        "{}-xctestrun-creator.sh".format(ctx.label.name),
     )
     ctx.actions.expand_template(
         template = ctx.file._xctestrun_creator_template,
