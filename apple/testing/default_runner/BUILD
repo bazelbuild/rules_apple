@@ -61,6 +61,7 @@ exports_files([
     "ios_xctestrun_runner.template.xctestrun",
     "macos_test_runner.template.sh",
     "macos_test_runner.template.xctestrun",
+    "templates/xctestrun_creator.template.sh",
     "tvos_test_runner.template.sh",
     "watchos_test_runner.template.sh",
     "xctrunner_entitlements.template.plist",

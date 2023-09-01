@@ -8,7 +8,7 @@ load(
     "apple_provider",
 )
 
-def _get_template_substitutions(
+def _get_test_template_substitutions(
         *,
         create_xcresult_bundle,
         device_type,
@@ -17,9 +17,8 @@ def _get_template_substitutions(
         random,
         xcodebuild_args,
         command_line_args,
-        xctestrun_template,
-        reuse_simulator,
-        xctrunner_entitlements_template):
+        xctestrun_creator,
+        reuse_simulator):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -29,8 +28,21 @@ def _get_template_substitutions(
         "simulator_creator.py": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
-        "xctestrun_template": xctestrun_template,
+        "xctestrun_creator.sh": xctestrun_creator,
         "reuse_simulator": reuse_simulator,
+    }
+
+    return {"%({})s".format(key): value for key, value in substitutions.items()}
+
+def _get_xctestrun_creator_template_substitutions(
+        *,
+        random,
+        xctestrun_template,
+        xctrunner_entitlements_template):
+    substitutions = {
+        # "ordered" isn't a special string, but anything besides "random" for this field runs in order
+        "test_order": "random" if random else "ordered",
+        "xctestrun_template": xctestrun_template,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
 
@@ -55,10 +67,23 @@ def _ios_xctestrun_runner_impl(ctx):
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
+    xctestrun_creator = ctx.actions.declare_file(
+        "{}-xctestrun-creator.sh".format(ctx.label.name)
+    )
+    ctx.actions.expand_template(
+        template = ctx.file._xctestrun_creator_template,
+        output = xctestrun_creator,
+        substitutions = _get_xctestrun_creator_template_substitutions(
+            random = ctx.attr.random,
+            xctestrun_template = ctx.file._xctestrun_template.short_path,
+            xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
+        ),
+    )
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
-        substitutions = _get_template_substitutions(
+        substitutions = _get_test_template_substitutions(
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
@@ -66,9 +91,8 @@ def _ios_xctestrun_runner_impl(ctx):
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
-            xctestrun_template = ctx.file._xctestrun_template.short_path,
+            xctestrun_creator = xctestrun_creator.short_path,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
-            xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
     )
 
@@ -81,6 +105,7 @@ def _ios_xctestrun_runner_impl(ctx):
         DefaultInfo(
             runfiles = ctx.runfiles(
                 files = [
+                    xctestrun_creator,
                     ctx.file._xctestrun_template,
                     ctx.file._xctrunner_entitlements_template,
                 ],
@@ -158,6 +183,12 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
                 name = "xcode_config_label",
                 fragment = "apple",
             ),
+        ),
+        "_xctestrun_creator_template": attr.label(
+            default = Label(
+                "@build_bazel_rules_apple//apple/testing/default_runner:templates/xctestrun_creator.template.sh",
+            ),
+            allow_single_file = True,
         ),
         "_xctestrun_template": attr.label(
             default = Label(
