@@ -121,6 +121,7 @@ else
 fi
 
 test_type="%(test_type)s"
+TEST_FILTER="%(test_filter)s"
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
@@ -175,7 +176,6 @@ if [[ -n "${command_line_args:-}" ]]; then
   echo "note: Using 'xcodebuild' because '--command_line_args' was provided"
   should_use_xcodebuild=true
 fi
-TEST_FILTER="%(test_filter)s"
 if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
   echo "note: Using 'xcodebuild' because test filter was provided"
   should_use_xcodebuild=true
