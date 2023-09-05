@@ -171,6 +171,7 @@ def apple_static_xcframework_import_test_suite(name):
     archive_contents_test(
         name = "{}_links_watchos_arm64_32_macho_load_cmd_for_device_test".format(name),
         build_type = "device",
+        cpus = {"watchos_cpus": ["arm64_32"]},
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_static_xcframework",
         not_contains = ["$BUNDLE_ROOT/Frameworks"],
         binary_test_file = "$BUNDLE_ROOT/app_with_imported_static_xcframework",
