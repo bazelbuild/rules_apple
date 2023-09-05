@@ -285,6 +285,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
         binary_test_architecture = "arm64_32",
+        cpus = {"watchos_cpus": ["arm64_32"]},
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
     )
 
