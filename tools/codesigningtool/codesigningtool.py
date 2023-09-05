@@ -37,7 +37,7 @@ from tools.wrapper_common import execute
 # * Executable=/{path to signed target}
 # * using the deprecated --resource-rules flag
 _BENIGN_CODESIGN_OUTPUT_REGEX = re.compile(
-    r"(signed.*Mach-O (universal|thin)|libswift.*\.dylib: replacing existing signature|signed generic|Executable=/|Warning: --resource-rules has been deprecated)"
+    r"(: replacing existing signature|signed generic|Executable=/|Warning: --resource-rules has been deprecated)"
 )
 
 
