@@ -20,6 +20,10 @@ visionos_application(
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
     minimum_os_version = "1.0",
+    target_compatible_with = select({
+        "//:supports_visionos": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )
@@ -28,5 +32,9 @@ visionos_application(
 # 'bazel test examples/...' ensures all Examples still build.
 build_test(
     name = "ExamplesBuildTest",
+    target_compatible_with = select({
+        "//:supports_visionos": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     targets = [":HelloWorld"],
 )

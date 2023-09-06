@@ -266,9 +266,3 @@ apple_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
 )
-
-config_setting(
-    name = "supports_visionos",
-    values = {"define": "supports_visionos=1"},
-    visibility = ["//test:__subpackages__"],
-)

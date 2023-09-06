@@ -26,3 +26,12 @@ filegroup(
         "//:__subpackages__",
     ],
 )
+
+config_setting(
+    name = "supports_visionos",
+    values = {"define": "supports_visionos=1"},
+    visibility = [
+        "//examples:__subpackages__",
+        "//test:__subpackages__",
+    ],
+)
