@@ -220,12 +220,6 @@ Resolved Xcode is version {xcode_version}.
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    extra_linkopts = [
-        "-e",
-        "_VisionExtensionMain",
-        "-fapplication-extension",
-    ]
-
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
@@ -1076,6 +1070,11 @@ def _visionos_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_linkopts = [
+            "-e",
+            "_VisionExtensionMain",
+            "-fapplication-extension",
+        ],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
