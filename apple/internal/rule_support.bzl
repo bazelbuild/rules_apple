@@ -539,6 +539,22 @@ _RULE_TYPE_DESCRIPTORS = {
             skip_simulator_signing_allowed = False,
         ),
     },
+    "visionos": {
+        # visionos_application (single target application)
+        apple_product_type.application: _describe_rule_type(
+            allowed_device_families = ["reality"],
+            allows_locale_trimming = True,
+            bundle_extension = ".app",
+            bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
+            bundle_package_type = bundle_package_type.application,
+            product_type = apple_product_type.application,
+            requires_pkginfo = True,
+            rpaths = [
+                # Application binaries live in Application.app/Application
+                "@executable_path/Frameworks",
+            ],
+        ),
+    },
     "watchos": {
         # watchos_application (single target application)
         apple_product_type.application: _describe_rule_type(

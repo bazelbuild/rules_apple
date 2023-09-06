@@ -62,6 +62,7 @@ load(
     _TvosFrameworkBundleInfo = "TvosFrameworkBundleInfo",
     _TvosStaticFrameworkBundleInfo = "TvosStaticFrameworkBundleInfo",
     _TvosXcTestBundleInfo = "TvosXcTestBundleInfo",
+    _VisionosApplicationBundleInfo = "VisionosApplicationBundleInfo",
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
@@ -109,6 +110,7 @@ TvosExtensionBundleInfo = _TvosExtensionBundleInfo
 TvosFrameworkBundleInfo = _TvosFrameworkBundleInfo
 TvosStaticFrameworkBundleInfo = _TvosStaticFrameworkBundleInfo
 TvosXcTestBundleInfo = _TvosXcTestBundleInfo
+VisionosApplicationBundleInfo = _VisionosApplicationBundleInfo
 WatchosApplicationBundleInfo = _WatchosApplicationBundleInfo
 WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo

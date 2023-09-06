@@ -183,6 +183,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos",
+    srcs = ["visionos.bzl"],
+    deps = [
+        "//apple/internal:visionos_rules",
+    ],
+)
+
+bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
