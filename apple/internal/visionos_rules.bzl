@@ -1403,7 +1403,10 @@ visionos_application = rule_factory.create_apple_rule(
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
-        rule_attrs.app_icon_attrs(),
+        rule_attrs.app_icon_attrs(
+            icon_extension = ".solidimagestack",
+            icon_parent_extension = ".xcassets",
+        ),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
