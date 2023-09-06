@@ -40,6 +40,8 @@ load(
     "paths",
 )
 
+_supports_visionos = hasattr(apple_common.platform_type, "visionos")
+
 _CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
