@@ -583,7 +583,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "visionos": {
-        # visionos_application
+        # visionos_application (single target application)
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["reality"],
             allows_locale_trimming = True,
@@ -594,7 +594,6 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_pkginfo = True,
             rpaths = [
                 # Application binaries live in Application.app/Application
-                # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),

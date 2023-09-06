@@ -791,10 +791,11 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
 VisionosApplicationBundleInfo, new_visionosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a visionOS application.
+
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a visionOS application
-bundle (and not some other Apple bundle). Rule authors who wish to require that
-a dependency is a visionOS application should use this provider to describe that
+bundle (and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS application should use this provider to describe that
 requirement.
 """,
     fields = {},

@@ -1028,6 +1028,11 @@ filegroup(
 )
 
 filegroup(
+    name = "VisionAppIcon.xcassets",
+    srcs = glob(["VisionAppIcon.xcassets/**"]),
+)
+
+filegroup(
     name = "WatchAppIcon.xcassets",
     srcs = glob(["WatchAppIcon.xcassets/**"]),
 )

@@ -33,6 +33,10 @@ part on the language used for XCFramework library identifiers:
 """
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 
@@ -201,6 +205,7 @@ def _command_line_options(
         apple_platforms = [],
         emit_swiftinterface = False,
         environment_arch = None,
+        force_bundle_outputs = False,
         minimum_os_version,
         platform_type,
         settings):
@@ -218,6 +223,9 @@ def _command_line_options(
         environment_arch: A valid Apple environment when applicable with its architecture as a
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
+        force_bundle_outputs: Indicates if the rule should always emit tree artifact outputs, which
+            are effectively bundles that aren't enclosed within a zip file (ipa). If not `True`,
+            this will be set to the incoming value instead. Defaults to `False`.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
@@ -230,7 +238,8 @@ def _command_line_options(
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
 
-    output_dictionary = {
+    return {
+        build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
         "//command_line_option:apple_platform_type": platform_type,
         "//command_line_option:apple_platforms": apple_platforms,
@@ -270,11 +279,8 @@ def _command_line_options(
             platform = "watchos",
             platform_type = platform_type,
         ),
+        "@build_bazel_rules_swift//swift:emit_swiftinterface": emit_swiftinterface,
     }
-
-    output_dictionary["@build_bazel_rules_swift//swift:emit_swiftinterface"] = emit_swiftinterface
-
-    return output_dictionary
 
 def _xcframework_split_attr_key(*, arch, environment, platform_type):
     """Return the split attribute key for this target within the XCFramework given linker options.
@@ -377,6 +383,7 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/apple/AppleCommandLineOptions.java
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
+    build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_crosstool_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
@@ -394,6 +401,7 @@ _apple_platform_transition_inputs = _apple_platforms_rule_base_transition_inputs
     "//command_line_option:platforms",
 ]
 _apple_rule_base_transition_outputs = [
+    build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple configuration distinguisher",
     "//command_line_option:apple_platform_type",
     "//command_line_option:apple_platforms",
@@ -425,7 +433,8 @@ _apple_rule_base_transition = transition(
 )
 
 def _apple_platforms_rule_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules using Bazel platforms and the Starlark split transition."""
+    """Rule transition for Apple rules using Bazel platforms."""
+    minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
@@ -435,13 +444,37 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
         apple_platforms = settings["//command_line_option:apple_platforms"],
         emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
         environment_arch = environment_arch,
-        minimum_os_version = attr.minimum_os_version,
+        minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         settings = settings,
     )
 
 _apple_platforms_rule_base_transition = transition(
     implementation = _apple_platforms_rule_base_transition_impl,
+    inputs = _apple_platforms_rule_base_transition_inputs,
+    outputs = _apple_rule_base_transition_outputs,
+)
+
+def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
+    """Rule transition for Apple rules using Bazel platforms which force bundle outputs."""
+    minimum_os_version = attr.minimum_os_version
+    platform_type = attr.platform_type
+    environment_arch = None
+    if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
+        # Add fallback to match an anticipated split of Apple cpu-based resolution
+        environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
+    return _command_line_options(
+        apple_platforms = settings["//command_line_option:apple_platforms"],
+        emit_swiftinterface = _should_emit_swiftinterface(attr),
+        environment_arch = environment_arch,
+        force_bundle_outputs = True,
+        minimum_os_version = minimum_os_version,
+        platform_type = platform_type,
+        settings = settings,
+    )
+
+_apple_platforms_rule_bundle_output_base_transition = transition(
+    implementation = _apple_platforms_rule_bundle_output_base_transition_impl,
     inputs = _apple_platforms_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
@@ -645,6 +678,7 @@ _xcframework_transition = transition(
 transition_support = struct(
     apple_platform_split_transition = _apple_platform_split_transition,
     apple_platforms_rule_base_transition = _apple_platforms_rule_base_transition,
+    apple_platforms_rule_bundle_output_base_transition = _apple_platforms_rule_bundle_output_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
