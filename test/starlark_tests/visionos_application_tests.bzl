@@ -15,10 +15,6 @@
 """visionos_application Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "make_analysis_target_outputs_test",
 )
@@ -27,7 +23,6 @@ visibility("private")
 
 analysis_target_wip_feature_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
-        build_settings_labels.enable_wip_features: True,
     },
 )
 
