@@ -465,7 +465,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
-        emit_swiftinterface = _should_emit_swiftinterface(attr),
+        emit_swiftinterface = hasattr(attr, "_emitswiftinterface"),
         environment_arch = environment_arch,
         force_bundle_outputs = True,
         minimum_os_version = minimum_os_version,

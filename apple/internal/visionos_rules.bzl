@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +15,6 @@
 """Implementation of visionOS rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
-    "SwiftDynamicFrameworkInfo",
-    "swift_dynamic_framework_aspect",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -38,12 +29,12 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
     "cc_info_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
@@ -52,6 +43,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "libraries_to_link_for_dynamic_framework",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
@@ -75,6 +70,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "ApplePlatformInfo",
+    "VisionosExtensionBundleInfo",
+    "VisionosFrameworkBundleInfo",
     "new_appleframeworkbundleinfo",
     "new_visionosapplicationbundleinfo",
     "new_visionosextensionbundleinfo",
@@ -110,10 +109,6 @@ load(
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
-    "libraries_to_link_for_dynamic_framework",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -122,11 +117,13 @@ load(
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "ApplePlatformInfo",
-    "VisionosExtensionBundleInfo",
-    "VisionosFrameworkBundleInfo",
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "SwiftDynamicFrameworkInfo",
+    "swift_dynamic_framework_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
@@ -134,8 +131,22 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 def _visionos_application_impl(ctx):
-    """Experimental implementation of visionos_application."""
+    """WIP implementation of visionos_application."""
+
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+        fail("""
+visionOS bundles require a visionOS SDK provided by Xcode 15 or later.
+
+Resolved Xcode is version {xcode_version}.
+""".format(xcode_version = str(xcode_version_config.xcode_version())))
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -177,7 +188,7 @@ def _visionos_application_impl(ctx):
         objc_fragment = ctx.fragments.objc,
         platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = xcode_version_config,
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -418,12 +429,15 @@ def _visionos_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
+    dsyms = outputs.dsyms(processor_result = processor_result)
+
     return [
         DefaultInfo(
             executable = executable,
             files = processor_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
+                transitive_files = dsyms,
             ),
         ),
         OutputGroupInfo(

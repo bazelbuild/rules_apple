@@ -705,36 +705,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "visionos_rules",
-    srcs = ["visionos_rules.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        ":apple_product_type",
-        ":apple_toolchains",
-        ":bundling_support",
-        ":entitlements_support",
-        ":features_support",
-        ":linking_support",
-        ":outputs",
-        ":partials",
-        ":platform_support",
-        ":processor",
-        ":providers",
-        ":resources",
-        ":rule_attrs",
-        ":rule_factory",
-        ":rule_support",
-        ":run_support",
-        ":swift_support",
-        ":transition_support",
-        "//apple/internal/aspects:resource_aspect",
-        "//apple/internal/utils:clang_rt_dylibs",
-    ],
-)
-
-bzl_library(
     name = "watchos_rules",
     srcs = ["watchos_rules.bzl"],
     visibility = [
