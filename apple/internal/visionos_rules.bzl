@@ -202,9 +202,8 @@ Resolved Xcode is version {xcode_version}.
         attr = ctx.attr,
         res_attrs = [
             "app_icons",
-            "launch_images",
-            "strings",
             "resources",
+            "strings",
         ],
     )
 
@@ -235,7 +234,6 @@ Resolved Xcode is version {xcode_version}.
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
-            launch_images = ctx.files.launch_images,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),
@@ -1398,10 +1396,13 @@ def _visionos_static_framework_impl(ctx):
     ] + processor_result.providers
 
 visionos_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_platforms_rule_bundle_output_base_transition,
     doc = "Builds and bundles a visionOS Application.",
     implementation = _visionos_application_impl,
     is_executable = True,
-    predeclared_outputs = {"archive": "%{name}.ipa"},
+    # TODO(b/288582842): Currently needed to supply a "dummy archive" for the tree artifact
+    # processor. See if we can avoid needing to declare this hack for a new rule type.
+    predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(
             icon_extension = ".solidimagestack",
@@ -1430,13 +1431,14 @@ visionos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
         rule_attrs.infoplist_attrs(),
-        rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
         ),
         rule_attrs.settings_bundle_attrs(),
-        rule_attrs.signing_attrs(),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+        ),
         rule_attrs.simulator_runner_template_attr(),
         {
             "frameworks": attr.label_list(
