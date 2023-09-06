@@ -35,7 +35,7 @@ def _target_os_from_rule_ctx(ctx):
     elif ctx.target_platform_has_constraint(tvos_constraint):
         return str(apple_common.platform_type.tvos)
     elif ctx.target_platform_has_constraint(visionos_constraint):
-        return str(apple_common.platform_type.visionos)
+        return str(getattr(apple_common.platform_type, "visionos", None))
     elif ctx.target_platform_has_constraint(watchos_constraint):
         return str(apple_common.platform_type.watchos)
     fail("ERROR: A valid Apple platform constraint could not be found from the resolved toolchain.")

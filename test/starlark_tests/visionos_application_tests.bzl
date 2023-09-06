@@ -41,6 +41,10 @@ def visionos_application_test_suite(name):
             name,
             "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//test:supports_visionos": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     native.test_suite(

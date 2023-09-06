@@ -92,6 +92,8 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         })
     elif has_apple_cpus:
         for cpu_option, cpus in attr.cpus.items():
+            if not _supports_visionos and cpu_option == "visionos_cpus":
+                continue
             command_line_option = "//command_line_option:%s" % cpu_option
             output_dictionary.update({command_line_option: ",".join(cpus)})
 

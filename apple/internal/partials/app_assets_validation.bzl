@@ -72,7 +72,7 @@ def _app_assets_validation_partial_impl(
                 app_icons,
                 "brandassets",
             )
-        elif platform_prerequisites.platform_type == apple_common.platform_type.visionos:
+        elif platform_prerequisites.platform_type == getattr(apple_common.platform_type, "visionos", None):
             bundling_support.ensure_single_xcassets_type(
                 "app_icons",
                 app_icons,
