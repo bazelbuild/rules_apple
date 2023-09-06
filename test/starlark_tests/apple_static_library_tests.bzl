@@ -15,10 +15,6 @@
 """apple_static_library Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_mismatched_platform_test.bzl",
     "analysis_incoming_ios_platform_mismatch_test",
     "analysis_incoming_watchos_platform_mismatch_test",
