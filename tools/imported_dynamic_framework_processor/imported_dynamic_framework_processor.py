@@ -306,75 +306,16 @@ def main() -> None:
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  framework_directory = os.path.normpath(
-      os.path.commonprefix(args.framework_file + [args.framework_binary]))
-  framework_name, _ = os.path.splitext(os.path.basename(framework_directory))
-  is_versioned_framework = any(map(_is_versioned_file, args.framework_file))
+  _strip_or_copy_binary(
+      framework_binary=args.framework_binary,
+      output_path=args.temp_path,
+      strip_bitcode=args.strip_bitcode,
+      requested_archs=args.slice)
 
-  if not is_versioned_framework:
-    _strip_or_copy_binary(
-        framework_binary=args.framework_binary,
-        output_path=args.temp_path,
-        strip_bitcode=args.strip_bitcode,
-        requested_archs=args.slice)
-
-    for framework_file in args.framework_file:
-      _copy_framework_file(framework_file,
-                           executable=False,
-                           output_path=args.temp_path)
-  else:
-
-    # Find effective current framework version via install_path
-    version = _get_framework_version_from_install_path(
-        binary=args.framework_binary)
-
-    # Copy files from Versions/<version_id>
-    for framework_file in args.framework_file:
-      if not _is_versioned_file(framework_file, version):
-        # Ignore non-current/effective version framework files.
-        #
-        # While Xcode does copies all Versions in a macOS framework bundle,
-        # codesign verification fails during validations of all other framework
-        # versions (ie. non 'Current' version). This is either by design or a
-        # bug from Apple.
-        #
-        # Furthermore, Apple best practices recommends adopting single version
-        # macOS frameworks. See more at:
-        # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
-        #
-        # To learn more about previous codesign implementation verifying
-        # additional versions see:
-        # https://opensource.apple.com/source/Security/Security-57740.51.3/OSX/libsecurity_codesigning/lib/StaticCode.cpp.auto.html
-        continue
-
-      if os.path.basename(framework_file) == framework_name:
-        _strip_or_copy_binary(
-            framework_binary=framework_file,
-            output_path=args.temp_path,
-            strip_bitcode=args.strip_bitcode,
-            requested_archs=args.slice)
-      else:
-        _copy_framework_file(
-            framework_file,
-            executable=False,
-            output_path=args.temp_path)
-
-    # Create symbolic link from Current to effective version directory.
-    symlink_path = os.path.join(args.temp_path, "Versions", "Current")
-    symlink_data = version
-    os.symlink(symlink_data, symlink_path)
-
-    # Create symbolic links from top-level entries to Versions/Current entries.
-    versions_dir = os.path.join(args.temp_path, "Versions")
-    version_dir = os.path.join(versions_dir, version)
-    for entry in os.listdir(version_dir):
-      symlink_path = os.path.join(args.temp_path, entry)
-      symlink_data = os.path.join("Versions", "Current", entry)
-      os.symlink(symlink_data, symlink_path)
-
-    # Modify codesigningtool arg to sign the current framework version
-    # This matches Xcode behavior of re-signing only the effective version.
-    args.target_to_sign = [version_dir]
+  for framework_file in args.framework_file:
+    _copy_framework_file(framework_file,
+                          executable=False,
+                          output_path=args.temp_path)
 
   # Attempt to sign the framework, check for an error when signing.
   if not args.disable_signing:
