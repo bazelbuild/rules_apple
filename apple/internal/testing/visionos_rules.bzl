@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of tvOS test rules."""
+"""Implementation of visionOS test rules."""
 
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
