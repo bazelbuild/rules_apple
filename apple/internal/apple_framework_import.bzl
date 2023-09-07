@@ -626,6 +626,7 @@ not include Swift interface or Swift module files.
             ),
         },
     ),
+    toolchains = use_cpp_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_static_framework_import` targets
