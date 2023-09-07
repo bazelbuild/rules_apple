@@ -3525,7 +3525,7 @@ i.e. `--features=-swift.no_generated_header`).""",
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -3535,7 +3535,7 @@ i.e. `--features=-swift.no_generated_header`).""",
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
