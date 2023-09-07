@@ -284,12 +284,12 @@ visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_u
 </pre>
 
 
-Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
+Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
 
-Note: tvOS UI tests are not currently supported in the default test runner.
+Note: visionOS UI tests are not currently supported in the default test runner.
 
 The following is a list of the `visionos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
@@ -327,17 +327,17 @@ visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#vision
 </pre>
 
 
-Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
+Builds and bundles a visionOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
 
-Note: tvOS unit tests are not currently supported in the default test runner.
+Note: visionOS unit tests are not currently supported in the default test runner.
 
 `visionos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `visionos_application` target, the tests will run
 within that application's context. If no `test_host` is provided, the tests will
-run outside the context of a tvOS application. Because of this, certain
+run outside the context of a visionOS application. Because of this, certain
 functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
 find more information about app and library testing for Apple platforms
 [here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
