@@ -471,12 +471,28 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
-# Assume the final 'Executed N tests' or 'Executed 1 test' is the
-# total execution count for the test bundle.
-test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
-if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
-  echo "error: no tests were executed, is the test bundle empty?" >&2
-  exit 1
+parallel_testing_enabled=false
+if grep -q "-parallel-testing-enabled YES" "$testlog"; then
+  parallel_testing_enabled=true
+fi
+
+# Fail when bundle executes nothing
+if [[ $parallel_testing_enabled == true ]]; then
+  # When executing tests in parallel, test start markers are absent when no
+  # tests are run.
+  test_execution_count=$(grep -c -e "Test suite '.*' started*" "$testlog")
+  if [[ "$test_execution_count" == "0" ]]; then
+    echo "error: no tests were executed, is the test bundle empty?" >&2
+    exit 1
+  fi
+else
+  # Assume the final 'Executed N tests' or 'Executed 1 test' is the
+  # total execution count for the test bundle.
+  test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
+  if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
+    echo "error: no tests were executed, is the test bundle empty?" >&2
+    exit 1
+  fi
 fi
 
 # When tests crash after they have reportedly completed, XCTest marks them as
