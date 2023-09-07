@@ -57,14 +57,14 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
-    "TvosApplicationBundleInfo",
-    "TvosExtensionBundleInfo",
-    "TvosFrameworkBundleInfo",
+    "VisionosApplicationBundleInfo",
+    "VisionosExtensionBundleInfo",
+    "VisionosFrameworkBundleInfo",
 )
 
-_TVOS_TEST_HOST_PROVIDERS = [
-    [AppleBundleInfo, TvosApplicationBundleInfo],
-    [AppleBundleInfo, TvosExtensionBundleInfo],
+_VISIONOS_TEST_HOST_PROVIDERS = [
+    [AppleBundleInfo, VisionosApplicationBundleInfo],
+    [AppleBundleInfo, VisionosExtensionBundleInfo],
 ]
 
 def _visionos_ui_test_bundle_impl(ctx):
@@ -135,11 +135,11 @@ _visionos_internal_ui_test_bundle = rule_factory.create_apple_rule(
         rule_attrs.test_host_attrs(
             aspects = rule_attrs.aspects.test_host_aspects,
             is_mandatory = True,
-            providers = _TVOS_TEST_HOST_PROVIDERS,
+            providers = _VISIONOS_TEST_HOST_PROVIDERS,
         ),
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
 [`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
@@ -160,7 +160,7 @@ provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
 
-Note: tvOS UI tests are not currently supported in the default test runner.
+Note: visionOS UI tests are not currently supported in the default test runner.
 
 The following is a list of the `visionos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
@@ -172,7 +172,7 @@ the attributes inherited by all test rules, please check the
 
 # Declare it with an underscore so it shows up that way in queries.
 _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
+    doc = "Builds and bundles an visionOS Unit Test Bundle. Internal target not to be depended upon.",
     implementation = _visionos_unit_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
@@ -207,11 +207,11 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
         rule_attrs.test_bundle_attrs(),
         rule_attrs.test_host_attrs(
             aspects = rule_attrs.aspects.test_host_aspects,
-            providers = _TVOS_TEST_HOST_PROVIDERS,
+            providers = _VISIONOS_TEST_HOST_PROVIDERS,
         ),
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
 [`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
@@ -237,7 +237,7 @@ Note: visionOS unit tests are not currently supported in the default test runner
 `visionos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `visionos_application` target, the tests will run
 within that application's context. If no `test_host` is provided, the tests will
-run outside the context of a tvOS application. Because of this, certain
+run outside the context of a visionOS application. Because of this, certain
 functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
 find more information about app and library testing for Apple platforms
 [here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
