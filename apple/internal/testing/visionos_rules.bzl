@@ -99,7 +99,7 @@ def _visionos_unit_test_impl(ctx):
 
 # Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
 _visionos_internal_ui_test_bundle = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an tvOS UI Test Bundle. Internal target not to be depended upon.",
+    doc = "Builds and bundles an visionOS UI Test Bundle. Internal target not to be depended upon.",
     implementation = _visionos_ui_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
