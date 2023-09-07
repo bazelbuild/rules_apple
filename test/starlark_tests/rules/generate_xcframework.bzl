@@ -154,6 +154,7 @@ def _create_xcframework(
         apple_fragment = apple_fragment,
         command = " ".join(args),
         inputs = depset(inputs),
+        execution_requirements = {"no-sandbox": "1"},
         mnemonic = "GenerateXCFrameworkXcodebuild",
         outputs = outputs,
         progress_message = "Generating XCFramework using xcodebuild",
