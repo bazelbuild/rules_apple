@@ -232,7 +232,7 @@ provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
 
-Note: tvOS unit tests are not currently supported in the default test runner.
+Note: visionOS unit tests are not currently supported in the default test runner.
 
 `visionos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `visionos_application` target, the tests will run
