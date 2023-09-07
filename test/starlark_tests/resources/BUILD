@@ -512,6 +512,11 @@ filegroup(
 )
 
 filegroup(
+    name = "basic_docc_bundle_files",
+    srcs = ["basic.docc"],
+)
+
+filegroup(
     name = "localized_storyboards_ios",
     srcs = glob(["*.lproj/*.storyboard"]),
 )

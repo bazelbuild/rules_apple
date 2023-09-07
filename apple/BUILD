@@ -227,6 +227,12 @@ bzl_library(
     deps = ["//apple/internal:xcarchive"],
 )
 
+bzl_library(
+    name = "docc",
+    srcs = ["docc.bzl"],
+    deps = ["//apple/internal:docc"],
+)
+
 cc_toolchain_forwarder(
     name = "default_cc_toolchain_forwarder",
 )

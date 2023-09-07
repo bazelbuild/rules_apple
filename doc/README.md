@@ -106,7 +106,13 @@ below.
   </thead>
   <tbody>
     <tr>
-      <th align="left" valign="top" rowspan="3">General</th>
+      <th align="left" valign="top" rowspan="4">General</th>
+      <tr>
+      <td valign="top"><code>@build_bazel_rules_apple//apple:docc.bzl</code></td>
+      <td valign="top">
+        <code><a href="rules-docc.md#docc_archive">docc_archive</a></code>
+      </td>
+    </tr>
       <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
       <td valign="top"><code><a href="rules-versioning.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
     </tr>

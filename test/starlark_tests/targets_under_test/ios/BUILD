@@ -37,6 +37,10 @@ load(
     "common",
 )
 load(
+    "//apple:docc.bzl",
+    "docc_archive",
+)
+load(
     "//apple:xcarchive.bzl",
     "xcarchive",
 )
@@ -625,6 +629,15 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
     ],
+)
+
+docc_archive(
+    name = "app_with_swift_dep.doccarchive",
+    dep = ":app_with_swift_dep",
+    fallback_bundle_identifier = "com.google.example",
+    fallback_bundle_version = "1.0.0",
+    fallback_display_name = "app_with_swift_dep",
+    tags = common.fixture_tags,
 )
 
 ios_static_framework(
@@ -4784,4 +4797,42 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing DocC support.
+
+swift_library(
+    name = "basic_framework_lib_with_docc_bundle",
+    srcs = ["//test/starlark_tests/resources:BasicFramework.swift"],
+    data = ["//test/starlark_tests/resources:basic_docc_bundle_files"],
+    module_name = "BasicFramework",
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+)
+
+ios_dynamic_framework(
+    name = "basic_framework_with_docc_bundle",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "BasicFramework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":basic_framework_lib_with_docc_bundle",
+    ],
+)
+
+docc_archive(
+    name = "basic_framework_with_docc_bundle.doccarchive",
+    dep = ":basic_framework_with_docc_bundle",
+    fallback_bundle_identifier = "com.google.example.framework",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "BasicFramework",
 )
