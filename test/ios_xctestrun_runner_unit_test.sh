@@ -832,4 +832,39 @@ function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
   expect_log "Executed 2 tests, with 0 failures"
 }
 
+# Tests a test execution with parallel testing enabled is successful.
+function test_ios_unit_test_parallel_testing_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
+  expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
+  expect_log "//ios:SmallUnitTest\s\+PASSED"
+  expect_log "Executed 1 out of 1 test: 1 test passes."
+}
+
+# Tests a test execution with parallel testing enabled is failed when
+# a test filter leads to no tests being run.
+function test_ios_unit_test_parallel_testing_no_tests_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    --test_filter="BadFilter" \
+    //ios:SmallUnitTest || fail "should fail"
+
+  expect_not_log "Test suite 'SmallUnitTest1' started"
+  expect_not_log "Test suite 'SmallUnitTest2' started"
+  expect_log "//ios:SmallUnitTest\s\+FAILED"
+  expect_log "Executed 1 out of 1 test: 1 fails locally."
+}
+
 run_suite "ios_unit_test with iOS xctestrun runner bundling tests"
