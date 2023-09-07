@@ -155,7 +155,7 @@ visionos_internal_ui_test_bundle = _visionos_internal_ui_test_bundle
 
 visionos_ui_test = rule_factory.create_apple_test_rule(
     doc = """
-Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
+Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`. When using Tulsi to run
 tests built with this target, `runner` will not be used since Xcode is the test
 runner in that case.
