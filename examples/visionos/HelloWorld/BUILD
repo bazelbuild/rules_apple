@@ -21,7 +21,7 @@ visionos_application(
     infoplists = [":Info.plist"],
     minimum_os_version = "1.0",
     target_compatible_with = select({
-        "//:supports_visionos": [],
+        "//:supports_visionos_setting": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     version = ":HelloWorldVersion",
@@ -33,7 +33,7 @@ visionos_application(
 build_test(
     name = "ExamplesBuildTest",
     target_compatible_with = select({
-        "//:supports_visionos": [],
+        "//:supports_visionos_setting": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     targets = [":HelloWorld"],

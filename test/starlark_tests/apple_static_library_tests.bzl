@@ -356,7 +356,7 @@ def apple_static_library_test_suite(name):
             "needs-xcode-latest-beta",
         ],
         target_compatible_with = select({
-            "//:supports_visionos": [],
+            "//:supports_visionos_setting": [],
             "//conditions:default": ["@platforms//:incompatible"],
         }),
     )
