@@ -700,7 +700,7 @@ def _process(
         codesignopts = [],
         entitlements = None,
         features,
-        ipa_post_processor,
+        ipa_post_processor = None,
         output_discriminator = None,
         partials,
         platform_prerequisites,
@@ -723,7 +723,7 @@ def _process(
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       features: List of features enabled by the user. Typically from `ctx.features`.
-      ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+      ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       partials: The list of partials to process to construct the complete bundle.

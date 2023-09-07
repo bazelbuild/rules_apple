@@ -1719,6 +1719,7 @@ watchos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "watchos",
@@ -1790,6 +1791,7 @@ watchos_extension = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "watchos",
