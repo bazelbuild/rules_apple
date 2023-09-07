@@ -113,32 +113,4 @@ EOF
   expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
 }
 
-# Tests that the IPA post-processor is executed and can modify the bundle.
-function test_ipa_post_processor() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-macos_quick_look_plugin(
-    name = "app",
-    bundle_id = "my.bundle.id.qlgenerator",
-    infoplists = ["Info.plist"],
-    ipa_post_processor = "post_processor.sh",
-    minimum_os_version = "${MIN_OS_MACOS}",
-    deps = [":lib"],
-)
-EOF
-
-  cat > app/post_processor.sh <<EOF
-#!/bin/bash
-WORKDIR="\$1"
-mkdir "\$WORKDIR/app.qlgenerator/Contents/Resources"
-echo "foo" > "\$WORKDIR/app.qlgenerator/Contents/Resources/inserted_by_post_processor.txt"
-EOF
-  chmod +x app/post_processor.sh
-
-  do_build macos //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.zip" \
-      "app.qlgenerator/Contents/Resources/inserted_by_post_processor.txt")"
-}
-
 run_suite "macos_quick_look_plugin bundling tests"

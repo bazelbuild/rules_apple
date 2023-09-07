@@ -472,7 +472,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,

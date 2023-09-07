@@ -693,7 +693,6 @@ def _ios_app_clip_impl(ctx):
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1391,7 +1390,6 @@ def _ios_static_framework_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1588,7 +1586,6 @@ def _ios_imessage_application_impl(ctx):
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1879,6 +1876,7 @@ ios_application = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
@@ -2045,6 +2043,7 @@ ios_extension = rule_factory.create_apple_rule(
         ),
         rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2103,6 +2102,7 @@ ios_framework = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2259,6 +2259,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,

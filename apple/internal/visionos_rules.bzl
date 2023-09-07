@@ -313,7 +313,6 @@ Resolved Xcode is version {xcode_version}.
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
