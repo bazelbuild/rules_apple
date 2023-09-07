@@ -14,6 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# xctestrunner does not currently support running watchOS simulators since iOS
+# xctestrunner does not currently support running visionOS simulators since iOS
 # devices and runtimes are hardcoded into many places.
 exit 1
