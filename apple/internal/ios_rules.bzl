@@ -2865,7 +2865,7 @@ i.e. `--features=-swift.no_generated_header`).""",
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
+            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
