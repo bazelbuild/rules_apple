@@ -8,6 +8,7 @@ exports_files([
     "integration_testing_ios.mobileprovision",
     "integration_testing_macos.provisionprofile",
     "integration_testing_tvos.mobileprovision",
+    "integration_testing_visionos.mobileprovision",
 ])
 
 filegroup(
@@ -17,5 +18,6 @@ filegroup(
         "integration_testing_ios.mobileprovision",
         "integration_testing_macos.provisionprofile",
         "integration_testing_tvos.mobileprovision",
+        "integration_testing_visionos.mobileprovision",
     ],
 )

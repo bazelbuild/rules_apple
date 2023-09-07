@@ -40,6 +40,8 @@ load(
     "paths",
 )
 
+_supports_visionos = hasattr(apple_common.platform_type, "visionos")
+
 _CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
@@ -71,6 +73,9 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             "//command_line_option:tvos_cpus": "x86_64",
             "//command_line_option:watchos_cpus": "x86_64",
         })
+
+        if _supports_visionos:
+            output_dictionary["//command_line_option:visionos_cpus"] = "sim_arm64"
     else:
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
@@ -78,12 +83,17 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             "//command_line_option:watchos_cpus": "arm64_32,armv7k",
         })
 
+        if _supports_visionos:
+            output_dictionary["//command_line_option:visionos_cpus"] = "arm64"
+
     if has_apple_platforms:
         output_dictionary.update({
             "//command_line_option:apple_platforms": ",".join(attr.apple_platforms),
         })
     elif has_apple_cpus:
         for cpu_option, cpus in attr.cpus.items():
+            if not _supports_visionos and cpu_option == "visionos_cpus":
+                continue
             command_line_option = "//command_line_option:%s" % cpu_option
             output_dictionary.update({command_line_option: ",".join(cpus)})
 
@@ -134,7 +144,7 @@ apple_verification_transition = transition(
         "//command_line_option:apple_platforms",
         "//command_line_option:incompatible_enable_apple_toolchain_resolution",
         "//command_line_option:objc_enable_binary_stripping",
-    ] + _CUSTOM_BUILD_SETTINGS,
+    ] + _CUSTOM_BUILD_SETTINGS + (["//command_line_option:visionos_cpus"] if _supports_visionos else []),
 )
 
 def _apple_verification_test_impl(ctx):

@@ -51,7 +51,7 @@ Location types can be:
   - watch: Files are to be placed inside the Watch section of the bundle. Only applicable for iOS
     apps.
 
-For iOS, tvOS and watchOS, binary, content and resources all refer to the same
+For iOS, tvOS, visionOS, and watchOS, binary, content and resources all refer to the same
 location. Only in macOS these paths differ.
 
 All the files given will be symlinked into their expected location in the

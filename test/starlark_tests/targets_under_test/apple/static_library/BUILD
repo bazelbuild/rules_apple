@@ -64,3 +64,11 @@ apple_static_library(
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcUpperLib"],
 )
+
+apple_static_library(
+    name = "example_vision_library",
+    minimum_os_version = common.min_os_visionos.baseline,
+    platform_type = "visionos",
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
+)

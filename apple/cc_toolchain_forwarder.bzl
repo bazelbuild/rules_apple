@@ -25,6 +25,7 @@ def _target_os_from_rule_ctx(ctx):
     ios_constraint = ctx.attr._ios_constraint[platform_common.ConstraintValueInfo]
     macos_constraint = ctx.attr._macos_constraint[platform_common.ConstraintValueInfo]
     tvos_constraint = ctx.attr._tvos_constraint[platform_common.ConstraintValueInfo]
+    visionos_constraint = ctx.attr._visionos_constraint[platform_common.ConstraintValueInfo]
     watchos_constraint = ctx.attr._watchos_constraint[platform_common.ConstraintValueInfo]
 
     if ctx.target_platform_has_constraint(ios_constraint):
@@ -33,6 +34,8 @@ def _target_os_from_rule_ctx(ctx):
         return str(apple_common.platform_type.macos)
     elif ctx.target_platform_has_constraint(tvos_constraint):
         return str(apple_common.platform_type.tvos)
+    elif ctx.target_platform_has_constraint(visionos_constraint):
+        return str(getattr(apple_common.platform_type, "visionos", None))
     elif ctx.target_platform_has_constraint(watchos_constraint):
         return str(apple_common.platform_type.watchos)
     fail("ERROR: A valid Apple platform constraint could not be found from the resolved toolchain.")
@@ -91,6 +94,9 @@ cc_toolchain_forwarder = rule(
         ),
         "_tvos_constraint": attr.label(
             default = Label("@platforms//os:tvos"),
+        ),
+        "_visionos_constraint": attr.label(
+            default = Label("@platforms//os:visionos"),
         ),
         "_watchos_constraint": attr.label(
             default = Label("@platforms//os:watchos"),

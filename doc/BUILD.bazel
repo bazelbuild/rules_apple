@@ -15,6 +15,7 @@ _RULES_DOC_SRCS = [
     "resources",
     "tvos.doc",
     "versioning",
+    "visionos.doc",
     "watchos.doc",
     "xcarchive",
 ]
