@@ -70,6 +70,11 @@ _FAKE_MANIFEST = {
     'provisioning_profile': 'fake.mobileprovision',
 }
 
+_FAKE_SIMPLE_MANIFEST_NO_PROFILE = {
+    'codesign_identity': '-',
+    'embedded_bundle_manifests': [],
+}
+
 _IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
 _IPA_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion.ipa'
 _COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion_dossier_with_bundle.zip'
@@ -141,6 +146,28 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         actual_paths.index('/tmp/fake.app/PlugIns/IntentsUIExtension.appex'),
         actual_paths.index('/tmp/fake.app/'),
     )
+
+  @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
+  def test_sign_adhoc_simple_bundle_with_manifest_codesign_invocations(
+      self, mock_codesign
+  ):
+    mock.patch('shutil.copy').start()
+    dossier_codesigning_reader._sign_bundle_with_manifest(
+        root_bundle_path='/tmp/fake.app/',
+        manifest=_FAKE_SIMPLE_MANIFEST_NO_PROFILE,
+        dossier_directory_path='/tmp/dossier/',
+        codesign_path='/usr/bin/fake_codesign',
+        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        override_codesign_identity='-',
+        allowed_entitlements=None)
+    self.assertEqual(mock_codesign.call_count, 1)
+    actual_paths = [
+        mock_codesign.call_args_list[0][1]['full_path_to_sign'],
+    ]
+    expected_paths = [
+        '/tmp/fake.app/',
+    ]
+    self.assertSetEqual(set(actual_paths), set(expected_paths))
 
   @mock.patch.object(
       dossier_codesigning_reader, '_generate_entitlements_for_signing'
