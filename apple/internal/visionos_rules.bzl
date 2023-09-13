@@ -205,7 +205,7 @@ Resolved Xcode is version {xcode_version}.
 
     processor_partials = [
         partials.app_assets_validation_partial(
-            #app_icons = ctx.files.app_icons,  # TODO(b/288582842): Validate the new asset type.
+            app_icons = ctx.files.app_icons,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),

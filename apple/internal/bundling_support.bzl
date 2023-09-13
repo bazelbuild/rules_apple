@@ -253,23 +253,28 @@ See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilitie
         suffix_default = suffix_default,
     )
 
-def _ensure_single_xcassets_type(attr, files, extension, message = None):
+def _ensure_single_xcassets_type(*, attr, extension, files, message = None):
     """Helper for when an xcassets catalog should have a single sub type.
 
     Args:
       attr: The attribute to associate with the build failure if the list of
           files has an element that is not in a directory with the given
           extension.
-      files: An iterable of files to use.
       extension: The extension that should be used for the different asset
           type witin the catalog.
+      files: An iterable of files to use.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
     """
     if not message:
         message = ("Expected the xcassets directory to only contain files " +
                    "are in sub-directories with the extension %s") % extension
-    _ensure_path_format(attr, files, [["xcassets", extension]], message = message)
+    _ensure_path_format(
+        attr = attr,
+        files = files,
+        path_fragments_list = [["xcassets", extension]],
+        message = message,
+    )
 
 def _path_is_under_fragments(path, path_fragments):
     """Helper for _ensure_asset_types().
@@ -298,7 +303,7 @@ def _path_is_under_fragments(path, path_fragments):
 
     return True
 
-def _ensure_path_format(attr, files, path_fragments_list, message = None):
+def _ensure_path_format(*, attr, files, path_fragments_list, message = None):
     """Ensure the files match the required path fragments.
 
     TODO(b/77804841): The places calling this should go away and these types of
