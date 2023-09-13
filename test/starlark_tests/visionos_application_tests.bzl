@@ -18,6 +18,10 @@ load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "make_analysis_target_outputs_test",
 )
+load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
+    "archive_contents_test",
+)
 
 visibility("private")
 
@@ -45,6 +49,41 @@ def visionos_application_test_suite(name):
             "//:supports_visionos_setting": [],
             "//conditions:default": ["@platforms//:incompatible"],
         }),
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_contents_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/app",
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/app",
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        tags = [
+            name,
+            "needs-xcode-latest-beta",
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_solidstack_images_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/Assets.car"],
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = ["Bazel_logo.png"],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        tags = [
+            name,
+            "needs-xcode-latest-beta",
+        ],
     )
 
     native.test_suite(

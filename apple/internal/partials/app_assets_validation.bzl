@@ -40,9 +40,9 @@ def _app_assets_validation_partial_impl(
             message = ("Message extensions must use Messages Extensions Icon Sets " +
                        "(named .stickersiconset), not traditional App Icon Sets")
             bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "stickersiconset",
+                attr = "app_icons",
+                extension = "stickersiconset",
+                files = app_icons,
                 message = message,
             )
         elif product_type == apple_product_type.messages_sticker_pack_extension:
@@ -68,9 +68,18 @@ def _app_assets_validation_partial_impl(
             )
         elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
             bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "brandassets",
+                attr = "app_icons",
+                extension = "brandassets",
+                files = app_icons,
+            )
+        elif platform_prerequisites.platform_type == apple_common.platform_type.visionos:
+            message = ("visionOS apps must use visionOS app icon layers grouped in " +
+                       ".solidimagestack bundles, not traditional App Icon Sets")
+            bundling_support.ensure_single_xcassets_type(
+                attr = "app_icons",
+                extension = "solidimagestack",
+                files = app_icons,
+                message = message,
             )
         elif platform_prerequisites.platform_type == getattr(apple_common.platform_type, "visionos", None):
             bundling_support.ensure_single_xcassets_type(
@@ -80,16 +89,16 @@ def _app_assets_validation_partial_impl(
             )
         else:
             bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "appiconset",
+                attr = "app_icons",
+                extension = "appiconset",
+                files = app_icons,
             )
 
     if launch_images:
         bundling_support.ensure_single_xcassets_type(
-            "launch_images",
-            launch_images,
-            "launchimage",
+            attr = "launch_images",
+            extension = "launchimage",
+            files = launch_images,
         )
 
     return struct()
