@@ -103,15 +103,12 @@ visibility([
 
 def _visionos_application_impl(ctx):
     """WIP implementation of visionos_application."""
-
-    # Fail early if using the not yet fully supported visionOS platform type outside of testing.
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-        fail("The visionos_application rule is still a work in progress.")
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
         fail("""
-visionOS bundles require a visionOS SDK provided by Xcode 15 or later.
+visionOS bundles require a visionOS SDK provided by Xcode 15 beta 8 or later.
+
+This is not in Xcode 15 RC or final. The SDK is presently only found in beta Xcodes.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
@@ -278,12 +275,6 @@ Resolved Xcode is version {xcode_version}.
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
         ),
-        partials.settings_bundle_partial(
-            actions = actions,
-            platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            settings_bundle = ctx.attr.settings_bundle,
-        ),
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -400,7 +391,6 @@ visionos_application = rule_factory.create_apple_rule(
             add_environment_plist = True,
             platform_type = "visionos",
         ),
-        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),

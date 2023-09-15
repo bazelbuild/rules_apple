@@ -14,10 +14,11 @@
     <string>FOOBARBAZ1</string>
     </array>
     <key>CreationDate</key>
-    <date>2017-01-04T13:44:01Z</date>
+    <date>2023-09-04T13:44:01Z</date>
     <key>Platform</key>
     <array>
         <string>xrOS</string>
+        <string>visionOS</string>
     </array>
     <key>DeveloperCertificates</key>
     <array>
