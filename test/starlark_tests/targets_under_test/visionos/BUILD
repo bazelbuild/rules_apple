@@ -53,3 +53,17 @@ visionos_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+visionos_application(
+    name = "swift_app",
+    app_icons = ["//test/starlark_tests/resources:VisionAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_visionos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
