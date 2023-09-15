@@ -70,7 +70,11 @@ set -euo pipefail
 
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1 || exit_status=$?)
-if [[ "$output" == *error:* || "$exit_status" -ne 0 ]]; then
+
+if [[ "$exit_status" -ne 0 ]]; then
+  echo "$output" >&2
+  exit $exit_status
+elif [[ "$output" == *error:* ]]; then
   echo "$output" >&2
   exit 1
 fi
