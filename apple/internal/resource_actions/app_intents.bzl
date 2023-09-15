@@ -66,7 +66,7 @@ def generate_app_intents_metadata_bundle(
         apple_fragment = apple_fragment,
         arguments = [args],
         command = '''\
-set -exuo pipefail
+set -euo pipefail
 
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1 || exit_status=$?)
