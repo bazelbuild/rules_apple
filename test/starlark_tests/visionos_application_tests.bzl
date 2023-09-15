@@ -93,6 +93,22 @@ def visionos_application_test_suite(name):
     )
 
     archive_contents_test(
+        name = "{}_binary_contents_arm_simulator_platform_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app",
+        cpus = {
+            "visionos_cpus": ["sim_arm64"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
+        tags = [
+            name,
+            "needs-xcode-latest-beta",
+        ],
+    )
+
+    archive_contents_test(
         name = "{}_opt_resources_simulator_test".format(name),
         build_type = "simulator",
         compilation_mode = "opt",
