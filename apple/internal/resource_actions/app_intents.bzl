@@ -65,7 +65,16 @@ def generate_app_intents_metadata_bundle(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
-        command = 'set -euo pipefail; if ! output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1); then echo "$output"  >&2 && exit 1; fi',
+        command = '''\
+set -exuo pipefail
+
+exit_status=0
+output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1 || exit_status=$?)
+if [[ "$output" == *error:* || "$exit_status" -ne 0 ]]; then
+  echo "$output" >&2
+  exit 1
+fi
+''',
         inputs = depset([bundle_binary], transitive = [depset(source_files)]),
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
