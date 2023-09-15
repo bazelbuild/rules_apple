@@ -15,10 +15,6 @@
 """apple_static_library Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_mismatched_platform_test.bzl",
     "analysis_incoming_ios_platform_mismatch_test",
     "analysis_incoming_watchos_platform_mismatch_test",
@@ -391,9 +387,6 @@ def apple_static_library_test_suite(name):
     # the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
     binary_contents_test(
         name = "{}_visionos_binary_contents_arm_simulator_platform_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_vision_library",
         cpus = {

@@ -18,7 +18,31 @@ load(
     "@build_bazel_rules_apple//apple/internal:visionos_rules.bzl",
     _visionos_application = "visionos_application",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
 
 visibility("public")
 
 visionos_application = _visionos_application
+
+visionos_build_test = apple_build_test_rule(
+    doc = """\
+Test rule to check that the given library targets (Swift, Objective-C, C++)
+build for visionOS.
+
+Typical usage:
+
+```starlark
+visionos_build_test(
+    name = "my_build_test",
+    minimum_os_version = "1.0",
+    targets = [
+        "//some/package:my_library",
+    ],
+)
+```
+""",
+    platform_type = "visionos",
+)
