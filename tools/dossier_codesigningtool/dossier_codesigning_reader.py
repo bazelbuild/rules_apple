@@ -976,6 +976,8 @@ def _sign_bundle(parsed_args):
               '--output_artifact support for app bundles has not yet been'
               ' implemented!'
           )
+        # Ensure that the app bundle is writable before we attempt to sign it.
+        subprocess.check_call(['chmod', '-R', 'u+w', input_fullpath])
         manifest = read_manifest_from_dossier(dossier_directory.path)
         _sign_bundle_with_manifest(input_fullpath, manifest,
                                    dossier_directory.path, codesign_path,
