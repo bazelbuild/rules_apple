@@ -39,6 +39,7 @@ load(
 )
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
+_is_bazel_7 = not hasattr(apple_common, "apple_crosstool_transition")
 
 _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "ios": "//command_line_option:ios_multi_cpus",
@@ -46,6 +47,29 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "tvos": "//command_line_option:tvos_cpus",
     "visionos": "//command_line_option:visionos_cpus",
     "watchos": "//command_line_option:watchos_cpus",
+}
+
+# Following map provides and ad-hoc platform mapping
+# It's no longer needed once --apple_platforms is set everywhere and toolchain resolution enabled
+_CPU_TO_PLATFORM = {
+    "darwin_x86_64": "@build_bazel_apple_support//platforms:macos_x86_64",
+    "darwin_arm64": "@build_bazel_apple_support//platforms:macos_arm64",
+    "darwin_arm64e": "@build_bazel_apple_support//platforms:darwin_arm64e",
+    "ios_x86_64": "@build_bazel_apple_support//platforms:ios_x86_64",
+    "ios_arm64": "@build_bazel_apple_support//platforms:ios_arm64",
+    "ios_sim_arm64": "@build_bazel_apple_support//platforms:ios_sim_arm64",
+    "ios_arm64e": "@build_bazel_apple_support//platforms:ios_arm64e",
+    "tvos_sim_arm64": "@build_bazel_apple_support//platforms:tvos_sim_arm64",
+    "tvos_arm64": "@build_bazel_apple_support//platforms:tvos_arm64",
+    "tvos_x86_64": "@build_bazel_apple_support//platforms:tvos_x86_64",
+    "visionos_arm64": "@build_bazel_apple_support//platforms:visionos_arm64",
+    "visionos_sim_arm64": "@build_bazel_apple_support//platforms:visionos_sim_arm64",
+    "visionos_x86_64": "@build_bazel_apple_support//platforms/simulator:visionos_x86_64",
+    "watchos_armv7k": "@build_bazel_apple_support//platforms:watchos_armv7k",
+    "watchos_arm64": "@build_bazel_apple_support//platforms:watchos_arm64",
+    "watchos_device_arm64": "@build_bazel_apple_support//platforms:watchos_arm64",
+    "watchos_arm64_32": "@build_bazel_apple_support//platforms:watchos_arm64_32",
+    "watchos_x86_64": "@build_bazel_apple_support//platforms:watchos_x86_64",
 }
 
 def _platform_specific_cpu_setting_name(platform_type):
@@ -237,7 +261,13 @@ def _command_line_options(
     Returns:
         A dictionary of `"//command_line_option"`s defined for the current target.
     """
+    cpu = _cpu_string(
+        environment_arch = environment_arch,
+        platform_type = platform_type,
+        settings = settings,
+    )
 
+    default_platforms = [_CPU_TO_PLATFORM[cpu]] if _is_bazel_7 else []
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
@@ -247,17 +277,13 @@ def _command_line_options(
         # architecture and environment, therefore we set `environment_arch` when it is available.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
-        "//command_line_option:cpu": _cpu_string(
-            environment_arch = environment_arch,
-            platform_type = platform_type,
-            settings = settings,
-        ),
+        "//command_line_option:cpu": cpu,
         "//command_line_option:crosstool_top": (
             settings["//command_line_option:apple_crosstool_top"]
         ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
-        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [],
+        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else default_platforms,
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
