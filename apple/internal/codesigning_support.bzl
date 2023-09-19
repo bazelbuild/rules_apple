@@ -39,6 +39,9 @@ load(
     "shell",
 )
 
+# The adhoc signature used as an identity, partially documented at https://developer.apple.com/documentation/security/seccodesignatureflags/1397793-adhoc
+_ADHOC_PSEUDO_IDENTITY = "-"
+
 def _double_quote(raw_string):
     """Add double quotes around the string and preserve existing quote characters.
 
@@ -71,7 +74,7 @@ def _codesignopts_from_rule_ctx(ctx):
 def _preferred_codesigning_identity(platform_prerequisites):
     """Returns the preferred codesigning identity from platform prerequisites"""
     if not platform_prerequisites.platform.is_device:
-        return "-"
+        return _ADHOC_PSEUDO_IDENTITY
     build_settings = platform_prerequisites.build_settings
     if build_settings:
         objc_fragment = platform_prerequisites.objc_fragment
@@ -137,7 +140,7 @@ def _codesign_args_for_path(
             ])
 
         else:
-            identity = "-"
+            identity = _ADHOC_PSEUDO_IDENTITY
 
     if identity:
         cmd_codesigning.extend([
@@ -517,15 +520,26 @@ def _generate_codesigning_dossier_action(
     # ad hoc identity.
     codesign_identity = _preferred_codesigning_identity(platform_prerequisites)
     if not codesign_identity and not provisioning_profile:
-        codesign_identity = "-"
+        codesign_identity = _ADHOC_PSEUDO_IDENTITY
     if codesign_identity:
         dossier_arguments.extend(["--codesign_identity", codesign_identity])
     else:
         dossier_arguments.append("--infer_identity")
-    if entitlements:
+    if entitlements and platform_prerequisites.platform.is_device:
+        # Entitlements are embedded as segments of the linked simulator binary. They should not be
+        # used for signing simulator binaries.
         input_files.append(entitlements)
         dossier_arguments.extend(["--entitlements_file", entitlements.path])
-    if provisioning_profile:
+    if provisioning_profile and codesign_identity != _ADHOC_PSEUDO_IDENTITY:
+        # If we're signing with the ad-hoc pseudo-identity, no identity may be retrieved from the
+        # signed artifact and any code requirement placing restrictions on the signing identity will
+        # fail.
+        #
+        # Therefore, restrictions placed from the provisioning profile will effectively break an
+        # ad-hoc signed artifact, and will always result in failing code signing checks on the
+        # bundle or binary.
+        #
+        # Only reference and embed the provisioning profile in standard code signing.
         input_files.append(provisioning_profile)
         dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
         if platform_prerequisites.platform.is_device:
