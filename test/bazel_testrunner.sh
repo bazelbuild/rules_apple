@@ -120,6 +120,8 @@ load(
 
 apple_support_dependencies()
 EOF
+
+  cp "$(rlocation build_bazel_rules_apple/platform_mappings)" platform_mappings
 }
 
 # Set-up a clean default workspace.
