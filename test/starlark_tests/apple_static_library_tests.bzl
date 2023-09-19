@@ -46,7 +46,7 @@ analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
-        "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
     },
 )
 
