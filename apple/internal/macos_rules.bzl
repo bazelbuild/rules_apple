@@ -134,6 +134,7 @@ def _macos_application_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -185,6 +186,7 @@ def _macos_application_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -241,6 +243,7 @@ def _macos_application_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -250,6 +253,7 @@ def _macos_application_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -270,6 +274,7 @@ def _macos_application_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -285,6 +290,7 @@ def _macos_application_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -296,6 +302,7 @@ def _macos_application_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -313,6 +320,7 @@ def _macos_application_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embedded_targets,
@@ -344,6 +352,7 @@ def _macos_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -415,6 +424,7 @@ def _macos_bundle_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_extension = ctx.attr.bundle_extension,
@@ -465,6 +475,7 @@ def _macos_bundle_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -516,6 +527,7 @@ def _macos_bundle_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -525,6 +537,7 @@ def _macos_bundle_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -545,6 +558,7 @@ def _macos_bundle_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -560,6 +574,7 @@ def _macos_bundle_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -576,6 +591,7 @@ def _macos_bundle_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -596,6 +612,7 @@ def _macos_bundle_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -642,6 +659,7 @@ def _macos_extension_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -690,6 +708,7 @@ def _macos_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -754,6 +773,7 @@ def _macos_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -763,6 +783,7 @@ def _macos_extension_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -783,6 +804,7 @@ def _macos_extension_impl(ctx):
             debug_dependencies = ctx.attr.additional_contents.keys(),
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            mac_exec_group = mac_exec_group,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
@@ -805,6 +827,7 @@ def _macos_extension_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             extensionkit_keys_required = ctx.attr.extensionkit_extension,
             launch_storyboard = None,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -816,6 +839,7 @@ def _macos_extension_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -845,6 +869,7 @@ def _macos_extension_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -884,6 +909,7 @@ def _macos_quick_look_plugin_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -932,6 +958,7 @@ def _macos_quick_look_plugin_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -989,6 +1016,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -998,6 +1026,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -1019,6 +1048,7 @@ def _macos_quick_look_plugin_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -1034,6 +1064,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1050,6 +1081,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1079,6 +1111,7 @@ def _macos_quick_look_plugin_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -1116,6 +1149,7 @@ def _macos_kernel_extension_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -1161,6 +1195,7 @@ def _macos_kernel_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1219,6 +1254,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -1228,6 +1264,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -1249,6 +1286,7 @@ def _macos_kernel_extension_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -1264,6 +1302,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1280,6 +1319,7 @@ def _macos_kernel_extension_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1309,6 +1349,7 @@ def _macos_kernel_extension_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -1348,6 +1389,7 @@ def _macos_spotlight_importer_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -1389,6 +1431,7 @@ def _macos_spotlight_importer_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1438,6 +1481,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -1447,6 +1491,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -1483,6 +1528,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1498,6 +1544,7 @@ def _macos_spotlight_importer_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1527,6 +1574,7 @@ def _macos_spotlight_importer_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -1566,6 +1614,7 @@ def _macos_xpc_service_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -1607,6 +1656,7 @@ def _macos_xpc_service_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1656,6 +1706,7 @@ def _macos_xpc_service_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
@@ -1665,6 +1716,7 @@ def _macos_xpc_service_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
@@ -1685,6 +1737,7 @@ def _macos_xpc_service_impl(ctx):
             debug_dependencies = ctx.attr.additional_contents.keys(),
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            mac_exec_group = mac_exec_group,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
@@ -1701,6 +1754,7 @@ def _macos_xpc_service_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1716,6 +1770,7 @@ def _macos_xpc_service_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1745,6 +1800,7 @@ def _macos_xpc_service_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -1784,6 +1840,7 @@ def _macos_command_line_application_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = None,  # macos_command_line_application doesn't support this override.
@@ -1829,6 +1886,7 @@ def _macos_command_line_application_impl(ctx):
         dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         linkmaps = debug_outputs.linkmaps,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
@@ -1838,6 +1896,7 @@ def _macos_command_line_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
@@ -1908,6 +1967,7 @@ def _macos_dylib_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = None,  # macos_dylib doesn't support this override.
@@ -1954,6 +2014,7 @@ def _macos_dylib_impl(ctx):
         dsym_binaries = debug_outputs.dsym_binaries,
         dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         linkmaps = debug_outputs.linkmaps,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
         rule_label = label,
@@ -1963,6 +2024,7 @@ def _macos_dylib_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,

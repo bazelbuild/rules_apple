@@ -55,6 +55,7 @@ def _framework_import_partial_impl(
         apple_mac_toolchain_info,
         features,
         label_name,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         provisioning_profile,
@@ -197,6 +198,7 @@ def _framework_import_partial_impl(
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
             executable = resolved_imported_dynamic_framework_processor.executable,
+            exec_group = mac_exec_group,
             inputs = depset(input_files, transitive = transitive_inputs),
             input_manifests = resolved_imported_dynamic_framework_processor.input_manifests +
                               resolved_codesigningtool.input_manifests,
@@ -222,6 +224,7 @@ def framework_import_partial(
         apple_mac_toolchain_info,
         features,
         label_name,
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         provisioning_profile,
@@ -235,9 +238,10 @@ def framework_import_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: tools from the shared Apple toolchain.
         features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
+        mac_exec_group: Exec group associated with apple_mac_toolchain_info
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -256,6 +260,7 @@ def framework_import_partial(
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         features = features,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,

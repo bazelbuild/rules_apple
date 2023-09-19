@@ -194,6 +194,7 @@ def _generate_dsym_info_plist(
         actions,
         dsym_bundle_name,
         dsym_info_plist_template,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         resolved_plisttool,
@@ -257,6 +258,7 @@ def _generate_dsym_info_plist(
         actions = actions,
         control_file = control_file,
         inputs = plisttool_input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileDSYMInfoPlist",
         outputs = [dsym_plist],
         platform_prerequisites = platform_prerequisites,
@@ -271,6 +273,7 @@ def _bundle_dsym_files(
         debug_output_filename,
         dsym_binaries = {},
         dsym_info_plist_template,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         resolved_plisttool,
@@ -334,6 +337,7 @@ def _bundle_dsym_files(
             dsym_bundle_name = dsym_bundle_name,
             dsym_info_plist_template = dsym_info_plist_template,
             output_discriminator = output_discriminator,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = resolved_plisttool,
             rule_label = rule_label,
@@ -374,6 +378,7 @@ def _debug_symbols_partial_impl(
         dsym_binaries = {},
         dsym_info_plist_template,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         resolved_plisttool,
@@ -414,6 +419,7 @@ def _debug_symbols_partial_impl(
                 debug_output_filename = debug_output_filename,
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
+                mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 resolved_plisttool = resolved_plisttool,
@@ -491,6 +497,7 @@ def debug_symbols_partial(
         dsym_binaries = {},
         dsym_info_plist_template,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         resolved_plisttool,
@@ -517,6 +524,7 @@ def debug_symbols_partial(
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
+      mac_exec_group: The exec_group associated with resolved_plisttool
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -537,6 +545,7 @@ def debug_symbols_partial(
         dsym_binaries = dsym_binaries,
         dsym_info_plist_template = dsym_info_plist_template,
         linkmaps = linkmaps,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resolved_plisttool = resolved_plisttool,

@@ -239,6 +239,7 @@ def _codesigning_dossier_partial_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        mac_exec_group,
         apple_xplat_toolchain_info,
         xplat_exec_group,
         bundle_extension,
@@ -289,6 +290,7 @@ def _codesigning_dossier_partial_impl(
         embedded_dossiers = embedded_codesign_dossiers,
         entitlements = entitlements,
         provisioning_profile = provisioning_profile,
+        mac_exec_group = mac_exec_group,
     )
 
     embedded_dossier_depset = None
@@ -343,6 +345,7 @@ def codesigning_dossier_partial(
         *,
         actions,
         apple_mac_toolchain_info,
+        mac_exec_group,
         apple_xplat_toolchain_info,
         xplat_exec_group,
         bundle_extension,
@@ -362,6 +365,7 @@ def codesigning_dossier_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
       bundle_extension: The extension for the bundle.
@@ -390,6 +394,7 @@ def codesigning_dossier_partial(
         _codesigning_dossier_partial_impl,
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         xplat_exec_group = xplat_exec_group,
         bundle_extension = bundle_extension,

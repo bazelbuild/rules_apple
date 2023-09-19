@@ -59,6 +59,7 @@ def compile_storyboard(
         *,
         actions,
         input_file,
+        mac_exec_group,
         output_dir,
         platform_prerequisites,
         resolved_xctoolrunner,
@@ -68,6 +69,7 @@ def compile_storyboard(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The storyboard to compile.
+      mac_exec_group: The exec_group associated with resolved_xctoolrunner
       output_dir: The directory where the compiled outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
@@ -96,6 +98,7 @@ def compile_storyboard(
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
+        exec_group = mac_exec_group,
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardCompile",
@@ -106,6 +109,7 @@ def compile_storyboard(
 def link_storyboards(
         *,
         actions,
+        mac_exec_group,
         output_dir,
         platform_prerequisites,
         resolved_xctoolrunner,
@@ -118,6 +122,7 @@ def link_storyboards(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The exec_group associated with resolved_xctoolrunner
       output_dir: The directory where the linked outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
@@ -145,6 +150,7 @@ def link_storyboards(
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
+        exec_group = mac_exec_group,
         inputs = depset(storyboardc_dirs, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "StoryboardLink",
@@ -156,6 +162,7 @@ def compile_xib(
         *,
         actions,
         input_file,
+        mac_exec_group,
         output_dir,
         platform_prerequisites,
         resolved_xctoolrunner,
@@ -195,6 +202,7 @@ def compile_xib(
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
+        exec_group = mac_exec_group,
         inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "XibCompile",

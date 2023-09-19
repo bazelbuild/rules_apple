@@ -126,6 +126,7 @@ Resolved Xcode is version {xcode_version}.
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -177,6 +178,7 @@ Resolved Xcode is version {xcode_version}.
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
@@ -229,6 +231,7 @@ Resolved Xcode is version {xcode_version}.
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
@@ -241,6 +244,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_name = bundle_name,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
@@ -254,6 +258,7 @@ Resolved Xcode is version {xcode_version}.
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -267,6 +272,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -281,6 +287,7 @@ Resolved Xcode is version {xcode_version}.
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -304,6 +311,7 @@ Resolved Xcode is version {xcode_version}.
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
