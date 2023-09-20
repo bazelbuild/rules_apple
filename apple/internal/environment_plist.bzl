@@ -69,6 +69,7 @@ def _environment_plist_impl(ctx):
             ctx.outputs.plist.path,
         ],
         executable = resolved_environment_plist_tool.executable,
+        exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         inputs = resolved_environment_plist_tool.inputs,
         input_manifests = resolved_environment_plist_tool.input_manifests,
         outputs = [ctx.outputs.plist],

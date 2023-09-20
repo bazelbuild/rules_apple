@@ -46,6 +46,7 @@ def plisttool_action(
         actions,
         control_file,
         inputs,
+        mac_exec_group,
         mnemonic = None,
         outputs,
         platform_prerequisites,
@@ -60,6 +61,7 @@ def plisttool_action(
       actions: The actions provider from `ctx.actions`.
       control_file: The `File` containing the control struct to be passed to plisttool.
       inputs: Any `File`s that should be treated as inputs to the underlying action.
+      mac_exec_group: The exec group associated with resolved_plist_tool.
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -69,6 +71,7 @@ def plisttool_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
+        exec_group = mac_exec_group,
         executable = resolved_plisttool.executable,
         inputs = depset(inputs + [control_file], transitive = [resolved_plisttool.inputs]),
         input_manifests = resolved_plisttool.input_manifests,
@@ -118,6 +121,7 @@ def merge_resource_infoplists(
         actions,
         bundle_name_with_extension,
         input_files,
+        mac_exec_group,
         output_discriminator,
         output_plist,
         platform_prerequisites,
@@ -129,6 +133,7 @@ def merge_resource_infoplists(
       actions: The actions provider from `ctx.actions`.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
+      mac_exec_group: The exec_group associated with resolved_plisttool
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_plist: The file reference for the output plist.
@@ -168,6 +173,7 @@ def merge_resource_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
         platform_prerequisites = platform_prerequisites,
@@ -187,6 +193,7 @@ def merge_root_infoplists(
         include_executable_name = True,
         input_plists,
         launch_storyboard,
+        mac_exec_group,
         output_discriminator,
         output_plist,
         output_pkginfo,
@@ -221,6 +228,7 @@ def merge_root_infoplists(
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
       launch_storyboard: A file to be used as a launch screen for the application.
+      mac_exec_group: The exec_group associated with plist_tool
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
@@ -375,6 +383,7 @@ def merge_root_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
         platform_prerequisites = platform_prerequisites,

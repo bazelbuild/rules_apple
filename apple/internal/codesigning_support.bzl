@@ -429,6 +429,7 @@ def _generate_codesigning_dossier_action(
         output_discriminator,
         output_dossier,
         platform_prerequisites,
+        mac_exec_group,
         embedded_dossiers = [],
         entitlements = None,
         provisioning_profile = None):
@@ -441,6 +442,7 @@ def _generate_codesigning_dossier_action(
           dossier.
       entitlements: Optional file representing the entitlements to sign with.
       label_name: Name of the target being built.
+      mac_exec_group: Th eexec_group associated with resolved_codesigning_dossier_tool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
@@ -505,6 +507,7 @@ def _generate_codesigning_dossier_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        exec_group = mac_exec_group,
         executable = resolved_codesigning_dossier_tool.executable,
         execution_requirements = {
             # Added so that the output of this action is not cached remotely, in case multiple
@@ -533,6 +536,7 @@ def _post_process_and_sign_archive_action(
         input_archive,
         ipa_post_processor,
         label_name,
+        mac_exec_group,
         output_archive,
         output_archive_root_path,
         output_discriminator,
@@ -554,6 +558,7 @@ def _post_process_and_sign_archive_action(
           that has not yet been processed or signed.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: Name of the target being built.
+      mac_exec_group: The exec_group associated with resolved_codesigningtool.
       output_archive: The `File` representing the processed and signed archive.
       output_archive_root_path: The `string` path to where the processed, uncompressed archive
           should be located.
@@ -667,6 +672,7 @@ def _post_process_and_sign_archive_action(
                 # $HOME.
                 "no-sandbox": "1",
             },
+            exec_group = mac_exec_group,
             inputs = depset(input_files, transitive = [resolved_codesigningtool.inputs]),
             input_manifests = resolved_codesigningtool.input_manifests,
             mnemonic = mnemonic,

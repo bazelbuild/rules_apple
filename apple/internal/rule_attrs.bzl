@@ -85,10 +85,7 @@ def _common_attrs():
 
 def _common_tool_attrs():
     """Returns the set of attributes to support rules that need rules_apple tools and toolchains."""
-    return dicts.add(
-        _common_attrs(),
-        apple_toolchain_utils.shared_attrs(),
-    )
+    return _common_attrs()
 
 def _common_exec_groups():
     """Returns a set of exec_groups"""

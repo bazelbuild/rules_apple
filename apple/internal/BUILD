@@ -17,6 +17,14 @@ load(
 
 licenses(["notice"])
 
+toolchain_type(name = "mac_tools_toolchain_type")
+
+toolchain(
+    name = "mac_toolchain_declaration",
+    toolchain = ":mac_tools_toolchain",
+    toolchain_type = ":mac_tools_toolchain_type",
+)
+
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",

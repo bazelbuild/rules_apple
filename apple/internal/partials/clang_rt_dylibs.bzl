@@ -44,6 +44,7 @@ def _clang_rt_dylibs_partial_impl(
         binary_artifact,
         features,
         label_name,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         dylibs):
@@ -68,6 +69,7 @@ def _clang_rt_dylibs_partial_impl(
             executable = resolved_clangrttool.executable,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
+            exec_group = mac_exec_group,
             inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
             input_manifests = resolved_clangrttool.input_manifests,
             outputs = [clang_rt_zip],
@@ -91,6 +93,7 @@ def clang_rt_dylibs_partial(
         dylibs,
         features,
         label_name,
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites):
     """Constructor for the Clang runtime dylibs processing partial.
@@ -117,6 +120,7 @@ def clang_rt_dylibs_partial(
         binary_artifact = binary_artifact,
         features = features,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         dylibs = dylibs,

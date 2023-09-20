@@ -150,6 +150,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -203,6 +205,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
@@ -281,8 +284,9 @@ reproducible error case.".format(
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -301,6 +305,7 @@ reproducible error case.".format(
             bundle_name = bundle_name,
             debug_dependencies = [ctx.attr.extension],
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -321,6 +326,7 @@ reproducible error case.".format(
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -336,6 +342,7 @@ reproducible error case.".format(
             bundle_dylibs = True,
             dependency_targets = [ctx.attr.extension],
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.watchos_stub_partial(
@@ -358,7 +365,8 @@ reproducible error case.".format(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        xplat_exec_group = xplat_exec_group,
+        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -395,6 +403,9 @@ def _watchos_extension_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -447,6 +458,7 @@ def _watchos_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
@@ -533,6 +545,7 @@ def _watchos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
@@ -540,7 +553,8 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
@@ -562,6 +576,7 @@ def _watchos_extension_impl(ctx):
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            mac_exec_group = mac_exec_group,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
             version = ctx.attr.version,
@@ -580,6 +595,7 @@ def _watchos_extension_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -588,6 +604,7 @@ def _watchos_extension_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_verification_targets = bundle_verification_targets,
             bundle_id = bundle_id,
@@ -607,6 +624,7 @@ def _watchos_extension_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             dependency_targets = ctx.attr.extensions,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -625,7 +643,8 @@ def _watchos_extension_impl(ctx):
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        xplat_exec_group = xplat_exec_group,
+        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -678,6 +697,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -729,6 +751,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -792,6 +815,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
@@ -799,7 +823,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
+            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -820,6 +845,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -836,6 +862,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -849,6 +876,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = None,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -864,6 +892,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -881,7 +910,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        xplat_exec_group = xplat_exec_group,
+        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,

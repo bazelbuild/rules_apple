@@ -154,6 +154,7 @@ def compile_asset_catalog(
         actions,
         asset_files,
         bundle_id,
+        mac_exec_group,
         output_dir,
         output_plist,
         platform_prerequisites,
@@ -174,6 +175,7 @@ def compile_asset_catalog(
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
       bundle_id: The bundle ID to configure for this target.
+      mac_exec_group: The exec group associated with resolved_xctoolrunner.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
@@ -232,6 +234,7 @@ def compile_asset_catalog(
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
         execution_requirements = {"no-sandbox": "1"},
+        exec_group = mac_exec_group,
         inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "AssetCatalogCompile",

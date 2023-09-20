@@ -124,6 +124,7 @@ def _extract_signing_info(
         *,
         actions,
         entitlements,
+        mac_exec_group,
         platform_prerequisites,
         provisioning_profile,
         resolved_provisioning_profile_tool,
@@ -137,6 +138,7 @@ def _extract_signing_info(
       provisioning_profile: File for the provisioning profile.
       resolved_provisioning_profile_tool: A tool used to extract info from a provisioning profile.
       rule_label: The label of the target being analyzed.
+      mac_exec_group: The exec group associated with the provisioning_profile_tool
 
     Returns:
       A `struct` with two items: the entitlements file to use, a
@@ -184,6 +186,7 @@ def _extract_signing_info(
             # Since the tools spawns openssl and/or security tool, it doesn't
             # support being sandboxed.
             execution_requirements = {"no-sandbox": "1"},
+            exec_group = mac_exec_group,
             inputs = depset(
                 [control_file, provisioning_profile],
                 transitive = [resolved_provisioning_profile_tool.inputs],
@@ -204,6 +207,7 @@ def _process_entitlements(
         apple_mac_toolchain_info,
         bundle_id,
         entitlements_file,
+        mac_exec_group,
         platform_prerequisites,
         product_type,
         provisioning_profile,
@@ -234,6 +238,7 @@ def _process_entitlements(
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         platform_prerequisites: The platform prerequisites.
         product_type: The product type being built.
         provisioning_profile: The `File` representing the provisioning profile,
@@ -257,6 +262,7 @@ def _process_entitlements(
         resolved_provisioning_profile_tool = (
             apple_mac_toolchain_info.resolved_provisioning_profile_tool
         ),
+        mac_exec_group = mac_exec_group,
         rule_label = rule_label,
     )
     plists = []
@@ -313,6 +319,7 @@ def _process_entitlements(
         actions = actions,
         control_file = control_file,
         inputs = inputs,
+        mac_exec_group = mac_exec_group,
         mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
         platform_prerequisites = platform_prerequisites,

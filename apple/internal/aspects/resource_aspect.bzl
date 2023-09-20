@@ -14,7 +14,6 @@
 
 """Implementation of the resource propagation aspect."""
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
@@ -102,6 +101,7 @@ def _apple_resource_aspect_impl(target, ctx):
         "actions": ctx.actions,
         "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
         "bundle_id": None,
+        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(ctx),
         "product_type": None,
         "rule_label": ctx.label,
     }
@@ -314,10 +314,7 @@ def _apple_resource_aspect_impl(target, ctx):
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
-    attrs = dicts.add(
-        apple_support.action_required_attrs(),
-        apple_toolchain_utils.shared_attrs(),
-    ),
+    attrs = apple_support.action_required_attrs(),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
