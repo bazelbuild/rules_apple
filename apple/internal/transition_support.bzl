@@ -34,6 +34,10 @@ part on the language used for XCFramework library identifiers:
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
+    "@build_bazel_apple_support//configs:platforms.bzl",
+    "CPU_TO_DEFAULT_PLATFORM_NAME",
+)
+load(
     "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -49,27 +53,11 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "watchos": "//command_line_option:watchos_cpus",
 }
 
-# Following map provides and ad-hoc platform mapping
-# It's no longer needed once --apple_platforms is set everywhere and toolchain resolution enabled
-_CPU_TO_PLATFORM = {
-    "darwin_x86_64": "@build_bazel_apple_support//platforms:macos_x86_64",
-    "darwin_arm64": "@build_bazel_apple_support//platforms:macos_arm64",
-    "darwin_arm64e": "@build_bazel_apple_support//platforms:darwin_arm64e",
-    "ios_x86_64": "@build_bazel_apple_support//platforms:ios_x86_64",
-    "ios_arm64": "@build_bazel_apple_support//platforms:ios_arm64",
-    "ios_sim_arm64": "@build_bazel_apple_support//platforms:ios_sim_arm64",
-    "ios_arm64e": "@build_bazel_apple_support//platforms:ios_arm64e",
-    "tvos_sim_arm64": "@build_bazel_apple_support//platforms:tvos_sim_arm64",
-    "tvos_arm64": "@build_bazel_apple_support//platforms:tvos_arm64",
-    "tvos_x86_64": "@build_bazel_apple_support//platforms:tvos_x86_64",
-    "visionos_arm64": "@build_bazel_apple_support//platforms:visionos_arm64",
-    "visionos_sim_arm64": "@build_bazel_apple_support//platforms:visionos_sim_arm64",
-    "visionos_x86_64": "@build_bazel_apple_support//platforms/simulator:visionos_x86_64",
-    "watchos_armv7k": "@build_bazel_apple_support//platforms:watchos_armv7k",
-    "watchos_arm64": "@build_bazel_apple_support//platforms:watchos_arm64",
-    "watchos_device_arm64": "@build_bazel_apple_support//platforms:watchos_arm64",
-    "watchos_arm64_32": "@build_bazel_apple_support//platforms:watchos_arm64_32",
-    "watchos_x86_64": "@build_bazel_apple_support//platforms:watchos_x86_64",
+_CPU_TO_DEFAULT_PLATFORM_FLAG = {
+    cpu: "@build_bazel_apple_support//platforms:{}_platform".format(
+        platform_name,
+    )
+    for cpu, platform_name in CPU_TO_DEFAULT_PLATFORM_NAME.items()
 }
 
 def _platform_specific_cpu_setting_name(platform_type):
@@ -267,7 +255,7 @@ def _command_line_options(
         settings = settings,
     )
 
-    default_platforms = [_CPU_TO_PLATFORM[cpu]] if _is_bazel_7 else []
+    default_platforms = [settings[_CPU_TO_DEFAULT_PLATFORM_FLAG[cpu]]] if _is_bazel_7 else []
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple configuration distinguisher": "applebin_" + platform_type,
@@ -411,7 +399,7 @@ def _apple_rule_base_transition_impl(settings, attr):
 _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_crosstool_top",
-]
+] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values()
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
     "//command_line_option:ios_multi_cpus",
