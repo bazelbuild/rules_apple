@@ -69,7 +69,7 @@ def generate_app_intents_metadata_bundle(
 set -euo pipefail
 
 exit_status=0
-output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1 || exit_status=$?)
+output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1) || exit_status=$?
 
 if [[ "$exit_status" -ne 0 ]]; then
   echo "$output" >&2
