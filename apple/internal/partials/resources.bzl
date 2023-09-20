@@ -70,7 +70,6 @@ _PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 def _merge_root_infoplists(
         *,
         actions,
-        mac_exec_group,
         out_infoplist,
         output_discriminator,
         rule_descriptor,
@@ -105,7 +104,6 @@ def _merge_root_infoplists(
 
     resource_actions.merge_root_infoplists(
         actions = actions,
-        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
@@ -292,7 +290,6 @@ def _resources_partial_impl(
         environment_plist,
         extensionkit_keys_required,
         launch_storyboard,
-        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         resource_deps,
@@ -426,7 +423,6 @@ def _resources_partial_impl(
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
-                "mac_exec_group": mac_exec_group,
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
@@ -489,7 +485,6 @@ def _resources_partial_impl(
                 extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
-                mac_exec_group = mac_exec_group,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
@@ -518,7 +513,6 @@ def resources_partial(
         environment_plist,
         extensionkit_keys_required = False,
         launch_storyboard,
-        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         resource_deps,
@@ -552,7 +546,6 @@ def resources_partial(
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
-        mac_exec_group: The exec group associated with apple_mac_toolchain
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -583,7 +576,6 @@ def resources_partial(
         environment_plist = environment_plist,
         extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
-        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resource_deps = resource_deps,

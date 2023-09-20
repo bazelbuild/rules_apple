@@ -438,7 +438,6 @@ def _process_bucketized_data(
         bucketized_owners = [],
         buckets,
         bundle_id,
-        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         processing_owner = None,
@@ -458,7 +457,6 @@ def _process_bucketized_data(
         bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
         buckets: A dictionary with bucketized resources organized by resource type.
         bundle_id: The bundle ID to configure for this target.
-        mac_exec_group: The exec_group associated with apple_mac_toolchain_info
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -487,7 +485,6 @@ def _process_bucketized_data(
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
-                "mac_exec_group": mac_exec_group,
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,

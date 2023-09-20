@@ -15,6 +15,10 @@
 """Rules related to Apple bundle versioning."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -150,7 +154,8 @@ def _apple_bundle_version_impl(ctx):
 
 apple_bundle_version = rule(
     _apple_bundle_version_impl,
-    attrs =
+    attrs = dicts.add(
+        apple_toolchain_utils.shared_attrs(),
         {
             "build_label_pattern": attr.string(
                 mandatory = False,
@@ -197,6 +202,7 @@ be used for this key as well.
 """,
             ),
         },
+    ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = """
 Produces a target that contains versioning information for an Apple bundle.

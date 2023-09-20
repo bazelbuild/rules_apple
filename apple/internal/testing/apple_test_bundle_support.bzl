@@ -295,10 +295,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
-
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -400,7 +397,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
@@ -412,7 +408,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
             rule_label = label,
@@ -428,7 +423,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             features = features,
             label_name = label.name,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -443,7 +437,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             launch_storyboard = getattr(ctx.file, "launch_storyboard", None),
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -460,7 +453,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             label_name = label.name,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -476,8 +468,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
-        mac_exec_group = mac_exec_group,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,

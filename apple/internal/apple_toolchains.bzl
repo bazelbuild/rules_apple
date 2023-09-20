@@ -113,6 +113,16 @@ A tool that acts as a wrapper for xcrun actions.
     },
 )
 
+def _shared_attrs():
+    """Private attributes on every rule to provide access to bundling tools and other file deps."""
+    return {
+        "_mac_toolchain": attr.label(
+            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
+            providers = [[AppleMacToolsToolchainInfo]],
+            cfg = "exec",
+        ),
+    }
+
 def _resolve_tools_for_executable(*, rule_ctx, attr_name):
     """Helper macro to resolve executable runfile dependencies across the rule boundary."""
 
@@ -128,56 +138,55 @@ def _resolve_tools_for_executable(*, rule_ctx, attr_name):
     )
 
 def _apple_mac_tools_toolchain_impl(ctx):
-    apple_mac_tools_info = AppleMacToolsToolchainInfo(
-        dsym_info_plist_template = ctx.file.dsym_info_plist_template,
-        process_and_sign_template = ctx.file.process_and_sign_template,
-        resolved_bundletool_experimental = _resolve_tools_for_executable(
-            attr_name = "bundletool_experimental",
-            rule_ctx = ctx,
-        ),
-        resolved_codesigningtool = _resolve_tools_for_executable(
-            attr_name = "codesigningtool",
-            rule_ctx = ctx,
-        ),
-        resolved_dossier_codesigningtool = _resolve_tools_for_executable(
-            attr_name = "dossier_codesigningtool",
-            rule_ctx = ctx,
-        ),
-        resolved_clangrttool = _resolve_tools_for_executable(
-            attr_name = "clangrttool",
-            rule_ctx = ctx,
-        ),
-        resolved_environment_plist_tool = _resolve_tools_for_executable(
-            attr_name = "environment_plist_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_imported_dynamic_framework_processor = _resolve_tools_for_executable(
-            attr_name = "imported_dynamic_framework_processor",
-            rule_ctx = ctx,
-        ),
-        resolved_plisttool = _resolve_tools_for_executable(
-            attr_name = "plisttool",
-            rule_ctx = ctx,
-        ),
-        resolved_provisioning_profile_tool = _resolve_tools_for_executable(
-            attr_name = "provisioning_profile_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_swift_stdlib_tool = _resolve_tools_for_executable(
-            attr_name = "swift_stdlib_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_xcframework_processor_tool = _resolve_tools_for_executable(
-            attr_name = "xcframework_processor_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_xctoolrunner = _resolve_tools_for_executable(
-            attr_name = "xctoolrunner",
-            rule_ctx = ctx,
-        ),
-    )
     return [
-        platform_common.ToolchainInfo(mac_tools_info = apple_mac_tools_info),
+        AppleMacToolsToolchainInfo(
+            dsym_info_plist_template = ctx.file.dsym_info_plist_template,
+            process_and_sign_template = ctx.file.process_and_sign_template,
+            resolved_bundletool_experimental = _resolve_tools_for_executable(
+                attr_name = "bundletool_experimental",
+                rule_ctx = ctx,
+            ),
+            resolved_codesigningtool = _resolve_tools_for_executable(
+                attr_name = "codesigningtool",
+                rule_ctx = ctx,
+            ),
+            resolved_dossier_codesigningtool = _resolve_tools_for_executable(
+                attr_name = "dossier_codesigningtool",
+                rule_ctx = ctx,
+            ),
+            resolved_clangrttool = _resolve_tools_for_executable(
+                attr_name = "clangrttool",
+                rule_ctx = ctx,
+            ),
+            resolved_environment_plist_tool = _resolve_tools_for_executable(
+                attr_name = "environment_plist_tool",
+                rule_ctx = ctx,
+            ),
+            resolved_imported_dynamic_framework_processor = _resolve_tools_for_executable(
+                attr_name = "imported_dynamic_framework_processor",
+                rule_ctx = ctx,
+            ),
+            resolved_plisttool = _resolve_tools_for_executable(
+                attr_name = "plisttool",
+                rule_ctx = ctx,
+            ),
+            resolved_provisioning_profile_tool = _resolve_tools_for_executable(
+                attr_name = "provisioning_profile_tool",
+                rule_ctx = ctx,
+            ),
+            resolved_swift_stdlib_tool = _resolve_tools_for_executable(
+                attr_name = "swift_stdlib_tool",
+                rule_ctx = ctx,
+            ),
+            resolved_xcframework_processor_tool = _resolve_tools_for_executable(
+                attr_name = "xcframework_processor_tool",
+                rule_ctx = ctx,
+            ),
+            resolved_xctoolrunner = _resolve_tools_for_executable(
+                attr_name = "xctoolrunner",
+                rule_ctx = ctx,
+            ),
+        ),
         DefaultInfo(),
     ]
 
@@ -275,8 +284,6 @@ triplet.
 
 APPLE_XPLAT_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal:apple_xplat_toolchain_type"
 APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
-APPLE_MAC_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal:mac_tools_toolchain_type"
-APPLE_MAC_EXEC_GROUP = "_mac_tool_group"
 
 def _apple_xplat_tools_toolchain_impl(ctx):
     xplat_info = AppleXPlatToolsToolchainInfo(
@@ -325,10 +332,7 @@ A `File` referencing a tool for extracting version info from builds.
 )
 
 def _get_mac_toolchain(ctx):
-    return ctx.exec_groups[APPLE_MAC_EXEC_GROUP].toolchains[APPLE_MAC_TOOLCHAIN_TYPE].mac_tools_info
-
-def _get_mac_exec_group(_ctx):
-    return APPLE_MAC_EXEC_GROUP
+    return ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
 
 def _get_xplat_toolchain(ctx):
     return ctx.exec_groups[APPLE_XPLAT_EXEC_GROUP].toolchains[APPLE_XPLAT_TOOLCHAIN_TYPE].xplat_tools_info
@@ -352,22 +356,16 @@ def _use_apple_exec_group_toolchain():
     Returns:
       A dict that can be used as the value for `rule.exec_groups`.
     """
-    groups = {
-        APPLE_XPLAT_EXEC_GROUP: exec_group(
-            toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
-        ),
-        APPLE_MAC_EXEC_GROUP: exec_group(
-            exec_compatible_with = ["@platforms//os:macos"],
-            toolchains = [config_common.toolchain_type(APPLE_MAC_TOOLCHAIN_TYPE)],
-        ),
-    }
-
+    groups = {}
+    groups[APPLE_XPLAT_EXEC_GROUP] = exec_group(
+        toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
+    )
     return groups
 
 # Define the loadable module that lists the exported symbols in this file.
 apple_toolchain_utils = struct(
+    shared_attrs = _shared_attrs,
     get_mac_toolchain = _get_mac_toolchain,
-    get_mac_exec_group = _get_mac_exec_group,
     get_xplat_toolchain = _get_xplat_toolchain,
     get_xplat_exec_group = _get_xplat_exec_group,
     use_apple_exec_group_toolchain = _use_apple_exec_group_toolchain,

@@ -30,7 +30,6 @@ def compile_datamodels(
         actions,
         datamodel_path,
         input_files,
-        mac_exec_group,
         module_name,
         output_file,
         platform_prerequisites,
@@ -41,7 +40,6 @@ def compile_datamodels(
         actions: The actions provider from `ctx.actions`.
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
-        mac_exec_group: The exec_group associated with resolved_xctoolrunner
         module_name: The module name to use when compiling the datamodels.
         output_file: The file reference to the compiled datamodel.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -66,7 +64,6 @@ def compile_datamodels(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         executable = resolved_xctoolrunner.executable,
-        exec_group = mac_exec_group,
         inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MomCompile",
@@ -78,7 +75,6 @@ def compile_mappingmodel(
         *,
         actions,
         input_files,
-        mac_exec_group,
         mappingmodel_path,
         output_file,
         platform_prerequisites,
@@ -89,7 +85,6 @@ def compile_mappingmodel(
         actions: The actions provider from `ctx.actions`.
         input_files: The list of files to process for the given mapping model.
         mappingmodel_path: The path to the directory containing the mapping model.
-        mac_exec_group: The exec_group associated with resolved_xctoolrunner
         output_file: The file reference to the compiled mapping model.
         platform_prerequisites: Struct containing information on the platform being targeted.
         resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
@@ -105,7 +100,6 @@ def compile_mappingmodel(
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
-        exec_group = mac_exec_group,
         inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MappingModelCompile",
@@ -118,7 +112,6 @@ def generate_datamodels(
         actions,
         datamodel_path,
         input_files,
-        mac_exec_group,
         output_dir,
         platform_prerequisites,
         resolved_xctoolrunner,
@@ -129,7 +122,6 @@ def generate_datamodels(
         actions: The actions provider from `ctx.actions`.
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
-        mac_exec_group: The exec_group associated with resolved_xctoolrunner
         output_dir: The output directory reference where generated datamodel classes will be.
         platform_prerequisites: Struct containing information on the platform being targeted.
         resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
@@ -157,7 +149,6 @@ def generate_datamodels(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         executable = resolved_xctoolrunner.executable,
-        exec_group = mac_exec_group,
         inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
         mnemonic = "MomGenerate",

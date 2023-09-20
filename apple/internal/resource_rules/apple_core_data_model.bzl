@@ -55,7 +55,6 @@ def _apple_core_data_model_impl(ctx):
     swift_version = getattr(ctx.attr, "swift_version")
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -95,7 +94,6 @@ def _apple_core_data_model_impl(ctx):
             actions = actions,
             datamodel_path = datamodel_path,
             input_files = files.to_list(),
-            mac_exec_group = mac_exec_group,
             output_dir = output_dir,
             platform_prerequisites = platform_prerequisites,
             resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
