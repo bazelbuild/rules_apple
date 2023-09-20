@@ -63,14 +63,13 @@ Resolved Xcode is version {xcode_version}.
     bundle_loader = ctx.attr.bundle_loader
 
     extra_linkopts = []
+    extra_requested_features = []
 
     if binary_type == "dylib":
-        extra_linkopts.append("-dynamiclib")
+        extra_requested_features.append("link_dylib")
     elif binary_type == "loadable_bundle":
-        extra_linkopts.extend([
-            "-bundle",
-            "-Wl,-rpath,@loader_path/Frameworks",
-        ])
+        extra_linkopts.append("-Wl,-rpath,@loader_path/Frameworks")
+        extra_requested_features.append("link_bundle")
 
     extra_linkopts.extend([
         _linker_flag_for_sdk_dylib(dylib)
@@ -90,6 +89,7 @@ Resolved Xcode is version {xcode_version}.
         bundle_loader = bundle_loader,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = extra_requested_features,
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = ctx.attr.stamp,

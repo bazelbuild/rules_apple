@@ -225,11 +225,16 @@ def _macos_application_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -520,7 +525,7 @@ def _macos_bundle_impl(ctx):
         bundle_loader = ctx.attr.bundle_loader,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = ["-bundle"],
+        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1015,7 +1020,6 @@ def _macos_quick_look_plugin_impl(ctx):
     )
 
     extra_linkopts = [
-        "-dynamiclib",
         "-install_name",
         "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
@@ -1024,6 +1028,7 @@ def _macos_quick_look_plugin_impl(ctx):
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -2076,7 +2081,7 @@ def _macos_dylib_impl(ctx):
         # Dynamic libraries do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = ["-dynamiclib"],
+        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
