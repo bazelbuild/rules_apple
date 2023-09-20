@@ -54,7 +54,9 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
 }
 
 _CPU_TO_DEFAULT_PLATFORM_FLAG = {
-    cpu: "@build_bazel_apple_support//platforms:default_" + platform_name
+    cpu: "@build_bazel_apple_support//platforms:{}_platform".format(
+        platform_name,
+    )
     for cpu, platform_name in CPU_TO_DEFAULT_PLATFORM_NAME.items()
 }
 
