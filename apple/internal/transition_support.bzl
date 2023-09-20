@@ -399,16 +399,14 @@ def _apple_rule_base_transition_impl(settings, attr):
 _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_crosstool_top",
-]
+] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values()
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
-] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values() + (
-    ["//command_line_option:visionos_cpus"] if _supports_visionos else []
-)
+] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
     "//command_line_option:apple_platforms",
     "//command_line_option:incompatible_enable_apple_toolchain_resolution",
