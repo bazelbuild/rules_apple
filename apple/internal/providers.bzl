@@ -188,6 +188,17 @@ Received unexpected type "{actual_type}".
 
     return new_applebundleversioninfo(version_file = version_file)
 
+AppleCodesigningDossierInfo, new_applecodesigningdossierinfo = provider(
+    doc = "Provides information around the use of a code signing dossier.",
+    fields = {
+        "dossier": """
+A `File` reference to the code signing dossier zip that acts as a direct dependency of the given
+target if one was generated.
+""",
+    },
+    init = _make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
+)
+
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
