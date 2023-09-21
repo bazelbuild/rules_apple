@@ -77,6 +77,9 @@ if [[ "$exit_status" -ne 0 ]]; then
 elif [[ "$output" == *error:* ]]; then
   echo "$output" >&2
   exit 1
+elif [[ "$output" == *"skipping writing output"* ]]; then
+  echo "$output" >&2
+  exit 1
 fi
 ''',
         inputs = depset([bundle_binary], transitive = [depset(source_files)]),
