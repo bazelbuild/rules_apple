@@ -204,7 +204,10 @@ def _environment_archs(platform_type, minimum_os_version, settings):
                     settings = settings,
                 )
         if not environment_archs:
-            environment_archs = [_DEFAULT_ARCH]
+            if platform_type == "visionos":
+                environment_archs = ["sim_arm64"]
+            else:
+                environment_archs = [_DEFAULT_ARCH]
     return environment_archs
 
 def _cpu_string(*, environment_arch, platform_type, settings = {}):
@@ -254,7 +257,7 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         visionos_cpus = settings["//command_line_option:visionos_cpus"]
         if visionos_cpus:
             return "visionos_{}".format(visionos_cpus[0])
-        return "visionos_x86_64"
+        return "visionos_sim_arm64"
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
