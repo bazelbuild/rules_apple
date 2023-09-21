@@ -55,6 +55,11 @@ def _action_command_line_test_impl(ctx):
                     "external/local_config_cc/libtool",
                 ]
             ]
+
+        # For multi-arch binaries assume the link actions are the same
+        if mnemonic == "ObjcLink":
+            matching_actions = [matching_actions[0]]
+
         if len(matching_actions) != 1:
             unittest.fail(
                 env,

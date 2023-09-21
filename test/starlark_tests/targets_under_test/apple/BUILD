@@ -311,6 +311,7 @@ dummy_test_runner(
 apple_xcframework(
     name = "ios_dynamic_xcframework",
     bundle_id = "com.google.example",
+    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
