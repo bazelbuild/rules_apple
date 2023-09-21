@@ -369,6 +369,8 @@ target.
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
+            # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
+            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
     doc = """
@@ -456,6 +458,8 @@ not include Swift interface files.
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
+            # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
+            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
     doc = """
