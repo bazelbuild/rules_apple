@@ -36,6 +36,10 @@ load(
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -783,6 +787,13 @@ Error: Received conflicting base bundle IDs from more than one assigned Apple sh
 
 Found "com.bazel.app.example" which does not match previously defined "com.altbazel.app.example".
 """,
+        tags = [name],
+    )
+
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_codesigning_dossier_info_provider_test".format(name),
+        expected_dossier = "app_dossier.zip",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         tags = [name],
     )
 

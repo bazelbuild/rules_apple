@@ -46,6 +46,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_applecodesigningdossierinfo",
+)
 
 visibility("//apple/...")
 
@@ -310,6 +314,12 @@ def _codesigning_dossier_partial_impl(
     providers = [_AppleCodesigningDossierInfo(
         embedded_dossiers = embedded_dossier_depset,
     )] if embedded_dossier_depset else []
+
+    providers.append(
+        new_applecodesigningdossierinfo(
+            dossier = output_dossier,
+        ),
+    )
 
     output_archive = outputs.archive(
         actions = actions,

@@ -29,6 +29,7 @@ load(
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleInfo = "AppleBundleInfo",
     _AppleBundleVersionInfo = "AppleBundleVersionInfo",
+    _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
@@ -77,6 +78,7 @@ AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
 AppleBundleInfo = _AppleBundleInfo
 AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
+AppleCodesigningDossierInfo = _AppleCodesigningDossierInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
