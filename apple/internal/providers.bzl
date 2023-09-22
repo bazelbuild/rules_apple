@@ -787,6 +787,20 @@ requirement.
     init = _make_banned_init(provider_name = "VisionosApplicationBundleInfo"),
 )
 
+VisionosXcTestBundleInfo, new_visionosxctestbundleinfo = provider(
+    doc = """
+Denotes a target that is a visionOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS .xctest bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS .xctest bundle  should use this provider to describe
+that requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "VisionosXcTestBundleInfo"),
+)
+
 WatchosApplicationBundleInfo, new_watchosapplicationbundleinfo = provider(
     doc = """
 Denotes that a target is a watchOS application.

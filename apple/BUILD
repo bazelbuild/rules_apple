@@ -185,7 +185,9 @@ bzl_library(
     srcs = ["visionos.bzl"],
     deps = [
         "//apple/internal:visionos_rules",
+        "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
+        "//apple/internal/testing:visionos_rules",
     ],
 )
 

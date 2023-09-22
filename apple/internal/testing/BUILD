@@ -131,6 +131,26 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos_rules",
+    srcs = ["visionos_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_test_bundle_support",
+        ":apple_test_rule_support",
+        "//apple:providers",
+        "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:resource_aspect",
+    ],
+)
+
+bzl_library(
     name = "watchos_rules",
     srcs = ["watchos_rules.bzl"],
     visibility = [

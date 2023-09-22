@@ -19,13 +19,30 @@ load(
     _visionos_application = "visionos_application",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:visionos_rules.bzl",
+    _visionos_internal_unit_test_bundle = "visionos_internal_unit_test_bundle",
+    _visionos_unit_test = "visionos_unit_test",
 )
 
 visibility("public")
 
 visionos_application = _visionos_application
+
+def visionos_unit_test(name, **kwargs):
+    apple_test_assembler.assemble(
+        name = name,
+        bundle_rule = _visionos_internal_unit_test_bundle,
+        test_rule = _visionos_unit_test,
+        **kwargs
+    )
 
 visionos_build_test = apple_build_test_rule(
     doc = """\

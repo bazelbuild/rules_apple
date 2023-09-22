@@ -21,6 +21,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleCodesigningDossierInfo",
     "AppleDsymBundleInfo",
     "AppleExtraOutputsInfo",
     "AppleTestInfo",
@@ -110,19 +111,25 @@ This aspect propagates a `_CoverageFilesInfo` provider.
 def _get_template_substitutions(
         *,
         test_bundle,
+        test_bundle_dossier = None,
         test_environment,
         test_host_artifact = None,
         test_host_bundle_name = "",
+        test_host_dossier = None,
         test_type):
     """Dictionary with the substitutions to be applied to the template script.
 
     Args:
         test_bundle: File representing the test bundle's artifact that is with this rule.
+        test_bundle_dossier: Optional. A File representing the dossier generated for the test
+            bundle, if one exists.
         test_environment: Dictionary representing the test environment for the current process
             running in the simulator.
         test_host_artifact: Optional. A File representing the artifact found from the referenced
             test host rule if one was assigned.
         test_host_bundle_name: Optional. The bundle_name for the test host rule if one was assigned.
+        test_host_dossier: Optional. A File representing the dossier generated for the test host, if
+            one exists.
         test_type: String. The test type received from the test rule implementation.
 
     Returns:
@@ -131,9 +138,11 @@ def _get_template_substitutions(
     """
     substitutions = {
         "test_bundle_path": test_bundle.short_path,
+        "test_bundle_dossier_path": test_bundle_dossier.short_path if test_bundle_dossier else "",
         "test_env": ",".join([k + "=" + v for (k, v) in test_environment.items()]),
         "test_host_bundle_name": test_host_bundle_name,
         "test_host_path": test_host_artifact.short_path if test_host_artifact else "",
+        "test_host_dossier_path": test_host_dossier.short_path if test_host_dossier else "",
         "test_type": test_type.upper(),
     }
     return {"%(" + k + ")s": substitutions[k] for k in substitutions}
@@ -216,15 +225,33 @@ def _get_simulator_test_environment(
         test_env_dyld_insert_pairs,
     )
 
-def _apple_test_rule_impl(ctx, test_type):
-    """Implementation for the Apple test rules."""
+def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
+    """Generates an implementation for the Apple test rules, given arguments.
+
+    Args:
+        ctx: A rule context.
+        requires_dossiers: A Boolean to indicate if the test rule depends on dossiers from the test
+            bundle and the optional test host.
+        test_type: A String indicating the test type. For example, "xctest" or "xcuitest".
+
+    Returns:
+        A full set of providers required to define an Apple test rule.
+    """
     runner_attr = ctx.attr.runner
     runner_info = runner_attr[AppleTestRunnerInfo]
     execution_requirements = getattr(runner_info, "execution_requirements", {})
 
     test_bundle_target = ctx.attr.deps[0]
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
-    test_host_attr = ctx.attr.test_host
+
+    direct_runfiles = [test_bundle]
+    transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
+
+    test_bundle_dossier = None
+    if requires_dossiers and AppleCodesigningDossierInfo in test_bundle_target:
+        test_bundle_dossier = test_bundle_target[AppleCodesigningDossierInfo].dossier
+        if test_bundle_dossier:
+            direct_runfiles.append(test_bundle_dossier)
 
     # Environment variables to be set as the %(test_env)s substitution, which includes the
     # --test_env and env attribute values, but not the execution environment variables.
@@ -239,17 +266,20 @@ def _apple_test_rule_impl(ctx, test_type):
 
     # Bundle name of the app under test (test host) if given
     test_host_bundle_name = ""
-    if test_host_attr and AppleBundleInfo in test_host_attr:
-        test_host_bundle_name = test_host_attr[AppleBundleInfo].bundle_name
+    test_host_dossier = None
 
-    direct_runfiles = []
-    transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
+    test_host_attr = ctx.attr.test_host
+    if test_host_attr:
+        if AppleBundleInfo in test_host_attr:
+            test_host_bundle_name = test_host_attr[AppleBundleInfo].bundle_name
+        if requires_dossiers and AppleCodesigningDossierInfo in test_host_attr:
+            test_host_dossier = test_host_attr[AppleCodesigningDossierInfo].dossier
+            if test_host_dossier:
+                direct_runfiles.append(test_host_dossier)
 
     test_host_artifact = test_bundle_target[AppleTestInfo].test_host
     if test_host_artifact:
         direct_runfiles.append(test_host_artifact)
-
-    direct_runfiles.append(test_bundle)
 
     if ctx.configuration.coverage_enabled:
         apple_coverage_support_files = ctx.attr._apple_coverage_support.files
@@ -283,9 +313,11 @@ def _apple_test_rule_impl(ctx, test_type):
         output = executable,
         substitutions = _get_template_substitutions(
             test_bundle = test_bundle,
+            test_bundle_dossier = test_bundle_dossier,
             test_environment = test_environment,
             test_host_artifact = test_host_artifact,
             test_host_bundle_name = test_host_bundle_name,
+            test_host_dossier = test_host_dossier,
             test_type = test_type,
         ),
         is_executable = True,
