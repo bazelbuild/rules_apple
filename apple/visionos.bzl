@@ -37,6 +37,8 @@ load(
     _visionos_static_framework = "visionos_static_framework",
 )
 
+visibility("public")
+
 visionos_application = _visionos_application
 visionos_dynamic_framework = _visionos_dynamic_framework
 visionos_framework = _visionos_framework

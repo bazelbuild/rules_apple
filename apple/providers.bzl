@@ -70,7 +70,7 @@ load(
     _TvosXcTestBundleInfo = "TvosXcTestBundleInfo",
     _VisionosApplicationBundleInfo = "VisionosApplicationBundleInfo",
     _VisionosFrameworkBundleInfo = "VisionosFrameworkBundleInfo",
-    _VisionosXcTestBundleInfo = "WatchosXcTestBundleInfo",
+    _VisionosXcTestBundleInfo = "VisionosXcTestBundleInfo",
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
