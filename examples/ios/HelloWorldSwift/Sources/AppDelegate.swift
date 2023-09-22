@@ -21,15 +21,28 @@ extension UIApplication {
 }
 #endif
 
+/// The ``AppDelegate`` for the application.
+/// This class is the entry point for the application and is responsible for the lifecycle of it.
 @UIApplicationMain
-class AppDelegate: NSObject, UIApplicationDelegate {
+public class AppDelegate: NSObject, UIApplicationDelegate {
 
-  var window: UIWindow?
+  /// The window of the application.
+  public var window: UIWindow?
 
-  func application(
+  /// The start of the application.
+  public func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions: [UIApplication.LaunchOptionsKey : Any]?
   ) -> Bool {
     return true
   }
+
+  /// A foo API to test DooC documentation generation.
+  ///
+  /// Example referencing ``AppDelegate``:
+  ///
+  /// ```swift
+  /// let appDelegate = AppDelegate()
+  /// ```
+  public func foo() { }
 }

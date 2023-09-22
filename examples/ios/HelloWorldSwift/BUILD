@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("//apple:ios.bzl", "ios_application", "ios_ui_test", "ios_unit_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//apple:docc.bzl", "docc_archive")
+load("//apple:ios.bzl", "ios_application", "ios_ui_test", "ios_unit_test")
 
 licenses(["notice"])
 
@@ -10,6 +11,7 @@ swift_library(
         "Sources/AppDelegate.swift",
     ],
     data = [
+        "Resources/HelloWorldSwift.docc",
         "Resources/Main.storyboard",
     ],
     module_name = "Sources",
@@ -88,4 +90,16 @@ ios_ui_test(
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
     test_host = ":HelloWorldSwift",
     deps = [":UITests"],
+)
+
+# Example using docc_archive to generate documentation
+docc_archive(
+    name = "HelloWorldSwift.doccarchive",
+    default_code_listing_language = "en",
+    dep = ":HelloWorldSwift",
+    diagnostic_level = "information",
+    enable_inherited_docs = True,
+    fallback_bundle_identifier = "com.example.hello-world-swift",
+    fallback_bundle_version = "1.0.0",
+    fallback_display_name = "HelloWorldSwift",
 )

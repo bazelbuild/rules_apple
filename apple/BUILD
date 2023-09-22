@@ -47,6 +47,7 @@ bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [
+        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
@@ -59,6 +60,7 @@ bzl_library(
     srcs = ["apple_static_library.bzl"],
     deps = [
         ":providers",
+        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
@@ -205,6 +207,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos",
+    srcs = ["visionos.bzl"],
+    deps = [
+        "//apple/internal:visionos_rules",
+        "//apple/internal/testing:apple_test_assembler",
+        "//apple/internal/testing:build_test_rules",
+        "//apple/internal/testing:visionos_rules",
+    ],
+)
+
+bzl_library(
+    name = "visionos.doc",
+    srcs = ["visionos.doc.bzl"],
+    deps = ["visionos"],
+)
+
+bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
@@ -225,6 +244,12 @@ bzl_library(
     name = "xcarchive",
     srcs = ["xcarchive.bzl"],
     deps = ["//apple/internal:xcarchive"],
+)
+
+bzl_library(
+    name = "docc",
+    srcs = ["docc.bzl"],
+    deps = ["//apple/internal:docc"],
 )
 
 cc_toolchain_forwarder(

@@ -99,7 +99,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
 An optional list of target CPUs for which the universal binary should be built.
 
 If this attribute is present, the value of the platform-specific CPU flag
-(`--ios_multi_cpus`, `--macos_cpus`, `--tvos_cpus`, or `--watchos_cpus`) will be
+(`--ios_multi_cpus`, `--macos_cpus`, `--tvos_cpus`, `--visionos_cpus`, or `--watchos_cpus`) will be
 ignored and the binary will be built for all of the specified architectures
 instead.
 

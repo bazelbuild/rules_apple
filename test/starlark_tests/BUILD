@@ -45,6 +45,7 @@ load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
 load(":tvos_static_framework_tests.bzl", "tvos_static_framework_test_suite")
 load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
 load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
+load(":visionos_application_tests.bzl", "visionos_application_test_suite")
 load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
 load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
@@ -56,6 +57,7 @@ load(":watchos_single_target_ui_test_tests.bzl", "watchos_single_target_ui_test_
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 load(":xcarchive_tests.bzl", "xcarchive_test_suite")
+load(":docc_tests.bzl", "docc_test_suite")
 
 licenses(["notice"])
 
@@ -154,6 +156,8 @@ tvos_ui_test_test_suite(name = "tvos_ui_test")
 
 tvos_unit_test_test_suite(name = "tvos_unit_test")
 
+visionos_application_test_suite(name = "visionos_application")
+
 watchos_application_swift_test_suite(name = "watchos_application_swift")
 
 watchos_application_test_suite(name = "watchos_application")
@@ -175,6 +179,8 @@ watchos_ui_test_test_suite(name = "watchos_ui_test")
 watchos_unit_test_test_suite(name = "watchos_unit_test")
 
 xcarchive_test_suite(name = "xcarchive")
+
+docc_test_suite(name = "docc")
 
 test_suite(name = "all_tests")
 

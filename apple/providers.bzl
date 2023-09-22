@@ -68,6 +68,9 @@ load(
     _TvosFrameworkBundleInfo = "TvosFrameworkBundleInfo",
     _TvosStaticFrameworkBundleInfo = "TvosStaticFrameworkBundleInfo",
     _TvosXcTestBundleInfo = "TvosXcTestBundleInfo",
+    _VisionosApplicationBundleInfo = "VisionosApplicationBundleInfo",
+    _VisionosFrameworkBundleInfo = "VisionosFrameworkBundleInfo",
+    _VisionosXcTestBundleInfo = "WatchosXcTestBundleInfo",
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
@@ -113,6 +116,10 @@ TvosExtensionBundleInfo = _TvosExtensionBundleInfo
 TvosFrameworkBundleInfo = _TvosFrameworkBundleInfo
 TvosStaticFrameworkBundleInfo = _TvosStaticFrameworkBundleInfo
 TvosXcTestBundleInfo = _TvosXcTestBundleInfo
+VisionosApplicationBundleInfo = _VisionosApplicationBundleInfo
+VisionosFrameworkBundleInfo = _VisionosFrameworkBundleInfo
+VisionosExtensionBundleInfo = _VisionosApplicationBundleInfo
+VisionosXcTestBundleInfo = _VisionosXcTestBundleInfo
 WatchosApplicationBundleInfo = _WatchosApplicationBundleInfo
 WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
@@ -214,4 +221,18 @@ a dependency is an macOS static framework should use this provider to describe
 that requirement.
 """,
     fields = {},
+)
+
+DocCBundleInfo = provider(
+    doc = "Provides general information about a .docc bundle.",
+    fields = {
+        "bundle": "the path to the .docc bundle",
+    },
+)
+
+DocCSymbolGraphsInfo = provider(
+    doc = "Provides the symbol graphs required to archive a .docc bundle.",
+    fields = {
+        "symbol_graphs": "the paths to the symbol graphs",
+    },
 )

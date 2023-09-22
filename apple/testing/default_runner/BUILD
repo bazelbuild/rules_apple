@@ -15,6 +15,10 @@ load(
     "tvos_test_runner",
 )
 load(
+    "//apple/testing/default_runner:visionos_test_runner.bzl",
+    "visionos_test_runner",
+)
+load(
     "//apple/testing/default_runner:watchos_test_runner.bzl",
     "watchos_test_runner",
 )
@@ -48,6 +52,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "visionos_test_runner",
+    srcs = ["visionos_test_runner.bzl"],
+    deps = [
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
     name = "watchos_test_runner",
     srcs = ["watchos_test_runner.bzl"],
     deps = [
@@ -63,6 +75,7 @@ exports_files([
     "macos_test_runner.template.xctestrun",
     "templates/xctestrun_creator.template.sh",
     "tvos_test_runner.template.sh",
+    "visionos_test_runner.template.sh",
     "watchos_test_runner.template.sh",
     "xctrunner_entitlements.template.plist",
 ])
@@ -108,6 +121,14 @@ macos_test_runner(
 
 tvos_test_runner(
     name = "tvos_default_runner",
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+visionos_test_runner(
+    name = "visionos_default_runner",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.

@@ -453,6 +453,42 @@ requirement.
 
 
 
+<a id="DocCBundleInfo"></a>
+
+## DocCBundleInfo
+
+<pre>
+DocCBundleInfo(<a href="#DocCBundleInfo-bundle">bundle</a>)
+</pre>
+
+Provides general information about a .docc bundle.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="DocCBundleInfo-bundle"></a>bundle |  the path to the .docc bundle    |
+
+
+<a id="DocCSymbolGraphsInfo"></a>
+
+## DocCSymbolGraphsInfo
+
+<pre>
+DocCSymbolGraphsInfo(<a href="#DocCSymbolGraphsInfo-symbol_graphs">symbol_graphs</a>)
+</pre>
+
+Provides the symbol graphs required to archive a .docc bundle.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="DocCSymbolGraphsInfo-symbol_graphs"></a>symbol_graphs |  the paths to the symbol graphs    |
+
+
 <a id="IosAppClipBundleInfo"></a>
 
 ## IosAppClipBundleInfo
@@ -972,6 +1008,92 @@ This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a tvOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a tvOS .xctest bundle should use this provider to describe that requirement.
+
+
+**FIELDS**
+
+
+
+<a id="VisionosApplicationBundleInfo"></a>
+
+## VisionosApplicationBundleInfo
+
+<pre>
+VisionosApplicationBundleInfo()
+</pre>
+
+
+Denotes that a target is a visionOS application.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS application
+bundle (and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS application should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
+
+
+<a id="VisionosExtensionBundleInfo"></a>
+
+## VisionosExtensionBundleInfo
+
+<pre>
+VisionosExtensionBundleInfo()
+</pre>
+
+
+Denotes that a target is a visionOS application.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS application
+bundle (and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS application should use this provider to describe that
+requirement.
+
+
+**FIELDS**
+
+
+
+<a id="VisionosFrameworkBundleInfo"></a>
+
+## VisionosFrameworkBundleInfo
+
+<pre>
+VisionosFrameworkBundleInfo()
+</pre>
+
+
+Denotes that a target is visionOS dynamic framework.
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a visionOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a visionOS dynamic framework should use this provider to describe
+that requirement.
+
+
+**FIELDS**
+
+
+
+<a id="VisionosXcTestBundleInfo"></a>
+
+## VisionosXcTestBundleInfo
+
+<pre>
+VisionosXcTestBundleInfo()
+</pre>
+
+
+Denotes a target that is a watchOS .xctest bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS .xctest bundle (and
+not some other Apple bundle). Rule authors who wish to require that a dependency
+is a watchOS .xctest bundle should use this provider to describe that requirement.
 
 
 **FIELDS**

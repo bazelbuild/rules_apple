@@ -247,7 +247,7 @@ def _library_identifier(*, architectures, environment, platform):
             Typically `device` or `simulator`.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
-            For example, `ios`, `macos`, `tvos` or `watchos`.
+            For example, `ios`, `macos`, `tvos`, `visionos` or `watchos`.
 
     Returns:
         A string that can be used to determine the subfolder this embedded framework will be found
@@ -306,7 +306,7 @@ def _available_library_dictionary(
             the xcframework bundle.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
-            For example, `ios`, `macos`, `tvos` or `watchos`.
+            For example, `ios`, `macos`, `tvos`, `visionos`, or `watchos`.
 
     Returns:
         A dictionary containing keys representing how a given framework should be referenced in the
@@ -508,7 +508,7 @@ def _apple_xcframework_impl(ctx):
                 extension = nested_bundle_extension,
                 name = bundle_name,
             ),
-        ],
+        ] + (["-fapplication-extension"] if ctx.attr.extension_safe else []),
         platform_prerequisites = None,
         # All required knowledge for 3P facing frameworks is passed directly through the given
         # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.
@@ -606,6 +606,7 @@ def _apple_xcframework_impl(ctx):
                 bundle_name = bundle_name,
                 entitlements = None,
                 executable_name = executable_name,
+                extension_safe = ctx.attr.extension_safe,
                 label_name = label.name,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
@@ -825,6 +826,13 @@ frameworks. If this attribute is not set, then the name of the target will be us
                 doc = """
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within each of the embedded framework bundles.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
 """,
             ),
             "families_required": attr.string_list_dict(

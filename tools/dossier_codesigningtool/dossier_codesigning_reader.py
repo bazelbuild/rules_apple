@@ -393,6 +393,10 @@ def _invoke_codesign(codesign_path, identity, entitlements_path,
       the /usr/bin/codesign invocation via its --keychain argument.
   """
   cmd = [codesign_path, '-v', '--sign', identity, '--force']
+  if identity == '-':
+    # Ad hoc signed artifacts cannot be validated against timestamp services; if
+    # this option is not present, codesigning verification on the sim will fail.
+    cmd.append('--timestamp=none')
   if entitlements_path:
     cmd.extend([
         '--entitlements',
@@ -439,8 +443,9 @@ def _fetch_preferred_signing_identity(
   """
   codesign_identity = manifest.get(CODESIGN_IDENTITY_KEY)
 
-  # An identity of '-' is used for simulator signing which can't be validated.
-  if codesign_identity != '-':
+  # An identity of '-' (the ad hoc signing identity) is used for simulator
+  # signing, which doesn't need to be validated against a provisioning profile.
+  if codesign_identity != '-' and provisioning_profile_file_path:
     codesign_identity = _resolve_codesign_identity(
         provisioning_profile_file_path, codesign_identity, signing_keychain
     )
@@ -578,8 +583,10 @@ def _sign_bundle_with_manifest(
   """
   codesign_identity = override_codesign_identity
   provisioning_profile_filename = manifest.get(PROVISIONING_PROFILE_KEY)
-  provisioning_profile_file_path = os.path.join(dossier_directory_path,
-                                                provisioning_profile_filename)
+  provisioning_profile_file_path = None
+  if provisioning_profile_filename:
+    provisioning_profile_file_path = os.path.join(dossier_directory_path,
+                                                  provisioning_profile_filename)
   if not codesign_identity:
     codesign_identity = _fetch_preferred_signing_identity(
         manifest, provisioning_profile_file_path, signing_keychain

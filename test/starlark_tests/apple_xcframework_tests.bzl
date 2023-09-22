@@ -24,6 +24,10 @@ load(
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -606,6 +610,26 @@ def apple_xcframework_test_suite(name):
         name = "{}_fails_with_tree_artifact_outputs".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         expected_error = "The apple_xcframework rule does not yet support the experimental tree artifact.",
+        tags = [name],
+    )
+
+    action_command_line_test(
+        name = "{}_xcframework_with_extension_safe".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-fapplication-extension",
+        ],
+        tags = [name],
+    )
+
+    action_command_line_test(
+        name = "{}_xcframework_without_extension_safe".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_umbrella_header",
+        mnemonic = "ObjcLink",
+        not_expected_argv = [
+            "-fapplication-extension",
+        ],
         tags = [name],
     )
 

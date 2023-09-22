@@ -8,12 +8,14 @@ _PLAIN_DOC_SRCS = [
 
 _RULES_DOC_SRCS = [
     "apple",
+    "docc",
     "dtrace",
     "ios.doc",
     "macos.doc",
     "resources",
     "tvos.doc",
     "versioning",
+    "visionos.doc",
     "watchos.doc",
     "xcarchive",
 ]

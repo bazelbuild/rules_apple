@@ -512,6 +512,11 @@ filegroup(
 )
 
 filegroup(
+    name = "basic_docc_bundle_files",
+    srcs = ["basic.docc"],
+)
+
+filegroup(
     name = "localized_storyboards_ios",
     srcs = glob(["*.lproj/*.storyboard"]),
 )
@@ -1025,6 +1030,11 @@ filegroup(
 filegroup(
     name = "TVBrandAssets.xcassets",
     srcs = glob(["TVBrandAssets.xcassets/**"]),
+)
+
+filegroup(
+    name = "VisionAppIcon.xcassets",
+    srcs = glob(["VisionAppIcon.xcassets/**"]),
 )
 
 filegroup(

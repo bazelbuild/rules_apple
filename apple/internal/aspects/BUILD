@@ -76,6 +76,18 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "docc_archive_aspect",
+    srcs = ["docc_archive_aspect.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
