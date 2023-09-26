@@ -14,6 +14,8 @@
 
 """Support functions for working with Apple platforms and device families."""
 
+load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleplatforminfo")
+
 visibility([
     "//apple/...",
     "//test/...",
@@ -78,6 +80,11 @@ def _get_apple_common_platform(*, apple_platform_info):
             return apple_common.platform.tvos_device
         elif apple_platform_info.target_environment == "simulator":
             return apple_common.platform.tvos_simulator
+    elif apple_platform_info.target_os == "visionos":
+        if apple_platform_info.target_environment == "device":
+            return apple_common.platform.visionos_device
+        elif apple_platform_info.target_environment == "simulator":
+            return apple_common.platform.visionos_simulator
     elif apple_platform_info.target_os == "watchos":
         if apple_platform_info.target_environment == "device":
             return apple_common.platform.watchos_device
@@ -94,10 +101,70 @@ Internal Error: Found unrecognized target environment of {target_environment} fo
         ),
     )
 
+def _target_arch_from_rule_ctx(ctx):
+    """Returns a `String` representing the selected target architecture or cpu type."""
+    arm64_constraint = ctx.attr._arm64_constraint[platform_common.ConstraintValueInfo]
+    arm64e_constraint = ctx.attr._arm64e_constraint[platform_common.ConstraintValueInfo]
+    arm64_32_constraint = ctx.attr._arm64_32_constraint[platform_common.ConstraintValueInfo]
+    armv7k_constraint = ctx.attr._armv7k_constraint[platform_common.ConstraintValueInfo]
+    x86_64_constraint = ctx.attr._x86_64_constraint[platform_common.ConstraintValueInfo]
+
+    if ctx.target_platform_has_constraint(arm64_constraint):
+        return "arm64"
+    elif ctx.target_platform_has_constraint(arm64e_constraint):
+        return "arm64e"
+    elif ctx.target_platform_has_constraint(arm64_32_constraint):
+        return "arm64_32"
+    elif ctx.target_platform_has_constraint(armv7k_constraint):
+        return "armv7k"
+    elif ctx.target_platform_has_constraint(x86_64_constraint):
+        return "x86_64"
+    fail("ERROR: A valid Apple cpu constraint could not be found from the resolved toolchain.")
+
+def _target_environment_from_rule_ctx(ctx):
+    """Returns a `String` representing the selected environment (e.g. "device", "simulator")."""
+    device_constraint = ctx.attr._apple_device_constraint[platform_common.ConstraintValueInfo]
+    simulator_constraint = ctx.attr._apple_simulator_constraint[platform_common.ConstraintValueInfo]
+
+    if ctx.target_platform_has_constraint(device_constraint):
+        return "device"
+    elif ctx.target_platform_has_constraint(simulator_constraint):
+        return "simulator"
+    fail("ERROR: A valid Apple environment (device, simulator) constraint could not be found from" +
+         " the resolved toolchain.")
+
+def _target_os_from_rule_ctx(ctx):
+    """Returns a `String` representing the selected Apple OS."""
+    ios_constraint = ctx.attr._ios_constraint[platform_common.ConstraintValueInfo]
+    macos_constraint = ctx.attr._macos_constraint[platform_common.ConstraintValueInfo]
+    tvos_constraint = ctx.attr._tvos_constraint[platform_common.ConstraintValueInfo]
+    visionos_constraint = ctx.attr._visionos_constraint[platform_common.ConstraintValueInfo]
+    watchos_constraint = ctx.attr._watchos_constraint[platform_common.ConstraintValueInfo]
+
+    if ctx.target_platform_has_constraint(ios_constraint):
+        return str(apple_common.platform_type.ios)
+    elif ctx.target_platform_has_constraint(macos_constraint):
+        return str(apple_common.platform_type.macos)
+    elif ctx.target_platform_has_constraint(tvos_constraint):
+        return str(apple_common.platform_type.tvos)
+    elif ctx.target_platform_has_constraint(visionos_constraint):
+        return str(apple_common.platform_type.visionos)
+    elif ctx.target_platform_has_constraint(watchos_constraint):
+        return str(apple_common.platform_type.watchos)
+    fail("ERROR: A valid Apple platform constraint could not be found from the resolved toolchain.")
+
+def _apple_platform_info_from_rule_ctx(ctx):
+    """Returns an ApplePlatformInfo provider from a rule context, needed to resolve constraints."""
+    return new_appleplatforminfo(
+        target_arch = _target_arch_from_rule_ctx(ctx),
+        target_environment = _target_environment_from_rule_ctx(ctx),
+        target_os = _target_os_from_rule_ctx(ctx),
+    )
+
 def _platform_prerequisites(
         *,
         apple_fragment,
-        apple_platform_info = None,
+        apple_platform_info,
         build_settings,
         config_vars,
         cpp_fragment = None,
@@ -112,7 +179,7 @@ def _platform_prerequisites(
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       apple_platform_info: An ApplePlatformInfo provider from the cc_toolchain_forwarder to
-          determine the platform. If not present, uses the apple_fragment to determine platform.
+          determine the platform.
       build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
@@ -127,12 +194,7 @@ def _platform_prerequisites(
       A struct representing the collected platform information.
     """
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
-    if apple_platform_info:
-        platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
-    else:
-        # TODO(b/297555544): Eliminate this dependency on apple_fragment.multi_arch_platform(...),
-        # replace it with references to apple_platform_info.
-        platform = apple_fragment.multi_arch_platform(platform_type_attr)
+    platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
@@ -152,6 +214,7 @@ def _platform_prerequisites(
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
+    apple_platform_info_from_rule_ctx = _apple_platform_info_from_rule_ctx,
     platform_prerequisites = _platform_prerequisites,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )

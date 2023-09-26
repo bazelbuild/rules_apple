@@ -16,14 +16,26 @@
 
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
-    "analysis_target_outputs_test",
+    "make_analysis_target_outputs_test",
 )
 
 visibility("private")
+
+analysis_macos_arm64_platform_target_actions_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+    },
+)
+
+analysis_macos_arm64_platform_target_outputs_test = make_analysis_target_outputs_test(
+    config_settings = {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+    },
+)
 
 def apple_core_data_model_test_suite(name):
     """Test suite for apple_bundle_version.
@@ -33,19 +45,19 @@ def apple_core_data_model_test_suite(name):
     """
 
     # Test outputs a directory (non-empty assertion is verified by xctoolrunner).
-    analysis_target_outputs_test(
+    analysis_macos_arm64_platform_target_outputs_test(
         name = "{}_outputs_swift_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:swift_data_model",
         expected_outputs = ["swift_datamodel.swift_data_model.coredata.sources"],
         tags = [name],
     )
-    analysis_target_outputs_test(
+    analysis_macos_arm64_platform_target_outputs_test(
         name = "{}_outputs_objc_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:objc_data_model",
         expected_outputs = ["objc_datamodel.objc_data_model.coredata.sources"],
         tags = [name],
     )
-    analysis_target_outputs_test(
+    analysis_macos_arm64_platform_target_outputs_test(
         name = "{}_outputs_swift_and_objc_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
         expected_outputs = [
@@ -56,7 +68,7 @@ def apple_core_data_model_test_suite(name):
     )
 
     # Test no code generation data model outputs empty folder (i.e. fails).
-    analysis_target_outputs_test(
+    analysis_macos_arm64_platform_target_outputs_test(
         name = "{}_has_no_outputs_no_code_generation_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:no_code_generation_data_model",
         expected_outputs = [],
@@ -64,7 +76,7 @@ def apple_core_data_model_test_suite(name):
     )
 
     # Test registered actions and mnemonics for Obj-C and Swift data models.
-    analysis_target_actions_test(
+    analysis_macos_arm64_platform_target_actions_test(
         name = "{}_actions_swift_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:swift_data_model",
         target_mnemonic = "MomGenerate",
@@ -74,7 +86,7 @@ def apple_core_data_model_test_suite(name):
         ],
         tags = [name],
     )
-    analysis_target_actions_test(
+    analysis_macos_arm64_platform_target_actions_test(
         name = "{}_actions_objc_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:objc_data_model",
         target_mnemonic = "MomGenerate",
@@ -84,7 +96,7 @@ def apple_core_data_model_test_suite(name):
         ],
         tags = [name],
     )
-    analysis_target_actions_test(
+    analysis_macos_arm64_platform_target_actions_test(
         name = "{}_actions_swift_and_objc_test_objc_mnemonic".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
         target_mnemonic = "MomGenerate",
@@ -94,7 +106,7 @@ def apple_core_data_model_test_suite(name):
         ],
         tags = [name],
     )
-    analysis_target_actions_test(
+    analysis_macos_arm64_platform_target_actions_test(
         name = "{}_actions_swift_and_objc_test_swift_mnemonic".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
         target_mnemonic = "MomGenerate",

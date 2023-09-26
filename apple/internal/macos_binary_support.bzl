@@ -19,6 +19,10 @@ load(
     "dicts",
 )
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
@@ -57,6 +61,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
 )
 
 visibility([
@@ -104,6 +112,7 @@ def _macos_binary_infoplist_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -160,9 +169,12 @@ def _macos_binary_infoplist_impl(ctx):
 
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
+    cfg = transition_support.apple_rule_transition,
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
+        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.signing_attrs(
             supports_capabilities = False,
             profile_extension = ".provisionprofile",  # Unused, but staying consistent with macOS.
@@ -204,6 +216,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -245,9 +258,12 @@ def _macos_command_line_launchdplist_impl(ctx):
 
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
+    cfg = transition_support.apple_rule_transition,
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
+        rule_attrs.custom_transition_allowlist_attr(),
         {
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],

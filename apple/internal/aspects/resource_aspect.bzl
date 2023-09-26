@@ -15,6 +15,10 @@
 """Implementation of the resource propagation aspect."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -72,6 +76,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     # rule_descriptor.
     return platform_support.platform_prerequisites(
         apple_fragment = apple_fragment,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(aspect_ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
         device_families = None,
@@ -314,7 +319,10 @@ def _apple_resource_aspect_impl(target, ctx):
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
-    attrs = apple_support.action_required_attrs(),
+    attrs = dicts.add(
+        apple_support.action_required_attrs(),
+        apple_support.platform_constraint_attrs(),
+    ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level

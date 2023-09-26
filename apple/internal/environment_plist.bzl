@@ -47,6 +47,7 @@ def _environment_plist_impl(ctx):
     # processing.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = None,
         config_vars = ctx.var,
         device_families = None,
@@ -78,6 +79,7 @@ def _environment_plist_impl(ctx):
 
 environment_plist = rule(
     attrs = dicts.add(
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         {
             "platform_type": attr.string(
