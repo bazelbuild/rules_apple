@@ -43,6 +43,7 @@ def _cc_info_with_dependencies(
         libraries,
         linkopts = [],
         includes = [],
+        swiftinterface_imports = [],
         swiftmodule_imports = [],
         is_framework = True):
     """Returns a new CcInfo which includes transitive Cc dependencies.
@@ -63,6 +64,8 @@ def _cc_info_with_dependencies(
         label: Label of the target being built.
         libraries: The list of framework libraries.
         linkopts: List of linker flags strings to propagate as linker input.
+        swiftinterface_imports: List of imported Swift interface files to include
+            during build phase, but aren't processed in any way.
         swiftmodule_imports: List of imported Swift module files to include during build phase,
             but aren't processed in any way.
         is_framework: Whether the target is a framework vs library.
@@ -83,6 +86,7 @@ def _cc_info_with_dependencies(
     public_hdrs = []
     public_hdrs.extend(header_imports)
     public_hdrs.extend(swiftmodule_imports)
+    public_hdrs.extend(swiftinterface_imports)
     (compilation_context, _compilation_outputs) = cc_common.compile(
         name = label.name,
         actions = actions,
@@ -178,17 +182,9 @@ def _classify_file_imports(config_vars, import_files):
             module_map_imports.append(file)
             continue
         if file_extension == "swiftmodule":
-            # Add Swift's module files to header_imports so
-            # that they are correctly included in the build
-            # by Bazel but they aren't processed in any way
-            header_imports.append(file)
             swift_module_imports.append(file)
             continue
         if file_extension == "swiftinterface":
-            # Add Swift's interface files to header_imports so
-            # that they are correctly included in the build
-            # by Bazel but they aren't processed in any way
-            header_imports.append(file)
             swift_interface_imports.append(file)
             continue
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
