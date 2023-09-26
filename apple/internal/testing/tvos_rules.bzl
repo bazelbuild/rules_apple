@@ -15,6 +15,10 @@
 """Implementation of tvOS test rules."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "TvosApplicationBundleInfo",
@@ -111,6 +115,7 @@ _tvos_internal_ui_test_bundle = rule_factory.create_apple_rule(
     implementation = _tvos_ui_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -183,6 +188,7 @@ _tvos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     implementation = _tvos_unit_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

@@ -65,6 +65,7 @@ def _apple_core_data_model_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
@@ -130,6 +131,7 @@ apple_core_data_model = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         apple_support.action_required_attrs(),
+        apple_support.platform_constraint_attrs(),
         {
             "srcs": attr.label_list(
                 allow_empty = False,

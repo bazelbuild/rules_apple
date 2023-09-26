@@ -91,6 +91,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     # rule_descriptor.
     return platform_support.platform_prerequisites(
         apple_fragment = aspect_ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(aspect_ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
         device_families = None,
@@ -429,19 +430,13 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = [
-        "data",
-        "deps",
-        "implementation_deps",
-        "private_deps",
-        "structured_resources",
-        "resources",
-    ],
+    attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
+        apple_support.platform_constraint_attrs(),
         apple_toolchain_utils.shared_attrs(),
     ),
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
     doc = """Aspect that collects and propagates resource information to be bundled by a top-level
 bundling rule.""",
 )
