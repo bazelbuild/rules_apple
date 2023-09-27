@@ -15,6 +15,10 @@
 """apple_static_xcframework_import Starlark tests."""
 
 load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
 )
@@ -246,7 +250,7 @@ def apple_static_xcframework_import_test_suite(name):
         ],
         not_contains = ["$BUNDLE_ROOT/Frameworks/"],
         build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
+            build_settings_labels.parse_xcframework_info_plist: "True",
         },
         tags = [name],
     )
@@ -261,7 +265,7 @@ def apple_static_xcframework_import_test_suite(name):
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
+            build_settings_labels.parse_xcframework_info_plist: "True",
         },
         tags = [name],
     )
