@@ -14,8 +14,6 @@
 
 """List of Bazel's rules_apple build settings."""
 
-_BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
-
 # List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
 build_settings = {
     "parse_xcframework_info_plist": struct(
@@ -42,26 +40,14 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
     ),
 }
 
+_BUILD_SETTING_LABELS = {
+    build_setting_name: str(Label("//apple/build_settings:{target_name}".format(
+        target_name = build_setting_name,
+    )))
+    for build_setting_name in build_settings
+}
+
 build_settings_labels = struct(
-    all_labels = [
-        "{package}:{target_name}".format(
-            package = _BUILD_SETTINGS_PACKAGE,
-            target_name = build_setting_name,
-        )
-        for build_setting_name in build_settings
-    ],
-    **({
-        build_setting_name: "{package}:{target_name}".format(
-            package = _BUILD_SETTINGS_PACKAGE,
-            target_name = build_setting_name,
-        )
-        for build_setting_name in build_settings
-    } | {
-        # TODO: Remove https://github.com/bazelbuild/bazel/issues/19286
-        "_{}_skylib_workaround".format(build_setting_name): "@//apple/build_settings:{target_name}".format(
-            package = _BUILD_SETTINGS_PACKAGE,
-            target_name = build_setting_name,
-        )
-        for build_setting_name in build_settings
-    })
+    all_labels = _BUILD_SETTING_LABELS.values(),
+    **_BUILD_SETTING_LABELS
 )
