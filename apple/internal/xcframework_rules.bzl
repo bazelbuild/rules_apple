@@ -560,7 +560,6 @@ def _apple_xcframework_impl(ctx):
             ),
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             objc_fragment = ctx.fragments.objc,
-            platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )

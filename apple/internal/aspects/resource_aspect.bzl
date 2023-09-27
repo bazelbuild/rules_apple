@@ -82,7 +82,6 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         device_families = None,
         explicit_minimum_os = cpp_fragment.minimum_os_version(),
         objc_fragment = None,
-        platform_type_string = str(apple_fragment.single_arch_platform.platform_type),
         uses_swift = uses_swift,
         xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )

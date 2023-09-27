@@ -178,7 +178,6 @@ def _ios_application_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -530,7 +529,6 @@ def _ios_app_clip_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -823,7 +821,6 @@ def _ios_framework_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1072,7 +1069,6 @@ def _ios_extension_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1348,7 +1344,6 @@ def _ios_static_framework_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1487,7 +1482,6 @@ def _ios_imessage_application_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1692,7 +1686,6 @@ def _ios_imessage_extension_impl(ctx):
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
