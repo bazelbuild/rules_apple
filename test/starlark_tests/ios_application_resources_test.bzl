@@ -105,10 +105,13 @@ def ios_application_resources_test_suite(name):
     analysis_failure_message_test(
         name = "{}_invalid_resources_in_structured_resources".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_processed_resources_in_structured_resources",
-        expected_error = "Error: Found ignored resource providers for target " +
-                         "//test/starlark_tests/resources:processed_resources_in_structured_resources. " +
-                         "Check that there are no processed resource targets being referenced by " +
-                         "structured_resources.",
+        expected_error = (
+            "Error: Found ignored resource providers for target {target}. Check " +
+            "that there are no processed resource targets being referenced by " +
+            "structured_resources."
+        ).format(
+            target = Label("//test/starlark_tests/resources:processed_resources_in_structured_resources"),
+        ),
         tags = [name],
     )
 

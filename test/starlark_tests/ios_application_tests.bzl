@@ -733,11 +733,12 @@ def ios_application_test_suite(name):
         name = "{}_fails_with_extension_depending_on_not_extension_safe_framework".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_fmwk_not_extension_safe",
         expected_error = (
-            "The target {package}:ext_with_fmwk_not_extension_safe is for an extension but its " +
-            "framework dependency {package}:fmwk_not_extension_safe is not marked extension-safe." +
-            " Specify 'extension_safe = True' on the framework target."
+            "The target {target} is for an extension but its framework dependency " +
+            "{framework} is not marked extension-safe. Specify 'extension_safe " +
+            "= True' on the framework target."
         ).format(
-            package = "//test/starlark_tests/targets_under_test/ios",
+            framework = Label("//test/starlark_tests/targets_under_test/ios:fmwk_not_extension_safe"),
+            target = Label("//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_not_extension_safe"),
         ),
         tags = [name],
     )
