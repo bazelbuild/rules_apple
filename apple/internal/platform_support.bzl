@@ -172,16 +172,14 @@ def _platform_prerequisites(
         explicit_minimum_deployment_os,
         explicit_minimum_os,
         features,
-        objc_fragment,
-        platform_type_string,
+        objc_fragment = None,
         uses_swift,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
-      apple_platform_info: An ApplePlatformInfo provider from the cc_toolchain_forwarder to
-          determine the platform.
+      apple_platform_info: An ApplePlatformInfo provider to determine the platform.
       build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
@@ -189,15 +187,17 @@ def _platform_prerequisites(
       explicit_minimum_deployment_os: A dotted version string indicating minimum deployment OS desired.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
       features: The list of enabled features applied to the target.
-      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
-      platform_type_string: The platform type for the current target as a string.
+      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
 
     Returns:
       A struct representing the collected platform information.
     """
-    platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
+
+    platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
+    platform_type_attr = getattr(apple_common.platform_type, apple_platform_info.target_os)
+    sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
@@ -209,9 +209,6 @@ def _platform_prerequisites(
         minimum_deployment_os = explicit_minimum_deployment_os
     else:
         minimum_deployment_os = minimum_os
-
-    platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
-    sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
         apple_fragment = apple_fragment,

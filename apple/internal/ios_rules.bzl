@@ -204,7 +204,6 @@ def _ios_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -591,7 +590,6 @@ def _ios_app_clip_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -915,7 +913,6 @@ def _ios_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1184,7 +1181,6 @@ def _ios_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1495,6 +1491,7 @@ def _ios_dynamic_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -1503,7 +1500,6 @@ def _ios_dynamic_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1790,7 +1786,6 @@ def _ios_static_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1937,7 +1932,6 @@ def _ios_imessage_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2144,7 +2138,6 @@ def _ios_imessage_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2407,6 +2400,7 @@ def _ios_sticker_pack_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -2415,7 +2409,6 @@ def _ios_sticker_pack_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2905,6 +2898,7 @@ ios_dynamic_framework = rule_factory.create_apple_rule(
     implementation = _ios_dynamic_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -3167,6 +3161,7 @@ ios_sticker_pack_extension = rule_factory.create_apple_rule(
     implementation = _ios_sticker_pack_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(
             icon_extension = ".stickersiconset",
             icon_parent_extension = ".xcstickers",

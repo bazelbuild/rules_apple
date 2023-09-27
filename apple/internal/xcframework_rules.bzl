@@ -633,7 +633,6 @@ def _apple_xcframework_impl(ctx):
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             features = features,
             objc_fragment = ctx.fragments.objc,
-            platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
@@ -881,6 +880,7 @@ apple_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
@@ -1137,6 +1137,7 @@ def _apple_static_xcframework_impl(ctx):
         )
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
             build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
@@ -1150,7 +1151,6 @@ def _apple_static_xcframework_impl(ctx):
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             features = features,
             objc_fragment = ctx.fragments.objc,
-            platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
@@ -1264,6 +1264,7 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.xcframework_transition,

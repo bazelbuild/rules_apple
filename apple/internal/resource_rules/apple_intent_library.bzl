@@ -69,6 +69,7 @@ def _apple_intent_library_impl(ctx):
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
@@ -76,7 +77,6 @@ def _apple_intent_library_impl(ctx):
         explicit_minimum_os = None,
         features = features,
         objc_fragment = None,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -115,6 +115,7 @@ def _apple_intent_library_impl(ctx):
 apple_intent_library = rule(
     implementation = _apple_intent_library_impl,
     attrs = dicts.add(
+        apple_support.platform_constraint_attrs(),
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
         {

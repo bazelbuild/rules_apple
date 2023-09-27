@@ -204,7 +204,6 @@ def _macos_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -510,7 +509,6 @@ def _macos_bundle_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -758,7 +756,6 @@ def _macos_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1036,7 +1033,6 @@ def _macos_quick_look_plugin_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1286,7 +1282,6 @@ def _macos_kernel_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1542,7 +1537,6 @@ def _macos_spotlight_importer_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1784,7 +1778,6 @@ def _macos_xpc_service_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2018,7 +2011,6 @@ def _macos_command_line_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2161,7 +2153,6 @@ def _macos_dylib_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -2817,6 +2808,7 @@ def _macos_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -2825,7 +2817,6 @@ def _macos_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -3093,6 +3084,7 @@ def _macos_dynamic_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -3101,7 +3093,6 @@ def _macos_dynamic_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -3379,6 +3370,7 @@ def _macos_static_framework_impl(ctx):
     )
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -3387,7 +3379,6 @@ def _macos_static_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = ctx.attr.platform_type,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -3501,6 +3492,7 @@ of those `macos_application` and/or `macos_extension` rules.""",
     implementation = _macos_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -3563,6 +3555,7 @@ macos_dynamic_framework = rule_factory.create_apple_rule(
     implementation = _macos_dynamic_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -3665,6 +3658,7 @@ i.e. `--features=-swift.no_generated_header`).""",
     implementation = _macos_static_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [

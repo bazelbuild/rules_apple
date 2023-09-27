@@ -59,7 +59,6 @@ def _environment_plist_impl(ctx):
         explicit_minimum_os = None,
         features = features,
         objc_fragment = None,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
