@@ -513,7 +513,10 @@ filegroup(
 
 filegroup(
     name = "basic_docc_bundle_files",
-    srcs = ["basic.docc"],
+    srcs = glob(
+        ["basic.docc/**"],
+        exclude_directories = 0,
+    ),
 )
 
 filegroup(
