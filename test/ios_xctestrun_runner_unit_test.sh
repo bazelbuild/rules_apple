@@ -164,7 +164,7 @@ EOF
   XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"IMAGE_DIR"], @"/Project/My Tests/Images", @"should pass");
 }
 
-- (void)uiTestSymbols { 
+- (void)uiTestSymbols {
   // This function triggers https://github.com/google/xctestrunner/blob/7f8fc81b10c8d93f09f6fe38b2a3f37ba25336a6/test_runner/xctest_session.py#L382
   _app = [[XCUIApplication alloc] init];
 }
@@ -766,7 +766,7 @@ function test_with_test_filter_build_attribute() {
 function test_ios_unit_test_with_multi_test_filter_build_attribute() {
   create_sim_runners
   create_test_host_app
-  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2,TestFilterUnitTest/testPass3 
+  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2,TestFilterUnitTest/testPass3
   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
   expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
@@ -793,7 +793,7 @@ function test_ios_unit_test_with_skip_test_filter_build_attribute() {
 function test_ios_unit_test_multi_skip_test_filter_build_attribute() {
   create_sim_runners
   create_test_host_app
-  create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass,-TestFilterUnitTest/testPass2 
+  create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass,-TestFilterUnitTest/testPass2
   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
   expect_not_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
@@ -845,7 +845,7 @@ function test_ios_unit_test_parallel_testing_pass() {
 
   expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
   expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
-  expect_log "//ios:SmallUnitTest\s\+PASSED"
+  expect_log "@//ios:SmallUnitTest\s\+PASSED"
   expect_log "Executed 1 out of 1 test: 1 test passes."
 }
 
@@ -863,7 +863,7 @@ function test_ios_unit_test_parallel_testing_no_tests_fail() {
 
   expect_not_log "Test suite 'SmallUnitTest1' started"
   expect_not_log "Test suite 'SmallUnitTest2' started"
-  expect_log "//ios:SmallUnitTest\s\+FAILED"
+  expect_log "@//ios:SmallUnitTest\s\+FAILED"
   expect_log "Executed 1 out of 1 test: 1 fails locally."
 }
 

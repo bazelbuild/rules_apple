@@ -163,7 +163,7 @@ EOF
   ! do_build watchos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:watch_app" is missing CFBundleVersion.'
+  expect_log 'Target "@//app:watch_app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -185,7 +185,7 @@ EOF
   ! do_build watchos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:watch_app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@//app:watch_app" is missing CFBundleShortVersionString.'
 }
 
 # Test missing the CFBundleVersion fails the build.
@@ -211,7 +211,7 @@ EOF
   ! do_build watchos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:watch_ext" is missing CFBundleVersion.'
+  expect_log 'Target "@//app:watch_ext" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -237,7 +237,7 @@ EOF
   ! do_build watchos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:watch_ext" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@//app:watch_ext" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
@@ -286,7 +286,7 @@ EOF
     ! do_build watchos //app:app || fail "Should fail"
     # The fact that multiple things are tried is left as an impl detail and
     # only the final message is looked for.
-    expect_log 'While processing target "//app:watch_app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+    expect_log 'While processing target "@//app:watch_app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
   else
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary, so the build shouldn't fail.
@@ -326,7 +326,7 @@ EOF
   ! do_build watchos //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:watch_ext", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "@//app:watch_ext", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Test that a watchOS app with a bundle_id that isn't a prefixed by
@@ -374,7 +374,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log 'While processing target "//app:app"; the CFBundleIdentifier of the child target "//app:watch_app" should have "my.bundle.id." as its prefix, but found "my.bundle2.id.watch-app".'
+  expect_log 'While processing target "@//app:app"; the CFBundleIdentifier of the child target "@//app:watch_app" should have "my.bundle.id." as its prefix, but found "my.bundle2.id.watch-app".'
 }
 
 # Test that a watchOS extension with a bundle_id that isn't a prefixed by
@@ -405,7 +405,7 @@ watchos_extension(
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log 'While processing target "//app:watch_app"; the CFBundleIdentifier of the child target "//app:watch_ext" should have "my.bundle.id.watch-app." as its prefix, but found "my.bundle2.id.watch-app.watch-ext".'
+  expect_log 'While processing target "@//app:watch_app"; the CFBundleIdentifier of the child target "@//app:watch_ext" should have "my.bundle.id.watch-app." as its prefix, but found "my.bundle2.id.watch-app.watch-ext".'
 }
 
 # Test that a watchOS app with a different CFBundleShortVersionString than
@@ -465,7 +465,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:app\"; the CFBundleShortVersionString of the child target \"//app:watch_app\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+  expect_log "While processing target \"@//app:app\"; the CFBundleShortVersionString of the child target \"@//app:watch_app\" should be the same as its parent's version string \"1\", but found \"1.1\"."
 }
 
 # Test that a watchOS extension with a different CFBundleShortVersionString
@@ -512,7 +512,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:watch_app\"; the CFBundleShortVersionString of the child target \"//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+  expect_log "While processing target \"@//app:watch_app\"; the CFBundleShortVersionString of the child target \"@//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
 }
 
 # Test that a watchOS app with a different CFBundleVersion than the iOS app
@@ -572,7 +572,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:app\"; the CFBundleVersion of the child target \"//app:watch_app\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+  expect_log "While processing target \"@//app:app\"; the CFBundleVersion of the child target \"@//app:watch_app\" should be the same as its parent's version string \"1\", but found \"1.1\"."
 }
 
 # Test that a watchOS extension with a different CFBundleVersion than the
@@ -619,7 +619,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:watch_app\"; the CFBundleVersion of the child target \"//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
+  expect_log "While processing target \"@//app:watch_app\"; the CFBundleVersion of the child target \"@//app:watch_ext\" should be the same as its parent's version string \"1\", but found \"1.1\"."
 }
 
 # Test that a watchOS app with the wrong bundle_id for its
@@ -662,7 +662,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:app\"; the Info.plist for child target \"//app:watch_app\" has the wrong value for \"WKCompanionAppBundleIdentifier\"; expected u\?'my.bundle.id', but found 'my.bundle2.id'."
+  expect_log "While processing target \"@//app:app\"; the Info.plist for child target \"@//app:watch_app\" has the wrong value for \"WKCompanionAppBundleIdentifier\"; expected u\?'my.bundle.id', but found 'my.bundle2.id'."
 }
 
 # Test that a watchOS extension with the wrong bundle_id for its
@@ -709,7 +709,7 @@ EOF
 EOF
 
   ! do_build watchos //app:app || fail "Should not build"
-  expect_log "While processing target \"//app:watch_app\"; the Info.plist for child target \"//app:watch_ext\" has the wrong value for \"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; expected u\?'my.bundle.id.watch-app', but found 'my.bundle2.id.watch-app'."
+  expect_log "While processing target \"@//app:watch_app\"; the Info.plist for child target \"@//app:watch_ext\" has the wrong value for \"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; expected u\?'my.bundle.id.watch-app', but found 'my.bundle2.id.watch-app'."
 }
 
 run_suite "watchos_application bundling tests"
