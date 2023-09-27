@@ -14,7 +14,14 @@
 
 """Support functions for working with Apple platforms and device families."""
 
-load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleplatforminfo")
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleplatforminfo",
+)
 
 visibility([
     "//apple/...",
@@ -101,64 +108,12 @@ Internal Error: Found unrecognized target environment of {target_environment} fo
         ),
     )
 
-def _target_arch_from_rule_ctx(ctx):
-    """Returns a `String` representing the selected target architecture or cpu type."""
-    arm64_constraint = ctx.attr._arm64_constraint[platform_common.ConstraintValueInfo]
-    arm64e_constraint = ctx.attr._arm64e_constraint[platform_common.ConstraintValueInfo]
-    arm64_32_constraint = ctx.attr._arm64_32_constraint[platform_common.ConstraintValueInfo]
-    armv7k_constraint = ctx.attr._armv7k_constraint[platform_common.ConstraintValueInfo]
-    x86_64_constraint = ctx.attr._x86_64_constraint[platform_common.ConstraintValueInfo]
-
-    if ctx.target_platform_has_constraint(arm64_constraint):
-        return "arm64"
-    elif ctx.target_platform_has_constraint(arm64e_constraint):
-        return "arm64e"
-    elif ctx.target_platform_has_constraint(arm64_32_constraint):
-        return "arm64_32"
-    elif ctx.target_platform_has_constraint(armv7k_constraint):
-        return "armv7k"
-    elif ctx.target_platform_has_constraint(x86_64_constraint):
-        return "x86_64"
-    fail("ERROR: A valid Apple cpu constraint could not be found from the resolved toolchain.")
-
-def _target_environment_from_rule_ctx(ctx):
-    """Returns a `String` representing the selected environment (e.g. "device", "simulator")."""
-    device_constraint = ctx.attr._apple_device_constraint[platform_common.ConstraintValueInfo]
-    simulator_constraint = ctx.attr._apple_simulator_constraint[platform_common.ConstraintValueInfo]
-
-    if ctx.target_platform_has_constraint(device_constraint):
-        return "device"
-    elif ctx.target_platform_has_constraint(simulator_constraint):
-        return "simulator"
-    fail("ERROR: A valid Apple environment (device, simulator) constraint could not be found from" +
-         " the resolved toolchain.")
-
-def _target_os_from_rule_ctx(ctx):
-    """Returns a `String` representing the selected Apple OS."""
-    ios_constraint = ctx.attr._ios_constraint[platform_common.ConstraintValueInfo]
-    macos_constraint = ctx.attr._macos_constraint[platform_common.ConstraintValueInfo]
-    tvos_constraint = ctx.attr._tvos_constraint[platform_common.ConstraintValueInfo]
-    visionos_constraint = ctx.attr._visionos_constraint[platform_common.ConstraintValueInfo]
-    watchos_constraint = ctx.attr._watchos_constraint[platform_common.ConstraintValueInfo]
-
-    if ctx.target_platform_has_constraint(ios_constraint):
-        return str(apple_common.platform_type.ios)
-    elif ctx.target_platform_has_constraint(macos_constraint):
-        return str(apple_common.platform_type.macos)
-    elif ctx.target_platform_has_constraint(tvos_constraint):
-        return str(apple_common.platform_type.tvos)
-    elif ctx.target_platform_has_constraint(visionos_constraint):
-        return str(apple_common.platform_type.visionos)
-    elif ctx.target_platform_has_constraint(watchos_constraint):
-        return str(apple_common.platform_type.watchos)
-    fail("ERROR: A valid Apple platform constraint could not be found from the resolved toolchain.")
-
 def _apple_platform_info_from_rule_ctx(ctx):
     """Returns an ApplePlatformInfo provider from a rule context, needed to resolve constraints."""
     return new_appleplatforminfo(
-        target_arch = _target_arch_from_rule_ctx(ctx),
-        target_environment = _target_environment_from_rule_ctx(ctx),
-        target_os = _target_os_from_rule_ctx(ctx),
+        target_arch = apple_support.target_arch_from_rule_ctx(ctx),
+        target_environment = apple_support.target_environment_from_rule_ctx(ctx),
+        target_os = apple_support.target_os_from_rule_ctx(ctx),
     )
 
 def _platform_prerequisites(
