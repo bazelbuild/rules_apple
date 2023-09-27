@@ -39,7 +39,11 @@ def docc_test_suite(name):
         ],
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
-            "{\"bundleDisplayName\":\"app_with_swift_dep\",\"bundleIdentifier\":\"com.google.example\",\"schemaVersion\":{\"major\":0,\"minor\":1,\"patch\":0}}",
+            "\"bundleDisplayName\":\"app_with_swift_dep\"",
+            "\"bundleIdentifier\":\"com.google.example\"",
+            "\"major\":0",
+            "\"minor\":1",
+            "\"patch\":0",
         ],
         tags = [name],
     )
@@ -56,7 +60,11 @@ def docc_test_suite(name):
         text_file_not_contains = [],
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
-            "{\"bundleDisplayName\":\"BasicFramework\",\"bundleIdentifier\":\"com.google.example.framework\",\"schemaVersion\":{\"major\":0,\"minor\":1,\"patch\":0}}",
+            "\"bundleDisplayName\":\"BasicFramework\"",
+            "\"bundleIdentifier\":\"com.google.example.framework\"",
+            "\"major\":0",
+            "\"minor\":1",
+            "\"patch\":0",
         ],
         tags = [name],
     )
