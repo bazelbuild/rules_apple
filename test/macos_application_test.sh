@@ -93,7 +93,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -114,7 +114,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.
