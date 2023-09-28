@@ -60,6 +60,17 @@ def macos_command_line_application_test_suite(name):
     )
 
     apple_verification_test(
+        name = "{}_info_plist_fat_binary_codesign_test".format(name),
+        build_type = "device",
+        cpus = {
+            "macos_cpus": ["x86_64", "arm64"],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_info_plists",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
         name = "{}_swift_codesign_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_swift",

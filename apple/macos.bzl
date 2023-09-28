@@ -15,11 +15,6 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
-    "macos_binary_infoplist",
-    "macos_command_line_launchdplist",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
@@ -99,46 +94,8 @@ def macos_command_line_application(name, **kwargs):
 
     binary_args = dict(kwargs)
 
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
-    base_bundle_id = binary_args.get("base_bundle_id")
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    launchdplists = binary_args.get("launchdplists")
-    version = binary_args.get("version")
-
-    if base_bundle_id or bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            base_bundle_id = base_bundle_id,
-            bundle_id = bundle_id,
-            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
-            infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
-            version = version,
-        )
-        binary_deps.extend([":" + merged_infoplist_name])
-
-    if launchdplists:
-        merged_launchdplists_name = name + ".merged_launchdplists"
-
-        macos_command_line_launchdplist(
-            name = merged_launchdplists_name,
-            launchdplists = launchdplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
-        )
-        binary_deps.extend([":" + merged_launchdplists_name])
-
     _macos_command_line_application(
         name = name,
-        deps = binary_deps,
         **binary_args
     )
 
@@ -157,35 +114,8 @@ def macos_dylib(name, **kwargs):
 
     binary_args = dict(kwargs)
 
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
-    base_bundle_id = binary_args.get("base_bundle_id")
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    version = binary_args.get("version")
-
-    if base_bundle_id or bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            base_bundle_id = base_bundle_id,
-            bundle_id = bundle_id,
-            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
-            infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
-            version = version,
-        )
-        binary_deps.extend([":" + merged_infoplist_name])
-
     _macos_dylib(
         name = name,
-        deps = binary_deps,
         **binary_args
     )
 

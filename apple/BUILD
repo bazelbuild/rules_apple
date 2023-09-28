@@ -123,7 +123,6 @@ bzl_library(
     srcs = ["macos.bzl"],
     deps = [
         "//apple/internal:capabilities_rules",
-        "//apple/internal:macos_binary_support",
         "//apple/internal:macos_rules",
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",

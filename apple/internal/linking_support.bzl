@@ -91,6 +91,7 @@ def _register_binary_linking_action(
         bundle_loader = None,
         entitlements = None,
         exported_symbols_lists = [],
+        extra_link_inputs = [],
         extra_linkopts = [],
         extra_requested_features = [],
         extra_disabled_features = [],
@@ -121,7 +122,13 @@ def _register_binary_linking_action(
             the entitlements will be provided during code signing).
         exported_symbols_lists: List of `File`s containing exported symbols lists for the linker
             to control symbol resolution.
+        extra_link_inputs: Extra Files to add to the linking action, expected to be referenced via
+            extra_linkopts.
         extra_linkopts: Extra linkopts to add to the linking action.
+        extra_requested_features: Extra features as Strings requested of the underlying linker
+            action.
+        extra_disabled_features: Extra features as Strings requeted to be disabled from the
+            underlying linker action.
         platform_prerequisites: The platform prerequisites if one exists for the given rule. This
             will define additional linking sections for entitlements. If `None`, entitlements
             sections are not included.
@@ -193,6 +200,7 @@ def _register_binary_linking_action(
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
 
     linkopts.extend(extra_linkopts)
+    link_inputs.extend(extra_link_inputs)
 
     all_avoid_deps = list(avoid_deps)
     if bundle_loader:

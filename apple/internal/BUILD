@@ -357,29 +357,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "macos_binary_support",
-    srcs = ["macos_binary_support.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        ":apple_product_type",
-        ":apple_toolchains",
-        ":bundling_support",
-        ":intermediates",
-        ":linking_support",
-        ":platform_support",
-        ":resource_actions",
-        ":rule_attrs",
-        ":rule_support",
-        ":transition_support",
-        "//apple:providers",
-        "@bazel_skylib//lib:dicts",
-        "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
     name = "macos_rules",
     srcs = ["macos_rules.bzl"],
     visibility = [
@@ -392,12 +369,14 @@ bzl_library(
         ":codesigning_support",
         ":entitlements_support",
         ":features_support",
+        ":intermediates",
         ":linking_support",
         ":outputs",
         ":partials",
         ":platform_support",
         ":processor",
         ":providers",
+        ":resource_actions",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
