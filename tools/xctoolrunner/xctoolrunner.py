@@ -350,20 +350,63 @@ def intentbuilderc(args, toolargs):
 
   return return_code
 
+def momc_filtering(tool_exit_status, raw_stdout, raw_stderr):
+  """Filter messages from momc.
+
+  Args:
+    tool_exit_status: The exit status of "xcrun momc".
+    raw_stdout: This is the unmodified stdout captured from "xcrun momc".
+    raw_stderr: This is the unmodified stderr captured from "xcrun momc".
+
+  Returns:
+    A tuple of the filtered exit_status, stdout and strerr.
+  """
+
+  spurious_patterns = [
+      re.compile(x) for x in [
+          # Xcode 15 prints an internal version checksum for each compiled file:
+          #     {name}.xcdatamodel: note: Model {name} version checksum: {base64}
+          r": note: Model .* version checksum:",
+      ]
+  ]
+
+  def is_spurious_message(line):
+    for pattern in spurious_patterns:
+      match = pattern.search(line)
+      if match is not None:
+        return True
+    return False
+
+  output = set()
+
+  for line in raw_stderr.splitlines():
+    if is_spurious_message(line):
+      continue
+
+    output.add(line + "\n")
+
+  return (tool_exit_status, raw_stdout, "".join(output))
+
+
 def momc(args, toolargs):
   """Assemble the call to "xcrun momc"."""
   xcrunargs = ["xcrun", "momc"]
   _apply_realpath(toolargs)
   xcrunargs += toolargs
 
-  return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs, print_output=True)
+  return_code, stdout, stderr = execute.execute_and_filter_output(
+      xcrunargs, filtering=momc_filtering, print_output=False)
 
   destination_dir = args.xctoolrunner_assert_nonempty_dir
   if args.xctoolrunner_assert_nonempty_dir and not os.listdir(destination_dir):
     raise FileNotFoundError(
         f"xcrun momc did not generate artifacts at: {destination_dir}\n"
         "Core Data model was not configured to have code generation.")
+
+  if stdout:
+    sys.stdout.write("%s" % stdout)
+  if stderr:
+    sys.stderr.write("%s" % stderr)
 
   return return_code
 
