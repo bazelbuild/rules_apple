@@ -39,6 +39,10 @@ load(
     _clang_rt_dylibs_partial = "clang_rt_dylibs_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:main_thread_checker_dylibs.bzl",
+    _main_thread_checker_dylibs_partial = "main_thread_checker_dylibs_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:codesigning_dossier.bzl",
     _codesigning_dossier_partial = "codesigning_dossier_partial",
 )
@@ -113,6 +117,7 @@ partials = struct(
     apple_bundle_info_partial = _apple_bundle_info_partial,
     binary_partial = _binary_partial,
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
+    main_thread_checker_dylibs_partial = _main_thread_checker_dylibs_partial,
     codesigning_dossier_partial = _codesigning_dossier_partial,
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,

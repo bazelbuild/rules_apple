@@ -62,6 +62,10 @@ such that the given framework only contains the same slices as the app binary, e
 to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
 and zipped as a cacheable artifact.
 """,
+        "resolved_main_thread_checker_tool": """\
+A `struct` from `ctx.resolve_tools` referencing a tool to find libMainThreadChecker.dylib linked to a
+binary.
+""",
         "resolved_plisttool": """\
 A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
@@ -168,6 +172,10 @@ def _apple_mac_tools_toolchain_impl(ctx):
                 attr_name = "clangrttool",
                 rule_ctx = ctx,
             ),
+            resolved_main_thread_checker_tool= _resolve_tools_for_executable(
+                attr_name = "main_thread_checker_tool",
+                rule_ctx = ctx,
+            ),
             resolved_environment_plist_tool = _resolve_tools_for_executable(
                 attr_name = "environment_plist_tool",
                 rule_ctx = ctx,
@@ -254,6 +262,11 @@ only contains the same slices as the app binary, every file belonging to the dyn
 copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable
 artifact.
 """,
+        ),
+        "main_thread_checker_tool": attr.label(
+            cfg = "target",
+            executable = True,
+            doc = "A `File` referencing a tool to find libMainThreadChecker.dylib linked to a binary.",
         ),
         "plisttool": attr.label(
             cfg = "target",

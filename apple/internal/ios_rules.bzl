@@ -27,6 +27,10 @@ load(
     "clang_rt_dylibs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:main_thread_checker_dylibs.bzl",
+    "main_thread_checker_dylibs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -315,6 +319,15 @@ def _ios_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -648,6 +661,15 @@ def _ios_app_clip_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
+        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -943,6 +965,15 @@ def _ios_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
+        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -1231,6 +1262,15 @@ def _ios_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
+        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -1501,6 +1541,15 @@ def _ios_dynamic_framework_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -2131,6 +2180,15 @@ def _ios_imessage_extension_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
