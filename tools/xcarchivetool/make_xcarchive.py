@@ -113,9 +113,9 @@ def _main(
     short_version = infoplist["CFBundleShortVersionString"]
 
   # Create the .xcarchive directory.
-  bundle_dest_dir = os.path.join(output_path, "Products", "Applications")
-  bundle_dest_path = os.path.join(
-    output_path, "Products", "Applications", bundle_name + ".app")
+  products_dest_dir = os.path.join(output_path, "Products")
+  bundle_dest_dir = os.path.join(products_dest_dir, "Applications")
+  bundle_dest_path = os.path.join(bundle_dest_dir, bundle_name + ".app")
   os.makedirs(bundle_dest_dir, exist_ok=True)
 
   # If is an .ipa, extract and copy .app to destination
@@ -137,7 +137,7 @@ def _main(
 
   # Create the Info.plist for the .xcarchive.
   creation_date = datetime.datetime.now().isoformat()
-  app_relative_path = os.path.relpath(bundle_dest_path, output_path)
+  app_relative_path = os.path.relpath(bundle_dest_path, products_dest_dir)
   info_plist = {
     "ApplicationProperties": {
       "ApplicationPath": app_relative_path,
