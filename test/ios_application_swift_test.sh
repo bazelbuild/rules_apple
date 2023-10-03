@@ -295,4 +295,31 @@ EOF
   fi
 }
 
+# Tests that app builds with include_main_thread_checker 
+# and that the libMainThreadChecker.dylib is packaged into the IPA when enabled.
+function test_swift_builds_with_include_main_thread_checker() {
+  create_minimal_ios_application
+  
+  cat >> app/BUILD <<EOF
+swift_library(
+    name = "lib",
+    srcs = ["AppDelegate.swift"],
+)
+EOF
+
+  # The clang_rt resolution implemented in tools/clangrttool.py requires
+  # the presence of a clang_rt*.dylib rpath.
+
+  do_build ios //app:app --features=include_main_thread_checker \
+        || fail "Should build"
+
+  if is_device_build ios ; then
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libMainThreadChecker.dylib"
+  else
+    assert_zip_contains "test-bin/app/app.ipa" \
+        "Payload/app.app/Frameworks/libMainThreadChecker.dylib"
+  fi
+}
+
 run_suite "ios_application with Swift bundling tests"

@@ -18,7 +18,7 @@ import os
 import re
 import subprocess
 import sys
-import zipfile
+import shutil
 
 
 class MainThreadCheckerToolError(RuntimeError):
@@ -38,18 +38,18 @@ class MainThreadCheckerToolError(RuntimeError):
 
 
 class MainThreadCheckerTool(object):
-  """Implements the Main Thread Check dylib zipper tool."""
+  """Implements the Main Thread Check dylib copy tool."""
 
-  def __init__(self, binary_path, output_zip_path):
+  def __init__(self, binary_path, output_path):
     """Initializes MainThreadCheckerTool.
 
     Args:
       binary_path: The path to the binary to scan.
-      output_zip_path: The path to the output zip file.
+      output_path: The path to the output dylib file.
     """
 
     self._binary_path = binary_path
-    self._output_zip_path = output_zip_path
+    self.output_path = output_path
 
   def run(self):
     if "DEVELOPER_DIR" in os.environ:
@@ -57,15 +57,11 @@ class MainThreadCheckerTool(object):
       lib_path = os.path.join(os.environ["DEVELOPER_DIR"], "usr/lib/libMainThreadChecker.dylib")
     else:
       raise MainThreadCheckerToolError("Could not find DEVELOPER DIR")
-    
-    with zipfile.ZipFile(out_path, "w") as out_zip:
-      for lib in [lib_path]:
-        if os.path.exists(lib):
-          out_zip.write(lib, arcname = "libMainThreadChecker.dylib")
-        else:
-          raise MainThreadCheckerToolError("Could not read library at %s." %
-                                      full_path)
-
+    if os.path.exists(lib_path):
+          shutil.copyfile(lib_path, self.output_path)
+    else:
+      raise MainThreadCheckerToolError("Could not read library at %s." %
+                                      lib_path)
 
 if __name__ == "__main__":
   binary_path = sys.argv[1]

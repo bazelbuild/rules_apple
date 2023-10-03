@@ -172,7 +172,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
                 attr_name = "clangrttool",
                 rule_ctx = ctx,
             ),
-            resolved_main_thread_checker_tool= _resolve_tools_for_executable(
+            resolved_main_thread_checker_tool = _resolve_tools_for_executable(
                 attr_name = "main_thread_checker_tool",
                 rule_ctx = ctx,
             ),
