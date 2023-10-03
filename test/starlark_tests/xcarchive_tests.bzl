@@ -37,7 +37,7 @@ def xcarchive_test_suite(name):
         ],
         plist_test_file = "$BUNDLE_ROOT/Info.plist",
         plist_test_values = {
-            "ApplicationProperties:ApplicationPath": "Products/Applications/app_minimal.app",
+            "ApplicationProperties:ApplicationPath": "Applications/app_minimal.app",
             "ApplicationProperties:ArchiveVersion": "2",
             "ApplicationProperties:CFBundleIdentifier": "com.google.example",
             "ApplicationProperties:CFBundleShortVersionString": "1.0",
@@ -57,7 +57,7 @@ def xcarchive_test_suite(name):
         ],
         plist_test_file = "$BUNDLE_ROOT/Info.plist",
         plist_test_values = {
-            "ApplicationProperties:ApplicationPath": "Products/Applications/app_minimal.app",
+            "ApplicationProperties:ApplicationPath": "Applications/app_minimal.app",
             "ApplicationProperties:ArchiveVersion": "2",
             "ApplicationProperties:CFBundleIdentifier": "com.google.example",
             "ApplicationProperties:CFBundleShortVersionString": "1.0",
