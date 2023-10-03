@@ -30,6 +30,13 @@ _CHANGE_PROPERTY_MSG = (
     " <CATransformLayer: 0x7f8b000e2af0> - "
     "changing property masksToBounds in transform-only layer, "
     "will have no effect\n")
+_MODEL_CHECKSUM_MSG = (
+    "PersistentQueue.xcdatamodel: note: Model PersistentQueue "
+    "version checksum: +liGtY4aOXak0pynyLB0+SQanU4nvQ3MLg5dwh2PE0o=\n")
+_MODEL_FAILURE_MSG = (
+    "CoreData: warning: no NSValueTransformer with class name "
+    "'SomeTransformer' was found for attribute 'value' on entity "
+    "'SomeEntity'\n")
 
 
 class TestIBTOOL(unittest.TestCase):
@@ -58,6 +65,15 @@ class TestMomcTool(unittest.TestCase):
         execute, "execute_and_filter_output", autospec=True)
     self.execute_patch = execute_patch.start()
     self.addCleanup(execute_patch.stop)
+
+  def testFiltering(self):
+    stderr = _MODEL_CHECKSUM_MSG + _MODEL_FAILURE_MSG
+    tool_exit_status = 0
+
+    (tool_exit_status, _, err) = xctoolrunner.momc_filtering(
+        tool_exit_status, "", stderr)
+
+    self.assertEqual(err, _MODEL_FAILURE_MSG)
 
   def testRaisesFileNotFoundError(self):
     args = [
