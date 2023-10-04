@@ -194,7 +194,6 @@ def _ios_application_impl(ctx):
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
-    print("<<<", platform_prerequisites)
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
@@ -213,9 +212,6 @@ def _ios_application_impl(ctx):
             "resources",
         ],
     )
-
-    print(">>>c", top_level_resources)
-
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -351,14 +347,16 @@ def _ios_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            alternate_app_icon_names = ctx.files.alternate_app_icon_names,
+            app_icon_name = ctx.attr.app_icon_name,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
-            app_icon_name = ctx.attr.app_icon_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
+            include_all_appicons = ctx.attr.include_all_appicons,
             launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
