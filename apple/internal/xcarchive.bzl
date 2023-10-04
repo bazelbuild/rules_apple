@@ -21,6 +21,7 @@ def _xcarchive_impl(ctx):
     """
     bundle_info = ctx.attr.bundle[AppleBundleInfo]
     dsym_info = ctx.attr.bundle[AppleDsymBundleInfo]
+    debug_info = ctx.attr.bundle[AppleDebugInfo]
     xcarchive = ctx.actions.declare_directory("%s.xcarchive" % bundle_info.bundle_name)
 
     arguments = ctx.actions.args()
@@ -31,11 +32,14 @@ def _xcarchive_impl(ctx):
     for dsym in dsym_info.direct_dsyms:
         arguments.add("--dsym", dsym.path)
 
+    for linkmap in debug_info.linkmaps:
+        arguments.add("--linkmap", linkmap.path)
+
     ctx.actions.run(
         inputs = depset([
             bundle_info.archive,
             bundle_info.infoplist,
-        ] + dsym_info.direct_dsyms),
+        ] + dsym_info.direct_dsyms + debug_info.linkmaps),
         outputs = [xcarchive],
         executable = ctx.executable._make_xcarchive,
         arguments = [arguments],
@@ -61,6 +65,7 @@ xcarchive = rule(
             providers = [
                 AppleBundleInfo,
                 AppleDsymBundleInfo,
+                AppleDebugInfo,
             ],
             doc = """\
 The label to a target to re-package into a .xcarchive. For example, an
