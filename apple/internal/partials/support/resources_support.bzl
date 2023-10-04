@@ -143,6 +143,7 @@ def _compile_mappingmodels(
 def _asset_catalogs(
         *,
         actions,
+        app_icon_name,
         apple_mac_toolchain_info,
         bundle_id,
         files,
@@ -205,6 +206,7 @@ def _asset_catalogs(
     resource_actions.compile_asset_catalog(
         actions = actions,
         alternate_icons = alternate_icons,
+        app_icon_name = app_icon_name,
         asset_files = asset_files,
         bundle_id = bundle_id,
         output_dir = assets_dir,

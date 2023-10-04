@@ -174,6 +174,7 @@ def _resources_partial_impl(
         bundle_id,
         bundle_name,
         executable_name,
+        app_icon_name,
         include_executable_name,
         bundle_verification_targets,
         environment_plist,
@@ -263,6 +264,7 @@ def _resources_partial_impl(
 
     def _deduplicated_field_handler(field, deduplicated):
         processing_func, requires_swift_module = provider_field_to_action[field]
+
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
@@ -279,6 +281,7 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
+                "app_icon_name": app_icon_name,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
@@ -379,6 +382,7 @@ def resources_partial(
         bundle_id = None,
         bundle_name,
         executable_name,
+        app_icon_name = None,
         include_executable_name = True,
         bundle_verification_targets = [],
         environment_plist,
@@ -408,6 +412,7 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
+        app_icon_name: The name of the app icon to use. Use This name if you have multiple appiconset in your xcassets.
         include_executable_name: If True, the executable name will be added to
             the plist in the `CFBundleExecutable` key. This is mainly intended for
             plists embedded in a command line tool which don't need this value.
@@ -448,6 +453,7 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        app_icon_name = app_icon_name,
         include_executable_name = include_executable_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,

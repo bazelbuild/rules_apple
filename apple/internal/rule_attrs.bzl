@@ -666,6 +666,11 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
                 app_icon_parent_extension = icon_parent_extension,
             ),
         ),
+        "app_icon_name": attr.string(
+            doc = """
+The name of the app icon to use for this target. 
+This is the name of the directory of {icon_extension} without the extension""".format(icon_extension = icon_extension)
+        ),
     }
 
 def _launch_images_attrs():
