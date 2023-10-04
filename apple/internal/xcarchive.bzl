@@ -5,6 +5,7 @@ Rule for packaging a bundle into a .xcarchive.
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleDebugInfo",
     "AppleDsymBundleInfo",
 )
 load(
