@@ -307,9 +307,6 @@ swift_library(
 )
 EOF
 
-  # The clang_rt resolution implemented in tools/clangrttool.py requires
-  # the presence of a clang_rt*.dylib rpath.
-
   do_build ios //app:app --features=include_main_thread_checker \
         || fail "Should build"
 
