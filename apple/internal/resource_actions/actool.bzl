@@ -128,6 +128,7 @@ def _actool_args_for_special_file_types(
 
         icon_dir = ""
 
+        # if app_icon_name is specified by user, instead of guarding the number of appiconset, we will search from multiple appiconset
         if app_icon_name:
             _icon_dirs = [d for d in icon_dirs if paths.basename(d) == app_icon_name + ".appiconset"]
 
@@ -200,10 +201,12 @@ def _alticonstool_args(
 def compile_asset_catalog(
         *,
         actions,
+        alternate_app_icon_names,
         alternate_icons,
         app_icon_name,
         asset_files,
         bundle_id,
+        include_all_appicons,
         output_dir,
         output_plist,
         platform_prerequisites,
@@ -220,6 +223,7 @@ def compile_asset_catalog(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      alternate_app_icon_names: The alternate app icon names to use.
       alternate_icons: Alternate icons files, organized in .alticon directories.
       app_icon_name: The name of the app icon to use. Set this if you have multiple appiconset.
       asset_files: An iterable of files in all asset catalogs that should be
@@ -228,6 +232,7 @@ def compile_asset_catalog(
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
       bundle_id: The bundle ID to configure for this target.
+      include_all_appicons: Whether to include all app icons.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.

@@ -212,6 +212,7 @@ def _ios_application_impl(ctx):
             "resources",
         ],
     )
+
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
