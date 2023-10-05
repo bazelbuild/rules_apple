@@ -169,12 +169,14 @@ def _locales_excluded(*, config_vars):
 def _resources_partial_impl(
         *,
         actions,
+        alternate_app_icon_names,
+        app_icon_name,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
         executable_name,
-        app_icon_name,
+        include_all_appicons,
         include_executable_name,
         bundle_verification_targets,
         environment_plist,
@@ -281,10 +283,12 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
+                "alternate_app_icon_names": alternate_app_icon_names,
                 "app_icon_name": app_icon_name,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
+                "include_all_appicons": include_all_appicons,
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
