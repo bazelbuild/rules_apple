@@ -49,6 +49,7 @@ load(
 
 def _actool_args_for_special_file_types(
         *,
+        alternate_app_icon_names,
         app_icon_name,
         asset_files,
         bundle_id,
@@ -277,6 +278,7 @@ def compile_asset_catalog(
             args.extend(["--product-type", product_type])
 
     args.extend(_actool_args_for_special_file_types(
+        alternate_app_icon_names = alternate_app_icon_names,
         app_icon_name = app_icon_name,
         asset_files = asset_files,
         bundle_id = bundle_id,
