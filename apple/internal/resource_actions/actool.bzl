@@ -148,6 +148,22 @@ def _actool_args_for_special_file_types(
         app_icon_name = paths.split_extension(paths.basename(icon_dir))[0]
         args += ["--app-icon", app_icon_name]
 
+        # Add arguments for alternate app icons, if there are any.
+        for alternate_app_icon_name in alternate_app_icon_names:
+            _icon_dirs = [d for d in icon_dirs if paths.basename(d) == alternate_app_icon_name + ".appiconset"]
+
+            if len(_icon_dirs) == 0:
+                fail("could not find alternate app icon " + app_icon_name + ".appiconset")
+            else if len(_icon_dirs) > 1:
+                fail("found multiple alternate app icon " + app_icon_name + ".appiconset")
+
+            app_icon_name = paths.split_extension(paths.basename(_icon_dirs[0]))[0]
+
+            args.extend([
+                "--alternate-app-icon",
+                app_icon_name
+            ])
+
     # Add arguments for watch extension complication, if there is one.
     complication_files = [f for f in asset_files if ".complicationset/" in f.path]
     if product_type == apple_product_type.watch2_extension and complication_files:
@@ -293,16 +309,8 @@ def compile_asset_catalog(
             xctoolrunner.prefixed_path(actool_output_plist.path),
         ])
 
-    # print(">>>", platform_prerequisites)
-    # if alternate_assetcatalog_icons:
-    #     for assetcatalog_icons in alternate_assetcatalog_icons:
-    #         args.extend([
-    #             "--alternate-app-icon",
-    #             assetcatalog_icons
-    #         ])
-
-    # if include_all_appicons:
-    #     args.extend("--include-all-app-icons ")
+    if include_all_appicons:
+        args.extend("--include-all-app-icons ")
 
     xcassets = group_files_by_directory(
         asset_files,
