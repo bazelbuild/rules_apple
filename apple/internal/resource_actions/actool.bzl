@@ -130,7 +130,7 @@ def _actool_args_for_special_file_types(
         icon_dir = ""
 
         # if app_icon_name is specified by user, instead of guarding the number of appiconset, we will search from multiple appiconset
-        if app_icon_name:
+        if app_icon_name and len(app_icon_name) > 0 :
             _icon_dirs = [d for d in icon_dirs if paths.basename(d) == app_icon_name + ".appiconset"]
 
             if len(_icon_dirs) != 1:
@@ -155,7 +155,7 @@ def _actool_args_for_special_file_types(
 
             if len(_icon_dirs) == 0:
                 fail("could not find alternate app icon " + app_icon_name + ".appiconset")
-            else if len(_icon_dirs) > 1:
+            elif len(_icon_dirs) > 1:
                 fail("found multiple alternate app icon " + app_icon_name + ".appiconset")
 
             app_icon_name = paths.split_extension(paths.basename(_icon_dirs[0]))[0]
@@ -312,7 +312,7 @@ def compile_asset_catalog(
         ])
 
     if include_all_appicons:
-        args.extend("--include-all-app-icons ")
+        args.extend(["--include-all-app-icons"])
 
     xcassets = group_files_by_directory(
         asset_files,

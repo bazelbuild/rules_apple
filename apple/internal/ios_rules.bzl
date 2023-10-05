@@ -348,7 +348,7 @@ def _ios_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
-            alternate_app_icon_names = ctx.files.alternate_app_icon_names,
+            alternate_app_icon_names = ctx.attr.alternate_app_icon_names,
             app_icon_name = ctx.attr.app_icon_name,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,

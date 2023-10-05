@@ -663,7 +663,7 @@ List of names of alternate app icons to use for this target.
 This is the name of the directory of `{icon_extension}` without the extension.""".format(icon_extension = icon_extension)
         ),
         "app_icon_name": attr.string(
-            default = None,
+            default = "",
             doc = """
 The name of the app icon to use for this target. 
 This is the name of the directory of `{icon_extension}` without the extension""".format(icon_extension = icon_extension)
