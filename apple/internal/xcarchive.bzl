@@ -36,13 +36,15 @@ def _xcarchive_impl(ctx):
     for dsym in dsym_info.direct_dsyms:
         arguments.add("--dsym", dsym.path)
 
-    arguments.add_all("--linkmap", debug_info.linkmaps)
+    linkmaps = debug_info.linkmaps.to_list()
+    for linkmap in linkmaps:
+        arguments.add("--linkmap", linkmap.path)
 
     ctx.actions.run(
         inputs = depset([
             bundle_info.archive,
             bundle_info.infoplist,
-        ] + dsym_info.direct_dsyms, transitive = [debug_info.linkmaps]),
+        ] + dsym_info.direct_dsyms + linkmaps),
         outputs = [xcarchive],
         executable = ctx.executable._make_xcarchive,
         arguments = [arguments],

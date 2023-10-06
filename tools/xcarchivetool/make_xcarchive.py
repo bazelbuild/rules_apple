@@ -147,6 +147,7 @@ def _main(
 
   # Copy the linkmap files into the .xcarchive.
   linkmaps_path = os.path.join(output_path, "Linkmaps")
+  os.makedirs(linkmaps_path, exist_ok=True)
   for linkmap in linkmaps or []:
     shutil.copyfile(
       linkmap,
