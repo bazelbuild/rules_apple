@@ -48,6 +48,28 @@ def xcarchive_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
+        name = "{}_contains_xcarchive_files_simulator_linkmaps".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal.xcarchive",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Linkmaps/app_minimal_x86_64.linkmap",
+            "$BUNDLE_ROOT/Products/Applications/app_minimal.app",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "ApplicationProperties:ApplicationPath": "Applications/app_minimal.app",
+            "ApplicationProperties:ArchiveVersion": "2",
+            "ApplicationProperties:CFBundleIdentifier": "com.google.example",
+            "ApplicationProperties:CFBundleShortVersionString": "1.0",
+            "ApplicationProperties:CFBundleVersion": "1.0",
+            "Name": "app_minimal",
+            "SchemeName": "app_minimal",
+        },
+        objc_generate_linkmap = True,
+        tags = [name],
+    )
+    archive_contents_test(
         name = "{}_contains_xcarchive_files_device".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal.xcarchive",
