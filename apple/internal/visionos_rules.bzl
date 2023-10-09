@@ -122,6 +122,12 @@ Resolved Xcode is version {xcode_version}.
         product_type = apple_product_type.application,
     )
 
+    allowed_device_families = rule_descriptor.allowed_device_families
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
+        # TODO(b/304281024): Remove this fallback for Xcode 15.0 when we no longer support Xcode 15
+        # beta 8.
+        allowed_device_families = ["reality"]
+
     # Add the disable_legacy_signing feature to the list of features, forcing dossier signing as a
     # requirement of this rule.
     # TODO(b/72148898): Remove this when dossier based signing becomes the default for all rules.
@@ -155,7 +161,7 @@ Resolved Xcode is version {xcode_version}.
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
-        device_families = rule_descriptor.allowed_device_families,
+        device_families = allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
