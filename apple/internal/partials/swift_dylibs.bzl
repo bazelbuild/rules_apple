@@ -236,6 +236,7 @@ def swift_dylibs_partial(
       dependency_targets: List of targets that should be checked for binaries that might contain
         Swift, so that the Swift dylibs can be collected.
       label_name: Name of the target being built.
+      mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for

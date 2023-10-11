@@ -229,8 +229,6 @@ def _bundle_partial_outputs_files(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
-        xplat_exec_group,
-        mac_exec_group,
         bundle_extension,
         bundle_name,
         codesigning_command = None,
@@ -238,18 +236,19 @@ def _bundle_partial_outputs_files(
         extra_input_files = [],
         ipa_post_processor = None,
         label_name,
+        mac_exec_group,
         output_discriminator,
         output_file,
         partial_outputs,
         platform_prerequisites,
-        rule_descriptor):
+        rule_descriptor,
+        xplat_exec_group):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
-      xplat_exec_group: A String. The exec_group for action using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
@@ -258,6 +257,7 @@ def _bundle_partial_outputs_files(
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: The name of the target being built.
+      mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_file: The file where the final zipped bundle should be created.
@@ -265,6 +265,7 @@ def _bundle_partial_outputs_files(
         that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
@@ -462,13 +463,12 @@ def _bundle_post_process_and_sign(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
-        mac_exec_group,
-        xplat_exec_group,
         bundle_extension,
         bundle_name,
         entitlements,
         features,
         ipa_post_processor,
+        mac_exec_group,
         output_archive,
         output_discriminator,
         partial_outputs,
@@ -477,19 +477,20 @@ def _bundle_post_process_and_sign(
         process_and_sign_template,
         provisioning_profile,
         rule_descriptor,
-        rule_label):
+        rule_label,
+        xplat_exec_group):
     """Bundles, post-processes and signs the files in partial_outputs.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
-        xplat_exec_group: A String. The exec_group for action using xplat toolchain.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+        mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -500,6 +501,7 @@ def _bundle_post_process_and_sign(
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+        xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
@@ -541,19 +543,19 @@ def _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
-            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesigning_command = codesigning_command,
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = output_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         )
 
         actions.write(
@@ -649,18 +651,18 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                mac_exec_group = mac_exec_group,
-                xplat_exec_group = xplat_exec_group,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 embedding = True,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
+                mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
                 platform_prerequisites = platform_prerequisites,
                 rule_descriptor = rule_descriptor,
+                xplat_exec_group = xplat_exec_group,
             )
 
             codesigning_support.post_process_and_sign_archive_action(
@@ -689,14 +691,13 @@ def _process(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
-        xplat_exec_group,
-        mac_exec_group,
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
         entitlements = None,
         features,
         ipa_post_processor = None,
+        mac_exec_group,
         output_discriminator = None,
         partials,
         platform_prerequisites,
@@ -704,14 +705,14 @@ def _process(
         process_and_sign_template,
         provisioning_profile = None,
         rule_descriptor,
-        rule_label):
+        rule_label,
+        xplat_exec_group):
     """Processes a list of partials that provide the files to be bundled.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
-      xplat_exec_group: A String. The exec_group for action using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
@@ -719,6 +720,7 @@ def _process(
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
+      mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       partials: The list of partials to process to construct the complete bundle.
@@ -728,6 +730,7 @@ def _process(
       provisioning_profile: File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
+      xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
       A `struct` with the results of the processing. The files to make outputs of
@@ -750,13 +753,12 @@ def _process(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
-            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             entitlements = entitlements,
             features = features,
             ipa_post_processor = ipa_post_processor,
+            mac_exec_group = mac_exec_group,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
             partial_outputs = partial_outputs,
@@ -766,6 +768,7 @@ def _process(
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
+            xplat_exec_group = xplat_exec_group,
         )
         transitive_output_files = [depset([output_archive])]
     else:

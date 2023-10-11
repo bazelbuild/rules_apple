@@ -172,6 +172,7 @@ def compile_xib(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The Xib file to compile.
+      mac_exec_group: The exec_group associated with resolved_xctoolrunner
       output_dir: The file reference for the output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
       resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
