@@ -137,14 +137,11 @@ visibility([
 ])
 
 def _visionos_application_impl(ctx):
-    """WIP implementation of visionos_application."""
-
+    """Implementation of visionos_application."""
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
         fail("""
-visionOS bundles require a visionOS SDK provided by Xcode 15 beta 8 or later.
-
-This is not in Xcode 15 RC or final. The SDK is presently only found in beta Xcodes.
+visionOS bundles require a visionOS SDK provided by Xcode 15.1 beta or later.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
@@ -153,12 +150,6 @@ Resolved Xcode is version {xcode_version}.
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
     )
-
-    allowed_device_families = rule_descriptor.allowed_device_families
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
-        # TODO(b/304281024): Remove this fallback for Xcode 15.0 when we no longer support Xcode 15
-        # beta 8.
-        allowed_device_families = ["reality"]
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
@@ -189,7 +180,7 @@ Resolved Xcode is version {xcode_version}.
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
-        device_families = allowed_device_families,
+        device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
         explicit_minimum_os = ctx.attr.minimum_os_version,
         features = features,
