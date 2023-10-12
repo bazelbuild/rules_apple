@@ -398,6 +398,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "order_file",
+    srcs = ["order_file.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "outputs",
     srcs = ["outputs.bzl"],
     visibility = [
