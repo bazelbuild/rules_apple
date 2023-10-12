@@ -23,6 +23,10 @@ load(
     "ios_unit_test",
 )
 load(
+    "//apple:linker.bzl",
+    "apple_order_file",
+)
+load(
     "//apple:resources.bzl",
     "apple_resource_group",
 )
@@ -3618,5 +3622,63 @@ ios_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for order_file testing.
+
+write_file(
+    name = "app_raw_order_file_a",
+    out = "app_order_file_a.order",
+    content = ["""
+_dontCallMeMain
+_anotherFunctionMain
+"""],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "app_raw_order_file_b",
+    out = "app_order_file_b.order",
+    content = ["""
+_main
+_dontCallMeMain
+"""],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "app_raw_order_file_c",
+    out = "app_order_file_c.order",
+    content = ["""
+_main
+"""],
+    tags = common.fixture_tags,
+)
+
+apple_order_file(
+    name = "app_order_file",
+    deps = [
+        # Order matters.
+        ":app_raw_order_file_b",
+        ":app_raw_order_file_a",
+        ":app_raw_order_file_c",
+    ],
+)
+
+ios_application(
+    name = "app_with_order_file",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":app_order_file",
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
