@@ -1,8 +1,11 @@
+load("//tools:binary_env.bzl", "binary_env")
+
 licenses(["notice"])
 
 py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
+    env = binary_env.common_python_utf8_env(),
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
