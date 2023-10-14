@@ -957,6 +957,7 @@ def _tvos_framework_impl(ctx):
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1223,6 +1224,7 @@ def _tvos_extension_impl(ctx):
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements.codesigning,
         features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1375,6 +1377,7 @@ def _tvos_static_framework_impl(ctx):
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1478,6 +1481,7 @@ tvos_dynamic_framework = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1540,6 +1544,7 @@ tvos_extension = rule_factory.create_apple_rule(
         ),
         rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1586,6 +1591,7 @@ To use this framework for your app and extensions, list it in the frameworks att
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1690,6 +1696,7 @@ i.e. `--features=-swift.no_generated_header`).
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",

@@ -385,6 +385,7 @@ Resolved Xcode is version {xcode_version}.
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         entitlements = entitlements.codesigning,
         features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1430,6 +1431,7 @@ visionos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
@@ -1489,6 +1491,7 @@ visionos_dynamic_framework = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
@@ -1597,6 +1600,7 @@ To use this framework for your app and extensions, list it in the frameworks att
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
@@ -1701,6 +1705,7 @@ i.e. `--features=-swift.no_generated_header`).
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
