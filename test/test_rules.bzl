@@ -109,7 +109,9 @@ def apple_shell_test(
             "//test/testdata/provisioning:integration_testing_profiles",
             "//test:unittest.bash",
         ] + (data or []),
-        deps = deps or [],
+        deps = [
+            "@bazel_tools//tools/bash/runfiles",
+        ] + (deps or []),
         tags = ["requires-darwin"] + (tags or []),
         **kwargs
     )
