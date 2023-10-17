@@ -58,6 +58,10 @@ DIR=$(pwd)
 # Load the unit test framework
 source "$DIR/unittest.bash" || print_message_and_exit "unittest.bash not found!"
 
+function resolve_external_repository() {
+  dirname "$(perl -MCwd -e 'print Cwd::abs_path shift' "$(rlocation "$1/BUILD")")"
+}
+
 # Load the test environment
 function create_new_workspace() {
   new_workspace_dir="${1:-$(mktemp -d ${TEST_TMPDIR}/workspace.XXXXXXXX)}"
@@ -87,22 +91,22 @@ new_local_repository(
 
 local_repository(
     name = 'build_bazel_rules_apple',
-    path = '$(rlocation build_bazel_rules_apple)',
+    path = '$(resolve_external_repository build_bazel_rules_apple)',
 )
 
 local_repository(
     name = 'build_bazel_rules_swift',
-    path = '$(rlocation build_bazel_rules_swift)',
+    path = '$(resolve_external_repository build_bazel_rules_swift)',
 )
 
 local_repository(
     name = 'build_bazel_apple_support',
-    path = '$(rlocation build_bazel_apple_support)',
+    path = '$(resolve_external_repository build_bazel_apple_support)',
 )
 
 local_repository(
     name = 'xctestrunner',
-    path = '$(rlocation xctestrunner)',
+    path = '$(resolve_external_repository xctestrunner)',
 )
 
 # We load rules_swift dependencies into the WORKSPACE. This is safe to do
