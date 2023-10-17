@@ -23,6 +23,10 @@ test --build_tests_only
 # visibility and symbol import issues are resolved.
 build --nocheck_visibility
 
+# We don't need to bump some of our dependencies, just becuse our dev
+# dependencies cause us to use a newer version
+build --check_direct_dependencies=off
+
 # Disable the worker, which has sandboxing disabled by default, which can hide
 # issues with non-hermetic bugs.
 build --spawn_strategy=sandboxed,local
