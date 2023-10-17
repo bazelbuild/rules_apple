@@ -34,6 +34,7 @@ bzl_library(
     name = "apple",
     srcs = ["apple.bzl"],
     deps = [
+        "//apple:apple_static_library",
         "//apple/internal:apple_framework_import",
         "//apple/internal:apple_universal_binary",
         "//apple/internal:apple_xcframework_import",
@@ -126,7 +127,11 @@ bzl_library(
 bzl_library(
     name = "ios.doc",
     srcs = ["ios.doc.bzl"],
-    deps = ["ios"],
+    deps = [
+        ":ios",
+        "//apple/testing/default_runner:ios_test_runner",
+        "//apple/testing/default_runner:ios_xctestrun_runner",
+    ],
 )
 
 bzl_library(

@@ -299,6 +299,7 @@ bzl_library(
         ":cc_info_support",
         ":entitlements_support",
         ":features_support",
+        ":framework_import_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -373,6 +374,7 @@ bzl_library(
         ":codesigning_support",
         ":entitlements_support",
         ":features_support",
+        ":framework_import_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -633,6 +635,7 @@ bzl_library(
     deps = [
         "//apple/build_settings",
         "@bazel_skylib//lib:dicts",
+        "@build_bazel_apple_support//configs:platforms",
     ],
 )
 
@@ -649,6 +652,7 @@ bzl_library(
         ":cc_info_support",
         ":entitlements_support",
         ":features_support",
+        ":framework_import_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -683,6 +687,7 @@ bzl_library(
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
+        ":framework_import_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -693,6 +698,7 @@ bzl_library(
         ":rule_attrs",
         ":rule_factory",
         ":rule_support",
+        ":run_support",
         ":stub_support",
         ":swift_support",
         "//apple:providers",
@@ -716,6 +722,7 @@ bzl_library(
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
+        ":framework_import_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -791,6 +798,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal/providers:apple_debug_info",
     ],
 )
 
