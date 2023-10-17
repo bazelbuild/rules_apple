@@ -464,6 +464,8 @@ function do_action() {
 
   local -a bazel_options=(
       "--announce_rc"
+      # TODO: Remove once our tests work with Bzlmod
+      "--noenable_bzlmod"
       "--symlink_prefix=test-"
       "--verbose_failures"
       # Used so that if there's a single configuration transition, its output

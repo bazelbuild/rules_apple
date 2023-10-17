@@ -7,6 +7,9 @@ build --experimental_strict_conflict_checks
 # https://github.com/bazelbuild/stardoc/issues/112
 common --incompatible_allow_tags_propagation
 
+# TODO: Remove once stardoc and our tests work with Bzlmod
+common --noenable_bzlmod
+
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 build --test_env=PATH
