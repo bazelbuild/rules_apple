@@ -290,9 +290,16 @@ function test_hosted_unit_test_coverage() {
   # Validate coverage for the hosting binary is included
   assert_contains "FN:3,foo" "test-testlogs/app/hosted_test/coverage.dat"
 
+  if [ -d "test-bin/app/hosted_test.runfiles/_main" ]; then
+    # Bzlmod always uses '_main' for current repository
+    path="test-bin/app/hosted_test.runfiles/_main/app/hosted_test.zip"
+  else
+    path="test-bin/app/hosted_test.runfiles/build_bazel_rules_apple_integration_tests/app/hosted_test.zip"
+  fi
+
   # Validate that the symbol called from the hosted binary exists and is undefined
   unzip_single_file \
-    "test-bin/app/hosted_test.runfiles/build_bazel_rules_apple_integration_tests/app/hosted_test.zip" \
+    "$path" \
     "hosted_test.xctest/hosted_test" \
     nm -u - | grep foo || fail "Undefined 'foo' symbol not found"
 }
