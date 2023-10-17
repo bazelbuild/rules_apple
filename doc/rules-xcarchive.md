@@ -1,8 +1,6 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
 Rules for creating Xcode archives.
-
 
 <a id="xcarchive"></a>
 
@@ -33,7 +31,6 @@ xcarchive(
     bundle = ":App",
 )
 ````
-    
 
 **ATTRIBUTES**
 
@@ -41,6 +38,6 @@ xcarchive(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="xcarchive-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="xcarchive-bundle"></a>bundle |  The label to a target to re-package into a .xcarchive. For example, an <code>ios_application</code> target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+| <a id="xcarchive-bundle"></a>bundle |  The label to a target to re-package into a .xcarchive. For example, an `ios_application` target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 
 

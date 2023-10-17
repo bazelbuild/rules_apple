@@ -16,7 +16,6 @@ Public initializers must be defined in apple:providers.bzl instead of apple/inte
 These should build from the "raw initializer" where possible, but not export it, to allow for a safe
 boundary with well-defined public APIs for broader usage.
 
-
 <a id="AppleBaseBundleIdInfo"></a>
 
 ## AppleBaseBundleIdInfo
@@ -32,7 +31,7 @@ Provides the base bundle ID prefix for an Apple rule.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBaseBundleIdInfo-base_bundle_id"></a>base_bundle_id |  <code>String</code>. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
+| <a id="AppleBaseBundleIdInfo-base_bundle_id"></a>base_bundle_id |  `String`. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
 
 
 <a id="AppleBinaryInfo"></a>
@@ -43,21 +42,19 @@ Provides the base bundle ID prefix for an Apple rule.
 AppleBinaryInfo(<a href="#AppleBinaryInfo-binary">binary</a>, <a href="#AppleBinaryInfo-infoplist">infoplist</a>, <a href="#AppleBinaryInfo-product_type">product_type</a>)
 </pre>
 
-
 Provides information about an Apple binary target.
 
 This provider propagates general information about an Apple binary that is not
 specific to any particular binary type.
-
 
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBinaryInfo-binary"></a>binary |  <code>File</code>. The binary (executable, dynamic library, etc.) file that the target represents.    |
-| <a id="AppleBinaryInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
-| <a id="AppleBinaryInfo-product_type"></a>product_type |  <code>String</code>. The dot-separated product type identifier associated with the binary (for example, <code>com.apple.product-type.tool</code>).    |
+| <a id="AppleBinaryInfo-binary"></a>binary |  `File`. The binary (executable, dynamic library, etc.) file that the target represents.    |
+| <a id="AppleBinaryInfo-infoplist"></a>infoplist |  `File`. The complete (binary-formatted) `Info.plist` embedded in the binary.    |
+| <a id="AppleBinaryInfo-product_type"></a>product_type |  `String`. The dot-separated product type identifier associated with the binary (for example, `com.apple.product-type.tool`).    |
 
 
 <a id="AppleBinaryInfoplistInfo"></a>
@@ -68,17 +65,15 @@ specific to any particular binary type.
 AppleBinaryInfoplistInfo(<a href="#AppleBinaryInfoplistInfo-infoplist">infoplist</a>)
 </pre>
 
-
 Provides information about the Info.plist that was linked into an Apple binary
 target.
-
 
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBinaryInfoplistInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> embedded in the binary.    |
+| <a id="AppleBinaryInfoplistInfo-infoplist"></a>infoplist |  `File`. The complete (binary-formatted) `Info.plist` embedded in the binary.    |
 
 
 <a id="AppleBundleInfo"></a>
@@ -92,31 +87,29 @@ AppleBundleInfo(<a href="#AppleBundleInfo-archive">archive</a>, <a href="#AppleB
                 <a href="#AppleBundleInfo-uses_swift">uses_swift</a>)
 </pre>
 
-
 This provider propagates general information about an Apple bundle that is not
 specific to any particular bundle type. It is propagated by most bundling
 rules (applications, extensions, frameworks, test bundles, and so forth).
-
 
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBundleInfo-archive"></a>archive |  <code>File</code>. The archive that contains the built bundle.    |
-| <a id="AppleBundleInfo-archive_root"></a>archive_root |  <code>String</code>. The file system path (relative to the workspace root) where the signed bundle was constructed (before archiving). Other rules **should not** depend on this field; it is intended to support IDEs that want to read that path from the provider to avoid performance issues from unzipping the output archive.    |
-| <a id="AppleBundleInfo-binary"></a>binary |  <code>File</code>. The binary (executable, dynamic library, etc.) that was bundled. The physical file is identical to the one inside the bundle except that it is always unsigned, so note that it is _not_ a path to the binary inside your output bundle. The primary purpose of this field is to provide a way to access the binary directly at analysis time; for example, for code coverage.    |
-| <a id="AppleBundleInfo-bundle_extension"></a>bundle_extension |  <code>String</code>. The bundle extension.    |
-| <a id="AppleBundleInfo-bundle_id"></a>bundle_id |  <code>String</code>. The bundle identifier (i.e., <code>CFBundleIdentifier</code> in <code>Info.plist</code>) of the bundle.    |
-| <a id="AppleBundleInfo-bundle_name"></a>bundle_name |  <code>String</code>. The name of the bundle, without the extension.    |
-| <a id="AppleBundleInfo-entitlements"></a>entitlements |  <code>File</code>. Entitlements file used, if any.    |
-| <a id="AppleBundleInfo-executable_name"></a>executable_name |  <code>string</code>. The name of the executable that was bundled.    |
-| <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  <code>Boolean</code>. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
-| <a id="AppleBundleInfo-infoplist"></a>infoplist |  <code>File</code>. The complete (binary-formatted) <code>Info.plist</code> file for the bundle.    |
-| <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  <code>string</code>. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support. This is different from <code>minimum_os_version</code>, which is effective at compile time. Ensure version specific APIs are guarded with <code>available</code> clauses.    |
-| <a id="AppleBundleInfo-minimum_os_version"></a>minimum_os_version |  <code>String</code>. The minimum OS version (as a dotted version number like "9.0") that this bundle was built to support.    |
-| <a id="AppleBundleInfo-platform_type"></a>platform_type |  <code>String</code>. The platform type for the bundle (i.e. <code>ios</code> for iOS bundles).    |
-| <a id="AppleBundleInfo-product_type"></a>product_type |  <code>String</code>. The dot-separated product type identifier associated with the bundle (for example, <code>com.apple.product-type.application</code>).    |
+| <a id="AppleBundleInfo-archive"></a>archive |  `File`. The archive that contains the built bundle.    |
+| <a id="AppleBundleInfo-archive_root"></a>archive_root |  `String`. The file system path (relative to the workspace root) where the signed bundle was constructed (before archiving). Other rules **should not** depend on this field; it is intended to support IDEs that want to read that path from the provider to avoid performance issues from unzipping the output archive.    |
+| <a id="AppleBundleInfo-binary"></a>binary |  `File`. The binary (executable, dynamic library, etc.) that was bundled. The physical file is identical to the one inside the bundle except that it is always unsigned, so note that it is _not_ a path to the binary inside your output bundle. The primary purpose of this field is to provide a way to access the binary directly at analysis time; for example, for code coverage.    |
+| <a id="AppleBundleInfo-bundle_extension"></a>bundle_extension |  `String`. The bundle extension.    |
+| <a id="AppleBundleInfo-bundle_id"></a>bundle_id |  `String`. The bundle identifier (i.e., `CFBundleIdentifier` in `Info.plist`) of the bundle.    |
+| <a id="AppleBundleInfo-bundle_name"></a>bundle_name |  `String`. The name of the bundle, without the extension.    |
+| <a id="AppleBundleInfo-entitlements"></a>entitlements |  `File`. Entitlements file used, if any.    |
+| <a id="AppleBundleInfo-executable_name"></a>executable_name |  `string`. The name of the executable that was bundled.    |
+| <a id="AppleBundleInfo-extension_safe"></a>extension_safe |  `Boolean`. True if the target propagating this provider was compiled and linked with -application-extension, restricting it to extension-safe APIs only.    |
+| <a id="AppleBundleInfo-infoplist"></a>infoplist |  `File`. The complete (binary-formatted) `Info.plist` file for the bundle.    |
+| <a id="AppleBundleInfo-minimum_deployment_os_version"></a>minimum_deployment_os_version |  `string`. The minimum deployment OS version (as a dotted version number like "9.0") that this bundle was built to support. This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.    |
+| <a id="AppleBundleInfo-minimum_os_version"></a>minimum_os_version |  `String`. The minimum OS version (as a dotted version number like "9.0") that this bundle was built to support.    |
+| <a id="AppleBundleInfo-platform_type"></a>platform_type |  `String`. The platform type for the bundle (i.e. `ios` for iOS bundles).    |
+| <a id="AppleBundleInfo-product_type"></a>product_type |  `String`. The dot-separated product type identifier associated with the bundle (for example, `com.apple.product-type.application`).    |
 | <a id="AppleBundleInfo-uses_swift"></a>uses_swift |  Boolean. True if Swift is used by the target propagating this provider. This does not consider embedded bundles; for example, an Objective-C application containing a Swift extension would have this field set to true for the extension but false for the application.    |
 
 
@@ -135,7 +128,7 @@ Provides versioning information for an Apple bundle.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleBundleVersionInfo-version_file"></a>version_file |  Required. A <code>File</code> containing JSON-formatted text describing the version number information propagated by the target.<br><br>It contains two keys:<br><br>*   <code>build_version</code>, which corresponds to <code>CFBundleVersion</code>.<br><br>*   <code>short_version_string</code>, which corresponds to <code>CFBundleShortVersionString</code>.    |
+| <a id="AppleBundleVersionInfo-version_file"></a>version_file |  Required. A `File` containing JSON-formatted text describing the version number information propagated by the target.<br><br>It contains two keys:<br><br>*   `build_version`, which corresponds to `CFBundleVersion`.<br><br>*   `short_version_string`, which corresponds to `CFBundleShortVersionString`.    |
 
 
 <a id="AppleDsymBundleInfo"></a>
@@ -153,8 +146,8 @@ Provides information for an Apple dSYM bundle.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleDsymBundleInfo-direct_dsyms"></a>direct_dsyms |  <code>List</code> containing <code>File</code> references to each of the dSYM bundles that act as direct dependencies of the given target if any were generated.    |
-| <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  <code>depset</code> containing <code>File</code> references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
+| <a id="AppleDsymBundleInfo-direct_dsyms"></a>direct_dsyms |  `List` containing `File` references to each of the dSYM bundles that act as direct dependencies of the given target if any were generated.    |
+| <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
 
 
 <a id="AppleExtraOutputsInfo"></a>
@@ -164,7 +157,6 @@ Provides information for an Apple dSYM bundle.
 <pre>
 AppleExtraOutputsInfo(<a href="#AppleExtraOutputsInfo-files">files</a>)
 </pre>
-
 
 Provides information about extra outputs that should be produced from the build.
 
@@ -176,13 +168,12 @@ also being generated, we do want to produce the dSYMs for *both* application and
 extension as outputs of the build, not just the dSYMs of the explicit target
 being built (the application).
 
-
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleExtraOutputsInfo-files"></a>files |  <code>depset</code> of <code>File</code>s. These files will be propagated from embedded bundles (such as frameworks and extensions) to the top-level bundle (such as an application) to ensure that they are explicitly produced as outputs of the build.    |
+| <a id="AppleExtraOutputsInfo-files"></a>files |  `depset` of `File`s. These files will be propagated from embedded bundles (such as frameworks and extensions) to the top-level bundle (such as an application) to ensure that they are explicitly produced as outputs of the build.    |
 
 
 <a id="AppleFrameworkBundleInfo"></a>
@@ -193,12 +184,10 @@ being built (the application).
 AppleFrameworkBundleInfo()
 </pre>
 
-
 Denotes a target is an Apple framework bundle.
 
 This provider does not reference 3rd party or precompiled frameworks.
 Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
-
 
 **FIELDS**
 
@@ -212,22 +201,20 @@ Propagated by Apple framework rules: `ios_framework`, and `tvos_framework`.
 AppleFrameworkImportInfo(<a href="#AppleFrameworkImportInfo-framework_imports">framework_imports</a>, <a href="#AppleFrameworkImportInfo-dsym_imports">dsym_imports</a>, <a href="#AppleFrameworkImportInfo-build_archs">build_archs</a>, <a href="#AppleFrameworkImportInfo-debug_info_binaries">debug_info_binaries</a>)
 </pre>
 
-
 Provider that propagates information about 3rd party imported framework targets.
 
 Propagated by framework and XCFramework import rules: `apple_dynamic_framework_import`,
 `apple_dynamic_xcframework_import`, `apple_static_framework_import`, and
 `apple_static_xcframework_import`
 
-
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleFrameworkImportInfo-framework_imports"></a>framework_imports |  <code>depset</code> of <code>File</code>s that represent framework imports that need to be bundled in the top level application bundle under the Frameworks directory.    |
-| <a id="AppleFrameworkImportInfo-dsym_imports"></a>dsym_imports |  Depset of Files that represent dSYM imports that need to be processed to provide .symbols files for packaging into the .ipa file if requested in the build with --define=apple.package_symbols=(yes|true|1).    |
-| <a id="AppleFrameworkImportInfo-build_archs"></a>build_archs |  <code>depset</code> of <code>String</code>s that represent binary architectures reported from the current build.    |
+| <a id="AppleFrameworkImportInfo-framework_imports"></a>framework_imports |  `depset` of `File`s that represent framework imports that need to be bundled in the top level application bundle under the Frameworks directory.    |
+| <a id="AppleFrameworkImportInfo-dsym_imports"></a>dsym_imports |  Depset of Files that represent dSYM imports that need to be processed to provide .symbols files for packaging into the .ipa file if requested in the build with --define=apple.package_symbols=(yes\|true\|1).    |
+| <a id="AppleFrameworkImportInfo-build_archs"></a>build_archs |  `depset` of `String`s that represent binary architectures reported from the current build.    |
 | <a id="AppleFrameworkImportInfo-debug_info_binaries"></a>debug_info_binaries |  Depset of Files that represent framework binaries and dSYM binaries that provide debug info.    |
 
 
@@ -246,9 +233,9 @@ Provides information for the currently selected Apple platforms.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="ApplePlatformInfo-target_os"></a>target_os |  <code>String</code> representing the selected Apple OS.    |
-| <a id="ApplePlatformInfo-target_arch"></a>target_arch |  <code>String</code> representing the selected target architecture or cpu type.    |
-| <a id="ApplePlatformInfo-target_environment"></a>target_environment |  <code>String</code> representing the selected target environment (e.g. "device", "simulator").    |
+| <a id="ApplePlatformInfo-target_os"></a>target_os |  `String` representing the selected Apple OS.    |
+| <a id="ApplePlatformInfo-target_arch"></a>target_arch |  `String` representing the selected target architecture or cpu type.    |
+| <a id="ApplePlatformInfo-target_environment"></a>target_environment |  `String` representing the selected target environment (e.g. "device", "simulator").    |
 
 
 <a id="AppleProvisioningProfileInfo"></a>
@@ -266,9 +253,9 @@ Provides information about a provisioning profile.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleProvisioningProfileInfo-provisioning_profile"></a>provisioning_profile |  <code>File</code>. The provisioning profile.    |
+| <a id="AppleProvisioningProfileInfo-provisioning_profile"></a>provisioning_profile |  `File`. The provisioning profile.    |
 | <a id="AppleProvisioningProfileInfo-profile_name"></a>profile_name |  string. The profile name (e.g. "iOS Team Provisioning Profile: com.example.app").    |
-| <a id="AppleProvisioningProfileInfo-team_id"></a>team_id |  <code>string</code>. The Team ID the profile is associated with (e.g. "A12B3CDEFG"), or <code>None</code> if it's not known at analysis time.    |
+| <a id="AppleProvisioningProfileInfo-team_id"></a>team_id |  `string`. The Team ID the profile is associated with (e.g. "A12B3CDEFG"), or `None` if it's not known at analysis time.    |
 
 
 <a id="AppleResourceBundleInfo"></a>
@@ -279,7 +266,6 @@ Provides information about a provisioning profile.
 AppleResourceBundleInfo()
 </pre>
 
-
 Denotes that a target is an Apple resource bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -287,7 +273,6 @@ a "marker" to indicate that a target is specifically an Apple resource bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is an Apple resource bundle should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -313,8 +298,8 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-alternate_icons"></a>alternate_icons |  Alternate icons to be included in the App bundle.    |
 | <a id="AppleResourceInfo-asset_catalogs"></a>asset_catalogs |  Resources that need to be embedded into Assets.car.    |
 | <a id="AppleResourceInfo-datamodels"></a>datamodels |  Datamodel files.    |
-| <a id="AppleResourceInfo-framework"></a>framework |  Apple framework bundle from <code>ios_framework</code> and <code>tvos_framework</code> targets.    |
-| <a id="AppleResourceInfo-infoplists"></a>infoplists |  Plist files to be merged and processed. Plist files that should not be merged into the root Info.plist should be propagated in <code>plists</code>. Because of this, infoplists should only be bucketed with the <code>bucketize_typed</code> method.    |
+| <a id="AppleResourceInfo-framework"></a>framework |  Apple framework bundle from `ios_framework` and `tvos_framework` targets.    |
+| <a id="AppleResourceInfo-infoplists"></a>infoplists |  Plist files to be merged and processed. Plist files that should not be merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should only be bucketed with the `bucketize_typed` method.    |
 | <a id="AppleResourceInfo-metals"></a>metals |  Metal Shading Language source files to be compiled into a single .metallib file and bundled at the top level.    |
 | <a id="AppleResourceInfo-mlmodels"></a>mlmodels |  Core ML model files that should be processed and bundled at the top level.    |
 | <a id="AppleResourceInfo-plists"></a>plists |  Resource Plist files that should not be merged into Info.plist    |
@@ -325,9 +310,9 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-texture_atlases"></a>texture_atlases |  Texture atlas files.    |
 | <a id="AppleResourceInfo-unprocessed"></a>unprocessed |  Generic resources not mapped to the other types.    |
 | <a id="AppleResourceInfo-xibs"></a>xibs |  XIB Interface files.    |
-| <a id="AppleResourceInfo-owners"></a>owners |  <code>depset</code> of (resource, owner) pairs.    |
-| <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  <code>depset</code> of (processed resource, resource list) pairs.    |
-| <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  <code>depset</code> of unowned resources.    |
+| <a id="AppleResourceInfo-owners"></a>owners |  `depset` of (resource, owner) pairs.    |
+| <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  `depset` of (processed resource, resource list) pairs.    |
+| <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  `depset` of unowned resources.    |
 
 
 <a id="AppleSharedCapabilityInfo"></a>
@@ -345,7 +330,7 @@ Provides information on a mergeable set of shared capabilities.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleSharedCapabilityInfo-base_bundle_id"></a>base_bundle_id |  <code>String</code>. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
+| <a id="AppleSharedCapabilityInfo-base_bundle_id"></a>base_bundle_id |  `String`. The bundle ID prefix, composed from an organization ID and an optional variant name.    |
 
 
 <a id="AppleStaticXcframeworkBundleInfo"></a>
@@ -356,7 +341,6 @@ Provides information on a mergeable set of shared capabilities.
 AppleStaticXcframeworkBundleInfo()
 </pre>
 
-
 Denotes that a target is a static library XCFramework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -364,7 +348,6 @@ a "marker" to indicate that a target is specifically an XCFramework bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is an XCFramework should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -379,7 +362,6 @@ AppleTestInfo(<a href="#AppleTestInfo-includes">includes</a>, <a href="#AppleTes
               <a href="#AppleTestInfo-test_bundle">test_bundle</a>, <a href="#AppleTestInfo-test_host">test_host</a>, <a href="#AppleTestInfo-deps">deps</a>)
 </pre>
 
-
 Provider that test targets propagate to be used for IDE integration.
 
 This includes information regarding test source files, transitive include paths,
@@ -387,21 +369,20 @@ transitive module maps, and transitive Swift modules. Test source files are
 considered to be all of which belong to the first-level dependencies on the test
 target.
 
-
 **FIELDS**
 
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleTestInfo-includes"></a>includes |  <code>depset</code> of <code>String</code>s representing transitive include paths which are needed by IDEs to be used for indexing the test sources.    |
-| <a id="AppleTestInfo-module_maps"></a>module_maps |  <code>depset</code> of <code>File</code>s representing module maps which are needed by IDEs to be used for indexing the test sources.    |
-| <a id="AppleTestInfo-module_name"></a>module_name |  <code>String</code> representing the module name used by the test's sources. This is only set if the test only contains a single top-level Swift dependency. This may be used by an IDE to identify the Swift module (if any) used by the test's sources.    |
-| <a id="AppleTestInfo-non_arc_sources"></a>non_arc_sources |  <code>depset</code> of <code>File</code>s containing non-ARC sources from the test's immediate deps.    |
-| <a id="AppleTestInfo-sources"></a>sources |  <code>depset</code> of <code>File</code>s containing sources and headers from the test's immediate deps.    |
-| <a id="AppleTestInfo-swift_modules"></a>swift_modules |  <code>depset</code> of <code>File</code>s representing transitive swift modules which are needed by IDEs to be used for indexing the test sources.    |
+| <a id="AppleTestInfo-includes"></a>includes |  `depset` of `String`s representing transitive include paths which are needed by IDEs to be used for indexing the test sources.    |
+| <a id="AppleTestInfo-module_maps"></a>module_maps |  `depset` of `File`s representing module maps which are needed by IDEs to be used for indexing the test sources.    |
+| <a id="AppleTestInfo-module_name"></a>module_name |  `String` representing the module name used by the test's sources. This is only set if the test only contains a single top-level Swift dependency. This may be used by an IDE to identify the Swift module (if any) used by the test's sources.    |
+| <a id="AppleTestInfo-non_arc_sources"></a>non_arc_sources |  `depset` of `File`s containing non-ARC sources from the test's immediate deps.    |
+| <a id="AppleTestInfo-sources"></a>sources |  `depset` of `File`s containing sources and headers from the test's immediate deps.    |
+| <a id="AppleTestInfo-swift_modules"></a>swift_modules |  `depset` of `File`s representing transitive swift modules which are needed by IDEs to be used for indexing the test sources.    |
 | <a id="AppleTestInfo-test_bundle"></a>test_bundle |  The artifact representing the XCTest bundle for the test target.    |
 | <a id="AppleTestInfo-test_host"></a>test_host |  The artifact representing the test host for the test target, if the test requires a test host.    |
-| <a id="AppleTestInfo-deps"></a>deps |  <code>depset</code> of <code>String</code>s representing the labels of all immediate deps of the test. Only source files from these deps will be present in <code>sources</code>. This may be used by IDEs to differentiate a test target's transitive module maps from its direct module maps, as including the direct module maps may break indexing for the source files of the immediate deps.    |
+| <a id="AppleTestInfo-deps"></a>deps |  `depset` of `String`s representing the labels of all immediate deps of the test. Only source files from these deps will be present in `sources`. This may be used by IDEs to differentiate a test target's transitive module maps from its direct module maps, as including the direct module maps may break indexing for the source files of the immediate deps.    |
 
 
 <a id="AppleTestRunnerInfo"></a>
@@ -413,12 +394,10 @@ AppleTestRunnerInfo(<a href="#AppleTestRunnerInfo-execution_requirements">execut
                     <a href="#AppleTestRunnerInfo-test_runner_template">test_runner_template</a>)
 </pre>
 
-
 Provider that runner targets must propagate.
 
 In addition to the fields, all the runfiles that the runner target declares will be added to the
 test rules runfiles.
-
 
 **FIELDS**
 
@@ -439,7 +418,6 @@ test rules runfiles.
 AppleXcframeworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an XCFramework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -447,7 +425,6 @@ a "marker" to indicate that a target is specifically an XCFramework bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is an XCFramework should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -497,14 +474,12 @@ Provides the symbol graphs required to archive a .docc bundle.
 IosAppClipBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS app clip.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS app clip bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS app clip should use this provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -518,7 +493,6 @@ is an iOS app clip should use this provider to describe that requirement.
 IosApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -526,7 +500,6 @@ a "marker" to indicate that a target is specifically an iOS application bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is an iOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -540,7 +513,6 @@ requirement.
 IosExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -548,7 +520,6 @@ a "marker" to indicate that a target is specifically an iOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is an iOS application extension should use this
 provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -562,7 +533,6 @@ provider to describe that requirement.
 IosFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS dynamic framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -570,7 +540,6 @@ a "marker" to indicate that a target is specifically an iOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS dynamic framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -584,7 +553,6 @@ that requirement.
 IosImessageApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS iMessage application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -592,7 +560,6 @@ a "marker" to indicate that a target is specifically an iOS iMessage application
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage application should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -606,7 +573,6 @@ that requirement.
 IosImessageExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS iMessage extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -614,7 +580,6 @@ a "marker" to indicate that a target is specifically an iOS iMessage extension
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS iMessage extension should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -628,7 +593,6 @@ that requirement.
 IosStaticFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -636,7 +600,6 @@ a "marker" to indicate that a target is specifically an iOS static framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS static framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -650,7 +613,6 @@ that requirement.
 IosStickerPackExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is an iOS Sticker Pack extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -658,7 +620,6 @@ a "marker" to indicate that a target is specifically an iOS Sticker Pack extensi
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an iOS Sticker Pack extension should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -672,14 +633,12 @@ that requirement.
 IosXcTestBundleInfo()
 </pre>
 
-
 Denotes a target that is an iOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically an iOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is an iOS .xctest bundle should use this provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -693,7 +652,6 @@ is an iOS .xctest bundle should use this provider to describe that requirement.
 MacosApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -701,7 +659,6 @@ a "marker" to indicate that a target is specifically a macOS application bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -715,7 +672,6 @@ requirement.
 MacosBundleBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS loadable bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -723,7 +679,6 @@ a "marker" to indicate that a target is specifically a macOS loadable bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS loadable bundle should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -737,7 +692,6 @@ requirement.
 MacosExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -745,7 +699,6 @@ a "marker" to indicate that a target is specifically a macOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a macOS application extension should use this
 provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -759,7 +712,6 @@ provider to describe that requirement.
 MacosFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an macOS dynamic framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -767,7 +719,6 @@ a "marker" to indicate that a target is specifically an macOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an macOS dynamic framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -781,7 +732,6 @@ that requirement.
 MacosKernelExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS kernel extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -789,7 +739,6 @@ a "marker" to indicate that a target is specifically a macOS kernel extension
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS kernel extension should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -803,7 +752,6 @@ requirement.
 MacosQuickLookPluginBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS Quick Look Generator bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -811,7 +759,6 @@ a "marker" to indicate that a target is specifically a macOS Quick Look generato
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a macOS Quick Look generator should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -825,7 +772,6 @@ that requirement.
 MacosSpotlightImporterBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS Spotlight Importer bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -833,7 +779,6 @@ a "marker" to indicate that a target is specifically a macOS Spotlight importer
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS Spotlight importer should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -847,7 +792,6 @@ requirement.
 MacosStaticFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an macOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -855,7 +799,6 @@ a "marker" to indicate that a target is specifically an macOS static framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is an macOS static framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -869,7 +812,6 @@ that requirement.
 MacosXPCServiceBundleInfo()
 </pre>
 
-
 Denotes that a target is a macOS XPC Service bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -877,7 +819,6 @@ a "marker" to indicate that a target is specifically a macOS XPC service
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS XPC service should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -891,7 +832,6 @@ requirement.
 MacosXcTestBundleInfo()
 </pre>
 
-
 Denotes a target that is a macOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -899,7 +839,6 @@ a "marker" to indicate that a target is specifically a macOS .xctest bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a macOS .xctest bundle should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -913,7 +852,6 @@ requirement.
 TvosApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is a tvOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -921,7 +859,6 @@ a "marker" to indicate that a target is specifically a tvOS application bundle
 (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a tvOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -935,7 +872,6 @@ requirement.
 TvosExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is a tvOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -943,7 +879,6 @@ a "marker" to indicate that a target is specifically a tvOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a tvOS application extension should use this
 provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -957,7 +892,6 @@ provider to describe that requirement.
 TvosFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is a tvOS dynamic framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -965,7 +899,6 @@ a "marker" to indicate that a target is specifically a tvOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS dynamic framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -979,7 +912,6 @@ that requirement.
 TvosStaticFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is a tvOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -987,7 +919,6 @@ a "marker" to indicate that a target is specifically a tvOS static framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a tvOS static framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -1001,14 +932,12 @@ that requirement.
 TvosXcTestBundleInfo()
 </pre>
 
-
 Denotes a target that is a tvOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a tvOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a tvOS .xctest bundle should use this provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -1022,7 +951,6 @@ is a tvOS .xctest bundle should use this provider to describe that requirement.
 VisionosApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is a visionOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1030,7 +958,6 @@ a "marker" to indicate that a target is specifically a visionOS application
 bundle (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a visionOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -1044,7 +971,6 @@ requirement.
 VisionosExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is a visionOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1052,7 +978,6 @@ a "marker" to indicate that a target is specifically a visionOS application
 bundle (and not some other Apple bundle). Rule authors who wish to require that a
 dependency is a visionOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -1066,14 +991,12 @@ requirement.
 VisionosFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is visionOS dynamic framework.
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a visionOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a visionOS dynamic framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -1087,14 +1010,12 @@ that requirement.
 VisionosXcTestBundleInfo()
 </pre>
 
-
 Denotes a target that is a watchOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a watchOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a watchOS .xctest bundle should use this provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -1108,7 +1029,6 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
 WatchosApplicationBundleInfo()
 </pre>
 
-
 Denotes that a target is a watchOS application.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1116,7 +1036,6 @@ a "marker" to indicate that a target is specifically a watchOS application
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS application should use this provider to describe that
 requirement.
-
 
 **FIELDS**
 
@@ -1130,7 +1049,6 @@ requirement.
 WatchosExtensionBundleInfo()
 </pre>
 
-
 Denotes that a target is a watchOS application extension.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1138,7 +1056,6 @@ a "marker" to indicate that a target is specifically a watchOS application
 extension bundle (and not some other Apple bundle). Rule authors who wish to
 require that a dependency is a watchOS application extension should use this
 provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -1152,7 +1069,6 @@ provider to describe that requirement.
 WatchosFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is watchOS dynamic framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1160,7 +1076,6 @@ a "marker" to indicate that a target is specifically a watchOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS dynamic framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -1174,7 +1089,6 @@ that requirement.
 WatchosStaticFrameworkBundleInfo()
 </pre>
 
-
 Denotes that a target is an watchOS static framework.
 
 This provider does not contain any fields of its own at this time but is used as
@@ -1182,7 +1096,6 @@ a "marker" to indicate that a target is specifically a watchOS static framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
 a dependency is a watchOS static framework should use this provider to describe
 that requirement.
-
 
 **FIELDS**
 
@@ -1196,14 +1109,12 @@ that requirement.
 WatchosXcTestBundleInfo()
 </pre>
 
-
 Denotes a target that is a watchOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a watchOS .xctest bundle (and
 not some other Apple bundle). Rule authors who wish to require that a dependency
 is a watchOS .xctest bundle should use this provider to describe that requirement.
-
 
 **FIELDS**
 
@@ -1224,7 +1135,7 @@ Creates a new instance of the `AppleBundleVersionInfo` provider.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="apple_provider.make_apple_bundle_version_info-version_file"></a>version_file |  Required. See the docs on <code>AppleBundleVersionInfo</code>.   |  none |
+| <a id="apple_provider.make_apple_bundle_version_info-version_file"></a>version_file |  Required. See the docs on `AppleBundleVersionInfo`.   |  none |
 
 **RETURNS**
 
@@ -1246,7 +1157,7 @@ Creates a new instance of the AppleTestRunnerInfo provider.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="apple_provider.make_apple_test_runner_info-kwargs"></a>kwargs |  A set of keyword arguments expected to match the fields of <code>AppleTestRunnerInfo</code>. See the documentation for <code>AppleTestRunnerInfo</code> for what these must be.   |  none |
+| <a id="apple_provider.make_apple_test_runner_info-kwargs"></a>kwargs |  A set of keyword arguments expected to match the fields of `AppleTestRunnerInfo`. See the documentation for `AppleTestRunnerInfo` for what these must be.   |  none |
 
 **RETURNS**
 
@@ -1268,7 +1179,7 @@ Merges multiple `AppleFrameworkImportInfo` into one.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="apple_provider.merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of <code>AppleFrameworkImportInfo</code> to be merged.   |  none |
+| <a id="apple_provider.merge_apple_framework_import_info-apple_framework_import_infos"></a>apple_framework_import_infos |  List of `AppleFrameworkImportInfo` to be merged.   |  none |
 
 **RETURNS**
 
