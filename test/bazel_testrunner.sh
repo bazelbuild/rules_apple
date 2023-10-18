@@ -154,6 +154,8 @@ export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
 
 echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
 
+setup_clean_workspace
+
 # Try to find the desired version of Xcode installed on the system. If it's not
 # present, fallback to the most recent version currently installed and warn the
 # user that results might be affected by this. (This makes it easier to support
@@ -177,8 +179,6 @@ if [[ -z "$XCODE_QUERY" ]]; then
   printf "results in tests that depend on the behavior of a specific version " >> "$TEST_log"
   printf "of Xcode.\n" >> "$TEST_log"
 fi
-
-setup_clean_workspace
 
 source "$(rlocation build_bazel_rules_apple/test/apple_shell_testutils.sh)"
 source "$(rlocation build_bazel_rules_apple/test/${test_script})"
