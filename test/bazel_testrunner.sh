@@ -75,6 +75,37 @@ function create_new_workspace() {
   # copy and we should reference it from the original location.
   cp -rf "$EXTERNAL_DIR" ../external
 
+  apple_support_path=$(resolve_external_repository build_bazel_apple_support)
+  rules_apple_path=$(resolve_external_repository build_bazel_rules_apple)
+  rules_swift_path=$(resolve_external_repository build_bazel_rules_swift)
+
+  touch MODULE.bazel
+  cat > MODULE.bazel <<EOF
+module(name = "build_bazel_rules_apple_integration_tests", version = "0")
+
+bazel_dep(name = "apple_support", version = "0", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_swift", version = "0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
+
+xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
+use_repo(xcode_configure, "local_config_xcode")
+
+local_path_override(
+    module_name = "apple_support",
+    path = "$apple_support_path",
+)
+local_path_override(
+    module_name = "rules_swift",
+    path = "$rules_swift_path",
+)
+local_path_override(
+    module_name = "rules_apple",
+    path = "$rules_apple_path",
+)
+EOF
+
+  touch WORKSPACE.bzlmod
+
   touch WORKSPACE
   cat > WORKSPACE <<EOF
 workspace(name = 'build_bazel_rules_apple_integration_tests')
@@ -91,17 +122,17 @@ new_local_repository(
 
 local_repository(
     name = 'build_bazel_rules_apple',
-    path = '$(resolve_external_repository build_bazel_rules_apple)',
+    path = '$rules_apple_path',
 )
 
 local_repository(
     name = 'build_bazel_rules_swift',
-    path = '$(resolve_external_repository build_bazel_rules_swift)',
+    path = '$rules_swift_path',
 )
 
 local_repository(
     name = 'build_bazel_apple_support',
-    path = '$(resolve_external_repository build_bazel_apple_support)',
+    path = '$apple_support_path',
 )
 
 local_repository(
