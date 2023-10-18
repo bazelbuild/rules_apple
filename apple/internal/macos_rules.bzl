@@ -2015,6 +2015,7 @@ def _macos_command_line_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
         rule_descriptor = rule_descriptor,
+        mac_exec_group = mac_exec_group,
     )
 
     runfiles = []
@@ -2196,6 +2197,7 @@ def _macos_dylib_impl(ctx):
         provisioning_profile = provisioning_profile,
         resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
         rule_descriptor = rule_descriptor,
+        mac_exec_group = mac_exec_group,
     )
 
     return [

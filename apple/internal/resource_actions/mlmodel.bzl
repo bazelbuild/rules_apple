@@ -29,6 +29,7 @@ def compile_mlmodel(
         *,
         actions,
         input_file,
+        mac_exec_group,
         output_bundle,
         output_plist,
         platform_prerequisites,
@@ -38,6 +39,7 @@ def compile_mlmodel(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The input mlmodel file.
+      mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_bundle: The directory reference for the output mlmodelc bundle.
       output_plist: The file reference for the output plist from coremlc that needs to be merged.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -62,12 +64,14 @@ def compile_mlmodel(
         mnemonic = "MlmodelCompile",
         outputs = [output_bundle, output_plist],
         xcode_config = platform_prerequisites.xcode_version_config,
+        exec_group = mac_exec_group,
     )
 
 def generate_objc_mlmodel_sources(
         *,
         actions,
         input_file,
+        mac_exec_group,
         output_source,
         output_header,
         platform_prerequisites,
@@ -77,6 +81,7 @@ def generate_objc_mlmodel_sources(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The png file to be copied.
+      mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_source: The file reference for the generated ObjC source.
       output_header: The file reference for the generated ObjC header.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -99,4 +104,5 @@ def generate_objc_mlmodel_sources(
         mnemonic = "MlmodelGenerate",
         outputs = [output_source, output_header],
         xcode_config = platform_prerequisites.xcode_version_config,
+        exec_group = mac_exec_group,
     )

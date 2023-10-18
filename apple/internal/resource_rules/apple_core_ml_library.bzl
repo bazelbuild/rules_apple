@@ -91,6 +91,7 @@ def _apple_core_ml_library_impl(ctx):
         output_header = coremlc_header,
         platform_prerequisites = platform_prerequisites,
         resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
     )
 
     # But we would like our ObjC clients to use <target_name>.h instead, so we create that header

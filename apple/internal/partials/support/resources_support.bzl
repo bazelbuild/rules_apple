@@ -314,6 +314,7 @@ def _infoplists(
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         files: The infoplist files to process.
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
@@ -360,6 +361,7 @@ def _mlmodels(
         actions,
         apple_mac_toolchain_info,
         files,
+        mac_exec_group,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
@@ -392,6 +394,7 @@ def _mlmodels(
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
             resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            mac_exec_group = mac_exec_group,
         )
 
         mlmodel_bundles.append(

@@ -545,7 +545,8 @@ def _post_process_and_sign_archive_action(
         provisioning_profile,
         resolved_codesigningtool,
         rule_descriptor,
-        signed_frameworks):
+        signed_frameworks,
+        xplat_exec_group):
     """Post-processes and signs an archived bundle.
 
     Args:
@@ -570,7 +571,8 @@ def _post_process_and_sign_archive_action(
       resolved_codesigningtool: The `struct` from resolve_tools representing the code signing tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       signed_frameworks: Depset containing each framework that has already been signed.
-    """
+      xplat_exec_group: The exec_group for action using xplat toolchain.
+      """
     input_files = [input_archive]
     processing_tools = []
 
@@ -689,12 +691,14 @@ def _post_process_and_sign_archive_action(
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
+            exec_group = xplat_exec_group,
         )
 
 def _sign_binary_action(
         *,
         actions,
         input_binary,
+        mac_exec_group,
         output_binary,
         platform_prerequisites,
         provisioning_profile,
@@ -705,6 +709,7 @@ def _sign_binary_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_binary: The `File` representing the binary to be signed.
+      mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
@@ -754,6 +759,7 @@ def _sign_binary_action(
         outputs = [output_binary],
         tools = [resolved_codesigningtool.executable],
         xcode_config = platform_prerequisites.xcode_version_config,
+        exec_group = mac_exec_group,
     )
 
 def _embedded_codesigning_dossier(relative_bundle_path, dossier_file):
