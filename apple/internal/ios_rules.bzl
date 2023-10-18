@@ -2465,6 +2465,7 @@ ios_application = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
@@ -2575,6 +2576,7 @@ ios_app_clip = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2645,6 +2647,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
         ),
         rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2706,6 +2709,7 @@ of those `ios_application` and/or `ios_extension` rules.""",
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2769,6 +2773,7 @@ ios_dynamic_framework = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "ios",
@@ -2872,6 +2877,7 @@ i.e. `--features=-swift.no_generated_header`).""",
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = False,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2936,6 +2942,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -2982,6 +2989,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
@@ -3018,6 +3026,7 @@ ios_sticker_pack_extension = rule_factory.create_apple_rule(
             is_mandatory = True,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,

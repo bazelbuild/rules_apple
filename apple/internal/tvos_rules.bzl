@@ -1422,6 +1422,7 @@ tvos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
@@ -1480,6 +1481,7 @@ tvos_dynamic_framework = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1542,6 +1544,7 @@ tvos_extension = rule_factory.create_apple_rule(
         ),
         rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1588,6 +1591,7 @@ To use this framework for your app and extensions, list it in the frameworks att
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1692,6 +1696,7 @@ i.e. `--features=-swift.no_generated_header`).
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",

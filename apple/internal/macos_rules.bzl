@@ -1965,7 +1965,6 @@ def _macos_command_line_application_impl(ctx):
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         features = features,
-        ipa_post_processor = None,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -2195,6 +2194,7 @@ simple command line tool as a standalone binary, use
             is_mandatory = False,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2276,6 +2276,7 @@ macos_bundle = rule_factory.create_apple_rule(
             is_mandatory = False,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2344,6 +2345,7 @@ point (typically expressed through Swift's `@main` attribute).""",
         ),
         rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2399,6 +2401,7 @@ macos_quick_look_plugin = rule_factory.create_apple_rule(
             is_mandatory = False,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2446,6 +2449,7 @@ macos_kernel_extension = rule_factory.create_apple_rule(
             is_mandatory = False,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2492,6 +2496,7 @@ macos_spotlight_importer = rule_factory.create_apple_rule(
             is_mandatory = False,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2533,6 +2538,7 @@ macos_xpc_service = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_tool_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
@@ -3379,6 +3385,7 @@ of those `macos_application` and/or `macos_extension` rules.""",
             allowed_families = rule_attrs.defaults.allowed_families.macos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -3441,6 +3448,7 @@ macos_dynamic_framework = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
         ),
         rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -3541,6 +3549,7 @@ i.e. `--features=-swift.no_generated_header`).""",
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
