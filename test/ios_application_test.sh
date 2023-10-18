@@ -111,7 +111,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "@//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -132,7 +132,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "@//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.
@@ -411,7 +411,7 @@ EOF
   ! do_build ios //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "@//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "@@\?//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Tests that applications can transitively depend on apple_resource_bundle, and
