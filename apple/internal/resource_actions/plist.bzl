@@ -183,6 +183,8 @@ def merge_resource_infoplists(
 def merge_root_infoplists(
         *,
         actions,
+        additional_forced_values = [],
+        additional_overridable_values = [],
         bundle_name,
         bundle_id = None,
         bundle_extension,
@@ -192,7 +194,6 @@ def merge_root_infoplists(
         extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
-        launch_storyboard,
         mac_exec_group,
         output_discriminator,
         output_plist,
@@ -210,6 +211,11 @@ def merge_root_infoplists(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      additional_forced_values: A List of structs that reference Info.plist keys and
+          values that are merged into the final root Info.plist without validation.
+      additional_overridable_values: A List of structs that reference Info.plist keys and
+          values that are merged into the final root Info.plist without validation before any
+          plists, including user input. This allows for overridable "default" values.
       bundle_name: The name of the output bundle.
       bundle_id: The bundle identifier to set in the output plist.
       bundle_extension: The extension for the bundle.
@@ -227,7 +233,6 @@ def merge_root_infoplists(
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
-      launch_storyboard: A file to be used as a launch screen for the application.
       mac_exec_group: The exec_group associated with plist_tool
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -250,7 +255,7 @@ def merge_root_infoplists(
     # without validation. Each array can contain either a path to a plist file to
     # merge, or a struct that represents the values of the plist to merge.
     plists = [p.path for p in input_plists]
-    forced_plists = []
+    forced_plists = list(additional_forced_values)
 
     # plisttool options for merging the Info.plist file.
     info_plist_options = {}
@@ -310,12 +315,6 @@ def merge_root_infoplists(
     if version_keys_required:
         info_plist_options["version_keys_required"] = True
 
-    # Keys to be forced into the Info.plist file.
-    # b/67853874 - move this to the right platform specific rule(s).
-    if launch_storyboard:
-        short_name = paths.split_extension(launch_storyboard.basename)[0]
-        forced_plists.append(struct(UILaunchStoryboardName = short_name))
-
     # Add any UIDeviceFamily entry needed.
     families = platform_support.ui_device_family_plist_value(
         platform_prerequisites = platform_prerequisites,
@@ -363,6 +362,7 @@ def merge_root_infoplists(
         forced_plists = forced_plists,
         info_plist_options = struct(**info_plist_options),
         output = output_plist.path,
+        overridable_forced_plists = additional_overridable_values,
         plists = plists,
         target = str(rule_label),
         variable_substitutions = struct(**substitutions),

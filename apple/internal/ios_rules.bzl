@@ -56,6 +56,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:infoplist_support.bzl",
+    "infoplist_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -235,6 +239,12 @@ def _ios_application_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
+    launch_screen_values = infoplist_support.launch_screen_values(
+        default_launch_screen = ctx.attr.default_launch_screen,
+        launch_storyboard = ctx.file.launch_storyboard,
+        platform_prerequisites = platform_prerequisites,
+    )
+
     if ctx.attr.watch_application:
         watch_app = ctx.attr.watch_application
 
@@ -339,6 +349,8 @@ def _ios_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
+            additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
@@ -346,7 +358,6 @@ def _ios_application_impl(ctx):
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -574,6 +585,12 @@ def _ios_app_clip_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
+    launch_screen_values = infoplist_support.launch_screen_values(
+        default_launch_screen = ctx.attr.default_launch_screen,
+        launch_storyboard = ctx.file.launch_storyboard,
+        platform_prerequisites = platform_prerequisites,
+    )
+
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -667,13 +684,14 @@ def _ios_app_clip_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
+            additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = ctx.file.launch_storyboard,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -962,7 +980,6 @@ def _ios_framework_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1235,7 +1252,6 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             extensionkit_keys_required = ctx.attr.extensionkit_extension,
-            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1413,7 +1429,6 @@ def _ios_static_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1591,7 +1606,6 @@ def _ios_imessage_application_impl(ctx):
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1832,7 +1846,6 @@ def _ios_imessage_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
@@ -1947,6 +1960,15 @@ ios_application = rule_factory.create_apple_rule(
 A list of iOS app clips to include in the final application bundle.
 """,
             ),
+            "default_launch_screen": attr.bool(
+                doc = """
+If `True`, indicates if this target should declare an empty default launch screen if the
+`launch_storyboard` is set to `None`, rendering the app at App Store native resolution rather than
+scaled resolution. `False` by default.
+
+This will be `True` by default in a future iteration of the rules.
+""",
+            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
                 doc = """
@@ -2045,6 +2067,15 @@ ios_app_clip = rule_factory.create_apple_rule(
         ),
         rule_attrs.simulator_runner_template_attr(),
         {
+            "default_launch_screen": attr.bool(
+                doc = """
+If `True`, indicates if this target should declare an empty default launch screen if the
+`launch_storyboard` is set to `None`, rendering the app clip at App Store native resolution rather
+than scaled resolution. `False` by default.
+
+This will be `True` by default in a future iteration of the rules.
+""",
+            ),
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],

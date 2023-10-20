@@ -640,7 +640,6 @@ def _apple_xcframework_impl(ctx):
                 bundle_name = bundle_name,
                 environment_plist = environment_plist,
                 mac_exec_group = mac_exec_group,
-                launch_storyboard = None,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 resource_deps = resource_deps,

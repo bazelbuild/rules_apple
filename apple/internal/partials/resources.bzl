@@ -80,6 +80,7 @@ def _merge_root_infoplists(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The exec group associated with apple_mac_toolchain.
       out_infoplist: Reference to the output Info plist.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -284,6 +285,8 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
 def _resources_partial_impl(
         *,
         actions,
+        additional_forced_root_infoplist_values,
+        additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
@@ -291,7 +294,6 @@ def _resources_partial_impl(
         bundle_verification_targets,
         environment_plist,
         extensionkit_keys_required,
-        launch_storyboard,
         mac_exec_group,
         output_discriminator,
         platform_prerequisites,
@@ -480,6 +482,8 @@ def _resources_partial_impl(
         bundle_files.extend(
             _merge_root_infoplists(
                 actions = actions,
+                additional_forced_values = additional_forced_root_infoplist_values,
+                additional_overridable_values = additional_overridable_root_infoplist_values,
                 bundle_extension = bundle_extension,
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
@@ -488,7 +492,6 @@ def _resources_partial_impl(
                 environment_plist = environment_plist,
                 extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
-                launch_storyboard = launch_storyboard,
                 mac_exec_group = mac_exec_group,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
@@ -510,6 +513,8 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
+        additional_forced_root_infoplist_values = [],
+        additional_overridable_root_infoplist_values = [],
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id = None,
@@ -517,7 +522,6 @@ def resources_partial(
         bundle_verification_targets = [],
         environment_plist,
         extensionkit_keys_required = False,
-        launch_storyboard,
         mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
@@ -536,6 +540,11 @@ def resources_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        additional_forced_root_infoplist_values: A List of structs that reference Info.plist keys
+            and values that are merged into the final root Info.plist without validation.
+        additional_overridable_root_infoplist_values: A List of structs that reference Info.plist
+            keys and values that are merged into the final root Info.plist without validation before
+            any plists, including user input. This allows for overridable "default" values.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
@@ -551,8 +560,7 @@ def resources_partial(
             correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
-        launch_storyboard: A file to be used as a launch screen for the application.
-        mac_exec_group: The exec group associated with apple_mac_toolchain
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -575,6 +583,8 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         actions = actions,
+        additional_forced_root_infoplist_values = additional_forced_root_infoplist_values,
+        additional_overridable_root_infoplist_values = additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
@@ -582,7 +592,6 @@ def resources_partial(
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         extensionkit_keys_required = extensionkit_keys_required,
-        launch_storyboard = launch_storyboard,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

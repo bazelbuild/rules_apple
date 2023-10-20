@@ -174,6 +174,22 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    # Tests that when a launch storyboard is not bundled with the application that the bundler
+    # inserts the correct key/value into Info.plist.
+    archive_contents_test(
+        name = "{}_default_launch_screen_test".format(name),
+        build_type = "device",
+        not_contains = [
+            "$BUNDLE_ROOT/launch_screen_ios.storyboardc/",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "UILaunchScreen": "*",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_default_launch_screen",
+        tags = [name],
+    )
+
     # Tests that apple_bundle_import files are bundled correctly with the application.
     archive_contents_test(
         name = "{}_apple_bundle_test".format(name),

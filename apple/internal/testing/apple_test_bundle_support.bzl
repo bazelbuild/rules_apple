@@ -457,7 +457,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = getattr(ctx.file, "launch_storyboard", None),
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,

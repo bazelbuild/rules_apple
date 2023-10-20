@@ -505,6 +505,20 @@ class PlistToolTest(unittest.TestCase):
         'Bundle': 'this.is.my.bundle',
     })
 
+  def test_merge_with_overridable_forced_plist_sets_values(self):
+    plist1 = {'Foo': 'baz'}
+    self._assert_plisttool_result({
+        'overridable_forced_plists': [plist1],
+    }, {'Foo': 'baz'})
+
+  def test_merge_with_overridable_forced_plist_retains_on_collisions(self):
+    plist1 = {'Foo': 'bar'}
+    plist2 = {'Foo': 'baz'}
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'overridable_forced_plists': [plist2],
+    }, {'Foo': 'bar'})
+
   def test_merge_with_forced_plist_overrides_on_collisions(self):
     plist1 = {'Foo': 'bar'}
     plist2 = {'Foo': 'baz'}

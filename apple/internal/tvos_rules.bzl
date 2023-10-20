@@ -52,6 +52,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:infoplist_support.bzl",
+    "infoplist_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -222,6 +226,11 @@ def _tvos_application_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
+    launch_screen_values = infoplist_support.launch_screen_values(
+        launch_storyboard = ctx.file.launch_storyboard,
+        platform_prerequisites = platform_prerequisites,
+    )
+
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
@@ -314,13 +323,14 @@ def _tvos_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
+            additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = ctx.file.launch_storyboard,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -610,7 +620,6 @@ def _tvos_framework_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -854,7 +863,6 @@ def _tvos_extension_impl(ctx):
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             extensionkit_keys_required = ctx.attr.extensionkit_extension,
-            launch_storyboard = None,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -1022,7 +1030,6 @@ def _tvos_static_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            launch_storyboard = None,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,

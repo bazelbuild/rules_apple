@@ -34,6 +34,11 @@ the following keys:
       raise an error; they replace any values from the originals instead. If
       multiple plists have the same key, the last one in this list is the one
       that will be kept.
+  overridable_forced_plists: A list of plists that will be merged after those in
+      "plists". Unlike those, collisions between key-value pairs in these plists
+      do not raise an error; they are quietly overridden by the originals
+      instead. If multiple plists have the same key, the last one in this list
+      is the one that will be kept, if the same key in "plists" was not defined.
   output: A string indicating the path to where the merged plist will be
       written, or a writable file-like object (for testing).
   binary: If true, the output plist file will be written in binary format;
@@ -331,8 +336,8 @@ ENTITLEMENTS_VALUE_HAS_WILDCARD = (
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
     'binary', 'forced_plists', 'entitlements_options', 'info_plist_options',
-    'output', 'plists', 'raw_substitutions', 'target',
-    'variable_substitutions',
+    'overridable_forced_plists', 'output', 'plists', 'raw_substitutions',
+    'target', 'variable_substitutions',
 ])
 
 # All valid keys in the info_plist_options control structure.
@@ -1537,6 +1542,16 @@ class PlistTool(object):
     for p in self._control.get('plists', []):
       plist = PlistIO.get_dict(p, target)
       self._merge_dictionaries(plist, out_plist, target, subs_engine)
+
+    overridable_forced_plists = self._control.get(
+        'overridable_forced_plists', [])
+    for p in overridable_forced_plists:
+      plist = PlistIO.get_dict(p, target)
+      # The order is flipped between incoming/outgoing info plist so that the
+      # merged plist above has priority, unlike normal `forced_plists` below.
+      self._merge_dictionaries(out_plist, plist, target, subs_engine,
+                               override_collisions=True)
+      out_plist = plist
 
     forced_plists = self._control.get('forced_plists', [])
     for p in forced_plists:

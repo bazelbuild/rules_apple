@@ -294,6 +294,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "infoplist_support",
+    srcs = ["infoplist_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+        "//test:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
     name = "intermediates",
     srcs = ["intermediates.bzl"],
     visibility = [
@@ -318,6 +330,7 @@ bzl_library(
         ":cc_info_support",
         ":entitlements_support",
         ":features_support",
+        ":infoplist_support",
         ":linking_support",
         ":outputs",
         ":partials",
@@ -648,6 +661,7 @@ bzl_library(
         ":cc_info_support",
         ":entitlements_support",
         ":features_support",
+        ":infoplist_support",
         ":linking_support",
         ":outputs",
         ":partials",
