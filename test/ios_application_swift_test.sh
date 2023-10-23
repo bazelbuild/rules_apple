@@ -307,7 +307,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app --features=include_main_thread_checker \
+  do_build ios //app:app --features=apple.include_main_thread_checker \
         || fail "Should build"
 
   if is_device_build ios ; then

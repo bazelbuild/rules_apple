@@ -1,4 +1,4 @@
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-A tool gets the libMainThreadChecker.dylib from the DEVELOPER_DIR and copies it to the requested output path for IPA bundling.
+A tool gets the libMainThreadChecker.dylib from the DEVELOPER_DIR and
+copies it to the requested output path for IPA bundling.
 """
 
 import os

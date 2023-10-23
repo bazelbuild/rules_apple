@@ -249,7 +249,7 @@ function test_app_builds_with_include_main_thread_checker() {
   create_common_files
   create_minimal_macos_application
 
-  do_build macos //app:app --features=include_main_thread_checker \
+  do_build macos //app:app --features=apple.include_main_thread_checker \
         || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.zip" \

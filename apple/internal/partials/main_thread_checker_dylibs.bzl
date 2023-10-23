@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,7 +46,13 @@ def _create_main_thread_checker_dylib(actions, label_name, output_discriminator)
         file_name = "libMainThreadChecker.dylib",
     )
 
-def _run_main_thread_checker(actions, binary_artifact, dylibs, main_thread_checker_dylib, platform_prerequisites, resolved_main_thread_checker_tool):
+def _run_main_thread_checker(
+        actions,
+        binary_artifact,
+        dylibs,
+        main_thread_checker_dylib,
+        platform_prerequisites,
+        resolved_main_thread_checker_tool):
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
