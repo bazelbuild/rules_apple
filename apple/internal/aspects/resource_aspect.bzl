@@ -28,6 +28,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
@@ -55,6 +56,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
+    "AppleResourceValidationInfo",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -242,6 +247,7 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
+    apple_resource_validation_infos = []
     apple_debug_infos = []
     apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
@@ -249,28 +255,40 @@ def _apple_resource_aspect_impl(target, ctx):
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             targets = getattr(ctx.rule.attr, attr)
+            for target in targets:
+                if AppleFrameworkBundleInfo in target and AppleBundleInfo in target:
+                    # Create a reference to the AppleBundleInfo for any rules that output a
+                    # framework bundle for validation in the top level bundling rule.
+                    #
+                    # Further, we want to track the source of this AppleBundleInfo for logging via
+                    # the rule label. Otherwise we won't be able to get at the target/label later.
+                    target_apple_bundle_info = struct(
+                        apple_bundle_info = target[AppleBundleInfo],
+                        target_label = str(target.label),
+                    )
 
-            inherited_apple_resource_infos.extend([
-                x[AppleResourceInfo]
-                for x in targets
-                if AppleResourceInfo in x and
-                   # Filter Apple framework targets to avoid propagating and bundling
-                   # framework resources to the top-level target (eg. ios_application).
-                   AppleFrameworkBundleInfo not in x
-            ])
+                    apple_resource_validation_infos.append(
+                        AppleResourceValidationInfo(
+                            direct_target_bundle_infos = [target_apple_bundle_info],
+                            transitive_target_bundle_infos = depset([target_apple_bundle_info]),
+                        ),
+                    )
 
-            # Propagate AppleDebugInfo providers from dependencies required for the debug_symbols
-            # partial.
-            apple_debug_infos.extend([
-                x[AppleDebugInfo]
-                for x in targets
-                if AppleDebugInfo in x
-            ])
-            apple_dsym_bundle_infos.extend([
-                x[AppleDsymBundleInfo]
-                for x in targets
-                if AppleDsymBundleInfo in x
-            ])
+                if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
+                    # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to
+                    # avoid propagating resources that should not be extended beyond the framework.
+                    inherited_apple_resource_infos.append(target[AppleResourceInfo])
+
+                # Propagate AppleDebugInfo providers from deps/resources-referenced dependencies
+                # required for the debug_symbols partial. This will often start from frameworks.
+                if AppleDebugInfo in target:
+                    apple_debug_infos.append(target[AppleDebugInfo])
+
+                if AppleDsymBundleInfo in target:
+                    apple_dsym_bundle_infos.append(target[AppleDsymBundleInfo])
+
+                if AppleResourceValidationInfo in target:
+                    apple_resource_validation_infos.append(target[AppleResourceValidationInfo])
 
     if inherited_apple_resource_infos and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.
@@ -292,6 +310,19 @@ def _apple_resource_aspect_impl(target, ctx):
             resources.merge_providers(
                 default_owner = owner,
                 providers = apple_resource_infos,
+            ),
+        )
+
+    if apple_resource_validation_infos:
+        providers.append(
+            AppleResourceValidationInfo(
+                direct_target_bundle_infos = [],
+                transitive_target_bundle_infos = depset(
+                    transitive = [
+                        x.transitive_target_bundle_infos
+                        for x in apple_resource_validation_infos
+                    ],
+                ),
             ),
         )
 

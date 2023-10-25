@@ -887,7 +887,7 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    frameworks = [":fmwk_min_os_nplus1"],
+    frameworks = [":fmwk_min_os_baseline_with_bundle"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -3135,6 +3135,34 @@ objc_library(
     data = [
         ":fmwk_with_resources",
         ":resource_group_with_framework",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_nplus1_framework_objc_lib_using_data",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_nplus1_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_nplus1_ios_framework",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [
+        ":fmwk_min_os_nplus1",
     ],
     tags = common.fixture_tags,
 )

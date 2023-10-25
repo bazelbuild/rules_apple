@@ -438,6 +438,7 @@ bzl_library(
         "//apple/internal/partials:apple_bundle_info",
         "//apple/internal/partials:apple_symbols_file",
         "//apple/internal/partials:binary",
+        "//apple/internal/partials:child_bundle_info_validation",
         "//apple/internal/partials:clang_rt_dylibs",
         "//apple/internal/partials:codesigning_dossier",
         "//apple/internal/partials:debug_symbols",

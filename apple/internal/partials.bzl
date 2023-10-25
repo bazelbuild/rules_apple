@@ -35,6 +35,10 @@ load(
     _binary_partial = "binary_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:child_bundle_info_validation.bzl",
+    _child_bundle_info_validation_partial = "child_bundle_info_validation_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:clang_rt_dylibs.bzl",
     _clang_rt_dylibs_partial = "clang_rt_dylibs_partial",
 )
@@ -113,6 +117,7 @@ partials = struct(
     app_intents_metadata_bundle_partial = _app_intents_metadata_bundle_partial,
     apple_bundle_info_partial = _apple_bundle_info_partial,
     binary_partial = _binary_partial,
+    child_bundle_info_validation_partial = _child_bundle_info_validation_partial,
     clang_rt_dylibs_partial = _clang_rt_dylibs_partial,
     codesigning_dossier_partial = _codesigning_dossier_partial,
     debug_symbols_partial = _debug_symbols_partial,

@@ -307,6 +307,13 @@ def _ios_application_impl(ctx):
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

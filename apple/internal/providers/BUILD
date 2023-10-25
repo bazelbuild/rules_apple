@@ -32,6 +32,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_resource_validation_info",
+    srcs = ["apple_resource_validation_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used both
+        # by the `resource_aspect` and `child_bundle_info_validation` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "embeddable_info",
     srcs = ["embeddable_info.bzl"],
     visibility = [

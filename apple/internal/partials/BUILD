@@ -77,6 +77,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "child_bundle_info_validation",
+    srcs = ["child_bundle_info_validation.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:apple_product_type",
+        "//apple/internal/providers:apple_resource_validation_info",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
     visibility = [

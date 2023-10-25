@@ -142,25 +142,8 @@ def ios_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_bundle_resources",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
-        ],
-        not_contains = [
-            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
-        ],
-        tags = [name],
-    )
-
-    # Tests that if frameworks and applications have different minimum versions
-    # the assets are still only in the framework.
-    archive_contents_test(
-        name = "{}_resources_in_framework_stays_in_framework_with_app_with_lower_min_os_version".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/basic_bundle.txt",
-            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_nplus1.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline_with_bundle.framework/basic.bundle/nested/should_be_nested.strings",
         ],
         not_contains = [
             "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
@@ -636,6 +619,32 @@ def ios_framework_test_suite(name):
             "dSYMs/fmwk_no_version.framework.dSYM",
             "dSYMs/fmwk_with_resources.framework.dSYM",
         ],
+        tags = [name],
+    )
+
+    # Tests that if frameworks and applications have different minimum versions that a user
+    # actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk",
+        expected_error = """
+ERROR: minimum_os_version 13.0 on the framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version of 12.0
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version.
+""",
+        tags = [name],
+    )
+
+    # Tests that if data-loaded frameworks and applications have different minimum versions that a
+    # user actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_transitive_data_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data",
+        expected_error = """
+ERROR: minimum_os_version 13.0 on the framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version of 12.0
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version.
+""",
         tags = [name],
     )
 
