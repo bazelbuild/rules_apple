@@ -96,17 +96,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "dtrace",
-    srcs = ["dtrace.bzl"],
-    deps = [
-        "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
     name = "ios",
     srcs = ["ios.bzl"],
     deps = [
