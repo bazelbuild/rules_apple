@@ -415,7 +415,6 @@ def _plists_and_strings(
         *,
         actions,
         files,
-        force_binary = False,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
@@ -423,15 +422,12 @@ def _plists_and_strings(
         **_kwargs):
     """Processes plists and string files.
 
-    If compilation mode is `opt`, or if force_binary is True, the plist files will be compiled into
-    binary to make them smaller. Otherwise, they will be copied verbatim to avoid the extra
-    processing time.
+    If compilation mode is `opt`, the plist files will be compiled into binary to make them smaller.
+    Otherwise, they will be copied verbatim to avoid the extra processing time.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         files: The plist or string files to process.
-        force_binary: If true, files will be converted to binary independently of the compilation
-            mode.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         parent_dir: The path under which the files should be placed.
@@ -443,8 +439,8 @@ def _plists_and_strings(
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
 
-    # If this is not an optimized build, and force_compile is False, then just copy the files
-    if not force_binary and platform_prerequisites.config_vars["COMPILATION_MODE"] != "opt":
+    # If this is not an optimized build, then just copy the files
+    if platform_prerequisites.config_vars["COMPILATION_MODE"] != "opt":
         return _noop(
             parent_dir = parent_dir,
             files = files,
