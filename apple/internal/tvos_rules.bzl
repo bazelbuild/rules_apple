@@ -265,6 +265,13 @@ def _tvos_application_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -548,6 +555,13 @@ def _tvos_framework_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
         partials.clang_rt_dylibs_partial(
@@ -802,6 +816,13 @@ def _tvos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
+        ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,

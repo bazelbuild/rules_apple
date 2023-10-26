@@ -571,13 +571,13 @@ def tvos_application_test_suite(name):
     # bundled with the framework if no deduplication is happening.
     # tvOS application has baseline minimum os version and framework has baseline plus one.
     archive_contents_test(
-        name = "{}_does_not_contain_common_resource_bundle_from_framework_nplus1".format(name),
+        name = "{}_nplus1_does_not_contain_common_resource_bundle_from_framework_baseline".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_resource_bundles_and_fmwk_with_resource_bundles_nplus1",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_nplus1_with_resource_bundles_and_fmwk_baseline_with_resource_bundles",
         # Assert that the framework contains the bundled files...
         contains = [
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles_nplus1.framework/basic.bundle",
-            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles_nplus1.framework/simple_bundle_library.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/basic.bundle",
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_resource_bundles.framework/simple_bundle_library.bundle",
         ],
         # ...and that the application doesn't.
         not_contains = [

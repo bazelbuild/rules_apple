@@ -15,6 +15,10 @@
 """tvos_framework Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -336,6 +340,32 @@ def tvos_framework_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_runtime_framework_using_import_static_lib_dep",
+        tags = [name],
+    )
+
+    # Tests that if frameworks and applications have different minimum versions that a user
+    # actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_baseline_min_os_and_nplus1_fmwk",
+        expected_error = """
+ERROR: minimum_os_version 13.0 on the framework //test/starlark_tests/targets_under_test/tvos:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/tvos:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version of 12.0
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/tvos:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/tvos:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version.
+""",
+        tags = [name],
+    )
+
+    # Tests that if data-loaded frameworks and applications have different minimum versions that a
+    # user actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_transitive_data_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_nplus1_framework_objc_lib_using_data",
+        expected_error = """
+ERROR: minimum_os_version 13.0 on the framework //test/starlark_tests/targets_under_test/tvos:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/tvos:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version of 12.0
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/tvos:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/tvos:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version.
+""",
         tags = [name],
     )
 
