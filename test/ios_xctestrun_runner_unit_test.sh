@@ -41,12 +41,12 @@ load(
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
-    device_type = "iPhone 8",
+    device_type = "iPhone Xs",
 )
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_reuse_disabled_runner",
-    device_type = "iPhone 8",
+    device_type = "iPhone Xs",
     reuse_simulator = False,
 )
 
