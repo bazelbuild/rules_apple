@@ -177,6 +177,17 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Tests inclusion of extensions within Watch extensions if defined with `extensions` as opposed to `extension`
+    archive_contents_test(
+        name = "{}_contains_watchos_extension_extensions".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension_within_extensions",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
+        ],
+        tags = [name],
+    )
+
     # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
     archive_contents_test(
         name = "{}_contains_tsan_dylib_device_test".format(name),
