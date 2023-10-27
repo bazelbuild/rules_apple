@@ -42,7 +42,7 @@ load(
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
-    device_type = "iPhone 8",
+    device_type = "iPhone Xs",
 )
 
 EOF
