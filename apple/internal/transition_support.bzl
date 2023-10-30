@@ -681,6 +681,11 @@ def _xcframework_transition_impl(settings, attr):
             target_environments = target_environments,
         )
         output_dictionary = dicts.add(command_line_options, output_dictionary)
+
+    if not output_dictionary:
+        fail("Missing a platform type attribute. At least one of 'ios', " +
+             "'tvos', 'visionos', 'watchos', or 'macos' attribute is mandatory.")
+
     return output_dictionary
 
 _xcframework_transition = transition(
