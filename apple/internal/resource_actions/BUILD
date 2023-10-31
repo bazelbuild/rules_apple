@@ -20,7 +20,6 @@ bzl_library(
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_apple_support//lib:xcode_support",
     ],
 )
 
