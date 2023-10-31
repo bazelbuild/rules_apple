@@ -126,7 +126,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         expected_argv = [
             "xctoolrunner actool --compile",
             "--minimum-deployment-target " + common.min_os_watchos.single_target_app,
-            "--product-type com.apple.product-type.application",
             "--platform watchsimulator",
         ],
         tags = [
