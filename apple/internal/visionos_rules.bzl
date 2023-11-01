@@ -344,6 +344,7 @@ Resolved Xcode is version {xcode_version}.
             launch_storyboard = None,
             locales_to_include = ctx.attr.locales_to_include,
             platform_prerequisites = platform_prerequisites,
+            primary_icon_name = ctx.attr.primary_app_icon,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
@@ -1447,6 +1448,7 @@ visionos_application = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".solidimagestack",
             icon_parent_extension = ".xcassets",
+            supports_alternate_icons = True,
         ),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
