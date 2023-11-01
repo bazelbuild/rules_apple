@@ -651,7 +651,11 @@ hermetic given these inputs to ensure that the result can be safely cached.
         ),
     }
 
-def _app_icon_attrs(*, icon_extension = ".appiconset", icon_parent_extension = ".xcassets"):
+def _app_icon_attrs(
+        *,
+        icon_extension = ".appiconset",
+        icon_parent_extension = ".xcassets",
+        supports_alternate_icons = False):
     """Returns the attribute required to define app icons for the given target.
 
     Args:
@@ -659,8 +663,10 @@ def _app_icon_attrs(*, icon_extension = ".appiconset", icon_parent_extension = "
             app icon assets. Optional. Defaults to `.appiconset`.
         icon_parent_extension: A String representing the extension required of the parent directory
             of the directory containing the app icon assets. Optional. Defaults to `.xcassets`.
+        supports_alternate_icons: Bool representing if the rule supports alternate icons. False by
+            default.
     """
-    return {
+    app_icon_attrs = {
         "app_icons": attr.label_list(
             allow_files = True,
             doc = """
@@ -672,6 +678,16 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
             ),
         ),
     }
+    if supports_alternate_icons:
+        app_icon_attrs = dicts.add(app_icon_attrs, {
+            "primary_app_icon": attr.string(
+                doc = """
+An optional String to identify the name of the primary app icon when alternate app icons have been
+provided for the app.
+""",
+            ),
+        })
+    return app_icon_attrs
 
 def _launch_images_attrs():
     """Returns the attribute required to support launch images for a given target."""

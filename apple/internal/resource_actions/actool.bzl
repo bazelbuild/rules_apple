@@ -23,6 +23,10 @@ load(
     "paths",
 )
 load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -50,6 +54,7 @@ def _actool_args_for_special_file_types(
         asset_files,
         bundle_id,
         platform_prerequisites,
+        primary_icon_name,
         product_type):
     """Returns command line arguments needed to compile special assets.
 
@@ -63,6 +68,8 @@ def _actool_args_for_special_file_types(
       asset_files: The asset catalog files.
       bundle_id: The bundle ID to configure for this target.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      primary_icon_name: An optional String to identify the name of the primary app icon when
+        alternate app icons have been provided for the app.
       product_type: The product type identifier used to describe the current bundle type.
 
     Returns:
@@ -124,14 +131,55 @@ def _actool_args_for_special_file_types(
             [appicon_extension],
             attr = "app_icons",
         ).keys()
-        if len(icon_dirs) != 1:
+        if len(icon_dirs) != 1 and not primary_icon_name:
             formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
-            fail("The asset catalogs should contain exactly one directory named " +
-                 "*.%s among its asset catalogs, " % appicon_extension +
-                 "but found the following: " + formatted_dirs, "app_icons")
 
-        app_icon_name = paths.split_extension(paths.basename(icon_dirs[0]))[0]
-        args += ["--app-icon", app_icon_name]
+            # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
+            # iOS-on-macOS (Catalyst)
+            if (platform_prerequisites.platform_type == apple_common.platform_type.watchos or
+                platform_prerequisites.platform_type == apple_common.platform_type.macos or
+                product_type != apple_product_type.application):
+                fail("The asset catalogs should contain exactly one directory named " +
+                     "*.%s among its asset catalogs, " % appicon_extension +
+                     "but found the following: " + formatted_dirs, "app_icons")
+            else:
+                fail("""
+Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
+
+If you intend to assign multiple app icons to this target, please declare which of these is intended
+to be the primary app icon with the primary_app_icon attribute on the rule itself.
+
+app_icons was assigned the following: {formatted_dirs}
+""".format(formatted_dirs = formatted_dirs))
+        elif primary_icon_name:
+            # Check that primary_icon_name matches one of the icon sets, then add actool arguments
+            # for `--alternate-app-icon` and `--app_icon` as appropriate. These do NOT overlap.
+            app_icon_names = sets.make()
+            for icon_dir in icon_dirs:
+                app_icon_names = sets.insert(
+                    app_icon_names,
+                    paths.split_extension(paths.basename(icon_dir))[0],
+                )
+            app_icon_name_list = sets.to_list(app_icon_names)
+            found_primary = False
+            for app_icon_name in app_icon_name_list:
+                if app_icon_name == primary_icon_name:
+                    found_primary = True
+                    args += ["--app-icon", primary_icon_name]
+                else:
+                    args += ["--alternate-app-icon", app_icon_name]
+            if not found_primary:
+                fail("""
+Could not find the primary icon named "{primary_icon_name}" in the list of app_icons provided.
+
+Found the following icon names from those provided: {app_icon_names}.
+""".format(
+                    primary_icon_name = primary_icon_name,
+                    app_icon_names = ", ".join(app_icon_name_list),
+                ))
+        else:
+            app_icon_name = paths.split_extension(paths.basename(icon_dirs[0]))[0]
+            args += ["--app-icon", app_icon_name]
 
     # Add arguments for watch extension complication, if there is one.
     complication_files = [f for f in asset_files if ".complicationset/" in f.path]
@@ -193,6 +241,7 @@ def compile_asset_catalog(
         output_dir,
         output_plist,
         platform_prerequisites,
+        primary_icon_name,
         product_type,
         rule_label,
         xctoolrunner):
@@ -217,6 +266,8 @@ def compile_asset_catalog(
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      primary_icon_name: An optional String to identify the name of the primary app icon when
+        alternate app icons have been provided for the app.
       product_type: The product type identifier used to describe the current bundle type.
       rule_label: The label of the target being analyzed.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
@@ -239,6 +290,7 @@ def compile_asset_catalog(
         asset_files = asset_files,
         bundle_id = bundle_id,
         platform_prerequisites = platform_prerequisites,
+        primary_icon_name = primary_icon_name,
         product_type = product_type,
     ))
     args.extend(collections.before_each(
