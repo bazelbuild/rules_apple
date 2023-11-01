@@ -275,6 +275,7 @@ Resolved Xcode is version {xcode_version}.
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            primary_icon_name = ctx.attr.primary_app_icon,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
@@ -379,7 +380,9 @@ visionos_application = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
-        rule_attrs.app_icon_attrs(),
+        rule_attrs.app_icon_attrs(
+            supports_alternate_icons = True,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

@@ -356,6 +356,11 @@ filegroup(
 )
 
 filegroup(
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
+)
+
+filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )
