@@ -449,4 +449,59 @@ Please verify apple.locales_to_include and apple.locales_to_exclude are defined 
   expect_log "$error_message"
 }
 
+# Tests that the bundled application contains nested resource in private_deps(swift_library) or implementation_deps(objc_library)
+function test_nested_private_andimplementation_deps_bundled_with_app() {
+  create_common_files
+  touch "app/dummy.swift"
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+objc_library(
+    name = "res1",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:sample.png",
+    ],
+)
+
+objc_library(
+    name = "res2",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
+    ],
+    deps = [":res1"],
+)
+
+swift_library(
+    name = "swift_lib",
+    srcs = ["dummy.swift"],
+    private_deps = [":res2"],
+)
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    implementation_deps = [":swift_lib"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/sample.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/view_ios.nib"
+}
+
 run_suite "ios_application bundling with resources tests"
