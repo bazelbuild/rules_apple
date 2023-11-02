@@ -66,7 +66,7 @@ Enter the following at the command line:
 
 ```bash
 touch WORKSPACE
-open -a Xcode $WORKSPACE/WORKSPACE
+open -a Xcode WORKSPACE
 ```
 
 This creates and opens the empty `WORKSPACE` file in Xcode. Feel free to use any other text editor
@@ -139,6 +139,8 @@ struct BazelApp: App {
 }
 ```
 
+Note: [bazel-ios-swiftui-template](https://github.com/mattrobmattrob/bazel-ios-swiftui-template) contains a template for a SwiftUI iOS application that builds with Bazel if you want to speed up this process for future usages.
+
 ## Create a BUILD file
 
 Create and open a new `BUILD` file for editing:
@@ -154,12 +156,12 @@ To build iOS targets, Bazel needs to load build rules from its GitHub repository
 whenever the build runs. To make these rules available to your project, add the
 following load statements to the beginning of your `BUILD` file:
 
-```python
+```starlark
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 ```
 
-### Add an `swift_library` rule
+### Add a `swift_library` rule
 
 Bazel provides several build rules that you can use to build an app for 
 Apple platforms. For this tutorial, you'll first use the
@@ -171,7 +173,7 @@ rule to tell it how to build the iOS application binary and the `.ipa` bundle.
 
 Add the following to your `BUILD` file:
 
-```python
+```starlark
 swift_library(
     name = "lib",
     srcs = glob(["Sources/*.swift"]),
@@ -192,23 +194,24 @@ It's common to organize other resources such as Asset Catalogs in the same direc
 ```bash
 mkdir Resources
 touch Resources/Info.plist
+open -a Xcode Resources/Info.plist
 ```
 
 Open the newly created file and paste in it the contents found in this [example Info.plist file](https://github.com/bazelbuild/rules_apple/blob/master/examples/ios/HelloWorldSwift/Info.plist).
 
-Add the following to your `BUILD` file create in the previous step:
+Add the following to your `BUILD` file created in the previous step:
 
-```python
+```starlark
 ios_application(
     name = "iOSApp",
-    bundle_id = "com.bazelbuild.rules-apple-example",
+    bundle_id = "build.bazel.rules-apple-example",
     families = [
         "iphone",
         "ipad",
     ],
     infoplists = ["Resources/Info.plist"],
-    visibility = ["//visibility:public"],
     minimum_os_version = "17.0",
+    visibility = ["//visibility:public"],
     deps = [":lib"],
 )
 ```
@@ -247,7 +250,7 @@ INFO: Elapsed time: 1.999s, Critical Path: 1.89s
 The `.ipa` file and other outputs are located in the
 `bazel-out/ios-sim_arm64-min17.0-applebin_ios-ios_sim_arm64-fastbuild-ST-b6790d224f6d/bin/iOSApp.ipa` directory.
 
-### Build the app in the simulator
+### Build the app in the Simulator
 
 `rules_apple` supports running an app directly in the iOS Simulator.
 Replace `build` with `run` in the previous command to both build and
@@ -343,7 +346,7 @@ the appropriate provisioning profile for that device model. Do the following:
 
 4. Add the following line to the `ios_application` target in your `BUILD` file:
 
-   ```python
+   ```starlark
    provisioning_profile = "<your_profile_name>.mobileprovision",
    ```
 
