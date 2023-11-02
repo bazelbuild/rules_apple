@@ -15,10 +15,6 @@
 """ACTool related actions."""
 
 load(
-    "@build_bazel_apple_support//lib:xcode_support.bzl",
-    "xcode_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -79,9 +75,10 @@ def _actool_args_for_special_file_types(
         appicon_extension = "stickersiconset"
         icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
 
-        # TODO(kaipi): We might be processing a resource bundle inside an
-        # ios_extension, in which case the bundle ID might not be appropriate here.
         args.extend([
+            "--include-sticker-content",
+            "--stickers-icon-role",
+            "extension",
             "--sticker-pack-identifier-prefix",
             bundle_id + ".sticker-pack.",
         ])
@@ -234,10 +231,6 @@ def compile_asset_catalog(
         platform_prerequisites.minimum_os,
         "--compress-pngs",
     ]
-
-    if xcode_support.is_xcode_at_least_version(platform_prerequisites.xcode_version_config, "8"):
-        if product_type:
-            args.extend(["--product-type", product_type])
 
     args.extend(_actool_args_for_special_file_types(
         asset_files = asset_files,

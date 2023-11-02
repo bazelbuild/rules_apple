@@ -95,7 +95,6 @@ def watchos_application_test_suite(name):
         expected_argv = [
             "xctoolrunner actool --compile",
             "--minimum-deployment-target " + common.min_os_watchos.baseline,
-            "--product-type com.apple.product-type.application.watchapp2",
             "--platform watchsimulator",
         ],
         tags = [name],

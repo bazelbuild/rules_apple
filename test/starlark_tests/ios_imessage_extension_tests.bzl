@@ -23,6 +23,10 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -48,6 +52,22 @@ def ios_imessage_extension_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Tests xcasset tool is passed the correct arguments.
+    analysis_target_actions_test(
+        name = "{}_xcasset_actool_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--include-sticker-content",
+            "--stickers-icon-role",
+            "extension",
+            "--minimum-deployment-target " + common.min_os_ios.baseline,
+            "--platform iphonesimulator",
+        ],
         tags = [name],
     )
 
