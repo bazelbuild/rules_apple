@@ -707,9 +707,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
     if len(ctx.attr.extensions) > 1:
         fail("""
-Extension-based watchOS applications do not support embedded app extensions.
+Extension-based watchOS applications do not support embedded app extensions via the `extensions` attribute.
 
-Please remove app extensions from this target, and instead add them to the watchos_extension `extensions`.
+Please remove app extensions from this target, and instead add them via `watchos_extension`'s `extensions` attribute.
 """)
 
     watch_extension = None
@@ -719,9 +719,9 @@ Please remove app extensions from this target, and instead add them to the watch
         watch_extension = ctx.attr.extensions[0]
     else:
         fail("""
-Extension-based watchOS applications require a valid watchos_extension.
+Extension-based watchOS applications require a valid `watchos_extension`.
 
-Please add a watchos_extension to this target `extensions`.
+Please add a `watchos_extension` to this target `extensions` attribute.
 """)
 
     rule_descriptor = rule_support.rule_descriptor(
