@@ -81,6 +81,7 @@ load(
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
     "new_iosapplicationbundleinfo",
+    "new_iosbundlebundleinfo",
     "new_iosextensionbundleinfo",
     "new_iosframeworkbundleinfo",
     "new_iosimessageapplicationbundleinfo",
@@ -133,6 +134,7 @@ load(
     "AppleBundleInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
+    "IosBundleBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
@@ -166,12 +168,13 @@ def _ios_application_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions + ctx.attr.bundles]
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = (
         ctx.attr.frameworks +
         ctx.attr.extensions +
         ctx.attr.app_clips +
+        ctx.attr.bundles +
         ctx.attr.deps
     )
     executable_name = ctx.attr.executable_name
@@ -344,7 +347,7 @@ def _ios_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
+            targets = ctx.attr.bundles + ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
@@ -526,7 +529,7 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    embeddable_targets = ctx.attr.frameworks
+    embeddable_targets = ctx.attr.bundles + ctx.attr.frameworks
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -789,6 +792,248 @@ def _ios_app_clip_impl(ctx):
             binary = binary_artifact,
             cc_info = link_result.cc_info,
             objc = link_result.objc,
+        ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
+    ] + processor_result.providers
+
+def _ios_bundle_impl(ctx):
+    """Implementation of ios_bundle."""
+    product_type = apple_product_type.bundle
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.bundle,
+    )
+
+    extra_linkopts = ["-bundle"]
+    if ctx.attr.extension_safe:
+        extra_linkopts.append("-fapplication-extension")
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bin_root_path = ctx.bin_dir.path
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_extension = ctx.attr.bundle_extension,
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    bundle_id = bundling_support.bundle_full_id(
+        bundle_id = ctx.attr.bundle_id,
+        bundle_id_suffix = ctx.attr.bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = ctx.attr._bundle_id_suffix_default,
+        shared_capabilities = ctx.attr.shared_capabilities,
+    )
+    embeddable_targets = ctx.attr.frameworks
+    executable_name = ctx.attr.executable_name
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = [
+            "app_icons",
+            "strings",
+            "resources",
+        ],
+    )
+
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = ctx.file.entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = rule_descriptor.product_type,
+        provisioning_profile = provisioning_profile,
+        rule_label = label,
+        validation_mode = ctx.attr.entitlements_validation,
+    )
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        bundle_loader = ctx.attr.bundle_loader,
+        entitlements = entitlements.linking,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_linkopts = extra_linkopts,
+        platform_prerequisites = platform_prerequisites,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
+    )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            entitlements = entitlements.bundle,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+        ),
+        partials.clang_rt_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_location = processor.location.plugin,
+            bundle_name = bundle_name,
+            embed_target_dossiers = False,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.frameworks,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            executable_name = executable_name,
+            label_name = label.name,
+            linkmaps = debug_outputs.linkmaps,
+            platform_prerequisites = platform_prerequisites,
+            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            rule_label = label,
+            version = ctx.attr.version,
+        ),
+        partials.embedded_bundles_partial(
+            platform_prerequisites = platform_prerequisites,
+            embeddable_targets = embeddable_targets,
+            custom_bundles = {getattr(ctx.attr, "bundle_location", ""): [archive]},
+        ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            executable_name = executable_name,
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+    ]
+
+    if provisioning_profile:
+        processor_partials.append(
+            partials.provisioning_profile_partial(
+                actions = actions,
+                profile_artifact = provisioning_profile,
+                rule_label = label,
+            ),
+        )
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        codesign_inputs = ctx.files.codesign_inputs,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        entitlements = entitlements.codesigning,
+        features = features,
+        ipa_post_processor = ctx.executable.ipa_post_processor,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(
+            files = processor_result.output_files
+        ),
+        new_iosbundlebundleinfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -2488,6 +2733,14 @@ named after the alternate icon identifier.
 A list of iOS app clips to include in the final application bundle.
 """,
             ),
+            "bundles": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, IosBundleBundleInfo],
+                ],
+                doc = """
+A list of iOS loadable bundles to include in the final application bundle.
+""",
+            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
                 doc = """
@@ -2595,6 +2848,12 @@ A list of framework targets (see
 that this target depends on.
 """,
             ),
+            "bundles": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, IosBundleBundleInfo],
+                ],
+                doc = "A list of iOS loadable bundles to include in the final application bundle.",
+            ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],
                 doc = """
@@ -2605,6 +2864,79 @@ Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
         },
+    ],
+)
+
+ios_bundle = rule_factory.create_apple_rule(
+    doc = "Builds and bundles an iOS Loadable Bundle.",
+    implementation = _ios_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        rule_attrs.app_icon_attrs(),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.custom_transition_allowlist_attr(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+            is_mandatory = True,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.ipa_post_processor_attrs(),
+        rule_attrs.platform_attrs(
+            platform_type = "ios",
+            add_environment_plist = True,
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+        ),
+        {
+            "bundle_extension": attr.string(
+                doc = """
+The extension, without a leading dot, that will be used to name the bundle. If this attribute is not
+set, then the extension will be `.bundle`.
+""",
+            ),
+            "bundle_loader": attr.label(
+                doc = """
+The target representing the executable that will be loading this bundle. Undefined symbols from the
+bundle are checked against this execuable during linking as if it were one of the dynamic libraries
+the bundle was linked with.
+""",
+                providers = [apple_common.AppleExecutableBinary],
+            ),
+            "bundle_location": attr.string(
+                mandatory = False,
+                doc = """
+The directory within the packaging bundle that this bundle should be placed.
+""",
+            ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+that this target depends on.
+""",
+            ),
+        },        
     ],
 )
 

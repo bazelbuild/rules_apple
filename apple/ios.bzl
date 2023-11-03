@@ -33,6 +33,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_bundle = "ios_bundle",
     _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
@@ -45,6 +46,7 @@ load(
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 ios_application = _ios_application
 ios_app_clip = _ios_app_clip
+ios_bundle = _ios_bundle
 ios_dynamic_framework = _ios_dynamic_framework
 ios_extension = _ios_extension
 ios_framework = _ios_framework
