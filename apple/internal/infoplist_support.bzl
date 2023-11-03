@@ -23,14 +23,14 @@ visibility([
 
 def _launch_screen_values(
         *,
-        default_launch_screen = False,
+        default_launch_screen,
         launch_storyboard,
         platform_prerequisites):
     """Returns a struct indicating what plist values should be added to support launch screens.
 
     Args:
         default_launch_screen: Bool to indicate if plist values should be set to add a default
-            launch screen if no launch_storyboard was defined. `False` by default.
+            launch screen if no launch_storyboard was defined.
         launch_storyboard: A `File` to be used as a launch screen for the application. Can be
             `None` if there is no launch storyboard defined.
         platform_prerequisites: A `struct` containing information on the platform being targeted.

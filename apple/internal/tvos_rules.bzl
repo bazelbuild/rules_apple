@@ -227,6 +227,7 @@ def _tvos_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     launch_screen_values = infoplist_support.launch_screen_values(
+        default_launch_screen = False,  # Not needed on tvOS.
         launch_storyboard = ctx.file.launch_storyboard,
         platform_prerequisites = platform_prerequisites,
     )

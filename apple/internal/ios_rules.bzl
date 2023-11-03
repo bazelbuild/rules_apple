@@ -203,6 +203,13 @@ def _ios_application_impl(ctx):
         ],
     )
 
+    default_launch_screen = True
+    if ctx.attr.default_launch_screen == False and ctx.attr.testonly:
+        # If we're at the current default of "False", set it to "True" unless we're an app declared
+        # as `testonly`. This change does require manual migration of iOS UI tests due to the change
+        # shifting default rendering from scaled to native when a launch_storyboard isn't set.
+        default_launch_screen = False
+
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -240,7 +247,7 @@ def _ios_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     launch_screen_values = infoplist_support.launch_screen_values(
-        default_launch_screen = ctx.attr.default_launch_screen,
+        default_launch_screen = default_launch_screen,
         launch_storyboard = ctx.file.launch_storyboard,
         platform_prerequisites = platform_prerequisites,
     )
@@ -594,7 +601,7 @@ def _ios_app_clip_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     launch_screen_values = infoplist_support.launch_screen_values(
-        default_launch_screen = ctx.attr.default_launch_screen,
+        default_launch_screen = True,
         launch_storyboard = ctx.file.launch_storyboard,
         platform_prerequisites = platform_prerequisites,
     )
@@ -1998,12 +2005,14 @@ A list of iOS app clips to include in the final application bundle.
 """,
             ),
             "default_launch_screen": attr.bool(
+                default = False,
                 doc = """
 If `True`, indicates if this target should declare an empty default launch screen if the
-`launch_storyboard` is set to `None`, rendering the app at App Store native resolution rather than
-scaled resolution. `False` by default.
+`launch_storyboard` is set to `None`, rendering the app clip at App Store native resolution rather
+than scaled resolution. This attribute has no effect unless the app is declared as `testonly`, in
+which case it is `False` by default to temporarily accommodate migrating test apps with UI.
 
-This will be `True` by default in a future iteration of the rules.
+This will always be `True` by default in a future iteration of the rules.
 """,
             ),
             "extensions": attr.label_list(
@@ -2106,15 +2115,6 @@ ios_app_clip = rule_factory.create_apple_rule(
         ),
         rule_attrs.simulator_runner_template_attr(),
         {
-            "default_launch_screen": attr.bool(
-                doc = """
-If `True`, indicates if this target should declare an empty default launch screen if the
-`launch_storyboard` is set to `None`, rendering the app clip at App Store native resolution rather
-than scaled resolution. `False` by default.
-
-This will be `True` by default in a future iteration of the rules.
-""",
-            ),
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
