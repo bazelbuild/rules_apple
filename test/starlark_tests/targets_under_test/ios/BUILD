@@ -1137,6 +1137,31 @@ xcarchive(
 )
 
 ios_application(
+    name = "app_with_ext_space_in_path",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_space"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+xcarchive(
+    name = "app_with_ext_space_in_path.xcarchive",
+    bundle = ":app_with_ext_space_in_path",
+    tags = common.fixture_tags,
+)
+
+ios_application(
     name = "app_with_swift_ext",
     bundle_id = "com.google.example",
     extensions = [":swift_ext"],
@@ -1357,6 +1382,27 @@ ios_extension(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+ios_extension(
+    name = "ext_with_space",
+    bundle_id = "com.google.example.ext",
+    bundle_name = "ext with space",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 substitution(
