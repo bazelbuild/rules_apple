@@ -108,12 +108,14 @@ def _ios_unit_test_impl(ctx):
 
 # Declare it with an underscore so it shows up that way in queries.
 _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS UI Test Bundle. Internal target not to be depended upon.",
     implementation = _ios_ui_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -172,12 +174,14 @@ ios_ui_test = rule_factory.create_apple_test_rule(
 
 # Declare it with an underscore so it shows up that way in queries.
 _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS Unit Test Bundle. Internal target not to be depended upon.",
     implementation = _ios_unit_test_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

@@ -1946,6 +1946,7 @@ def _ios_imessage_extension_impl(ctx):
     ] + processor_result.providers
 
 ios_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS Application.",
     implementation = _ios_application_impl,
     is_executable = True,
@@ -1961,6 +1962,7 @@ ios_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2067,6 +2069,7 @@ that should be embedded in the application bundle.
 )
 
 ios_app_clip = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS App Clip.",
     implementation = _ios_app_clip_impl,
     is_executable = True,
@@ -2078,6 +2081,7 @@ ios_app_clip = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2134,6 +2138,7 @@ Info.plist under the key `UILaunchStoryboardName`.
 )
 
 ios_extension = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS Application Extension.",
     implementation = _ios_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -2147,6 +2152,7 @@ ios_extension = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2205,12 +2211,14 @@ not in the top-level bundle.
 )
 
 ios_framework = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS Dynamic Framework.",
     implementation = _ios_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2270,6 +2278,7 @@ ios_static_framework = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_platforms_rule_base_transition,
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2324,6 +2333,7 @@ be generated that imports all of the headers listed here.
 )
 
 ios_imessage_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS iMessage Application.",
     implementation = _ios_imessage_application_impl,
     predeclared_outputs = {"archive": "%{name}.ipa"},
@@ -2361,6 +2371,7 @@ Required.
 )
 
 ios_imessage_extension = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles an iOS iMessage Extension.",
     implementation = _ios_imessage_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -2371,6 +2382,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

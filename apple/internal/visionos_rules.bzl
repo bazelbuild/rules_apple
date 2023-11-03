@@ -384,6 +384,7 @@ visionos_application = rule_factory.create_apple_rule(
             supports_alternate_icons = True,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_platforms_rule_bundle_output_base_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

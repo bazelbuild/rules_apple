@@ -33,10 +33,6 @@ load(
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
 )
@@ -95,7 +91,7 @@ _J2OBJC_LINKING_EXEC_GROUP = "j2objc"
 
 def _create_apple_rule(
         *,
-        cfg = transition_support.apple_rule_transition,
+        cfg,
         doc,
         implementation,
         is_executable = False,
@@ -105,9 +101,7 @@ def _create_apple_rule(
     """Creates an Apple bundling rule with additional control of the set of rule attributes.
 
     Args:
-        cfg: The rule transition to be applied directly on the generated rule. Optional. This will
-            be the Starlark Apple rule transition `transition_support.apple_rule_transition` by
-            default.
+        cfg: The rule transition to be applied directly on the generated rule.
         doc: The documentation string for the rule itself.
         implementation: The method to handle the implementation of the given rule. Optional. True
             by default.

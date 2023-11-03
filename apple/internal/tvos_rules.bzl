@@ -1084,6 +1084,7 @@ def _tvos_static_framework_impl(ctx):
     ] + processor_result.providers
 
 tvos_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a tvOS Application.",
     implementation = _tvos_application_impl,
     is_executable = True,
@@ -1097,6 +1098,7 @@ tvos_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -1151,12 +1153,14 @@ final bundle. The generated file will also be registered in the bundle's Info.pl
 )
 
 tvos_extension = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a tvOS Extension.",
     implementation = _tvos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -1193,12 +1197,14 @@ that this target depends on.
 )
 
 tvos_framework = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a tvOS Dynamic Framework.",
     implementation = _tvos_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -1255,6 +1261,7 @@ tvos_static_framework = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_platforms_rule_base_transition,
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,

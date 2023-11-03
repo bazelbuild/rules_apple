@@ -790,6 +790,7 @@ apple_xcframework = rule_factory.create_apple_rule(
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.xcframework_base_transition,
             deps_cfg = transition_support.xcframework_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

@@ -127,6 +127,7 @@ Resolved Xcode is version {xcode_version}.
     return providers
 
 apple_binary = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = """
 This rule produces single- or multi-architecture ("fat") binaries targeting
 Apple platforms.
@@ -147,6 +148,7 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
     },
     attrs = [
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,

@@ -157,20 +157,21 @@ def _common_linking_api_attrs(*, deps_cfg):
         ),
     })
 
-def _j2objc_binary_linking_attrs(*, deps_cfg):
+def _j2objc_binary_linking_attrs(*, base_cfg):
     """Returns a dictionary of required attributes for J2ObjC processing code in native linking.
 
     Args:
-        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
-            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
-            use the same transition.
+        base_cfg: The Bazel base transition used by the rule implementation. To satisfy native Bazel
+            linking prerequisites, `cfg` on the rule implementation and this `base_cfg` attribute
+            must use the same transition.
     """
     return {
+        # TODO(b/292086564): Remove once j2objc dead code pruner action is removed.
         "_dummy_lib": attr.label(
-            cfg = deps_cfg,
+            cfg = base_cfg,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
-        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        # TODO(b/292086564): Remove once j2objc dead code pruner action is removed.
         "_j2objc_dead_code_pruner": attr.label(
             executable = True,
             # Setting `allow_single_file=True` would be more correct. Unfortunately,
@@ -194,6 +195,7 @@ def _static_library_linking_attrs(*, deps_cfg):
 
 def _binary_linking_attrs(
         *,
+        base_cfg,
         deps_cfg,
         extra_deps_aspects = [],
         is_test_supporting_rule,
@@ -201,6 +203,9 @@ def _binary_linking_attrs(
     """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
 
     Args:
+        base_cfg: The Bazel base transition used by the rule implementation. To satisfy native Bazel
+            linking prerequisites, `cfg` on the rule implementation and this `base_cfg` attribute
+            must use the same transition.
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
             To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
             use the same transition.
@@ -235,7 +240,7 @@ def _binary_linking_attrs(
     return dicts.add(
         extra_attrs,
         _common_linking_api_attrs(deps_cfg = deps_cfg),
-        _j2objc_binary_linking_attrs(deps_cfg = deps_cfg),
+        _j2objc_binary_linking_attrs(base_cfg = base_cfg),
         {
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,

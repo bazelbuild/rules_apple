@@ -2211,6 +2211,7 @@ def _macos_dylib_impl(ctx):
     ] + processor_result.providers
 
 macos_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS Application.",
     implementation = _macos_application_impl,
     is_executable = True,
@@ -2222,6 +2223,7 @@ macos_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2290,6 +2292,7 @@ If true and --output_groups=+dsyms is specified, generates `$UUID.symbols` files
 )
 
 macos_bundle = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS Loadable Bundle.",
     implementation = _macos_bundle_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -2297,6 +2300,7 @@ macos_bundle = rule_factory.create_apple_rule(
         apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2352,6 +2356,7 @@ the bundle was linked with.
 )
 
 macos_extension = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS Application Extension.",
     implementation = _macos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -2359,6 +2364,7 @@ macos_extension = rule_factory.create_apple_rule(
         apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2400,12 +2406,14 @@ desired Contents subdirectory.
 )
 
 macos_quick_look_plugin = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS Quick Look Plugin.",
     implementation = _macos_quick_look_plugin_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2452,6 +2460,7 @@ macos_kernel_extension = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_arm64_as_arm64e_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2491,12 +2500,14 @@ desired Contents subdirectory.
 )
 
 macos_spotlight_importer = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS Spotlight Importer.",
     implementation = _macos_spotlight_importer_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2536,12 +2547,14 @@ desired Contents subdirectory.
 )
 
 macos_xpc_service = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a macOS XPC Service.",
     implementation = _macos_xpc_service_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2581,12 +2594,14 @@ desired Contents subdirectory.
 )
 
 macos_command_line_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds a macOS Command Line Application binary.",
     implementation = _macos_command_line_application_impl,
     is_executable = True,
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2638,11 +2653,13 @@ An `apple_bundle_version` target that represents the version for this target. Se
 )
 
 macos_dylib = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds a macOS Dylib binary.",
     implementation = _macos_dylib_impl,
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

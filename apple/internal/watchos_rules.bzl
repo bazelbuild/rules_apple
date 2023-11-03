@@ -941,6 +941,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a watchOS Application.",
     implementation = _watchos_application_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -951,6 +952,7 @@ watchos_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -1005,6 +1007,7 @@ which case it will be placed under a directory with the same name in the bundle.
 )
 
 watchos_extension = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a watchOS Extension.",
     implementation = _watchos_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
@@ -1014,6 +1017,7 @@ watchos_extension = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
