@@ -52,6 +52,7 @@ elif [[ -n "$STANDALONE_BINARY" ]]; then
 
   # If only a binary was provided instead of an archive, treat that as the root
   # element for all root "bundle" locations used by the verifier scripts.
+  ARCHIVE_ROOT="$STANDALONE_BINARY"
   BINARY="$STANDALONE_BINARY"
   BUNDLE_ROOT="$STANDALONE_BINARY"
   CONTENT_ROOT="$STANDALONE_BINARY"

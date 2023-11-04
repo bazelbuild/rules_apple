@@ -29,6 +29,16 @@ licenses(["notice"])
 bzl_library(
     name = "ios_test_runner",
     srcs = ["ios_test_runner.bzl"],
+    visibility = ["//apple:__pkg__"],
+    deps = [
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
+    name = "ios_xctestrun_runner",
+    srcs = ["ios_xctestrun_runner.bzl"],
+    visibility = ["//apple:__pkg__"],
     deps = [
         "//apple:providers",
     ],

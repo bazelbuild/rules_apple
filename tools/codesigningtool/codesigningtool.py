@@ -124,7 +124,7 @@ def _certificate_fingerprint(identity):
       "-fingerprint",
   ], inputstr=identity, raise_on_failure=True)
   fingerprint = fingerprint.strip()
-  fingerprint = fingerprint.replace("SHA1 Fingerprint=", "")
+  fingerprint = re.sub("sha1 Fingerprint=", "", fingerprint, flags=re.IGNORECASE)
   fingerprint = fingerprint.replace(":", "")
   return fingerprint
 

@@ -64,6 +64,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
+        "//command_line_option:objc_generate_linkmap": getattr(attr, "objc_generate_linkmap", "False"),
         "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
     }
@@ -144,6 +145,7 @@ apple_verification_transition = transition(
         "//command_line_option:apple_platforms",
         "//command_line_option:incompatible_enable_apple_toolchain_resolution",
         "//command_line_option:objc_enable_binary_stripping",
+        "//command_line_option:objc_generate_linkmap",
     ] + _CUSTOM_BUILD_SETTINGS + (["//command_line_option:visionos_cpus"] if _supports_visionos else []),
 )
 
@@ -315,6 +317,12 @@ toolchain resolution.
 Whether to perform symbol and dead-code strippings on linked binaries. Binary
 strippings will be performed if both this flag and --compilation_mode=opt are
 specified.
+""",
+        ),
+        "objc_generate_linkmap": attr.bool(
+            default = False,
+            doc = """
+If true, generates a linkmap file for the target(s) under test.
 """,
         ),
         "sanitizer": attr.string(

@@ -173,7 +173,6 @@ def tvos_application_test_suite(name):
         expected_argv = [
             "xctoolrunner actool --compile",
             "--minimum-deployment-target " + common.min_os_tvos.baseline,
-            "--product-type com.apple.product-type.application",
             "--platform appletvsimulator",
         ],
         tags = [name],

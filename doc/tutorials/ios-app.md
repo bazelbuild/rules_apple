@@ -32,28 +32,7 @@ Download and install [Xcode](https://developer.apple.com/xcode/downloads/).
 Xcode contains the compilers, SDKs, and other tools required by Bazel to build
 Apple applications.
 
-### Get the sample project
-
-You also need to get the sample project for the tutorial from GitHub. The GitHub
-repo has two branches: `source-only` and `main`. The `source-only` branch
-contains the source files for the project only. You'll use the files in this
-branch in this tutorial. The `main` branch contains both the source files
-and completed Bazel `WORKSPACE` and `BUILD` files. You can use the files in this
-branch to check your work when you've completed the tutorial steps.
-
-Enter the following at the command line to get the files in the `source-only`
-branch:
-
-```bash
-cd $HOME
-git clone -b source-only https://github.com/bazelbuild/examples
-```
-
-The `git clone` command creates a directory named `$HOME/examples/`. This
-directory contains several sample projects for Bazel. The project files for this
-tutorial are in `$HOME/examples/tutorial/ios-app`.
-
-## Set up a workspace
+## Set up a Workspace
 
 A [workspace](https://bazel.build/concepts/build-ref#workspace) is a directory that contains the
 source files for one or more software projects, as well as a `WORKSPACE` file
@@ -62,19 +41,14 @@ the software. The workspace may also contain symbolic links to output
 directories.
 
 A workspace directory can be located anywhere on your filesystem and is denoted
-by the presence of the `WORKSPACE` file at its root. In this tutorial, your
-workspace directory is `$HOME/examples/tutorial/`, which contains the sample
-project files you cloned from the GitHub repo in the previous step.
+by the presence of the `WORKSPACE` file at its root.
 
-Note: Bazel itself doesn't impose any requirements for organizing source
-files in your workspace. The sample source files in this tutorial are organized
-according to conventions for the target platform.
-
-For your convenience, set the `$WORKSPACE` environment variable now to refer to
-your workspace directory. At the command line, enter:
+Start by creating a directory that will contain your workspace and name it `rules-apple-example`
+and change directory to it:
 
 ```bash
-export WORKSPACE=$HOME/examples/tutorial
+mkdir rules-apple-example
+cd rules-apple-example
 ```
 
 ### Create a WORKSPACE file
@@ -91,11 +65,12 @@ external dependency information.
 Enter the following at the command line:
 
 ```bash
-touch $WORKSPACE/WORKSPACE
-open -a Xcode $WORKSPACE/WORKSPACE
+touch WORKSPACE
+open -a Xcode WORKSPACE
 ```
 
-This creates and opens the empty `WORKSPACE` file.
+This creates and opens the empty `WORKSPACE` file in Xcode. Feel free to use any other text editor
+you're more familiar with.
 
 ### Update the WORKSPACE file
 
@@ -109,8 +84,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_apple",
-    sha256 = "90e3b5e8ff942be134e64a83499974203ea64797fd620eddeb71b3a8e1bff681",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/1.1.2/rules_apple.1.1.2.tar.gz",
+    sha256 = "34c41bfb59cdaea29ac2df5a2fa79e5add609c71bb303b2ebb10985f93fa20e7",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.1.1/rules_apple.3.1.1.tar.gz",
 )
 
 load(
@@ -144,155 +119,145 @@ apple_support_dependencies()
 
 Note: Always use the
 [latest version of the Apple rules](https://github.com/bazelbuild/rules_apple/releases)
-in the `url` attribute. Make sure to check the latest dependencies required in
+in the `url` and `sha256` attributes. Make sure to check the latest dependencies required in
 `rules_apple`'s [project](https://github.com/bazelbuild/rules_apple).
 
-## Review the source files
+## Add basic Swift source files
 
-Take a look at the source files for the app located in
-`$WORKSPACE/ios-app/UrlGet`. Again, you're just looking at these files now to
-become familiar with the structure of the app. You don't have to edit any of the
-source files to complete this tutorial.
+Create a new directory named `Sources` by executing `mkdir Sources` in your terminal. This directory will contain a basic Swift source file for a simple iOS application built in SwiftUI. Execute `touch Sources/BazelApp.swift` and open the newly created file in a Text Editor to paste the following code:
+
+```swift
+import SwiftUI
+
+@main
+struct BazelApp: App {
+    var body: some Scene {
+        WindowGroup {
+            Text("Hello from Bazel!")
+        }
+    }
+}
+```
+
+Note: [bazel-ios-swiftui-template](https://github.com/mattrobmattrob/bazel-ios-swiftui-template) contains a template for a SwiftUI iOS application that builds with Bazel if you want to speed up this process for future usages.
 
 ## Create a BUILD file
 
-At a command-line prompt, open a new `BUILD` file for editing:
+Create and open a new `BUILD` file for editing:
 
 ```bash
-touch $WORKSPACE/ios-app/BUILD
-open -a Xcode $WORKSPACE/ios-app/BUILD
+touch BUILD
+open -a Xcode BUILD
 ```
 
 ### Add the rule load statement
 
 To build iOS targets, Bazel needs to load build rules from its GitHub repository
 whenever the build runs. To make these rules available to your project, add the
-following load statement to the beginning of your `BUILD` file:
+following load statements to the beginning of your `BUILD` file:
 
-```
+```starlark
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 ```
 
-You only need to load the `ios_application` rule because the `objc_library`
-rule is built into the Bazel package.
+### Add a `swift_library` rule
 
-### Add an objc_library rule
-
-Bazel provides several build rules that you can use to build an app for the
-iOS platform. For this tutorial, you'll first use the
-[`objc_library`](https://bazel.build/reference/be/objective-c#objc_library) rule to tell Bazel
-how to build a static library from the app source code and Xib files. Then
+Bazel provides several build rules that you can use to build an app for 
+Apple platforms. For this tutorial, you'll first use the
+[`swift_library`](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#swift_library) rule to tell Bazel
+how to build a Swift library. Then
 you'll use the
-[`ios_application`](https://github.com/bazelbuild/rules_apple/tree/main/doc)
-rule to tell it how to build the application binary and the `.ipa` bundle.
-
-Note: This tutorial presents a minimal use case of the Objective-C rules in
-Bazel. For example, you have to use the `ios_application` rule to build
-multi-architecture iOS apps.
+[`ios_application`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_application)
+rule to tell it how to build the iOS application binary and the `.ipa` bundle.
 
 Add the following to your `BUILD` file:
 
-```python
-objc_library(
-    name = "UrlGetClasses",
-    srcs = [
-         "UrlGet/AppDelegate.m",
-         "UrlGet/UrlGetViewController.m",
-         "UrlGet/main.m",
-    ],
-    hdrs = glob(["UrlGet/*.h"]),
+```starlark
+swift_library(
+    name = "lib",
+    srcs = glob(["Sources/*.swift"]),
 )
 ```
 
-Note the name of the rule, `UrlGetClasses`.
+Note the name of the rule, `lib`. We make use of the `glob` function to include all Swift files in the `Sources` directory. This makes it so we don't need to manually add every single new file we might create in the future.
 
-### Add an ios_application rule
+### Add an `ios_application` rule
 
 The
 [`ios_application`](https://github.com/bazelbuild/rules_apple/tree/main/doc)
 rule builds the application binary and creates the `.ipa` bundle file.
 
-Add the following to your `BUILD` file:
+First of all, create a new `Resources` directory with a `Info.plist` file which contains some metadata for the app.
+It's common to organize other resources such as Asset Catalogs in the same directory.
 
-```python
+```bash
+mkdir Resources
+touch Resources/Info.plist
+open -a Xcode Resources/Info.plist
+```
+
+Open the newly created file and paste in it the contents found in this [example Info.plist file](https://github.com/bazelbuild/rules_apple/blob/master/examples/ios/HelloWorldSwift/Info.plist).
+
+Add the following to your `BUILD` file created in the previous step:
+
+```starlark
 ios_application(
-    name = "ios-app",
-    bundle_id = "Google.UrlGet",
+    name = "iOSApp",
+    bundle_id = "build.bazel.rules-apple-example",
     families = [
         "iphone",
         "ipad",
     ],
-    infoplists = [":UrlGet/UrlGet-Info.plist"],
-    launch_storyboard = "UrlGet/UrlGetViewController.xib",
-    minimum_os_version = "15.0",
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "17.0",
     visibility = ["//visibility:public"],
-    deps = [":UrlGetClasses"],
+    deps = [":lib"],
 )
 ```
 
 Note: Please update the `minimum_os_version` attribute to the minimum
 version of iOS that you plan to support.
 
-Note how the `deps` attribute references the output of the `UrlGetClasses` rule
+Note how the `deps` attribute references the `lib` rule
 you added to the `BUILD` file above.
-
-Now, save and close the file. You can compare your `BUILD` file to the
-[completed example](https://github.com/bazelbuild/examples/blob/main/tutorial/ios-app/BUILD)
-in the `main` branch of the GitHub repo.
 
 ## Build and deploy the app
 
-You are now ready to build your app and deploy it to a simulator and onto an
+You are now ready to build your app and deploy it to a Simulator and onto an
 iOS device.
 
-Note: The app launches standalone but requires a backend server in order to
-produce output. See the README file in the sample project directory to find out
-how to build the backend server.
+### Build the app for the Simulator
 
-The built app is located in the `$WORKSPACE/bazel-bin` directory.
-
-Completed `WORKSPACE` and `BUILD` files for this tutorial are located in the
-[main branch](https://github.com/bazelbuild/examples/tree/main/tutorial)
-of the GitHub repo. You can compare your work to the completed files for
-additional help or troubleshooting.
-
-### Build the app for the simulator
-
-Make sure that your current working directory is inside your Bazel workspace:
+To build the sample app that we just created:
 
 ```bash
-cd $WORKSPACE
+bazel build //:iOSApp
 ```
 
-Now, enter the following to build the sample app:
-
-```bash
-bazel build //ios-app:ios-app
-```
-
-Bazel launches and builds the sample app. During the build process, its
+Bazel builds the sample app. During the build process, the
 output will appear similar to the following:
 
 ```bash
 INFO: Found 1 target...
-Target //ios-app:ios-app up-to-date:
-  bazel-out/applebin_ios-ios_sim_arm64-fastbuild-ST-4e6c2a19403f/bin/ios-app/ios-app.ipa
-INFO: Elapsed time: 0.141s, Critical Path: 0.00s
+Target //:iOSApp up-to-date:
+  bazel-bin/iOSApp.ipa
+INFO: Elapsed time: 1.999s, Critical Path: 1.89s
 ```
 
 ### Find the build outputs
 
 The `.ipa` file and other outputs are located in the
-`$WORKSPACE/bazel-out/applebin_ios-ios_sim_arm64-fastbuild-ST-4e6c2a19403f/bin/ios-app/ios-app.ipa` directory.
+`bazel-out/ios-sim_arm64-min17.0-applebin_ios-ios_sim_arm64-fastbuild-ST-b6790d224f6d/bin/iOSApp.ipa` directory.
 
-### Build the app in the simulator
+### Build the app in the Simulator
 
 `rules_apple` supports running an app directly in the iOS Simulator.
 Replace `build` with `run` in the previous command to both build and
 run the application:
 
 ```bash
-bazel run //ios-app:ios-app
+bazel run //:iOSApp
 ```
 
 Note: [`--ios_simulator_device`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_device) and [`--ios_simulator_version`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_version) control which
@@ -322,6 +287,10 @@ load(
 )
 
 xcodeproj_rules_dependencies()
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
 ```
 
 Add the following import at the top of the `BUILD` file:
@@ -340,10 +309,10 @@ We can now define the rule that will generate the Xcode project:
 xcodeproj(
     name = "xcodeproj",
     build_mode = "bazel",
-    project_name = "ios-app",
+    project_name = "iOSApp",
     tags = ["manual"],
     top_level_targets = [
-        ":ios-app",
+        ":iOSApp",
     ],
 )
 ```
@@ -351,10 +320,10 @@ xcodeproj(
 To generate the Xcode project, invoke this rule with the following command:
 
 ```bash
-bazel run //ios-app:xcodeproj
+bazel run //:xcodeproj
 ```
 
-You should be able to open the generated `ios-app.xcodeproj` (e.g. `xed ios-app.xcodeproj`) and do all the usual
+You should be able to open the generated `iOSApp.xcodeproj` (e.g. `xed iOSApp.xcodeproj`) and do all the usual
 operations of building and testing in Xcode.
 
 ### Build the app for a device
@@ -377,7 +346,7 @@ the appropriate provisioning profile for that device model. Do the following:
 
 4. Add the following line to the `ios_application` target in your `BUILD` file:
 
-   ```python
+   ```starlark
    provisioning_profile = "<your_profile_name>.mobileprovision",
    ```
 
@@ -387,7 +356,7 @@ device.
 Now build the app for your device:
 
 ```bash
-bazel build //ios-app:ios-app --ios_multi_cpus=arm64
+bazel build //:iOSApp --ios_multi_cpus=arm64
 ```
 
 This builds the app as a fat binary. To build for a specific device
@@ -407,10 +376,10 @@ support for building for a device:
 xcodeproj(
     name = "xcodeproj",
     build_mode = "bazel",
-    project_name = "ios-app",
+    project_name = "iOSApp",
     tags = ["manual"],
     top_level_targets = [
-        top_level_target(":ios-app", target_environments = ["device", "simulator"]),
+        top_level_target(":iOSApp", target_environments = ["device", "simulator"]),
     ],
 )
 ```
@@ -438,5 +407,4 @@ Xcode may provide other information as to what has gone wrong.
 ## Further reading
 
 For more details, see
-[main branch](https://github.com/bazelbuild/examples/tree/main/tutorial)
-of the GitHub repo.
+all the [examples](https://github.com/bazelbuild/rules_apple/tree/master/examples) in this repo.

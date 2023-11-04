@@ -276,7 +276,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "@//app:ext" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:ext" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -301,7 +301,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "@//app:ext" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:ext" is missing CFBundleShortVersionString.'
 }
 
 # Tests that if an application contains an extension with a bundle ID that is
@@ -371,7 +371,7 @@ EOF
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
-  expect_log 'While processing target "@//app:app"; the CFBundleIdentifier of the child target "@//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
+  expect_log 'While processing target "@@\?//app:app"; the CFBundleIdentifier of the child target "@@\?//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.bundle.id".'
 }
 
 # Tests that if an application contains an extension with different
@@ -441,7 +441,7 @@ EOF
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
-  expect_log "While processing target \"@//app:app\"; the CFBundleShortVersionString of the child target \"@//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
+  expect_log "While processing target \"@@\?//app:app\"; the CFBundleShortVersionString of the child target \"@@\?//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
 # Tests that if an application contains an extension with different
@@ -511,7 +511,7 @@ EOF
 EOF
 
   ! do_build ios //app:app || fail "Should not build"
-  expect_log "While processing target \"@//app:app\"; the CFBundleVersion of the child target \"@//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
+  expect_log "While processing target \"@@\?//app:app\"; the CFBundleVersion of the child target \"@@\?//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
 # Tests that ios_extension cannot be a depenency of objc_library.

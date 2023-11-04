@@ -573,20 +573,6 @@ then the name of the `bundle_name` attribute will be used if it is set; if not, 
 the target will be used instead.
 """,
         ),
-        # TODO(b/36512239): Rename to "bundle_post_processor".
-        "ipa_post_processor": attr.label(
-            allow_files = True,
-            executable = True,
-            cfg = "exec",
-            doc = """
-A tool that edits this target's archive after it is assembled but before it is signed. The tool is
-invoked with a single command-line argument that denotes the path to a directory containing the
-unzipped contents of the archive; this target's bundle will be the directory's only contents.
-
-Any changes made by the tool must be made in this directory, and the tool's execution must be
-hermetic given these inputs to ensure that the result can be safely cached.
-""",
-        ),
         "strings": attr.label_list(
             allow_files = [".strings"],
             doc = """
@@ -643,6 +629,26 @@ def _extensionkit_attrs():
     return {
         "extensionkit_extension": attr.bool(
             doc = "Indicates if this target should be treated as an ExtensionKit extension.",
+        ),
+    }
+
+def _ipa_post_processor_attrs():
+    """Returns the attributes required to support the deprecated ipa_post_processor feature."""
+
+    # TODO(b/36512239): Rename to "bundle_post_processor", if we have to continue supporting this.
+    return {
+        "ipa_post_processor": attr.label(
+            allow_files = True,
+            executable = True,
+            cfg = "exec",
+            doc = """
+A tool that edits this target's archive after it is assembled but before it is signed. The tool is
+invoked with a single command-line argument that denotes the path to a directory containing the
+unzipped contents of the archive; this target's bundle will be the directory's only contents.
+
+Any changes made by the tool must be made in this directory, and the tool's execution must be
+hermetic given these inputs to ensure that the result can be safely cached.
+""",
         ),
     }
 
@@ -742,6 +748,7 @@ rule_attrs = struct(
     device_family_attrs = _device_family_attrs,
     extensionkit_attrs = _extensionkit_attrs,
     infoplist_attrs = _infoplist_attrs,
+    ipa_post_processor_attrs = _ipa_post_processor_attrs,
     launch_images_attrs = _launch_images_attrs,
     platform_attrs = _platform_attrs,
     settings_bundle_attrs = _settings_bundle_attrs,

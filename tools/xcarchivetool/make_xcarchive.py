@@ -35,6 +35,12 @@ def _build_parser() -> argparse.ArgumentParser:
     action="append",
     help="The file path to a dSYM file which will be packaged in the .xcarchive.",
   )
+  parser.add_argument(
+    "--linkmap",
+    required=False,
+    action="append",
+    help="The file path to a linkmap file which will be packaged in the .xcarchive.",
+  )
   return parser
 
 
@@ -84,7 +90,8 @@ def _main(
     infoplist_path: Path,
     bundle_path: Path,
     output_path: Path,
-    dsyms: list):
+    dsyms: list,
+    linkmaps: list):
   """Creates a .xcarchive from the given bundle.
 
   <BundleName>.xcarchive
@@ -95,12 +102,15 @@ def _main(
   PkgInfo
   dSYMs/
     <BundleName>.app.dSYM
+  Linkmaps/
+    <BundleName>.txt
 
   Args:
     infoplist_path: The file path to the Info.plist file for the app.
     bundle_path: The file path to the bundle.
     output_path: The file path to the output .xcarchive.
     dsyms: The file paths to the dSYM files which will be packaged in the .xcarchive.
+    linkmaps: The file paths to the linkmap files which will be packaged in the .xcarchive.
   """
 
   # Collect the required information for the .xcarchive plist
@@ -113,9 +123,9 @@ def _main(
     short_version = infoplist["CFBundleShortVersionString"]
 
   # Create the .xcarchive directory.
-  bundle_dest_dir = os.path.join(output_path, "Products", "Applications")
-  bundle_dest_path = os.path.join(
-    output_path, "Products", "Applications", bundle_name + ".app")
+  products_dest_dir = os.path.join(output_path, "Products")
+  bundle_dest_dir = os.path.join(products_dest_dir, "Applications")
+  bundle_dest_path = os.path.join(bundle_dest_dir, bundle_name + ".app")
   os.makedirs(bundle_dest_dir, exist_ok=True)
 
   # If is an .ipa, extract and copy .app to destination
@@ -135,9 +145,18 @@ def _main(
       os.path.join(dsyms_path, os.path.basename(dsym)),
       dirs_exist_ok=True)
 
+  # Copy the linkmap files into the .xcarchive.
+  linkmaps_path = os.path.join(output_path, "Linkmaps")
+  if linkmaps:
+    os.makedirs(linkmaps_path, exist_ok=True)
+  for linkmap in linkmaps or []:
+    shutil.copyfile(
+      linkmap,
+      os.path.join(linkmaps_path, os.path.basename(linkmap)))
+
   # Create the Info.plist for the .xcarchive.
   creation_date = datetime.datetime.now().isoformat()
-  app_relative_path = os.path.relpath(bundle_dest_path, output_path)
+  app_relative_path = os.path.relpath(bundle_dest_path, products_dest_dir)
   info_plist = {
     "ApplicationProperties": {
       "ApplicationPath": app_relative_path,
@@ -171,4 +190,6 @@ if __name__ == "__main__":
     Path(args.info_plist),
     Path(args.bundle),
     Path(args.output),
-    args.dsym)
+    args.dsym,
+    args.linkmap)
+

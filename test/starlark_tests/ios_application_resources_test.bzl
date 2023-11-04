@@ -620,7 +620,6 @@ def ios_application_resources_test_suite(name):
         expected_argv = [
             "xctoolrunner actool --compile",
             "--minimum-deployment-target " + common.min_os_ios.baseline,
-            "--product-type com.apple.product-type.application",
             "--platform iphonesimulator",
         ],
         tags = [name],

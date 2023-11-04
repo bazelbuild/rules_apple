@@ -123,6 +123,7 @@ _visionos_internal_ui_test_bundle = rule_factory.create_apple_rule(
         rule_attrs.infoplist_attrs(
             default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",
@@ -196,6 +197,7 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
         rule_attrs.infoplist_attrs(
             default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
         ),
+        rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "visionos",

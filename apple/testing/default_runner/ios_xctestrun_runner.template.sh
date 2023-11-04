@@ -462,7 +462,7 @@ else
 fi
 
 if [[ "$reuse_simulator" == false ]]; then
-  xcrun simctl shutdown "$simulator_id"
+  # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
 fi
 

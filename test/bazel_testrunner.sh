@@ -24,6 +24,17 @@
 # test_script: The name of the test script to execute inside the test
 #     directory.
 
+# --- begin runfiles.bash initialization v3 ---
+# Copy-pasted from the Bazel Bash runfiles library v3.
+set -uo pipefail; f=bazel_tools/tools/bash/runfiles/runfiles.bash
+source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
+  source "$0.runfiles/$f" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+  { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=;
+# --- end runfiles.bash initialization v3 ---
+
 test_script="$1"; shift
 
 # Use the image's default Xcode version when running tests to avoid flakes
@@ -47,6 +58,10 @@ DIR=$(pwd)
 # Load the unit test framework
 source "$DIR/unittest.bash" || print_message_and_exit "unittest.bash not found!"
 
+function resolve_external_repository() {
+  dirname "$(perl -MCwd -e 'print Cwd::abs_path shift' "$(rlocation "$1/BUILD")")"
+}
+
 # Load the test environment
 function create_new_workspace() {
   new_workspace_dir="${1:-$(mktemp -d ${TEST_TMPDIR}/workspace.XXXXXXXX)}"
@@ -59,6 +74,37 @@ function create_new_workspace() {
   # BUILD file below; if we can workaround this, we don't need to make this
   # copy and we should reference it from the original location.
   cp -rf "$EXTERNAL_DIR" ../external
+
+  apple_support_path=$(resolve_external_repository build_bazel_apple_support)
+  rules_apple_path=$(resolve_external_repository build_bazel_rules_apple)
+  rules_swift_path=$(resolve_external_repository build_bazel_rules_swift)
+
+  touch MODULE.bazel
+  cat > MODULE.bazel <<EOF
+module(name = "build_bazel_rules_apple_integration_tests", version = "0")
+
+bazel_dep(name = "apple_support", version = "0", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_swift", version = "0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
+
+xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
+use_repo(xcode_configure, "local_config_xcode")
+
+local_path_override(
+    module_name = "apple_support",
+    path = "$apple_support_path",
+)
+local_path_override(
+    module_name = "rules_swift",
+    path = "$rules_swift_path",
+)
+local_path_override(
+    module_name = "rules_apple",
+    path = "$rules_apple_path",
+)
+EOF
+
+  touch WORKSPACE.bzlmod
 
   touch WORKSPACE
   cat > WORKSPACE <<EOF
@@ -76,22 +122,22 @@ new_local_repository(
 
 local_repository(
     name = 'build_bazel_rules_apple',
-    path = '$(rlocation build_bazel_rules_apple)',
+    path = '$rules_apple_path',
 )
 
 local_repository(
     name = 'build_bazel_rules_swift',
-    path = '$(rlocation build_bazel_rules_swift)',
+    path = '$rules_swift_path',
 )
 
 local_repository(
     name = 'build_bazel_apple_support',
-    path = '$(rlocation build_bazel_apple_support)',
+    path = '$apple_support_path',
 )
 
 local_repository(
     name = 'xctestrunner',
-    path = '$(rlocation xctestrunner)',
+    path = '$(resolve_external_repository xctestrunner)',
 )
 
 # We load rules_swift dependencies into the WORKSPACE. This is safe to do
@@ -143,6 +189,8 @@ export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
 
 echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
 
+setup_clean_workspace
+
 # Try to find the desired version of Xcode installed on the system. If it's not
 # present, fallback to the most recent version currently installed and warn the
 # user that results might be affected by this. (This makes it easier to support
@@ -166,8 +214,6 @@ if [[ -z "$XCODE_QUERY" ]]; then
   printf "results in tests that depend on the behavior of a specific version " >> "$TEST_log"
   printf "of Xcode.\n" >> "$TEST_log"
 fi
-
-setup_clean_workspace
 
 source "$(rlocation build_bazel_rules_apple/test/apple_shell_testutils.sh)"
 source "$(rlocation build_bazel_rules_apple/test/${test_script})"
