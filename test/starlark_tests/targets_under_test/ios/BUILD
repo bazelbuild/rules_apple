@@ -1130,6 +1130,12 @@ ios_application(
     ],
 )
 
+xcarchive(
+    name = "app_with_ext.xcarchive",
+    bundle = ":app_with_ext",
+    tags = common.fixture_tags,
+)
+
 ios_application(
     name = "app_with_swift_ext",
     bundle_id = "com.google.example",
