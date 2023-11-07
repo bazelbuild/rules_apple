@@ -323,7 +323,7 @@ def _bundle_dsym_files(
             version = version,
         )
         output_files.append(dsym_plist)
-        plist_command = ("cp {dsym_plist_path} ${{OUTPUT_DIR}}/Contents/Info.plist").format(
+        plist_command = ("cp \"{dsym_plist_path}\" \"${{OUTPUT_DIR}}/Contents/Info.plist\"").format(
             dsym_plist_path = dsym_plist.path,
         )
 
@@ -336,7 +336,7 @@ def _bundle_dsym_files(
             apple_fragment = platform_prerequisites.apple_fragment,
             inputs = [dsym_plist] + found_binaries_by_arch.values(),
             outputs = [dsym_bundle_dir],
-            command = ("mkdir -p ${OUTPUT_DIR}/Contents/Resources/DWARF && " + plist_command),
+            command = ("mkdir -p \"${OUTPUT_DIR}/Contents/Resources/DWARF\" && " + plist_command),
             env = {
                 "OUTPUT_DIR": dsym_bundle_dir.path,
             },
