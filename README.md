@@ -23,9 +23,9 @@ repository.
 
 1. Copy the latest `MODULE.bazel` or `WORKSPACE` snippet from [the releases
 page](https://github.com/bazelbuild/rules_apple/releases).
-2. Copy the
+2. (Optional: only for Bazel 6 & rules_apple 2.x) Copy the
 [`platform_mappings`](https://github.com/bazelbuild/rules_apple/blob/master/platform_mappings)
-file to the root of your repo (only required for bazel 6.x)
+file to the root of your repo
 
 ## Examples
 
