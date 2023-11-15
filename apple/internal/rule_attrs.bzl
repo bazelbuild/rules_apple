@@ -617,8 +617,7 @@ def _device_family_attrs(*, allowed_families, is_mandatory = False):
             mandatory = is_mandatory,
             allow_empty = False,
             doc = """
-A list of device families supported by this extension. Valid values are `iphone` and `ipad`; at
-least one must be specified.
+A list of device families supported by this rule. At least one must be specified.
 """,
             **extra_args
         ),
