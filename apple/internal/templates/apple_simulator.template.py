@@ -119,6 +119,8 @@ class DeviceType(collections.abc.Mapping):
       return self.is_apple_tv()
     elif platform_type == "watchos":
       return self.is_apple_watch()
+    elif platform_type == "visionos":
+      return self.is_apple_vision()
     else:
       raise ValueError(
           f"Apple platform type not supported for simulator: {platform_type}."
@@ -129,6 +131,9 @@ class DeviceType(collections.abc.Mapping):
 
   def is_apple_watch(self) -> bool:
     return self.has_product_family_or_identifier("Apple Watch")
+  
+  def is_apple_vision(self) -> bool:
+    return self.has_product_family_or_identifier("Apple Vision")
 
   def is_iphone(self) -> bool:
     return self.has_product_family_or_identifier("iPhone")
