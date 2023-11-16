@@ -705,6 +705,25 @@ Please remove the assigned watchOS 2 app `extension` and make sure a valid watch
 delegate is referenced in the single-target `watchos_application`'s `deps`.
 """)
 
+    if len(ctx.attr.extensions) > 1:
+        fail("""
+Extension-based watchOS applications do not support embedded app extensions via the `extensions` attribute.
+
+Please remove app extensions from this target, and instead add them via `watchos_extension`'s `extensions` attribute.
+""")
+
+    watch_extension = None
+    if ctx.attr.extension:
+        watch_extension = ctx.attr.extension
+    elif len(ctx.attr.extensions) == 1 and ctx.attr.extensions[0][AppleBundleInfo].product_type == apple_product_type.watch2_extension:
+        watch_extension = ctx.attr.extensions[0]
+    else:
+        fail("""
+Extension-based watchOS applications require a valid `watchos_extension`.
+
+Please add a `watchos_extension` to this target `extensions` attribute.
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.watch2_application,
@@ -799,7 +818,7 @@ reproducible error case.".format(
 
     bundle_verification_targets = [
         struct(
-            target = ctx.attr.extension,
+            target = watch_extension,
             parent_bundle_id_reference = [
                 "NSExtension",
                 "NSExtensionAttributes",
@@ -857,7 +876,7 @@ reproducible error case.".format(
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
-            embedded_targets = [ctx.attr.extension],
+            embedded_targets = [watch_extension],
             entitlements = entitlements.codesigning,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -869,7 +888,7 @@ reproducible error case.".format(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = [ctx.attr.extension],
+            debug_dependencies = [watch_extension],
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             label_name = label.name,
@@ -880,7 +899,7 @@ reproducible error case.".format(
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = [ctx.attr.extension],
+            embeddable_targets = [watch_extension],
             platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
@@ -907,7 +926,7 @@ reproducible error case.".format(
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
-            dependency_targets = [ctx.attr.extension],
+            dependency_targets = [watch_extension],
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -919,7 +938,7 @@ reproducible error case.".format(
         partials.apple_symbols_file_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            dependency_targets = [ctx.attr.extension],
+            dependency_targets = [watch_extension],
             dsym_binaries = {},
             label_name = label.name,
             include_symbols_in_bundle = False,
@@ -1440,6 +1459,15 @@ Please remove the assigned watchOS 2 app `extension` and make sure a valid watch
 delegate is referenced in the single-target `watchos_application`'s `deps`.
 """)
 
+    for extenstion in ctx.attr.extensions:
+        if extenstion[AppleBundleInfo].product_type == apple_product_type.watch2_extension:
+            fail("""
+Single-target watchOS applications do not support watchOS 2 extensions or their delegates.
+
+Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
+delegate is referenced in the single-target `watchos_application`'s `deps`.
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -1461,7 +1489,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = ctx.attr.deps
+    embeddable_targets = (
+        ctx.attr.deps + ctx.attr.frameworks + ctx.attr.extensions
+    )
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1533,6 +1563,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
     )
+
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -1612,6 +1644,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = True,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1620,12 +1657,13 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps,
+            targets = embeddable_targets,
         ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
+            bundle_verification_targets = bundle_verification_targets,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
@@ -1635,6 +1673,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -1646,6 +1685,15 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+        ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = embeddable_targets,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -1741,6 +1789,17 @@ It is considered an error if the watchOS 2 application extension is assigned to 
 watchOS application, which is constructed if the `watchos_application` target is assigned `deps`.
 
 This attribute will not support additional types of `watchos_extension`s in the future.
+
+This attribute is deprecated, please use `extensions` instead.
+""",
+            ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+                doc = """
+In case of single-target watchOS app, a list of watchOS application extensions to include in the final watch app bundle.
+
+In case of an extension-based watchOS app, a list with a single element, 
+the watchOS 2 `watchos_extension` that is required to be bundled within a watchOS 2 app.
 """,
             ),
             "storyboards": attr.label_list(

@@ -90,7 +90,7 @@ watchos_application(
     name = "HelloWorld-WatchApplication",
     app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",
-    extension = ":HelloWorld-WatchExtension",
+    extensions = [":HelloWorld-WatchExtension"],
     infoplists = [":WatchApp-Info.plist"],
     minimum_os_version = "4.0",
     storyboards = [
