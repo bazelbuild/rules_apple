@@ -668,8 +668,8 @@ def _apple_static_xcframework_import_impl(ctx):
         libraries = [xcframework_library.binary],
         framework_includes = xcframework_library.framework_includes,
         linkopts = sdk_linkopts + linkopts,
-        swiftinterface_imports = [],
-        swiftmodule_imports = [],
+        swiftinterface_imports = [xcframework_library.swift_module_interface] if xcframework_library.swift_module_interface else [],
+        swiftmodule_imports = xcframework_library.swiftmodule,
         includes = xcframework_library.includes + ctx.attr.includes,
     )
     providers.append(cc_info)
