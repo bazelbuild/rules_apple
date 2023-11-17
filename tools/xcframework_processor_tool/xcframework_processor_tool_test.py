@@ -125,6 +125,7 @@ class XcframeworkProcessorToolTest(unittest.TestCase):
     xcframework_processor_tool._copy_xcframework_files(
         library_identifier="ios-arm64",
         output_directories=["/path/to/bazel/declared/directory/"],
+        copy_from_subdirectory="ios-arm64",
         xcframework_files=[
             "/path/to/imported.xcframework/ios-arm64/libstatic.a",
             "/path/to/imported.xcframework/ios-arm64/Headers/stray.h",

@@ -8,6 +8,7 @@ load(
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
+    "apple_static_xcframework",
     "apple_static_xcframework_import",
 )
 load(
@@ -2429,10 +2430,35 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_swift_static_xcframework"],
 )
 
-generate_static_xcframework(
+apple_static_xcframework(
+    name = "swift_static_xcframework",
+    bundle_name = "generated_swift_static_xcframework",
+    ios = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.oldest_supported,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
+    ],
+)
+
+genrule(
     name = "generated_swift_static_xcframework",
-    platforms = {"ios_simulator": ["x86_64"]},
-    swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
+    srcs = [":swift_static_xcframework"],
+    outs = [
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/Info.plist",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.a",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework.h",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/module.modulemap",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftdoc",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/ios:swift_static_xcframework) -d $(RULEDIR)/generated_swift_static_xcframework",
     tags = common.fixture_tags,
 )
 

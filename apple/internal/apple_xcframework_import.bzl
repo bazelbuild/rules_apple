@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
@@ -137,7 +138,7 @@ def _get_xcframework_library(
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         label: Label of the target being built.
         mac_exec_group: The exec group associated with apple_mac_toolchain
-        parse_xcframework_info_plist: Boolean to indicate if XCFramework library inferrence should
+        parse_xcframework_info_plist: Boolean to indicate if XCFramework library inference should
             be done parsing the XCFramework Info.plist file via the execution-phase tool
             xcframework_processor_tool.py.
         target_triplet: Struct referring a Clang target triplet.
@@ -272,26 +273,55 @@ def _get_xcframework_library_with_xcframework_processor(
     library_suffix = ".framework" if xcframework.bundle_type == _BUNDLE_TYPE.frameworks else ""
     library_path = xcframework.bundle_name + library_suffix
 
-    framework_imports_dir = intermediates.directory(
-        dir_name = paths.join("framework_imports", library_path),
-        **intermediates_common
-    )
-
-    # The folowing artifacts are declared here to be used later on as inputs for different
-    # providers; but not added as arguments to the xcframework_processor tool because it's
-    # not really needed if you add the target directory for the copied .framework bundle.
     binary_extension = ".a" if xcframework.bundle_type == _BUNDLE_TYPE.libraries else ""
     binary = intermediates.file(
         file_name = paths.join(library_path, xcframework.bundle_name + binary_extension),
         **intermediates_common
     )
-    headers_dir = intermediates.directory(
-        dir_name = paths.join(library_path, "Headers"),
-        **intermediates_common
-    )
-    modules_dir_path = paths.join(library_path, "Modules")
+
+    files_by_category = xcframework.files_by_category
+
+    bundle_files = []
+    for bundling_import in files_by_category.bundling_imports:
+        bundling_import_path = ""
+        if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+            bundling_import_path = bundling_import.path.rsplit("/" + library_path + "/", 1)[1]
+        elif xcframework.bundle_type == _BUNDLE_TYPE.libraries:
+            # First split from the right is to chop off the xcframework bundle path.
+            bundling_import_path = bundling_import.path.rsplit(
+                "/" + xcframework.bundle_name + ".xcframework/",
+                1,
+            )[1]
+
+            # Finally do another split from the left to chop off the LibraryIdentifier path.
+            bundling_import_path = bundling_import.path.split("/", 1)[1]
+        bundle_file = intermediates.file(
+            file_name = paths.join(library_path, bundling_import_path),
+            **intermediates_common
+        )
+        bundle_files.append(bundle_file)
+
+    header_files = []
+    header_dir_path = paths.join(library_path, "Headers")
+    for header_import in files_by_category.header_imports:
+        header_import_split_path = header_import.path.rsplit("/Headers/", 1)
+        header_file = intermediates.file(
+            file_name = paths.join(header_dir_path, header_import_split_path[1]),
+            **intermediates_common
+        )
+        header_files.append(header_file)
+
+    module_map_file_path = ""
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        module_map_file_path = paths.join(library_path, "Modules", "module.modulemap")
+    elif xcframework.bundle_type == _BUNDLE_TYPE.libraries:
+        module_map_file_path = paths.join(
+            header_dir_path,
+            files_by_category.module_map_imports[0].path.rsplit("/Headers/", 1)[1],
+        )
+
     module_map_file = intermediates.file(
-        file_name = paths.join(modules_dir_path, "module.modulemap"),
+        file_name = module_map_file_path,
         **intermediates_common
     )
 
@@ -303,7 +333,6 @@ def _get_xcframework_library_with_xcframework_processor(
     args.add("--architecture", target_triplet.architecture)
     args.add("--environment", target_triplet.environment)
 
-    files_by_category = xcframework.files_by_category
     args.add_all(files_by_category.binary_imports, before_each = "--binary_file")
     args.add_all(files_by_category.bundling_imports, before_each = "--bundle_file")
     args.add_all(files_by_category.header_imports, before_each = "--header_file")
@@ -311,7 +340,9 @@ def _get_xcframework_library_with_xcframework_processor(
 
     args.add("--binary", binary.path)
     args.add("--library_dir", binary.dirname)
-    args.add("--framework_imports_dir", framework_imports_dir.path)
+
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        args.add("--contains_frameworks")
 
     inputs = []
     inputs.extend(xcframework.files)
@@ -319,15 +350,18 @@ def _get_xcframework_library_with_xcframework_processor(
 
     outputs = [
         binary,
-        framework_imports_dir,
-        headers_dir,
         module_map_file,
-    ]
+    ] + header_files + bundle_files
 
     swiftinterface_file = None
+    swiftinterface_root_path = ""
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        swiftinterface_root_path = paths.join(library_path, "Modules")
+    elif xcframework.bundle_type == _BUNDLE_TYPE.libraries:
+        swiftinterface_root_path = library_path
     if files_by_category.swift_interface_imports:
         swiftinterface_path = paths.join(
-            modules_dir_path,
+            swiftinterface_root_path,
             "{module_name}.swiftmodule".format(
                 module_name = xcframework.bundle_name,
             ),
@@ -370,14 +404,18 @@ def _get_xcframework_library_with_xcframework_processor(
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
         framework_includes = [paths.dirname(binary.dirname)]
-    else:
-        includes = [headers_dir.path]
+    elif xcframework.bundle_type == _BUNDLE_TYPE.libraries:
+        search_paths = sets.make()
+        for f in header_files:
+            include_path = f.path.rsplit("/Headers/", 1)[0]
+            sets.insert(search_paths, paths.join(include_path, "Headers"))
+        includes = sets.to_list(search_paths)
 
     return struct(
         binary = binary,
-        framework_imports = [framework_imports_dir],
+        framework_imports = bundle_files,
         framework_includes = framework_includes,
-        headers = [headers_dir],
+        headers = header_files,
         includes = includes,
         clang_module_map = module_map_file,
         swift_module_interface = swiftinterface_file,

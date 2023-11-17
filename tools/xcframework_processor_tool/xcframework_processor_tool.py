@@ -62,8 +62,6 @@ def _create_args_parser() -> argparse.ArgumentParser:
       "bundle_name": "The XCFramework bundle name (i.e. name.xcframework).",
       "environment": "Target Apple environment (e.g. device, simulator).",
       "library_dir": "Bazel declared directory for copied XCFramework files.",
-      "framework_imports_dir":
-          "Bazel declared directory for XCFramework bundle files.",
       "info_plist": "XCFramework Info.plist file.",
       "platform": "Target Apple platform (e.g. macos, ios).",
   }
@@ -102,6 +100,16 @@ def _create_args_parser() -> argparse.ArgumentParser:
         action="append",
         help=arg_help,
         dest=f"{arg_name}s",
+    )
+
+  bool_args = {
+      "contains_frameworks": "If the XCFramework has frameworks not libraries.",
+  }
+  for arg_name, arg_help in bool_args.items():
+    parser.add_argument(
+        f"--{arg_name}",
+        action=argparse.BooleanOptionalAction,
+        help=arg_help,
     )
 
   return parser
@@ -219,7 +227,7 @@ def _copy_xcframework_files(
     executable: bool = False,
     library_identifier: str,
     output_directories: List[str],
-    copy_from_subdirectory: str = "",
+    copy_from_subdirectory: str,
     xcframework_files: List[str]) -> None:
   """Copies XCFramework files filtered by library identifier to a directory.
 
@@ -229,8 +237,7 @@ def _copy_xcframework_files(
     output_directories: List of directory paths to copy files to.
     copy_from_subdirectory: String. The name of a subdirectory that will be used
       to generate relative paths to copy files from, preserving subdirectory
-      paths in between. If declared, this overrides the default behavior to only
-      preserve paths from the common path of all provided library_files.
+      paths in between.
     xcframework_files: List of XCFramework files to filter by library identifier
       and copy files from.
   """
@@ -243,19 +250,10 @@ def _copy_xcframework_files(
       if f"/{library_identifier}/" in f
   ]
 
-  # This path will reference the following path:
-  #   a) For framework based XCFramework -> the .framework directory.
-  #   b) For library based XCFramework -> the library identifier directory.
-  if not copy_from_subdirectory:
-    library_dir_path = os.path.commonpath(library_files)
-
   for library_file in library_files:
-    if copy_from_subdirectory:
-      rel_path = _relpath_from_subdirectory(
-          absolute_path=library_file,
-          subdirectory=copy_from_subdirectory)
-    else:
-      rel_path = os.path.relpath(library_file, start=library_dir_path)
+    rel_path = _relpath_from_subdirectory(
+        absolute_path=library_file,
+        subdirectory=copy_from_subdirectory)
 
     for output_directory in output_directories:
       dest_path = os.path.join(output_directory, rel_path)
@@ -279,27 +277,21 @@ def main() -> int:
 
   library_identifier = xcframework_library.get("LibraryIdentifier")
 
-  # Bundle files are copied to two different directories due the following:
-  #
-  # - library_dir: This directory will hold the inferred Apple framework, and
-  #     it's propagated to the AppleDynamicFrameworkInfo provider. This
-  #     provider is responsible of propagation linking information to
-  #     top-level targets (e.g. ios_application, objc_library).
-  #
-  # - framework_imports_dir: This directory will hold Apple framework files
-  #     that are bundable at top-level targets (e.g. ios_application).
-  #     This directory is propagated to the AppleFrameworkImportInfo provider
-  #     as a tree-artifact containing all files to be bundled, and gets
-  #     processed by the framework_import partial.
+  root_subdir = library_identifier
+  if args.contains_frameworks:
+    root_subdir = f"{bundle_name}.framework"
+
   _copy_xcframework_files(
       library_identifier=library_identifier,
-      output_directories=[args.library_dir, args.framework_imports_dir],
+      output_directories=[args.library_dir],
+      copy_from_subdirectory=root_subdir,
       xcframework_files=args.bundle_files)
 
   _copy_xcframework_files(
       executable=True,
       library_identifier=library_identifier,
       output_directories=[args.library_dir],
+      copy_from_subdirectory=root_subdir,
       xcframework_files=args.binary_files)
 
   headers_dir = os.path.join(args.library_dir, "Headers")
@@ -309,16 +301,35 @@ def main() -> int:
       copy_from_subdirectory="Headers",
       xcframework_files=args.header_files)
 
-  modules_dir = os.path.join(args.library_dir, "Modules")
+  # XCFrameworks with libraries put all non-binary required files in a "Headers"
+  # folder referenced by the linker later. If the XCFramework has frameworks, we
+  # want to reference Clang module maps and Swift module interfaces in "Modules"
+  # within the .framework.
+  modules_subdir = "Headers"
+  if args.contains_frameworks:
+    modules_subdir = "Modules"
+
+  modules_dir = os.path.join(args.library_dir, modules_subdir)
   _copy_xcframework_files(
       library_identifier=library_identifier,
       output_directories=[modules_dir],
+      copy_from_subdirectory=modules_subdir,
       xcframework_files=args.modulemap_files)
 
-  swiftmodule_dir = os.path.join(modules_dir, f"{bundle_name}.swiftmodule")
+  # Xcode will reference swiftmodules in the library identifier root of an
+  # XCFramework with libraries. Meanwhile, XCFrameworks with frameworks have the
+  # swiftmodules in the Modules folder of a .framework.
+  swiftmodules_subdir = root_subdir
+  if args.contains_frameworks:
+    swiftmodules_subdir = "Modules"
+
+  swiftmodules_dir = args.library_dir
+  if args.contains_frameworks:
+    swiftmodules_dir = os.path.join(args.library_dir, "Modules")
   _copy_xcframework_files(
       library_identifier=library_identifier,
-      output_directories=[swiftmodule_dir],
+      output_directories=[swiftmodules_dir],
+      copy_from_subdirectory=swiftmodules_subdir,
       xcframework_files=args.swiftinterface_files)
 
   return 0
