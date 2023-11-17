@@ -62,7 +62,6 @@ def visionos_application_test_suite(name):
         expected_outputs = ["app.app"],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
         target_compatible_with = select({
             "//:supports_visionos_setting": [],
@@ -85,6 +84,10 @@ def visionos_application_test_suite(name):
             name,
             "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -96,8 +99,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -112,8 +118,11 @@ def visionos_application_test_suite(name):
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -127,8 +136,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -140,8 +152,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -155,8 +170,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -170,8 +188,11 @@ def visionos_application_test_suite(name):
         ],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     analysis_output_group_info_files_test(
@@ -184,8 +205,11 @@ def visionos_application_test_suite(name):
         ],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     apple_dsym_bundle_info_test(
@@ -199,8 +223,11 @@ def visionos_application_test_suite(name):
         ],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     infoplist_contents_test(
@@ -226,8 +253,11 @@ def visionos_application_test_suite(name):
         },
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
@@ -237,8 +267,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     analysis_output_group_info_files_test(
@@ -251,8 +284,11 @@ def visionos_application_test_suite(name):
         ],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     # Tests that the provisioning profile is present when built for device.
@@ -265,8 +301,11 @@ def visionos_application_test_suite(name):
         ],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -279,8 +318,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -293,8 +335,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -307,8 +352,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -321,8 +369,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     archive_contents_test(
@@ -335,8 +386,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     apple_codesigning_dossier_info_provider_test(
@@ -345,8 +399,11 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
+        target_compatible_with = select({
+            "//:supports_visionos_setting": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
     )
 
     # TODO(b/288582842): Support an IPA output via this output group. This will require some changes
