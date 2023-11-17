@@ -61,9 +61,9 @@ def _app_assets_validation_partial_impl(
                 "*.stickersequence)"
             )
             bundling_support.ensure_path_format(
-                "app_icons",
-                app_icons,
-                path_fragments,
+                attr = "app_icons",
+                files = app_icons,
+                path_fragments_list = path_fragments,
                 message = message,
             )
         elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
