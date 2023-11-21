@@ -312,7 +312,6 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "macos_imported_dynamic_xcframework",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_macos_xcframework"],
 )
 
@@ -360,7 +359,6 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
 )
 

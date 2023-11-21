@@ -947,7 +947,6 @@ apple_universal_binary(
 apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_with_libraries",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_xcframework"],
 )
 
@@ -974,7 +973,6 @@ generate_static_xcframework(
 apple_static_xcframework_import(
     name = "ios_imported_xcframework_with_static_frameworks",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_xcframework"],
 )
 

@@ -4,23 +4,24 @@ load(
     "apple_resource_bundle",
 )
 
-# Public only because these are used by the integration tests from generated
-# workspaces. Please no not depend on them as they can change at any time.
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//test:__subpackages__"])
 
 licenses(["notice"])
 
-exports_files([
-    "launch_screen_ios.storyboard",
-    "launch_screen_ios.xib",
-    "nonlocalized.plist",
-    "nonlocalized.strings",
-    "nonlocalized_resource.txt",
-    "sample.mlmodel",
-    "sample.png",
-    "storyboard_ios.storyboard",
-    "view_ios.xib",
-])
+exports_files(
+    [
+        "launch_screen_ios.storyboard",
+        "launch_screen_ios.xib",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.mlmodel",
+        "sample.png",
+        "storyboard_ios.storyboard",
+        "view_ios.xib",
+    ],
+    visibility = ["//test:__subpackages__"],
+)
 
 # A convenience target that can be passed into the data attribute of an Apple
 # shell test to make the iOS-compatible resources available to builds under

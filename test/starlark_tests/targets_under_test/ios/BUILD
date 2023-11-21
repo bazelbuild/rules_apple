@@ -2001,7 +2001,6 @@ apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
 )
 
@@ -2112,7 +2111,6 @@ apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework",
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
 
@@ -2311,7 +2309,6 @@ apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework_without_swiftmodule_and_has_swift_enabled",
     has_swift = True,
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule"],
 )
 
@@ -2362,7 +2359,6 @@ apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_xcframework_with_headers"],
 )
 
@@ -2426,7 +2422,6 @@ apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework"],
 )
 

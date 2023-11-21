@@ -1,8 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# Public only because these are used by the integration tests from generated
-# workspaces. Please no not depend on them as they can change at any time.
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//test:__subpackages__"])
 
 licenses(["notice"])
 
@@ -15,9 +13,12 @@ filegroup(
     ],
 )
 
-exports_files([
-    "dummy_test_runner.template",
-])
+exports_files(
+    [
+        "dummy_test_runner.template",
+    ],
+    visibility = ["//test:__subpackages__"],
+)
 
 bzl_library(
     name = "dummy_test_runner",

@@ -756,7 +756,6 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "tvos_imported_dynamic_xcframework",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_tvos_xcframework"],
 )
 
@@ -805,7 +804,6 @@ objc_library(
 apple_static_xcframework_import(
     name = "tvos_imported_static_xcframework",
     tags = common.fixture_tags,
-    visibility = ["//visibility:public"],
     xcframework_imports = [":generated_static_tvos_xcframework"],
 )
 
