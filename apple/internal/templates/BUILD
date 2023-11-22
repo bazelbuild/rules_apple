@@ -3,28 +3,19 @@ licenses(["notice"])
 filegroup(
     name = "dsym_info_plist_template",
     srcs = ["dSYM-Info.plist.template"],
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__pkg__"],
 )
 
 filegroup(
     name = "apple_simulator_template",
     srcs = ["apple_simulator.template.py"],
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__pkg__"],
 )
 
 filegroup(
     name = "macos_template",
     srcs = ["macos.template.sh"],
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__pkg__"],
 )
 
 # Consumed by bazel tests.

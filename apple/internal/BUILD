@@ -38,10 +38,6 @@ apple_mac_tools_toolchain(
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
     xcframework_processor_tool = "//tools/xcframework_processor_tool",
     xctoolrunner = "//tools/xctoolrunner",
 )
@@ -50,7 +46,7 @@ toolchain_type(name = "apple_xplat_toolchain_type")
 
 toolchain(
     name = "apple_xplat_toolchain",
-    toolchain = "xplat_tools_toolchain",
+    toolchain = ":xplat_tools_toolchain",
     toolchain_type = ":apple_xplat_toolchain_type",
 )
 
@@ -59,10 +55,6 @@ apple_xplat_tools_toolchain(
     build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
     versiontool = "//tools/versiontool",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
 )
 
 bzl_library(
@@ -808,44 +800,29 @@ filegroup(
 environment_plist(
     name = "environment_plist_ios",
     platform_type = "ios",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_macos",
     platform_type = "macos",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_visionos",
     platform_type = "visionos",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_watchos",
     platform_type = "watchos",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_tvos",
     platform_type = "tvos",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
-    visibility = ["//visibility:public"],
+    visibility = ["//apple/internal:__subpackages__"],
 )

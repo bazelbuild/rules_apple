@@ -51,13 +51,16 @@ bzl_library(
     ],
 )
 
-exports_files([
-    "ios_test_runner.template.sh",
-    "macos_test_runner.template.sh",
-    "macos_test_runner.template.xctestrun",
-    "tvos_test_runner.template.sh",
-    "watchos_test_runner.template.sh",
-])
+exports_files(
+    [
+        "ios_test_runner.template.sh",
+        "macos_test_runner.template.sh",
+        "macos_test_runner.template.xctestrun",
+        "tvos_test_runner.template.sh",
+        "watchos_test_runner.template.sh",
+    ],
+    visibility = ["//apple/testing/default_runner:__pkg__"],
+)
 
 ios_test_runner(
     name = "ios_default_runner",
