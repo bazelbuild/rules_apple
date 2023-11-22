@@ -15,7 +15,9 @@ x_defaults:
     test_flags:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
-    bazel: last_green
+    # TODO: switch back to last_green once 
+    # https://github.com/bazelbuild/stardoc/issues/195 is fixed.
+    bazel: e82c1d156fd1fad5f08ee1b014ef02bea86ec632
     build_flags:
       - --config=visionos
     test_flags:
