@@ -188,6 +188,17 @@ Received unexpected type "{actual_type}".
 
     return new_applebundleversioninfo(version_file = version_file)
 
+AppleCodesigningDossierInfo, new_applecodesigningdossierinfo = provider(
+    doc = "Provides information around the use of a code signing dossier.",
+    fields = {
+        "dossier": """
+A `File` reference to the code signing dossier zip that acts as a direct dependency of the given
+target if one was generated.
+""",
+    },
+    init = _make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
+)
+
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
@@ -819,6 +830,7 @@ provider to describe that requirement.
 VisionosFrameworkBundleInfo, new_visionosframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is visionOS dynamic framework.
+
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a visionOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
@@ -832,6 +844,7 @@ that requirement.
 VisionosStaticFrameworkBundleInfo, new_visionosstaticframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is an visionOS static framework.
+
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a visionOS static framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
@@ -845,10 +858,12 @@ that requirement.
 VisionosXcTestBundleInfo, new_visionosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is a visionOS .xctest bundle.
+
 This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically a visionOS .xctest bundle (and
-not some other Apple bundle). Rule authors who wish to require that a dependency
-is a visionOS .xctest bundle should use this provider to describe that requirement.
+a "marker" to indicate that a target is specifically a visionOS .xctest bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS .xctest bundle  should use this provider to describe
+that requirement.
 """,
     fields = {},
     init = _make_banned_init(provider_name = "VisionosXcTestBundleInfo"),

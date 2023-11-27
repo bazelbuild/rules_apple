@@ -83,13 +83,21 @@ def _ios_unit_test_bundle_impl(ctx):
 
 def _ios_ui_test_impl(ctx):
     """Implementation of ios_ui_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        requires_dossiers = False,
+        test_type = "xcuitest",
+    ) + [
         new_iosxctestbundleinfo(),
     ]
 
 def _ios_unit_test_impl(ctx):
     """Implementation of ios_unit_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        requires_dossiers = False,
+        test_type = "xctest",
+    ) + [
         new_iosxctestbundleinfo(),
     ]
 

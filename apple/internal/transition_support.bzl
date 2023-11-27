@@ -146,9 +146,7 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("visionos_"):
             return cpu_value
-        if cpu_value == "darwin_arm64":
-            return "visionos_sim_arm64"
-        return "visionos_x86_64"
+        return "visionos_sim_arm64"
     if platform_type == "macos":
         if environment_arch:
             return "darwin_{}".format(environment_arch)
@@ -166,13 +164,6 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
         return "tvos_x86_64"
-    if platform_type == "visionos":
-        if environment_arch:
-            return "visionos_{}".format(environment_arch)
-        visionos_cpus = settings["//command_line_option:visionos_cpus"]
-        if visionos_cpus:
-            return "visionos_{}".format(visionos_cpus[0])
-        return "visionos_x86_64"
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)

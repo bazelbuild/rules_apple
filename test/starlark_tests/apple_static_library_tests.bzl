@@ -353,7 +353,6 @@ def apple_static_library_test_suite(name):
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
         tags = [
             name,
-            "needs-xcode-latest-beta",
         ],
         target_compatible_with = select({
             "//:supports_visionos_setting": [],

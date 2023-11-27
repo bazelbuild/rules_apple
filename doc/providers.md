@@ -131,6 +131,24 @@ Provides versioning information for an Apple bundle.
 | <a id="AppleBundleVersionInfo-version_file"></a>version_file |  Required. A `File` containing JSON-formatted text describing the version number information propagated by the target.<br><br>It contains two keys:<br><br>*   `build_version`, which corresponds to `CFBundleVersion`.<br><br>*   `short_version_string`, which corresponds to `CFBundleShortVersionString`.    |
 
 
+<a id="AppleCodesigningDossierInfo"></a>
+
+## AppleCodesigningDossierInfo
+
+<pre>
+AppleCodesigningDossierInfo(<a href="#AppleCodesigningDossierInfo-dossier">dossier</a>)
+</pre>
+
+Provides information around the use of a code signing dossier.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleCodesigningDossierInfo-dossier"></a>dossier |  A `File` reference to the code signing dossier zip that acts as a direct dependency of the given target if one was generated.    |
+
+
 <a id="AppleDsymBundleInfo"></a>
 
 ## AppleDsymBundleInfo
@@ -992,6 +1010,7 @@ VisionosFrameworkBundleInfo()
 </pre>
 
 Denotes that a target is visionOS dynamic framework.
+
 This provider does not contain any fields of its own at this time but is used as
 a "marker" to indicate that a target is specifically a visionOS dynamic framework
 bundle (and not some other Apple bundle). Rule authors who wish to require that
@@ -1010,12 +1029,13 @@ that requirement.
 VisionosXcTestBundleInfo()
 </pre>
 
-Denotes a target that is a watchOS .xctest bundle.
+Denotes a target that is a visionOS .xctest bundle.
 
 This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically a watchOS .xctest bundle (and
-not some other Apple bundle). Rule authors who wish to require that a dependency
-is a watchOS .xctest bundle should use this provider to describe that requirement.
+a "marker" to indicate that a target is specifically a visionOS .xctest bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a visionOS .xctest bundle  should use this provider to describe
+that requirement.
 
 **FIELDS**
 

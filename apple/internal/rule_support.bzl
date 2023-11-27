@@ -585,7 +585,7 @@ _RULE_TYPE_DESCRIPTORS = {
     "visionos": {
         # visionos_application (single target application)
         apple_product_type.application: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),

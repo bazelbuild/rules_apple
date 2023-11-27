@@ -35,6 +35,7 @@ load(
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleInfo = "AppleBundleInfo",
     _AppleBundleVersionInfo = "AppleBundleVersionInfo",
+    _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
@@ -70,7 +71,7 @@ load(
     _TvosXcTestBundleInfo = "TvosXcTestBundleInfo",
     _VisionosApplicationBundleInfo = "VisionosApplicationBundleInfo",
     _VisionosFrameworkBundleInfo = "VisionosFrameworkBundleInfo",
-    _VisionosXcTestBundleInfo = "WatchosXcTestBundleInfo",
+    _VisionosXcTestBundleInfo = "VisionosXcTestBundleInfo",
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
@@ -83,6 +84,7 @@ AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
 AppleBundleInfo = _AppleBundleInfo
 AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
+AppleCodesigningDossierInfo = _AppleCodesigningDossierInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo

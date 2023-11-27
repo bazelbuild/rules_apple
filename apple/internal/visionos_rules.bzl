@@ -137,12 +137,11 @@ visibility([
 ])
 
 def _visionos_application_impl(ctx):
-    """WIP implementation of visionos_application."""
-
+    """Implementation of visionos_application."""
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
         fail("""
-visionOS bundles require a visionOS SDK provided by Xcode 15 or later.
+visionOS bundles require a visionOS SDK provided by Xcode 15.1 beta or later.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
@@ -338,12 +337,6 @@ Resolved Xcode is version {xcode_version}.
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
-        ),
-        partials.settings_bundle_partial(
-            actions = actions,
-            platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            settings_bundle = ctx.attr.settings_bundle,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1436,7 +1429,6 @@ visionos_application = rule_factory.create_apple_rule(
             add_environment_plist = True,
             platform_type = "visionos",
         ),
-        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),

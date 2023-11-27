@@ -37,6 +37,8 @@ load(
     _visionos_static_framework = "visionos_static_framework",
 )
 
+visibility("public")
+
 visionos_application = _visionos_application
 visionos_dynamic_framework = _visionos_dynamic_framework
 visionos_framework = _visionos_framework
@@ -74,7 +76,7 @@ Typical usage:
 ```starlark
 visionos_build_test(
     name = "my_build_test",
-    minimum_os_version = "6.0",
+    minimum_os_version = "1.0",
     targets = [
         "//some/package:my_library",
     ],
