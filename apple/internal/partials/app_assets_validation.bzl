@@ -81,12 +81,6 @@ def _app_assets_validation_partial_impl(
                 files = app_icons,
                 message = message,
             )
-        elif platform_prerequisites.platform_type == getattr(apple_common.platform_type, "visionos", None):
-            bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "solidimagestack",
-            )
         else:
             bundling_support.ensure_single_xcassets_type(
                 attr = "app_icons",
