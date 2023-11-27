@@ -45,25 +45,19 @@ tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework
 tvos_static_framework = _tvos_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner"
-
 def tvos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _tvos_internal_unit_test_bundle,
         test_rule = _tvos_unit_test,
-        runner = runner,
         **kwargs
     )
 
 def tvos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _tvos_internal_ui_test_bundle,
         test_rule = _tvos_ui_test,
-        runner = runner,
         **kwargs
     )
 

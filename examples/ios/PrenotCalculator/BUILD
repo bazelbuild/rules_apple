@@ -16,7 +16,6 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//apple:ios.bzl",
     "ios_application",
-    "ios_unit_test",
 )
 load("//apple:resources.bzl", "apple_resource_bundle")
 
@@ -55,23 +54,6 @@ objc_library(
 apple_resource_bundle(
     name = "PrenotCalculatorResources",
     resources = glob(["Resources/**"]),
-)
-
-objc_library(
-    name = "PrenotCalculatorTestsLib",
-    testonly = True,
-    srcs = [
-        "EquationTest.m",
-    ],
-    deps = [
-        ":PrenotCalculator_library",
-    ],
-)
-
-ios_unit_test(
-    name = "PrenotCalculatorTests",
-    minimum_os_version = "11.0",
-    deps = [":PrenotCalculatorTestsLib"],
 )
 
 # Not normally needed, just done for rules_apple's examples so a

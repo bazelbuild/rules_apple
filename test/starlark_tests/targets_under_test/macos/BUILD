@@ -703,6 +703,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -717,6 +718,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -731,6 +733,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -768,6 +771,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -785,6 +789,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.arm64_support,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -798,6 +803,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -812,6 +818,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -841,6 +848,7 @@ macos_unit_test(
     name = "unit_test_data_deps",
     data = [":runfiles1"],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
 )
 
@@ -1003,6 +1011,7 @@ macos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -1018,6 +1027,7 @@ macos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [

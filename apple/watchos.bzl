@@ -41,25 +41,19 @@ visibility("public")
 watchos_application = _watchos_application
 watchos_extension = _watchos_extension
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
-
 def watchos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _watchos_internal_unit_test_bundle,
         test_rule = _watchos_unit_test,
-        runner = runner,
         **kwargs
     )
 
 def watchos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _watchos_internal_ui_test_bundle,
         test_rule = _watchos_ui_test,
-        runner = runner,
         **kwargs
     )
 

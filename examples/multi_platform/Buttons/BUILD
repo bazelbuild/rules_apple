@@ -7,15 +7,10 @@ load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_extension",
-    "ios_ui_test",
-    "ios_unit_test",
 )
 load(
     "//apple:macos.bzl",
     "macos_application",
-    # Enable when macos_test_runner supports macOS UI Tests.
-    # "macos_ui_test",
-    "macos_unit_test",
 )
 load(
     "//apple:tvos.bzl",
@@ -50,27 +45,6 @@ swift_library(
         "ButtonsExtension/ActionRequestHandler.swift",
     ],
     module_name = "ButtonsExtension",
-)
-
-swift_library(
-    name = "ButtonsTestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsTests/ButtonsTests.swift",
-    ],
-    module_name = "ButtonsTests",
-    deps = [
-        ":ButtonsLib",
-    ],
-)
-
-swift_library(
-    name = "ButtonsUITestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsUITests/ButtonsUITests.swift",
-    ],
-    module_name = "ButtonsUITests",
 )
 
 ## Resources
@@ -110,37 +84,6 @@ ios_extension(
     infoplists = ["ButtonsExtension/Info.plist"],
     minimum_os_version = "11.0",
     deps = [":ButtonsExtensionLib"],
-)
-
-## Tests
-
-ios_unit_test(
-    name = "ButtonsTests",
-    minimum_os_version = "11.0",
-    test_host = ":Buttons",
-    deps = [":ButtonsTestsLib"],
-)
-
-ios_unit_test(
-    name = "ButtonsLogicTests",
-    minimum_os_version = "11.0",
-    deps = [":ButtonsTestsLib"],
-)
-
-ios_ui_test(
-    name = "ButtonsUITests",
-    minimum_os_version = "11.0",
-    test_host = ":Buttons",
-    deps = [":ButtonsUITestsLib"],
-)
-
-test_suite(
-    name = "iOSButtonsTestSuite",
-    tests = [
-        ":ButtonsLogicTests",
-        ":ButtonsTests",
-        ":ButtonsUITests",
-    ],
 )
 
 # watchOS
@@ -200,22 +143,6 @@ swift_library(
     module_name = "ButtonsTVExtension",
 )
 
-swift_library(
-    name = "ButtonsTVTestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsTVTests/ButtonsTVTests.swift",
-    ],
-)
-
-swift_library(
-    name = "ButtonsTVUITestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsTVUITests/ButtonsTVUITests.swift",
-    ],
-)
-
 ## Resources
 
 objc_library(
@@ -265,27 +192,6 @@ swift_library(
     module_name = "ButtonsMac",
 )
 
-swift_library(
-    name = "ButtonsMacTestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsMacTests/ButtonsMacTests.swift",
-    ],
-    module_name = "ButtonsMacTests",
-    deps = [
-        ":ButtonsMacLib",
-    ],
-)
-
-swift_library(
-    name = "ButtonsMacUITestsLib",
-    testonly = 1,
-    srcs = [
-        "ButtonsMacUITests/ButtonsMacUITests.swift",
-    ],
-    module_name = "ButtonsMacUITests",
-)
-
 ## Resources
 
 objc_library(
@@ -304,39 +210,6 @@ macos_application(
     deps = [
         ":ButtonsMacLib",
         ":ButtonsMacResources",
-    ],
-)
-
-## Tests
-
-macos_unit_test(
-    name = "ButtonsMacLogicTests",
-    bundle_id = "com.google.logic",
-    minimum_os_version = "10.13",
-    deps = [":ButtonsMacTestsLib"],
-)
-
-macos_unit_test(
-    name = "ButtonsMacTests",
-    minimum_os_version = "10.13",
-    test_host = ":ButtonsMac",
-    deps = [":ButtonsMacTestsLib"],
-)
-
-# Enable when macos_test_runner supports macOS UI Tests.
-# macos_ui_test(
-#     name = "ButtonsMacUITests",
-#     minimum_os_version = "10.13",
-#     test_host = ":ButtonsMac",
-#     deps = [":ButtonsMacUITestsLib"],
-# )
-
-test_suite(
-    name = "macOSButtonsTestSuite",
-    tests = [
-        ":ButtonsMacLogicTests",
-        # ":ButtonsMacTests",
-        # ":ButtonsMacUITests",
     ],
 )
 

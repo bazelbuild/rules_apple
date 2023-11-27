@@ -133,25 +133,19 @@ def macos_extension(name, **kwargs):
         **bundling_args
     )
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner"
-
 def macos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _macos_internal_unit_test_bundle,
         test_rule = _macos_unit_test,
-        runner = runner,
         **kwargs
     )
 
 def macos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _macos_internal_ui_test_bundle,
         test_rule = _macos_ui_test,
-        runner = runner,
         **kwargs
     )
 

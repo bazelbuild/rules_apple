@@ -871,6 +871,7 @@ tvos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -885,6 +886,7 @@ tvos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -899,6 +901,7 @@ tvos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -928,6 +931,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -941,6 +945,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.arm_sim_support,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -954,6 +959,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -968,6 +974,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -984,6 +991,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -996,6 +1004,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         ":objc_lib_with_tvos_framework",
@@ -1009,6 +1018,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_lib",
@@ -1022,6 +1032,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app_with_imported_fmwk",
     deps = [
@@ -1050,6 +1061,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.arm_sim_support,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -1178,6 +1190,7 @@ tvos_application(
 tvos_unit_test(
     name = "dedupe_test_test",
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":dedupe_test_app",
     deps = [
@@ -1450,6 +1463,7 @@ tvos_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -1465,6 +1479,7 @@ tvos_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [

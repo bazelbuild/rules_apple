@@ -2545,6 +2545,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2563,6 +2564,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2581,6 +2583,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2599,6 +2602,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Another.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2619,6 +2623,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2660,6 +2665,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
     ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2678,6 +2684,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2696,6 +2703,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2714,6 +2722,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Another.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2731,6 +2740,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.arm_sim_support,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2751,6 +2761,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -2767,6 +2778,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_lib",
@@ -2784,6 +2796,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
         ":objc_lib_with_ios_framework",
@@ -2801,6 +2814,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app_with_imported_fmwk",
     deps = [
@@ -2845,6 +2859,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
     ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -2931,6 +2946,7 @@ ios_application(
 ios_unit_test(
     name = "dedupe_test_test",
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":dedupe_test_app",
     deps = [
@@ -3699,6 +3715,7 @@ ios_ui_test(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -3722,6 +3739,7 @@ ios_unit_test(
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
     ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [

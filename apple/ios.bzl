@@ -51,25 +51,19 @@ ios_imessage_application = _ios_imessage_application
 ios_imessage_extension = _ios_imessage_extension
 ios_static_framework = _ios_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner"
-
 def ios_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", None) or _DEFAULT_TEST_RUNNER
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_unit_test_bundle,
         test_rule = _ios_unit_test,
-        runner = runner,
         **kwargs
     )
 
 def ios_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", None) or _DEFAULT_TEST_RUNNER
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_ui_test_bundle,
         test_rule = _ios_ui_test,
-        runner = runner,
         **kwargs
     )
 
