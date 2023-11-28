@@ -441,7 +441,8 @@ def _command_line_options_for_xcframework_platform(
     for target_environment in target_environments:
         if not platform_attr.get(target_environment):
             continue
-        for arch in platform_attr[target_environment]:
+        sorted_target_archs = sorted(platform_attr[target_environment])
+        for arch in sorted_target_archs:
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
                 environment = target_environment,
@@ -816,7 +817,7 @@ def _xcframework_split_transition_impl(settings, attr):
             platform_attr = getattr(attr, platform_type),
             platform_type = platform_type,
             settings = settings,
-            target_environments = target_environments,
+            target_environments = sorted(target_environments),
         )
         output_dictionary = dicts.add(command_line_options, output_dictionary)
     return output_dictionary

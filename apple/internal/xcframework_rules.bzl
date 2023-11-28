@@ -214,17 +214,19 @@ def _group_link_outputs_by_library_identifier(
                 dsym_binaries[link_output.architecture] = link_output.dsym_binary
                 linkmaps[link_output.architecture] = link_output.linkmap
 
+        # Keep the architectures sorted.
+        sorted_architectures = sorted(architectures)
         environment = link_outputs[0].environment
         platform = link_outputs[0].platform
 
         library_identifier = _library_identifier(
-            architectures = architectures,
+            architectures = sorted_architectures,
             environment = environment,
             platform = platform,
         )
 
         link_outputs_by_library_identifier[library_identifier] = struct(
-            architectures = architectures,
+            architectures = sorted_architectures,
             binary = fat_binary,
             dsym_binaries = dsym_binaries,
             environment = environment,
