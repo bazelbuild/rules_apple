@@ -170,7 +170,7 @@ def _group_link_outputs_by_library_identifier(
     # Iterate through the structure again, this time creating a structure equivalent to link_result
     # .outputs but with .architecture replaced with .architectures, .dsym_binary replaced with
     # .dsym_binaries, and .linkmap replaced with .linkmaps
-    for framework_key, link_outputs in link_outputs_by_framework.items():
+    for framework_key, link_outputs in sorted(link_outputs_by_framework.items()):
         inputs = [getattr(output, linking_type) for output in link_outputs]
         filename = "{}_{}".format(label_name, framework_key)
         extension = inputs[0].extension
