@@ -697,6 +697,7 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
+        entitlements,
         input_binary,
         mac_exec_group,
         output_binary,
@@ -708,6 +709,7 @@ def _sign_binary_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      entitlements: The `File` representing entitlements to use for signing. May be `None`.
       input_binary: The `File` representing the binary to be signed.
       mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_binary: The `File` representing signed binary.
@@ -728,11 +730,15 @@ def _sign_binary_action(
     path_to_sign = _path_to_sign(path = output_binary.path)
     signing_commands = _signing_command_lines(
         codesigningtool = resolved_codesigningtool.executable,
-        entitlements_file = None,
+        entitlements_file = entitlements,
         paths_to_sign = [path_to_sign],
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
     )
+
+    direct_inputs = [input_binary]
+    if entitlements:
+        direct_inputs.append(entitlements)
 
     apple_support.run_shell(
         actions = actions,
@@ -753,7 +759,7 @@ def _sign_binary_action(
             # $HOME.
             "no-sandbox": "1",
         },
-        inputs = depset([input_binary], transitive = [resolved_codesigningtool.inputs]),
+        inputs = depset(direct_inputs, transitive = [resolved_codesigningtool.inputs]),
         input_manifests = resolved_codesigningtool.input_manifests,
         mnemonic = "SignBinary",
         outputs = [output_binary],

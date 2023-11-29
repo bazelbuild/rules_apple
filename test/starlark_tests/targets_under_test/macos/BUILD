@@ -507,6 +507,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -577,6 +578,7 @@ macos_dylib(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",

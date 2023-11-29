@@ -74,6 +74,10 @@ specific to any particular binary type.
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) file that the target represents.
 """,
+        "bundle_id": """
+`String`. The bundle identifier of the binary as reflected in its embedded Info.plist, which will be
+applied if one was declared with the `bundle_id` attribute.
+""",
         "product_type": """
 `String`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).

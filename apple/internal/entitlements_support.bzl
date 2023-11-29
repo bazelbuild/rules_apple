@@ -278,7 +278,7 @@ def _process_entitlements(
 
     inputs = list(plists)
 
-    # Return early if there is no entitlements to use.
+    # Return early if there are no entitlements to use.
     if not inputs:
         return None
 

@@ -112,6 +112,14 @@ def macos_dylib_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_bundle_id_entitlements_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        verifier_script = "verifier_scripts/bundle_id_entitlements_verifier.sh",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

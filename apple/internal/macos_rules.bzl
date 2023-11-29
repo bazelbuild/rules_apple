@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
@@ -1952,10 +1956,25 @@ def _macos_command_line_application_impl(ctx):
             ),
         )
 
+    entitlements = None
+    if bundle_id:
+        entitlements = entitlements_support.process_entitlements(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_id = bundle_id,
+            # Command-line applications have a fixed set of entitlements built around the bundle ID.
+            entitlements_file = None,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            provisioning_profile = provisioning_profile,
+            rule_label = label,
+            validation_mode = entitlements_validation_mode.skip,
+        )
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        # Command-line applications do not have entitlements.
-        entitlements = None,
+        entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
@@ -1983,13 +2002,13 @@ def _macos_command_line_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
+        entitlements = None,  # Signing with entitlements in a separate action.
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1997,17 +2016,19 @@ def _macos_command_line_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     )
     output_file = actions.declare_file(label.name)
     codesigning_support.sign_binary_action(
         actions = actions,
+        entitlements = entitlements,
         input_binary = binary_artifact,
+        mac_exec_group = mac_exec_group,
         output_binary = output_file,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
         rule_descriptor = rule_descriptor,
-        mac_exec_group = mac_exec_group,
     )
 
     runfiles = []
@@ -2019,6 +2040,7 @@ def _macos_command_line_application_impl(ctx):
     return [
         new_applebinaryinfo(
             binary = output_file,
+            bundle_id = bundle_id,
             product_type = rule_descriptor.product_type,
         ),
         DefaultInfo(
@@ -2132,10 +2154,25 @@ def _macos_dylib_impl(ctx):
             ),
         )
 
+    entitlements = None
+    if bundle_id:
+        entitlements = entitlements_support.process_entitlements(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_id = bundle_id,
+            # Dynamic libraries have a fixed set of entitlements built around the bundle ID.
+            entitlements_file = None,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            provisioning_profile = provisioning_profile,
+            rule_label = label,
+            validation_mode = entitlements_validation_mode.skip,
+        )
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        # Dynamic libraries do not have entitlements.
-        entitlements = None,
+        entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
@@ -2164,13 +2201,13 @@ def _macos_dylib_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         bundle_post_process_and_sign = False,
+        entitlements = None,  # Signing with entitlements in a separate action.
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = [debug_outputs_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -2178,22 +2215,25 @@ def _macos_dylib_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     )
     output_file = actions.declare_file(label.name + ".dylib")
     codesigning_support.sign_binary_action(
         actions = actions,
+        entitlements = entitlements,
         input_binary = binary_artifact,
+        mac_exec_group = mac_exec_group,
         output_binary = output_file,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
         rule_descriptor = rule_descriptor,
-        mac_exec_group = mac_exec_group,
     )
 
     return [
         new_applebinaryinfo(
             binary = output_file,
+            bundle_id = bundle_id,
             product_type = rule_descriptor.product_type,
         ),
         DefaultInfo(files = depset(transitive = [

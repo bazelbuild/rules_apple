@@ -178,16 +178,20 @@ def _apple_verification_test_impl(ctx):
             archive_relative_resources = archive_relative_bundle
 
         archive_short_path = archive.short_path
+        bundle_id = getattr(bundle_info, "bundle_id", None)
         output_to_verify = archive
         standalone_binary_short_path = ""
     elif AppleBinaryInfo in target_under_test:
-        output_to_verify = target_under_test[AppleBinaryInfo].binary
-        standalone_binary_short_path = target_under_test[AppleBinaryInfo].binary.short_path
+        binary_info = target_under_test[AppleBinaryInfo]
+
         archive_short_path = ""
         archive_relative_binary = ""
         archive_relative_bundle = ""
         archive_relative_contents = ""
         archive_relative_resources = ""
+        bundle_id = getattr(binary_info, "bundle_id", None)
+        output_to_verify = binary_info.binary
+        standalone_binary_short_path = binary_info.binary.short_path
     else:
         fail(("Target %s does not provide AppleBundleInfo or AppleBinaryInfo") %
              target_under_test.label)
@@ -216,6 +220,7 @@ def _apple_verification_test_impl(ctx):
     # Extra test environment to set during the test.
     test_env = {
         "BUILD_TYPE": ctx.attr.build_type,
+        "BUNDLE_ID": bundle_id if bundle_id else "",
         "XCODE_VERSION_MAJOR": xcode_version_split[0] if xcode_versions_separated >= 1 else 0,
         "XCODE_VERSION_MINOR": xcode_version_split[1] if xcode_versions_separated >= 2 else 0,
     }
@@ -324,6 +329,7 @@ variables to exist:
 * ARCHIVE_ROOT: The path to the unzipped `.ipa` or `.zip` archive that was the output of the
   build.
 * BINARY: The path to the main bundle binary.
+* BUNDLE_ID: The bundle ID for the target under test.
 * BUILD_TYPE: The type of build for the target under test. Can be `simulator` or `device`.
 * BUNDLE_ROOT: The directory where the bundle is located.
 * CONTENT_ROOT: The directory where the bundle contents are located.
