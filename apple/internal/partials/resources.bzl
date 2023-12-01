@@ -188,7 +188,8 @@ def _resources_partial_impl(
         top_level_resources,
         targets_to_avoid,
         version,
-        version_keys_required):
+        version_keys_required,
+        swift_module):
     """Implementation for the resource processing partial."""
     providers = []
 
@@ -203,6 +204,7 @@ def _resources_partial_impl(
         providers.append(resources.bucketize(
             owner = str(rule_label),
             resources = top_level_resources,
+            swift_module = swift_module,
         ))
 
     if top_level_infoplists:
@@ -263,7 +265,7 @@ def _resources_partial_impl(
 
     def _deduplicated_field_handler(field, deduplicated):
         processing_func, requires_swift_module = provider_field_to_action[field]
-        for parent_dir, swift_module, files in deduplicated:
+        for parent_dir, module_name, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
                 if sets.contains(locales_requested, locale):
@@ -292,7 +294,7 @@ def _resources_partial_impl(
             # Only pass the Swift module name if the type of resource to process
             # requires it.
             if requires_swift_module:
-                processing_args["swift_module"] = swift_module
+                processing_args["swift_module"] = swift_module or module_name
 
             result = processing_func(**processing_args)
             if hasattr(result, "files"):
@@ -393,6 +395,7 @@ def resources_partial(
         top_level_infoplists = [],
         top_level_resources = {},
         version,
+        swift_module = None,
         version_keys_required = True):
     """Constructor for the resources processing partial.
 
@@ -434,6 +437,7 @@ def resources_partial(
             where keys are targets, and values are list of `File`s depsets. This can be obtained
             using the `apple/internal/resources.collect` API.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
+        swift_module: Module name to be used for xibs, storyboards and datamodels compilation.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.
 
@@ -462,5 +466,6 @@ def resources_partial(
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,
         version = version,
+        swift_module = swift_module,
         version_keys_required = version_keys_required,
     )
