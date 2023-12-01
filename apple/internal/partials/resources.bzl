@@ -184,12 +184,12 @@ def _resources_partial_impl(
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module,
         top_level_infoplists,
         top_level_resources,
         targets_to_avoid,
         version,
-        version_keys_required,
-        swift_module):
+        version_keys_required):
     """Implementation for the resource processing partial."""
     providers = []
 
@@ -391,11 +391,11 @@ def resources_partial(
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module = None,
         targets_to_avoid = [],
         top_level_infoplists = [],
         top_level_resources = {},
         version,
-        swift_module = None,
         version_keys_required = True):
     """Constructor for the resources processing partial.
 
@@ -430,6 +430,7 @@ def resources_partial(
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+        swift_module: Module name to be used for xibs, storyboards and datamodels compilation.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
@@ -437,7 +438,6 @@ def resources_partial(
             where keys are targets, and values are list of `File`s depsets. This can be obtained
             using the `apple/internal/resources.collect` API.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
-        swift_module: Module name to be used for xibs, storyboards and datamodels compilation.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.
 
@@ -462,10 +462,10 @@ def resources_partial(
         resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
+        swift_module = swift_module,
         targets_to_avoid = targets_to_avoid,
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,
         version = version,
-        swift_module = swift_module,
         version_keys_required = version_keys_required,
     )
