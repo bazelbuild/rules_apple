@@ -1,6 +1,6 @@
-package(default_visibility = [
-    "//examples:__subpackages__",
-])
+package(
+    default_visibility = ["//examples:__subpackages__"],
+)
 
 licenses(["notice"])
 

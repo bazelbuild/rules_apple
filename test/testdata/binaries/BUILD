@@ -3,7 +3,9 @@ load(
     "apple_binary",
 )
 
-package(default_visibility = ["//test:__subpackages__"])
+package(
+    default_visibility = ["//test:__subpackages__"],
+)
 
 licenses(["notice"])
 

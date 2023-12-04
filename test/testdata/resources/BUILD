@@ -4,7 +4,9 @@ load(
     "apple_resource_bundle",
 )
 
-package(default_visibility = ["//test:__subpackages__"])
+package(
+    default_visibility = ["//test:__subpackages__"],
+)
 
 licenses(["notice"])
 
