@@ -779,6 +779,21 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
+    archive_contents_test(
+        name = "{}_fat_build_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        cpus = {
+            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     # Test Metadata.appintents bundle contents for simulator and device.
     archive_contents_test(
         name = "{}_metadata_appintents_bundle_contents_for_simulator_test".format(name),
