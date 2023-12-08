@@ -16,6 +16,7 @@ bzl_library(
     deps = [
         "//apple/internal:cc_info_support",
         "//apple/internal/providers:app_intents_info",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
