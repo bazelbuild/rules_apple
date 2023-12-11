@@ -273,12 +273,16 @@ def compile_asset_catalog(
 
     args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
+    execution_requirements = {
+        "no-sandbox": "1",
+    }
+
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = resolved_xctoolrunner.executable,
-        execution_requirements = {"no-sandbox": "1"},
+        execution_requirements = execution_requirements,
         exec_group = mac_exec_group,
         inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
         input_manifests = resolved_xctoolrunner.input_manifests,
