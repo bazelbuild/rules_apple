@@ -17,6 +17,8 @@
 AppIntentsInfo = provider(
     doc = "Private provider to propagate source files required by AppIntents processing.",
     fields = {
+        "intent_module_names": """
+A List with the module names where App Intents are expected to be found.""",
         "swift_source_files": """
 A List with the swift source Files to handle via app intents processing.""",
         "swiftconstvalues_files": """

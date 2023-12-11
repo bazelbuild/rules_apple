@@ -779,6 +779,34 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_widget_configuration_intent",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_app_intent_and_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
     archive_contents_test(
         name = "{}_fat_build_contains_app_intents_metadata_bundle_test".format(name),

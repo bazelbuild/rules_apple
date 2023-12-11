@@ -23,8 +23,9 @@ def generate_app_intents_metadata_bundle(
         apple_fragment,
         bundle_binary,
         constvalues_files,
-        source_files,
+        intents_module_names,
         label,
+        source_files,
         target_triples,
         xcode_version_config):
     """Process and generate AppIntents metadata bundle (Metadata.appintents).
@@ -35,8 +36,10 @@ def generate_app_intents_metadata_bundle(
         bundle_binary: File referencing an application/extension/framework binary.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
-        source_files: List of Swift source files implementing the AppIntents protocol.
+        intents_module_names: List of Strings with the module names corresponding to the modules
+            found which have intents compiled.
         label: Label for the current target (`ctx.label`).
+        source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
     Returns:
@@ -55,14 +58,28 @@ def generate_app_intents_metadata_bundle(
     args.add("appintentsmetadataprocessor")
 
     args.add("--binary-file", bundle_binary)
-    args.add("--module-name", label.name)
+    if len(intents_module_names) == 0:
+        # TODO(b/315847370): See why this works for Xcode 14.x, and if it should be an actual module
+        # name instead.
+        args.add("--module-name", label.name)
+    else:
+        args.add_all(
+            intents_module_names,
+            before_each = "--module-name",
+        )
     args.add("--output", output.dirname)
-    args.add_all("--source-files", source_files)
+    args.add_all(
+        source_files,
+        before_each = "--source-files",
+    )
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     args.add_all(target_triples, before_each = "--target-triple")
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
-        args.add_all("--swift-const-vals", constvalues_files)
+        args.add_all(
+            constvalues_files,
+            before_each = "--swift-const-vals",
+        )
         transitive_inputs.append(depset(constvalues_files))
         args.add("--compile-time-extraction")
 
