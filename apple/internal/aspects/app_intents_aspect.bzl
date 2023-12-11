@@ -23,6 +23,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsInfo",
 )
+load(
+    "@build_bazel_rules_swift//swift:providers.bzl",
+    "SwiftInfo",
+)
 
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the swift source files propation aspect."""
@@ -37,12 +41,17 @@ def _app_intents_aspect_impl(target, ctx):
         )
 
     swiftconstvalues_files = []
+    module_names = []
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
+        # TODO(b/315847370): See if these names need to be deduplicated, if duplicate entries are at
+        # all possible.
+        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list()
 
     return [
         AppIntentsInfo(
+            intent_module_names = module_names,
             swift_source_files = ctx.rule.files.srcs,
             swiftconstvalues_files = swiftconstvalues_files,
         ),
