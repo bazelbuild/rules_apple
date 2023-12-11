@@ -103,6 +103,11 @@ def _app_intents_metadata_bundle_partial_impl(
             for dep in deps[first_cc_toolchain_key]
             for swiftconstvalues_file in dep[AppIntentsInfo].swiftconstvalues_files
         ],
+        intents_module_names = [
+            intent_module_name
+            for dep in deps[first_cc_toolchain_key]
+            for intent_module_name in dep[AppIntentsInfo].intent_module_names
+        ],
         label = label,
         source_files = [
             swift_source_file

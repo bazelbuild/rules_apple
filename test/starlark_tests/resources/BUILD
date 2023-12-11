@@ -1118,6 +1118,14 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
+
 # --------------------------------------------------------------------------------
 # C/C++ rules with data
 
