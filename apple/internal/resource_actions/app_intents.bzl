@@ -58,15 +58,22 @@ def generate_app_intents_metadata_bundle(
     args.add("appintentsmetadataprocessor")
 
     args.add("--binary-file", bundle_binary)
-    if len(intents_module_names) == 0:
-        # TODO(b/315847370): See why this works for Xcode 14.x, and if it should be an actual module
-        # name instead.
-        args.add("--module-name", label.name)
-    else:
-        args.add_all(
-            intents_module_names,
-            before_each = "--module-name",
-        )
+
+    if len(intents_module_names) > 1:
+        fail("""
+Found the following module names in the top level target {label} for app_intents: {intents_module_names}
+
+App Intents must have only one module name for metadata generation to work correctly.
+""".format(
+            intents_module_names = ", ".join(intents_module_names),
+            label = str(label),
+        ))
+    elif len(intents_module_names) == 0:
+        fail("""
+Could not find a module name for app_intents. One is required for App Intents metadata generation.
+""")
+
+    args.add("--module-name", intents_module_names[0])
     args.add("--output", output.dirname)
     args.add_all(
         source_files,

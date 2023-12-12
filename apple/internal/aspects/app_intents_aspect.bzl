@@ -15,6 +15,10 @@
 """Implementation of the aspect that propagates AppIntentsInfo providers."""
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -22,6 +26,10 @@ load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_su
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:module_name.bzl",
+    "derive_swift_module_name",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -41,12 +49,11 @@ def _app_intents_aspect_impl(target, ctx):
         )
 
     swiftconstvalues_files = []
-    module_names = []
+    module_names = collections.uniq([x.name for x in target[SwiftInfo].direct_modules if x.swift])
+    if not module_names:
+        module_names = [derive_swift_module_name(ctx.label)]
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
-        # TODO(b/315847370): See if these names need to be deduplicated, if duplicate entries are at
-        # all possible.
-        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list()
 
     return [

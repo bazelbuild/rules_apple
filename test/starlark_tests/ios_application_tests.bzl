@@ -793,15 +793,15 @@ def ios_application_test_suite(name):
         ],
     )
 
-    # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
-    archive_contents_test(
-        name = "{}_with_app_intent_and_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
-        build_type = "simulator",
+    # Test app that has two Intents defined as top level modules generates an error message.
+    analysis_failure_message_test(
+        name = "{}_with_two_app_intents_and_two_modules_fails".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
-        contains = [
-            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/Metadata.appintents/version.json",
-        ],
+        expected_error = (
+            "App Intents must have only one module name for metadata generation to work correctly."
+        ).format(
+            package = "//test/starlark_tests/targets_under_test/ios",
+        ),
         tags = [
             name,
         ],
