@@ -593,20 +593,6 @@ def ios_application_test_suite(name):
         ],
     )
 
-    # Test app that has two Intents defined as top level modules generates an error message.
-    analysis_failure_message_test(
-        name = "{}_with_two_app_intents_and_two_modules_fails".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
-        expected_error = (
-            "App Intents must have only one module name for metadata generation to work correctly."
-        ).format(
-            package = "//test/starlark_tests/targets_under_test/ios",
-        ),
-        tags = [
-            name,
-        ],
-    )
-
     # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
     archive_contents_test(
         name = "{}_fat_build_contains_app_intents_metadata_bundle_test".format(name),

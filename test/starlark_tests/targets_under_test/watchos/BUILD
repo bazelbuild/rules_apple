@@ -704,9 +704,7 @@ generate_static_xcframework(
 
 watchos_application(
     name = "app_with_app_intents",
-    app_intents = [
-        "//test/starlark_tests/resources:app_intent",
-    ],
+    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [

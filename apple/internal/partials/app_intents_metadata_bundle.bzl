@@ -32,15 +32,15 @@ visibility("//apple/...")
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
+        app_intent,
         cc_toolchains,
         ctx,
-        deps,
         disabled_features,
         features,
         label,
         platform_prerequisites):
     """Implementation of the AppIntents metadata bundle partial."""
-    if not deps:
+    if not app_intent:
         # No `app_intents` were set by the rule calling this partial.
         return struct()
 
@@ -55,7 +55,7 @@ def _app_intents_metadata_bundle_partial_impl(
         actions = actions,
         cc_toolchains = cc_toolchains,
         ctx = ctx,
-        deps = deps,
+        deps = app_intent,
         disabled_features = disabled_features,
         features = features,
         label = label,
@@ -97,6 +97,7 @@ def _app_intents_metadata_bundle_partial_impl(
     # swift source files and the swiftconstvalues files; the triples and other files do cover all
     # available archs.
     first_cc_toolchain_key = cc_toolchains.keys()[0]
+    first_app_intents_info = app_intent[first_cc_toolchain_key][AppIntentsInfo]
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
@@ -104,19 +105,16 @@ def _app_intents_metadata_bundle_partial_impl(
         bundle_binary = fat_stub_binary,
         constvalues_files = [
             swiftconstvalues_file
-            for dep in deps[first_cc_toolchain_key]
-            for swiftconstvalues_file in dep[AppIntentsInfo].swiftconstvalues_files
+            for swiftconstvalues_file in first_app_intents_info.swiftconstvalues_files
         ],
         intents_module_names = [
             intent_module_name
-            for dep in deps[first_cc_toolchain_key]
-            for intent_module_name in dep[AppIntentsInfo].intent_module_names
+            for intent_module_name in first_app_intents_info.intent_module_names
         ],
         label = label,
         source_files = [
             swift_source_file
-            for dep in deps[first_cc_toolchain_key]
-            for swift_source_file in dep[AppIntentsInfo].swift_source_files
+            for swift_source_file in first_app_intents_info.swift_source_files
         ],
         target_triples = [
             cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
@@ -140,9 +138,9 @@ def _app_intents_metadata_bundle_partial_impl(
 def app_intents_metadata_bundle_partial(
         *,
         actions,
+        app_intent,
         cc_toolchains,
         ctx,
-        deps,
         disabled_features,
         features,
         label,
@@ -156,7 +154,8 @@ def app_intents_metadata_bundle_partial(
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
         ctx: The Starlark context for a rule target being built.
-        deps: Dictionary of targets under a split transition implementing the AppIntents protocol.
+        app_intent: Dictionary for one target under a split transition implementing the AppIntents
+            protocol.
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
@@ -167,9 +166,9 @@ def app_intents_metadata_bundle_partial(
     return partial.make(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
+        app_intent = app_intent,
         cc_toolchains = cc_toolchains,
         ctx = ctx,
-        deps = deps,
         disabled_features = disabled_features,
         features = features,
         label = label,

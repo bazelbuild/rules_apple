@@ -108,8 +108,8 @@ def _app_intents_attrs(*, deps_cfg):
             use the same transition.
     """
     return {
-        "app_intents": attr.label_list(
-            doc = "List of dependencies implementing the AppIntents protocol.",
+        "app_intents": attr.label(
+            doc = "Label for the swift_library implementing the AppIntents protocol.",
             cfg = deps_cfg,
             aspects = [app_intents_aspect],
             providers = [SwiftInfo],

@@ -377,11 +377,15 @@ def _link_multi_arch_binary(
             unsupported_features = disabled_features,
         )
 
-        cc_infos = [
-            dep[CcInfo]
-            for dep in deps[split_attr_key]
-            if CcInfo in dep
-        ]
+        cc_infos = []
+        if type(deps[split_attr_key]) == "list":
+            cc_infos = [
+                dep[CcInfo]
+                for dep in deps[split_attr_key]
+                if CcInfo in dep
+            ]
+        elif CcInfo in deps[split_attr_key]:
+            cc_infos = [deps[split_attr_key][CcInfo]]
         all_cc_infos.extend(cc_infos)
 
         cc_linking_contexts = [cc_info.linking_context for cc_info in cc_infos]

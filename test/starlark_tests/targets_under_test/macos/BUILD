@@ -880,9 +880,7 @@ filegroup(
 
 macos_application(
     name = "app_with_app_intents",
-    app_intents = [
-        "//test/starlark_tests/resources:app_intent",
-    ],
+    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
