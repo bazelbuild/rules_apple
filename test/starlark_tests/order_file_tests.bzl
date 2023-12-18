@@ -38,7 +38,7 @@ def _test_provider_contents(*, name, tags):
 
     apple_order_file(
         name = provider_contents_subject,
-        deps = [
+        srcs = [
             ":{}".format(order_file_a),
             ":{}".format(order_file_b),
         ],
@@ -76,7 +76,7 @@ content_c
 
     apple_order_file(
         name = file_contents_subject,
-        deps = [
+        srcs = [
             ":{}".format(order_file_a),
             ":{}".format(order_file_b),
         ],

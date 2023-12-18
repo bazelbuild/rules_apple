@@ -3794,7 +3794,7 @@ _main
 
 apple_order_file(
     name = "app_order_file",
-    deps = [
+    srcs = [
         # Order matters.
         ":app_raw_order_file_b",
         ":app_raw_order_file_a",

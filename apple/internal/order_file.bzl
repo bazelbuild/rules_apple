@@ -117,7 +117,7 @@ def _order_file_impl(ctx):
     concatenated_order_file = _concatenate_files(
         name = ctx.attr.name,
         actions = ctx.actions,
-        files = ctx.files.deps,
+        files = ctx.files.srcs,
     )
     deduped_order_file = _dedup_file(
         name = ctx.attr.name,
@@ -139,7 +139,7 @@ def _order_file_impl(ctx):
 #
 # apple_order_file(
 #   name = "app_order_file"
-#   deps = [
+#   srcs = [
 #     "my_file.order",
 #     "my_second_order_file.order",
 #   ]
@@ -153,7 +153,7 @@ def _order_file_impl(ctx):
 order_file = rule(
     implementation = _order_file_impl,
     attrs = {
-        "deps": attr.label_list(
+        "srcs": attr.label_list(
             allow_files = True,
             mandatory = True,
             doc = "The raw text order files to be used in the iOS application.",
