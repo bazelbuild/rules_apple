@@ -19,34 +19,44 @@ load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediate
 
 visibility("//apple/internal/...")
 
+# Maps the strings passed in to the "families" attribute to the string represention used as an input
+# for the App Intents Metadata Processor tool.
+_PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
+    "ios": "iOS",
+    "macos": "macOS",
+    "tvos": "tvOS",
+    "watchos": "watchOS",
+    "visionos": "xrOS",
+}
+
 def generate_app_intents_metadata_bundle(
         *,
         actions,
-        apple_fragment,
         bundle_binary,
         constvalues_files,
         intents_module_names,
         label,
+        platform_prerequisites,
         source_files,
-        target_triples,
-        xcode_version_config):
+        target_triples):
     """Process and generate AppIntents metadata bundle (Metadata.appintents).
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         bundle_binary: File referencing an application/extension/framework binary.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
         intents_module_names: List of Strings with the module names corresponding to the modules
             found which have intents compiled.
         label: Label for the current target (`ctx.label`).
+        platform_prerequisites: Struct containing information on the platform being targeted.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
-        xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
     Returns:
         File referencing the Metadata.appintents bundle.
     """
+
+    xcode_version_config = platform_prerequisites.xcode_version_config
 
     output = intermediates.directory(
         actions = actions,
@@ -82,6 +92,11 @@ Could not find a module name for app_intents. One is required for App Intents me
     )
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
+    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.1"):
+        platform_type_string = str(platform_prerequisites.platform_type)
+        platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]
+        args.add("--platform-family", platform_family)
+        args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
@@ -96,7 +111,7 @@ Could not find a module name for app_intents. One is required for App Intents me
 
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         executable = "/usr/bin/xcrun",
         inputs = depset([bundle_binary], transitive = transitive_inputs),

@@ -49,8 +49,9 @@ def _app_intents_metadata_bundle_partial_impl(
     # Instead of containing all the application/extension/framework binary symbols, allowing
     # the action to run faster and avoid depending on the application binary linking step.
     #
-    # TODO(b/295227222): Avoid this linker step for Xcode 15.0+ when rules_swift supports the new
-    # swiftconstvalues-based manner of handling App Intents metadata.
+    # TODO(b/315509311): Avoid this linker step for Xcode 15.0+ if we receive confirmation that it's
+    # safe to stub out the --binary-file arg on the App Intents Metadata Processor tool, or use a
+    # smaller artifact instead such as the library archive that has the app intents defined within.
     link_result = linking_support.link_multi_arch_binary(
         actions = actions,
         cc_toolchains = cc_toolchains,
@@ -101,7 +102,6 @@ def _app_intents_metadata_bundle_partial_impl(
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
         bundle_binary = fat_stub_binary,
         constvalues_files = [
             swiftconstvalues_file
@@ -112,6 +112,7 @@ def _app_intents_metadata_bundle_partial_impl(
             for intent_module_name in first_app_intents_info.intent_module_names
         ],
         label = label,
+        platform_prerequisites = platform_prerequisites,
         source_files = [
             swift_source_file
             for swift_source_file in first_app_intents_info.swift_source_files
@@ -120,7 +121,6 @@ def _app_intents_metadata_bundle_partial_impl(
             cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
             for cc_toolchain in cc_toolchains.values()
         ],
-        xcode_version_config = platform_prerequisites.xcode_version_config,
     )
 
     bundle_location = processor.location.bundle
