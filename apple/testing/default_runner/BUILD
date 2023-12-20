@@ -1,3 +1,8 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//apple/testing/default_runner:ios_googletest_runner.bzl",
+    "ios_googletest_runner",
+)
 load(
     "//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner",
@@ -22,7 +27,6 @@ load(
     "//apple/testing/default_runner:watchos_test_runner.bzl",
     "watchos_test_runner",
 )
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])
 
@@ -117,6 +121,11 @@ ios_xctestrun_runner(
 ios_xctestrun_runner(
     name = "ios_xctestrun_ordered_runner",
     random = False,
+    visibility = ["//visibility:public"],
+)
+
+ios_googletest_runner(
+    name = "ios_googletest_runner",
     visibility = ["//visibility:public"],
 )
 
