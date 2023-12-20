@@ -1,3 +1,5 @@
+import Foundation
+
 @main
 struct Test {
     static func main() {
