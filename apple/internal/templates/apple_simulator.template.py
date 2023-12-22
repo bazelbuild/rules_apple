@@ -54,6 +54,7 @@ import platform
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from typing import Dict, Optional
@@ -683,6 +684,8 @@ def run_app_in_simulator(
         simulator_udid,
         app_bundle_id,
     ]
+    # Append optional launch arguments.
+    args.extend(sys.argv[1:])
     subprocess.run(args, env=simctl_launch_environ(), check=False)
 
 
