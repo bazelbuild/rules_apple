@@ -343,6 +343,11 @@ test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
 
 test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
+if [[ "$test_type" = "XCUITEST" ]]; then
+  plugins_path="$test_tmp_dir/$runner_app/PlugIns"
+  test_file=$(file "$plugins_path/$test_bundle_name.xctest/$test_bundle_name")
+fi
+
 intel_simulator_hack=false
 architecture="arm64"
 if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
