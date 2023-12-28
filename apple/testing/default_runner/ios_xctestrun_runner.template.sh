@@ -65,6 +65,7 @@ fi
 
 test_bundle_path="%(test_bundle_path)s"
 test_bundle_name=$(basename_without_extension "$test_bundle_path")
+test_bundle_binary="$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name"
 
 if [[ "$test_bundle_path" == *.xctest ]]; then
   cp -cRL "$test_bundle_path" "$test_tmp_dir"
@@ -173,6 +174,7 @@ if [[ -n "$test_host_path" ]]; then
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    test_bundle_binary="$plugins_path/$test_bundle_name.xctest/$test_bundle_name"
     mkdir -p "$plugins_path/$test_bundle_name.xctest/Frameworks"
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
@@ -341,12 +343,7 @@ fi
 
 test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
-
-test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
-if [[ "$test_type" = "XCUITEST" ]]; then
-  plugins_path="$test_tmp_dir/$runner_app/PlugIns"
-  test_file=$(file "$plugins_path/$test_bundle_name.xctest/$test_bundle_name")
-fi
+test_file=$(file "$test_bundle_binary")
 
 intel_simulator_hack=false
 architecture="arm64"
