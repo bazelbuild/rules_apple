@@ -1,11 +1,11 @@
 """experimental_mixed_language_library macro implementation."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
     "swift_library",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _CPP_FILE_TYPES = [".cc", ".cpp", ".mm", ".cxx", ".C"]
 
@@ -109,12 +109,12 @@ def _module_map_impl(ctx):
             if hdr.owner == dep.label:
                 swift_generated_header = hdr
                 outputs.append(swift_generated_header)
+                break
 
     # Write the module map content
     if swift_generated_header:
         umbrella_header_path = ctx.attr.module_name + ".h"
         umbrella_header = ctx.actions.declare_file(umbrella_header_path)
-        outputs.append(umbrella_header)
         ctx.actions.write(
             content = _umbrella_header_content(hdrs),
             output = umbrella_header,
@@ -322,6 +322,7 @@ target only contains Objective-C files.""")
     )
 
     umbrella_module_map = name + ".internal.umbrella"
+    umbrella_module_map_label = ":" + umbrella_module_map
     _module_map(
         name = umbrella_module_map,
         deps = [":" + swift_library_name],
@@ -329,8 +330,7 @@ target only contains Objective-C files.""")
         module_name = module_name,
         testonly = testonly,
     )
-    objc_deps.append(":" + umbrella_module_map)
-
+    objc_deps.append(umbrella_module_map_label)
     native.objc_library(
         name = name,
         copts = objc_copts,
@@ -339,9 +339,9 @@ target only contains Objective-C files.""")
             # These aren't headers but here is the only place to declare these
             # files as the inputs because objc_library doesn't have an
             # attribute to declare custom inputs.
-            ":" + umbrella_module_map,
+            umbrella_module_map_label,
         ],
-        module_map = umbrella_module_map,
+        module_map = umbrella_module_map_label,
         srcs = objc_srcs,
         testonly = testonly,
         **kwargs
