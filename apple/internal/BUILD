@@ -808,6 +808,28 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "header_map",
+    srcs = ["header_map.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
+    name = "header_map_support",
+    srcs = ["header_map_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":header_map",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

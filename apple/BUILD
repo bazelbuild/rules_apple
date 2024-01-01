@@ -255,6 +255,12 @@ bzl_library(
     deps = ["//apple/internal:docc"],
 )
 
+bzl_library(
+    name = "header_map",
+    srcs = ["header_map.bzl"],
+    deps = ["//apple/internal:header_map"],
+)
+
 cc_toolchain_forwarder(
     name = "default_cc_toolchain_forwarder",
 )
