@@ -12,6 +12,7 @@ experimental_mixed_language_library(
         "MixedAnswer.swift",
     ],
     hdrs = ["MixedAnswer.h"],
+    enable_modules = True,
 )
 
 swift_library(

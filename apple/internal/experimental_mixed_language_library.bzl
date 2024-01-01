@@ -195,6 +195,7 @@ def experimental_mixed_language_library(
         name,
         srcs,
         deps = [],
+        enable_modules = False,
         module_name = None,
         objc_copts = [],
         swift_copts = [],
@@ -212,13 +213,14 @@ def experimental_mixed_language_library(
     it easier to migrate codebases with mixed language modules to Bazel without
     having to demix them first.
 
-    This macro only supports a very simple use case of mixed language
-    modules---it does not support for header maps or Clang modules.
+    This macro only supports a simple use case of mixed language
+    modules, it does not support header maps.
 
     Args:
         name: A unique name for this target.
         deps: A list of targets that are dependencies of the target being
             built, which will be linked into that target.
+        enable_modules: Enables clang module support for the Objective-C target.
         module_name: The name of the mixed language module being built.
             If left unspecified, the module name will be the name of the
             target.
@@ -267,6 +269,7 @@ target only contains Objective-C files.""")
     swift_library_name = name + ".internal.swift"
 
     objc_deps = []
+    objc_copts = [] + objc_copts
     swift_deps = [] + deps
 
     swift_copts = swift_copts + [
@@ -274,6 +277,12 @@ target only contains Objective-C files.""")
         "-enable-objc-interop",
         "-import-underlying-module",
     ]
+
+    # Modules is not enabled if a custom module map is present even with
+    # `enable_modules` set to `True` in `objc_library`. This enables it via copts.
+    # See: https://github.com/bazelbuild/bazel/issues/20703
+    if enable_modules:
+        objc_copts.append("-fmodules")
 
     objc_deps = [":" + swift_library_name]
 
