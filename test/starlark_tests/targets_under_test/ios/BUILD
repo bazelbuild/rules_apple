@@ -3048,6 +3048,13 @@ write_file(
     tags = common.fixture_tags,
 )
 
+write_file(
+    name = "dummy_swift_with_objc",
+    out = "DummyWithObjc.swift",
+    content = ["import Foundation; @objc public class Dummy: NSObject {}"],
+    tags = common.fixture_tags,
+)
+
 swift_library(
     name = "SwiftFmwk",
     srcs = [":dummy_swift"],
@@ -3082,7 +3089,7 @@ swift_library(
 
 swift_library(
     name = "SwiftStaticFmwkWithGenHeader",
-    srcs = [":dummy_swift"],
+    srcs = [":dummy_swift_with_objc"],
     generates_header = True,
     library_evolution = True,
     module_name = "SwiftStaticFmwkWithGenHeader",
