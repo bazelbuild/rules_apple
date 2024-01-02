@@ -184,6 +184,7 @@ def _resources_partial_impl(
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module,
         top_level_infoplists,
         top_level_resources,
         targets_to_avoid,
@@ -203,6 +204,7 @@ def _resources_partial_impl(
         providers.append(resources.bucketize(
             owner = str(rule_label),
             resources = top_level_resources,
+            swift_module = swift_module,
         ))
 
     if top_level_infoplists:
@@ -263,7 +265,7 @@ def _resources_partial_impl(
 
     def _deduplicated_field_handler(field, deduplicated):
         processing_func, requires_swift_module = provider_field_to_action[field]
-        for parent_dir, swift_module, files in deduplicated:
+        for parent_dir, module_name, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
                 if sets.contains(locales_requested, locale):
@@ -292,7 +294,7 @@ def _resources_partial_impl(
             # Only pass the Swift module name if the type of resource to process
             # requires it.
             if requires_swift_module:
-                processing_args["swift_module"] = swift_module
+                processing_args["swift_module"] = swift_module or module_name
 
             result = processing_func(**processing_args)
             if hasattr(result, "files"):
@@ -389,6 +391,7 @@ def resources_partial(
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module = None,
         targets_to_avoid = [],
         top_level_infoplists = [],
         top_level_resources = {},
@@ -427,6 +430,7 @@ def resources_partial(
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+        swift_module: Module name to be used for xibs, storyboards and datamodels compilation.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
@@ -458,6 +462,7 @@ def resources_partial(
         resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
+        swift_module = swift_module,
         targets_to_avoid = targets_to_avoid,
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,
