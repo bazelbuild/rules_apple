@@ -80,6 +80,7 @@ apple_multi_shell_test(
 apple_multi_shell_test(
     name = "ios_application_swift_test",
     size = "medium",
+    timeout = "long",
     src = "ios_application_swift_test.sh",
     configurations = IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS,
 )
