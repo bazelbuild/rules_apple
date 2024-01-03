@@ -278,18 +278,14 @@ def _get_parser():
       "--output_zip", type=str, required=True, help="path to save the zip file "
       "containing a codesigned, lipoed version of the imported framework"
   )
-
-  # Add mutually exclusive flags:
-  #   - '--disable_signing' to disable code signing.
-  #   - An argument group containing codesigningtool args.
-  mutex_group = parser.add_mutually_exclusive_group()
-  mutex_group.add_argument(
+  parser.add_argument(
       "--disable_signing",
       action="store_true",
       help="Disables code signing for imported frameworks.",
   )
-  codesigningtool_args = mutex_group.add_argument_group()
-  codesigningtool.add_parser_arguments(codesigningtool_args)
+
+  # codesigning args are parsed but not used if '--disable_signing' is set
+  codesigningtool.add_parser_arguments(parser)
 
   return parser
 
