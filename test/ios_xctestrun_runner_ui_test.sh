@@ -422,7 +422,7 @@ function test_ios_ui_test_with_env() {
   expect_log "Test Suite 'EnvUITest' passed"
 }
 
-function test_ios_unit_test_default_attachment_lifetime_arg() {
+function test_ios_ui_test_default_attachment_lifetime_arg() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
@@ -437,14 +437,14 @@ function test_ios_unit_test_default_attachment_lifetime_arg() {
     expect_log "<string>keepNever</string>"
 }
 
-function test_ios_unit_test_attachment_lifetime_arg() {
+function test_ios_ui_test_attachment_lifetime_arg() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
   do_ios_test \
     --test_env=DEBUG_XCTESTRUNNER=1 \
     --test_filter=PassingUITest/testPass2 \
-    --test_arg=--attachment_lifetime=deleteOnSuccess \
+    --test_arg=--xctestrun_attachment_lifetime=deleteOnSuccess \
     //ios:PassingUITest || fail "should pass"
 
     expect_log "<key>SystemAttachmentLifetime</key>"

@@ -39,7 +39,7 @@ while [[ $# -gt 0 ]]; do
     --command_line_args=*)
       command_line_args+=("${arg##*=}")
       ;;
-    --attachment_lifetime=*)
+    --xctestrun_attachment_lifetime=*)
       attachment_lifetime="${arg##*=}"
       ;;
     *)
@@ -126,11 +126,6 @@ if [[ -n "${command_line_args:-}" ]]; then
   IFS=$saved_IFS
   xctestrun_cmd_line_args_section="    <key>CommandLineArguments</key>\n    <array>$xctestrun_cmd_line_args_section    </array>"
 fi
-
-xctestrun_attachment_lifetime_section+="    <key>SystemAttachmentLifetime</key>\n"
-xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>\n"
-xctestrun_attachment_lifetime_section+="    <key>UserAttachmentLifetime</key>\n"
-xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>"
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
@@ -396,6 +391,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     exit 1
   fi
 
+  # Set xctest attachment liftime
+  xctestrun_attachment_lifetime_section+="    <key>SystemAttachmentLifetime</key>\n"
+  xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>\n"
+  xctestrun_attachment_lifetime_section+="    <key>UserAttachmentLifetime</key>\n"
+  xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>"
+
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
     -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
@@ -421,12 +422,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     "%(xctestrun_template)s" > "$xctestrun_file"
 
 
-if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
-  echo
-  echo "xctestrun contents:"
-  cat "$xctestrun_file"
-  echo
-fi
+  if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
+    echo
+    echo "xctestrun contents:"
+    cat "$xctestrun_file"
+    echo
+  fi
 
   args=(
     -destination-timeout 15 \
