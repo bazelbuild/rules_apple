@@ -18,6 +18,7 @@ def _get_template_substitutions(
         xcodebuild_args,
         command_line_args,
         xctestrun_template,
+        attachment_lifetime,
         reuse_simulator,
         xctrunner_entitlements_template):
     substitutions = {
@@ -30,6 +31,7 @@ def _get_template_substitutions(
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
+        "attachment_lifetime": attachment_lifetime,
         "reuse_simulator": reuse_simulator,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
@@ -67,6 +69,7 @@ def _ios_xctestrun_runner_impl(ctx):
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
+            attachment_lifetime = ctx.attr.attachment_lifetime,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
@@ -132,6 +135,14 @@ will always use `xcodebuild test-without-building` to run the test bundle.
             doc = """
 CommandLineArguments to pass to xctestrun file when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "attachment_lifetime": attr.string(
+            default = "keepNever",
+            doc = """
+Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
+or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using 
+`xcodebuild` or an XCTestRun file but the value will be used in that case.
 """,
         ),
         "reuse_simulator": attr.bool(
