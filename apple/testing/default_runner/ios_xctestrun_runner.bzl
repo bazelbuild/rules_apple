@@ -141,8 +141,8 @@ will always use `xcodebuild test-without-building` to run the test bundle.
             default = "keepNever",
             doc = """
 Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
-or `"deleteOnSuccess"`. This affects presence of attachments in the xcresult output. This does not force using 
-`xcodebuild` or an XCTestRun file but will be used in that case.
+or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using 
+`xcodebuild` or an XCTestRun file but the value will be used in that case.
 """,
         ),
         "reuse_simulator": attr.bool(
