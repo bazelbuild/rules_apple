@@ -465,24 +465,17 @@ def _objc_provider_with_dependencies(
 
     return apple_common.new_objc_provider(**objc_provider_fields)
 
-def _new_dynamic_framework_provider(*, cc_info, **kwargs):
+def _new_dynamic_framework_provider(**kwargs):
     """A wrapper API for the Bazel API of the same name to better support multiple Bazel versions
 
     Args:
         cc_info: CcInfo provider for the dynamic framework.
         **kwargs: Additional arguments to pass if supported.
     """
+    if not _OBJC_PROVIDER_LINKING:
+        kwargs.pop("objc", None)
 
-    test_provider = apple_common.new_dynamic_framework_provider(
-        cc_info = cc_info,
-    )
-
-    processed_args = {"cc_info": cc_info}
-    for key, value in kwargs.items():
-        if hasattr(test_provider, key):
-            processed_args[key] = value
-
-    return apple_common.new_dynamic_framework_provider(**processed_args)
+    return apple_common.new_dynamic_framework_provider(**kwargs)
 
 def _swift_info_from_module_interface(
         *,
