@@ -117,9 +117,8 @@ Resolved Xcode is version {xcode_version}.
     if binary_type == "executable":
         providers.append(
             apple_common.new_executable_binary_provider(
-                cc_info = link_result.cc_info,
-                objc = link_result.objc,
                 binary = binary_artifact,
+                cc_info = link_result.cc_info,
             ),
         )
 

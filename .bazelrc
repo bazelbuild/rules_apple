@@ -1,6 +1,7 @@
 # NOTE: These are mainly just for the BazelCI setup so they don't have
 # to be repeated multiple times in .bazelci/presubmit.yml.
 
+common --incompatible_objc_provider_remove_linking_info=false
 # https://github.com/bazelbuild/stardoc/issues/112
 common --incompatible_allow_tags_propagation
 

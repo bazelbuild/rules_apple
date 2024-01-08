@@ -497,7 +497,6 @@ def _ios_application_impl(ctx):
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -788,7 +787,6 @@ def _ios_app_clip_impl(ctx):
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -1329,7 +1327,7 @@ def _ios_extension_impl(ctx):
         ),
         apple_common.new_executable_binary_provider(
             binary = binary_artifact,
-            objc = link_result.objc,
+            cc_info = link_result.cc_info,
         ),
         new_iosextensionbundleinfo(),
         OutputGroupInfo(
