@@ -108,9 +108,9 @@ visibility([
 def _visionos_application_impl(ctx):
     """Implementation of visionos_application."""
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.2"):
         fail("""
-visionOS bundles require a visionOS SDK provided by Xcode 15.1 beta or later.
+visionOS bundles require a visionOS SDK provided by Xcode 15.2 or later.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
