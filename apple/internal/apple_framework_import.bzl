@@ -289,7 +289,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     # Create AppleDynamicFramework provider.
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    providers.append(apple_common.new_dynamic_framework_provider(
+    providers.append(framework_import_support.new_dynamic_framework_provider(
         objc = objc_provider,
         cc_info = cc_info,
         framework_dirs = framework_dirs_set,
