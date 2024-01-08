@@ -206,6 +206,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:framework_import_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
