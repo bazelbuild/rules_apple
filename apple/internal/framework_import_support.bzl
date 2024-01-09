@@ -469,8 +469,7 @@ def _new_dynamic_framework_provider(**kwargs):
     """A wrapper API for the Bazel API of the same name to better support multiple Bazel versions
 
     Args:
-        cc_info: CcInfo provider for the dynamic framework.
-        **kwargs: Additional arguments to pass if supported.
+        **kwargs: Arguments to pass if supported.
     """
     if not _OBJC_PROVIDER_LINKING:
         kwargs.pop("objc", None)
