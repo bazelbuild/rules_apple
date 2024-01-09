@@ -528,7 +528,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFrameworkInfo provider
-    apple_dynamic_framework_info = apple_common.new_dynamic_framework_provider(
+    apple_dynamic_framework_info = framework_import_support.new_dynamic_framework_provider(
         objc = objc_provider,
         cc_info = cc_info,
     )

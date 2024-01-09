@@ -432,7 +432,7 @@ Resolved Xcode is version {xcode_version}.
             )
         ),
         new_visionosapplicationbundleinfo(),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
             objc = link_result.objc,
@@ -1240,8 +1240,9 @@ def _visionos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         new_visionosextensionbundleinfo(),

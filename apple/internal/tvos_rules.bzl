@@ -430,7 +430,7 @@ def _tvos_application_impl(ctx):
             )
         ),
         new_tvosapplicationbundleinfo(),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
             objc = link_result.objc,
