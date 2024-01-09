@@ -72,7 +72,8 @@ Besides these constraints this repo follows
 
 | Bazel release | Minimum supported rules version | Final supported rules version | Supporting Branch |
 |:-------------------:|:-------------------:|:-------------------------:|:-------------------------:|
-| 7.x (most recent rolling) | 2.* | current | `master` |
+| 8.x (most recent rolling) | 2.* | current | `master` |
+| 7.x | 2.* | current | `master` |
 | 6.x | 2.* | current | `master` |
 | 5.x | 0.33.0 | 1.* | `bazel/5.x` |
 | 4.x | 0.30.0 | 0.32.0 | N/A |
