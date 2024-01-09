@@ -35,3 +35,5 @@ build:macos --crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
 
 build:visionos --platform_mappings=platform_mappings_visionos
+
+build --incompatible_disallow_empty_glob
