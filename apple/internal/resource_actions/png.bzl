@@ -40,24 +40,22 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
         # is a perl script that doesn't properly handle when the process dies via a
         # signal, so instead just expand out the comment to skip the script and
         # directly run Xcode's copy of pngcrush with the same args.
-        args = [
-            "pngcrush",
-            # -compress expands to:
-            "-q",
-            "-iphone",
-            "-f",
-            "0",
-            # "-strip-PNG-text",
-            "-rem",
-            "text",
-            input_file.path,
-            output_file.path,
-        ]
-
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            arguments = args,
+            arguments = [
+                "pngcrush",
+                # -compress expands to:
+                "-q",
+                "-iphone",
+                "-f",
+                "0",
+                # "-strip-PNG-text",
+                "-rem",
+                "text",
+                input_file.path,
+                output_file.path,
+            ],
             executable = "/usr/bin/xcrun",
             inputs = [input_file],
             mnemonic = "CopyPng",
