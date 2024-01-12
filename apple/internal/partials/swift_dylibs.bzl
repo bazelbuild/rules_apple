@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
-    "bitcode_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -156,8 +152,6 @@ def _swift_dylibs_partial_impl(
         transitive = transitive_binary_sets,
     )
 
-    strip_bitcode = bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none"
-
     swift_support_requested = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.package_swift_support",
@@ -184,36 +178,30 @@ def _swift_dylibs_partial_impl(
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
                 resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
-                strip_bitcode = strip_bitcode,
+                strip_bitcode = True,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
 
             if needs_swift_support:
-                if strip_bitcode:
-                    # We're not allowed to modify stdlibs that are used for
-                    # Swift Support, so we register another action for copying
-                    # them without stripping bitcode.
-                    swift_support_output_dir = intermediates.directory(
-                        actions = actions,
-                        target_name = label_name,
-                        output_discriminator = output_discriminator,
-                        dir_name = "swiftlibs_for_swiftsupport",
-                    )
-                    _swift_dylib_action(
-                        actions = actions,
-                        binary_files = binaries_to_check,
-                        output_dir = swift_support_output_dir,
-                        platform_name = platform_name,
-                        platform_prerequisites = platform_prerequisites,
-                        resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
-                        strip_bitcode = False,
-                    )
-                else:
-                    # When not building with bitcode, we can reuse Swift dylibs
-                    # for bundling in both SwiftSupport and in the app bundle's
-                    # "Frameworks" directory.
-                    swift_support_output_dir = output_dir
+                # We're not allowed to modify stdlibs that are used for
+                # Swift Support, so we register another action for copying
+                # them without stripping bitcode.
+                swift_support_output_dir = intermediates.directory(
+                    actions = actions,
+                    target_name = label_name,
+                    output_discriminator = output_discriminator,
+                    dir_name = "swiftlibs_for_swiftsupport",
+                )
+                _swift_dylib_action(
+                    actions = actions,
+                    binary_files = binaries_to_check,
+                    output_dir = swift_support_output_dir,
+                    platform_name = platform_name,
+                    platform_prerequisites = platform_prerequisites,
+                    resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
+                    strip_bitcode = False,
+                )
 
                 swift_support_file = (platform_name, swift_support_output_dir)
                 transitive_swift_support_files.append(swift_support_file)
