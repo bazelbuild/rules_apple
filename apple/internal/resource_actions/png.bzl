@@ -29,14 +29,21 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
       platform_prerequisites: Struct containing information on the platform being targeted.
     """
 
-    # Xcode uses `xcrun copypng -strip-PNG-text -compress IN OUT`. But pngcrush
-    # is a perl script that doesn't properly handle when the process dies via a
-    # signal, so instead just expand out the comment to skip the script and
-    # directly run Xcode's copy of pngcrush with the same args.
-    apple_support.run(
-        actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = [
+    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+        args = [
+            "pngcrush",
+            # Don't use `-iphone` on macOS, as that breaks PNGs for some libraries
+            "-q",
+            "-f",
+            "0",
+            # "-strip-PNG-text",
+            "-rem",
+            "text",
+            input_file.path,
+            output_file.path,
+        ]
+    else:
+        args = [
             "pngcrush",
             # -compress expands to:
             "-q",
@@ -48,7 +55,16 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
             "text",
             input_file.path,
             output_file.path,
-        ],
+        ]
+
+    # Xcode uses `xcrun copypng -strip-PNG-text -compress IN OUT`. But pngcrush
+    # is a perl script that doesn't properly handle when the process dies via a
+    # signal, so instead just expand out the comment to skip the script and
+    # directly run Xcode's copy of pngcrush with the same args.
+    apple_support.run(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = args,
         executable = "/usr/bin/xcrun",
         inputs = [input_file],
         mnemonic = "CopyPng",
