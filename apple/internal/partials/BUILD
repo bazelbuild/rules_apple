@@ -188,7 +188,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bitcode_support",
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",

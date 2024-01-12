@@ -409,14 +409,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "bitcode_support",
-    srcs = ["bitcode_support.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-)
-
-bzl_library(
     name = "partials",
     srcs = ["partials.bzl"],
     visibility = [
