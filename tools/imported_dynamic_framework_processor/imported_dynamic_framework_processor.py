@@ -95,6 +95,14 @@ def _get_framework_version_from_install_path(binary: str) -> str:
   return result.group(1)
 
 
+def _get_framework_version_from_structure(framework_path: str) -> str:
+  versions = set(os.listdir(os.path.join(framework_path, "Versions")))
+  versions.discard("Current")
+  if not len(versions) == 1:
+      raise ValueError(f"Framework structure does not have a single version: {versions}")
+  return versions.pop()
+
+
 def _update_modified_timestamps(framework_temp_path: str) -> None:
   """Updates framework files modified timestamp before creating the zip file.
 
@@ -325,8 +333,12 @@ def main() -> None:
   else:
 
     # Find effective current framework version via install_path
-    version = _get_framework_version_from_install_path(
-        binary=args.framework_binary)
+    try:
+        version = _get_framework_version_from_structure(framework_directory)
+    except ValueError:
+        # Fall back to looking at the install path
+        version = _get_framework_version_from_install_path(
+            binary=args.framework_binary)
 
     # Copy files from Versions/<version_id>
     for framework_file in args.framework_file:
