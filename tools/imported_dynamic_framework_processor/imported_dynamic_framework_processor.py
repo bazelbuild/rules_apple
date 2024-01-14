@@ -95,12 +95,13 @@ def _get_framework_version_from_install_path(binary: str) -> str:
   return result.group(1)
 
 
-def _get_framework_version_from_structure(framework_path: str) -> str:
-  versions = set(os.listdir(os.path.join(framework_path, "Versions")))
-  versions.discard("Current")
-  if not len(versions) == 1:
-      raise ValueError(f"Framework structure does not have a single version: {versions}")
-  return versions.pop()
+def _try_get_framework_version_from_structure(framework_directory: str) -> Optional[str]:
+  """Returns framework version string. This only works if there is only one version."""
+  versions = list(os.listdir(os.path.join(framework_directory, "Versions")))
+  versions.remove("Current")
+  if len(versions) != 1:
+    return None
+  return versions[0]
 
 
 def _update_modified_timestamps(framework_temp_path: str) -> None:
@@ -332,11 +333,12 @@ def main() -> None:
                            output_path=args.temp_path)
   else:
 
-    # Find effective current framework version via install_path
-    try:
-        version = _get_framework_version_from_structure(framework_directory)
-    except ValueError:
-        # Fall back to looking at the install path
+    # If there's only one version, use that
+    version = _try_get_framework_version_from_structure(framework_directory)
+    if version is None:
+        # If that didn't work, find effective current framework version via install_path
+        # TODO: install_name can technically point to the top-level symlink, so this can
+        # still fail in some cases.
         version = _get_framework_version_from_install_path(
             binary=args.framework_binary)
 
