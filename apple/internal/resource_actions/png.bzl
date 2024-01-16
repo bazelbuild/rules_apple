@@ -28,14 +28,13 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
     """
+    # Xcode does not use `pngcrush` on macOS, but allow override using a feature.
+    should_compress_png = (
+        platform_prerequisites.platform_type != apple_common.platform_type.macos
+        or "apple.macos_compress_png_files" in platform_prerequisites.features
+    )
 
-    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
-        # Xcode does not use `pngcrush` on macOS.
-        actions.symlink(
-            target_file = input_file,
-            output = output_file,
-        )
-    else:
+    if should_compress_png:
         # Xcode uses `xcrun copypng -strip-PNG-text -compress IN OUT`. But pngcrush
         # is a perl script that doesn't properly handle when the process dies via a
         # signal, so instead just expand out the comment to skip the script and
@@ -61,4 +60,9 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
             mnemonic = "CopyPng",
             outputs = [output_file],
             xcode_config = platform_prerequisites.xcode_version_config,
+        )
+    else:
+        actions.symlink(
+            target_file = input_file,
+            output = output_file,
         )
