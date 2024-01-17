@@ -288,8 +288,8 @@ EOF
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
     do_build ios "$@" //app:app || fail "Should build"
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
-        print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" > "${TEST_TMPDIR}/binary"
+    print_debug_entitlements "${TEST_TMPDIR}/binary" "${TEST_TMPDIR}/dumped_entitlements"
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
 
@@ -380,9 +380,9 @@ EOF
     do_build ios //app:app-with-hyphen || fail "Should build"
 
     unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
-        "Payload/app-with-hyphen.app/app-with-hyphen" | \
-        print_debug_entitlements - | \
-        grep -sq "<key>test-an-entitlement</key>" || \
+        "Payload/app-with-hyphen.app/app-with-hyphen" > "${TEST_TMPDIR}/binary"
+    print_debug_entitlements "${TEST_TMPDIR}/binary" "${TEST_TMPDIR}/dumped_entitlements"
+    grep -sq "<key>test-an-entitlement</key>" "${TEST_TMPDIR}/dumped_entitlements" || \
         fail "Failed to find custom entitlement"
   fi
 }
