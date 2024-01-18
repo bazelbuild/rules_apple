@@ -367,6 +367,7 @@ def _resources_partial_impl(
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
         "processed": (resources_support.noop, False),
+        "rkassets": (resources_support.rkassets, True),
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),

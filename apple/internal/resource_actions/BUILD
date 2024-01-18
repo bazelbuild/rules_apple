@@ -102,6 +102,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "realitytool",
+    srcs = ["realitytool.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/utils:xctoolrunner",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "texture_atlas",
     srcs = ["texture_atlas.bzl"],
     visibility = [

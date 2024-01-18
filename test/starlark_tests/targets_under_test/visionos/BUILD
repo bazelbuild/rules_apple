@@ -1,5 +1,3 @@
-# TODO(nglevin): describe this package.
-
 load(
     "//apple:visionos.bzl",
     "visionos_application",
@@ -64,6 +62,21 @@ visionos_application(
     minimum_os_version = common.min_os_visionos.baseline,
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+visionos_application(
+    name = "swift_app_with_codeless_realitykit_content",
+    app_icons = ["//test/starlark_tests/resources:VisionAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_visionos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:realitykit_codeless_content",
         "//test/starlark_tests/resources:swift_main_lib",
     ],
 )

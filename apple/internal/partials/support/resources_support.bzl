@@ -524,6 +524,61 @@ def _pngs(
         processed_origins = processed_origins,
     )
 
+def _rkassets(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        files,
+        mac_exec_group,
+        output_discriminator,
+        parent_dir,
+        platform_prerequisites,
+        rule_label,
+        **_kwargs):
+    """Transforms rkassets into a reality bundle."""
+
+    label_name = rule_label.name
+
+    # TODO(b/300268204): Add a schema file when swift_files are passed through the resource
+    # processing action.
+    schema_file = None
+    rkassets_groups = group_files_by_directory(
+        files.to_list(),
+        ["rkassets"],
+        attr = "rkassets",
+    )
+
+    processed_origins = {}
+
+    reality_files = []
+    for rkassets_path, files in rkassets_groups.items():
+        reality_file = intermediates.file(
+            actions = actions,
+            file_name = paths.replace_extension(paths.basename(rkassets_path), ".reality"),
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+        )
+
+        resource_actions.compile_rkassets(
+            actions = actions,
+            input_files = files,
+            input_path = rkassets_path,
+            mac_exec_group = mac_exec_group,
+            output_file = reality_file,
+            platform_prerequisites = platform_prerequisites,
+            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            schema_file = schema_file,
+        )
+
+        reality_files.append(reality_file)
+
+        processed_origins[reality_file.short_path] = [f.short_path for f in files.to_list()]
+
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(direct = reality_files))],
+        processed_origins = processed_origins,
+    )
+
 def _storyboards(
         *,
         actions,
@@ -721,6 +776,7 @@ resources_support = struct(
     noop = _noop,
     plists_and_strings = _plists_and_strings,
     pngs = _pngs,
+    rkassets = _rkassets,
     storyboards = _storyboards,
     texture_atlases = _texture_atlases,
     xibs = _xibs,

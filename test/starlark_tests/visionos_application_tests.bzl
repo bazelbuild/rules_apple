@@ -346,6 +346,17 @@ def visionos_application_test_suite(name):
         ],
     )
 
+    archive_contents_test(
+        name = "{}_contains_compiled_reality_file_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
+        tags = [
+            name,
+            "needs-xcode-latest-beta",
+        ],
+    )
+
     # TODO(b/288582842): Support an IPA output via this output group. This will require some changes
     # to bundling, as the bundle-first build goes through a different set of Python tooling.
     #output_group_zip_contents_test(

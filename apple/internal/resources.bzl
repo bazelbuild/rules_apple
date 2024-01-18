@@ -102,6 +102,7 @@ CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "infoplists": (resources_support.infoplists, False),
     "plists": (resources_support.plists_and_strings, False),
     "pngs": (resources_support.pngs, False),
+    "rkassets": (resources_support.rkassets, True),
     "strings": (resources_support.plists_and_strings, False),
 }
 
@@ -267,6 +268,9 @@ def _bucketize_data(
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"
+                resource_swift_module = swift_module
+            elif ".rkassets/" in resource_short_path:
+                bucket_name = "rkassets"
                 resource_swift_module = swift_module
             elif ".atlas" in resource_short_path:
                 bucket_name = "texture_atlases"

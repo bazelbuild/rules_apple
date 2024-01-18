@@ -708,6 +708,11 @@ filegroup(
     srcs = glob(["versioned_datamodel.xcdatamodeld/**"]),
 )
 
+filegroup(
+    name = "realitykit_assets",
+    srcs = glob(["RealityKitContent.rkassets/**"]),
+)
+
 objc_library(
     name = "framework_resources_lib",
     data = [
@@ -765,5 +770,11 @@ swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
     module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "realitykit_codeless_content",
+    data = [":realitykit_assets"],
     tags = common.fixture_tags,
 )
