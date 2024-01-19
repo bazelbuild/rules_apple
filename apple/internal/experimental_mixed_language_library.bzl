@@ -6,6 +6,7 @@ load(
     "SwiftInfo",
     "swift_library",
 )
+load("//apple/internal:header_map_support.bzl", "header_map_support")
 
 _CPP_FILE_TYPES = [".cc", ".cpp", ".mm", ".cxx", ".C"]
 
@@ -196,6 +197,7 @@ def experimental_mixed_language_library(
         srcs,
         deps = [],
         enable_modules = False,
+        enable_header_map = False,
         module_name = None,
         objc_copts = [],
         swift_copts = [],
@@ -221,6 +223,7 @@ def experimental_mixed_language_library(
         deps: A list of targets that are dependencies of the target being
             built, which will be linked into that target.
         enable_modules: Enables clang module support for the Objective-C target.
+        enable_header_map: Enables header map support for the Swift and Objective-C target.
         module_name: The name of the mixed language module being built.
             If left unspecified, the module name will be the name of the
             target.
@@ -288,13 +291,26 @@ target only contains Objective-C files.""")
 
     # Add Obj-C includes to Swift header search paths
     repository_name = native.repository_name()
-    includes = kwargs.get("includes", [])
+    includes = kwargs.pop("includes", [])
     for x in includes:
         include = x if repository_name == "@" else "external/" + repository_name.lstrip("@") + "/" + x
         swift_copts += [
             "-Xcc",
             "-I{}".format(include),
         ]
+
+    # Generate a header map if requested
+    if enable_header_map:
+        header_map_ctx = header_map_support.create_header_map_context(
+            name = name,
+            module_name = module_name,
+            hdrs = hdrs,
+            deps = [":" + swift_library_name],
+        )
+        includes += header_map_ctx.includes
+        objc_copts += header_map_ctx.copts
+        objc_deps += header_map_ctx.header_maps
+        swift_copts += header_map_ctx.swift_copts
 
     # Generate module map for the underlying Obj-C module
     objc_module_map_name = name + ".internal.objc"
@@ -340,6 +356,7 @@ target only contains Objective-C files.""")
         testonly = testonly,
     )
     objc_deps.append(umbrella_module_map_label)
+
     native.objc_library(
         name = name,
         copts = objc_copts,
@@ -353,5 +370,6 @@ target only contains Objective-C files.""")
         module_map = umbrella_module_map_label,
         srcs = objc_srcs,
         testonly = testonly,
+        includes = includes,
         **kwargs
     )

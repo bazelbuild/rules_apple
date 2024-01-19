@@ -81,6 +81,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:header_map_support",
         "@bazel_skylib//lib:paths",
         "@build_bazel_rules_swift//swift",
     ],

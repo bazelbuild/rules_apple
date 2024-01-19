@@ -1,6 +1,5 @@
 #import <MixedAnswer/MixedAnswer.h>
-
-#import "examples/multi_platform/MixedLibWithHeaderMap/MixedAnswer-Swift.h"
+#import <MixedAnswer/MixedAnswer-Swift.h>
 
 @implementation MixedAnswerObjc
 
