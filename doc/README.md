@@ -106,7 +106,7 @@ below.
   </thead>
   <tbody>
     <tr>
-      <th align="left" valign="top" rowspan="5">General</th>
+      <th align="left" valign="top" rowspan="6">General</th>
       <tr>
         <td valign="top"><code>@build_bazel_rules_apple//apple:apple.bzl</code></td>
         <td valign="top">
@@ -127,6 +127,12 @@ below.
         <td valign="top"><code>@build_bazel_rules_apple//apple:docc.bzl</code></td>
         <td valign="top">
           <code><a href="rules-docc.md#docc_archive">docc_archive</a></code>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top"><code>@build_bazel_rules_apple//apple:header_map.bzl</code></td>
+        <td valign="top">
+          <code><a href="rules-header_map.md#header_map">header_map</a></code>
         </td>
       </tr>
       <tr>
