@@ -3,7 +3,6 @@ load(
     "swift_library",
 )
 load("//apple:apple.bzl", "experimental_mixed_language_library")
-load("//apple:header_map.bzl", "header_map")
 load("//apple:ios.bzl", "ios_unit_test")
 
 filegroup(
@@ -22,23 +21,8 @@ experimental_mixed_language_library(
     hdrs = [
         ":MixedAnswer.public_headers.h",
     ],
+    enable_header_map = True,
     enable_modules = True,
-    includes = [
-        "MixedAnswerHeaderMap.hmap",
-    ],
-    # TODO: remove once we have https://github.com/bazelbuild/rules_apple/issues/2371
-    objc_copts = ["-I."],
-    deps = [
-        ":MixedAnswerHeaderMap",
-    ],
-)
-
-header_map(
-    name = "MixedAnswerHeaderMap",
-    hdrs = [
-        ":MixedAnswer.public_headers.h",
-    ],
-    module_name = "MixedAnswer",
 )
 
 swift_library(
