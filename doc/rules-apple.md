@@ -385,7 +385,7 @@ Compiles and links Objective-C and Swift code into a static library.
 This is an experimental macro that supports compiling mixed Objective-C and
 Swift source files into a static library.
 
-Due to build performance reason, in general it's not recommended to
+Due to build performance reasons, in general it's not recommended to
 have mixed Objective-C and Swift modules, but it isn't uncommon to see
 mixed language modules in some codebases. This macro is meant to make
 it easier to migrate codebases with mixed language modules to Bazel without
