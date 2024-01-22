@@ -89,8 +89,7 @@ local_path_override(
 )
 EOF
 
-  touch WORKSPACE WORKSPACE.bzlmod
-  cp "$(rlocation build_bazel_rules_apple/platform_mappings)" platform_mappings
+  touch WORKSPACE
 }
 
 # Set-up a clean default workspace.
