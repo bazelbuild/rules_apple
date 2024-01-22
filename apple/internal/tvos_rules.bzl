@@ -134,6 +134,9 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+# TODO: Remove once we drop bazel 7.x
+_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
+
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -698,10 +701,7 @@ def _tvos_dynamic_framework_impl(ctx):
                 feature_configuration = cc_features,
                 libraries = provider.framework_files.to_list(),
             )
-            additional_providers.extend([
-                apple_common.new_objc_provider(
-                    dynamic_framework_file = provider.framework_files,
-                ),
+            additional_providers.append(
                 CcInfo(
                     linking_context = cc_common.create_linking_context(
                         linker_inputs = depset([
@@ -712,7 +712,13 @@ def _tvos_dynamic_framework_impl(ctx):
                         ]),
                     ),
                 ),
-            ])
+            )
+            if _OBJC_PROVIDER_LINKING:
+                additional_providers.append(
+                    apple_common.new_objc_provider(
+                        dynamic_framework_file = provider.framework_files,
+                    ),
+                )
     providers.extend(additional_providers)
 
     return [
@@ -1244,8 +1250,9 @@ def _tvos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         new_tvosextensionbundleinfo(),

@@ -99,10 +99,6 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
     return [
-        apple_common.new_objc_provider(
-            linkopt = depset(linkopts, order = "topological"),
-            link_inputs = depset([file]),
-        ),
         CcInfo(
             linking_context = cc_common.create_linking_context(
                 linker_inputs = depset([
@@ -114,7 +110,12 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
                 ]),
             ),
         ),
-    ]
+    ] + ([
+        apple_common.new_objc_provider(
+            linkopt = depset(linkopts, order = "topological"),
+            link_inputs = depset([file]),
+        ),
+    ] if _OBJC_PROVIDER_LINKING else [])
 
 def _register_binary_linking_action(
         ctx,

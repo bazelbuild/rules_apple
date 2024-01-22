@@ -142,6 +142,9 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+# TODO: Remove once we drop bazel 7.x
+_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
+
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -3194,10 +3197,7 @@ def _macos_dynamic_framework_impl(ctx):
                 feature_configuration = cc_features,
                 libraries = provider.framework_files.to_list(),
             )
-            additional_providers.extend([
-                apple_common.new_objc_provider(
-                    dynamic_framework_file = provider.framework_files,
-                ),
+            additional_providers.append(
                 CcInfo(
                     linking_context = cc_common.create_linking_context(
                         linker_inputs = depset([
@@ -3208,7 +3208,13 @@ def _macos_dynamic_framework_impl(ctx):
                         ]),
                     ),
                 ),
-            ])
+            )
+            if _OBJC_PROVIDER_LINKING:
+                additional_providers.append(
+                    apple_common.new_objc_provider(
+                        dynamic_framework_file = provider.framework_files,
+                    ),
+                )
     providers.extend(additional_providers)
 
     return [
