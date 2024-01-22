@@ -310,13 +310,8 @@ EOF
   do_build ios //app:app --features=apple.include_main_thread_checker \
         || fail "Should build"
 
-  if is_device_build ios ; then
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "Payload/app.app/Frameworks/libMainThreadChecker.dylib"
-  else
-    assert_zip_contains "test-bin/app/app.ipa" \
-        "Payload/app.app/Frameworks/libMainThreadChecker.dylib"
-  fi
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/Frameworks/libMainThreadChecker.dylib"
 }
 
 run_suite "ios_application with Swift bundling tests"
