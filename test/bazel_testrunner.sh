@@ -69,103 +69,27 @@ function create_new_workspace() {
   mkdir -p "${new_workspace_dir}"
   cd "${new_workspace_dir}"
 
-  # Make a modifiable copy of external, so that we can mock out missing
-  # test resources. This should only be needed for mocking the xctestrunner
-  # BUILD file below; if we can workaround this, we don't need to make this
-  # copy and we should reference it from the original location.
-  cp -rf "$EXTERNAL_DIR" ../external
-
-  apple_support_path=$(resolve_external_repository build_bazel_apple_support)
   rules_apple_path=$(resolve_external_repository build_bazel_rules_apple)
-  rules_swift_path=$(resolve_external_repository build_bazel_rules_swift)
 
   touch MODULE.bazel
   cat > MODULE.bazel <<EOF
 module(name = "build_bazel_rules_apple_integration_tests", version = "0")
 
-bazel_dep(name = "apple_support", version = "0", repo_name = "build_bazel_apple_support")
-bazel_dep(name = "rules_swift", version = "0", repo_name = "build_bazel_rules_swift")
+# Specify oldest possible bzlmod versions and let rules_apple versions take precedence
+bazel_dep(name = "apple_support", version = "0.11.0", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_swift", version = "1.2.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
 
 xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
 use_repo(xcode_configure, "local_config_xcode")
 
 local_path_override(
-    module_name = "apple_support",
-    path = "$apple_support_path",
-)
-local_path_override(
-    module_name = "rules_swift",
-    path = "$rules_swift_path",
-)
-local_path_override(
     module_name = "rules_apple",
     path = "$rules_apple_path",
 )
 EOF
 
-  touch WORKSPACE.bzlmod
-
-  touch WORKSPACE
-  cat > WORKSPACE <<EOF
-workspace(name = 'build_bazel_rules_apple_integration_tests')
-
-# We can't use local_repository as the dependencies won't
-# copy some of the build files or WORKSPACE. new_local_repository
-# will create a new WORKSPACE file and we just need to pass the
-# contents for a top level BUILD file, which can be empty.
-new_local_repository(
-    name = "bazel_skylib",
-    build_file_content = '',
-    path = '$PWD/../external/bazel_skylib',
-)
-
-local_repository(
-    name = 'build_bazel_rules_apple',
-    path = '$rules_apple_path',
-)
-
-local_repository(
-    name = 'build_bazel_rules_swift',
-    path = '$rules_swift_path',
-)
-
-local_repository(
-    name = 'build_bazel_apple_support',
-    path = '$apple_support_path',
-)
-
-local_repository(
-    name = 'xctestrunner',
-    path = '$(resolve_external_repository xctestrunner)',
-)
-
-# We load rules_swift dependencies into the WORKSPACE. This is safe to do
-# _for now_ because Swift currently depends on:
-#
-# * skylib - which is already loaded, so it won't be loaded again.
-# * swift_protobuf - which is not used in the integration tests, so it won't be
-#   loaded.
-# * protobuf - which also is not used in the integration tests.
-# * swift_toolchain - which is generated locally, so nothing to download.
-#
-# If these assumptions change over time, we'll need to reassess this way of
-# loading rules_swift dependencies.
-
-load(
-    "@build_bazel_rules_swift//swift:repositories.bzl",
-    "swift_rules_dependencies",
-)
-
-swift_rules_dependencies()
-
-load(
-    "@build_bazel_apple_support//lib:repositories.bzl",
-    "apple_support_dependencies",
-)
-
-apple_support_dependencies()
-EOF
+  touch WORKSPACE WORKSPACE.bzlmod
 }
 
 # Set-up a clean default workspace.

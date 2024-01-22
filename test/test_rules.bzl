@@ -103,13 +103,10 @@ def apple_shell_test(
         data = [
             src,
             "//:for_bazel_tests",
-            "//test:external_deps",
             "//test:apple_shell_testutils.sh",
             "//test/testdata/provisioning:integration_testing_profiles",
             "//test:unittest.bash",
-            "@build_bazel_apple_support//:BUILD",
             "@build_bazel_rules_apple//:BUILD",
-            "@build_bazel_rules_swift//:BUILD",
         ] + (data or []),
         deps = [
             "@bazel_tools//tools/bash/runfiles",

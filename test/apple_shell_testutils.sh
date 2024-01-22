@@ -469,9 +469,7 @@ function do_action() {
       # Used so that if there's a single configuration transition, its output
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
-      "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
-      "--crosstool_top=@local_config_apple_cc//:toolchain"
-      "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      "--enable_bzlmod"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
