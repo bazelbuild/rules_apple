@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     "xctoolrunner",
 )
@@ -31,6 +35,74 @@ _PLATFORM_TO_TOOL_PLATFORM = {
     str(apple_common.platform.visionos_device): "xros",
     str(apple_common.platform.visionos_simulator): "xrsimulator",
 }
+
+def create_schema_rkassets(
+        *,
+        actions,
+        label_name,
+        mac_exec_group,
+        module_name,
+        output_discriminator,
+        output_file,
+        platform_prerequisites,
+        swift_files):
+    """Creates an action that generates a USDA schema from Swift source files for a reality bundle.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      label_name: The String representing the target that owns this action.
+      mac_exec_group: The exec_group associated with Apple actions
+      module_name: The String representing the module name for the target that owns this action.
+      output_discriminator: A String to differentiate between different target intermediate files or
+        `None`.
+      output_file: The File reference for the output schema (Pixar usda format).
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      swift_files: A depset of swift source File inputs that will be used to build the schema.
+    """
+
+    # Intermediate step; create a JSON file with json.encode(...) on a struct and write that to a
+    # file that will be the argument for the following action, as well as one of its arguments.
+
+    # TODO(b/300268204): Fill in "Dependencies" with transitive library information. This will
+    # require additional support from providers.
+    swift_file_paths = [x.short_path for x in swift_files.to_list()]
+
+    module_with_deps = struct(
+        dependencies = [],
+        module = struct(
+            moduleName = module_name,
+            swiftFiles = swift_file_paths,
+        ),
+    )
+
+    module_with_deps_json_file = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "ModuleWithDependencies.json",
+    )
+    actions.write(
+        output = module_with_deps_json_file,
+        content = json.encode(module_with_deps),
+    )
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = [
+            "realitytool",
+            "create-schema",
+            "--output-schema",
+            output_file.path,
+            module_with_deps_json_file.path,
+        ],
+        exec_group = mac_exec_group,
+        executable = "/usr/bin/xcrun",
+        inputs = depset([module_with_deps_json_file], transitive = [swift_files]),
+        mnemonic = "CreateSchemaRealityKitAssets",
+        outputs = [output_file],
+        xcode_config = platform_prerequisites.xcode_version_config,
+    )
 
 def compile_rkassets(
         *,
@@ -69,7 +141,14 @@ support if you have a project that desires this feature.
 
     args = actions.args()
     args.add("realitytool")
-    args.add("compile", xctoolrunner.prefixed_path(input_path))
+    args.add("compile")
+
+    # This is a custom arg to signal to xctool runner that this is the *actual* input bundle.
+    # Unfortunately, realitytool writes directly to the rkassets bundle it is given when the
+    # --schema-file option is supplied, requiring an intermediate temp bundle path to be given to
+    # the tool itself.
+    args.add("--bazel_input_path", input_path)
+
     args.add("--platform", _PLATFORM_TO_TOOL_PLATFORM[str(platform_prerequisites.platform)])
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     if schema_file:

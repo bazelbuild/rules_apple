@@ -37,7 +37,9 @@ Subcommands:
 import argparse
 import os
 import re
+import shutil
 import sys
+import tempfile
 
 from build_bazel_rules_apple.tools.wrapper_common import execute
 
@@ -284,14 +286,40 @@ def mapc(_, toolargs):
   return return_code
 
 
-def realitytool(_, toolargs):
+def realitytool(args, toolargs):
   """Assemble the call to "xcrun realitytool"."""
   xcrunargs = ["xcrun", "realitytool"]
   _apply_realpath(toolargs)
   xcrunargs += toolargs
 
+  # The compile stage requires a writeable rkassets bundle as an input for the
+  # tool when it is supplied a USDA schema file, because it *copies* that file
+  # to the .rkassets bundle before compiling its contents to a reality file.
+  #
+  # To work around this, we copy the bundle contents to a temporary directory,
+  # set the bundle and its contents' permissions to read, write and execute for
+  # user and read only for everybody else, and pass that manipulated bundle to
+  # realitytool.
+  bazel_input_path = args.bazel_input_path
+  temp_bundle_path = None
+  if bazel_input_path:
+    input_path_basename = os.path.basename(bazel_input_path)
+    temp_bundle_path = tempfile.mkdtemp(prefix="realitytool-modified")
+    destination_bundle = os.path.join(temp_bundle_path, input_path_basename)
+    shutil.copytree(
+        src=bazel_input_path, dst=destination_bundle, dirs_exist_ok=True
+    )
+    os.chmod(destination_bundle, 0o744)
+    for root, dirs, _ in os.walk(destination_bundle):
+      for directory in dirs:
+        os.chmod(os.path.join(root, directory), 0o744)
+    xcrunargs += [destination_bundle]
+
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs, print_output=True)
+      xcrunargs, print_output=True
+  )
+  if temp_bundle_path:
+    shutil.rmtree(temp_bundle_path)
   return return_code
 
 
@@ -324,6 +352,9 @@ def main(argv):
 
   # REALITYTOOL Argument Parser
   realitytool_parser = subparsers.add_parser("realitytool")
+  realitytool_parser.add_argument(
+      "--bazel_input_path",
+      help="An input path to be copied to a temp location for r+w support.")
   realitytool_parser.set_defaults(func=realitytool)
 
   # Parse the command line and execute subcommand

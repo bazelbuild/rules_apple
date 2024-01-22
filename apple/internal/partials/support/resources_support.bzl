@@ -534,14 +534,39 @@ def _rkassets(
         parent_dir,
         platform_prerequisites,
         rule_label,
+        swift_files,
+        swift_module,
         **_kwargs):
     """Transforms rkassets into a reality bundle."""
 
     label_name = rule_label.name
 
-    # TODO(b/300268204): Add a schema file when swift_files are passed through the resource
-    # processing action.
     schema_file = None
+    if swift_files:
+        schema_file = intermediates.file(
+            actions = actions,
+            file_name = "CustomComponentUSDInitializers.usda",
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+        )
+
+        if not swift_module:
+            fail("Internal Error: Unable to determine the module name when processing rkassets " +
+                 "for " + rule_label)
+
+        # Strategy: "files" will be just the rkassets, which are NOT inputs to the whole
+        # create-schema action. We assume that one (Swift) module == one set of files == one schema.
+        resource_actions.create_schema_rkassets(
+            actions = actions,
+            label_name = label_name,
+            mac_exec_group = mac_exec_group,
+            module_name = swift_module,
+            output_discriminator = output_discriminator,
+            output_file = schema_file,
+            platform_prerequisites = platform_prerequisites,
+            swift_files = swift_files,
+        )
+
     rkassets_groups = group_files_by_directory(
         files.to_list(),
         ["rkassets"],

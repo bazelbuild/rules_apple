@@ -9,6 +9,10 @@ load(
     "apple_resource_group",
 )
 load(
+    "//apple/hints:apple_resource_hint.bzl",
+    "apple_resource_hint",
+)
+load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
@@ -776,5 +780,31 @@ swift_library(
 objc_library(
     name = "realitykit_codeless_content",
     data = [":realitykit_assets"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "realitykit_standalone_content",
+    srcs = [
+        "realitykit_content.swift",
+        "realitykit_standalone_component.swift",
+    ],
+    aspect_hints = ["//apple/hints:realitykit_library_hint"],
+    data = [":realitykit_assets"],
+    module_name = "RealityKitContent",
+    tags = common.fixture_tags,
+)
+
+apple_resource_hint(
+    name = "dummy_library_hint",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "library_with_two_apple_resource_hints",
+    aspect_hints = [
+        ":dummy_library_hint",
+        "//apple/hints:realitykit_library_hint",
+    ],
     tags = common.fixture_tags,
 )

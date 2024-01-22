@@ -32,6 +32,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_resource_hint_info",
+    srcs = ["apple_resource_hint_info.bzl"],
+    visibility = [
+        # This provider is used both by the `resource_aspect` and the `apple_resource_hint` rule.
+        "//apple/hints:__subpackages__",
+        "//apple/internal/aspects:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "apple_resource_validation_info",
     srcs = ["apple_resource_validation_info.bzl"],
     visibility = [

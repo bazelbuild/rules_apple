@@ -15,6 +15,10 @@
 """Implementation of the resource propagation aspect."""
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -58,8 +62,16 @@ load(
     "AppleDebugInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_hint_info.bzl",
+    "AppleResourceHintInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
     "AppleResourceValidationInfo",
+)
+load(
+    "@build_bazel_rules_swift//swift:module_name.bzl",
+    "derive_swift_module_name",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -67,6 +79,28 @@ load(
 )
 
 visibility("//apple/internal/...")
+
+def _find_apple_resource_hint_info(aspect_ctx):
+    """Finds a `AppleResourceHintInfo` provider associated with the target."""
+    resource_hint_target = None
+
+    # We don't break this loop early when we find a matching hint, because we
+    # want to give an error message if there are two aspect hints that provide
+    # `AppleResourceHintInfo` (or if both the rule and an aspect hint do).
+    for hint in aspect_ctx.rule.attr.aspect_hints:
+        if AppleResourceHintInfo in hint:
+            if resource_hint_target:
+                fail(("Conflicting Apple resource hint info from aspect hints " +
+                      "'{hint1}' and '{hint2}'. Only one is " +
+                      "allowed.").format(
+                    hint1 = str(resource_hint_target.label),
+                    hint2 = str(hint.label),
+                ))
+            resource_hint_target = hint
+
+    if resource_hint_target:
+        return resource_hint_target[AppleResourceHintInfo]
+    return None
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
@@ -124,6 +158,12 @@ def _apple_resource_aspect_impl(target, ctx):
     # The name of the bundle directory to place resources within, if required.
     bundle_name = None
 
+    # The local apple_resource_hint affecting processing.
+    apple_resource_hint_info = _find_apple_resource_hint_info(ctx)
+
+    # Any Swift source code files that should be relayed to processing, if required.
+    swift_files = depset()
+
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
@@ -133,10 +173,16 @@ def _apple_resource_aspect_impl(target, ctx):
             owner = str(ctx.label)
 
     elif ctx.rule.kind == "swift_library":
-        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
+        module_names = collections.uniq(
+            [x.name for x in target[SwiftInfo].direct_modules if x.swift],
+        )
+        if not module_names:
+            module_names = [derive_swift_module_name(ctx.label)]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
+        if apple_resource_hint_info and apple_resource_hint_info.needs_swift_srcs:
+            swift_files = depset(transitive = [x.files for x in ctx.rule.attr.srcs])
 
     elif ctx.rule.kind == "apple_resource_group":
         collect_args["res_attrs"] = ["resources"]
@@ -168,6 +214,7 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
+                    swift_files = swift_files,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -191,6 +238,7 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
+                    swift_files = swift_files,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -241,6 +289,7 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
+                    swift_files = swift_files,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -273,6 +322,9 @@ def _apple_resource_aspect_impl(target, ctx):
                             transitive_target_bundle_infos = depset([target_apple_bundle_info]),
                         ),
                     )
+
+                # TODO(b/300268204): Find and append providers related to RealityKit Content
+                # processing here. Consider gating behavior on the presence of an aspect hint.
 
                 if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
                     # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to
@@ -325,6 +377,9 @@ def _apple_resource_aspect_impl(target, ctx):
                 ),
             ),
         )
+
+    # TODO(b/300268204): Propagate down providers related to RealityKit Content processing here.
+    # Consider gating behavior on the presence of an aspect hint.
 
     if apple_debug_infos:
         providers.append(
