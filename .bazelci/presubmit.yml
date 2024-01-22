@@ -27,6 +27,11 @@ tasks:
     bazel: latest
     <<: *common
 
+  macos_6_lts:
+    name: "6.x LTS"
+    bazel: 6.x
+    <<: *common
+
   macos_last_green:
     name: "Last Green Bazel"
     <<: *common
