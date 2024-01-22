@@ -28,10 +28,11 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
     """
+
     # Xcode does not use `pngcrush` on macOS, but allow override using a feature.
     should_compress_png = (
-        platform_prerequisites.platform_type != apple_common.platform_type.macos
-        or "apple.macos_compress_png_files" in platform_prerequisites.features
+        platform_prerequisites.platform_type != apple_common.platform_type.macos or
+        "apple.macos_compress_png_files" in platform_prerequisites.features
     )
 
     if should_compress_png:
