@@ -233,7 +233,7 @@ def apple_static_xcframework_import_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
         tags = [name],
     )
 
