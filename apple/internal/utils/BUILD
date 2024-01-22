@@ -24,6 +24,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "main_thread_checker_dylibs",
+    srcs = ["main_thread_checker_dylibs.bzl"],
+    deps = ["@bazel_tools//tools/cpp:toolchain_utils.bzl"],
+)
+
+bzl_library(
     name = "defines",
     srcs = ["defines.bzl"],
 )

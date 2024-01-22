@@ -92,6 +92,21 @@ bzl_library(
 )
 
 bzl_library(
+    name = "main_thread_checker_dylibs",
+    srcs = ["main_thread_checker_dylibs.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "//apple/internal/utils:main_thread_checker_dylibs",
+        "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "codesigning_dossier",
     srcs = ["codesigning_dossier.bzl"],
     visibility = [
