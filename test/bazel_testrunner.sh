@@ -83,6 +83,9 @@ bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_ap
 xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
 use_repo(xcode_configure, "local_config_xcode")
 
+apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
+use_repo(apple_cc_configure, "local_config_apple_cc")
+
 local_path_override(
     module_name = "rules_apple",
     path = "$rules_apple_path",
