@@ -368,7 +368,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".qlgenerator",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            bundle_package_type = bundle_package_type.extension_or_xpc,
+            bundle_package_type = bundle_package_type.bundle,
             product_type = apple_product_type.quicklook_plugin,
             requires_signing_for_device = False,
         ),
