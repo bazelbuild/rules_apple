@@ -1020,8 +1020,6 @@ def _macos_quick_look_plugin_impl(ctx):
 
     extra_linkopts = [
         "-dynamiclib",
-        "-install_name",
-        "\"/Library/Frameworks/{0}.qlgenerator/{0}\"".format(ctx.attr.bundle_name),
     ]
     link_result = linking_support.register_binary_linking_action(
         ctx,
