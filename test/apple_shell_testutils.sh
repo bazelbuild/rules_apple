@@ -472,6 +472,7 @@ function do_action() {
       "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       "--crosstool_top=@local_config_apple_cc//:toolchain"
       "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      "--enable_bzlmod"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
