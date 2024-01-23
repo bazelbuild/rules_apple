@@ -423,8 +423,9 @@ on your use case for the resources.
 *   `.strings` and `.plist` files. string and generic plist (i.e. non Info.plist
     files) files are processed using plutil to convert them into binary format,
     to reduce their size.
-*   `.png` files: PNG files are processed using copypng to optimize them for iOS
-    devices.
+*   `.png` files: PNG files are processed using `copypng` to optimize them for
+    iOS devices. This is disabled by default on macOS, but can be enabled with
+    the `apple.macos_compress_png_files` feature.
 *   `.xib` files: XIB files are processed using `ibtoold`.
 *   `.xcdatamodel` and `.xcmappingmodel` files: These files are processed with
     `momc` and `mapc` respectively.
