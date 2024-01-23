@@ -1018,14 +1018,11 @@ def _macos_quick_look_plugin_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    extra_linkopts = [
-        "-dynamiclib",
-    ]
     link_result = linking_support.register_binary_linking_action(
         ctx,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = extra_linkopts,
+        extra_linkopts = ["-bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
