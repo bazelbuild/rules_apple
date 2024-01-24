@@ -428,7 +428,7 @@ def _apple_static_framework_import_impl(ctx):
             disabled_features = disabled_features,
             features = features,
             framework_includes = _framework_search_paths(
-                framework.header_imports,
+                framework.header_imports + framework.swift_interface_imports + framework.swift_module_imports,
             ),
             header_imports = framework.header_imports,
             kind = "static",
