@@ -795,6 +795,44 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "realitykit_dependent_content",
+    srcs = [
+        "realitykit_content.swift",
+        "realitykit_dependent_component.swift",
+    ],
+    aspect_hints = ["//apple/hints:realitykit_library_hint"],
+    data = [":realitykit_assets"],
+    module_name = "RealityKitDependentContent",
+    tags = common.fixture_tags,
+    deps = [
+        ":realitykit_content_library_dependency",
+    ],
+)
+
+swift_library(
+    name = "realitykit_content_library_dependency",
+    srcs = [
+        "realitykit_content_library_dependency.swift",
+    ],
+    aspect_hints = ["//apple/hints:realitykit_library_hint"],
+    module_name = "RealityKitContentLibraryDependency",
+    tags = common.fixture_tags,
+    deps = [
+        ":realitykit_library_transient_dependency",
+    ],
+)
+
+swift_library(
+    name = "realitykit_library_transient_dependency",
+    srcs = [
+        "realitykit_library_transient_dependency.swift",
+    ],
+    aspect_hints = ["//apple/hints:realitykit_library_hint"],
+    module_name = "RealityKitLibraryTransientDependency",
+    tags = common.fixture_tags,
+)
+
 apple_resource_hint(
     name = "dummy_library_hint",
     tags = common.fixture_tags,

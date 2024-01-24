@@ -536,6 +536,7 @@ def _rkassets(
         rule_label,
         swift_files,
         swift_module,
+        transitive_swift_srcs,
         **_kwargs):
     """Transforms rkassets into a reality bundle."""
 
@@ -555,7 +556,11 @@ def _rkassets(
                  "for " + rule_label)
 
         # Strategy: "files" will be just the rkassets, which are NOT inputs to the whole
-        # create-schema action. We assume that one (Swift) module == one set of files == one schema.
+        # create-schema action.
+        #
+        # We assume that one (Swift) module == one set of files, and all Swift sources coming from
+        # transitive, hinted deps are represented via transitive_swift_srcs. Collectively these
+        # three inputs all form one Pixar USDA schema.
         resource_actions.create_schema_rkassets(
             actions = actions,
             label_name = label_name,
@@ -565,6 +570,7 @@ def _rkassets(
             output_file = schema_file,
             platform_prerequisites = platform_prerequisites,
             swift_files = swift_files,
+            transitive_swift_srcs = transitive_swift_srcs,
         )
 
     rkassets_groups = group_files_by_directory(

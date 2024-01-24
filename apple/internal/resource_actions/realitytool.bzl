@@ -45,7 +45,8 @@ def create_schema_rkassets(
         output_discriminator,
         output_file,
         platform_prerequisites,
-        swift_files):
+        swift_files,
+        transitive_swift_srcs):
     """Creates an action that generates a USDA schema from Swift source files for a reality bundle.
 
     Args:
@@ -58,23 +59,30 @@ def create_schema_rkassets(
       output_file: The File reference for the output schema (Pixar usda format).
       platform_prerequisites: Struct containing information on the platform being targeted.
       swift_files: A depset of swift source File inputs that will be used to build the schema.
+      transitive_swift_srcs: A list of AppleResourceSwiftSourcesInfo providers representing
+        transitive Swift module names and source files if any are required for building the schema.
     """
 
     # Intermediate step; create a JSON file with json.encode(...) on a struct and write that to a
     # file that will be the argument for the following action, as well as one of its arguments.
 
-    # TODO(b/300268204): Fill in "Dependencies" with transitive library information. This will
-    # require additional support from providers.
-    swift_file_paths = [x.short_path for x in swift_files.to_list()]
-
+    transitive_inputs = [swift_files]
+    dependencies = []
+    for source_provider in transitive_swift_srcs:
+        for swift_src_info in source_provider.transitive_swift_src_infos.to_list():
+            src_files = swift_src_info.src_files
+            transitive_inputs.append(src_files)
+            dependencies.append(struct(
+                moduleName = swift_src_info.module_name,
+                swiftFiles = [x.short_path for x in src_files.to_list()],
+            ))
     module_with_deps = struct(
-        dependencies = [],
+        dependencies = dependencies,
         module = struct(
             moduleName = module_name,
-            swiftFiles = swift_file_paths,
+            swiftFiles = [x.short_path for x in swift_files.to_list()],
         ),
     )
-
     module_with_deps_json_file = intermediates.file(
         actions = actions,
         target_name = label_name,
@@ -85,7 +93,6 @@ def create_schema_rkassets(
         output = module_with_deps_json_file,
         content = json.encode(module_with_deps),
     )
-
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
@@ -98,7 +105,7 @@ def create_schema_rkassets(
         ],
         exec_group = mac_exec_group,
         executable = "/usr/bin/xcrun",
-        inputs = depset([module_with_deps_json_file], transitive = [swift_files]),
+        inputs = depset([module_with_deps_json_file], transitive = transitive_inputs),
         mnemonic = "CreateSchemaRealityKitAssets",
         outputs = [output_file],
         xcode_config = platform_prerequisites.xcode_version_config,

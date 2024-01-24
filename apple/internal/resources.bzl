@@ -448,7 +448,8 @@ def _process_bucketized_data(
         processing_owner = None,
         product_type,
         rule_label,
-        swift_files = [],
+        swift_files,
+        transitive_swift_srcs,
         unowned_resources = []):
     """Registers actions for cacheable resource types, given bucketized groupings of data.
 
@@ -471,8 +472,11 @@ def _process_bucketized_data(
             own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         product_type: The product type identifier used to describe the current bundle type.
         rule_label: The label of the target being analyzed.
-        swift_files: A depset of Swift files required for processing resource actions, if any were
-            needed for this set of processing. Should be gated by an aspect_hint.
+        swift_files: A depset of Swift files required for processing resource actions. Should be
+            gated by an aspect_hint.
+        transitive_swift_srcs: A list of AppleResourceSwiftSrcsInfo providers representing
+            transitive Swift module names and source files required for processing resource actions
+            if any were needed. Should be gated by an aspect_hint.
         unowned_resources: A list of "unowned" resources.
 
     Returns:
@@ -501,6 +505,7 @@ def _process_bucketized_data(
                 "product_type": product_type,
                 "rule_label": rule_label,
                 "swift_files": swift_files,
+                "transitive_swift_srcs": transitive_swift_srcs,
             }
 
             # Only pass the Swift module name if the resource to process requires it.

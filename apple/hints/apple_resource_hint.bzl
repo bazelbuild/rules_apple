@@ -23,7 +23,10 @@ visibility("public")
 
 def _apple_resource_hint_impl(ctx):
     return [
-        AppleResourceHintInfo(needs_swift_srcs = ctx.attr.needs_swift_srcs),
+        AppleResourceHintInfo(
+            needs_swift_srcs = ctx.attr.needs_swift_srcs,
+            needs_transitive_swift_srcs = ctx.attr.needs_transitive_swift_srcs,
+        ),
     ]
 
 apple_resource_hint = rule(
@@ -36,6 +39,15 @@ Apple resource processing. This is needed for resources that declare Swift sourc
 like rkassets from Swift packages that declare Swift sources.
 """,
             mandatory = False,
+        ),
+        "needs_transitive_swift_srcs": attr.bool(
+            default = False,
+            doc = """\
+If `True`, the hinted target indicates that it should pass its Swift sources and the name of the
+module that they are associated with down to its immediate descendants in the build graph, as well
+as receive transitive Swift sources and the names of the modules that they are respectively built
+with from its immediate ancestor in the build graph.
+""",
         ),
     },
     doc = """

@@ -19,12 +19,33 @@ visibility([
     "//apple/internal/aspects/...",
 ])
 
-AppleResourceHintInfo = provider(
+def _apple_resource_hint_info_init(
+        *,
+        needs_swift_srcs,
+        needs_transitive_swift_srcs):
+    if needs_transitive_swift_srcs and not needs_swift_srcs:
+        fail("""
+Internal Error: If needs_transitive_swift_srcs is True, that implies needs_swift_srcs should be
+True, but instead it was explicitly set to False.
+""")
+    return {
+        "needs_swift_srcs": needs_swift_srcs,
+        "needs_transitive_swift_srcs": needs_transitive_swift_srcs,
+    }
+
+AppleResourceHintInfo, _ = provider(
     doc = "Provider that propagates aspect hint information that affects Apple resource processing",
     fields = {
         "needs_swift_srcs": """
 `Boolean`. True if the hinted target indicates that swift_library sources are to be passed down to
 Apple resource processing.
 """,
+        "needs_transitive_swift_srcs": """
+`Boolean`. True if the hinted target indicates that swift_library sources and module names are both
+to be received from the target's hinted ancestors as well as forwarded down to descendants, along
+with the target's current Swift sources and module name, for the purposes of Apple resource
+processing.
+""",
     },
+    init = _apple_resource_hint_info_init,
 )

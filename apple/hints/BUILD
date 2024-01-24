@@ -18,4 +18,5 @@ bzl_library(
 apple_resource_hint(
     name = "realitykit_library_hint",
     needs_swift_srcs = True,
+    needs_transitive_swift_srcs = True,
 )
