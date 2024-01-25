@@ -814,7 +814,6 @@ apple_static_xcframework(
         ],
         "device": [
             "arm64",
-            "x86_64",
         ],
     },
     minimum_os_versions = {
