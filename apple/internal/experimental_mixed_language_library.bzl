@@ -282,13 +282,14 @@ target only contains Objective-C files.""")
     # `enable_modules` set to `True` in `objc_library`. This enables it via copts.
     # See: https://github.com/bazelbuild/bazel/issues/20703
     if enable_modules:
-        objc_copts.append("-fmodules")
+        # buildifier: disable=list-append (select does not support list append)
+        objc_copts += ["-fmodules"]
 
     objc_deps = [":" + swift_library_name]
 
     # Add Obj-C includes to Swift header search paths
     repository_name = native.repository_name()
-    includes = kwargs.pop("includes", [])
+    includes = [] + kwargs.pop("includes", [])
     for x in includes:
         include = x if repository_name == "@" else "external/" + repository_name.lstrip("@") + "/" + x
         swift_copts += [
@@ -303,6 +304,7 @@ target only contains Objective-C files.""")
             module_name = module_name,
             hdrs = hdrs,
             deps = [":" + swift_library_name],
+            testonly = testonly,
         )
         includes += header_map_ctx.includes
         objc_copts += header_map_ctx.copts
