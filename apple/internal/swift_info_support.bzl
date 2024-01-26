@@ -73,15 +73,16 @@ def _swift_include_info(
         The module found from `transitive_modules` that has the necessary swift interfaces.
     """
     swift_module = None
+    transitive_modules_list = transitive_modules.to_list()
 
-    for module in transitive_modules.to_list():
+    for module in transitive_modules_list:
         if not module.swift or sets.contains(avoid_modules, module.name):
             continue
 
         if swift_module or (found_module_name and module.name != found_module_name):
             fail(
                 """\
-error: Swift third party frameworks expect a single swift_library dependency with no transitive \
+Error: Swift third party frameworks expect a single swift_library dependency with no transitive \
 swift_library dependencies.\
 """,
             )
@@ -89,12 +90,43 @@ swift_library dependencies.\
         if not all([module.name, module.swift.swiftdoc, module.swift.swiftinterface]):
             fail(
                 """\
-error: Could not find all required artifacts and information to build a Swift framework. \
+Error: Could not find all required artifacts and information to build a Swift framework. \
 Please file an issue with a reproducible error case.\
 """,
             )
 
         swift_module = module
+
+    if not swift_module:
+        if not transitive_modules_list:
+            fail("""\
+Internal Error: Swift third party frameworks require a Swift module to be defined from a \
+"swift_library", but could not find any Swift modules from deps. Please file an issue on the Apple \
+BUILD rules with a reproducible error case.
+""")
+
+        avoid_modules_list = sets.to_list(avoid_modules) if avoid_modules else None
+        if avoid_modules_list:
+            fail("""\
+Error: Could not find a Swift module to build a Swift framework. This could be because "avoid_deps"\
+ is too broadly defined.
+
+Found these Swift modules within "avoid_deps": {avoid_modules_list}
+
+Found these Swift modules within "deps": {transitive_modules_list}
+""".format(
+                avoid_modules_list = ", ".join(sorted(avoid_modules_list)),
+                transitive_modules_list = ", ".join(sorted([
+                    module.name
+                    for module in transitive_modules_list
+                ])),
+            ))
+
+        fail("""\
+Internal Error: Could not find any Swift modules from deps, even though information for transitive \
+modules from a Swift library dependency was found in deps. Please file an issue on the Apple BUILD \
+rules with a reproducible error case.
+""")
 
     return swift_module
 
