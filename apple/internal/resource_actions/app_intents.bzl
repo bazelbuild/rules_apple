@@ -89,6 +89,18 @@ Could not find a module name for app_intents. One is required for App Intents me
         )
         transitive_inputs.append(depset(constvalues_files))
         args.add("--compile-time-extraction")
+    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.3"):
+        # Read the build version from the fourth component of the Xcode version.
+        xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
+        if len(xcode_version_split) < 4:
+            fail("""\
+Internal Error: Expected xcode_config to report the Xcode version with the build version as the \
+fourth component of the full version string, but instead found {xcode_version_string}. Please file \
+an issue with the Apple BUILD rules with repro steps.
+""".format(
+                xcode_version_string = str(xcode_version_config.xcode_version()),
+            ))
+        args.add("--xcode-version", xcode_version_split[3])
 
     apple_support.run_shell(
         actions = actions,
