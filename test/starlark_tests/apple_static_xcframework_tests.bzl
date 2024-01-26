@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -275,6 +279,13 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/custom_apple_resource_info.out",
         ],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_overreaching_avoid_deps_swift_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_broad_avoid_deps",
+        expected_error = "Error: Could not find a Swift module to build a Swift framework. This could be because \"avoid_deps\" is too broadly defined.",
         tags = [name],
     )
 
