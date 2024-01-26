@@ -628,7 +628,6 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         output_group_name = "linkmaps",
         expected_outputs = [
-            "app_x86_64.linkmap",
             "app_arm64.linkmap",
         ],
         tags = [name],
