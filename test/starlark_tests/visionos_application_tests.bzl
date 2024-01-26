@@ -221,6 +221,7 @@ def visionos_application_test_suite(name):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        architectures = ["arm64"],
         tags = [
             name,
         ],
