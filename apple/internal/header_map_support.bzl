@@ -20,7 +20,8 @@ def _create_header_map_context(
         name,
         module_name,
         hdrs,
-        deps):
+        deps,
+        testonly = False):
     """
     Creates header_map(s) for the target with the given name.
 
@@ -31,6 +32,7 @@ def _create_header_map_context(
             under module_name and flattened.
         deps: The direct dependencies to include in the header map, any headers in the deps will be rooted
             under this `module_name` and flattened.
+        testonly: Whether or not this is a header map being used for a test only target.
 
     Returns a struct (or `None` if no headers) with the following attributes:
         copts: The compiler options to use when compiling a C family library with header maps.
@@ -52,6 +54,7 @@ def _create_header_map_context(
         module_name = module_name,
         hdrs = [public_hdrs_filegroup],
         deps = deps,
+        testonly = testonly,
     )
 
     copts = [
