@@ -289,10 +289,7 @@ bzl_library(
 bzl_library(
     name = "infoplist_support",
     srcs = ["infoplist_support.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-        "//test:__subpackages__",
-    ],
+    visibility = ["//apple:__subpackages__"],
     deps = [
         "@bazel_skylib//lib:paths",
     ],
