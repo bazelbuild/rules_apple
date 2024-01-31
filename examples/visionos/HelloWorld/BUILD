@@ -28,20 +28,12 @@ visionos_application(
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
     minimum_os_version = "1.0",
-    target_compatible_with = select({
-        "//:supports_visionos_setting": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )
 
 build_test(
     name = "HelloWorldBuildTest",
-    target_compatible_with = select({
-        "//:supports_visionos_setting": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
     targets = [
         ":HelloWorld",
     ],
