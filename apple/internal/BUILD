@@ -132,7 +132,6 @@ bzl_library(
         "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:sets",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",

@@ -19,9 +19,8 @@ XCFramework bundle defined by the embedded Info.plist file containing
 XCFramework library definitions.
 
 This script takes an analysis time defined target triplet (platform,
-architecture, and environment), previously classified XCFramework file paths
-(i.e. headers, module maps, binaries), and Bazel declared files and directories
-to copy the effective XCFramework library files to a desired output location.
+architecture, and environment), and paths to an Info.plist file to validate
+assumptions made at analysis time against.
 
 An XCFramework Info.plist file defines each XCFramework library with the
 following information:
@@ -45,11 +44,10 @@ following information:
 """
 
 import argparse
-import os
+import json
 import plistlib
-import shutil
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 def _create_args_parser() -> argparse.ArgumentParser:
@@ -58,11 +56,11 @@ def _create_args_parser() -> argparse.ArgumentParser:
 
   value_args = {
       "architecture": "Target Apple architecture (e.g. x864_64, arm64).",
-      "binary": "Bazel declared file for XCFramework binary file.",
       "bundle_name": "The XCFramework bundle name (i.e. name.xcframework).",
       "environment": "Target Apple environment (e.g. device, simulator).",
-      "library_dir": "Bazel declared directory for copied XCFramework files.",
+      "library_identifier": "Assumed identifier for the platform we need.",
       "info_plist": "XCFramework Info.plist file.",
+      "output_path": "Location to write the output file to on success.",
       "platform": "Target Apple platform (e.g. macos, ios).",
   }
   for arg_name, arg_help in value_args.items():
@@ -72,45 +70,6 @@ def _create_args_parser() -> argparse.ArgumentParser:
         required=True,
         action="store",
         help=arg_help)
-
-  list_args = {
-      "binary_file": "Imported XCFramework binary file path.",
-      "header_file": "Imported XCFramework header file path.",
-  }
-  for arg_name, arg_help in list_args.items():
-    parser.add_argument(
-        f"--{arg_name}",
-        type=str,
-        required=True,
-        action="append",
-        help=arg_help,
-        dest=f"{arg_name}s",
-    )
-
-  optional_list_args = {
-      "bundle_file": "Imported XCFramework bundle file path.",
-      "modulemap_file": "Imported XCFramework modulemap file path.",
-      "swiftinterface_file": "Imported XCFramework Swift module file path.",
-  }
-  for arg_name, arg_help in optional_list_args.items():
-    parser.add_argument(
-        f"--{arg_name}",
-        type=str,
-        required=False,
-        action="append",
-        help=arg_help,
-        dest=f"{arg_name}s",
-    )
-
-  bool_args = {
-      "contains_frameworks": "If the XCFramework has frameworks not libraries.",
-  }
-  for arg_name, arg_help in bool_args.items():
-    parser.add_argument(
-        f"--{arg_name}",
-        action=argparse.BooleanOptionalAction,
-        help=arg_help,
-    )
 
   return parser
 
@@ -193,75 +152,6 @@ Supported platforms: {library_identifiers}
 """)
 
 
-def _relpath_from_subdirectory(*, absolute_path, subdirectory):
-  """Returns a relative path from the root of a given subdirectory.
-
-  Args:
-    absolute_path: String. An absolute path to search within.
-    subdirectory: String. The name of the subdirectory to search for within the
-      absolute path given.
-  Returns:
-    The relative path from the point where the subdirectory was found to the
-    file or directory referenced by the provided absolute path.
-  Raises:
-    ValueError - if no path could be found.
-  """
-  found_dir = None
-  parent_dir = os.path.dirname(absolute_path)
-  while parent_dir != "" and parent_dir != "/" and found_dir is None:
-    if parent_dir.endswith(os.sep + subdirectory):
-      found_dir = parent_dir
-    else:
-      parent_dir = os.path.dirname(parent_dir)
-
-  if parent_dir == "/" or parent_dir == "":
-    raise ValueError(f"""
-Internal Error: Could not find {subdirectory} in path: {absolute_path}
-""")
-
-  return os.path.relpath(absolute_path, start=found_dir)
-
-
-def _copy_xcframework_files(
-    *,
-    executable: bool = False,
-    library_identifier: str,
-    output_directories: List[str],
-    copy_from_subdirectory: str,
-    xcframework_files: List[str]) -> None:
-  """Copies XCFramework files filtered by library identifier to a directory.
-
-  Args:
-    executable: Indicates whether or not the file(s) should be made executable.
-    library_identifier: XCFramework library identifier to filter files with.
-    output_directories: List of directory paths to copy files to.
-    copy_from_subdirectory: String. The name of a subdirectory that will be used
-      to generate relative paths to copy files from, preserving subdirectory
-      paths in between.
-    xcframework_files: List of XCFramework files to filter by library identifier
-      and copy files from.
-  """
-  if not xcframework_files:
-    return
-
-  library_files = [
-      f
-      for f in xcframework_files
-      if f"/{library_identifier}/" in f
-  ]
-
-  for library_file in library_files:
-    rel_path = _relpath_from_subdirectory(
-        absolute_path=library_file,
-        subdirectory=copy_from_subdirectory)
-
-    for output_directory in output_directories:
-      dest_path = os.path.join(output_directory, rel_path)
-      os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-      dest_file_path = shutil.copy2(library_file, dest_path)
-      os.chmod(dest_file_path, 0o755 if executable else 0o644)
-
-
 def main() -> int:
   args_parser = _create_args_parser()
   args = args_parser.parse_args()
@@ -276,61 +166,17 @@ def main() -> int:
   )
 
   library_identifier = xcframework_library.get("LibraryIdentifier")
+  if library_identifier != args.library_identifier:
+    raise ValueError(f"""
+Internal Error: Assumed library identifier for XCFramework {bundle_name} of \
+{args.library_identifer} does not match the actual library identifier of \
+{library_identifier}.
 
-  root_subdir = library_identifier
-  if args.contains_frameworks:
-    root_subdir = f"{bundle_name}.framework"
+Please file a bug against the Apple BUILD Rules.
+""")
 
-  _copy_xcframework_files(
-      library_identifier=library_identifier,
-      output_directories=[args.library_dir],
-      copy_from_subdirectory=root_subdir,
-      xcframework_files=args.bundle_files)
-
-  _copy_xcframework_files(
-      executable=True,
-      library_identifier=library_identifier,
-      output_directories=[args.library_dir],
-      copy_from_subdirectory=root_subdir,
-      xcframework_files=args.binary_files)
-
-  headers_dir = os.path.join(args.library_dir, "Headers")
-  _copy_xcframework_files(
-      library_identifier=library_identifier,
-      output_directories=[headers_dir],
-      copy_from_subdirectory="Headers",
-      xcframework_files=args.header_files)
-
-  # XCFrameworks with libraries put all non-binary required files in a "Headers"
-  # folder referenced by the linker later. If the XCFramework has frameworks, we
-  # want to reference Clang module maps and Swift module interfaces in "Modules"
-  # within the .framework.
-  modules_subdir = "Headers"
-  if args.contains_frameworks:
-    modules_subdir = "Modules"
-
-  modules_dir = os.path.join(args.library_dir, modules_subdir)
-  _copy_xcframework_files(
-      library_identifier=library_identifier,
-      output_directories=[modules_dir],
-      copy_from_subdirectory=modules_subdir,
-      xcframework_files=args.modulemap_files)
-
-  # Xcode will reference swiftmodules in the library identifier root of an
-  # XCFramework with libraries. Meanwhile, XCFrameworks with frameworks have the
-  # swiftmodules in the Modules folder of a .framework.
-  swiftmodules_subdir = root_subdir
-  if args.contains_frameworks:
-    swiftmodules_subdir = "Modules"
-
-  swiftmodules_dir = args.library_dir
-  if args.contains_frameworks:
-    swiftmodules_dir = os.path.join(args.library_dir, "Modules")
-  _copy_xcframework_files(
-      library_identifier=library_identifier,
-      output_directories=[swiftmodules_dir],
-      copy_from_subdirectory=swiftmodules_subdir,
-      xcframework_files=args.swiftinterface_files)
+  with open(args.output_path, "w+") as f:
+    f.write("Success!")
 
   return 0
 

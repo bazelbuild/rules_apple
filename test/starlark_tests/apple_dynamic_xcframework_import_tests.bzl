@@ -20,10 +20,6 @@ load(
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_contains_xcframework_processor_action_test",
-)
-load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -184,58 +180,6 @@ def apple_dynamic_xcframework_import_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name],
-    )
-
-    # Verify ios_application bundles Framework files when using xcframework_processor_tool.
-    archive_contents_test(
-        name = "{}_contains_imported_xcframework_framework_files_with_xcframework_import_tool".format(name),
-        build_type = "simulator",
-        build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
-        },
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
-        ],
-        not_contains = [
-            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Headers/",
-            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Modules/",
-        ],
-        binary_test_file = "$BINARY",
-        macho_load_commands_contain = [
-            "name @rpath/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers (offset 24)",
-        ],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_swift_contains_imported_swift_xcframework_framework_files_with_xcframework_import_tool".format(name),
-        build_type = "simulator",
-        build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
-        },
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
-        ],
-        not_contains = [
-            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
-            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
-        ],
-        binary_test_file = "$BINARY",
-        macho_load_commands_contain = [
-            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
-        ],
-        tags = [name],
-    )
-
-    # Verify XCFramework processor tool action is registered via build setting.
-    analysis_contains_xcframework_processor_action_test(
-        name = "{}_imported_xcframework_framework_files_registers_action_with_xcframework_import_tool".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework",
-        target_mnemonic = "ProcessXCFrameworkFiles",
         tags = [name],
     )
 

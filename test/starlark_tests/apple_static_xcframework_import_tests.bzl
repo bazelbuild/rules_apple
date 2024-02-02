@@ -19,10 +19,6 @@ load(
     "analysis_failure_message_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_contains_xcframework_processor_action_test",
-)
-load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -223,47 +219,6 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        tags = [name],
-    )
-
-    # Verify ios_application bundles Framework files when using xcframework_processor_tool.
-    archive_contents_test(
-        name = "{}_ios_application_with_imported_static_xcframework_includes_symbols_with_xcframework_import_tool".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_library",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        binary_contains_symbols = [
-            "-[SharedClass doSomethingShared]",
-            "_OBJC_CLASS_$_SharedClass",
-        ],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/"],
-        build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
-        },
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_bundles_swift_std_libraries_with_xcframework_import_tool".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework_with_static_library",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        binary_contains_symbols = [
-            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
-        ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        build_settings = {
-            "//apple/build_settings:parse_xcframework_info_plist": "True",
-        },
-        tags = [name],
-    )
-
-    # Verify XCFramework processor tool action is registered via build setting.
-    analysis_contains_xcframework_processor_action_test(
-        name = "{}_ios_application_with_imported_static_xcframework_registers_action_with_xcframework_import_tool".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_static_xcframework",
-        target_mnemonic = "ProcessXCFrameworkFiles",
         tags = [name],
     )
 

@@ -29,13 +29,6 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
-    "parse_xcframework_info_plist": struct(
-        doc = """
-Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
-parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframework_import.bzl
-""",
-        default = False,
-    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(
