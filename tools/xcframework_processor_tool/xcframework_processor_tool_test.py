@@ -17,7 +17,6 @@ import os
 import plistlib
 import tempfile
 import unittest
-from unittest import mock
 
 from build_bazel_rules_apple.tools.xcframework_processor_tool import xcframework_processor_tool
 

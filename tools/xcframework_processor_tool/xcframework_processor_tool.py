@@ -44,7 +44,6 @@ following information:
 """
 
 import argparse
-import json
 import plistlib
 import sys
 from typing import Any, Dict
@@ -55,7 +54,7 @@ def _create_args_parser() -> argparse.ArgumentParser:
   parser = argparse.ArgumentParser(description="xcframework tool")
 
   value_args = {
-      "architecture": "Target Apple architecture (e.g. x864_64, arm64).",
+      "architecture": "Target Apple architecture (e.g. x84_64, arm64).",
       "bundle_name": "The XCFramework bundle name (i.e. name.xcframework).",
       "environment": "Target Apple environment (e.g. device, simulator).",
       "library_identifier": "Assumed identifier for the platform we need.",
