@@ -251,7 +251,9 @@ def _strip_or_copy_binary(
                             slices_needed)
 
   if strip_bitcode:
-    _strip_bitcode(framework_binary, output_path)
+    path_from_framework = _relpath_from_framework(framework_binary)
+    temp_framework_path = os.path.join(output_path, path_from_framework)
+    _strip_bitcode(temp_framework_path, output_path)
 
 
 def _get_parser():
