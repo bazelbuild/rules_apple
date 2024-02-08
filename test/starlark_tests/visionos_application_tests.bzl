@@ -180,7 +180,6 @@ def visionos_application_test_suite(name):
         output_group_name = "dsyms",
         expected_outputs = [
             "app.app.dSYM/Contents/Info.plist",
-            "app.app.dSYM/Contents/Resources/DWARF/app_x86_64",
             "app.app.dSYM/Contents/Resources/DWARF/app_arm64",
         ],
         tags = [
@@ -235,6 +234,7 @@ def visionos_application_test_suite(name):
     # is present.
     linkmap_test(
         name = "{}_linkmap_test".format(name),
+        architectures = ["arm64"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         tags = [
             name,
@@ -247,7 +247,6 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         output_group_name = "linkmaps",
         expected_outputs = [
-            "app_x86_64.linkmap",
             "app_arm64.linkmap",
         ],
         tags = [

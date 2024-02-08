@@ -80,7 +80,6 @@ _CPU_TO_PLATFORM = {
     "tvos_x86_64": "//buildenv/platforms/apple/simulator:tvos_x86_64",
     "visionos_arm64": "//buildenv/platforms/apple:visionos_arm64",
     "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
-    "visionos_x86_64": "//buildenv/platforms/apple/simulator:visionos_x86_64",
     "watchos_armv7k": "//buildenv/platforms/apple:watchos_armv7k",
     "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
     "watchos_device_arm64": "//buildenv/platforms/apple:watchos_arm64",
