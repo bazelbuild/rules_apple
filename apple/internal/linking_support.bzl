@@ -215,7 +215,9 @@ def _register_binary_linking_action(
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         extra_requested_features = extra_requested_features,
-        extra_disabled_features = extra_disabled_features,
+        # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
+        # being routed to the wrong exec platform.
+        extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
         stamp = stamp,
     )
 
