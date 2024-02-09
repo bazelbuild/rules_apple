@@ -588,9 +588,7 @@ def ios_application_test_suite(name):
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
         ],
-        tags = [
-            name,
-        ],
+        tags = [name],
     )
 
     # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
