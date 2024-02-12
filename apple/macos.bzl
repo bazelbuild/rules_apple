@@ -242,7 +242,7 @@ def macos_dynamic_framework(name, **kwargs):
         **bundling_args
     )
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:macos_default_runner"))
 
 def macos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
