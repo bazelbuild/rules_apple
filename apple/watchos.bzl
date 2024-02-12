@@ -45,7 +45,7 @@ watchos_framework = _watchos_framework
 watchos_extension = _watchos_extension
 watchos_static_framework = _watchos_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:watchos_default_runner"))
 
 def watchos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
