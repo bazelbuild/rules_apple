@@ -133,7 +133,7 @@ def _create_apple_rule(
             },
             apple_toolchain_utils.use_apple_exec_group_toolchain(),
         ),
-        fragments = ["apple", "cpp", "objc"],
+        fragments = ["apple", "cpp", "objc", "j2objc"],
         toolchains = toolchains,
         **extra_args
     )
