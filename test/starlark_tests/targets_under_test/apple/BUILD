@@ -634,6 +634,59 @@ apple_xcframework(
     deps = [":SwiftFmwkWithGenHeader"],
 )
 
+apple_xcframework(
+    name = "ios_swift_xcframework_with_two_top_level_modules",
+    bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":SwiftFmwkWithGenHeader",
+        ":SwiftSecondModuleForFmwk",
+    ],
+)
+
+apple_xcframework(
+    name = "ios_swift_xcframework_with_invalid_module_deps",
+    bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":SwiftFmwkWithInvalidModuleDeps"],
+)
+
 # Reserved as an input for import_dynamic_(xc)framework rules; must be referenced as a List of Files
 # as an input to one of such rules.
 apple_xcframework(
@@ -851,6 +904,51 @@ apple_static_xcframework(
     deps = [":swift_lib_for_static_xcfmwk"],
 )
 
+apple_static_xcframework(
+    name = "ios_swift_static_xcframework_with_two_top_level_modules",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":SwiftFmwkWithGenHeader",
+        ":SwiftSecondModuleForFmwk",
+    ],
+)
+
+apple_static_xcframework(
+    name = "ios_swift_static_xcframework_with_invalid_module_deps",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":SwiftFmwkWithInvalidModuleDeps"],
+)
+
 genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],
@@ -876,6 +974,13 @@ genrule(
     name = "dummy_fmwk_swift_src",
     outs = ["DummyFmwk.swift"],
     cmd = "echo 'import Foundation\n@objc public class SharedClass: NSObject {\n@objc public func doSomethingShared() {\nNSLog(\"Doing something shared!\")\n}\n}\n' > $@",
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "dummy_fmwk_swift_second_src",
+    outs = ["DummyFmwkSecondModule.swift"],
+    cmd = "echo 'import Foundation\n@objc public class SecondSharedClass: NSObject {\n@objc public func doSomethingShared() {\nNSLog(\"Doing something shared again!\")\n}\n}\n' > $@",
     tags = common.fixture_tags,
 )
 
@@ -932,6 +1037,26 @@ swift_library(
     library_evolution = True,
     module_name = "SwiftFmwkWithGenHeader",
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "SwiftSecondModuleForFmwk",
+    srcs = ["DummyFmwkSecondModule.swift"],
+    library_evolution = True,
+    module_name = "SwiftSecondModuleForFmwk",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "SwiftFmwkWithInvalidModuleDeps",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "SwiftFmwkWithInvalidModuleDeps",
+    tags = common.fixture_tags,
+    deps = [
+        ":SwiftSecondModuleForFmwk",
+    ],
 )
 
 # Reserved as an input for import_dynamic_(xc)framework rules; referenced by an apple_xcframework

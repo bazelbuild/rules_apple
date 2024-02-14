@@ -624,6 +624,7 @@ bzl_library(
     visibility = ["//apple:__subpackages__"],
     deps = [
         "//apple/internal/aspects:swift_usage_aspect",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -772,7 +773,6 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 

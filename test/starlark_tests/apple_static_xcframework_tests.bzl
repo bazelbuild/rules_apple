@@ -350,6 +350,20 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_with_two_top_level_swift_modules_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_two_top_level_modules",
+        expected_error = "Error: Found more than one non-system Swift module in the deps of this XCFramework rule. Check that you are not directly referencing more than one swift_library rule in the deps of the rule.",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_with_invalid_swift_module_deps_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_invalid_module_deps",
+        expected_error = "Error: Found more than one Swift module dependency in this XCFramework's deps: SwiftSecondModuleForFmwk, SwiftFmwkWithInvalidModuleDeps\n\nCheck that you are only referencing ONE Swift module, such as from a a swift_library rule, and that there are no additional Swift modules referenced outside of its private_deps, such as from an additional swift_library dependency.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

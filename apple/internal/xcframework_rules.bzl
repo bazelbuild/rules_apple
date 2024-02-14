@@ -107,38 +107,11 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
     "files",
 )
-load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 
 visibility([
     "//apple/...",
     "//test/...",
 ])
-
-def _has_non_system_swift_modules(*, target):
-    """Indicates if the given target references any non-system Swift modules.
-
-    This is a reasonable signal to determine if we need to generate framework interfaces, though
-    correctness should be determined as well via further analysis of the graph of deps. See
-    b/321089167 for follow up work to that end.
-
-    Args:
-        target: A Target representing a dep for a given split from `deps` on the XCFramework rule.
-
-    Returns:
-        `True` if a non-system module was found from the target's SwiftInfo provider, `False`
-        otherwise.
-    """
-    if SwiftInfo not in target:
-        return False
-
-    swift_info = target[SwiftInfo]
-
-    # Covers both direct and transitive modules, from how the SwiftInfo provider is constructed.
-    for module in swift_info.transitive_modules.to_list():
-        if module.swift and not module.is_system:
-            return True
-
-    return False
 
 def _group_link_outputs_by_library_identifier(
         *,
@@ -232,13 +205,13 @@ def _group_link_outputs_by_library_identifier(
             if swift_support.uses_swift(deps[split_attr_key]):
                 uses_swift = True
 
-            # If there's any Swift dependencies on this framework rule, look for providers
-            # referencing non-system Swift modules to see if we need to generate Swift interfaces.
-            for dep in deps[split_attr_key]:
-                # TODO(b/321089167): Fail the build if the build graph has an arrangement of Swift
-                # modules that is not suitable for generating frameworks.
-                if _has_non_system_swift_modules(target = dep):
-                    framework_swift_infos[link_output.architecture] = dep[SwiftInfo]
+            # Query each set of deps by the split transition key to figure out which need to have
+            # Swift interfaces generated for them, if any at all.
+            swift_module_info = swift_support.module_supporting_swift_xcframework_interfaces(
+                deps[split_attr_key],
+            )
+            if swift_module_info:
+                framework_swift_infos[link_output.architecture] = swift_module_info
 
             # static library linking does not support dsym, and linkmaps yet.
             if linking_type == "binary":
@@ -825,9 +798,7 @@ apple_xcframework = rule_factory.create_apple_rule(
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.xcframework_base_transition,
             deps_cfg = transition_support.xcframework_split_transition,
-            extra_deps_aspects = [
-                apple_resource_aspect,
-            ],
+            extra_deps_aspects = [apple_resource_aspect],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = False,
         ),
