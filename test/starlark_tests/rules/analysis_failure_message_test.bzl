@@ -58,12 +58,6 @@ def make_analysis_failure_message_test(*, config_settings = {}):
 
 analysis_failure_message_test = make_analysis_failure_message_test()
 
-analysis_failure_message_with_ios_simulator_platform_test = make_analysis_failure_message_test(
-    config_settings = {
-        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:ios_arm64"],
-    },
-)
-
 analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
     config_settings = {
         build_settings_labels.use_tree_artifacts_outputs: True,
