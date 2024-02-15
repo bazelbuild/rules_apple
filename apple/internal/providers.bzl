@@ -137,6 +137,10 @@ number like "9.0") that this bundle was built to support.
 `String`. The dot-separated product type identifier associated
 with the bundle (for example, `com.apple.product-type.application`).
 """,
+        "target_environment": """
+`String`. The environment that the bundle was built for, (i.e. `device` for iOS device builds,
+`simulator` for iOS simulator builds).
+""",
         "uses_swift": """
 Boolean. True if Swift is used by the target propagating this
 provider. This does not consider embedded bundles; for example, an

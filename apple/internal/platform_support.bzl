@@ -160,6 +160,7 @@ def _platform_prerequisites(
         platform_type = platform_type_attr,
         objc_fragment = objc_fragment,
         sdk_version = sdk_version,
+        target_environment = apple_platform_info.target_environment,
         uses_swift = uses_swift,
         xcode_version_config = xcode_version_config,
     )

@@ -82,6 +82,7 @@ def _apple_bundle_info_partial_impl(
                 minimum_os_version = platform_prerequisites.minimum_os,
                 platform_type = str(platform_prerequisites.platform_type),
                 product_type = product_type,
+                target_environment = platform_prerequisites.target_environment,
                 uses_swift = platform_prerequisites.uses_swift,
             ),
         ],
