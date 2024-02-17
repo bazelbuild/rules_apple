@@ -2,6 +2,7 @@
 
 ## Guides
 
+*   [Common Information](common_info.md)
 *   [Frameworks Guide](frameworks.md)
 *   [Resources Guide](resources.md)
 
@@ -159,11 +160,6 @@ below.
     </tr>
   </tbody>
 </table>
-
-## Available options
-
-Check out [this page](common_info.md) for more information on available options
-that these rules honor during a build.
 
 ## Extending or integrating with these rules
 
