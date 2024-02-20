@@ -2416,6 +2416,8 @@ macos_command_line_application(
         "-alias",
         "_main",
         "_linkopts_test_main",
+        "-u",
+        "_linkopts_test_main",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
