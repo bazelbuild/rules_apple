@@ -174,7 +174,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    linkopts = ["-alias", "_main", "_linkopts_test_main"],
+    linkopts = ["-alias", "_main", "_linkopts_test_main", "-u", "_linkopts_test_main"],
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
