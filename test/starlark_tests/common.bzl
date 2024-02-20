@@ -23,14 +23,13 @@ _fixture_tags = [
     "notap",
 ]
 
-# The current baseline for iOS is version 12.0, based on when the arm64e architecture was
-# introduced.
+# The current baseline for iOS is version 12.0, based on Xcode 15's minimum version
 _min_os_ios = struct(
     app_intents_support = "16.0",
     appclip_support = "14.0",
     arm_sim_support = "14.0",
     baseline = "12.0",
-    oldest_supported = "11.0",
+    oldest_supported = "12.0",
     nplus1 = "13.0",
     stable_swift_abi = "12.2",
     widget_configuration_intents_support = "16.0",
@@ -42,14 +41,14 @@ _min_os_macos = struct(
     baseline = "10.13",
 )
 
-# The current baseline for tvOS is version 12.0, based on when the arm64e architecture was
+# The current baseline for tvOS is version 12.0, based on Xcode 15's minimum version.
 # introduced.
 _min_os_tvos = struct(
     app_intents_support = "16.0",
     arm_sim_support = "14.0",
     baseline = "12.0",
+    oldest_supported = "12.0",
     nplus1 = "13.0",
-    oldest_supported = "11.0",
     stable_swift_abi = "12.2",
 )
 

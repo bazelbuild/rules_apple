@@ -144,21 +144,6 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Test the output binary for minimum OS 8.0, using the old-style load commands that are no
-    # longer in binaries built for min OS iOS 14+ which don't explicitly distinguish the simulator.
-    binary_contents_test(
-        name = "{}_ios_binary_contents_intel_simulator_oldest_supported_platform_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
-        cpus = {
-            "ios_multi_cpus": ["x86_64"],
-        },
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS", "version " + common.min_os_ios.oldest_supported],
-        tags = [name],
-    )
-
     # The LC_BUILD_VERSION is always present in binaries built with minimum version >= 2020 Apple
     # OSes, which will have fields of "minos {version number}" and "platform {platform enum}".
 
@@ -174,20 +159,6 @@ def apple_static_library_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
-        tags = [name],
-    )
-
-    # Test that the output binary is identified as iOS simulator (PLATFORM_IOSSIMULATOR) via the
-    # Mach-O load command LC_BUILD_VERSION for an Intel binary when specifying the outputs via the
-    # apple_platforms command line option.
-    binary_contents_test(
-        name = "{}_ios_binary_contents_intel_simulator_oldest_supported_apple_platforms_test".format(name),
-        apple_platforms = ["//buildenv/platforms/apple/simulator:ios_x86_64"],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS", "version " + common.min_os_ios.oldest_supported],
         tags = [name],
     )
 

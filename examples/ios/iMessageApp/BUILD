@@ -35,7 +35,7 @@ ios_imessage_extension(
         "ipad",
     ],
     infoplists = ["iMessageExtension-Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     version = ":iMessageAppVersion",
     deps = [":iMessageExtensionLib"],
 )
@@ -50,7 +50,7 @@ ios_imessage_application(
         "ipad",
     ],
     infoplists = ["iMessageApp-Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     version = ":iMessageAppVersion",
 )
 

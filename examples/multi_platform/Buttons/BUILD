@@ -66,7 +66,7 @@ ios_application(
     ],
     features = ["exported_symbols"],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     watch_application = ":ButtonsWatch",
     deps = [
         ":ButtonsLib",
@@ -82,7 +82,7 @@ ios_extension(
         "ipad",
     ],
     infoplists = ["ButtonsExtension/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     deps = [":ButtonsExtensionLib"],
 )
 
@@ -157,7 +157,7 @@ tvos_application(
     bundle_id = "com.google.ButtonsTV",
     extensions = [":ButtonsTVExtension"],
     infoplists = ["ButtonsTV/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     deps = [
         ":ButtonsTVLib",
         ":ButtonsTVResources",
@@ -168,14 +168,14 @@ tvos_extension(
     name = "ButtonsTVExtension",
     bundle_id = "com.google.ButtonsTV.ButtonsTVExtension",
     infoplists = ["ButtonsTVExtension/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     deps = [":ButtonsTVExtensionLib"],
 )
 
 tvos_static_framework(
     name = "ButtonsTVStaticFramework",
     bundle_name = "ButtonsTV",
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     deps = [":ButtonsTVLib"],
 )
 

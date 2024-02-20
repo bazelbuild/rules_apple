@@ -32,7 +32,7 @@ tvos_application(
     app_icons = ["//examples/resources:TVBrandAssets.xcassets"],
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

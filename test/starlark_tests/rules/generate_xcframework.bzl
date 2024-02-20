@@ -457,8 +457,8 @@ A dictionary of strings indicating the minimum OS version supported by each plat
 represented as a dotted version number as values.
 
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": "12.0",
+        "ios": "12.0",
         "watchos_simulator": "4.0",
     },
 """,
@@ -520,8 +520,8 @@ A dictionary of strings indicating the minimum OS version supported by each plat
 represented as a dotted version number as values.
 
     minimum_os_versions = {
-        "ios_simulator": "11.0",
-        "ios": "11.0",
+        "ios_simulator": "12.0",
+        "ios": "12.0",
         "watchos_simulator": "4.0",
     },
 """,

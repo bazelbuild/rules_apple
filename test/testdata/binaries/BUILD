@@ -12,7 +12,7 @@ licenses(["notice"])
 apple_binary(
     name = "empty_tvos_dylib",
     binary_type = "dylib",
-    minimum_os_version = "11.0",
+    minimum_os_version = "12.0",
     platform_type = "tvos",
     deps = [":dummy_lib"],
 )
