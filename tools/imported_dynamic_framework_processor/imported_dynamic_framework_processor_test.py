@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for xcframework_processor_tool."""
 
+import os
 import unittest
 from unittest import mock
 
@@ -75,6 +76,16 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
         imported_dynamic_framework_processor
         ._get_framework_version_from_install_path(None))
     self.assertEqual(actual_version, "A")
+
+  @mock.patch.object(os, "listdir")
+  def test_get_version_from_structure(self, mock_listdir):
+    mock_listdir.return_value = ["A", "B", "Current"]
+    result = imported_dynamic_framework_processor._try_get_framework_version_from_structure("<framework>")
+    self.assertIsNone(result)
+
+    mock_listdir.return_value = ["A", "Current"]
+    result = imported_dynamic_framework_processor._try_get_framework_version_from_structure("<framework>")
+    self.assertEqual(result, "A")
 
   @mock.patch.object(lipo, "find_archs_for_binaries")
   def test_strip_or_copy_binary_fails_with_no_binary_archs(

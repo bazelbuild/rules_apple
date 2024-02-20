@@ -48,6 +48,51 @@ def xcarchive_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
+        name = "{}_contains_xcarchive_files_simulator_dsyms".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal.xcarchive",
+        contains = [
+            "$BUNDLE_ROOT/dSYMs/app_minimal.app.dSYM",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Products/Applications/app_minimal.app",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "ApplicationProperties:ApplicationPath": "Applications/app_minimal.app",
+            "ApplicationProperties:ArchiveVersion": "2",
+            "ApplicationProperties:CFBundleIdentifier": "com.google.example",
+            "ApplicationProperties:CFBundleShortVersionString": "1.0",
+            "ApplicationProperties:CFBundleVersion": "1.0",
+            "Name": "app_minimal",
+            "SchemeName": "app_minimal",
+        },
+        apple_generate_dsym = True,
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_contains_xcarchive_files_simulator_dsyms_extensions".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_space_in_path.xcarchive",
+        contains = [
+            "$BUNDLE_ROOT/dSYMs/app_with_ext_space_in_path.app.dSYM",
+            "$BUNDLE_ROOT/dSYMs/ext with space.appex.dSYM",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Products/Applications/app_with_ext_space_in_path.app",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Info.plist",
+        plist_test_values = {
+            "ApplicationProperties:ApplicationPath": "Applications/app_with_ext_space_in_path.app",
+            "ApplicationProperties:ArchiveVersion": "2",
+            "ApplicationProperties:CFBundleIdentifier": "com.google.example",
+            "ApplicationProperties:CFBundleShortVersionString": "1.0",
+            "ApplicationProperties:CFBundleVersion": "1.0",
+            "Name": "app_with_ext_space_in_path",
+            "SchemeName": "app_with_ext_space_in_path",
+        },
+        apple_generate_dsym = True,
+        tags = [name],
+    )
+    archive_contents_test(
         name = "{}_contains_xcarchive_files_simulator_linkmaps".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal.xcarchive",

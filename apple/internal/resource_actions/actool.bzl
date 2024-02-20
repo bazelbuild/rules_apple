@@ -43,6 +43,8 @@ load(
     "paths",
 )
 
+_supports_visionos = hasattr(apple_common.platform_type, "visionos")
+
 def _actool_args_for_special_file_types(
         *,
         asset_files,
@@ -107,7 +109,8 @@ def _actool_args_for_special_file_types(
     elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
         appicon_extension = "brandassets"
         icon_files = [f for f in asset_files if ".brandassets/" in f.path]
-    elif platform_prerequisites.platform_type == getattr(apple_common.platform_type, "visionos", None):
+    elif (_supports_visionos and
+          platform_prerequisites.platform_type == apple_common.platform_type.visionos):
         appicon_extension = "solidimagestack"
         icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
     else:

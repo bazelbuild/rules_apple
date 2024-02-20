@@ -55,7 +55,7 @@ ios_sticker_pack_extension = _ios_sticker_pack_extension
 ios_imessage_extension = _ios_imessage_extension
 ios_static_framework = _ios_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:ios_default_runner"))
 
 def ios_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", None) or _DEFAULT_TEST_RUNNER

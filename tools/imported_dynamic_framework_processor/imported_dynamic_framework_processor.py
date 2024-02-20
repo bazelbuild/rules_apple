@@ -95,6 +95,15 @@ def _get_framework_version_from_install_path(binary: str) -> str:
   return result.group(1)
 
 
+def _try_get_framework_version_from_structure(framework_directory: str) -> Optional[str]:
+  """Returns framework version string. This only works if there is only one version."""
+  versions = list(os.listdir(os.path.join(framework_directory, "Versions")))
+  versions.remove("Current")
+  if len(versions) != 1:
+    return None
+  return versions[0]
+
+
 def _update_modified_timestamps(framework_temp_path: str) -> None:
   """Updates framework files modified timestamp before creating the zip file.
 
@@ -131,9 +140,8 @@ def _relpath_from_framework(framework_absolute_path):
       parent_dir = os.path.dirname(parent_dir)
 
   if parent_dir == "/":
-    print("Internal Error: Could not find path in framework: " +
-          framework_absolute_path)
-    return None
+    raise ValueError("Internal Error: Could not find path in framework: " +
+                     framework_absolute_path)
 
   return os.path.relpath(framework_absolute_path, framework_dir)
 
@@ -141,29 +149,22 @@ def _relpath_from_framework(framework_absolute_path):
 def _copy_framework_file(framework_file, executable, output_path):
   """Copies file to given path, marking as writable and executable as needed."""
   path_from_framework = _relpath_from_framework(framework_file)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
   temp_framework_dirs = os.path.dirname(temp_framework_path)
   if not os.path.exists(temp_framework_dirs):
     os.makedirs(temp_framework_dirs)
   shutil.copy(framework_file, temp_framework_path)
   os.chmod(temp_framework_path, 0o755 if executable else 0o644)
-  return 0
+  return temp_framework_path
 
 
 def _strip_framework_binary(framework_binary, output_path, slices_needed):
   """Strips the binary to only the slices needed, saves output to given path."""
   if not slices_needed:
-    print("Internal Error: Did not specify any slices needed for binary at "
-          "path: " + framework_binary)
-    return 1
+    raise ValueError("Internal Error: Did not specify any slices needed for binary at "
+                     "path: " + framework_binary)
 
   path_from_framework = _relpath_from_framework(framework_binary)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
 
   # Creating intermediate directories is only required for macOS framework
@@ -175,15 +176,12 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
 
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
   os.chmod(temp_framework_path, 0o755)
-  return 0
+  return temp_framework_path
 
 
 def _strip_bitcode(framework_binary, output_path):
   """Strips any bitcode from the framework binary."""
   path_from_framework = _relpath_from_framework(framework_binary)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
   # Creating intermediate directories is only required for macOS framework
   # binaries which are not at the top-level directory, and are located under:
@@ -233,16 +231,16 @@ def _strip_or_copy_binary(
   )
 
   if should_skip_lipo:
-    _copy_framework_file(framework_binary,
-                         executable=True,
-                         output_path=output_path)
+    binary_path = _copy_framework_file(framework_binary,
+                                       executable=True,
+                                       output_path=output_path)
   else:
-    _strip_framework_binary(framework_binary,
-                            output_path,
-                            slices_needed)
+    binary_path = _strip_framework_binary(framework_binary,
+                                          output_path,
+                                          slices_needed)
 
   if strip_bitcode:
-    _strip_bitcode(framework_binary, output_path)
+    _strip_bitcode(binary_path, output_path)
 
 
 def _get_parser():
@@ -278,18 +276,14 @@ def _get_parser():
       "--output_zip", type=str, required=True, help="path to save the zip file "
       "containing a codesigned, lipoed version of the imported framework"
   )
-
-  # Add mutually exclusive flags:
-  #   - '--disable_signing' to disable code signing.
-  #   - An argument group containing codesigningtool args.
-  mutex_group = parser.add_mutually_exclusive_group()
-  mutex_group.add_argument(
+  parser.add_argument(
       "--disable_signing",
       action="store_true",
       help="Disables code signing for imported frameworks.",
   )
-  codesigningtool_args = mutex_group.add_argument_group()
-  codesigningtool.add_parser_arguments(codesigningtool_args)
+
+  # codesigning args are parsed but not used if '--disable_signing' is set
+  codesigningtool.add_parser_arguments(parser)
 
   return parser
 
@@ -324,9 +318,14 @@ def main() -> None:
                            output_path=args.temp_path)
   else:
 
-    # Find effective current framework version via install_path
-    version = _get_framework_version_from_install_path(
-        binary=args.framework_binary)
+    # If there's only one version, use that
+    version = _try_get_framework_version_from_structure(framework_directory)
+    if version is None:
+        # If that didn't work, find effective current framework version via install_path
+        # TODO: install_name can technically point to the top-level symlink, so this can
+        # still fail in some cases.
+        version = _get_framework_version_from_install_path(
+            binary=args.framework_binary)
 
     # Copy files from Versions/<version_id>
     for framework_file in args.framework_file:

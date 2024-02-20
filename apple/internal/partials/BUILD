@@ -103,6 +103,8 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:outputs",
         "//apple/internal:processor",
+        "//apple/internal:providers",
+        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -186,7 +188,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bitcode_support",
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
@@ -204,6 +205,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:framework_import_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],

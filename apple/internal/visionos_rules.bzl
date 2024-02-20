@@ -137,12 +137,11 @@ visibility([
 ])
 
 def _visionos_application_impl(ctx):
-    """WIP implementation of visionos_application."""
-
+    """Implementation of visionos_application."""
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
         fail("""
-visionOS bundles require a visionOS SDK provided by Xcode 15 or later.
+visionOS bundles require a visionOS SDK provided by Xcode 15.1 beta or later.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
@@ -339,12 +338,6 @@ Resolved Xcode is version {xcode_version}.
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
         ),
-        partials.settings_bundle_partial(
-            actions = actions,
-            platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            settings_bundle = ctx.attr.settings_bundle,
-        ),
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -439,7 +432,7 @@ Resolved Xcode is version {xcode_version}.
             )
         ),
         new_visionosapplicationbundleinfo(),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
             objc = link_result.objc,
@@ -1247,8 +1240,9 @@ def _visionos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        linking_support.new_executable_binary_provider(
             binary = binary_artifact,
+            cc_info = link_result.cc_info,
             objc = link_result.objc,
         ),
         new_visionosextensionbundleinfo(),
@@ -1436,7 +1430,6 @@ visionos_application = rule_factory.create_apple_rule(
             add_environment_plist = True,
             platform_type = "visionos",
         ),
-        rule_attrs.settings_bundle_attrs(),
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),
@@ -1657,7 +1650,7 @@ dependency of other Bazel targets. For that use case, use the corresponding
 Unlike other visionos bundles, the fat binary in an `visionos_static_framework` may
 simultaneously contain simulator and device architectures (that is, you can
 build a single framework artifact that works for all architectures by specifying
-`--visionos_cpus=x86_64,arm64` when you build).
+`--visionos_cpus=sim_arm64,arm64` when you build).
 
 `visionos_static_framework` supports Swift, but there are some constraints:
 

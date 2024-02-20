@@ -1,11 +1,12 @@
 """experimental_mixed_language_library macro implementation."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
     "swift_library",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//apple/internal:header_map_support.bzl", "header_map_support")
 
 _CPP_FILE_TYPES = [".cc", ".cpp", ".mm", ".cxx", ".C"]
 
@@ -109,12 +110,12 @@ def _module_map_impl(ctx):
             if hdr.owner == dep.label:
                 swift_generated_header = hdr
                 outputs.append(swift_generated_header)
+                break
 
     # Write the module map content
     if swift_generated_header:
         umbrella_header_path = ctx.attr.module_name + ".h"
         umbrella_header = ctx.actions.declare_file(umbrella_header_path)
-        outputs.append(umbrella_header)
         ctx.actions.write(
             content = _umbrella_header_content(hdrs),
             output = umbrella_header,
@@ -195,6 +196,8 @@ def experimental_mixed_language_library(
         name,
         srcs,
         deps = [],
+        enable_modules = False,
+        enable_header_map = False,
         module_name = None,
         objc_copts = [],
         swift_copts = [],
@@ -206,19 +209,18 @@ def experimental_mixed_language_library(
     This is an experimental macro that supports compiling mixed Objective-C and
     Swift source files into a static library.
 
-    Due to the build performance reason, in general it's not recommended to
+    Due to build performance reasons, in general it's not recommended to
     have mixed Objective-C and Swift modules, but it isn't uncommon to see
-    mixed language modules in some old codebases. This macro is meant to make
+    mixed language modules in some codebases. This macro is meant to make
     it easier to migrate codebases with mixed language modules to Bazel without
     having to demix them first.
-
-    This macro only supports a very simple use case of mixed language
-    modules---it does not support for header maps or Clang modules.
 
     Args:
         name: A unique name for this target.
         deps: A list of targets that are dependencies of the target being
             built, which will be linked into that target.
+        enable_modules: Enables clang module support for the Objective-C target.
+        enable_header_map: Enables header map support for the Swift and Objective-C target.
         module_name: The name of the mixed language module being built.
             If left unspecified, the module name will be the name of the
             target.
@@ -267,6 +269,7 @@ target only contains Objective-C files.""")
     swift_library_name = name + ".internal.swift"
 
     objc_deps = []
+    objc_copts = [] + objc_copts
     swift_deps = [] + deps
 
     swift_copts = swift_copts + [
@@ -275,17 +278,38 @@ target only contains Objective-C files.""")
         "-import-underlying-module",
     ]
 
+    # Modules is not enabled if a custom module map is present even with
+    # `enable_modules` set to `True` in `objc_library`. This enables it via copts.
+    # See: https://github.com/bazelbuild/bazel/issues/20703
+    if enable_modules:
+        # buildifier: disable=list-append (select does not support list append)
+        objc_copts += ["-fmodules"]
+
     objc_deps = [":" + swift_library_name]
 
     # Add Obj-C includes to Swift header search paths
     repository_name = native.repository_name()
-    includes = kwargs.get("includes", [])
+    includes = [] + kwargs.pop("includes", [])
     for x in includes:
         include = x if repository_name == "@" else "external/" + repository_name.lstrip("@") + "/" + x
         swift_copts += [
             "-Xcc",
             "-I{}".format(include),
         ]
+
+    # Generate a header map if requested
+    if enable_header_map:
+        header_map_ctx = header_map_support.create_header_map_context(
+            name = name,
+            module_name = module_name,
+            hdrs = hdrs,
+            deps = [":" + swift_library_name],
+            testonly = testonly,
+        )
+        includes += header_map_ctx.includes
+        objc_copts += header_map_ctx.copts
+        objc_deps += header_map_ctx.header_maps
+        swift_copts += header_map_ctx.swift_copts
 
     # Generate module map for the underlying Obj-C module
     objc_module_map_name = name + ".internal.objc"
@@ -322,6 +346,7 @@ target only contains Objective-C files.""")
     )
 
     umbrella_module_map = name + ".internal.umbrella"
+    umbrella_module_map_label = ":" + umbrella_module_map
     _module_map(
         name = umbrella_module_map,
         deps = [":" + swift_library_name],
@@ -329,7 +354,7 @@ target only contains Objective-C files.""")
         module_name = module_name,
         testonly = testonly,
     )
-    objc_deps.append(":" + umbrella_module_map)
+    objc_deps.append(umbrella_module_map_label)
 
     native.objc_library(
         name = name,
@@ -339,10 +364,11 @@ target only contains Objective-C files.""")
             # These aren't headers but here is the only place to declare these
             # files as the inputs because objc_library doesn't have an
             # attribute to declare custom inputs.
-            ":" + umbrella_module_map,
+            umbrella_module_map_label,
         ],
-        module_map = umbrella_module_map,
+        module_map = umbrella_module_map_label,
         srcs = objc_srcs,
         testonly = testonly,
+        includes = includes,
         **kwargs
     )

@@ -24,6 +24,9 @@ load(
     "cc_toolchain_info_support",
 )
 
+# TODO: Remove once we drop bazel 7.x
+_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
+
 def _debug_outputs_by_architecture(link_outputs):
     """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
 
@@ -51,6 +54,26 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
+def _new_executable_binary_provider(*, binary, cc_info, objc):
+    """Wrap the apple_common API of the same name to better support multiple Bazel versions.
+
+    Args:
+        binary: The `File` representing the binary.
+        cc_info: The `CcInfo` provider for the binary.
+        objc: The `apple_common.Objc` provider for the binary.
+    """
+    if _OBJC_PROVIDER_LINKING:
+        return apple_common.new_executable_binary_provider(
+            binary = binary,
+            cc_info = cc_info,
+            objc = objc,
+        )
+    else:
+        return apple_common.new_executable_binary_provider(
+            binary = binary,
+            cc_info = cc_info,
+        )
+
 def _sectcreate_objc_provider(label, segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
@@ -76,10 +99,6 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
     return [
-        apple_common.new_objc_provider(
-            linkopt = depset(linkopts, order = "topological"),
-            link_inputs = depset([file]),
-        ),
         CcInfo(
             linking_context = cc_common.create_linking_context(
                 linker_inputs = depset([
@@ -91,7 +110,12 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
                 ]),
             ),
         ),
-    ]
+    ] + ([
+        apple_common.new_objc_provider(
+            linkopt = depset(linkopts, order = "topological"),
+            link_inputs = depset([file]),
+        ),
+    ] if _OBJC_PROVIDER_LINKING else [])
 
 def _register_binary_linking_action(
         ctx,
@@ -444,6 +468,7 @@ linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
     link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
+    new_executable_binary_provider = _new_executable_binary_provider,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_linking_action = _register_static_library_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,

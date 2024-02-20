@@ -48,7 +48,6 @@ bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [
-        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
@@ -61,7 +60,6 @@ bzl_library(
     srcs = ["apple_static_library.bzl"],
     deps = [
         ":providers",
-        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
@@ -255,6 +253,12 @@ bzl_library(
     name = "docc",
     srcs = ["docc.bzl"],
     deps = ["//apple/internal:docc"],
+)
+
+bzl_library(
+    name = "header_map",
+    srcs = ["header_map.bzl"],
+    deps = ["//apple/internal:header_map"],
 )
 
 cc_toolchain_forwarder(

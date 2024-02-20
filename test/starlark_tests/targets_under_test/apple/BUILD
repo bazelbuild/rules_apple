@@ -42,6 +42,7 @@ load(
     "dummy_test_runner",
 )
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("//apple:header_map.bzl", "header_map")
 
 licenses(["notice"])
 
@@ -1404,4 +1405,51 @@ swift_apple_core_ml_library(
     name = "SampleSwiftCoreML",
     mlmodel = "//test/testdata/resources:sample.mlmodel",
     tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for header map rule tests.
+
+objc_library(
+    name = "header_map_objc_lib",
+    srcs = [
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "header_map_swift_lib",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    tags = common.fixture_tags,
+)
+
+header_map(
+    name = "header_map_with_header",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+)
+
+header_map(
+    name = "header_map_with_objc_lib_dep",
+    hdrs = [],
+    tags = common.fixture_tags,
+    deps = [
+        ":header_map_objc_lib",
+    ],
+)
+
+header_map(
+    name = "header_map_with_swift_lib_dep",
+    hdrs = [],
+    tags = common.fixture_tags,
+    deps = [
+        ":header_map_swift_lib",
+    ],
 )

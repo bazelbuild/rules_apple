@@ -410,6 +410,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "arm64e",
+        binary_not_contains_architectures = ["arm64", "x86_64"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [name],
     )

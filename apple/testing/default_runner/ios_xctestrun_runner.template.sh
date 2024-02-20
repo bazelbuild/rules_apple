@@ -22,6 +22,7 @@ custom_xcodebuild_args=(%(xcodebuild_args)s)
 simulator_name=""
 device_id=""
 command_line_args=(%(command_line_args)s)
+attachment_lifetime="%(attachment_lifetime)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -37,6 +38,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --command_line_args=*)
       command_line_args+=("${arg##*=}")
+      ;;
+    --xctestrun_attachment_lifetime=*)
+      attachment_lifetime="${arg##*=}"
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -65,6 +69,7 @@ fi
 
 test_bundle_path="%(test_bundle_path)s"
 test_bundle_name=$(basename_without_extension "$test_bundle_path")
+test_bundle_binary="$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name"
 
 if [[ "$test_bundle_path" == *.xctest ]]; then
   cp -cRL "$test_bundle_path" "$test_tmp_dir"
@@ -173,6 +178,7 @@ if [[ -n "$test_host_path" ]]; then
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
+    test_bundle_binary="$plugins_path/$test_bundle_name.xctest/$test_bundle_name"
     mkdir -p "$plugins_path/$test_bundle_name.xctest/Frameworks"
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
@@ -341,8 +347,8 @@ fi
 
 test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
+test_file=$(file "$test_bundle_binary")
 
-test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
 intel_simulator_hack=false
 architecture="arm64"
 if [[ $(arch) == arm64 && "$test_file" != *arm64* ]]; then
@@ -387,6 +393,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     exit 1
   fi
 
+  # Set xctest attachment liftime
+  xctestrun_attachment_lifetime_section+="    <key>SystemAttachmentLifetime</key>\n"
+  xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>\n"
+  xctestrun_attachment_lifetime_section+="    <key>UserAttachmentLifetime</key>\n"
+  xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>"
+
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
     -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
@@ -403,6 +415,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
     -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
     -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
+    -e "s@BAZEL_ATTACHMENT_LIFETIME_SECTION@$xctestrun_attachment_lifetime_section@g" \
     -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
     -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
     -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
@@ -410,6 +423,13 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
+
+  if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
+    echo
+    echo "xctestrun contents:"
+    cat "$xctestrun_file"
+    echo
+  fi
 
   args=(
     -destination-timeout 15 \

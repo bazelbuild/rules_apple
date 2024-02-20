@@ -49,12 +49,11 @@ def _linker_flag_for_sdk_dylib(dylib):
     return "-l{}".format(dylib)
 
 def _apple_binary_impl(ctx):
-    # Fail early if using the not yet fully supported visionOS platform type outside of testing.
     if ctx.attr.platform_type == "visionos":
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-        if xcode_version_config.xcode_version() < apple_common.dotted_version("15.0"):
+        if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
             fail("""
-visionOS binaries require a visionOS SDK provided by Xcode 15 or later.
+visionOS binaries require a visionOS SDK provided by Xcode 15.1 beta or later.
 
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
@@ -117,10 +116,10 @@ Resolved Xcode is version {xcode_version}.
     # so that bundles can use it as their loader.
     if binary_type == "executable":
         providers.append(
-            apple_common.new_executable_binary_provider(
+            linking_support.new_executable_binary_provider(
+                binary = binary_artifact,
                 cc_info = link_result.cc_info,
                 objc = link_result.objc,
-                binary = binary_artifact,
             ),
         )
 

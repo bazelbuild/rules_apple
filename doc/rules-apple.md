@@ -375,8 +375,9 @@ ios_application(
 ## experimental_mixed_language_library
 
 <pre>
-experimental_mixed_language_library(<a href="#experimental_mixed_language_library-name">name</a>, <a href="#experimental_mixed_language_library-srcs">srcs</a>, <a href="#experimental_mixed_language_library-deps">deps</a>, <a href="#experimental_mixed_language_library-module_name">module_name</a>, <a href="#experimental_mixed_language_library-objc_copts">objc_copts</a>, <a href="#experimental_mixed_language_library-swift_copts">swift_copts</a>,
-                                    <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-testonly">testonly</a>, <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
+experimental_mixed_language_library(<a href="#experimental_mixed_language_library-name">name</a>, <a href="#experimental_mixed_language_library-srcs">srcs</a>, <a href="#experimental_mixed_language_library-deps">deps</a>, <a href="#experimental_mixed_language_library-enable_modules">enable_modules</a>, <a href="#experimental_mixed_language_library-enable_header_map">enable_header_map</a>,
+                                    <a href="#experimental_mixed_language_library-module_name">module_name</a>, <a href="#experimental_mixed_language_library-objc_copts">objc_copts</a>, <a href="#experimental_mixed_language_library-swift_copts">swift_copts</a>, <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-testonly">testonly</a>,
+                                    <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
 </pre>
 
 Compiles and links Objective-C and Swift code into a static library.
@@ -384,14 +385,11 @@ Compiles and links Objective-C and Swift code into a static library.
 This is an experimental macro that supports compiling mixed Objective-C and
 Swift source files into a static library.
 
-Due to the build performance reason, in general it's not recommended to
+Due to build performance reasons, in general it's not recommended to
 have mixed Objective-C and Swift modules, but it isn't uncommon to see
-mixed language modules in some old codebases. This macro is meant to make
+mixed language modules in some codebases. This macro is meant to make
 it easier to migrate codebases with mixed language modules to Bazel without
 having to demix them first.
-
-This macro only supports a very simple use case of mixed language
-modules---it does not support for header maps or Clang modules.
 
 
 **PARAMETERS**
@@ -402,6 +400,8 @@ modules---it does not support for header maps or Clang modules.
 | <a id="experimental_mixed_language_library-name"></a>name |  A unique name for this target.   |  none |
 | <a id="experimental_mixed_language_library-srcs"></a>srcs |  The list of Objective-C and Swift source files to compile.   |  none |
 | <a id="experimental_mixed_language_library-deps"></a>deps |  A list of targets that are dependencies of the target being built, which will be linked into that target.   |  `[]` |
+| <a id="experimental_mixed_language_library-enable_modules"></a>enable_modules |  Enables clang module support for the Objective-C target.   |  `False` |
+| <a id="experimental_mixed_language_library-enable_header_map"></a>enable_header_map |  Enables header map support for the Swift and Objective-C target.   |  `False` |
 | <a id="experimental_mixed_language_library-module_name"></a>module_name |  The name of the mixed language module being built. If left unspecified, the module name will be the name of the target.   |  `None` |
 | <a id="experimental_mixed_language_library-objc_copts"></a>objc_copts |  Additional compiler options that should be passed to `clang`.   |  `[]` |
 | <a id="experimental_mixed_language_library-swift_copts"></a>swift_copts |  Additional compiler options that should be passed to `swiftc`. These strings are subject to `$(location ...)` and "Make" variable expansion.   |  `[]` |

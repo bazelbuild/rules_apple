@@ -381,7 +381,7 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["mac"],
             bundle_extension = ".qlgenerator",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            bundle_package_type = bundle_package_type.extension_or_xpc,
+            bundle_package_type = bundle_package_type.bundle,
             product_type = apple_product_type.quicklook_plugin,
             requires_signing_for_device = False,
         ),
@@ -598,7 +598,7 @@ _RULE_TYPE_DESCRIPTORS = {
     "visionos": {
         # visionos_application (single target application)
         apple_product_type.application: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),

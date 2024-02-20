@@ -26,6 +26,9 @@ load(
 )
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+# TODO: Remove once we drop bazel 7.x
+_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
+
 def _cc_info_with_dependencies(
         *,
         actions,
@@ -457,7 +460,21 @@ def _objc_provider_with_dependencies(
         objc_provider_fields["weak_sdk_framework"] = depset(weak_sdk_framework)
 
     objc_provider_fields.update(**additional_objc_provider_fields)
+    if not _OBJC_PROVIDER_LINKING:
+        objc_provider_fields = {"providers": additional_objc_providers}
+
     return apple_common.new_objc_provider(**objc_provider_fields)
+
+def _new_dynamic_framework_provider(**kwargs):
+    """A wrapper API for the Bazel API of the same name to better support multiple Bazel versions
+
+    Args:
+        **kwargs: Arguments to pass if supported.
+    """
+    if not _OBJC_PROVIDER_LINKING:
+        kwargs.pop("objc", None)
+
+    return apple_common.new_dynamic_framework_provider(**kwargs)
 
 def _swift_info_from_module_interface(
         *,
@@ -530,6 +547,7 @@ framework_import_support = struct(
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     has_versioned_framework_files = _has_versioned_framework_files,
+    new_dynamic_framework_provider = _new_dynamic_framework_provider,
     objc_provider_with_dependencies = _objc_provider_with_dependencies,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,

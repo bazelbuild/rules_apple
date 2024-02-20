@@ -23,10 +23,6 @@ load(
     "AppleFrameworkImportInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
-    "bitcode_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
@@ -154,8 +150,7 @@ def _framework_import_partial_impl(
 
         args.add_all(build_archs_found, before_each = "--slice")
 
-        if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
-            args.add("--strip_bitcode")
+        args.add("--strip_bitcode")
 
         args.add("--output_zip", framework_zip.path)
 

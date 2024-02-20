@@ -59,7 +59,7 @@ def macos_quick_look_plugin_test_suite(name):
             "CFBundleExecutable": "ql_plugin",
             "CFBundleIdentifier": "com.google.example",
             "CFBundleName": "ql_plugin",
-            "CFBundlePackageType": "XPC!",
+            "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "MacOSX",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
             "DTPlatformBuild": "*",
@@ -80,6 +80,15 @@ def macos_quick_look_plugin_test_suite(name):
         build_type = "device",
         binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin",
         macho_load_commands_not_contain = ["cmd LC_RPATH"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_missing_id_dylib_header_value_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ql_plugin",
+        macho_load_commands_not_contain = ["cmd LC_ID_DYLIB"],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
         tags = [name],
     )

@@ -22,7 +22,7 @@ _DEVICE_FAMILY_VALUES = {
     "ipad": 2,
     "tv": 3,
     "watch": 4,
-    "reality": 7,
+    "vision": 7,
     # We want _ui_device_family_plist_value to find None for the valid "mac"
     # family since macOS doesn't use the UIDeviceFamily Info.plist key, but we
     # still want to catch invalid families with a KeyError.

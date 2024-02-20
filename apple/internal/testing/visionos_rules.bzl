@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,13 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "VisionosApplicationBundleInfo",
+    "VisionosExtensionBundleInfo",
+    "VisionosFrameworkBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -54,13 +61,6 @@ load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
 )
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "VisionosApplicationBundleInfo",
-    "VisionosExtensionBundleInfo",
-    "VisionosFrameworkBundleInfo",
-)
 
 _VISIONOS_TEST_HOST_PROVIDERS = [
     [AppleBundleInfo, VisionosApplicationBundleInfo],
@@ -75,6 +75,8 @@ def _visionos_ui_test_bundle_impl(ctx):
     ) + [
         new_visionosxctestbundleinfo(),
     ]
+
+visibility("//apple/...")
 
 def _visionos_unit_test_bundle_impl(ctx):
     """Implementation of visionos_unit_test."""
@@ -175,6 +177,8 @@ the attributes inherited by all test rules, please check the
 _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an visionOS Unit Test Bundle. Internal target not to be depended upon.",
     implementation = _visionos_unit_test_bundle_impl,
+    # TODO(b/288582842): Currently needed to supply a "dummy archive" for the tree artifact
+    # processor. See if we can avoid needing to declare this hack for a new rule type.
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.binary_linking_attrs(
