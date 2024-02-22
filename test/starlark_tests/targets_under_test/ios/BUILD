@@ -2307,6 +2307,32 @@ objc_library(
     deps = [":ios_imported_dynamic_xcframework"],
 )
 
+ios_application(
+    name = "app_with_implementation_depending_imported_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_implementation_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_implementation_depending_lib",
+    srcs = [":dynamic_xcframework_depending_lib_file"],
+    implementation_deps = [":ios_imported_dynamic_xcframework"],
+    tags = common.fixture_tags,
+)
+
 write_file(
     name = "dynamic_xcframework_depending_lib_file",
     out = "lib_with_imported_objc_xcframework.m",
@@ -2346,6 +2372,31 @@ swift_library(
     srcs = [":swift_with_framework_src"],
     tags = common.fixture_tags,
     deps = [":ios_imported_dynamic_xcframework"],
+)
+
+ios_application(
+    name = "swift_app_with_private_depending_imported_objc_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_objc_xcframework_private_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_objc_xcframework_private_depending_swift_lib",
+    srcs = [":swift_with_framework_src"],
+    private_deps = [":ios_imported_dynamic_xcframework"],
+    tags = common.fixture_tags,
 )
 
 write_file(
@@ -2418,6 +2469,32 @@ objc_library(
     deps = [":ios_imported_swift_dynamic_xcframework"],
 )
 
+ios_application(
+    name = "app_with_implementation_depending_imported_swift_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_swift_xcframework_implementation_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_swift_xcframework_implementation_depending_objc_lib",
+    srcs = [":objc_with_framework_src"],
+    implementation_deps = [":ios_imported_swift_dynamic_xcframework"],
+    tags = common.fixture_tags,
+)
+
 write_file(
     name = "objc_with_framework_src",
     out = "ObjcWithFramework.m",
@@ -2457,6 +2534,31 @@ swift_library(
     srcs = [":swift_with_dynamic_swift_framework_src"],
     tags = common.fixture_tags,
     deps = [":ios_imported_swift_dynamic_xcframework"],
+)
+
+ios_application(
+    name = "swift_app_with_private_depending_imported_swift_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_swift_xcframework_private_depending_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_private_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_src"],
+    private_deps = [":ios_imported_swift_dynamic_xcframework"],
+    tags = common.fixture_tags,
 )
 
 write_file(

@@ -64,9 +64,46 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
+        name = "{}_contains_implementation_depending_imported_xcframework_framework_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_implementation_depending_imported_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Modules/",
+        ],
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers (offset 24)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
         name = "{}_swift_contains_imported_xcframework_framework_files".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_objc_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Modules/",
+        ],
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers (offset 24)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_contains_private_depending_imported_xcframework_framework_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_private_depending_imported_objc_xcframework",
         contains = [
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
@@ -101,9 +138,45 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
+        name = "{}_contains_implementation_depending_imported_swift_xcframework_framework_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_implementation_depending_imported_swift_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
+        ],
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
         name = "{}_swift_contains_imported_swift_xcframework_framework_files".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Modules/",
+        ],
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_swift_contains_private_depending_imported_swift_xcframework_framework_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_private_depending_imported_swift_xcframework",
         contains = [
             "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
