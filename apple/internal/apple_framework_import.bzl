@@ -276,7 +276,11 @@ def _apple_dynamic_framework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        framework_includes = _framework_search_paths(framework.header_imports),
+        framework_includes = _framework_search_paths(
+            framework.header_imports +
+            framework.swift_interface_imports +
+            framework.swift_module_imports,
+        ),
         header_imports = framework.header_imports,
         kind = "dynamic",
         label = label,
