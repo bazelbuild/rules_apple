@@ -106,7 +106,7 @@ def _collect_linkmaps(
 
     return outputs
 
-def _copy_dsyms_into_declared_bundle(
+def _generate_dsym_binaries(
         *,
         actions,
         debug_output_filename,
@@ -303,13 +303,21 @@ def _bundle_dsym_files(
         found_binaries_by_arch.update(dsym_binaries)
 
     if found_binaries_by_arch:
-        output_files = _copy_dsyms_into_declared_bundle(
+        generated_dsym_binaries = _generate_dsym_binaries(
             actions = actions,
             debug_output_filename = dsym_output_filename,
             dsym_bundle_name = dsym_bundle_name,
             found_binaries_by_arch = found_binaries_by_arch,
             platform_prerequisites = platform_prerequisites,
         )
+        output_files.extend(generated_dsym_binaries)
+        dsyms_command = (" && ".join([
+            "cp \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
+                dsym_path = dsym_binary.path,
+                dsym_bundle_name = dsym_output_filename,
+            )
+            for dsym_binary in generated_dsym_binaries
+        ]))
 
         # If we found any binaries, create the Info.plist for the bundle as well.
         dsym_plist = _generate_dsym_info_plist(
@@ -334,9 +342,9 @@ def _bundle_dsym_files(
         apple_support.run_shell(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            inputs = [dsym_plist] + found_binaries_by_arch.values(),
+            inputs = generated_dsym_binaries + [dsym_plist] + found_binaries_by_arch.values(),
             outputs = [dsym_bundle_dir],
-            command = ("mkdir -p \"${OUTPUT_DIR}/Contents/Resources/DWARF\" && " + plist_command),
+            command = ("mkdir -p \"${OUTPUT_DIR}/Contents/Resources/DWARF\" && " + dsyms_command + " && " + plist_command),
             env = {
                 "OUTPUT_DIR": dsym_bundle_dir.path,
             },
