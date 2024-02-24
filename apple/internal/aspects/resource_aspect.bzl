@@ -131,6 +131,10 @@ def _apple_resource_aspect_impl(target, ctx):
     # The name of the bundle directory to place resources within, if required.
     bundle_name = None
 
+    # Struct containing information on the platform being targeted.
+    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx)
+    is_macos = str(platform_prerequisites.platform_type) == "macos"
+
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
@@ -183,7 +187,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    platform_prerequisites = platform_prerequisites,
                     processing_owner = owner,
                     unowned_resources = unowned_resources,
                     **process_args
@@ -199,14 +203,14 @@ def _apple_resource_aspect_impl(target, ctx):
             bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
                 resources = resource_files,
                 owner = owner,
-                parent_dir_param = bundle_name,
+                parent_dir_param = "Resources" if is_macos else bundle_name,
                 **bucketize_args
             )
             apple_resource_infos.append(
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    platform_prerequisites = platform_prerequisites,
                     processing_owner = owner,
                     unowned_resources = unowned_resources,
                     **process_args
@@ -256,7 +260,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 resources.process_bucketized_data(
                     bucketized_owners = bucketized_owners,
                     buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
+                    platform_prerequisites = platform_prerequisites,
                     processing_owner = owner,
                     unowned_resources = unowned_resources,
                     **process_args
