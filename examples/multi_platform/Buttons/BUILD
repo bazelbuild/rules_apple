@@ -280,6 +280,9 @@ swift_library(
         "ButtonsMac/AppDelegate.swift",
         "ButtonsMac/ViewController.swift",
     ],
+    data = [
+        "ButtonsMac/English.lproj/InfoPlist.strings",
+    ],
     module_name = "ButtonsMac",
     tags = ["manual"],
 )
@@ -325,6 +328,7 @@ objc_library(
 
 macos_framework(
     name = "ButtonsMacDynamicFramework",
+    hdrs = ["ButtonsMac/Headers/ButtonsMac.h"],
     bundle_id = "com.google.ButtonsMac",
     bundle_name = "ButtonsMac",
     infoplists = ["ButtonsMac/Info.plist"],
