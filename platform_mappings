@@ -75,6 +75,14 @@ platforms:
     --apple_platform_type=watchos
     --cpu=watchos_arm64_32
 
+  @build_bazel_apple_support//platforms:watchos_device_arm64
+    --apple_platform_type=watchos
+    --cpu=watchos_device_arm64
+
+  @build_bazel_apple_support//platforms:watchos_device_arm64e
+    --apple_platform_type=watchos
+    --cpu=watchos_device_arm64e
+
 flags:
   --cpu=darwin_x86_64
   --apple_platform_type=macos

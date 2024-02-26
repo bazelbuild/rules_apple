@@ -384,7 +384,7 @@ function current_archs() {
           value="$(echo "$option" | cut -d= -f2)"
         else
           # Eliminate `sim_` prefixes from `cpu`s as it is not part of the arch.
-          value="$(echo "$option" | cut -d= -f2 | sed 's/sim_//g')"
+          value="$(echo "$option" | cut -d= -f2 | sed -e 's/sim_//g' -e 's/device_//g')"
         fi
         echo "$value" | tr "," "\n"
         return

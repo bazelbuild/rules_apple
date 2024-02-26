@@ -377,7 +377,7 @@ def _validate_bundle_id(bundle_id):
             # handled by the split(), so just have to check for '-'.
             for i in range(len(part)):
                 ch = part[i]
-                if ch != "-" and not ch.isalnum():
+                if ch not in ["-", "_"] and not ch.isalnum():
                     fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
 
 # Define the loadable module that lists the exported symbols in this file.
