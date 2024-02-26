@@ -24,7 +24,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 
 visibility("//apple/internal/...")
@@ -119,7 +119,7 @@ def compile_rkassets(
         mac_exec_group,
         output_file,
         platform_prerequisites,
-        resolved_xctoolrunner,
+        xctoolrunner,
         schema_file):
     """Creates an action that compiles Reality Composer Pro bundles (i.e. .rkassets).
 
@@ -127,10 +127,10 @@ def compile_rkassets(
       actions: The actions provider from `ctx.actions`.
       input_files: The Reality Composer Pro File inputs that will be compiled.
       input_path: The path to the .rkassets directory to compile.
-      mac_exec_group: The exec_group associated with Apple actions
+      mac_exec_group: The exec_group associated with Apple actions.
       output_file: The File reference for the compiled .reality output.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
       schema_file: The File reference for the optional usda schema file, composed from swift sources
         if any were provided for this rkassets bundle through one or more associated swift_library
         targets.
@@ -159,18 +159,17 @@ support if you have a project that desires this feature.
     args.add("--platform", _PLATFORM_TO_TOOL_PLATFORM[str(platform_prerequisites.platform)])
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     if schema_file:
-        args.add("--schema-file", xctoolrunner.prefixed_path(schema_file.path))
+        args.add("--schema-file", xctoolrunner_support.prefixed_path(schema_file.path))
         direct_inputs.append(schema_file)
-    args.add("--output-reality", xctoolrunner.prefixed_path(output_file.path))
+    args.add("--output-reality", xctoolrunner_support.prefixed_path(output_file.path))
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         exec_group = mac_exec_group,
-        executable = resolved_xctoolrunner.executable,
-        inputs = depset(direct_inputs, transitive = [input_files, resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        executable = xctoolrunner,
+        inputs = depset(direct_inputs, transitive = [input_files]),
         mnemonic = "CompileRealityKitAssets",
         outputs = [output_file],
         xcode_config = platform_prerequisites.xcode_version_config,

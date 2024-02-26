@@ -499,7 +499,7 @@ def _resources_partial_impl(
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                plisttool = apple_mac_toolchain_info.plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,

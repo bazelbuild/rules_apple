@@ -84,7 +84,7 @@ def _swift_dylib_action(
         output_dir,
         platform_name,
         platform_prerequisites,
-        resolved_swift_stdlib_tool):
+        swift_stdlib_tool):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
     swift_stdlib_tool_args = [
         "--platform",
@@ -103,9 +103,8 @@ def _swift_dylib_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = swift_stdlib_tool_args,
         exec_group = mac_exec_group,
-        executable = resolved_swift_stdlib_tool.executable,
-        inputs = depset(binary_files, transitive = [resolved_swift_stdlib_tool.inputs]),
-        input_manifests = resolved_swift_stdlib_tool.input_manifests,
+        executable = swift_stdlib_tool,
+        inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -171,7 +170,7 @@ def _swift_dylibs_partial_impl(
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
+                swift_stdlib_tool = apple_mac_toolchain_info.swift_stdlib_tool,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))

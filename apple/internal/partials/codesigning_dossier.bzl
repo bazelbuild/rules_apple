@@ -287,7 +287,7 @@ def _codesigning_dossier_partial_impl(
     codesigning_support.generate_codesigning_dossier_action(
         actions = actions,
         label_name = label_name,
-        resolved_codesigning_dossier_tool = apple_mac_toolchain_info.resolved_dossier_codesigningtool,
+        dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         platform_prerequisites = platform_prerequisites,

@@ -176,8 +176,8 @@ def _framework_import_partial_impl(
             # code sign arguments are mutually exclusive groups.
             args.add("--disable_signing")
 
-        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
-        resolved_imported_dynamic_framework_processor = apple_mac_toolchain_info.resolved_imported_dynamic_framework_processor
+        codesigningtool = apple_mac_toolchain_info.codesigningtool
+        imported_dynamic_framework_processor = apple_mac_toolchain_info.imported_dynamic_framework_processor
 
         # Inputs of action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, and the provisioning profile if specified.
@@ -188,23 +188,16 @@ def _framework_import_partial_impl(
         if provisioning_profile:
             input_files.append(provisioning_profile)
 
-        transitive_inputs = [
-            resolved_imported_dynamic_framework_processor.inputs,
-            resolved_codesigningtool.inputs,
-        ]
-
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
-            executable = resolved_imported_dynamic_framework_processor.executable,
+            executable = imported_dynamic_framework_processor,
             exec_group = mac_exec_group,
-            inputs = depset(input_files, transitive = transitive_inputs),
-            input_manifests = resolved_imported_dynamic_framework_processor.input_manifests +
-                              resolved_codesigningtool.input_manifests,
+            inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
             outputs = [framework_zip],
-            tools = [resolved_codesigningtool.executable],
+            tools = [codesigningtool],
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 

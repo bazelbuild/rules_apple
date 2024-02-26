@@ -58,7 +58,7 @@ def _clang_rt_dylibs_partial_impl(
             file_name = "clang_rt.zip",
         )
 
-        resolved_clangrttool = apple_mac_toolchain_info.resolved_clangrttool
+        clangrttool = apple_mac_toolchain_info.clangrttool
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
@@ -66,12 +66,11 @@ def _clang_rt_dylibs_partial_impl(
                 binary_artifact.path,
                 clang_rt_zip.path,
             ],
-            executable = resolved_clangrttool.executable,
+            executable = clangrttool,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
             exec_group = mac_exec_group,
-            inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
-            input_manifests = resolved_clangrttool.input_manifests,
+            inputs = [binary_artifact] + dylibs,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
             xcode_config = platform_prerequisites.xcode_version_config,
@@ -105,6 +104,7 @@ def clang_rt_dylibs_partial(
       dylibs: List of dylibs (usually from a toolchain).
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
+      mac_exec_group: The exec_group associated with clangrttool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.

@@ -96,7 +96,7 @@ def _apple_core_data_model_impl(ctx):
             mac_exec_group = mac_exec_group,
             output_dir = output_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
             swift_version = swift_version,
         )
 

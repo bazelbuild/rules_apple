@@ -38,49 +38,49 @@ A `File` referencing a plist template for dSYM bundles.
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
 """,
-        "resolved_bundletool_experimental": """\
-A `struct` from `ctx.resolve_tools` referencing an experimental tool to create an Apple bundle by
+        "bundletool_experimental": """\
+The files_to_run for an experimental tool to create an Apple bundle by
 combining the bundling, post-processing, and signing steps into a single action that eliminates the
 archiving step.
 """,
-        "resolved_clangrttool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to find all Clang runtime libs linked to a
+        "clangrttool": """\
+The files_to_run for a tool to find all Clang runtime libs linked to a
 binary.
 """,
-        "resolved_codesigningtool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to select the appropriate signing identity
+        "codesigningtool": """\
+The files_to_run for a tool to select the appropriate signing identity
 for Apple apps and Apple executable bundles.
 """,
-        "resolved_dossier_codesigningtool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to generate codesigning dossiers.
+        "dossier_codesigningtool": """\
+The files_to_run for a tool to generate codesigning dossiers.
 """,
-        "resolved_environment_plist_tool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool for collecting dev environment values.
+        "environment_plist_tool": """\
+The files_to_run for a tool for collecting dev environment values.
 """,
-        "resolved_imported_dynamic_framework_processor": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to process an imported dynamic framework
+        "imported_dynamic_framework_processor": """\
+The files_to_run for a tool to process an imported dynamic framework
 such that the given framework only contains the same slices as the app binary, every file belonging
 to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
 and zipped as a cacheable artifact.
 """,
-        "resolved_plisttool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool to perform plist operations such as variable
+        "plisttool": """\
+The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
-        "resolved_provisioning_profile_tool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that extracts entitlements from a
+        "provisioning_profile_tool": """\
+The files_to_run for a tool that extracts entitlements from a
 provisioning profile.
 """,
-        "resolved_swift_stdlib_tool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that copies and lipos Swift stdlibs required
+        "swift_stdlib_tool": """\
+The files_to_run for a tool that copies and lipos Swift stdlibs required
 for the target to run.
 """,
-        "resolved_xcframework_processor_tool": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that extracts and copies an XCFramework
+        "xcframework_processor_tool": """\
+The files_to_run for a tool that extracts and copies an XCFramework
 library for a target triplet.
 """,
-        "resolved_xctoolrunner": """\
-A `struct` from `ctx.resolve_tools` referencing a tool that acts as a wrapper for xcrun actions.
+        "xctoolrunner": """\
+The files_to_run for a tool that acts as a wrapper for xcrun actions.
 """,
     },
 )
@@ -113,68 +113,21 @@ A tool that acts as a wrapper for xcrun actions.
     },
 )
 
-def _resolve_tools_for_executable(*, rule_ctx, attr_name):
-    """Helper macro to resolve executable runfile dependencies across the rule boundary."""
-
-    # TODO(b/111036105) Migrate away from this helper and its outputs once ctx.executable works
-    # across rule boundaries.
-    executable = getattr(rule_ctx.executable, attr_name)
-    target = getattr(rule_ctx.attr, attr_name)
-    inputs, input_manifests = rule_ctx.resolve_tools(tools = [target])
-    return struct(
-        executable = executable,
-        inputs = inputs,
-        input_manifests = input_manifests,
-    )
-
 def _apple_mac_tools_toolchain_impl(ctx):
     apple_mac_tools_info = AppleMacToolsToolchainInfo(
         dsym_info_plist_template = ctx.file.dsym_info_plist_template,
         process_and_sign_template = ctx.file.process_and_sign_template,
-        resolved_bundletool_experimental = _resolve_tools_for_executable(
-            attr_name = "bundletool_experimental",
-            rule_ctx = ctx,
-        ),
-        resolved_codesigningtool = _resolve_tools_for_executable(
-            attr_name = "codesigningtool",
-            rule_ctx = ctx,
-        ),
-        resolved_dossier_codesigningtool = _resolve_tools_for_executable(
-            attr_name = "dossier_codesigningtool",
-            rule_ctx = ctx,
-        ),
-        resolved_clangrttool = _resolve_tools_for_executable(
-            attr_name = "clangrttool",
-            rule_ctx = ctx,
-        ),
-        resolved_environment_plist_tool = _resolve_tools_for_executable(
-            attr_name = "environment_plist_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_imported_dynamic_framework_processor = _resolve_tools_for_executable(
-            attr_name = "imported_dynamic_framework_processor",
-            rule_ctx = ctx,
-        ),
-        resolved_plisttool = _resolve_tools_for_executable(
-            attr_name = "plisttool",
-            rule_ctx = ctx,
-        ),
-        resolved_provisioning_profile_tool = _resolve_tools_for_executable(
-            attr_name = "provisioning_profile_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_swift_stdlib_tool = _resolve_tools_for_executable(
-            attr_name = "swift_stdlib_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_xcframework_processor_tool = _resolve_tools_for_executable(
-            attr_name = "xcframework_processor_tool",
-            rule_ctx = ctx,
-        ),
-        resolved_xctoolrunner = _resolve_tools_for_executable(
-            attr_name = "xctoolrunner",
-            rule_ctx = ctx,
-        ),
+        bundletool_experimental = ctx.attr.bundletool_experimental.files_to_run,
+        codesigningtool = ctx.attr.codesigningtool.files_to_run,
+        dossier_codesigningtool = ctx.attr.dossier_codesigningtool.files_to_run,
+        clangrttool = ctx.attr.clangrttool.files_to_run,
+        environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
+        imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
+        plisttool = ctx.attr.plisttool.files_to_run,
+        provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
+        swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
+        xcframework_processor_tool = ctx.attr.xcframework_processor_tool.files_to_run,
+        xctoolrunner = ctx.attr.xctoolrunner.files_to_run,
     )
     return [
         platform_common.ToolchainInfo(mac_tools_info = apple_mac_tools_info),

@@ -40,7 +40,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 
 visibility("//apple/internal/...")
@@ -205,7 +205,7 @@ def compile_asset_catalog(
         platform_prerequisites,
         primary_icon_name,
         product_type,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Creates an action that compiles asset catalogs.
 
     This action populates a directory with compiled assets that must be merged
@@ -221,7 +221,7 @@ def compile_asset_catalog(
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
       bundle_id: The bundle ID to configure for this target.
-      mac_exec_group: The exec group associated with resolved_xctoolrunner.
+      mac_exec_group: The exec group associated with xctoolrunner.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
@@ -229,7 +229,7 @@ def compile_asset_catalog(
       primary_icon_name: An optional String to identify the name of the primary app icon when
         alternate app icons have been provided for the app.
       product_type: The product type identifier used to describe the current bundle type.
-      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
@@ -237,7 +237,7 @@ def compile_asset_catalog(
     args = [
         "actool",
         "--compile",
-        xctoolrunner.prefixed_path(output_dir.path),
+        xctoolrunner_support.prefixed_path(output_dir.path),
         "--platform",
         actool_platform,
         "--minimum-deployment-target",
@@ -262,7 +262,7 @@ def compile_asset_catalog(
         outputs.append(output_plist)
         args.extend([
             "--output-partial-info-plist",
-            xctoolrunner.prefixed_path(output_plist.path),
+            xctoolrunner_support.prefixed_path(output_plist.path),
         ])
 
     xcassets = group_files_by_directory(
@@ -271,7 +271,7 @@ def compile_asset_catalog(
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
+    args.extend([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
 
     execution_requirements = {
         "no-sandbox": "1",
@@ -281,11 +281,10 @@ def compile_asset_catalog(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.executable,
+        executable = xctoolrunner,
         execution_requirements = execution_requirements,
         exec_group = mac_exec_group,
-        inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,

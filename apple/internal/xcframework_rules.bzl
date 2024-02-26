@@ -339,7 +339,7 @@ def _create_xcframework_root_infoplist(
         apple_fragment,
         available_libraries,
         exec_group,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         xcode_config):
     """Generates a root Info.plist for a given XCFramework.
@@ -349,8 +349,8 @@ def _create_xcframework_root_infoplist(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         available_libraries: A dictionary containing keys representing how a given framework should
             be referenced in the root Info.plist of a given XCFramework bundle.
-        exec_group: The exec_group associated with resolved_plisttool
-        resolved_plisttool: A struct referencing the resolved plist tool.
+        exec_group: The exec_group associated with plisttool.
+        plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
@@ -389,10 +389,9 @@ def _create_xcframework_root_infoplist(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [plisttool_control_file.path],
-        executable = resolved_plisttool.executable,
+        executable = plisttool,
         exec_group = exec_group,
-        inputs = depset([plisttool_control_file], transitive = [resolved_plisttool.inputs]),
-        input_manifests = resolved_plisttool.input_manifests,
+        inputs = [plisttool_control_file],
         mnemonic = "CreateXCFrameworkRootInfoPlist",
         outputs = [root_info_plist],
         xcode_config = xcode_config,
@@ -634,7 +633,7 @@ def _apple_xcframework_impl(ctx):
                 mac_exec_group = mac_exec_group,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                plisttool = apple_mac_toolchain_info.plisttool,
                 rule_label = label,
                 version = ctx.attr.version,
             ),
@@ -745,7 +744,7 @@ def _apple_xcframework_impl(ctx):
         apple_fragment = ctx.fragments.apple,
         available_libraries = available_libraries,
         exec_group = mac_exec_group,
-        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+        plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -1020,7 +1019,7 @@ def _apple_static_xcframework_impl(ctx):
         apple_fragment = apple_fragment,
         available_libraries = available_libraries,
         exec_group = mac_exec_group,
-        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+        plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = xcode_config,
     )

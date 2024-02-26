@@ -262,7 +262,7 @@ Resolved Xcode is version {xcode_version}.
             linkmaps = debug_outputs.linkmaps,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            plisttool = apple_mac_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
         ),

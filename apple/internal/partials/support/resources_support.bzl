@@ -67,7 +67,7 @@ def _compile_datamodels(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
+        xctoolrunner,
         swift_module):
     "Compiles datamodels into mom files."
     output_files = []
@@ -104,7 +104,7 @@ def _compile_datamodels(
             module_name = module_name,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = resolved_xctoolrunner,
+            xctoolrunner = xctoolrunner,
         )
         output_files.append(
             (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
@@ -124,7 +124,7 @@ def _compile_mappingmodels(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Compiles mapping models into cdm files."""
     output_files = []
     processed_origins = {}
@@ -146,7 +146,7 @@ def _compile_mappingmodels(
             mac_exec_group = mac_exec_group,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = resolved_xctoolrunner,
+            xctoolrunner = xctoolrunner,
         )
 
         output_files.append(
@@ -205,7 +205,7 @@ def _asset_catalogs(
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
     return struct(
@@ -271,7 +271,7 @@ def _datamodels(
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         swift_module = swift_module,
     )
     processed_origins.update(compiled_data_outputs.processed_origins)
@@ -284,7 +284,7 @@ def _datamodels(
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
     processed_origins.update(compiled_mapping_outputs.processed_origins)
 
@@ -345,7 +345,7 @@ def _infoplists(
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            plisttool = apple_mac_toolchain_info.plisttool,
             rule_label = rule_label,
         )
         return struct(
@@ -394,7 +394,7 @@ def _mlmodels(
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
             mac_exec_group = mac_exec_group,
         )
 
@@ -597,7 +597,7 @@ def _rkassets(
             mac_exec_group = mac_exec_group,
             output_file = reality_file,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
             schema_file = schema_file,
         )
 
@@ -649,7 +649,7 @@ def _storyboards(
             mac_exec_group = mac_exec_group,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
             swift_module = swift_module,
         )
         compiled_storyboardcs.append(storyboardc_dir)
@@ -667,7 +667,7 @@ def _storyboards(
         mac_exec_group = mac_exec_group,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         storyboardc_dirs = compiled_storyboardcs,
     )
     return struct(
@@ -749,7 +749,7 @@ def _xibs(
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
             swift_module = swift_module,
         )
         nib_files.append(out_dir)

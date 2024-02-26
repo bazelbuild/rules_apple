@@ -223,19 +223,15 @@ invocation appear to be valid.
     args.add("--output_path", processor_output.path)
     outputs = [processor_output]
 
-    xcframework_processor_tool = apple_mac_toolchain_info.resolved_xcframework_processor_tool
+    xcframework_processor_tool = apple_mac_toolchain_info.xcframework_processor_tool
 
     apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
-        executable = xcframework_processor_tool.executable,
+        executable = xcframework_processor_tool,
         exec_group = mac_exec_group,
-        inputs = depset(
-            inputs,
-            transitive = [xcframework_processor_tool.inputs],
-        ),
-        input_manifests = xcframework_processor_tool.input_manifests,
+        inputs = inputs,
         mnemonic = "ProcessXCFrameworkFiles",
         outputs = outputs,
         xcode_config = xcode_config,
