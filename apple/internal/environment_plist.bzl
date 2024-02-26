@@ -62,7 +62,7 @@ def _environment_plist_impl(ctx):
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
-    resolved_environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_environment_plist_tool
+    environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
@@ -74,9 +74,7 @@ def _environment_plist_impl(ctx):
             "--output",
             ctx.outputs.plist.path,
         ],
-        executable = resolved_environment_plist_tool.executable,
-        inputs = resolved_environment_plist_tool.inputs,
-        input_manifests = resolved_environment_plist_tool.input_manifests,
+        executable = environment_plist_tool,
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
     )

@@ -347,18 +347,14 @@ def _get_xcframework_library_with_xcframework_processor(
         )
         outputs.append(swiftinterface_file)
 
-    xcframework_processor_tool = apple_mac_toolchain_info.resolved_xcframework_processor_tool
+    xcframework_processor_tool = apple_mac_toolchain_info.xcframework_processor_tool
 
     apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
-        executable = xcframework_processor_tool.files_to_run,
-        inputs = depset(
-            inputs,
-            transitive = [xcframework_processor_tool.inputs],
-        ),
-        input_manifests = xcframework_processor_tool.input_manifests,
+        executable = xcframework_processor_tool,
+        inputs = inputs,
         mnemonic = "ProcessXCFrameworkFiles",
         outputs = outputs,
         xcode_config = xcode_config,

@@ -105,8 +105,8 @@ def _apple_core_data_model_impl(ctx):
             input_files = files.to_list(),
             output_dir = output_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_version = swift_version,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
 
         output_files.append(output_dir)

@@ -413,13 +413,13 @@ def _bundle_partial_outputs_files(
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
 
-        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool_experimental
+        bundletool = apple_mac_toolchain_info.bundletool_experimental
 
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
         # the experimental bundle tool script.
-        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
+        codesigningtool = apple_mac_toolchain_info.codesigningtool
 
-        bundling_tools = [resolved_bundletool.executable, resolved_codesigningtool.executable]
+        bundling_tools = [bundletool, codesigningtool]
         if post_processor:
             bundling_tools.append(post_processor)
 
@@ -438,14 +438,9 @@ def _bundle_partial_outputs_files(
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            executable = resolved_bundletool.executable,
+            executable = bundletool,
             execution_requirements = execution_requirements,
-            inputs = depset(bundletool_inputs + codesign_inputs, transitive = [
-                resolved_bundletool.inputs,
-                resolved_codesigningtool.inputs,
-            ]),
-            input_manifests = resolved_bundletool.input_manifests +
-                              resolved_codesigningtool.input_manifests,
+            inputs = bundletool_inputs + codesign_inputs,
             mnemonic = "BundleTreeApp",
             progress_message = "Bundling, processing and signing %s" % label_name,
             tools = bundling_tools,
@@ -453,11 +448,10 @@ def _bundle_partial_outputs_files(
             **action_args
         )
     else:
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool
+        bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
-            executable = resolved_bundletool.executable,
-            inputs = depset(bundletool_inputs, transitive = [resolved_bundletool.inputs]),
-            input_manifests = resolved_bundletool.input_manifests,
+            executable = bundletool,
+            inputs = bundletool_inputs,
             mnemonic = "BundleApp",
             progress_message = "Bundling %s" % label_name,
             **action_args
@@ -536,7 +530,7 @@ def _bundle_post_process_and_sign(
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
-            codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool.executable,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
             features = features,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
@@ -607,6 +601,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
             codesign_inputs = codesign_inputs,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             codesignopts = codesignopts,
             entitlements = entitlements,
             features = features,
@@ -620,7 +615,6 @@ def _bundle_post_process_and_sign(
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
-            resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
@@ -677,6 +671,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
                 codesign_inputs = codesign_inputs,
+                codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 codesignopts = codesignopts,
                 entitlements = entitlements,
                 features = features,
@@ -690,7 +685,6 @@ def _bundle_post_process_and_sign(
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
-                resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
             )

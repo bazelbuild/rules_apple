@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 load(
     "@bazel_skylib//lib:versions.bzl",
@@ -40,7 +40,7 @@ def generate_intent_classes_sources(
         swift_version,
         class_visibility,
         platform_prerequisites,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Creates an action that cgenerates intent classes from an intentdefinition file.
 
     Args:
@@ -55,7 +55,7 @@ def generate_intent_classes_sources(
         swift_version: Version of Swift to use for the generated classes.
         class_visibility: Visibility attribute for the generated classes.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
+        xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
 
     is_swift = language == "Swift"
@@ -64,7 +64,7 @@ def generate_intent_classes_sources(
         "intentbuilderc",
         "generate",
         "-input",
-        xctoolrunner.prefixed_path(input_file.path),
+        xctoolrunner_support.prefixed_path(input_file.path),
         "-language",
         language,
         "-classPrefix",
@@ -103,8 +103,8 @@ def generate_intent_classes_sources(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = arguments,
-        executable = resolved_xctoolrunner.files_to_run,
-        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
+        executable = xctoolrunner,
+        inputs = [input_file],
         mnemonic = "IntentGenerate",
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,

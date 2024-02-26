@@ -331,7 +331,7 @@ def _create_xcframework_root_infoplist(
         actions,
         apple_fragment,
         available_libraries,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         xcode_config):
     """Generates a root Info.plist for a given XCFramework.
@@ -341,7 +341,7 @@ def _create_xcframework_root_infoplist(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         available_libraries: A dictionary containing keys representing how a given framework should
             be referenced in the root Info.plist of a given XCFramework bundle.
-        resolved_plisttool: A struct referencing the resolved plist tool.
+        plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
@@ -380,9 +380,8 @@ def _create_xcframework_root_infoplist(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [plisttool_control_file.path],
-        executable = resolved_plisttool.files_to_run,
-        inputs = depset([plisttool_control_file], transitive = [resolved_plisttool.inputs]),
-        input_manifests = resolved_plisttool.input_manifests,
+        executable = plisttool,
+        inputs = [plisttool_control_file],
         mnemonic = "CreateXCFrameworkRootInfoPlist",
         outputs = [root_info_plist],
         xcode_config = xcode_config,
@@ -393,18 +392,19 @@ def _create_xcframework_bundle(
         *,
         actions,
         bundle_name,
+        bundletool,
         framework_archive_files,
         framework_archive_merge_files,
         framework_archive_merge_zips = [],
         label_name,
         output_archive,
-        resolved_bundletool,
         root_info_plist):
     """Generates the bundle archive for an XCFramework.
 
      Args:
         actions: The actions providerx from `ctx.actions`.
         bundle_name: The name of the XCFramework bundle.
+        bundletool: A files to run for the bundle tool.
         framework_archive_files: A list of depsets referencing files to be used as inputs to the
             bundling action. This should include every archive referenced as a "src" of
             framework_archive_merge_zips.
@@ -419,7 +419,6 @@ def _create_xcframework_bundle(
             `bundle_path`.
         label_name: Name of the target being built.
         output_archive: The file representing the final bundled archive.
-        resolved_bundletool: A struct referencing the resolved bundle tool.
         root_info_plist: A `File` representing a fully formed root Info.plist for this XCFramework.
     """
     bundletool_control_file = intermediates.file(
@@ -443,12 +442,11 @@ def _create_xcframework_bundle(
 
     actions.run(
         arguments = [bundletool_control_file.path],
-        executable = resolved_bundletool.files_to_run,
+        executable = bundletool,
         inputs = depset(
             direct = [bundletool_control_file, root_info_plist],
-            transitive = [resolved_bundletool.inputs] + framework_archive_files,
+            transitive = framework_archive_files,
         ),
-        input_manifests = resolved_bundletool.input_manifests,
         mnemonic = "CreateXCFrameworkBundle",
         outputs = [output_archive],
         progress_message = "Bundling %s" % label_name,
@@ -634,7 +632,7 @@ def _apple_xcframework_impl(ctx):
                 linkmaps = link_output.linkmaps,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                plisttool = apple_mac_toolchain_info.plisttool,
                 rule_label = label,
                 version = ctx.attr.version,
             ),
@@ -742,7 +740,7 @@ def _apple_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = ctx.fragments.apple,
         available_libraries = available_libraries,
-        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+        plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -750,12 +748,12 @@ def _apple_xcframework_impl(ctx):
     _create_xcframework_bundle(
         actions = actions,
         bundle_name = bundle_name,
+        bundletool = apple_xplat_toolchain_info.bundletool,
         framework_archive_files = framework_archive_files,
         framework_archive_merge_files = framework_archive_merge_files,
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = ctx.outputs.archive,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 
@@ -1092,7 +1090,7 @@ def _apple_static_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         available_libraries = available_libraries,
-        resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+        plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = xcode_config,
     )
@@ -1100,11 +1098,11 @@ def _apple_static_xcframework_impl(ctx):
     _create_xcframework_bundle(
         actions = actions,
         bundle_name = bundle_name,
+        bundletool = apple_xplat_toolchain_info.bundletool,
         framework_archive_files = framework_archive_files,
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
         output_archive = outputs_archive,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
         root_info_plist = root_info_plist,
     )
 

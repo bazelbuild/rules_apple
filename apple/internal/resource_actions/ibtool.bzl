@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 load(
     "@bazel_skylib//lib:collections.bzl",
@@ -59,8 +59,8 @@ def compile_storyboard(
         input_file,
         output_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
-        swift_module):
+        swift_module,
+        xctoolrunner):
     """Creates an action that compiles a storyboard.
 
     Args:
@@ -68,15 +68,15 @@ def compile_storyboard(
       input_file: The storyboard to compile.
       output_dir: The directory where the compiled outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
       swift_module: The name of the Swift module to use when compiling the
         storyboard.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
 
     args = [
         "ibtool",
         "--compilation-directory",
-        xctoolrunner.prefixed_path(output_dir.dirname),
+        xctoolrunner_support.prefixed_path(output_dir.dirname),
     ]
 
     min_os = platform_prerequisites.minimum_os
@@ -85,17 +85,16 @@ def compile_storyboard(
     args.extend([
         "--module",
         swift_module,
-        xctoolrunner.prefixed_path(input_file.path),
+        xctoolrunner_support.prefixed_path(input_file.path),
     ])
 
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.files_to_run,
+        executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        inputs = [input_file],
         mnemonic = "StoryboardCompile",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -106,8 +105,8 @@ def link_storyboards(
         actions,
         output_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
-        storyboardc_dirs):
+        storyboardc_dirs,
+        xctoolrunner):
     """Creates an action that links multiple compiled storyboards.
 
     Storyboards that reference each other must be linked, and this operation also
@@ -118,9 +117,9 @@ def link_storyboards(
       actions: The actions provider from `ctx.actions`.
       output_dir: The directory where the linked outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_xctoolrunner: A reference to the executable wrapper for "xcrun" tools.
       storyboardc_dirs: A list of `File`s that represent directories containing
         the compiled storyboards.
+      xctoolrunner: A files_to_run for the wrapper for the "xcrun" tools.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -129,11 +128,11 @@ def link_storyboards(
     args = [
         "ibtool",
         "--link",
-        xctoolrunner.prefixed_path(output_dir.path),
+        xctoolrunner_support.prefixed_path(output_dir.path),
     ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
-        xctoolrunner.prefixed_path(f.path)
+        xctoolrunner_support.prefixed_path(f.path)
         for f in storyboardc_dirs
     ])
 
@@ -141,10 +140,9 @@ def link_storyboards(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.files_to_run,
+        executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = depset(storyboardc_dirs, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        inputs = storyboardc_dirs,
         mnemonic = "StoryboardLink",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -156,8 +154,8 @@ def compile_xib(
         input_file,
         output_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
-        swift_module):
+        swift_module,
+        xctoolrunner):
     """Creates an action that compiles a Xib file.
 
     Args:
@@ -165,9 +163,9 @@ def compile_xib(
       input_file: The Xib file to compile.
       output_dir: The file reference for the output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
       swift_module: The name of the Swift module to use when compiling the
         Xib file.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -178,23 +176,22 @@ def compile_xib(
     args = [
         "ibtool",
         "--compile",
-        xctoolrunner.prefixed_path(paths.join(output_dir.path, nib_name)),
+        xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
     ]
     args.extend(_ibtool_arguments(min_os, families))
     args.extend([
         "--module",
         swift_module,
-        xctoolrunner.prefixed_path(input_file.path),
+        xctoolrunner_support.prefixed_path(input_file.path),
     ])
 
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.files_to_run,
+        executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = depset([input_file], transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        inputs = [input_file],
         mnemonic = "XibCompile",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
