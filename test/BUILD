@@ -149,6 +149,7 @@ apple_multi_shell_test(
 apple_multi_shell_test(
     name = "watchos_application_test",
     size = "medium",
+    timeout = "long",
     src = "watchos_application_test.sh",
     configurations = WATCHOS_CONFIGURATIONS,
 )
