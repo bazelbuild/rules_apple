@@ -40,11 +40,6 @@ following keys:
       contents should be placed.
   code_signing_commands: An optional list of shell commands that should be
       executed to sign the bundle.
-  mark_output_755: Explicitly set read/write/execute permissions for the owner
-      and read/execute permissions for everybody else on the root of the output
-      bundle. Note that this is not a recursive operation, and does not
-      automatically apply to its contents. If not set, the output bundle's
-      permissions will be left alone.
   output: The path to the directory (which will be created/cleared) that will
       represent the complete bundle.
   post_processor: The optional path to an executable that will be run after the
@@ -128,10 +123,7 @@ class Bundler(object):
       self._add_files(f['src'], f['dest'], f.get('executable', False),
                       output_path)
 
-    mark_output_755 = self._control.get('mark_output_755', False)
-    if mark_output_755:
-      # TODO(b/326500796): Determine if this should always be set as 0o755.
-      os.chmod(output_path, 0o755)
+    os.chmod(output_path, 0o755)
 
     post_processor = self._control.get('post_processor')
     if post_processor:
