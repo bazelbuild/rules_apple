@@ -19,6 +19,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_bundle_archive_support_info_device_test.bzl",
+    "apple_bundle_archive_support_info_device_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -188,18 +192,24 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_dylibs_present".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
         not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
         contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
-            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
         ],
+        tags = [name],
+    )
+    apple_bundle_archive_support_info_device_test(
+        name = "{}_bundle_archive_support_contains_stub_executable_device_test".format(name),
+        expected_archive_bundle_files = ["SwiftSupport/iphoneos/swiftlibs"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
         tags = [name],
     )
     archive_contents_test(
         name = "{}_simulator_swift_dylibs_present".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_swift_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
         tags = [name],

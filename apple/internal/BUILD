@@ -472,6 +472,7 @@ bzl_library(
         ":experimental",
         ":intermediates",
         ":outputs",
+        ":providers",
         "//apple/internal/utils:bundle_paths",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
