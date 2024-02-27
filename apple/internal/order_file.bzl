@@ -71,10 +71,11 @@ def _dedup_file(*, actions, file, name):
 
     return out_file
 
-def _link_order_file(*, order_file, stats):
+def _link_order_file(*, label, order_file, stats):
     """Returns a provider that will inject an order file during linking of the iOS application.
 
     Args:
+      label: Label of the current target creating the order file.
       order_file: The final order file to be used during linking.
       stats: A boolean indicating whether to log stats about how the linker used the order file.
     """
@@ -84,8 +85,13 @@ def _link_order_file(*, order_file, stats):
         linkopts.append("-Wl,-order_file_statistics")
     return CcInfo(
         linking_context = cc_common.create_linking_context(
-            user_link_flags = linkopts,
-            additional_inputs = [order_file],
+            linker_inputs = depset([
+                cc_common.create_linker_input(
+                    owner = label,
+                    user_link_flags = linkopts,
+                    additional_inputs = depset([order_file]),
+                ),
+            ]),
         ),
     )
 
@@ -125,7 +131,11 @@ def _order_file_impl(ctx):
         file = concatenated_order_file,
     )
 
-    linker_cc_info = _link_order_file(order_file = deduped_order_file, stats = ctx.attr.stats)
+    linker_cc_info = _link_order_file(
+        label = ctx.label,
+        order_file = deduped_order_file,
+        stats = ctx.attr.stats,
+    )
 
     return [
         linker_cc_info,
