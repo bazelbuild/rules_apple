@@ -58,16 +58,14 @@ def _app_intents_metadata_bundle_partial_impl(
         features = features,
         label = label,
         user_link_flags = [
-            # Ignore unresolved symbols if possible as this 'stub' binary does not need to be
-            # executable, we only use it as a proxy for scanning symbols to generate the metadata
-            # bundle from. This covers `_main` and any other symbols that will be unresolved for
-            # the subset of code referenced via the `app_intents` attribute on the rule.
-            "-Wl,-undefined,dynamic_lookup",
-            # Suppress linker warnings, which avoids warnings on the stub binary that shouldn't
-            # affect the main app binary. This is particularly needed to avoid a deprecation warning
-            # to avoid printing "ld: warning: -undefined dynamic_lookup is deprecated on iOS" even
-            # though it's still supported in Xcode 15.1 beta.
-            "-Wl,-w",
+            # Force _NSExtensionMain, which exists on all Apple platforms, to
+            # be the main symbol for the binary, just so any main symbol will
+            # exist. Since this binary is discarded afterwards the main symbol
+            # doesn't actually matter. This can be removed when the TODO above
+            # is resolved.
+            "-Wl,-e,_NSExtensionMain",
+            # Force the binary to link Foundation to make the hack above work.
+            "-Wl,-framework,Foundation",
         ],
     )
 
