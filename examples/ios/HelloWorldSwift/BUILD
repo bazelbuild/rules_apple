@@ -8,11 +8,10 @@ licenses(["notice"])
 swift_library(
     name = "Sources",
     srcs = [
-        "Sources/AppDelegate.swift",
+        "Sources/BazelApp.swift",
     ],
     data = [
         "Resources/HelloWorldSwift.docc",
-        "Resources/Main.storyboard",
     ],
     module_name = "Sources",
     tags = ["manual"],
@@ -49,7 +48,7 @@ ios_unit_test(
 
 genrule(
     name = "CreateTestCoverageManifest",
-    srcs = ["Sources/AppDelegate.swift"],
+    srcs = ["Sources/BazelApp.swift"],
     outs = [
         "CoverageManifest.instrumented_files",
     ],
