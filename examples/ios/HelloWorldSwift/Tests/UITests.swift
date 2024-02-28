@@ -17,6 +17,6 @@ class HelloWorldSwiftUITests: XCTestCase {
     }
 
     func testIsActive() {
-        XCTAssertTrue(application.staticTexts["Hello World"].exists)
+        XCTAssertTrue(application.staticTexts["HELLO_WORLD"].exists)
     }
 }

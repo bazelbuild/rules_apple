@@ -18,7 +18,8 @@ import SwiftUI
 struct BazelApp: App {
   var body: some Scene {
     WindowGroup {
-      Text("Hello from Bazel!")
+      Text("Hello World")
+        .accessibility(identifier: "HELLO_WORLD")
     }
   }
 
