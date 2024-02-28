@@ -12,7 +12,6 @@ swift_library(
     ],
     data = [
         "Resources/HelloWorldSwift.docc",
-        "Resources/Main.storyboard",
     ],
     module_name = "Sources",
     tags = ["manual"],
