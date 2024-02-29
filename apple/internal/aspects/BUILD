@@ -18,8 +18,8 @@ bzl_library(
         "//apple/internal/providers:app_intents_info",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_rules_swift//swift",
         "@build_bazel_rules_swift//swift:module_name",
-        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 

@@ -123,7 +123,6 @@ elif [[ "$output" == *"skipping writing output"* ]]; then
   exit 1
 fi
 ''',
-        executable = "/usr/bin/xcrun",
         inputs = depset([bundle_binary], transitive = transitive_inputs),
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
