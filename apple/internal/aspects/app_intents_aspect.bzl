@@ -32,7 +32,7 @@ load(
     "derive_swift_module_name",
 )
 load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
 
