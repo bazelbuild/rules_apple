@@ -312,7 +312,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "6.0",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -357,7 +357,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     watch_application = ":watchos_app_no_swift",
@@ -391,7 +391,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     watch_application = ":watchos_app_swift",
@@ -503,7 +503,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = "6.0",
+    minimum_os_version = common.min_os_watchos.stable_swift_abi,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
 )
