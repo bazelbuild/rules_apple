@@ -27,6 +27,7 @@ load(
     "//apple:resources.bzl",
     "apple_core_data_model",
     "apple_core_ml_library",
+    "apple_metal_library",
     "swift_apple_core_ml_library",
 )
 load(
@@ -1452,4 +1453,81 @@ header_map(
     deps = [
         ":header_map_swift_lib",
     ],
+)
+
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple Metal library tests.
+
+ios_application(
+    name = "app_with_metal_library",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":metal_library_depending_lib"],
+)
+
+objc_library(
+    name = "metal_library_depending_lib",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":metal_objc_lib",
+        ":metal_swift_lib",
+    ],
+)
+
+objc_library(
+    name = "metal_objc_lib",
+    srcs = [":metal_objc_lib_src"],
+    tags = common.fixture_tags,
+    data = [":SampleMetal"],
+)
+
+write_file(
+    name = "metal_objc_lib_src",
+    out = "metal_objc_lib.m",
+    content = ["""
+#import <Foundation/Foundation.h>
+#import <Metal/Metal.h>
+
+@interface ObjcLib: NSObject
+@end
+
+@implementation ObjcLib
+- (void)test {
+  NSLog(@"Hello, world");
+}
+@end
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "metal_swift_lib",
+    srcs = [":metal_swift_lib_src"],
+    tags = common.fixture_tags,
+    data = [":SampleMetal"],
+)
+
+write_file(
+    name = "metal_swift_lib_src",
+    out = "metal_swift_lib.swift",
+    content = ["""
+import Foundation
+import Metal
+
+public struct SwiftLib {
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+apple_metal_library(
+    name = "SampleMetal",
+    hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
+    srcs = ["@build_bazel_rules_apple//test/testdata/resources:metal_srcs"],
+    tags = common.fixture_tags,
 )

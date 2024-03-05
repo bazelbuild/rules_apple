@@ -346,3 +346,21 @@ filegroup(
     name = "versioned_datamodel",
     srcs = glob(["versioned_datamodel.xcdatamodeld/**"]),
 )
+
+filegroup(
+    name = "metal_files",
+    srcs = [
+        ":metal_hdrs",
+        ":metal_srcs",
+    ],
+)
+
+filegroup(
+    name = "metal_srcs",
+    srcs = glob(["*.metal"]),
+)
+
+filegroup(
+    name = "metal_hdrs",
+    srcs = ["shader_defines.h"],
+)
