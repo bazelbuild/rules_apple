@@ -47,8 +47,8 @@ bzl_library(
         "//apple/internal:features_support",
         "//apple/internal:platform_support",
         "//apple/internal:resources",
-        "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

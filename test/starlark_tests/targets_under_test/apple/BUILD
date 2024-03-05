@@ -1455,7 +1455,6 @@ header_map(
     ],
 )
 
-
 # ---------------------------------------------------------------------------------------
 # Targets for Apple Metal library tests.
 
@@ -1482,8 +1481,8 @@ objc_library(
 objc_library(
     name = "metal_objc_lib",
     srcs = [":metal_objc_lib_src"],
-    tags = common.fixture_tags,
     data = [":SampleMetal"],
+    tags = common.fixture_tags,
 )
 
 write_file(
@@ -1508,8 +1507,8 @@ write_file(
 swift_library(
     name = "metal_swift_lib",
     srcs = [":metal_swift_lib_src"],
-    tags = common.fixture_tags,
     data = [":SampleMetal"],
+    tags = common.fixture_tags,
 )
 
 write_file(
@@ -1527,7 +1526,7 @@ public struct SwiftLib {
 
 apple_metal_library(
     name = "SampleMetal",
-    hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
     srcs = ["@build_bazel_rules_apple//test/testdata/resources:metal_srcs"],
+    hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
     tags = common.fixture_tags,
 )
