@@ -95,8 +95,8 @@ Compiles Metal shader language sources into a Metal library.
 | <a id="apple_metal_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_metal_library-srcs"></a>srcs |  A list of `.metal` source files that will be compiled into the library.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="apple_metal_library-out"></a>out |  An output `.metallib` filename. Defaults to `default.metallib` if unspecified.   | String | optional |  `"default.metallib"`  |
-| <a id="apple_metal_library-hdrs"></a>hdrs |  A list of headers that you need import to metal source.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="apple_metal_library-copts"></a>copts |  A list of compiler options.   | List of strings | optional |  `[]`  |
+| <a id="apple_metal_library-hdrs"></a>hdrs |  A list of headers to make importable when compiling the metal library.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="apple_metal_library-copts"></a>copts |  A list of compiler options passed to the `metal` compiler for each source.   | List of strings | optional |  `[]`  |
 | <a id="apple_metal_library-includes"></a>includes |  A list of header search paths.   | List of strings | optional |  `[]`  |
 
 

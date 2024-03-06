@@ -45,6 +45,14 @@ load(
 )
 
 def _metal_apple_target_triple(platform_prerequisites):
+    """Returns a `metal` compiler-compatible target triple string.
+
+    Args:
+      platform_prerequisites: Struct containing information on the platform being targeted.
+
+    Returns:
+      A Metal target triple string for use with the `-target` copt.
+    """
     target_os_version = platform_prerequisites.minimum_os
 
     platform = platform_prerequisites.apple_fragment.single_arch_platform
@@ -61,6 +69,7 @@ def _metal_apple_target_triple(platform_prerequisites):
     )
 
 def _apple_metal_library_impl(ctx):
+    """Implementation of the apple_metal_library rule."""
     air_files = []
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -136,13 +145,13 @@ apple_metal_library = rule(
         {
             "copts": attr.string_list(
                 doc = """\
-A list of compiler options.
+A list of compiler options passed to the `metal` compiler for each source.
 """,
             ),
             "hdrs": attr.label_list(
                 allow_files = [".h"],
                 doc = """\
-A list of headers that you need import to metal source.
+A list of headers to make importable when compiling the metal library.
 """,
             ),
             "includes": attr.string_list(
