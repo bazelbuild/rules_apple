@@ -8,6 +8,11 @@ public class MixedAnswerSwift: NSObject {
         "\(MixedAnswerObjc.mixedAnswerObjc() ?? "invalid")_swiftMixedAnswer"
     }
 
+    public
+    static func swiftMixedAnswerPrivate() -> String {
+        "\(MixedAnswerPrivateObjc.mixedAnswerPrivateObjc() ?? "invalid")_swiftPrivateMixedAnswer"
+    }
+
     @objc
     public
     static func swiftToObjcMixedAnswer() -> String {
