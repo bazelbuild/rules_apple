@@ -126,7 +126,7 @@ def _apple_bundle_version_impl(ctx):
     )
     ctx.actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
     inputs.append(control_file)
 
