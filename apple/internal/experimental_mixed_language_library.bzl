@@ -312,11 +312,13 @@ target only contains Objective-C files.""")
         swift_copts += header_map_ctx.swift_copts
 
     # Generate module map for the underlying Obj-C module
+    # This is the modulemap used exclusively by the swift_library
+    # as such we export all the headers including the private ones so they can be found in the Swift module.
     objc_module_map_name = name + ".internal.objc"
     textual_hdrs = kwargs.get("textual_hdrs", [])
     _module_map(
         name = objc_module_map_name,
-        hdrs = hdrs,
+        hdrs = hdrs + private_hdrs,
         module_name = module_name,
         textual_hdrs = textual_hdrs,
         testonly = testonly,

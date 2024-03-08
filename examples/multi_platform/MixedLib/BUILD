@@ -10,6 +10,7 @@ experimental_mixed_language_library(
     srcs = [
         "MixedAnswer.m",
         "MixedAnswer.swift",
+        "MixedAnswerPrivate.h",  # private header support
     ],
     hdrs = ["MixedAnswer.h"],
     enable_modules = True,
