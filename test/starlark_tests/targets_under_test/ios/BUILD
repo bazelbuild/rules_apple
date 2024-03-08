@@ -83,6 +83,23 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_minimal_with_space_and_post_processor",
+    bundle_id = "com.google.example",
+    bundle_name = "app minimal",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 xcarchive(
     name = "app_minimal.xcarchive",
     bundle = ":app_minimal",
