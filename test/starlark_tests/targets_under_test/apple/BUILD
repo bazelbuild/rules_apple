@@ -949,6 +949,36 @@ apple_static_xcframework(
     deps = [":SwiftFmwkWithInvalidModuleDeps"],
 )
 
+apple_static_xcframework(
+    name = "ios_swift_static_xcframework_with_invalid_attrs_for_library_outputs",
+    bundle_id = "com.google.example",
+    data = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    families_required = {
+        "ios": ["ipad"],
+    },
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":SwiftFmwkWithInvalidModuleDeps"],
+)
+
 genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],

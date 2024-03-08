@@ -343,6 +343,13 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_with_invalid_attrs_for_library_outputs_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_invalid_attrs_for_library_outputs",
+        expected_error = "Error: Attempted to build a library XCFramework, but the resource attribute bundle_id was set.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

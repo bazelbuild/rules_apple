@@ -113,6 +113,129 @@ visibility([
     "//test/...",
 ])
 
+def _xcframework_platform_attrs():
+    """Returns a dictionary of rule attributes required for knowledge of the platforms targeted."""
+    return {
+        "_environment_plist_files": attr.label_list(
+            default = [
+                "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+            ],
+        ),
+        "ios": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the iOS platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+        ),
+        "tvos": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the tvOS platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+        ),
+        "minimum_os_versions": attr.string_dict(
+            doc = """
+A dictionary of strings indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`,
+or `tvos` as keys:
+
+    minimum_os_versions = {
+        "ios": "13.0",
+        "tvos": "15.0",
+    }
+""",
+            mandatory = True,
+        ),
+    }
+
+def _xcframework_resource_attrs():
+    """Returns a dictionary of rule attributes required for processing XCFramework resources."""
+    return {
+        "bundle_id": attr.string(
+            doc = """
+The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. If
+present, this value will be embedded in an Info.plist within each framework bundle.
+""",
+        ),
+        "data": attr.label_list(
+            allow_files = True,
+            aspects = [apple_resource_aspect],
+            cfg = transition_support.xcframework_split_transition,
+            doc = """
+A list of resources or files bundled with the bundle. The resources will be stored in the
+appropriate resources location within each of the embedded framework bundles.
+""",
+        ),
+        "families_required": attr.string_list_dict(
+            doc = """
+A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
+values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
+Currently, this only affects processing of `ios` resources.
+""",
+        ),
+        "infoplists": attr.label_list(
+            allow_files = [".plist"],
+            cfg = transition_support.xcframework_split_transition,
+            doc = """
+A list of .plist files that will be merged to form the Info.plist for each of the embedded
+frameworks. At least one file must be specified if the XCFramework produces framework bundles.
+Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+for what is supported.
+""",
+        ),
+    }
+
+# Reference the resource attrs names here to allow access to these names in a rule implementation.
+_XCFRAMEWORK_RESOURCE_ATTR_NAMES = _xcframework_resource_attrs().keys()
+
+def _validate_resource_attrs(
+        *,
+        all_attrs,
+        bundle_format,
+        rule_label):
+    """Validates the attributes set on the XCFramework rule.
+
+    Args:
+        all_attrs: All of the rule attributes set as found from ctx.attr.
+        bundle_format: String representing the format of the bundle being built for the rule. Can be
+            either "framework" for XCFrameworks containing frameworks or "library" for XCFrameworks
+            containing library artifacts.
+        rule_label: The label of the target being analyzed.
+    """
+
+    if bundle_format == "framework":
+        for non_empty_attr_name in ["infoplists"]:
+            if not getattr(all_attrs, non_empty_attr_name, None):
+                fail("""
+Error: in {non_empty_attr_name} attribute of {rule_label}: attribute must be non empty
+""".format(
+                    non_empty_attr_name = non_empty_attr_name,
+                    rule_label = str(rule_label),
+                ))
+
+    elif bundle_format == "library":
+        for resource_attr_name in _XCFRAMEWORK_RESOURCE_ATTR_NAMES:
+            if getattr(all_attrs, resource_attr_name, None):
+                fail("""
+Error: Attempted to build a library XCFramework, but the resource attribute {resource_attr} was \
+set.
+
+Library XCFrameworks do not embed resources. Did you mean to build a framework XCFramework, \
+instead?
+
+Check that the "bundle_format" attribute on the rule is set correctly.
+""".format(
+                    resource_attr = resource_attr_name,
+                ))
+
+    else:
+        fail("Internal Error: Found unexpected bundle_format of {bundle_format}.".format(
+            bundle_format = bundle_format,
+        ))
+
 def _group_link_outputs_by_library_identifier(
         *,
         actions,
@@ -485,6 +608,12 @@ def _apple_xcframework_impl(ctx):
     features.append("disable_legacy_signing")
     label = ctx.label
 
+    _validate_resource_attrs(
+        all_attrs = ctx.attr,
+        bundle_format = "framework",
+        rule_label = label,
+    )
+
     # Bundle extension needs to be ".xcframework" for root bundle, but macos/ios/tvos will always
     # be ".framework"
     nested_bundle_extension = ".framework"
@@ -790,6 +919,8 @@ apple_xcframework = rule_factory.create_apple_rule(
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     attrs = [
+        _xcframework_platform_attrs(),
+        _xcframework_resource_attrs(),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.xcframework_split_transition,
         ),
@@ -802,79 +933,12 @@ apple_xcframework = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = False,
         ),
         {
-            "_environment_plist_files": attr.label_list(
-                default = [
-                    "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
-                    "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
-                ],
-            ),
-            "bundle_id": attr.string(
-                doc = """
-The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. If
-present, this value will be embedded in an Info.plist within each framework bundle.
-""",
-            ),
             "bundle_name": attr.string(
                 mandatory = False,
                 doc = """
 The desired name of the xcframework bundle (without the extension) and the bundles for all embedded
 frameworks. If this attribute is not set, then the name of the target will be used instead.
 """,
-            ),
-            "data": attr.label_list(
-                allow_files = True,
-                aspects = [apple_resource_aspect],
-                cfg = transition_support.xcframework_split_transition,
-                doc = """
-A list of resources or files bundled with the bundle. The resources will be stored in the
-appropriate resources location within each of the embedded framework bundles.
-""",
-            ),
-            "families_required": attr.string_list_dict(
-                doc = """
-A list of device families supported by this extension, with platforms such as `ios` as keys. Valid
-values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined.
-Currently, this only affects processing of `ios` resources.
-""",
-            ),
-            "infoplists": attr.label_list(
-                allow_empty = False,
-                allow_files = [".plist"],
-                cfg = transition_support.xcframework_split_transition,
-                doc = """
-A list of .plist files that will be merged to form the Info.plist for each of the embedded
-frameworks. At least one file must be specified. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
-for what is supported.
-""",
-                mandatory = True,
-            ),
-            "ios": attr.string_list_dict(
-                doc = """
-A dictionary of strings indicating which platform variants should be built for the iOS platform (
-`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
-built for those platform variants (for example, `x86_64`, `arm64`) as their values.
-""",
-            ),
-            "tvos": attr.string_list_dict(
-                doc = """
-A dictionary of strings indicating which platform variants should be built for the tvOS platform (
-`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
-built for those platform variants (for example, `x86_64`, `arm64`) as their values.
-""",
-            ),
-            "minimum_os_versions": attr.string_dict(
-                doc = """
-A dictionary of strings indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`,
-or `tvos` as keys:
-
-    minimum_os_versions = {
-        "ios": "13.0",
-        "tvos": "15.0",
-    }
-""",
-                mandatory = True,
             ),
             "public_hdrs": attr.label_list(
                 allow_files = [".h"],
@@ -1043,6 +1107,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     avoid_deps = ctx.attr.avoid_deps
+    bundle_format = ctx.attr.bundle_format
     bundle_name = ctx.attr.bundle_name or ctx.label.name
     deps = ctx.split_attr.deps
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
@@ -1051,10 +1116,16 @@ def _apple_static_xcframework_impl(ctx):
     rule_label = ctx.label
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    if ctx.attr.bundle_format == "framework":
+    if bundle_format == "framework":
         # TODO(b/328282357): Add check for enable_wip_features to allow testing as framework
         # artifact support begins to land.
         fail("The apple_static_xcframework rule only supports library artifacts at this time.")
+
+    _validate_resource_attrs(
+        all_attrs = ctx.attr,
+        bundle_format = bundle_format,
+        rule_label = rule_label,
+    )
 
     # TODO(b/328282357): Add support for framework artifacts, sharing some implementation with the
     # apple_xcframework rule where it makes sense.
@@ -1124,6 +1195,8 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        _xcframework_platform_attrs(),
+        _xcframework_resource_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.static_library_linking_attrs(
             deps_cfg = transition_support.xcframework_split_transition,
@@ -1169,21 +1242,6 @@ static libraries. If this attribute is not set, then the name of the target will
                 doc = """
 A list of files directly referencing libraries to be represented for each given platform split in
 the XCFramework. These libraries will be embedded within each platform split.
-""",
-            ),
-            "ios": attr.string_list_dict(
-                doc = """
-A dictionary of strings indicating which platform variants should be built for the `ios` platform (
-`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
-built for those platform variants (for example, `x86_64`, `arm64`) as their values.
-""",
-            ),
-            "minimum_os_versions": attr.string_dict(
-                mandatory = True,
-                doc = """
-A dictionary of strings indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
-as keys.
 """,
             ),
             "public_hdrs": attr.label_list(
