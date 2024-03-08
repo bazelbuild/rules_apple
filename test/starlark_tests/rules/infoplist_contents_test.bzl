@@ -173,9 +173,6 @@ Optional. A short path to the plist file to test with `expected_values`. Require
 provider will be used instead.
 """,
         ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
         "_xcode_config": attr.label(
             default = configuration_field(
                 name = "xcode_config_label",

@@ -113,9 +113,6 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
             doc = "A short path to the output group file that represents the archive to validate.",
             mandatory = True,
         ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
         "_xcode_config": attr.label(
             default = configuration_field(
                 name = "xcode_config_label",

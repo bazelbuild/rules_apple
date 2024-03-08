@@ -120,7 +120,6 @@ def _create_apple_rule(
     return rule(
         implementation = implementation,
         attrs = dicts.add(
-            rule_attrs.custom_transition_allowlist_attr(),
             *attrs
         ),
         cfg = cfg,

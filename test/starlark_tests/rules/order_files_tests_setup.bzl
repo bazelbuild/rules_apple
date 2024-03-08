@@ -84,9 +84,6 @@ file_contents_test = rule(
             allow_single_file = True,
             mandatory = True,
         ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
     },
     test = True,
 )
