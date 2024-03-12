@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -347,6 +351,74 @@ def apple_static_xcframework_test_suite(name):
         name = "{}_with_invalid_attrs_for_library_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_invalid_attrs_for_library_outputs",
         expected_error = "Error: Attempted to build a library XCFramework, but the resource attribute bundle_id was set.",
+        tags = [name],
+    )
+
+    # Tests that resource bundles and files assigned through "data" are respected.
+    archive_contents_test(
+        name = "{}_framework_dbg_resources_data_test".format(name),
+        build_type = "device",
+        compilation_mode = "dbg",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        is_not_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_framework_opt_resources_data_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle",
+        tags = [name],
+    )
+
+    # Tests that resource bundles assigned through "deps" are respected.
+    archive_contents_test(
+        name = "{}_framework_dbg_resources_deps_test".format(name),
+        build_type = "device",
+        compilation_mode = "dbg",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_deps_resource_bundle",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_framework_opt_resources_deps_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        is_binary_plist = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_deps_resource_bundle",
         tags = [name],
     )
 
