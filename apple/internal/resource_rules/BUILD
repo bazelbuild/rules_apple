@@ -37,6 +37,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_metal_library",
+    srcs = ["apple_metal_library.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:apple_toolchains",
+        "//apple/internal:features_support",
+        "//apple/internal:platform_support",
+        "//apple/internal:resources",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "apple_core_ml_library",
     srcs = ["apple_core_ml_library.bzl"],
     visibility = [

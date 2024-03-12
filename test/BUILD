@@ -82,6 +82,15 @@ apple_shell_test(
     ],
 )
 
+apple_shell_test(
+    name = "apple_metal_library_test",
+    size = "medium",
+    src = "apple_metal_library_test.sh",
+    data = [
+        "//test/testdata/resources:metal_files",
+    ],
+)
+
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",

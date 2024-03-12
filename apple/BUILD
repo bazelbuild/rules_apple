@@ -173,6 +173,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_core_data_model",
         "//apple/internal/resource_rules:apple_core_ml_library",
         "//apple/internal/resource_rules:apple_intent_library",
+        "//apple/internal/resource_rules:apple_metal_library",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
     ],
