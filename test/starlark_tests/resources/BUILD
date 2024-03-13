@@ -79,6 +79,14 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_lib_with_no_srcs_and_structured_resources",
+    data = [
+        "//test/starlark_tests/resources:structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "objc_shared_lib_with_resources",
     srcs = [
         "shared.h",

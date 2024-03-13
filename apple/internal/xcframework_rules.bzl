@@ -493,6 +493,8 @@ def _create_framework_outputs(
         public_hdr_files,
         resource_split_attrs,
         rule_label,
+        targets_to_avoid = [],
+        targets_to_avoid_must_be_owned = True,
         version,
         xcode_version_config,
         xplat_exec_group):
@@ -525,6 +527,14 @@ def _create_framework_outputs(
         public_hdr_files: A list of header files representing public interfaces for the library.
         resource_split_attrs: A split_attrs interface to retreive resource attributes from.
         rule_label: The label of the target being analyzed.
+        targets_to_avoid: A list of targets to be avoided when processing resource dependencies.
+            This can be either another framework target (e.g. `ios_framework`), or a set of library
+            targets.
+        targets_to_avoid_must_be_owned: Bool. Triggers validation confirming all `targets_to_avoid`
+            have been assigned owners. This is expected if `targets_to_avoid` comes from a framework
+            target rather than a list of library targets that might not have owners set during
+            resource processing. If this is `False`, unowned targets will be assigned an `owner`
+            that is fully distinct from any target in the workspace. `True` by default.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current
             context.
@@ -649,8 +659,6 @@ def _create_framework_outputs(
                 output_discriminator = library_identifier,
             ),
             partials.resources_partial(
-                # TODO(b/328282357): Handle avoid_deps in a compatible manner for static framework
-                # support, do any preprocessing with "owners" on the resource providers necessary.
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 bundle_extension = nested_bundle_extension,
@@ -663,6 +671,8 @@ def _create_framework_outputs(
                 resource_deps = resource_deps,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
+                targets_to_avoid = targets_to_avoid,
+                targets_to_avoid_must_be_owned = targets_to_avoid_must_be_owned,
                 top_level_infoplists = top_level_infoplists,
                 top_level_resources = top_level_resources,
                 version = version,
@@ -675,6 +685,7 @@ def _create_framework_outputs(
                 partials.swift_framework_partial(
                     actions = actions,
                     apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                    avoid_deps = targets_to_avoid,
                     bundle_name = bundle_name,
                     label_name = rule_label.name,
                     output_discriminator = library_identifier,
@@ -1326,8 +1337,6 @@ def _apple_static_xcframework_impl(ctx):
             rule_label = rule_label,
         )
     elif bundle_format == "framework":
-        # TODO(b/328282357): Add support for avoid_deps, processing incoming libraries with "owners"
-        # as needed to allow deduplication and targets_to_avoid functionality to work.
         bundled_artifacts = _create_framework_outputs(
             actions = actions,
             apple_fragment = apple_fragment,
@@ -1349,6 +1358,8 @@ def _apple_static_xcframework_impl(ctx):
             rule_label = rule_label,
             objc_fragment = objc_fragment,
             public_hdr_files = public_hdr_files,
+            targets_to_avoid = avoid_deps,
+            targets_to_avoid_must_be_owned = False,
             version = version,
             xcode_version_config = xcode_version_config,
             xplat_exec_group = xplat_exec_group,

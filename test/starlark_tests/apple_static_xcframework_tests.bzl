@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_wip_features_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -419,6 +420,93 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_deps_resource_bundle",
+        tags = [name],
+    )
+
+    # This tests that 2 files which have the same target path into nested bundles do not get
+    # deduplicated from the framework even if one is referenced by avoid_deps, as long as they are
+    # different files.
+    archive_contents_test(
+        name = "{}_framework_different_resource_with_same_target_path_is_not_deduped_device_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        plist_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_avoid_deps_non_localized_assets.framework/nonlocalized.plist",
+        plist_test_values = {
+            "SomeKey": "Somevalue",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_avoid_deps_non_localized_assets",
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_framework_different_resource_with_same_target_path_is_not_deduped_simulator_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_avoid_deps_non_localized_assets.framework/nonlocalized.plist",
+        plist_test_values = {
+            "SomeKey": "Somevalue",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_avoid_deps_non_localized_assets",
+        tags = [name],
+    )
+
+    # Tests that if avoid_deps have resource bundles they are not in the framework.
+    archive_contents_test(
+        name = "{}_framework_resource_bundle_in_avoid_deps_not_in_framework".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_avoid_deps_resource_bundle",
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_avoid_deps_resource_bundle.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_avoid_deps_resource_bundle.framework/basic.bundle/nested/should_be_nested.strings",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_avoid_deps_resource_bundle.framework/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_avoid_deps_resource_bundle.framework/basic.bundle/nested/should_be_nested.strings",
+        ],
+        tags = [name],
+    )
+
+    # Tests that resources that both frameworks and avoid_deps depend on are present in the
+    # .framework directory if both have explicit owners for the resources. As with apps and
+    # frameworks, this "explicit owners" relationship comes from an objc_library without sources.
+    archive_contents_test(
+        name = "{}_framework_shared_resources_with_explicit_owners_in_avoid_deps_and_framework_contains_resources".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_explicit_owners_structured_resources_in_deps_and_avoid_deps",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_explicit_owners_structured_resources_in_deps_and_avoid_deps.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_explicit_owners_structured_resources_in_deps_and_avoid_deps.framework/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    # Tests that resources that both frameworks and avoid_deps depend on are omitted from the
+    # framework.
+    archive_contents_test(
+        name = "{}_framework_resources_in_avoid_deps_stays_in_avoid_deps".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_resource_bundle_in_deps_and_avoid_deps",
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_resource_bundle_in_deps_and_avoid_deps.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_resource_bundle_in_deps_and_avoid_deps.framework/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    analysis_failure_message_with_wip_features_test(
+        name = "{}_framework_overreaching_avoid_deps_swift_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_broad_avoid_deps",
+        expected_error = "Error: Could not find a Swift module to build a Swift framework. This could be because \"avoid_deps\" is too broadly defined.",
         tags = [name],
     )
 

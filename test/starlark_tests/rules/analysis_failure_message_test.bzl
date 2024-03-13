@@ -63,3 +63,8 @@ analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure
         build_settings_labels.use_tree_artifacts_outputs: True,
     },
 )
+analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.enable_wip_features: True,
+    },
+)

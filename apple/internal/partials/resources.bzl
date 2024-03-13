@@ -304,6 +304,7 @@ def _resources_partial_impl(
         top_level_infoplists,
         top_level_resources,
         targets_to_avoid,
+        targets_to_avoid_must_be_owned,
         version,
         version_keys_required):
     """Implementation for the resource processing partial."""
@@ -349,12 +350,21 @@ def _resources_partial_impl(
 
     avoid_provider = None
     if avoid_providers:
-        # Call merge_providers with validate_all_resources_owned set, to ensure that all the
-        # resources from dependency bundles have an owner.
-        avoid_provider = resources.merge_providers(
-            providers = avoid_providers,
-            validate_all_resources_owned = True,
-        )
+        if targets_to_avoid_must_be_owned:
+            # Call merge_providers with validate_all_resources_owned set, to ensure that all the
+            # resources from dependency bundles have an owner.
+            avoid_provider = resources.merge_providers(
+                providers = avoid_providers,
+                validate_all_resources_owned = True,
+            )
+        else:
+            # Give the incoming avoid_providers a unique owner that distinguishes them from the rule
+            # being evaluated; an "avoid_deps_..." prefix works sufficiently by being an identifier
+            # that's impossible to accidentally build a fully qualified label from.
+            avoid_provider = resources.merge_providers(
+                default_owner = "avoid_deps_{}".format(str(rule_label)),
+                providers = avoid_providers,
+            )
 
     # Map of resource provider fields to a tuple that contains the method to use to process those
     # resources and a boolean indicating whether the Swift module is required for that processing.
@@ -533,6 +543,7 @@ def resources_partial(
         rule_descriptor,
         rule_label,
         targets_to_avoid = [],
+        targets_to_avoid_must_be_owned = True,
         top_level_infoplists = [],
         top_level_resources = {},
         version,
@@ -575,6 +586,11 @@ def resources_partial(
         rule_label: The label of the target being analyzed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
+        targets_to_avoid_must_be_owned: Bool. Triggers validation confirming all `targets_to_avoid`
+            have been assigned owners. This is expected if `targets_to_avoid` comes from a framework
+            target rather than a list of library targets that might not have owners set during
+            resource processing. If this is `False`, unowned targets will be assigned an `owner`
+            that is fully distinct from any target in the workspace. `True` by default.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
         top_level_resources: A dictionary of collected resources found from resource attributes,
             where keys are targets, and values are list of `File`s depsets. This can be obtained
@@ -606,6 +622,7 @@ def resources_partial(
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
+        targets_to_avoid_must_be_owned = targets_to_avoid_must_be_owned,
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,
         version = version,
