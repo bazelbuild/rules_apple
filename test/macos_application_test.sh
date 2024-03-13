@@ -243,4 +243,17 @@ function test_app_builds_with_include_clang_rt_ubsan() {
       "app.app/Contents/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib"
 }
 
+# Tests that app builds with include_main_thread_checker 
+# and that the libMainThreadChecker.dylib is packaged into the app when enabled.
+function test_app_builds_with_include_main_thread_checker() {
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=apple.include_main_thread_checker \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libMainThreadChecker.dylib"
+}
+
 run_suite "macos_application bundling tests"

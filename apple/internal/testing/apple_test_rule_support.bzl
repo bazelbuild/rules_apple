@@ -170,9 +170,32 @@ def _get_coverage_execution_environment(*, covered_binaries):
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
+def _get_main_thread_checker_test_environment(*, features):
+    """Returns environment variables required for supporting Main Thread Checker during testing.
+
+    Args:
+        features: List of features enabled by the user. Typically from `ctx.features`.
+    Returns:
+        dict: A dictionary containing the required environment variables for enabling Main Thread Checker
+        during testing.
+
+    This function checks for the presence of the "apple.fail_on_main_thread_checker" feature in the list of features.
+    If the feature is present, it returns a dictionary with the "MTC_CRASH_ON_REPORT" variable set to "1", enabling
+    Main Thread Checker crash reporting, which may cause test execution to halt upon violations. If the feature is
+    not present, an empty dictionary is returned, meaning that Main Thread Checker violations will still be reported,
+    but they won't cause the test execution to crash.
+    """
+
+    if "apple.fail_on_main_thread_checker" in features:
+        return {
+            "MTC_CRASH_ON_REPORT": "1",
+        }
+    return {}
+
 def _get_simulator_test_environment(
         *,
         command_line_test_env,
+        features,
         rule_test_env,
         runner_test_env):
     """Returns the test environment for the current process running in the simulator
@@ -183,6 +206,7 @@ def _get_simulator_test_environment(
     Args:
         command_line_test_env: Dictionary of fhe environment variables retrieved from the test
             invocation's command line arguments.
+        features: List of features enabled by the user. Typically from `ctx.features`.
         rule_test_env: Dictionary of the environment variables retrieved from the test rule's
             attributes.
         runner_test_env: Dictionary of the environment variables retrieved from the assigned test
@@ -226,6 +250,7 @@ def _get_simulator_test_environment(
         rule_test_env_copy,
         runner_test_env_copy,
         test_env_dyld_insert_pairs,
+        _get_main_thread_checker_test_environment(features = features),
     )
 
 def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
@@ -260,6 +285,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     # --test_env and env attribute values, but not the execution environment variables.
     test_environment = _get_simulator_test_environment(
         command_line_test_env = ctx.configuration.test_env,
+        features = ctx.features,
         rule_test_env = ctx.attr.env,
         runner_test_env = getattr(runner_info, "test_environment", {}),
     )

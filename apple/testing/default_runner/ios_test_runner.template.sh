@@ -116,10 +116,30 @@ for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
   sanitizer_dyld_env="${sanitizer_dyld_env}${sanitizer}"
 done
 
-if [[ -n "$sanitizer_dyld_env" ]]; then
-  TEST_ENV="$TEST_ENV,DYLD_INSERT_LIBRARIES=$sanitizer_dyld_env"
+main_thread_checker_dyld_env=""
+readonly main_thread_checker_root="$TEST_BUNDLE_PATH/Frameworks"
+main_thread_checker="$main_thread_checker_root/libMainThreadChecker.dylib"
+if [[ -e "$main_thread_checker" ]]; then
+    main_thread_checker_dyld_env="$main_thread_checker"
 fi
 
+DYLD_INSERT_LIBRARIES_VALUE=""
+
+if [[ -n "$main_thread_checker_dyld_env" ]]; then
+  if [[ -n "$DYLD_INSERT_LIBRARIES_VALUE" ]]; then
+    DYLD_INSERT_LIBRARIES_VALUE="$DYLD_INSERT_LIBRARIES_VALUE:"
+  fi
+  DYLD_INSERT_LIBRARIES_VALUE="$DYLD_INSERT_LIBRARIES_VALUE$main_thread_checker_dyld_env"
+fi
+
+if [[ -n "$sanitizer_dyld_env" ]]; then
+  if [[ -n "$DYLD_INSERT_LIBRARIES_VALUE" ]]; then
+    DYLD_INSERT_LIBRARIES_VALUE="$DYLD_INSERT_LIBRARIES_VALUE:"
+  fi
+  DYLD_INSERT_LIBRARIES_VALUE="$DYLD_INSERT_LIBRARIES_VALUE$sanitizer_dyld_env"
+fi
+
+TEST_ENV="$TEST_ENV,DYLD_INSERT_LIBRARIES=$DYLD_INSERT_LIBRARIES_VALUE"
 readonly profraw="$TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"

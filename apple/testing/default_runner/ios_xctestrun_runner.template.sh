@@ -264,9 +264,19 @@ for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
   sanitizer_dyld_env="${sanitizer_dyld_env}${sanitizer}"
 done
 
+main_thread_checker_dyld_env=""
+readonly main_thread_checker_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
+main_thread_checker="$main_thread_checker_root/libMainThreadChecker.dylib"
+if [[ -e "$main_thread_checker" ]]; then
+    main_thread_checker_dyld_env="$main_thread_checker"
+fi
+
 xctestrun_libraries="__PLATFORMS__/$test_execution_platform/Developer/usr/lib/libXCTestBundleInject.dylib"
 if [[ -n "$sanitizer_dyld_env" ]]; then
   xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
+fi
+if [[ -n "$main_thread_checker_dyld_env" ]]; then
+  xctestrun_libraries="${xctestrun_libraries}:${main_thread_checker_dyld_env}"
 fi
 
 TEST_FILTER="%(test_filter)s"
