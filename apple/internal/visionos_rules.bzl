@@ -1690,7 +1690,7 @@ dependency of other Bazel targets. For that use case, use the corresponding
 Unlike other visionos bundles, the fat binary in an `visionos_static_framework` may
 simultaneously contain simulator and device architectures (that is, you can
 build a single framework artifact that works for all architectures by specifying
-`--visionos_cpus=x86_64,arm64` when you build).
+`--visionos_cpus=sim_arm64,arm64` when you build).
 
 `visionos_static_framework` supports Swift, but there are some constraints:
 

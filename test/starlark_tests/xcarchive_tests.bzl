@@ -53,6 +53,8 @@ def xcarchive_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal.xcarchive",
         contains = [
             "$BUNDLE_ROOT/dSYMs/app_minimal.app.dSYM",
+            "$BUNDLE_ROOT/dSYMs/app_minimal.app.dSYM/Contents/Resources/DWARF/app_minimal",
+            "$BUNDLE_ROOT/dSYMs/app_minimal.app.dSYM/Contents/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Products/Applications/app_minimal.app",
         ],
@@ -76,6 +78,8 @@ def xcarchive_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/dSYMs/app_with_ext_space_in_path.app.dSYM",
             "$BUNDLE_ROOT/dSYMs/ext with space.appex.dSYM",
+            "$BUNDLE_ROOT/dSYMs/ext with space.appex.dSYM/Contents/Resources/DWARF/ext with space",
+            "$BUNDLE_ROOT/dSYMs/ext with space.appex.dSYM/Contents/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/Products/Applications/app_with_ext_space_in_path.app",
         ],

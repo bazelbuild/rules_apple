@@ -46,6 +46,9 @@ def _app_intents_metadata_bundle_partial_impl(
     # This binary should only contain symbols for structs implementing the AppIntents protocol.
     # Instead of containing all the application/extension/framework binary symbols, allowing
     # the action to run faster and avoid depending on the application binary linking step.
+    #
+    # TODO(b/295227222): Avoid this linker step for Xcode 15.0+ when rules_swift supports the new
+    # swiftconstvalues-based manner of handling App Intents metadata.
     link_result = linking_support.link_multi_arch_binary(
         actions = actions,
         cc_toolchains = cc_toolchains,
@@ -54,9 +57,16 @@ def _app_intents_metadata_bundle_partial_impl(
         disabled_features = disabled_features,
         features = features,
         label = label,
-        # Allow `_main` to be undefined since none of the AppIntents implementing dependencies
-        # should include this entry point, and we only care about linking all AppIntents symbols.
-        user_link_flags = ["-Wl,-U,_main"],
+        user_link_flags = [
+            # Force _NSExtensionMain, which exists on all Apple platforms, to
+            # be the main symbol for the binary, just so any main symbol will
+            # exist. Since this binary is discarded afterwards the main symbol
+            # doesn't actually matter. This can be removed when the TODO above
+            # is resolved.
+            "-Wl,-e,_NSExtensionMain",
+            # Force the binary to link Foundation to make the hack above work.
+            "-Wl,-framework,Foundation",
+        ],
     )
 
     fat_stub_binary = intermediates.file(

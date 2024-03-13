@@ -106,7 +106,7 @@ Similar to what you can find in Xcode, the Address and Thread sanitizers are
 mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
-In case you want to have different compiler and linker flags, you can use 
+In case you want to have different compiler and linker flags, you can use
 `--features=include_clang_rt` and specify the required compiler and linker
 flags yourself.
 
@@ -509,7 +509,7 @@ if [[ $OSTYPE == darwin* ]]; then
   xcode_version=$(xcodebuild -version | tail -1 | cut -d " " -f3)
   xcode_build_number=$(/usr/bin/xcodebuild -version 2>/dev/null | tail -1 | cut -d " " -f3)
 
-  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")  
+  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")
   bazelrc_lines+=("build --xcode_version=$xcode_version")
   bazelrc_lines+=("build --repo_env=XCODE_VERSION=$xcode_version")
   bazelrc_lines+=("build --repo_env=DEVELOPER_DIR=$xcode_path")
@@ -521,3 +521,26 @@ exec "$bazel_real" "$@"
 ```
 
 In your main `.bazelrc` add `import xcode.bazelrc` at the very bottom.
+
+## Optimizing remote cache and build execution performance
+
+When using Bazel's remote cache and/or build execution, there are a few flags you can pass to optimize performance. One of those flags is [`--modify_execution_info`](https://bazel.build/reference/command-line-reference#flag--modify_execution_info), which allows adding or removing execution info for specific [mnemonics](https://bazel.build/reference/glossary#mnemonic), which in turn allows you to configure what is cached or built remotely.
+
+We recommend adding the following to your `.bazelrc`:
+
+```shell
+common --modify_execution_info=^(BitcodeSymbolsCopy|BundleApp|BundleTreeApp|DsymDwarf|DsymLipo|GenerateAppleSymbolsFile|ObjcBinarySymbolStrip|CppArchive|CppLink|ObjcLink|ProcessAndSign|SignBinary|SwiftArchive|SwiftStdlibCopy)$=+no-remote,^(BundleResources|ImportedDynamicFrameworkProcessor)$=+no-remote-exec
+```
+
+The following table provides a rationale for each mnemonic and tag. In general though, the mnemonics that are excluded in `--modify_execution_info` are excluded because they produce or work on large outputs which change frequently and as such are faster when run locally, or they are not generally configured for remote execution (such as signing).
+
+| Mnemonics | Tag | Rationale |
+| --- | --- | --- |
+| `BundleApp`, `BundleTreeApp`, `ProcessAndSign` | `no-remote` | Produces a large bundle, which is inefficient to upload and download |
+| `CppArchive`, `CppLink`, `ObjcLink`, `SwiftArchive` | `no-remote` | Linked binaries have local paths, and it's slower to download them versus linking locally |
+| `SwiftStdlibCopy` | `no-remote` | Processing Swift stdlib is a quick file copy of a locally available resource, so it's not worth uploading or downloading |
+| `BitcodeSymbolsCopy`, `DsymDwarf`, `DsymLipo`, `GenerateAppleSymbolsFile`| `no-remote-exec` | Processing dSYMs/Symbols remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
+| `ImportedDynamicFrameworkProcessor` | `no-remote-exec` | Processing dynamic frameworks remotely incurs an upload and download of the same blob |
+| `ObjcBinarySymbolStrip` | `no-remote-exec` | Stripping binaries remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
+| `ProcessAndSign`, `SignBinary` | `no-remote-exec` | RBE is not generally configured for code signing |
+| `BundleApp`, `BundleResources`, `BundleTreeApp`, `ImportedDynamicFrameworkProcessor`, `ProcessAndSign`, `SignBinary` | `no-remote-exec` | These actions are inefficient to do remotely, but in large numbers downloading can be efficient |

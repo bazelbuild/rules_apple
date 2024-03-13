@@ -91,6 +91,12 @@ def ios_application_test_suite(name):
         expected_outputs = ["app_minimal.app"],
         tags = [name],
     )
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_tree_artifact_outputs_with_space_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_with_space_and_post_processor",
+        expected_outputs = ["app_minimal_with_space_and_post_processor_archive-root/Payload/app minimal.app"],
+        tags = [name],
+    )
 
     analysis_target_tree_artifacts_outputs_test(
         name = "{}_duplicate_bundle_target1_test".format(name),

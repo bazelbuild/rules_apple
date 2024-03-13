@@ -1,5 +1,5 @@
-load(":cc_toolchain_forwarder.bzl", "cc_toolchain_forwarder")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":cc_toolchain_forwarder.bzl", "cc_toolchain_forwarder")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -27,6 +27,7 @@ licenses(["notice"])
         "watchos_arm64_32",
         "watchos_x86_64",
         "watchos_device_arm64",
+        "watchos_device_arm64e",
     ]
 ]
 
@@ -172,6 +173,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_core_data_model",
         "//apple/internal/resource_rules:apple_core_ml_library",
         "//apple/internal/resource_rules:apple_intent_library",
+        "//apple/internal/resource_rules:apple_metal_library",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
     ],

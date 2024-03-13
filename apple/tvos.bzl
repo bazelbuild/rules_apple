@@ -45,7 +45,7 @@ tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework
 tvos_static_framework = _tvos_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:tvos_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:tvos_default_runner"))
 
 def tvos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)

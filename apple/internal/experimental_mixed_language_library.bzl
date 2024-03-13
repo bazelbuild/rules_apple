@@ -209,14 +209,11 @@ def experimental_mixed_language_library(
     This is an experimental macro that supports compiling mixed Objective-C and
     Swift source files into a static library.
 
-    Due to the build performance reason, in general it's not recommended to
+    Due to build performance reasons, in general it's not recommended to
     have mixed Objective-C and Swift modules, but it isn't uncommon to see
-    mixed language modules in some old codebases. This macro is meant to make
+    mixed language modules in some codebases. This macro is meant to make
     it easier to migrate codebases with mixed language modules to Bazel without
     having to demix them first.
-
-    This macro only supports a simple use case of mixed language
-    modules, it does not support header maps.
 
     Args:
         name: A unique name for this target.
@@ -285,13 +282,14 @@ target only contains Objective-C files.""")
     # `enable_modules` set to `True` in `objc_library`. This enables it via copts.
     # See: https://github.com/bazelbuild/bazel/issues/20703
     if enable_modules:
-        objc_copts.append("-fmodules")
+        # buildifier: disable=list-append (select does not support list append)
+        objc_copts += ["-fmodules"]
 
     objc_deps = [":" + swift_library_name]
 
     # Add Obj-C includes to Swift header search paths
     repository_name = native.repository_name()
-    includes = kwargs.pop("includes", [])
+    includes = [] + kwargs.pop("includes", [])
     for x in includes:
         include = x if repository_name == "@" else "external/" + repository_name.lstrip("@") + "/" + x
         swift_copts += [
@@ -306,6 +304,7 @@ target only contains Objective-C files.""")
             module_name = module_name,
             hdrs = hdrs,
             deps = [":" + swift_library_name],
+            testonly = testonly,
         )
         includes += header_map_ctx.includes
         objc_copts += header_map_ctx.copts
@@ -313,11 +312,13 @@ target only contains Objective-C files.""")
         swift_copts += header_map_ctx.swift_copts
 
     # Generate module map for the underlying Obj-C module
+    # This is the modulemap used exclusively by the swift_library
+    # as such we export all the headers including the private ones so they can be found in the Swift module.
     objc_module_map_name = name + ".internal.objc"
     textual_hdrs = kwargs.get("textual_hdrs", [])
     _module_map(
         name = objc_module_map_name,
-        hdrs = hdrs,
+        hdrs = hdrs + private_hdrs,
         module_name = module_name,
         textual_hdrs = textual_hdrs,
         testonly = testonly,

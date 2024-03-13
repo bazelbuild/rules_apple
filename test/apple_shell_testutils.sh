@@ -30,7 +30,7 @@ export MIN_OS_TVOS_NPLUS1="13.0"
 export MIN_OS_MACOS="10.13"
 export MIN_OS_MACOS_NPLUS1="10.14"
 
-export MIN_OS_WATCHOS="4.0"
+export MIN_OS_WATCHOS="7.0"
 
 # Usage: assert_exists <path>
 #
@@ -384,7 +384,7 @@ function current_archs() {
           value="$(echo "$option" | cut -d= -f2)"
         else
           # Eliminate `sim_` prefixes from `cpu`s as it is not part of the arch.
-          value="$(echo "$option" | cut -d= -f2 | sed 's/sim_//g')"
+          value="$(echo "$option" | cut -d= -f2 | sed -e 's/sim_//g' -e 's/device_//g')"
         fi
         echo "$value" | tr "," "\n"
         return
@@ -472,6 +472,7 @@ function do_action() {
       "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       "--crosstool_top=@local_config_apple_cc//:toolchain"
       "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      "--enable_bzlmod"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
@@ -523,21 +524,19 @@ function is_device_build() {
 }
 
 
-# Usage: print_debug_entitlements <binary_path>
+# Usage: print_debug_entitlements <binary_path> <output>
 #
-# Extracts and prints the debug entitlements from the appropriate Mach-O
-# section of the given binary.
+# Extracts and prints the debug entitlements from the the given binary
+# using segedit.
 function print_debug_entitlements() {
   local binary="$1"
-
-  # This monstrosity uses objdump to dump the hex content of the entitlements
-  # section, strips off the leading addresses (and ignores lines that don't
-  # look like hex), then runs it through `xxd` to turn the hex into ASCII.
-  # The results should be the entitlements plist text, which we can compare
-  # against.
-  xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$binary" | \
-      sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-          -e 'tx' -e 'd' -e ':x' | xxd -r -p
+  local output="$2"
+  local archs=($(lipo -archs "$binary"))
+  local thin_binary="tempdir/thin_binary"
+  mkdir -p tempdir
+  lipo -thin ${archs[0]} "$binary" -output "$thin_binary"
+  xcrun segedit "$thin_binary" -extract __TEXT __entitlements "$output"
+  rm -rf tempdir
 }
 
 

@@ -140,9 +140,8 @@ def _relpath_from_framework(framework_absolute_path):
       parent_dir = os.path.dirname(parent_dir)
 
   if parent_dir == "/":
-    print("Internal Error: Could not find path in framework: " +
-          framework_absolute_path)
-    return None
+    raise ValueError("Internal Error: Could not find path in framework: " +
+                     framework_absolute_path)
 
   return os.path.relpath(framework_absolute_path, framework_dir)
 
@@ -150,29 +149,22 @@ def _relpath_from_framework(framework_absolute_path):
 def _copy_framework_file(framework_file, executable, output_path):
   """Copies file to given path, marking as writable and executable as needed."""
   path_from_framework = _relpath_from_framework(framework_file)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
   temp_framework_dirs = os.path.dirname(temp_framework_path)
   if not os.path.exists(temp_framework_dirs):
     os.makedirs(temp_framework_dirs)
   shutil.copy(framework_file, temp_framework_path)
   os.chmod(temp_framework_path, 0o755 if executable else 0o644)
-  return 0
+  return temp_framework_path
 
 
 def _strip_framework_binary(framework_binary, output_path, slices_needed):
   """Strips the binary to only the slices needed, saves output to given path."""
   if not slices_needed:
-    print("Internal Error: Did not specify any slices needed for binary at "
-          "path: " + framework_binary)
-    return 1
+    raise ValueError("Internal Error: Did not specify any slices needed for binary at "
+                     "path: " + framework_binary)
 
   path_from_framework = _relpath_from_framework(framework_binary)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
 
   # Creating intermediate directories is only required for macOS framework
@@ -184,15 +176,12 @@ def _strip_framework_binary(framework_binary, output_path, slices_needed):
 
   lipo.invoke_lipo(framework_binary, slices_needed, temp_framework_path)
   os.chmod(temp_framework_path, 0o755)
-  return 0
+  return temp_framework_path
 
 
 def _strip_bitcode(framework_binary, output_path):
   """Strips any bitcode from the framework binary."""
   path_from_framework = _relpath_from_framework(framework_binary)
-  if not path_from_framework:
-    return 1
-
   temp_framework_path = os.path.join(output_path, path_from_framework)
   # Creating intermediate directories is only required for macOS framework
   # binaries which are not at the top-level directory, and are located under:
@@ -242,16 +231,16 @@ def _strip_or_copy_binary(
   )
 
   if should_skip_lipo:
-    _copy_framework_file(framework_binary,
-                         executable=True,
-                         output_path=output_path)
+    binary_path = _copy_framework_file(framework_binary,
+                                       executable=True,
+                                       output_path=output_path)
   else:
-    _strip_framework_binary(framework_binary,
-                            output_path,
-                            slices_needed)
+    binary_path = _strip_framework_binary(framework_binary,
+                                          output_path,
+                                          slices_needed)
 
   if strip_bitcode:
-    _strip_bitcode(framework_binary, output_path)
+    _strip_bitcode(binary_path, output_path)
 
 
 def _get_parser():

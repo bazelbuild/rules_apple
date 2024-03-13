@@ -540,11 +540,6 @@ filegroup(
 )
 
 filegroup(
-    name = "metal_files",
-    srcs = glob(["*.metal"]) + ["shader_defines.h"],
-)
-
-filegroup(
     name = "localized_generic_resources",
     srcs = glob(["*.lproj/*.txt"]),
 )
@@ -704,9 +699,9 @@ apple_resource_bundle(
         ":localized_strings",
         ":localized_xibs_ios",
         ":mapping_model",
-        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -734,9 +729,9 @@ apple_resource_bundle(
         ":localized_plists",
         ":localized_strings",
         ":mapping_model",
-        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -769,9 +764,9 @@ apple_resource_bundle(
         ":localized_plists",
         ":localized_strings",
         ":mapping_model",
-        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
     ],
     structured_resources = [
         ":generate_structured_strings",

@@ -12,29 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import UIKit
+import SwiftUI
 
-// Shim to compile with older Xcodes.
-#if !swift(>=4.2)
-extension UIApplication {
-  typealias LaunchOptionsKey = UIApplicationLaunchOptionsKey
-}
-#endif
-
-/// The ``AppDelegate`` for the application.
-/// This class is the entry point for the application and is responsible for the lifecycle of it.
-@UIApplicationMain
-public class AppDelegate: NSObject, UIApplicationDelegate {
-
-  /// The window of the application.
-  public var window: UIWindow?
-
-  /// The start of the application.
-  public func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions: [UIApplication.LaunchOptionsKey : Any]?
-  ) -> Bool {
-    return true
+@main
+struct BazelApp: App {
+  var body: some Scene {
+    WindowGroup {
+      Text("Hello World")
+        .accessibility(identifier: "HELLO_WORLD")
+    }
   }
 
   /// A foo API to test DooC documentation generation.

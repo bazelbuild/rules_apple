@@ -45,22 +45,6 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-# Gather external dependencies into a target that can be injected into the
-# integration tests. The test script will then mock out the files required
-# to make these proper WORKSPACES that can be used in tests.
-# This enables us to:
-#   1. Reuse the download of the external dependencies across all tests.
-#   2. Remove the need to update dependency versions in the repo's
-#      WORKSPACE and the test WORKSPACE.
-filegroup(
-    name = "external_deps",
-    testonly = 1,
-    srcs = [
-        "@bazel_skylib//:test_deps",
-        "@xctestrunner//:ios_test_runner",
-    ],
-)
-
 # ----------------------------------------------------------------------------
 
 # Ballpark number for shared_count:
@@ -95,6 +79,15 @@ apple_shell_test(
     src = "apple_intent_library_test.sh",
     data = [
         "//test/testdata/resources:intent_srcs",
+    ],
+)
+
+apple_shell_test(
+    name = "apple_metal_library_test",
+    size = "medium",
+    src = "apple_metal_library_test.sh",
+    data = [
+        "//test/testdata/resources:metal_files",
     ],
 )
 

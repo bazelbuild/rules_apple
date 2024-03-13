@@ -47,6 +47,14 @@ platforms:
     --apple_platform_type=tvos
     --cpu=tvos_arm64
 
+  @build_bazel_apple_support//platforms:visionos_sim_arm64
+    --apple_platform_type=visionos
+    --cpu=visionos_sim_arm64
+
+  @build_bazel_apple_support//platforms:visionos_arm64
+    --apple_platform_type=visionos
+    --cpu=visionos_arm64
+
   @build_bazel_apple_support//platforms:watchos_i386
     --apple_platform_type=watchos
     --cpu=watchos_i386
@@ -66,6 +74,14 @@ platforms:
   @build_bazel_apple_support//platforms:watchos_arm64_32
     --apple_platform_type=watchos
     --cpu=watchos_arm64_32
+
+  @build_bazel_apple_support//platforms:watchos_device_arm64
+    --apple_platform_type=watchos
+    --cpu=watchos_device_arm64
+
+  @build_bazel_apple_support//platforms:watchos_device_arm64e
+    --apple_platform_type=watchos
+    --cpu=watchos_device_arm64e
 
 flags:
   --cpu=darwin_x86_64
@@ -115,6 +131,14 @@ flags:
   --cpu=tvos_arm64
   --apple_platform_type=tvos
     @build_bazel_apple_support//platforms:tvos_arm64
+
+  --cpu=visionos_sim_arm64
+  --apple_platform_type=visionos
+    @build_bazel_apple_support//platforms:visionos_sim_arm64
+
+  --cpu=visionos_arm64
+  --apple_platform_type=visionos
+    @build_bazel_apple_support//platforms:visionos_arm64
 
   --cpu=watchos_i386
   --apple_platform_type=watchos

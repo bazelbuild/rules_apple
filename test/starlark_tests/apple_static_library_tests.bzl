@@ -354,10 +354,6 @@ def apple_static_library_test_suite(name):
         tags = [
             name,
         ],
-        target_compatible_with = select({
-            "//:supports_visionos_setting": [],
-            "//conditions:default": ["@platforms//:incompatible"],
-        }),
     )
 
     native.test_suite(
