@@ -90,32 +90,62 @@ def _output_text_match_test_impl(ctx):
         ),
     ]
 
-output_text_match_test = rule(
-    attrs = {
-        "files_match": attr.string_list_dict(
-            mandatory = False,
-            doc = """\
+def _device_transition_impl(_, __):
+    return {
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "arm64",
+        "//command_line_option:tvos_cpus": "arm64",
+        "//command_line_option:visionos_cpus": "arm64",
+        "//command_line_option:watchos_cpus": "arm64_32",
+    }
+
+_device_transition = transition(
+    implementation = _device_transition_impl,
+    inputs = [],
+    outputs = [
+        "//command_line_option:macos_cpus",
+        "//command_line_option:ios_multi_cpus",
+        "//command_line_option:tvos_cpus",
+        "//command_line_option:visionos_cpus",
+        "//command_line_option:watchos_cpus",
+    ],
+)
+
+_OUTPUT_TEXT_MATCH_ATTRS = {
+    "files_match": attr.string_list_dict(
+        mandatory = False,
+        doc = """\
 A dictionary where each key is the path suffix of a file output by the target
 under test, and the corresponding value is a list of regular expressions that
 are expected to be found somewhere in that file.
 """,
-        ),
-        "files_not_match": attr.string_list_dict(
-            mandatory = False,
-            doc = """\
+    ),
+    "files_not_match": attr.string_list_dict(
+        mandatory = False,
+        doc = """\
 A dictionary where each key is the path suffix of a file output by the target
 under test, and the corresponding value is a list of regular expressions that
 are expected to **not** be found somewhere in that file.
 """,
-        ),
-        "target_under_test": attr.label(
-            mandatory = True,
-            doc = "The target whose outputs are to be verified.",
-        ),
-        "_test_deps": attr.label(
-            default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
-        ),
-    },
+    ),
+    "target_under_test": attr.label(
+        mandatory = True,
+        doc = "The target whose outputs are to be verified.",
+    ),
+    "_test_deps": attr.label(
+        default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
+    ),
+}
+
+output_text_match_test = rule(
+    attrs = _OUTPUT_TEXT_MATCH_ATTRS,
+    implementation = _output_text_match_test_impl,
+    test = True,
+)
+
+output_text_device_match_test = rule(
+    cfg = _device_transition,
+    attrs = _OUTPUT_TEXT_MATCH_ATTRS,
     implementation = _output_text_match_test_impl,
     test = True,
 )
