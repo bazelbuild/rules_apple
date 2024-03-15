@@ -1,4 +1,8 @@
 load(
+    "@bazel_skylib//rules:write_file.bzl",
+    "write_file",
+)
+load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
@@ -273,6 +277,96 @@ apple_resource_bundle(
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
     ],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "dynamic_fmwk_depending_swift_lib_file",
+    out = "foo_sim.txt",
+    content = ["""
+import iOSDynamicFramework
+
+func dynamic_fmwk_depending_swift_lib_function() {
+  let sharedClass = SharedClass()
+  sharedClass.doSomethingShared()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_ios_device_text_file",
+    out = "ios_foo_device.txt",
+    content = ["ios_foo_device"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_ios_sim_text_file",
+    out = "ios_foo_sim.txt",
+    content = ["ios_foo_sim"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_tvos_device_text_file",
+    out = "tvos_foo_device.txt",
+    content = ["tvos_foo_device"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_tvos_sim_text_file",
+    out = "tvos_foo_sim.txt",
+    content = ["tvos_foo_sim"],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "ios_device_dependent_text_file",
+    resources = select({
+        "@bazel_tools//tools/objc:ios_x86_64": ["ios_foo_sim.txt"],
+        "@bazel_tools//tools/objc:ios_arm64": ["ios_foo_device.txt"],
+        "@bazel_tools//tools/objc:ios_arm64e": ["ios_foo_device.txt"],
+        "@bazel_tools//tools/objc:ios_sim_arm64": ["ios_foo_sim.txt"],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "ios_device_dependent_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [":ios_device_dependent_text_file"],
+)
+
+apple_resource_bundle(
+    name = "tvos_device_dependent_text_file",
+    resources = select({
+        "@bazel_tools//tools/objc:tvos_x86_64": ["tvos_foo_sim.txt"],
+        "@bazel_tools//tools/objc:tvos_arm64": ["tvos_foo_device.txt"],
+        "@bazel_tools//tools/objc:tvos_sim_arm64": ["tvos_foo_sim.txt"],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "tvos_device_dependent_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [":tvos_device_dependent_text_file"],
+)
+
+write_file(
+    name = "arch_dependent_swift_impl",
+    out = "arch_dependent.swift",
+    content = ["#if arch(arm64)\npublic func FooArm64() {}\n#else\npublic func FooX86_64() {}\n#endif\n"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "arch_dependent_swift",
+    srcs = ["arch_dependent.swift"],
+    library_evolution = True,
+    module_name = "arch_dependent_swift",
     tags = common.fixture_tags,
 )
 

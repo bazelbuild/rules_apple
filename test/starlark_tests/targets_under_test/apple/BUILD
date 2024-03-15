@@ -697,6 +697,99 @@ apple_static_xcframework(
     ],
 )
 
+apple_static_xcframework(
+    name = "static_framework_xcframework_with_device_dependent_resources_in_deps",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+        "tvos": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    deps = [
+        ":fmwk_lib",
+        "//test/starlark_tests/resources:ios_device_dependent_resources",
+        "//test/starlark_tests/resources:tvos_device_dependent_resources",
+    ],
+)
+
+apple_static_xcframework(
+    name = "static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+    avoid_deps = [
+        "//test/starlark_tests/resources:tvos_device_dependent_resources",
+    ],
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+        "tvos": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    deps = [
+        ":fmwk_lib",
+        "//test/starlark_tests/resources:ios_device_dependent_resources",
+        "//test/starlark_tests/resources:tvos_device_dependent_resources",
+    ],
+)
+
+apple_static_xcframework(
+    name = "ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    bundle_name = "arch_dependent_swift",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:arch_dependent_swift",
+    ],
+)
+
 apple_xcframework(
     name = "ios_dynamic_xcframework_stripped",
     bundle_id = "com.google.example",

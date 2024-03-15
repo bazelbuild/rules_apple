@@ -510,6 +510,120 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_ios_swift_framework_arm64_arch_dependent_swiftinterfaces_in_deps".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
+        text_file_not_contains = ["FooX86_64"],
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/arm64.swiftinterface",
+        text_test_values = ["FooArm64"],
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/arch_dependent_swift",
+            "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_swift_framework_x86_64_arch_dependent_swiftinterfaces_in_deps".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
+        text_file_not_contains = ["FooArm64"],
+        text_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftinterface",
+        text_test_values = ["FooX86_64"],
+        contains = [
+            "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/arch_dependent_swift",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_framework_environment_dependent_resources_in_deps".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:static_framework_xcframework_with_device_dependent_resources_in_deps",
+        contains = [
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_device.txt",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps.h",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_sim.txt",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps.h",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/ios_device_dependent_text_file.bundle/ios_foo_sim.txt",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/ios_device_dependent_text_file.bundle/ios_foo_device.txt",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps.h",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_framework_environment_dependent_resources_in_deps_and_avoid_deps".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+        contains = [
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.h",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.h",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/ios_device_dependent_text_file.bundle/ios_foo_sim.txt",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/ios_device_dependent_text_file.bundle/ios_foo_device.txt",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.h",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_device.txt",
+            "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_sim.txt",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
