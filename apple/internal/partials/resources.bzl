@@ -325,9 +325,9 @@ def _resources_partial_impl(
 
     if top_level_infoplists:
         providers.append(resources.bucketize_typed(
-            top_level_infoplists,
-            owner = str(rule_label),
             bucket_type = "infoplists",
+            owner = str(rule_label),
+            resources = top_level_infoplists,
         ))
 
     if not providers:
@@ -592,9 +592,7 @@ def resources_partial(
             resource processing. If this is `False`, unowned targets will be assigned an `owner`
             that is fully distinct from any target in the workspace. `True` by default.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
-        top_level_resources: A dictionary of collected resources found from resource attributes,
-            where keys are targets, and values are list of `File`s depsets. This can be obtained
-            using the `apple/internal/resources.collect` API.
+        top_level_resources: A list of collected resources found from resource attributes.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.

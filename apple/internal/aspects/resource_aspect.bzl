@@ -250,9 +250,9 @@ def _apple_resource_aspect_impl(target, ctx):
         )
         if resource_files:
             bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
-                resources = resource_files,
                 owner = owner,
                 parent_dir_param = bundle_name,
+                resources = resource_files,
                 **bucketize_args
             )
             apple_resource_infos.append(

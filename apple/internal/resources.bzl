@@ -224,8 +224,8 @@ def _bucketize_data(
     if allowed_buckets:
         allowed_bucket_set = {k: None for k in allowed_buckets}
 
-    for target, target_resources in resources.items():
-        for resource in target_resources:
+    for target in resources:
+        for resource in target.files.to_list():
             # Local cache of the resource short path since it gets used quite a bit below.
             resource_short_path = resource.short_path
 
@@ -341,7 +341,13 @@ def _bucketize(
         **buckets
     )
 
-def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None, resources):
+def _bucketize_typed_data(
+        *,
+        bucket_type,
+        expect_files = False,
+        owner = None,
+        parent_dir_param = None,
+        resources):
     """Collects and bucketizes a specific type of resource.
 
     Adds the given resources directly into a tuple under the field named in bucket_type. This avoids
@@ -350,14 +356,14 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
 
     Args:
         bucket_type: The AppleResourceInfo field under which to collect the resources.
+        expect_files: Boolean. Wheither to expect that the List of resources is a list of Files,
+            instead of Targets.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
-        resources: List of resources to place in bucket_type or Dictionary of resources keyed by
-            target to place in bucket_type. This dictionary is supported by the
-            `resources.collect()` API.
+        resources: List of targets to place in bucket_type.
 
     Returns:
         A tuple with a list of owners, a list of "unowned" resources, and a dictionary with
@@ -368,14 +374,11 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
     unowned_resources = []
 
     all_resources = []
-    if type(resources) == "list":
+
+    if expect_files:
         all_resources = resources
-    elif type(resources) == "dict":
-        for target_resources in resources.values():
-            all_resources.extend(target_resources)
     else:
-        fail("Internal error: 'resources' should be either a list or dictionary.\n" +
-             "This is most likely a rules_apple bug, please file a bug with reproduction steps")
+        all_resources = [f for t in resources for f in t.files.to_list()]
 
     for resource in all_resources:
         resource_short_path = resource.short_path
@@ -401,7 +404,13 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
         dict([(bucket_type, _minimize(bucket = typed_bucket))]),
     )
 
-def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param = None):
+def _bucketize_typed(
+        *,
+        bucket_type,
+        expect_files = False,
+        owner = None,
+        parent_dir_param = None,
+        resources):
     """Collects and bucketizes a specific type of resource and returns an AppleResourceInfo.
 
     Adds the given resources directly into a tuple under the field named in bucket_type. This avoids
@@ -410,20 +419,21 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
 
     Args:
         bucket_type: The AppleResourceInfo field under which to collect the resources.
+        expect_files: Boolean. Wheither to expect that the List of resources is a list of Files,
+            instead of Targets.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
             parent_dir for each resource. If it is a struct, it will be considered a partial
             context, and will be invoked with partial.call().
-        resources: List of resources to place in bucket_type or Dictionary of resources keyed by
-            target to place in bucket_type. This dictionary is supported by the
-            `resources.collect()` API.
+        resources: List of resources to place in bucket_type.
 
     Returns:
         An AppleResourceInfo provider with resources in the given bucket.
     """
     owners, unowned_resources, buckets = _bucketize_typed_data(
         bucket_type = bucket_type,
+        expect_files = expect_files,
         owner = owner,
         parent_dir_param = parent_dir_param,
         resources = resources,
@@ -576,7 +586,7 @@ def _bundle_relative_parent_dir(resource, extension):
 def _collect(*, attr, res_attrs = [], split_attr_keys = []):
     """Collects all resource attributes present in the given attributes.
 
-    Iterates over the given res_attrs attributes collecting files to be processed as resources.
+    Iterates over the given res_attrs attributes to be processed as resources.
     These are all placed into a list, and then returned.
 
     Args:
@@ -587,12 +597,12 @@ def _collect(*, attr, res_attrs = [], split_attr_keys = []):
         split_attr_keys: If defined, a list of 1:2+ transition keys to merge values from.
 
     Returns:
-        A dictionary keyed by target from the rule attr with the list of all collected resources.
+        A list of all targets collected from the rule attr.
     """
     if not res_attrs:
         return []
 
-    files_by_target = {}
+    targets_with_files = []
     for res_attr in res_attrs:
         if not hasattr(attr, res_attr):
             continue
@@ -604,11 +614,11 @@ def _collect(*, attr, res_attrs = [], split_attr_keys = []):
         )
         for target in targets_for_attr:
             if not target.files:
-                # Target does not export any file, ignore.
+                # Target does not export any File interfaces, ignore.
                 continue
-            files_by_target.setdefault(target, []).extend(target.files.to_list())
+            targets_with_files.append(target)
 
-    return files_by_target
+    return targets_with_files
 
 def _merge_providers(*, default_owner = None, providers, validate_all_resources_owned = False):
     """Merges multiple AppleResourceInfo providers into one.
