@@ -15,10 +15,6 @@
 """xcframework Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_wip_features_test",
@@ -360,9 +356,6 @@ def apple_static_xcframework_test_suite(name):
         name = "{}_framework_dbg_resources_data_test".format(name),
         build_type = "device",
         compilation_mode = "dbg",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         is_binary_plist = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
@@ -379,9 +372,6 @@ def apple_static_xcframework_test_suite(name):
         name = "{}_framework_opt_resources_data_test".format(name),
         build_type = "device",
         compilation_mode = "opt",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         is_binary_plist = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
@@ -397,9 +387,6 @@ def apple_static_xcframework_test_suite(name):
         name = "{}_framework_dbg_resources_deps_test".format(name),
         build_type = "device",
         compilation_mode = "dbg",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         is_binary_plist = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
@@ -412,9 +399,6 @@ def apple_static_xcframework_test_suite(name):
         name = "{}_framework_opt_resources_deps_test".format(name),
         build_type = "device",
         compilation_mode = "opt",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         is_binary_plist = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
@@ -429,9 +413,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_different_resource_with_same_target_path_is_not_deduped_device_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         plist_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_avoid_deps_non_localized_assets.framework/nonlocalized.plist",
         plist_test_values = {
             "SomeKey": "Somevalue",
@@ -442,9 +423,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_different_resource_with_same_target_path_is_not_deduped_simulator_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_avoid_deps_non_localized_assets.framework/nonlocalized.plist",
         plist_test_values = {
             "SomeKey": "Somevalue",
@@ -457,9 +435,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_resource_bundle_in_avoid_deps_not_in_framework".format(name),
         build_type = "simulator",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_avoid_deps_resource_bundle",
         not_contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_avoid_deps_resource_bundle.framework/basic.bundle/basic_bundle.txt",
@@ -476,9 +451,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_shared_resources_with_explicit_owners_in_avoid_deps_and_framework_contains_resources".format(name),
         build_type = "simulator",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_explicit_owners_structured_resources_in_deps_and_avoid_deps",
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_explicit_owners_structured_resources_in_deps_and_avoid_deps.framework/Another.plist",
@@ -492,9 +464,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_resources_in_avoid_deps_stays_in_avoid_deps".format(name),
         build_type = "simulator",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_resource_bundle_in_deps_and_avoid_deps",
         not_contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_resource_bundle_in_deps_and_avoid_deps.framework/Another.plist",
@@ -513,9 +482,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_swift_framework_arm64_arch_dependent_swiftinterfaces_in_deps".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
         text_file_not_contains = ["FooX86_64"],
         text_test_file = "$BUNDLE_ROOT/ios-arm64/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/arm64.swiftinterface",
@@ -532,9 +498,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_ios_swift_framework_x86_64_arch_dependent_swiftinterfaces_in_deps".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
         text_file_not_contains = ["FooArm64"],
         text_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftinterface",
@@ -551,9 +514,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_environment_dependent_resources_in_deps".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:static_framework_xcframework_with_device_dependent_resources_in_deps",
         contains = [
             "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps",
@@ -588,9 +548,6 @@ def apple_static_xcframework_test_suite(name):
     archive_contents_test(
         name = "{}_framework_environment_dependent_resources_in_deps_and_avoid_deps".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/apple:static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
         contains = [
             "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",

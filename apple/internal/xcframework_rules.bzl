@@ -1311,12 +1311,6 @@ def _apple_static_xcframework_impl(ctx):
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
-    # TODO(b/328282357): Remove check for enable_wip_features to allow usage once framework artifact
-    # support has been finalized.
-    if (bundle_format == "framework" and
-        not apple_xplat_toolchain_info.build_settings.enable_wip_features):
-        fail("The apple_static_xcframework rule only supports library artifacts at this time.")
-
     _validate_resource_attrs(
         all_attrs = ctx.attr,
         bundle_format = bundle_format,
