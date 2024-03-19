@@ -169,7 +169,7 @@ def merge_resource_infoplists(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     plisttool_action(
@@ -379,7 +379,7 @@ def merge_root_infoplists(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     plisttool_action(

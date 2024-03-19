@@ -168,7 +168,7 @@ def _extract_signing_info(
         )
         actions.write(
             output = control_file,
-            content = struct(**control).to_json(),
+            content = json.encode(struct(**control)),
         )
 
         apple_support.run(
@@ -305,7 +305,7 @@ def _process_entitlements(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     resource_actions.plisttool_action(
@@ -344,7 +344,7 @@ def _process_entitlements(
         )
         actions.write(
             output = simulator_control_file,
-            content = simulator_control.to_json(),
+            content = json.encode(simulator_control),
         )
 
         resource_actions.plisttool_action(
