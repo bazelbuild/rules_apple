@@ -528,13 +528,14 @@ The base bundle ID rule to dictate the form that a given bundle rule's bundle ID
 
     return signing_attrs
 
-def _infoplist_attrs(*, default_infoplist = None):
+def _infoplist_attrs(*, default_infoplist = None, extra_allow_files = []):
     """Returns the attributes required to support a root Info.plist for the given target.
 
     Args:
         default_infoplist: A string representing a label to a default Info.plist. Optional. If not
             set or if set to None, the `infoplists` attribute will be considered mandatory for the
             user to set.
+        extra_allow_files: Extra extension to allow, such as .xcprivacy.
     """
     attr_args = {}
     if default_infoplist:
@@ -544,7 +545,7 @@ def _infoplist_attrs(*, default_infoplist = None):
     return {
         "infoplists": attr.label_list(
             allow_empty = False,
-            allow_files = [".plist"],
+            allow_files = [".plist"] + extra_allow_files,
             doc = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see

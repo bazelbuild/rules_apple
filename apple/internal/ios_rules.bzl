@@ -2529,7 +2529,7 @@ ios_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(extra_allow_files = [".xcprivacy"]),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
