@@ -397,7 +397,7 @@ def _bundle_partial_outputs_files(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     bundletool_inputs = input_files + [control_file] + extra_input_files

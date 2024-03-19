@@ -228,7 +228,7 @@ def _generate_dsym_info_plist(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     resource_actions.plisttool_action(
