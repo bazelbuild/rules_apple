@@ -133,7 +133,6 @@ Label to a single mlmodel file from which to generate sources and compile into m
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple", "cpp"],
     outputs = {
         "source": "%{name}.m",
