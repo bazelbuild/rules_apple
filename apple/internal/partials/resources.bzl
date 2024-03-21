@@ -128,7 +128,7 @@ def _locales_requested(*, locales_to_include, config_vars):
         requested_locales = locales_to_include
     else:
         config_locals_to_include = config_vars.get("apple.locales_to_include")
-        requested_locales = config_locals_to_include.split(",") if config_locals_to_include != None else None
+        requested_locales = config_locals_to_include.split(",") if config_locals_to_include else None
 
     if requested_locales != None:
         return sets.make(["Base"] + [x.strip() for x in requested_locales])
