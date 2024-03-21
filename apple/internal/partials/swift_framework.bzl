@@ -70,14 +70,25 @@ issue with a reproducible error case.
 
         found_module_name = swift_module.name
 
-        bundle_interface = swift_info_support.declare_swiftinterface(
-            actions = actions,
-            arch = arch,
-            label_name = label_name,
-            output_discriminator = output_discriminator,
-            swiftinterface = swift_module.swift.swiftinterface,
-        )
-        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
+        # A swiftinterface will not be present when library evolution is disabled, if so, fallback to swiftmodule.
+        if swift_module.swift.swiftinterface:
+            bundle_interface = swift_info_support.declare_swiftinterface(
+                actions = actions,
+                arch = arch,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
+                swiftinterface = swift_module.swift.swiftinterface,
+            )
+            bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
+        else:
+            bundle_swiftmodule = swift_info_support.declare_swiftmodule(
+                actions = actions,
+                arch = arch,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
+                swiftmodule = swift_module.swift.swiftmodule,
+            )
+            bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_swiftmodule])))
 
         bundle_doc = swift_info_support.declare_swiftdoc(
             actions = actions,
