@@ -117,6 +117,37 @@ function test_localized_unprocessed_resources_filter_mixed() {
       "Payload/app.app/it.lproj/localized.txt"
 }
 
+function test_localized_unprocessed_resources_filter_with_attribute() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    locales_to_include = ["it"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app \
+      || fail "Should build"
+  expect_not_log "Please verify apple.locales_to_include is defined properly"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/fr.lproj/localized.txt"
+}
+
 # Tests that the localizations in the Settings.bundle that are not in the base
 # of the app are not included in the output when apple.trim_lproj_locales=1.
 function test_settings_bundle_localization_strip() {

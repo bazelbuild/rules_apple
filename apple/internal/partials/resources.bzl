@@ -109,7 +109,7 @@ def _merge_root_infoplists(
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _locales_requested(*, config_vars):
+def _locales_requested(*, locales_to_include, config_vars):
     """Determines which locales to include when resource actions.
 
     If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
@@ -117,13 +117,21 @@ def _locales_requested(*, config_vars):
 
     Args:
         config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
+        locales_to_include: A string list of locales to bundle.
 
     Returns:
         A set of locales to include or None if all should be included.
     """
-    requested_locales = config_vars.get("apple.locales_to_include")
+    config_locals_to_include = config_vars.get("apple.locales_to_include")
+    requested_locales = None
+    if locales_to_include:
+        requested_locales = locales_to_include
+    else:
+        config_locals_to_include = config_vars.get("apple.locales_to_include")
+        requested_locales = config_locals_to_include.split(",") if config_locals_to_include != None else None
+
     if requested_locales != None:
-        return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
+        return sets.make(["Base"] + [x.strip() for x in requested_locales])
     else:
         return None
 
@@ -179,6 +187,7 @@ def _resources_partial_impl(
         environment_plist,
         extensionkit_keys_required,
         launch_storyboard,
+        locales_to_include,
         output_discriminator,
         platform_prerequisites,
         resource_deps,
@@ -258,7 +267,7 @@ def _resources_partial_impl(
 
     infoplists = []
 
-    locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
+    locales_requested = _locales_requested(locales_to_include = locales_to_include, config_vars = platform_prerequisites.config_vars)
     locales_excluded = _locales_excluded(config_vars = platform_prerequisites.config_vars)
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
@@ -386,6 +395,7 @@ def resources_partial(
         environment_plist,
         extensionkit_keys_required = False,
         launch_storyboard,
+        locales_to_include = [],
         output_discriminator = None,
         platform_prerequisites,
         resource_deps,
@@ -424,6 +434,7 @@ def resources_partial(
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
+        locales_to_include: List of locales to bundle.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -457,6 +468,7 @@ def resources_partial(
         environment_plist = environment_plist,
         extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
+        locales_to_include = locales_to_include,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         resource_deps = resource_deps,

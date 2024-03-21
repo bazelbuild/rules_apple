@@ -236,6 +236,7 @@ def _bundle_partial_outputs_files(
         extra_input_files = [],
         ipa_post_processor = None,
         label_name,
+        locales_to_include = [],
         output_discriminator,
         output_file,
         partial_outputs,
@@ -257,6 +258,7 @@ def _bundle_partial_outputs_files(
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: The name of the target being built.
+      locales_to_include: List of locales to bundle.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_file: The file where the final zipped bundle should be created.
@@ -269,7 +271,7 @@ def _bundle_partial_outputs_files(
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
     config_vars = platform_prerequisites.config_vars
-    requested_locales_flag = config_vars.get("apple.locales_to_include")
+    requested_locales_flag = locales_to_include or config_vars.get("apple.locales_to_include")
 
     trim_locales = defines.bool_value(
         config_vars = config_vars,
@@ -473,6 +475,7 @@ def _bundle_post_process_and_sign(
         entitlements,
         features,
         ipa_post_processor,
+        locales_to_include,
         output_archive,
         output_discriminator,
         partial_outputs,
@@ -495,6 +498,7 @@ def _bundle_post_process_and_sign(
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+        locales_to_include: List of locales to bundle.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -554,6 +558,7 @@ def _bundle_post_process_and_sign(
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            locales_to_include = locales_to_include,
             output_discriminator = output_discriminator,
             output_file = output_archive,
             partial_outputs = partial_outputs,
@@ -583,6 +588,7 @@ def _bundle_post_process_and_sign(
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            locales_to_include = locales_to_include,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
             partial_outputs = partial_outputs,
@@ -658,6 +664,7 @@ def _bundle_post_process_and_sign(
                 embedding = True,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
+                locales_to_include = locales_to_include,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
@@ -701,6 +708,7 @@ def _process(
         entitlements = None,
         features,
         ipa_post_processor = None,
+        locales_to_include = [],
         output_discriminator = None,
         partials,
         platform_prerequisites,
@@ -724,6 +732,7 @@ def _process(
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
+      locales_to_include: List of locales to explicitly include in the bundle. Defaults tp `[]`.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       partials: The list of partials to process to construct the complete bundle.
@@ -764,6 +773,7 @@ def _process(
             entitlements = entitlements,
             features = features,
             ipa_post_processor = ipa_post_processor,
+            locales_to_include = locales_to_include,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
             partial_outputs = partial_outputs,
