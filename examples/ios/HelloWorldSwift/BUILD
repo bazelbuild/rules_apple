@@ -71,7 +71,6 @@ ios_application(
         "ipad",
     ],
     infoplists = [":Info.plist"],
-    launch_storyboard = "//examples/resources:Launch.storyboard",
     minimum_os_version = "15.0",
     deps = [":Sources"],
 )
