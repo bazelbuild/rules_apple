@@ -712,6 +712,18 @@ def _simulator_runner_template_attr():
         ),
     }
 
+def _locales_to_include_attr():
+    """Returns the attribute required to support configuring the explicit set of locales supported for the bundle."""
+    return {
+        "locales_to_include": attr.string_list(
+            mandatory = False,
+            doc = """
+A list of locales to include in the bundle. Only *.lproj directories that are matched will be copied as a part of the build.
+This value takes precedence (and is preferred) over locales defined using `--define "apple.locales_to_include=..."`.
+""",
+        ),
+    }
+
 # Returns the aspects required to support a test host for a given target.
 _TEST_HOST_ASPECTS = [framework_provider_aspect]
 
@@ -732,6 +744,7 @@ rule_attrs = struct(
     extensionkit_attrs = _extensionkit_attrs,
     infoplist_attrs = _infoplist_attrs,
     ipa_post_processor_attrs = _ipa_post_processor_attrs,
+    locales_to_include_attrs = _locales_to_include_attr,
     launch_images_attrs = _launch_images_attrs,
     platform_attrs = _platform_attrs,
     settings_bundle_attrs = _settings_bundle_attrs,
