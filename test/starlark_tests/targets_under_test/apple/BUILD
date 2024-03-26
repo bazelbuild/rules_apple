@@ -863,9 +863,6 @@ apple_xcframework(
     name = "ios_swift_3p_xcframework_with_generated_header",
     bundle_id = "com.google.example",
     bundle_name = "Swift3PFmwkWithGenHeader",
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

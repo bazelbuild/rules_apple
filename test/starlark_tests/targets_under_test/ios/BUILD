@@ -3885,9 +3885,6 @@ ios_static_framework(
 ios_static_framework(
     name = "static_framework_with_generated_header",
     bundle_name = "SwiftStaticFmwkWithGenHeader",
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [":SwiftStaticFmwkWithGenHeader"],
