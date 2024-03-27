@@ -430,6 +430,7 @@ def _apple_static_xcframework_import_impl(ctx):
     alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -444,8 +445,9 @@ def _apple_static_xcframework_import_impl(ctx):
     xcframework = _classify_xcframework_imports(xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        fail("Importing XCFrameworks with static frameworks is not supported.")
+    if (xcframework.bundle_type == _BUNDLE_TYPE.frameworks and
+        not apple_xplat_toolchain_info.build_settings.enable_wip_features):
+        fail("Importing XCFrameworks with static frameworks is not yet supported (b/326440971).")
 
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,
@@ -459,18 +461,21 @@ def _apple_static_xcframework_import_impl(ctx):
     )
 
     providers = [
-        DefaultInfo(
-            files = depset(xcframework_imports),
-        ),
         OutputGroupInfo(
             _validation = depset([xcframework_library.processor_output]),
         ),
     ]
 
+    if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
+        providers.append(DefaultInfo(files = depset(xcframework_imports)))
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
-        build_archs = [apple_fragment.single_arch_cpu],
+        build_archs = [target_triplet.architecture],
         deps = deps,
+        framework_imports = xcframework_library.framework_imports if (
+            xcframework.bundle_type == _BUNDLE_TYPE.frameworks
+        ) else [],
     )
     providers.append(apple_framework_import_info)
 

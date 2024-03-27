@@ -36,7 +36,7 @@ def apple_static_xcframework_import_test_suite(name):
     analysis_failure_message_test(
         name = "{}_fails_importing_xcframework_with_static_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks",
-        expected_error = "Importing XCFrameworks with static frameworks is not supported.",
+        expected_error = "Importing XCFrameworks with static frameworks is not yet supported (b/326440971).",
         tags = [name],
     )
 
