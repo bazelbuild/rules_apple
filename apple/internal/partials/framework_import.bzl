@@ -111,14 +111,6 @@ def _framework_import_partial_impl(
         if not framework_binaries_by_framework.get(framework_basename):
             framework_binaries_by_framework[framework_basename] = []
 
-        # Check if file is a tree artifact to treat as bundle files.
-        # XCFramework import rules forward tree artifacts when using the
-        # xcframework_processor_tool, since the effective XCFramework library
-        # files are not known during analysis phase.
-        if file.is_directory:
-            files_by_framework[framework_basename].append(file)
-            continue
-
         # Check if this file is a binary to slice and code sign.
         framework_relative_path = paths.relativize(file.short_path, framework_path)
 
@@ -132,6 +124,12 @@ def _framework_import_partial_impl(
             framework_binaries_by_framework[framework_basename].append(file)
         else:
             files_by_framework[framework_basename].append(file)
+
+    # TODO(b/326440971): If no binary was found for any given framework, treat it as an "empty
+    # framework", create a "stub dylib" and update the corresponding Info.plist with relevant
+    # minimum OS version information per Xcode 15.3 implementation for "bundle & sign"ing a codeless
+    # framework. This will allow us to generate fat "stub dylibs" when required and pass App Store
+    # Connect requirements for the new static framework UX in Xcode 15.
 
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
