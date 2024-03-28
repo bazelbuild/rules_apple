@@ -176,6 +176,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # ios_bundle
+        apple_product_type.bundle: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            bundle_extension = ".bundle",
+            bundle_package_type = bundle_package_type.bundle,
+            product_type = apple_product_type.bundle,
+            rpaths = [
+                # Bundle binaries are loaded from the executable location and application binaries
+                # live in Application.app/Application
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/Frameworks",
+            ],
+        ),
         # ios_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
