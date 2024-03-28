@@ -661,6 +661,18 @@ def _app_icon_attrs(*, icon_extension = ".appiconset", icon_parent_extension = "
             of the directory containing the app icon assets. Optional. Defaults to `.xcassets`.
     """
     return {
+        "alternate_app_icon_names": attr.string_list(
+            default = [],
+            doc = """
+List of names of alternate app icons to use for this target.
+This is the name of the directory of `{icon_extension}` without the extension.""".format(icon_extension = icon_extension)
+        ),
+        "app_icon_name": attr.string(
+            default = "",
+            doc = """
+The name of the app icon to use for this target. 
+This is the name of the directory of `{icon_extension}` without the extension""".format(icon_extension = icon_extension)
+        ),
         "app_icons": attr.label_list(
             allow_files = True,
             doc = """
@@ -670,6 +682,10 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
                 app_icon_extension = icon_extension,
                 app_icon_parent_extension = icon_parent_extension,
             ),
+        ),
+        "include_all_appicons": attr.bool(
+            default = False,
+            doc = "Indicates if actool should include all `appiconset`. You should enable this to use `alternate_app_icons`",
         ),
     }
 

@@ -177,11 +177,14 @@ def _locales_excluded(*, config_vars):
 def _resources_partial_impl(
         *,
         actions,
+        alternate_app_icon_names,
+        app_icon_name,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
         executable_name,
+        include_all_appicons,
         include_executable_name,
         bundle_verification_targets,
         environment_plist,
@@ -290,9 +293,12 @@ def _resources_partial_impl(
 
             processing_args = {
                 "actions": actions,
+                "alternate_app_icon_names": alternate_app_icon_names,
+                "app_icon_name": app_icon_name,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
+                "include_all_appicons": include_all_appicons,
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
@@ -385,11 +391,14 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
+        alternate_app_icon_names = [],
+        app_icon_name = None,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id = None,
         bundle_name,
         executable_name,
+        include_all_appicons = False,
         include_executable_name = True,
         bundle_verification_targets = [],
         environment_plist,
@@ -421,6 +430,8 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
+        alternate_app_icon_names: A list of alternate app icon names to use.
+        app_icon_name: The name of the app icon to use. Use This name if you have multiple appiconset in your xcassets.
         include_executable_name: If True, the executable name will be added to
             the plist in the `CFBundleExecutable` key. This is mainly intended for
             plists embedded in a command line tool which don't need this value.
@@ -433,6 +444,7 @@ def resources_partial(
             correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
+        include_all_appicons: If True, all app icons will be included in the bundle.
         launch_storyboard: A file to be used as a launch screen for the application.
         locales_to_include: List of locales to bundle.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -458,11 +470,14 @@ def resources_partial(
     return partial.make(
         _resources_partial_impl,
         actions = actions,
+        alternate_app_icon_names = alternate_app_icon_names,
+        app_icon_name = app_icon_name,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        include_all_appicons = include_all_appicons,
         include_executable_name = include_executable_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,

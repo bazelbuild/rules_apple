@@ -364,6 +364,8 @@ def _ios_application_impl(ctx):
         ),
         partials.resources_partial(
             actions = actions,
+            alternate_app_icon_names = ctx.attr.alternate_app_icon_names,
+            app_icon_name = ctx.attr.app_icon_name,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -371,6 +373,7 @@ def _ios_application_impl(ctx):
             executable_name = executable_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
+            include_all_appicons = ctx.attr.include_all_appicons,
             launch_storyboard = ctx.file.launch_storyboard,
             locales_to_include = ctx.attr.locales_to_include,
             platform_prerequisites = platform_prerequisites,

@@ -143,9 +143,12 @@ def _compile_mappingmodels(
 def _asset_catalogs(
         *,
         actions,
+        alternate_app_icon_names,
+        app_icon_name,
         apple_mac_toolchain_info,
         bundle_id,
         files,
+        include_all_appicons,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
@@ -204,9 +207,12 @@ def _asset_catalogs(
 
     resource_actions.compile_asset_catalog(
         actions = actions,
+        alternate_app_icon_names = alternate_app_icon_names,
         alternate_icons = alternate_icons,
+        app_icon_name = app_icon_name,
         asset_files = asset_files,
         bundle_id = bundle_id,
+        include_all_appicons = include_all_appicons,
         output_dir = assets_dir,
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,

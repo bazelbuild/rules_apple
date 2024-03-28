@@ -47,6 +47,8 @@ _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 
 def _actool_args_for_special_file_types(
         *,
+        alternate_app_icon_names,
+        app_icon_name,
         asset_files,
         bundle_id,
         platform_prerequisites,
@@ -124,14 +126,44 @@ def _actool_args_for_special_file_types(
             [appicon_extension],
             attr = "app_icons",
         ).keys()
-        if len(icon_dirs) != 1:
-            formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
-            fail("The asset catalogs should contain exactly one directory named " +
-                 "*.%s among its asset catalogs, " % appicon_extension +
-                 "but found the following: " + formatted_dirs, "app_icons")
 
-        app_icon_name = paths.split_extension(paths.basename(icon_dirs[0]))[0]
+        icon_dir = ""
+
+        # if app_icon_name is specified by user, instead of guarding the number of appiconset, we will search from multiple appiconset
+        if app_icon_name and len(app_icon_name) > 0 :
+            _icon_dirs = [d for d in icon_dirs if paths.basename(d) == app_icon_name + ".appiconset"]
+
+            if len(_icon_dirs) != 1:
+                fail("could not find " + app_icon_name + ".appiconset")
+
+            icon_dir = _icon_dirs[0]
+        else:
+            if len(icon_dirs) != 1:
+                formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
+                fail("The asset catalogs should contain exactly one directory named " +
+                    "*.%s among its asset catalogs, " % appicon_extension +
+                    "but found the following: " + formatted_dirs, "app_icons")
+        
+            icon_dir = icon_dirs[0]
+        
+        app_icon_name = paths.split_extension(paths.basename(icon_dir))[0]
         args += ["--app-icon", app_icon_name]
+
+        # Add arguments for alternate app icons, if there are any.
+        for alternate_app_icon_name in alternate_app_icon_names:
+            _icon_dirs = [d for d in icon_dirs if paths.basename(d) == alternate_app_icon_name + ".appiconset"]
+
+            if len(_icon_dirs) == 0:
+                fail("could not find alternate app icon " + app_icon_name + ".appiconset")
+            elif len(_icon_dirs) > 1:
+                fail("found multiple alternate app icon " + app_icon_name + ".appiconset")
+
+            app_icon_name = paths.split_extension(paths.basename(_icon_dirs[0]))[0]
+
+            args.extend([
+                "--alternate-app-icon",
+                app_icon_name
+            ])
 
     # Add arguments for watch extension complication, if there is one.
     complication_files = [f for f in asset_files if ".complicationset/" in f.path]
@@ -186,9 +218,12 @@ def _alticonstool_args(
 def compile_asset_catalog(
         *,
         actions,
+        alternate_app_icon_names,
         alternate_icons,
+        app_icon_name,
         asset_files,
         bundle_id,
+        include_all_appicons,
         output_dir,
         output_plist,
         platform_prerequisites,
@@ -205,13 +240,16 @@ def compile_asset_catalog(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      alternate_app_icon_names: The alternate app icon names to use.
       alternate_icons: Alternate icons files, organized in .alticon directories.
+      app_icon_name: The name of the app icon to use. Set this if you have multiple appiconset.
       asset_files: An iterable of files in all asset catalogs that should be
           packaged as part of this catalog. This should include transitive
           dependencies (i.e., assets not just from the application target, but
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
       bundle_id: The bundle ID to configure for this target.
+      include_all_appicons: Whether to include all app icons.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
@@ -236,6 +274,8 @@ def compile_asset_catalog(
     ]
 
     args.extend(_actool_args_for_special_file_types(
+        alternate_app_icon_names = alternate_app_icon_names,
+        app_icon_name = app_icon_name,
         asset_files = asset_files,
         bundle_id = bundle_id,
         platform_prerequisites = platform_prerequisites,
@@ -266,6 +306,9 @@ def compile_asset_catalog(
             "--output-partial-info-plist",
             xctoolrunner.prefixed_path(actool_output_plist.path),
         ])
+
+    if include_all_appicons:
+        args.extend(["--include-all-app-icons"])
 
     xcassets = group_files_by_directory(
         asset_files,
