@@ -82,7 +82,7 @@ def apple_build_test_rule(doc, platform_type):
     Args:
         doc: The documentation string for the rule.
         platform_type: The Apple platform for which the test should build its
-            targets (`"ios"`, `"macos"`, `"tvos"`, or `"watchos"`).
+            targets (`"ios"`, `"macos"`, `"tvos"`, `"watchos"`, or `"visionos"`).
 
     Returns:
         The created `rule`.
