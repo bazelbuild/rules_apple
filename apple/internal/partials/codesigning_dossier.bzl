@@ -155,17 +155,18 @@ def _embedded_codesign_dossiers_from_dossier_infos(
 def _create_combined_zip_artifact(
         *,
         actions,
+        bundletool,
         dossier_merge_zip,
         input_archive,
         label_name,
         output_combined_zip,
         output_discriminator,
-        platform_prerequisites,
-        resolved_bundletool):
+        platform_prerequisites):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
 
      Args:
       actions: The actions provider from `ctx.actions`.
+      bundletool: A files_to_run for the bundle tool.
       dossier_merge_zip: A File referencing the generated code sign dossier zip.
       input_archive: A File referencing the rule's output archive (IPA or zipped app).
       label_name: Name of the target being built.
@@ -173,7 +174,6 @@ def _create_combined_zip_artifact(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_bundletool: A struct referencing the resolved bundle tool.
     """
     bundletool_control_file = intermediates.file(
         actions = actions,
@@ -226,15 +226,8 @@ def _create_combined_zip_artifact(
     else:
         actions.run(
             arguments = [bundletool_control_file.path],
-            executable = resolved_bundletool.executable,
-            inputs = depset(
-                direct = [bundletool_control_file],
-                transitive = [
-                    resolved_bundletool.inputs,
-                    depset([input_archive, dossier_merge_zip]),
-                ],
-            ),
-            input_manifests = resolved_bundletool.input_manifests,
+            executable = bundletool,
+            inputs = [bundletool_control_file, input_archive, dossier_merge_zip],
             **common_combined_dossier_zip_args
         )
 
@@ -284,7 +277,7 @@ def _codesigning_dossier_partial_impl(
     codesigning_support.generate_codesigning_dossier_action(
         actions = actions,
         label_name = label_name,
-        resolved_codesigning_dossier_tool = apple_mac_toolchain_info.resolved_dossier_codesigningtool,
+        dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         platform_prerequisites = platform_prerequisites,
@@ -331,13 +324,13 @@ def _codesigning_dossier_partial_impl(
 
     _create_combined_zip_artifact(
         actions = actions,
+        bundletool = apple_xplat_toolchain_info.bundletool,
         dossier_merge_zip = output_dossier,
         input_archive = output_archive,
         label_name = label_name,
         output_combined_zip = output_combined_zip,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool,
     )
 
     return struct(

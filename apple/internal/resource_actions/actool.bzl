@@ -24,7 +24,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -187,15 +187,15 @@ def compile_asset_catalog(
         *,
         actions,
         alternate_icons,
+        alticonstool,
         asset_files,
         bundle_id,
         output_dir,
         output_plist,
         platform_prerequisites,
         product_type,
-        resolved_alticonstool,
-        resolved_xctoolrunner,
-        rule_label):
+        rule_label,
+        xctoolrunner):
     """Creates an action that compiles asset catalogs.
 
     This action populates a directory with compiled assets that must be merged
@@ -206,6 +206,7 @@ def compile_asset_catalog(
     Args:
       actions: The actions provider from `ctx.actions`.
       alternate_icons: Alternate icons files, organized in .alticon directories.
+      alticonstool: A files_to_run for the alticonstool tool.
       asset_files: An iterable of files in all asset catalogs that should be
           packaged as part of this catalog. This should include transitive
           dependencies (i.e., assets not just from the application target, but
@@ -217,9 +218,8 @@ def compile_asset_catalog(
         into Info.plist. May be None if the output plist is not desired.
       platform_prerequisites: Struct containing information on the platform being targeted.
       product_type: The product type identifier used to describe the current bundle type.
-      resolved_alticonstool: A struct referencing the resolved alticonstool tool.
-      resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
       rule_label: The label of the target being analyzed.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
@@ -227,7 +227,7 @@ def compile_asset_catalog(
     args = [
         "actool",
         "--compile",
-        xctoolrunner.prefixed_path(output_dir.path),
+        xctoolrunner_support.prefixed_path(output_dir.path),
         "--platform",
         actool_platform,
         "--minimum-deployment-target",
@@ -264,7 +264,7 @@ def compile_asset_catalog(
         actool_outputs.append(actool_output_plist)
         args.extend([
             "--output-partial-info-plist",
-            xctoolrunner.prefixed_path(actool_output_plist.path),
+            xctoolrunner_support.prefixed_path(actool_output_plist.path),
         ])
 
     xcassets = group_files_by_directory(
@@ -273,16 +273,15 @@ def compile_asset_catalog(
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
+    args.extend([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
 
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.files_to_run,
+        executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = depset(asset_files, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
         outputs = actool_outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -299,9 +298,8 @@ def compile_asset_catalog(
                 alticons_files = alternate_icons,
                 device_families = platform_prerequisites.device_families,
             ),
-            executable = resolved_alticonstool.files_to_run,
-            inputs = depset([actool_output_plist] + alternate_icons, transitive = [resolved_alticonstool.inputs]),
-            input_manifests = resolved_alticonstool.input_manifests,
+            executable = alticonstool,
+            inputs = [actool_output_plist] + alternate_icons,
             mnemonic = "AlternateIconsInsert",
             outputs = alticons_outputs,
             xcode_config = platform_prerequisites.xcode_version_config,

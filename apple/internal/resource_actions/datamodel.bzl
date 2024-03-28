@@ -20,7 +20,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    "xctoolrunner",
+    xctoolrunner_support = "xctoolrunner",
 )
 
 def compile_datamodels(
@@ -31,7 +31,7 @@ def compile_datamodels(
         module_name,
         output_file,
         platform_prerequisites,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Creates an action that compiles datamodels.
 
     Args:
@@ -41,7 +41,7 @@ def compile_datamodels(
         module_name: The module name to use when compiling the datamodels.
         output_file: The file reference to the compiled datamodel.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+        xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
     platform = platform_prerequisites.platform
     platform_name = platform.name_in_plist.lower()
@@ -53,17 +53,16 @@ def compile_datamodels(
         platform_prerequisites.minimum_os,
         "--module",
         module_name,
-        xctoolrunner.prefixed_path(datamodel_path),
-        xctoolrunner.prefixed_path(output_file.path),
+        xctoolrunner_support.prefixed_path(datamodel_path),
+        xctoolrunner_support.prefixed_path(output_file.path),
     ]
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
-        executable = resolved_xctoolrunner.files_to_run,
-        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        executable = xctoolrunner,
+        inputs = input_files,
         mnemonic = "MomCompile",
         outputs = [output_file],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -76,7 +75,7 @@ def compile_mappingmodel(
         mappingmodel_path,
         output_file,
         platform_prerequisites,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Creates an action that compiles CoreData mapping models.
 
     Args:
@@ -85,21 +84,20 @@ def compile_mappingmodel(
         mappingmodel_path: The path to the directory containing the mapping model.
         output_file: The file reference to the compiled mapping model.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+        xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
     args = [
         "mapc",
-        xctoolrunner.prefixed_path(mappingmodel_path),
-        xctoolrunner.prefixed_path(output_file.path),
+        xctoolrunner_support.prefixed_path(mappingmodel_path),
+        xctoolrunner_support.prefixed_path(output_file.path),
     ]
 
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
-        executable = resolved_xctoolrunner.files_to_run,
-        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        executable = xctoolrunner,
+        inputs = input_files,
         mnemonic = "MappingModelCompile",
         outputs = [output_file],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -112,7 +110,7 @@ def generate_datamodels(
         input_files,
         output_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
+        xctoolrunner,
         swift_version = None):
     """Creates an action that generates CoreData model class files.
 
@@ -122,7 +120,7 @@ def generate_datamodels(
         input_files: The list of files to process for the given datamodel.
         output_dir: The output directory reference where generated datamodel classes will be.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        resolved_xctoolrunner: A struct referencing the resolved wrapper for "xcrun" tools.
+        xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
         swift_version: (optional) Target Swift version for generated datamodel classes.
     """
     platform = platform_prerequisites.platform
@@ -137,8 +135,8 @@ def generate_datamodels(
     if swift_version:
         args.add("--swift-version", swift_version)
 
-    args.add(xctoolrunner.prefixed_path(datamodel_path))
-    args.add(xctoolrunner.prefixed_path(output_dir.path))
+    args.add(xctoolrunner_support.prefixed_path(datamodel_path))
+    args.add(xctoolrunner_support.prefixed_path(output_dir.path))
 
     args.add("--xctoolrunner_assert_nonempty_dir", output_dir.path)
 
@@ -146,9 +144,8 @@ def generate_datamodels(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
-        executable = resolved_xctoolrunner.files_to_run,
-        inputs = depset(input_files, transitive = [resolved_xctoolrunner.inputs]),
-        input_manifests = resolved_xctoolrunner.input_manifests,
+        executable = xctoolrunner,
+        inputs = input_files,
         mnemonic = "MomGenerate",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,

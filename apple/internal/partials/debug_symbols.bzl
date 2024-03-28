@@ -174,7 +174,7 @@ def _generate_dsym_info_plist(
         dsym_info_plist_template,
         output_discriminator,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         version):
     """Generates an XML Info.plist appropriate for a dSYM bundle.
@@ -186,7 +186,7 @@ def _generate_dsym_info_plist(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
@@ -238,7 +238,7 @@ def _generate_dsym_info_plist(
         mnemonic = "CompileDSYMInfoPlist",
         outputs = [dsym_plist],
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = resolved_plisttool,
+        plisttool = plisttool,
     )
     return dsym_plist
 
@@ -253,7 +253,7 @@ def _bundle_dsym_files(
         label_name,
         output_discriminator,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         version):
     """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
@@ -279,7 +279,7 @@ def _bundle_dsym_files(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
@@ -326,7 +326,7 @@ def _bundle_dsym_files(
             dsym_info_plist_template = dsym_info_plist_template,
             output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = resolved_plisttool,
+            plisttool = plisttool,
             rule_label = rule_label,
             version = version,
         )
@@ -368,7 +368,7 @@ def _debug_symbols_partial_impl(
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         version):
     """Implementation for the debug symbols processing partial."""
@@ -413,7 +413,7 @@ def _debug_symbols_partial_impl(
                 label_name = label_name,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = resolved_plisttool,
+                plisttool = plisttool,
                 rule_label = rule_label,
                 version = version,
             )
@@ -492,7 +492,7 @@ def debug_symbols_partial(
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_label,
         version):
     """Constructor for the debug symbols processing partial.
@@ -521,7 +521,7 @@ def debug_symbols_partial(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
 
@@ -542,7 +542,7 @@ def debug_symbols_partial(
         linkmaps = linkmaps,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = resolved_plisttool,
+        plisttool = plisttool,
         rule_label = rule_label,
         version = version,
     )

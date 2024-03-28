@@ -114,7 +114,7 @@ def _apple_core_ml_library_impl(ctx):
         objc_output_src = objc_output_src,
         objc_output_hdr = objc_output_hdr,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
     if is_swift:

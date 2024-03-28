@@ -51,8 +51,8 @@ def _run_main_thread_checker(
         binary_artifact,
         dylibs,
         main_thread_checker_dylib,
-        platform_prerequisites,
-        resolved_main_thread_checker_tool):
+        main_thread_checker_tool,
+        platform_prerequisites):
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
@@ -60,10 +60,9 @@ def _run_main_thread_checker(
             binary_artifact.path,
             main_thread_checker_dylib.path,
         ],
-        executable = resolved_main_thread_checker_tool.files_to_run,
+        executable = main_thread_checker_tool,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = depset([binary_artifact] + dylibs, transitive = [resolved_main_thread_checker_tool.inputs]),
-        input_manifests = resolved_main_thread_checker_tool.input_manifests,
+        inputs = [binary_artifact] + dylibs,
         outputs = [main_thread_checker_dylib],
         mnemonic = "MainThreadCheckerLibsCopy",
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -86,9 +85,9 @@ def _main_thread_checker_dylibs_partial_impl(
         return struct(bundle_files = bundle_files)
 
     main_thread_checker_dylib = _create_main_thread_checker_dylib(actions, label_name, output_discriminator)
-    resolved_main_thread_checker_tool = apple_mac_toolchain_info.resolved_main_thread_checker_tool
+    main_thread_checker_tool = apple_mac_toolchain_info.main_thread_checker_tool
 
-    _run_main_thread_checker(actions, binary_artifact, dylibs, main_thread_checker_dylib, platform_prerequisites, resolved_main_thread_checker_tool)
+    _run_main_thread_checker(actions, binary_artifact, dylibs, main_thread_checker_dylib, main_thread_checker_tool, platform_prerequisites)
 
     bundle_files.append(
         (processor.location.framework, None, depset([main_thread_checker_dylib])),

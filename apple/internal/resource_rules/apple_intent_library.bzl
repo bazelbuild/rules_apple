@@ -94,7 +94,7 @@ def _apple_intent_library_impl(ctx):
         swift_version = ctx.attr.swift_version,
         class_visibility = ctx.attr.class_visibility,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
     if is_swift:
