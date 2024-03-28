@@ -1150,6 +1150,7 @@ def _ios_extension_impl(ctx):
         attr = ctx.attr,
         res_attrs = [
             "app_icons",
+            "resources",
             "strings",
         ],
     )

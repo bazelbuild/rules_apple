@@ -259,6 +259,17 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test ext with resources bundles them at the top level
+    archive_contents_test(
+        name = "{}_contains_resources_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_resources",
+        contains = [
+            "$BUNDLE_ROOT/additional.txt",
+        ],
+        tags = [name],
+    )
+
     # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
     # at the top-level ios_extension rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.
