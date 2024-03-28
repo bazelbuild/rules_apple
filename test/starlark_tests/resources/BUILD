@@ -1117,3 +1117,10 @@ swift_library(
     linkopts = ["-Wl,-framework,AppIntents"],
     tags = common.fixture_tags,
 )
+
+swift_library(
+    name = "widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
