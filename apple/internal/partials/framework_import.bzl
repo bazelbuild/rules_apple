@@ -31,12 +31,20 @@ load(
     "AppleFrameworkImportInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "cc_toolchain_info_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "linking_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
@@ -49,10 +57,104 @@ load(
 
 visibility("//apple/...")
 
+def _generate_empty_dylib(
+        *,
+        actions,
+        cc_configured_features_init,
+        cc_toolchains,
+        disabled_features,
+        features,
+        framework_basename,
+        label_name,
+        output_discriminator,
+        platform_prerequisites):
+    """Generates the empty dylib required for Apple static frameworks in Xcode 15's "bundle & sign"
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+            without the need for a `ctx`.
+        cc_toolchains: Dictionary of CcToolchainInfo providers under a split transition to relay
+            target platform information.
+        disabled_features: List of features to be disabled for C++ link actions.
+        features: List of features enabled by the user. Typically from `ctx.features`.
+        framework_basename: A string representing the framework path's basename.
+        label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+
+    Returns:
+        An empty dylib suitable for embedding within a static framework bundle for a shipping app in
+            Xcode 15+.
+    """
+    linking_outputs = []
+    framework_name = paths.split_extension(framework_basename)[0]
+
+    for cc_toolchain_target in cc_toolchains.values():
+        cc_toolchain = cc_toolchain_target[cc_common.CcToolchainInfo]
+        feature_configuration = cc_configured_features_init(
+            cc_toolchain = cc_toolchain,
+            requested_features = features,
+            unsupported_features = disabled_features,
+        )
+        linking_context, _ = cc_common.create_linking_context_from_compilation_outputs(
+            actions = actions,
+            cc_toolchain = cc_toolchain,
+            compilation_outputs = cc_common.create_compilation_outputs(),
+            feature_configuration = feature_configuration,
+            name = label_name,
+        )
+        target_triple = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
+        output_name = "{label}_{framework_name}_{os}_{architecture}_stub_bin".format(
+            architecture = target_triple.architecture,
+            framework_name = framework_name,
+            label = label_name,
+            os = target_triple.os,
+        )
+        linking_output = cc_common.link(
+            actions = actions,
+            additional_inputs = [],
+            cc_toolchain = cc_toolchain,
+            feature_configuration = feature_configuration,
+            linking_contexts = [linking_context],
+            name = output_name,
+            output_type = "dynamic_library",
+            stamp = 0,
+            user_link_flags = [
+                # Suppress linker warnings, which avoids warnings on the empty dylib that shouldn't
+                # affect the main app binary.
+                "-Wl,-w",
+            ],
+        )
+        linking_outputs.append(linking_output)
+
+    fat_stub_binary = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "{framework_name}.framework/{framework_name}".format(
+            framework_name = framework_name,
+        ),
+    )
+
+    linking_support.lipo_or_symlink_inputs(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        inputs = [output.library_to_link.dynamic_library for output in linking_outputs],
+        output = fat_stub_binary,
+        xcode_config = platform_prerequisites.xcode_version_config,
+    )
+
+    return fat_stub_binary
+
 def _framework_import_partial_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        cc_configured_features_init,
+        cc_toolchains,
+        disabled_features,
         features,
         label_name,
         mac_exec_group,
@@ -125,12 +227,6 @@ def _framework_import_partial_impl(
         else:
             files_by_framework[framework_basename].append(file)
 
-    # TODO(b/326440971): If no binary was found for any given framework, treat it as an "empty
-    # framework", create a "stub dylib" and update the corresponding Info.plist with relevant
-    # minimum OS version information per Xcode 15.3 implementation for "bundle & sign"ing a codeless
-    # framework. This will allow us to generate fat "stub dylibs" when required and pass App Store
-    # Connect requirements for the new static framework UX in Xcode 15.
-
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
         temp_path = paths.join("_imported_frameworks/", framework_basename)
@@ -144,6 +240,32 @@ def _framework_import_partial_impl(
 
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
+
+        # TODO(b/326440971): Correctly account for the Versions/A symlink and a Versions/{id} binary
+        # when targeting macOS, both at analysis time when identifying binaries and in the
+        # implementation of _generate_empty_dylib(...).
+        if (not framework_binaries_by_framework.get(framework_basename) and
+            platform_prerequisites.platform_type != apple_common.platform_type.macos):
+            # If the framework doesn't have a binary (i.e. from an imported Static Framework
+            # XCFramework), generate an empty dylib to fulfill Xcode 15 requirements.
+            fat_stub_binary = _generate_empty_dylib(
+                actions = actions,
+                cc_configured_features_init = cc_configured_features_init,
+                cc_toolchains = cc_toolchains,
+                disabled_features = disabled_features,
+                features = features,
+                framework_basename = framework_basename,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
+                platform_prerequisites = platform_prerequisites,
+            )
+
+            framework_binaries_by_framework[framework_basename] = [fat_stub_binary]
+
+            # TODO(b/326440971): Update the corresponding Info.plist with relevant minimum OS
+            # version information per Xcode 15.3 implementation for "bundle & sign"ing a codeless
+            # framework, enough to get past App Store Connect validation without a MinimumOSVersion
+            # of 100 hack.
 
         args.add_all(
             framework_binaries_by_framework[framework_basename],
@@ -213,6 +335,9 @@ def framework_import_partial(
         *,
         actions,
         apple_mac_toolchain_info,
+        cc_configured_features_init,
+        cc_toolchains,
+        disabled_features,
         features,
         label_name,
         mac_exec_group,
@@ -230,6 +355,11 @@ def framework_import_partial(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: tools from the shared Apple toolchain.
+        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+            without the need for a `ctx`.
+        cc_toolchains: Dictionary of CcToolchainInfo providers under a split transition to relay
+            target platform information.
+        disabled_features: List of features to be disabled for C++ link actions.
         features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
         mac_exec_group: Exec group associated with apple_mac_toolchain_info
@@ -249,6 +379,9 @@ def framework_import_partial(
         _framework_import_partial_impl,
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchains = cc_toolchains,
+        disabled_features = disabled_features,
         features = features,
         label_name = label_name,
         mac_exec_group = mac_exec_group,

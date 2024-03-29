@@ -2474,6 +2474,79 @@ generate_static_xcframework(
     tags = common.fixture_tags,
 )
 
+ios_application(
+    name = "app_with_imported_static_framework_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_framework_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_framework_xcframework_depending_lib",
+    srcs = [":static_framework_xcframework_depending_lib_file"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_framework_xcframework_with_data_resources"],
+)
+
+write_file(
+    name = "static_framework_xcframework_depending_lib_file",
+    out = "static_framework_depending_src_file.m",
+    content = ["""
+#import <ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.h>
+
+int static_fmwk_depending_lib_function() {
+  ObjectiveCSharedClass *sharedClass = [[ObjectiveCSharedClass alloc] init];
+  [sharedClass doSomethingShared];
+  return 0;
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_framework_xcframework_with_data_resources",
+    tags = common.fixture_tags,
+    xcframework_imports = [":ios_static_framework_xcframework_with_data_resource_bundle"],
+)
+
+genrule(
+    name = "ios_static_framework_xcframework_with_data_resource_bundle",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle"],
+    outs = [
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/Info.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_data_resource_bundle.h",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/shared.h",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/module.modulemap",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_data_resource_bundle.h",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/shared.h",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/module.modulemap",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+        "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle) -d $(RULEDIR)",
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_imessage_application(

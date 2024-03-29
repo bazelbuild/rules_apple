@@ -353,9 +353,12 @@ def _ios_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            disabled_features = ctx.disabled_features,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -696,9 +699,12 @@ def _ios_app_clip_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            disabled_features = ctx.disabled_features,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
@@ -1618,9 +1624,12 @@ def _ios_imessage_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            disabled_features = ctx.disabled_features,
             features = features,
             label_name = label.name,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -2099,6 +2108,9 @@ ios_app_clip = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2342,6 +2354,9 @@ ios_imessage_application = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

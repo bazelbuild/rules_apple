@@ -15,12 +15,20 @@
 """apple_static_xcframework_import Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 visibility("private")
@@ -219,6 +227,87 @@ def apple_static_xcframework_import_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Verify that the empty dylib for a Static Framework XCFramework is not linked by the app binary.
+    archive_contents_test(
+        name = "{}_framework_dependent_app_does_not_link_ios_x86_64_macho_load_cmd_for_simulator_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        cpus = {"ios_multi_cpus": ["x86_64"]},
+        macho_load_commands_not_contain = [
+            "name @rpath/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_framework_dependent_app_does_not_link_ios_arm64_macho_load_cmd_for_simulator_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        cpus = {"ios_multi_cpus": ["arm64"]},
+        macho_load_commands_not_contain = [
+            "name @rpath/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        ],
+        tags = [name],
+    )
+
+    # Verify that the Static Framework XCFramework's resources are bundled correctly, and the empty
+    # dylib is built for the correct platform and minimum OS version.
+    archive_contents_test(
+        name = "{}_framework_links_ios_x86_64_macho_load_cmd_for_simulator_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        binary_test_architecture = "x86_64",
+        cpus = {"ios_multi_cpus": ["x86_64"]},
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_framework_links_ios_arm64_macho_load_cmd_for_device_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        binary_test_architecture = "arm64",
+        cpus = {"ios_multi_cpus": ["arm64"]},
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/",
+            "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
         tags = [name],
     )
 

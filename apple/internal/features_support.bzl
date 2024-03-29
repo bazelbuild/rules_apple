@@ -38,6 +38,21 @@ def _compute_enabled_features(*, requested_features, unsupported_features):
     )
     return sets.to_list(enabled_features_set)
 
+def _make_cc_configured_features_init(ctx):
+    """Captures the rule ctx for a deferred `cc_common.configure_features(...)` call.
+
+    Args:
+      ctx: The rule context, expected to be captured directly in the rule context and NOT within a
+        partial or helper method.
+
+    Returns:
+      A lambda that has the captured instance of the rule context, which will always set that rule
+        context as the `ctx` argument of `cc_common.configure_features(...)` and will forward any
+        arguments it is given to `cc_common.configure_features(...)`.
+    """
+    return lambda *args, **kwargs: cc_common.configure_features(ctx = ctx, *args, **kwargs)
+
 features_support = struct(
     compute_enabled_features = _compute_enabled_features,
+    make_cc_configured_features_init = _make_cc_configured_features_init,
 )

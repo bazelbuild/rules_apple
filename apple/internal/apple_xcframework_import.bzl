@@ -501,6 +501,7 @@ def _apple_static_xcframework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
+        framework_includes = xcframework_library.framework_includes,
         header_imports = xcframework_library.headers,
         kind = "static",
         label = label,
