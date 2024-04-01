@@ -2493,6 +2493,25 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_nplus1_minos_and_baseline_minos_imported_static_framework_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_framework_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 objc_library(
     name = "static_framework_xcframework_depending_lib",
     srcs = [":static_framework_xcframework_depending_lib_file"],

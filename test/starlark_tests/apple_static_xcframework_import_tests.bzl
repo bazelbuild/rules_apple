@@ -311,6 +311,21 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_framework_ios_device_root_infoplist_matches_empty_dylib_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_minos_and_baseline_minos_imported_static_framework_xcframework",
+        plist_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+        plist_test_values = {
+            "MinimumOSVersion": common.min_os_ios.nplus1,
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

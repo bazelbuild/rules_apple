@@ -208,6 +208,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:linking_support",
         "//apple/internal:processor",
+        "//apple/internal:resource_actions",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

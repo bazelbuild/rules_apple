@@ -51,6 +51,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -129,6 +133,8 @@ def _generate_empty_dylib(
         )
         linking_outputs.append(linking_output)
 
+    # TODO(b/326440971): Have this account for /Versions/{id} for macOS, per
+    # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
     fat_stub_binary = intermediates.file(
         actions = actions,
         target_name = label_name,
@@ -147,6 +153,88 @@ def _generate_empty_dylib(
     )
 
     return fat_stub_binary
+
+def _generate_minos_overridden_root_info_plist(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        framework_basename,
+        label_name,
+        mac_exec_group,
+        original_root_infoplist,
+        output_discriminator,
+        platform_prerequisites):
+    """Generates an updated root Info.plist with the built target's minimum OS version. (FB13657402)
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: tools from the shared Apple toolchain.
+        framework_basename: A string representing the framework path's basename.
+        label_name: Name of the target being built.
+        mac_exec_group: Exec group associated with apple_mac_toolchain_info
+        original_root_infoplist: A File representing the original original Info.plist.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+
+    Returns:
+        A File representing the generated Info.plist with a minimum OS version matching the target
+            being built.
+    """
+    framework_name = paths.split_extension(framework_basename)[0]
+
+    # TODO(b/326440971): Have this account for /Versions/{id}/Resources for macOS, per
+    # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
+    overridden_root_infoplist = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "{framework_name}.framework/Info.plist".format(
+            framework_name = framework_name,
+        ),
+    )
+
+    minos_plist_key = "MinimumOSVersion"
+    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+        minos_plist_key = "LSMinimumSystemVersion"
+
+    plisttool_control = struct(
+        binary = True,
+        forced_plists = [
+            struct(
+                **{minos_plist_key: platform_prerequisites.minimum_os}
+            ),
+        ],
+        output = overridden_root_infoplist.path,
+        plists = [original_root_infoplist.path],
+        target = str(framework_name),
+    )
+    plisttool_control_file = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "{framework_name}-{infoplist_basename}-root-control".format(
+            framework_name = framework_name,
+            infoplist_basename = overridden_root_infoplist.basename,
+        ),
+    )
+    actions.write(
+        output = plisttool_control_file,
+        content = json.encode(plisttool_control),
+    )
+
+    resource_actions.plisttool_action(
+        actions = actions,
+        control_file = plisttool_control_file,
+        inputs = [original_root_infoplist],
+        mac_exec_group = mac_exec_group,
+        mnemonic = "CompileCodelessFrameworkRootInfoPlist",
+        outputs = [overridden_root_infoplist],
+        platform_prerequisites = platform_prerequisites,
+        plisttool = apple_mac_toolchain_info.plisttool,
+    )
+
+    return overridden_root_infoplist
 
 def _framework_import_partial_impl(
         *,
@@ -202,6 +290,7 @@ def _framework_import_partial_impl(
     # Separating our files by framework path, to better address what should be passed in.
     framework_binaries_by_framework = dict()
     files_by_framework = dict()
+    root_infoplists_by_framework = dict()
 
     for file in files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
@@ -224,8 +313,18 @@ def _framework_import_partial_impl(
         # Classify if it's a file to bundle or framework binary
         if paths.replace_extension(parent_dir, "") == file.basename:
             framework_binaries_by_framework[framework_basename].append(file)
-        else:
-            files_by_framework[framework_basename].append(file)
+            continue
+        elif file.basename == "Info.plist":
+            # TODO(b/326440971): Have this account for /Versions/{id}/Resources for macOS, per
+            # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
+            if (platform_prerequisites.platform_type != apple_common.platform_type.macos and
+                not framework_relative_dir):
+                # For non-macOS platforms, check specifically if this Info.plist was at the root of
+                # the framework bundle. This is the one which we will want to change the declared
+                # MinimumOSVersion to match the generated empty dylib for App Store Connect.
+                root_infoplists_by_framework[framework_basename] = file
+                continue
+        files_by_framework[framework_basename].append(file)
 
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
@@ -241,31 +340,49 @@ def _framework_import_partial_impl(
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
 
-        # TODO(b/326440971): Correctly account for the Versions/A symlink and a Versions/{id} binary
-        # when targeting macOS, both at analysis time when identifying binaries and in the
+        # TODO(b/326440971): Correctly account for the Versions/Current symlink and a Versions/{id}
+        # binary when targeting macOS, both at analysis time when identifying binaries and in the
         # implementation of _generate_empty_dylib(...).
         if (not framework_binaries_by_framework.get(framework_basename) and
             platform_prerequisites.platform_type != apple_common.platform_type.macos):
             # If the framework doesn't have a binary (i.e. from an imported Static Framework
             # XCFramework), generate an empty dylib to fulfill Xcode 15 requirements.
-            fat_stub_binary = _generate_empty_dylib(
+            framework_binaries_by_framework[framework_basename] = [
+                _generate_empty_dylib(
+                    actions = actions,
+                    cc_configured_features_init = cc_configured_features_init,
+                    cc_toolchains = cc_toolchains,
+                    disabled_features = disabled_features,
+                    features = features,
+                    framework_basename = framework_basename,
+                    label_name = label_name,
+                    output_discriminator = output_discriminator,
+                    platform_prerequisites = platform_prerequisites,
+                ),
+            ]
+
+            if not root_infoplists_by_framework.get(framework_basename):
+                fail("""
+Error: The framework {framework_basename} does not have a root Info.plist. One is needed to submit \
+a framework that is bundled and signed as a "codeless framework" for Xcode 15+, such as a static \
+framework or a framework with mergeable libraries.
+                     """.format(framework_basename = framework_basename))
+
+            # Update the corresponding Info.plist with relevant minimum OS version information per
+            # Xcode 15.3 implementation for "bundle & sign"ing a codeless framework, enough to get
+            # past App Store Connect validation without a MinimumOSVersion of 100 hack (FB13657402).
+            overridden_root_infoplist = _generate_minos_overridden_root_info_plist(
                 actions = actions,
-                cc_configured_features_init = cc_configured_features_init,
-                cc_toolchains = cc_toolchains,
-                disabled_features = disabled_features,
-                features = features,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
                 framework_basename = framework_basename,
                 label_name = label_name,
+                mac_exec_group = mac_exec_group,
+                original_root_infoplist = root_infoplists_by_framework[framework_basename],
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
             )
 
-            framework_binaries_by_framework[framework_basename] = [fat_stub_binary]
-
-            # TODO(b/326440971): Update the corresponding Info.plist with relevant minimum OS
-            # version information per Xcode 15.3 implementation for "bundle & sign"ing a codeless
-            # framework, enough to get past App Store Connect validation without a MinimumOSVersion
-            # of 100 hack.
+            root_infoplists_by_framework[framework_basename] = overridden_root_infoplist
 
         args.add_all(
             framework_binaries_by_framework[framework_basename],
@@ -279,6 +396,10 @@ def _framework_import_partial_impl(
         args.add("--temp_path", temp_framework_bundle_path)
 
         args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
+
+        root_infoplist = root_infoplists_by_framework.get(framework_basename)
+        if root_infoplist:
+            args.add("--framework_file", root_infoplists_by_framework[framework_basename])
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
@@ -305,6 +426,8 @@ def _framework_import_partial_impl(
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
+        if root_infoplist:
+            input_files.append(root_infoplist)
         if provisioning_profile:
             input_files.append(provisioning_profile)
 
