@@ -1467,6 +1467,7 @@ def _ios_static_framework_impl(ctx):
         processor_partials.append(partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            avoid_root_infoplist = True,
             mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,

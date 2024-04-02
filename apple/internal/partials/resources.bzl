@@ -288,6 +288,7 @@ def _resources_partial_impl(
         additional_forced_root_infoplist_values,
         additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info,
+        avoid_root_infoplist,
         bundle_extension,
         bundle_id,
         bundle_name,
@@ -470,9 +471,16 @@ def _resources_partial_impl(
             locales_requested = locales_requested,
         )
 
-    if bundle_id:
-        # If no bundle ID was given, do not process the root Info.plist and do not validate embedded
-        # bundles.
+    if not avoid_root_infoplist and not bundle_id:
+        fail("""
+Error: Attempted to generate a required root Info.plist, but no bundle ID was given for the target \
+"{label_name}". One is required to assign a unique identifier to this bundle target and verify it \
+with dependencies where applicable. Please add a bundle ID to your target definition.
+""".format(
+            label_name = rule_label.name,
+        ))
+
+    if not avoid_root_infoplist:
         bundle_verification_infoplists = [
             b.target[AppleBundleInfo].infoplist
             for b in bundle_verification_targets
@@ -529,6 +537,7 @@ def resources_partial(
         additional_forced_root_infoplist_values = [],
         additional_overridable_root_infoplist_values = [],
         apple_mac_toolchain_info,
+        avoid_root_infoplist = False,
         bundle_extension,
         bundle_id = None,
         bundle_name,
@@ -561,6 +570,9 @@ def resources_partial(
             keys and values that are merged into the final root Info.plist without validation before
             any plists, including user input. This allows for overridable "default" values.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        avoid_root_infoplist: Bool. Indicates if the root Info.plist should not be generated for
+            the given bundle target. In practice this only applies to a subset of Static Frameworks
+            that are not compatible with Apple's Xcode 15 Static Frameworks.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
             the bundle will not contain a root Info.plist and no embedded bundle verification will
@@ -606,6 +618,7 @@ def resources_partial(
         additional_forced_root_infoplist_values = additional_forced_root_infoplist_values,
         additional_overridable_root_infoplist_values = additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        avoid_root_infoplist = avoid_root_infoplist,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,

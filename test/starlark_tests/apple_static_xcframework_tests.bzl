@@ -17,7 +17,6 @@
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
-    "analysis_failure_message_with_wip_features_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -472,7 +471,7 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
-    analysis_failure_message_with_wip_features_test(
+    analysis_failure_message_test(
         name = "{}_framework_overreaching_avoid_deps_swift_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_broad_avoid_deps",
         expected_error = "Error: Could not find a Swift module to build a Swift framework. This could be because \"avoid_deps\" is too broadly defined.",
@@ -578,6 +577,13 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/tvos-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_device.txt",
             "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_sim.txt",
         ],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_framework_has_no_bundle_id_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_no_bundle_id",
+        expected_error = "Attempted to generate a required root Info.plist, but no bundle ID was given for the target \"ios_static_framework_xcframework_with_no_bundle_id\".",
         tags = [name],
     )
 
