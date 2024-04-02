@@ -358,14 +358,12 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing XCFramework with versioned frameworks and tree artifacts fails.
+    # Verify importing Dynamic Framework XCFrameworks with versioned frameworks and tree artifacts
+    # fails.
     analysis_failure_message_with_tree_artifact_outputs_test(
         name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
-        expected_error = (
-            "The apple_dynamic_xcframework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
-        ),
+        expected_error = "Error: \"imported_dynamic_versioned_xcframework\" does not currently support versioned frameworks with the tree artifact feature/build setting. Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not set to 1 on the command line or in your active build configuration.",
         tags = [name],
     )
 
