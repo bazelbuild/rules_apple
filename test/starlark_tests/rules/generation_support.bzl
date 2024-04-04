@@ -253,6 +253,7 @@ def _create_framework(
         library,
         headers,
         include_resource_bundle = False,
+        include_root_infoplist = True,
         include_versioned_frameworks = False,
         module_interfaces = [],
         target_os,
@@ -271,6 +272,8 @@ def _create_framework(
         headers: List of header files for the framework bundle.
         include_resource_bundle: Boolean to indicate if a resource bundle should be added to
             the framework bundle (optional).
+        include_root_infoplist: Boolean to indicate if a root infoplist should be added to the
+            framework bundle, to test legacy static framework compositions (optional).
         include_versioned_frameworks: Boolean to indicate if the framework should include additional
             versions of the framework under the Versions directory.
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
@@ -315,20 +318,21 @@ def _create_framework(
             ),
         )
 
-    for framework_directory in framework_directories:
-        resources_directory = paths.join(framework_directory, "Resources")
-        infoplist_directory = resources_directory if is_macos_framework else framework_directory
-        framework_plist = intermediates.file(
-            actions = actions,
-            file_name = paths.join(infoplist_directory, "Info.plist"),
-            output_discriminator = None,
-            target_name = label.name,
-        )
-        actions.write(
-            output = framework_plist,
-            content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
-        )
-        framework_files.append(framework_plist)
+    if include_root_infoplist:
+        for framework_directory in framework_directories:
+            resources_directory = paths.join(framework_directory, "Resources")
+            infoplist_directory = resources_directory if is_macos_framework else framework_directory
+            framework_plist = intermediates.file(
+                actions = actions,
+                file_name = paths.join(infoplist_directory, "Info.plist"),
+                output_discriminator = None,
+                target_name = label.name,
+            )
+            actions.write(
+                output = framework_plist,
+                content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
+            )
+            framework_files.append(framework_plist)
 
     if headers:
         for framework_directory in framework_directories:

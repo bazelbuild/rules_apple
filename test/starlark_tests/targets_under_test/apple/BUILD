@@ -34,7 +34,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
     "generate_static_xcframework",
 )
 load(
@@ -1474,14 +1473,17 @@ generate_static_xcframework(
 # Targets for Apple static XCFramework import tests.
 
 apple_static_xcframework_import(
-    name = "ios_imported_xcframework_with_static_frameworks",
+    name = "ios_imported_xcframework_with_static_frameworks_no_root_infoplists",
     tags = common.fixture_tags,
-    xcframework_imports = [":generated_dynamic_xcframework"],
+    xcframework_imports = [":generated_static_framework_xcframework_without_root_infoplist"],
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_xcframework",
+generate_static_xcframework(
+    name = "generated_static_framework_xcframework_without_root_infoplist",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    bundle_format = "framework",
+    include_framework_root_infoplists = False,
+    include_resource_bundles = True,
     minimum_os_versions = {
         "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,

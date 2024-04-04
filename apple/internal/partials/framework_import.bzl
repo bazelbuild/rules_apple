@@ -292,6 +292,13 @@ with the Apple BUILD Rules.
         else:
             disqualified_root_infoplists.append(potential_root_infoplist)
 
+    if not original_root_infoplist:
+        fail("""
+Error: The framework {framework_basename} does not have a root Info.plist. One is needed to submit \
+a framework that is bundled and signed as a "codeless framework" for Xcode 15+, such as a static \
+framework or a framework with mergeable libraries.
+        """.format(framework_basename = framework_basename))
+
     plisttool_control = struct(
         binary = True,
         forced_plists = [

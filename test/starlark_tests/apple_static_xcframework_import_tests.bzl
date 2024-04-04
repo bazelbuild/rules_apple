@@ -15,10 +15,6 @@
 """apple_static_xcframework_import Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
@@ -43,9 +39,9 @@ def apple_static_xcframework_import_test_suite(name):
 
     # Verify importing XCFramework with static frameworks (i.e. not libraries) fails.
     analysis_failure_message_test(
-        name = "{}_fails_importing_xcframework_with_static_framework_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks",
-        expected_error = "Importing XCFrameworks with static frameworks is not yet supported (b/326440971).",
+        name = "{}_fails_importing_xcframework_with_static_framework_without_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_frameworks_no_root_infoplists",
+        expected_error = "Error: The framework generated_static_framework_xcframework_without_root_infoplist.framework does not have a root Info.plist.",
         tags = [name],
     )
 
@@ -234,9 +230,6 @@ def apple_static_xcframework_import_test_suite(name):
     # Verify that the empty dylib for a Static Framework XCFramework is not linked by the app binary.
     archive_contents_test(
         name = "{}_framework_dependent_app_does_not_link_ios_x86_64_macho_load_cmd_for_simulator_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
         binary_test_file = "$BINARY",
@@ -249,9 +242,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_framework_dependent_app_does_not_link_ios_arm64_macho_load_cmd_for_simulator_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
         binary_test_file = "$BINARY",
@@ -267,9 +257,6 @@ def apple_static_xcframework_import_test_suite(name):
     # dylib is built for the correct platform and minimum OS version.
     archive_contents_test(
         name = "{}_framework_links_ios_x86_64_macho_load_cmd_for_simulator_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
@@ -290,9 +277,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_framework_links_ios_arm64_macho_load_cmd_for_device_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
@@ -314,9 +298,6 @@ def apple_static_xcframework_import_test_suite(name):
 
     archive_contents_test(
         name = "{}_framework_ios_device_root_infoplist_matches_empty_dylib_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         cpus = {"ios_multi_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_minos_and_baseline_minos_imported_static_framework_xcframework",
@@ -331,9 +312,6 @@ def apple_static_xcframework_import_test_suite(name):
     # simulator architectures.
     archive_contents_test(
         name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_x86_64_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
@@ -347,9 +325,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         cpus = {"macos_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
@@ -364,9 +339,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64e_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         cpus = {"macos_cpus": ["arm64e"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
@@ -384,9 +356,6 @@ def apple_static_xcframework_import_test_suite(name):
     # simulator architectures.
     archive_contents_test(
         name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_x86_64_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
@@ -404,9 +373,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_arm64_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         cpus = {"macos_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
@@ -425,9 +391,6 @@ def apple_static_xcframework_import_test_suite(name):
     )
     archive_contents_test(
         name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_arm64e_build".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         cpus = {"macos_cpus": ["arm64e"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",

@@ -348,6 +348,8 @@ def _generate_framework_xcframework_files(
         actions,
         apple_fragment,
         hdrs,
+        include_framework_root_infoplists,
+        include_resource_bundles,
         include_versioned_frameworks,
         kind,
         label,
@@ -362,6 +364,10 @@ def _generate_framework_xcframework_files(
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         hdrs: A list of files referencing headers.
+        include_framework_root_infoplists: Boolean. Indicates if all bundled frameworks should
+            include a root infoplist.
+        include_resource_bundles: Boolean. Indicates if all bundled frameworks should include a
+            resource bundle with an Info.plist.
         include_versioned_frameworks: Boolean. Indicates if the framework should include additional
             "versions" of the framework under the Versions directory on macOS. No-op otherwise.
         kind: String. Indicates whether the framework is "static" or "dynamic", based on the given
@@ -436,6 +442,8 @@ Internal Error: Received undefined kind of {}, expected either static or dynamic
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
+            include_resource_bundle = include_resource_bundles,
+            include_root_infoplist = include_framework_root_infoplists,
             include_versioned_frameworks = include_versioned_frameworks and platform == "macos",
             kind = kind,
             label = label,
@@ -475,12 +483,15 @@ def _generate_dynamic_xcframework_impl(ctx):
     hdrs = ctx.files.hdrs
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
+    include_resource_bundles = ctx.attr.include_resource_bundles
     include_versioned_frameworks = ctx.attr.include_versioned_frameworks
 
     xcframework_files = _generate_framework_xcframework_files(
         actions = actions,
         apple_fragment = apple_fragment,
         hdrs = hdrs,
+        include_framework_root_infoplists = True,
+        include_resource_bundles = include_resource_bundles,
         include_versioned_frameworks = include_versioned_frameworks,
         kind = "dynamic",
         label = label,
@@ -509,7 +520,9 @@ def _generate_static_xcframework_impl(ctx):
     srcs = ctx.files.srcs
     hdrs = ctx.files.hdrs
     swift_library = ctx.files.swift_library
+    include_framework_root_infoplists = ctx.attr.include_framework_root_infoplists
     include_module_interface_files = ctx.attr.include_module_interface_files
+    include_resource_bundles = ctx.attr.include_resource_bundles
     include_versioned_frameworks = ctx.attr.include_versioned_frameworks
 
     platforms = ctx.attr.platforms
@@ -549,6 +562,8 @@ generate_static_xcframework test-scoped rule for Static Framework XCFrameworks."
             actions = actions,
             apple_fragment = apple_fragment,
             hdrs = hdrs,
+            include_framework_root_infoplists = include_framework_root_infoplists,
+            include_resource_bundles = include_resource_bundles,
             include_versioned_frameworks = include_versioned_frameworks,
             kind = "static",
             label = label,
@@ -615,6 +630,14 @@ represented as a dotted version number as values.
                 doc = """Flag to indicate if modulemap generation is enabled.""",
                 mandatory = False,
                 default = True,
+            ),
+            "include_resource_bundles": attr.bool(
+                mandatory = False,
+                default = False,
+                doc = """
+Boolean to indicate if the generate framework should include a resource bundle containing an
+Info.plist file to test resource propagation.
+""",
             ),
             "include_versioned_frameworks": attr.bool(
                 default = True,
@@ -706,12 +729,28 @@ attribute. This means that if you're building using `bazel build --config=ios_x8
 `platforms` attribute must define the following dictionary: {"ios_simulator": ["x86_64"]}.
 """,
             ),
+            "include_framework_root_infoplists": attr.bool(
+                default = True,
+                doc = """
+Flag to indicate if all bundled frameworks should include a root infoplist. True by default. This
+has no effect when the `bundle_format` is set to `library`.
+""",
+            ),
             "include_module_interface_files": attr.bool(
                 default = True,
                 doc = """
 Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` directory) from the
 `swift_library` target should be included in the XCFramework bundle or discarded for testing
 purposes.
+""",
+            ),
+            "include_resource_bundles": attr.bool(
+                mandatory = False,
+                default = False,
+                doc = """
+Boolean to indicate if the generate framework should include a resource bundle containing an
+Info.plist file to test resource propagation. This has no effect when the `bundle_format` is set to
+`library`.
 """,
             ),
             "include_versioned_frameworks": attr.bool(

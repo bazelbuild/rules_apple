@@ -530,10 +530,6 @@ def _apple_static_xcframework_import_impl(ctx):
         xcframework_imports = xcframework_imports,
     )
 
-    if (xcframework.bundle_type == _BUNDLE_TYPE.frameworks and
-        not apple_xplat_toolchain_info.build_settings.enable_wip_features):
-        fail("Importing XCFrameworks with static frameworks is not yet supported (b/326440971).")
-
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,
         apple_fragment = apple_fragment,

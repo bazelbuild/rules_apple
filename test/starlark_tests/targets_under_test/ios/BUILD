@@ -2566,6 +2566,31 @@ genrule(
     tags = common.fixture_tags,
 )
 
+ios_application(
+    name = "app_with_imported_xcframework_with_static_frameworks_no_root_infoplists",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":infoplistless_static_framework_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "infoplistless_static_framework_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_frameworks_no_root_infoplists"],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_imessage_application(
