@@ -155,18 +155,12 @@ def _generate_empty_dylib(
             requested_features = features,
             unsupported_features = disabled_features,
         )
-        linking_context, _ = cc_common.create_linking_context_from_compilation_outputs(
-            actions = actions,
-            cc_toolchain = cc_toolchain,
-            compilation_outputs = cc_common.create_compilation_outputs(),
-            feature_configuration = feature_configuration,
-            name = label_name,
-        )
         target_triple = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
-        output_name = "{label}_{framework_name}_{os}_{architecture}_stub_bin".format(
+        output_name = "{label}_{framework_name}_{os}_{min_os}_{architecture}_stub_bin".format(
             architecture = target_triple.architecture,
             framework_name = framework_name,
             label = label_name,
+            min_os = platform_prerequisites.minimum_os,
             os = target_triple.os,
         )
         linking_output = cc_common.link(
@@ -174,15 +168,8 @@ def _generate_empty_dylib(
             additional_inputs = [],
             cc_toolchain = cc_toolchain,
             feature_configuration = feature_configuration,
-            linking_contexts = [linking_context],
             name = output_name,
             output_type = "dynamic_library",
-            stamp = 0,
-            user_link_flags = [
-                # Suppress linker warnings, which avoids warnings on the empty dylib that shouldn't
-                # affect the main app binary.
-                "-Wl,-w",
-            ],
         )
         linking_outputs.append(linking_output)
 
