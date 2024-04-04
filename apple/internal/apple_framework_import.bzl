@@ -150,16 +150,35 @@ def _apple_dynamic_framework_import_impl(ctx):
              "set to 1 on the command line or in your active build configuration.")
 
     providers = []
-    framework = framework_import_support.classify_framework_imports(framework_imports)
+    framework = framework_import_support.classify_framework_imports(
+        framework_imports = framework_imports,
+    )
+    binary_imports = []
+    if has_versioned_framework_files:
+        # Do some extra filtering for binary_imports, in the event of a "Versioned" framework. These
+        # will likely contain a symlink for the binary, which we want to filter out, as the dynamic
+        # framework processor will insert one of its own.
+        binary_imports = framework_import_support.get_canonical_versioned_framework_files(
+            framework.binary_imports,
+        )
+    else:
+        binary_imports = framework.binary_imports
+
+    if len(binary_imports) > 1:
+        fail("""
+Internal Error: Unexpectedly found more than one candidate for a framework binary:
+
+{binary_imports}
+
+There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
+""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
 
     # Create AppleFrameworkImportInfo provider.
     providers.append(framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
         deps = deps,
-        framework_imports = (
-            framework.binary_imports +
-            framework.bundling_imports
-        ),
+        binary_imports = binary_imports,
+        bundling_imports = framework.bundling_imports,
     ))
 
     # Create CcInfo provider.
@@ -174,7 +193,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         header_imports = framework.header_imports,
         kind = "dynamic",
         label = label,
-        libraries = framework.binary_imports,
+        libraries = binary_imports,
     )
     providers.append(cc_info)
 
@@ -233,8 +252,33 @@ def _apple_static_framework_import_impl(ctx):
     sdk_frameworks = ctx.attr.sdk_frameworks
     weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
 
+    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
+        framework_imports,
+    )
+
     providers = []
-    framework = framework_import_support.classify_framework_imports(framework_imports)
+    framework = framework_import_support.classify_framework_imports(
+        framework_imports = framework_imports,
+    )
+    binary_imports = []
+    if has_versioned_framework_files:
+        # Do some extra filtering for binary_imports, in the event of a "Versioned" framework. For
+        # a static framework without an Info.plist these are completely unnecessary, but some
+        # clients do ship these artifacts.
+        binary_imports = framework_import_support.get_canonical_versioned_framework_files(
+            framework.binary_imports,
+        )
+    else:
+        binary_imports = framework.binary_imports
+
+    if len(binary_imports) > 1:
+        fail("""
+Internal Error: Unexpectedly found more than one candidate for a framework static library archive:
+
+{binary_imports}
+
+There should only be one valid framework archive. Please file an issue with the Apple BUILD Rules.
+""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
 
     # Create AppleFrameworkImportInfo provider
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
@@ -288,7 +332,7 @@ def _apple_static_framework_import_impl(ctx):
             header_imports = framework.header_imports,
             kind = "static",
             label = label,
-            libraries = framework.binary_imports,
+            libraries = binary_imports,
             linkopts = linkopts,
         ),
     )

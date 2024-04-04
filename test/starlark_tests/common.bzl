@@ -39,6 +39,7 @@ _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
     baseline = "10.13",
+    arm64_support_plus1 = "12.0",
 )
 
 # The current baseline for tvOS is version 13.0, based on Xcode 15.3's minimum version for XCTest.

@@ -274,9 +274,13 @@ Propagated by framework and XCFramework import rules: `apple_dynamic_framework_i
 `apple_static_xcframework_import`
 """,
     fields = {
-        "framework_imports": """
-`depset` of `File`s that represent framework imports that need to be bundled in the top level
-application bundle under the Frameworks directory.
+        "binary_imports": """
+`depset` of `File`s that represent framework binary files that need to be bundled in the top level
+bundle under the Frameworks directory.
+""",
+        "bundling_imports": """
+`depset` of `File`s that represent framework imports that need to be bundled in the top level bundle
+under the Frameworks directory.
 """,
         "build_archs": """
 `depset` of `String`s that represent binary architectures reported from the current build.
@@ -295,16 +299,20 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
         A new `AppleFrameworkImportInfo` provider based on the contents of the providers supplied by
         `apple_framework_import_infos`.
     """
-    transitive_sets = []
+    transitive_binary_imports = []
+    transitive_bundling_imports = []
     build_archs = []
 
     for framework_info in apple_framework_import_infos:
-        if hasattr(framework_info, "framework_imports"):
-            transitive_sets.append(framework_info.framework_imports)
+        if hasattr(framework_info, "binary_imports"):
+            transitive_binary_imports.append(framework_info.binary_imports)
+        if hasattr(framework_info, "bundling_imports"):
+            transitive_bundling_imports.append(framework_info.bundling_imports)
         build_archs.append(framework_info.build_archs)
 
     return new_appleframeworkimportinfo(
-        framework_imports = depset(transitive = transitive_sets),
+        binary_imports = depset(transitive = transitive_binary_imports),
+        bundling_imports = depset(transitive = transitive_bundling_imports),
         build_archs = depset(transitive = build_archs),
     )
 

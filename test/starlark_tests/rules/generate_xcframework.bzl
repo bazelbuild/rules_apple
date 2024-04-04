@@ -164,112 +164,40 @@ def _create_xcframework(
 
     return outputs
 
-def _generate_dynamic_xcframework_impl(ctx):
-    """Implementation of generate_dynamic_xcframework."""
-    actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
-    label = ctx.label
-    target_dir = paths.join(ctx.bin_dir.path, label.package)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+def _generate_static_library_xcframework_files(
+        *,
+        actions,
+        apple_fragment,
+        generate_modulemap,
+        hdrs,
+        include_module_interface_files,
+        label,
+        minimum_os_versions,
+        platforms,
+        srcs,
+        swift_library,
+        target_dir,
+        xcode_config):
+    """Generate a set of XCFramework files appropriate for a Static Library XCFramework.
 
-    srcs = ctx.files.srcs
-    hdrs = ctx.files.hdrs
-    platforms = ctx.attr.platforms
-    minimum_os_versions = ctx.attr.minimum_os_versions
-    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        generate_modulemap: Boolean. Indicates if the target should generate a Clang modulemap.
+        hdrs: A list of files referencing headers.
+        include_module_interface_files: Boolean. Indicates if the target should generate Swift
+            module interface files.
+        label: Label of the target being built.
+        minimum_os_versions: The ctx.minimum_os_versions attribute from the rule.
+        platforms: The ctx.platforms attribute from the rule.
+        srcs: A list of files referencing source code.
+        swift_library: A list, which if not empty will contain files from a swift_library target.
+        target_dir: Path referencing directory of the current target.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
-    if platforms.keys() != minimum_os_versions.keys():
-        fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
-
-    frameworks = {}
-    for platform in platforms:
-        sdk = _sdk_for_platform(platform)
-        architectures = platforms[platform]
-        minimum_os_version = minimum_os_versions[platform]
-        library_identifier = _platform_to_library_identifier(
-            platform = platform,
-            architectures = architectures,
-        )
-
-        # Compile library
-        binary = generation_support.compile_binary(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            archs = architectures,
-            hdrs = hdrs,
-            label = label,
-            minimum_os_version = minimum_os_version,
-            sdk = sdk,
-            srcs = srcs,
-            xcode_config = xcode_config,
-        )
-
-        # Create dynamic library
-        dynamic_library = generation_support.create_dynamic_library(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            archs = architectures,
-            binary = binary,
-            label = label,
-            minimum_os_version = minimum_os_version,
-            sdk = sdk,
-            xcode_config = xcode_config,
-        )
-
-        # Create (dynamic) framework bundle
-        framework_files = generation_support.create_framework(
-            actions = actions,
-            apple_fragment = apple_fragment,
-            base_path = library_identifier,
-            bundle_name = label.name,
-            headers = hdrs,
-            include_versioned_frameworks = include_versioned_frameworks and platform == "macos",
-            label = label,
-            library = dynamic_library,
-            target_os = platform,
-            xcode_config = xcode_config,
-        )
-
-        framework_path = paths.join(
-            binary.dirname,
-            library_identifier,
-            label.name + ".framework",
-        )
-        frameworks[framework_path] = framework_files
-
-    # Create xcframework bundle
-    xcframework_files = _create_xcframework(
-        actions = actions,
-        apple_fragment = apple_fragment,
-        frameworks = frameworks,
-        label = label,
-        target_dir = target_dir,
-        xcode_config = xcode_config,
-    )
-
-    return [
-        DefaultInfo(
-            files = depset(xcframework_files),
-        ),
-    ]
-
-def _generate_static_xcframework_impl(ctx):
-    """Implementation of generate_static_xcframework."""
-    actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
-    label = ctx.label
-    target_dir = paths.join(ctx.bin_dir.path, label.package)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-
-    srcs = ctx.files.srcs
-    hdrs = ctx.files.hdrs
-    swift_library = ctx.files.swift_library
-    include_module_interface_files = ctx.attr.include_module_interface_files
-
-    platforms = ctx.attr.platforms
-    minimum_os_versions = ctx.attr.minimum_os_versions
-    generate_modulemap = ctx.attr.generate_modulemap
-
+    Returns:
+        List of generated XCFramework files.
+    """
     if not swift_library and platforms.keys() != minimum_os_versions.keys():
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
 
@@ -277,9 +205,10 @@ def _generate_static_xcframework_impl(ctx):
         fail("Providing a pre-compiled static library is only allowed for a single platform.")
 
     if swift_library and minimum_os_versions:
-        fail("Attributes `minimum_os_versions` and `swift_library` can't be set simulatenously." +
-             "\n - Use `minimum_os_versions` when using Objective-C sources for XCFrameworks." +
-             "\n - Use `swift_library` when sourcing a previously compiled Swift library.")
+        fail("""
+Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously.
+ - Use `minimum_os_versions` when using Objective-C sources for XCFrameworks.
+ - Use `swift_library` when sourcing a previously compiled Swift library.""")
 
     headers = []
     libraries = []
@@ -400,7 +329,7 @@ def _generate_static_xcframework_impl(ctx):
 
         libraries.append(static_library)
 
-    # Create static XCFramework
+    # Create static library XCFramework
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
@@ -411,6 +340,224 @@ def _generate_static_xcframework_impl(ctx):
         target_dir = target_dir,
         xcode_config = xcode_config,
     )
+
+    return xcframework_files
+
+def _generate_framework_xcframework_files(
+        *,
+        actions,
+        apple_fragment,
+        hdrs,
+        include_versioned_frameworks,
+        kind,
+        label,
+        minimum_os_versions,
+        platforms,
+        srcs,
+        target_dir,
+        xcode_config):
+    """Generate a set of XCFramework files appropriate for Framework XCFrameworks.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        hdrs: A list of files referencing headers.
+        include_versioned_frameworks: Boolean. Indicates if the framework should include additional
+            "versions" of the framework under the Versions directory on macOS. No-op otherwise.
+        kind: String. Indicates whether the framework is "static" or "dynamic", based on the given
+            string.
+        label: Label of the target being built.
+        minimum_os_versions: The ctx.minimum_os_versions attribute from the rule.
+        platforms: The ctx.platforms attribute from the rule.
+        srcs: A list of files referencing source code.
+        target_dir: Path referencing directory of the current target.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+
+    Returns:
+        List of generated XCFramework files.
+    """
+    if platforms.keys() != minimum_os_versions.keys():
+        fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
+
+    frameworks = {}
+    for platform in platforms:
+        sdk = _sdk_for_platform(platform)
+        architectures = platforms[platform]
+        minimum_os_version = minimum_os_versions[platform]
+        library_identifier = _platform_to_library_identifier(
+            platform = platform,
+            architectures = architectures,
+        )
+
+        # Compile library
+        binary = generation_support.compile_binary(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            archs = architectures,
+            hdrs = hdrs,
+            label = label,
+            minimum_os_version = minimum_os_version,
+            sdk = sdk,
+            srcs = srcs,
+            xcode_config = xcode_config,
+        )
+
+        # Create dynamic library
+        library_file = None
+        if kind == "dynamic":
+            library_file = generation_support.create_dynamic_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                archs = architectures,
+                binary = binary,
+                label = label,
+                minimum_os_version = minimum_os_version,
+                sdk = sdk,
+                xcode_config = xcode_config,
+            )
+        elif kind == "static":
+            library_file = generation_support.create_static_library(
+                actions = actions,
+                apple_fragment = apple_fragment,
+                binary = binary,
+                label = label,
+                parent_dir = library_identifier,
+                xcode_config = xcode_config,
+            )
+        else:
+            fail("""
+Internal Error: Received undefined kind of {}, expected either static or dynamic.
+            """.format(kind))
+
+        # Create framework bundle
+        framework_files = generation_support.create_framework(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            base_path = library_identifier,
+            bundle_name = label.name,
+            headers = hdrs,
+            include_versioned_frameworks = include_versioned_frameworks and platform == "macos",
+            kind = kind,
+            label = label,
+            library = library_file,
+            target_os = platform,
+            xcode_config = xcode_config,
+        )
+
+        framework_path = paths.join(
+            binary.dirname,
+            library_identifier,
+            label.name + ".framework",
+        )
+        frameworks[framework_path] = framework_files
+
+    # Create xcframework bundle
+    xcframework_files = _create_xcframework(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        frameworks = frameworks,
+        label = label,
+        target_dir = target_dir,
+        xcode_config = xcode_config,
+    )
+
+    return xcframework_files
+
+def _generate_dynamic_xcframework_impl(ctx):
+    """Implementation of generate_dynamic_xcframework."""
+    actions = ctx.actions
+    apple_fragment = ctx.fragments.apple
+    label = ctx.label
+    target_dir = paths.join(ctx.bin_dir.path, label.package)
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    srcs = ctx.files.srcs
+    hdrs = ctx.files.hdrs
+    platforms = ctx.attr.platforms
+    minimum_os_versions = ctx.attr.minimum_os_versions
+    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
+
+    xcframework_files = _generate_framework_xcframework_files(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        hdrs = hdrs,
+        include_versioned_frameworks = include_versioned_frameworks,
+        kind = "dynamic",
+        label = label,
+        minimum_os_versions = minimum_os_versions,
+        platforms = platforms,
+        srcs = srcs,
+        target_dir = target_dir,
+        xcode_config = xcode_config,
+    )
+
+    return [
+        DefaultInfo(
+            files = depset(xcframework_files),
+        ),
+    ]
+
+def _generate_static_xcframework_impl(ctx):
+    """Implementation of generate_static_xcframework."""
+    actions = ctx.actions
+    apple_fragment = ctx.fragments.apple
+    bundle_format = ctx.attr.bundle_format
+    label = ctx.label
+    target_dir = paths.join(ctx.bin_dir.path, label.package)
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    srcs = ctx.files.srcs
+    hdrs = ctx.files.hdrs
+    swift_library = ctx.files.swift_library
+    include_module_interface_files = ctx.attr.include_module_interface_files
+    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
+
+    platforms = ctx.attr.platforms
+    minimum_os_versions = ctx.attr.minimum_os_versions
+    generate_modulemap = ctx.attr.generate_modulemap
+
+    xcframework_files = []
+    if bundle_format == "library":
+        xcframework_files = _generate_static_library_xcframework_files(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            generate_modulemap = generate_modulemap,
+            hdrs = hdrs,
+            include_module_interface_files = include_module_interface_files,
+            label = label,
+            minimum_os_versions = minimum_os_versions,
+            platforms = platforms,
+            srcs = srcs,
+            swift_library = swift_library,
+            target_dir = target_dir,
+            xcode_config = xcode_config,
+        )
+    else:
+        if swift_library:
+            fail("""
+Error: The `swift_library` attribute is not yet supported for the generate_static_xcframework \
+test-scoped rule for Static Framework XCFrameworks.""")
+        if not include_module_interface_files:
+            fail("""
+Error: The `include_module_interface_files` attribute is not yet supported for the \
+generate_static_xcframework test-scoped rule for Static Framework XCFrameworks.""")
+        if not generate_modulemap:
+            fail("""
+Error: The `generate_modulemap` attribute is not yet supported for the \
+generate_static_xcframework test-scoped rule for Static Framework XCFrameworks.""")
+        xcframework_files = _generate_framework_xcframework_files(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            hdrs = hdrs,
+            include_versioned_frameworks = include_versioned_frameworks,
+            kind = "static",
+            label = label,
+            minimum_os_versions = minimum_os_versions,
+            platforms = platforms,
+            srcs = srcs,
+            target_dir = target_dir,
+            xcode_config = xcode_config,
+        )
 
     return [
         DefaultInfo(
@@ -487,6 +634,22 @@ generate_static_xcframework = rule(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         {
+            "bundle_format": attr.string(
+                default = "library",
+                doc = """
+The type of the embedded artifacts that this target should build. Options are:
+
+*   `framework`: Embeds static frameworks with resources within the XCFramework bundle. In Xcode
+    15.3, these resources will *only* be bundled within the target if the XCFramework bundle is
+    embedded with the "Embed & Sign" option, instead of the default "Do Not Sign" option.
+*   `library` (default): Embeds static libraries within the XCFramework bundle with the necessary
+    supporting code interfaces like header files and swift interfaces. Any resources related to the
+    given XCFramework are expected to be distributed separately in an unprocessed form, such as in a
+    resource bundle generated by a library target in a Swift Package Manager definition referencing
+    this static library XCFramework.
+""",
+                values = ["framework", "library"],
+            ),
             "srcs": attr.label_list(
                 doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
                 mandatory = False,
@@ -550,6 +713,14 @@ Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` direct
 `swift_library` target should be included in the XCFramework bundle or discarded for testing
 purposes.
 """,
+            ),
+            "include_versioned_frameworks": attr.bool(
+                default = True,
+                doc = """
+Flag to indicate if the framework should include additional versions of the framework under the
+Versions directory. This is only supported for macOS platform, and only affects Static Framework
+XCFramework outputs.
+                """,
             ),
         },
     ),

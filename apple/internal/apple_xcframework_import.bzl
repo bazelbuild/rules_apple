@@ -132,7 +132,9 @@ Please verify that an Info.plist was supplied at the root of the XCFramework bun
     if framework_files:
         files = framework_files
         bundle_type = _BUNDLE_TYPE.frameworks
-        files_by_category = framework_import_support.classify_framework_imports(files)
+        files_by_category = framework_import_support.classify_framework_imports(
+            framework_imports = files,
+        )
 
     else:
         files = xcframework_files
@@ -227,6 +229,27 @@ invocation appear to be valid.
         return [f for f in files if "/{}/".format(library_identifier) in f.short_path]
 
     binary_imports = filter_by_library_identifier(files_by_category.binary_imports)
+
+    # Do some extra filtering for binary_imports, in the event of a "Versioned" framework. These
+    # will likely contain a symlink for the binary, which we want to filter out, as the dynamic
+    # framework processor will insert one of its own.
+    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
+        binary_imports,
+    )
+    if has_versioned_framework_files:
+        binary_imports = framework_import_support.get_canonical_versioned_framework_files(
+            binary_imports,
+        )
+
+    if len(binary_imports) > 1:
+        fail("""
+Internal Error: Unexpectedly found more than one candidate for a framework binary:
+
+{binary_imports}
+
+There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
+""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
+
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
     header_imports = filter_by_library_identifier(files_by_category.header_imports)
     module_map_imports = filter_by_library_identifier(files_by_category.module_map_imports)
@@ -273,7 +296,14 @@ invocation appear to be valid.
     framework_includes = []
     includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_includes = [paths.dirname(f.dirname) for f in binary_imports]
+        if has_versioned_framework_files:
+            # Going up to {bundle_name}.framework/Versions/A/{binary_file}
+            framework_includes = [
+                paths.dirname(paths.dirname(paths.dirname(f.dirname)))
+                for f in binary_imports
+            ]
+        else:
+            framework_includes = [paths.dirname(f.dirname) for f in binary_imports]
     else:
         # For library XCFrameworks, in Xcode the contents of "Headers" are copied to an intermediate
         # directory for referencing artifacts to include in the build; to replicate this behavior,
@@ -313,9 +343,32 @@ def _get_library_identifier(
     Returns:
         A string for a XCFramework library identifier.
     """
+
+    # Look for the library identifiers in directory paths, based on binary files passed through.
     if bundle_type == _BUNDLE_TYPE.frameworks:
-        library_identifiers = [paths.basename(paths.dirname(f.dirname)) for f in binary_imports]
+        # For an XCFramework of frameworks, this will potentially be a mix of macOS binaries and *OS
+        # binaries. Check for both types if we are looking at an XCFramework of frameworks.
+        library_identifiers = []
+        for binary_file in binary_imports:
+            if paths.dirname(binary_file.dirname).endswith("/Versions"):
+                # Accounting for binaries in Versions/.../ here...
+                #
+                # Going up {library_identifier}/{bundle_name}.framework/Versions/A/{binary_file}
+                library_identifier = paths.basename(
+                    paths.dirname(paths.dirname(paths.dirname(binary_file.dirname))),
+                )
+                library_identifiers.append(library_identifier)
+            else:
+                # Otherwise, assume the binary is at the root of the framework bundle.
+                #
+                # Going up {library_identifier}/{bundle_name}.framework/{binary_file}
+                library_identifiers.append(paths.basename(paths.dirname(binary_file.dirname)))
+
     elif bundle_type == _BUNDLE_TYPE.libraries:
+        # For an XCFramework of libraries, these will always be easily identified one level up from
+        # the binary in question.
+        #
+        # Going up {library_identifier}/{binary_file}
         library_identifiers = [paths.basename(f.dirname) for f in binary_imports]
     else:
         fail("Unrecognized XCFramework bundle type: %s" % bundle_type)
@@ -393,10 +446,10 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
+        binary_imports = [xcframework_library.binary],
         build_archs = [target_triplet.architecture],
+        bundling_imports = xcframework_library.framework_imports,
         deps = deps,
-        framework_imports = [xcframework_library.binary] +
-                            xcframework_library.framework_imports,
     )
     providers.append(apple_framework_import_info)
 
@@ -504,10 +557,10 @@ def _apple_static_xcframework_import_impl(ctx):
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
-        deps = deps,
-        framework_imports = xcframework_library.framework_imports if (
+        bundling_imports = xcframework_library.framework_imports if (
             xcframework.bundle_type == _BUNDLE_TYPE.frameworks
         ) else [],
+        deps = deps,
     )
     providers.append(apple_framework_import_info)
 

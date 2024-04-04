@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -323,6 +324,133 @@ def apple_static_xcframework_import_test_suite(name):
         plist_test_values = {
             "MinimumOSVersion": common.min_os_ios.nplus1,
         },
+        tags = [name],
+    )
+
+    # Verify macos_application links the XCFramework unversioned static framework for device and
+    # simulator architectures.
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_x86_64_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        binary_test_architecture = "x86_64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        binary_test_architecture = "arm64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64e_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        binary_test_architecture = "arm64e",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+
+    # Verify macos_application links the XCFramework versioned static framework for device and
+    # simulator architectures.
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_x86_64_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+        binary_test_architecture = "x86_64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_arm64_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+        binary_test_architecture = "arm64",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_arm64e_build".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        cpus = {"macos_cpus": ["arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
+        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+        binary_test_architecture = "arm64e",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/generated_static_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
+        ],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        tags = [name],
+    )
+
+    # Verify importing Static Framework XCFrameworks with versioned frameworks and tree artifacts
+    # fails.
+    analysis_failure_message_with_tree_artifact_outputs_test(
+        name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
+        expected_error = "Error: \"imported_static_versioned_xcframework\" does not currently support versioned frameworks with the tree artifact feature/build setting. Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not set to 1 on the command line or in your active build configuration.",
         tags = [name],
     )
 

@@ -60,40 +60,6 @@ def _is_versioned_file(filepath: str, version: Optional[str] = None) -> bool:
   return ".framework/Versions/" in filepath
 
 
-def _get_install_path_for_binary(binary: str) -> str:
-  """Returns Mach-O binary install path through 'otool' invocation."""
-  _, stdout, _ = execute.execute_and_filter_output(
-      [
-          "otool",
-          "-D",  # display install path from dylib.
-          "-X",  # avoid printing dylib name.
-          binary
-      ],
-      raise_on_failure=True)
-  stripped_stdout = stdout.strip()
-  result = re.match(r"@rpath/.*", stripped_stdout)
-  if not result:
-    raise ValueError(
-        "Could not find framework binary install path with otool:\n"
-        f"Framework binary: {binary}\n")
-  return stripped_stdout
-
-
-def _get_framework_version_from_install_path(binary: str) -> str:
-  """Returns framework version string inferred from binary install path."""
-  version_regex = r"@rpath/.*\.framework/Versions/(.*?)/"
-  install_path = _get_install_path_for_binary(binary)
-  result = re.match(version_regex, install_path)
-  if not result or not result.groups():
-    raise ValueError(
-        textwrap.dedent(f"""\
-            Framework binary install path does not match regular expression:
-            Framework binary: {binary}
-            Binary install path: {install_path}
-            Expected to match regular expression: {version_regex}"""))
-  return result.group(1)
-
-
 def _update_modified_timestamps(framework_temp_path: str) -> None:
   """Updates framework files modified timestamp before creating the zip file.
 
@@ -279,9 +245,6 @@ def main() -> None:
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  framework_directory = os.path.normpath(
-      os.path.commonprefix(args.framework_file + [args.framework_binary]))
-  framework_name, _ = os.path.splitext(os.path.basename(framework_directory))
   is_versioned_framework = any(map(_is_versioned_file, args.framework_file))
 
   if not is_versioned_framework:
@@ -295,10 +258,10 @@ def main() -> None:
                            executable=False,
                            output_path=args.temp_path)
   else:
-
-    # Find effective current framework version via install_path
-    version = _get_framework_version_from_install_path(
-        binary=args.framework_binary)
+    # Always assume that the version is "A", matching Apple's recommended
+    # "modern" Versions/A/... paths:
+    # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle#3875936
+    version = "A"
 
     # Copy files from Versions/<version_id>
     for framework_file in args.framework_file:
@@ -319,16 +282,16 @@ def main() -> None:
         # https://opensource.apple.com/source/Security/Security-57740.51.3/OSX/libsecurity_codesigning/lib/StaticCode.cpp.auto.html
         continue
 
-      if os.path.basename(framework_file) == framework_name:
-        _strip_or_copy_binary(
-            framework_binary=framework_file,
-            output_path=args.temp_path,
-            requested_archs=args.slice)
-      else:
-        _copy_framework_file(
-            framework_file,
-            executable=False,
-            output_path=args.temp_path)
+      _copy_framework_file(
+          framework_file,
+          executable=False,
+          output_path=args.temp_path)
+
+    # Copy the binary.
+    _strip_or_copy_binary(
+        framework_binary=args.framework_binary,
+        output_path=args.temp_path,
+        requested_archs=args.slice)
 
     # Create symbolic link from Current to effective version directory.
     symlink_path = os.path.join(args.temp_path, "Versions", "Current")

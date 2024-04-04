@@ -145,6 +145,7 @@ def _generate_import_framework_impl(ctx):
         headers = headers,
         include_resource_bundle = include_resource_bundle,
         include_versioned_frameworks = include_versioned_frameworks,
+        kind = "dynamic",
         label = label,
         library = library,
         module_interfaces = module_interfaces,

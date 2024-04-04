@@ -2,6 +2,7 @@ load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
+    "apple_static_xcframework_import",
 )
 load(
     "//apple:macos.bzl",
@@ -26,6 +27,7 @@ load(
 load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
+    "generate_static_xcframework",
 )
 
 licenses(["notice"])
@@ -366,6 +368,101 @@ generate_dynamic_xcframework(
     name = "generated_dynamic_macos_versioned_xcframework",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_imported_static_unversioned_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.arm64_support_plus1,
+    tags = common.fixture_tags,
+    deps = [
+        ":static_unversioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_unversioned_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":imported_static_unversioned_xcframework",
+    ],
+)
+
+apple_static_xcframework_import(
+    name = "imported_static_unversioned_xcframework",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_macos_unversioned_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_macos_unversioned_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    bundle_format = "framework",
+    include_versioned_frameworks = False,
+    minimum_os_versions = {
+        "macos": common.min_os_macos.arm64_support,
+    },
+    platforms = {
+        "macos": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_imported_static_versioned_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.arm64_support_plus1,
+    tags = common.fixture_tags,
+    deps = [
+        ":static_versioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_versioned_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":imported_static_versioned_xcframework",
+    ],
+)
+
+apple_static_xcframework_import(
+    name = "imported_static_versioned_xcframework",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_macos_versioned_xcframework"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_macos_versioned_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    bundle_format = "framework",
     minimum_os_versions = {
         "macos": common.min_os_macos.arm64_support,
     },

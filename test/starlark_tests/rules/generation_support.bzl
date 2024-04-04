@@ -248,6 +248,7 @@ def _create_framework(
         apple_fragment,
         base_path = "",
         bundle_name,
+        kind,
         label,
         library,
         headers,
@@ -263,6 +264,8 @@ def _create_framework(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         base_path: Base path for the generated archive file (optional).
         bundle_name: Name of the framework bundle.
+        kind: String. Indicates whether the framework is "static" or "dynamic", based on the given
+            string.
         label: Label of the target being built.
         library: The library for the framework bundle.
         headers: List of header files for the framework bundle.
@@ -305,6 +308,7 @@ def _create_framework(
                 apple_fragment = apple_fragment,
                 bundle_name = bundle_name,
                 framework_directory = framework_directory,
+                kind = kind,
                 label = label,
                 library = library,
                 xcode_config = xcode_config,
@@ -384,6 +388,7 @@ def _copy_framework_library(
         apple_fragment,
         bundle_name,
         framework_directory,
+        kind,
         label,
         library,
         xcode_config):
@@ -396,6 +401,8 @@ def _copy_framework_library(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         bundle_name: Name of the framework/XCFramework bundle.
         framework_directory: Target .framework directory to copy files to.
+        kind: String. Indicates whether the framework is "static" or "dynamic", based on the given
+            string.
         label: Label of the target being built.
         library: The library for the framework bundle.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -409,9 +416,11 @@ def _copy_framework_library(
         target_name = label.name,
     )
 
-    # Copy and modify binary rpath for macOS versioned framework.
-    # For all other platforms, symlink the framework binary as is.
-    if ".framework/Versions/" in framework_directory:
+    # Copy and modify the rpaths in the binary for macOS versioned frameworks if this is a dynamic
+    # framework.
+    #
+    # For all other platforms and static frameworks, symlink the framework binary as is.
+    if ".framework/Versions/" in framework_directory and kind == "dynamic":
         cp_command = "cp {src} {dest}".format(
             src = library.path,
             dest = framework_binary.path,

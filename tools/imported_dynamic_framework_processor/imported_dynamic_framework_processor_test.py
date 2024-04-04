@@ -23,59 +23,6 @@ from build_bazel_rules_apple.tools.wrapper_common import lipo
 
 class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
 
-  @mock.patch.object(execute, "execute_and_filter_output")
-  def test_get_install_path_for_binary(self, mock_execute):
-    with self.assertRaisesRegex(
-        ValueError, r"Could not find framework binary.*"):
-      mock_execute.return_value = (None, "no rpath", None)
-      imported_dynamic_framework_processor._get_install_path_for_binary(None)
-
-    mock_execute.return_value = (
-        None, "@rpath/MyFramework.framework/MyFramework", None)
-    result = imported_dynamic_framework_processor._get_install_path_for_binary(
-        None)
-    self.assertEqual(result, "@rpath/MyFramework.framework/MyFramework")
-
-  @mock.patch.object(
-      imported_dynamic_framework_processor, "_get_install_path_for_binary")
-  def test_get_version_from_install_path_fails(self, mock_install_path):
-    with self.assertRaisesRegex(
-        ValueError, r"Framework binary install path does not match.*"):
-      mock_install_path.return_value = "@rpath/libMyAwesomeLibrary"
-      (imported_dynamic_framework_processor
-       ._get_framework_version_from_install_path(None))
-
-    with self.assertRaisesRegex(
-        ValueError, r"Framework binary install path does not match.*"):
-      mock_install_path.return_value = "@rpath/MyFramework.framework/MyFramework"
-      (imported_dynamic_framework_processor
-       ._get_framework_version_from_install_path(None))
-
-  @mock.patch.object(
-      imported_dynamic_framework_processor, "_get_install_path_for_binary")
-  def test_get_version_from_install_path_parse_version(self, mock_install_path):
-    mock_install_path.return_value = (
-        "@rpath/MyFramework.framework/Versions/A/MyFramework")
-    actual_version = (
-        imported_dynamic_framework_processor
-        ._get_framework_version_from_install_path(None))
-    self.assertEqual(actual_version, "A")
-
-    mock_install_path.return_value = (
-        "@rpath/MyFramework.framework/Versions/105.0.5195.102/MyFramework")
-    actual_version = (
-        imported_dynamic_framework_processor
-        ._get_framework_version_from_install_path(None))
-    self.assertEqual(actual_version, "105.0.5195.102")
-
-    mock_install_path.return_value = (
-        "@rpath/MyFramework.framework/Versions/A/Resources.bundle/Info.plist"
-    )
-    actual_version = (
-        imported_dynamic_framework_processor
-        ._get_framework_version_from_install_path(None))
-    self.assertEqual(actual_version, "A")
-
   @mock.patch.object(lipo, "find_archs_for_binaries")
   def test_strip_or_copy_binary_fails_with_no_binary_archs(
       self, mock_lipo):

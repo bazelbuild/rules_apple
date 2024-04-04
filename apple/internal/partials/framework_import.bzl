@@ -39,6 +39,10 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "framework_import_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -61,6 +65,53 @@ load(
 
 visibility("//apple/...")
 
+# These come from Apple's recommended paths for placing content in a macOS bundle for a Framework:
+# https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle#3875936
+_MACOS_VERSIONED_ROOT_INFOPLIST_PATH = "Versions/A/Resources"
+_MACOS_UNVERSIONED_ROOT_INFOPLIST_PATH = "Resources"
+
+def _framework_provider_files_to_bundle(
+        *,
+        field_name,
+        targets,
+        targets_to_avoid):
+    """Collect AppleFrameworkImportInfo files for the given field, subtracted by targets to avoid
+
+    Args:
+        field_name: A String representing the field name of the AppleFrameworkImportInfo provider to
+            collect files from.
+        targets: A List of Targets to collect AppleFrameworkImportInfo providers from.
+        targets_to_avoid: A List of Targets to collect AppleFrameworkImportInfo provider that should
+            be subtracted from the information collected from `targets`.
+
+    Returns:
+        A List of Files from AppleFrameworkImportInfo providers as determined from the given
+            arguments.
+    """
+    transitive_files_to_bundle = [
+        getattr(x[AppleFrameworkImportInfo], field_name)
+        for x in targets
+        if AppleFrameworkImportInfo in x and
+           hasattr(x[AppleFrameworkImportInfo], field_name)
+    ]
+    files_to_bundle = depset(transitive = transitive_files_to_bundle).to_list()
+
+    if targets_to_avoid:
+        avoid_transitive_files_to_bundle = [
+            getattr(x[AppleFrameworkImportInfo], field_name)
+            for x in targets_to_avoid
+            if AppleFrameworkImportInfo in x and
+               hasattr(x[AppleFrameworkImportInfo], field_name)
+        ]
+        if avoid_transitive_files_to_bundle:
+            avoid_files = depset(transitive = avoid_transitive_files_to_bundle).to_list()
+
+            # Remove any files present in the targets to avoid from framework files that need to be
+            # bundled.
+            files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
+
+    return files_to_bundle
+
 def _generate_empty_dylib(
         *,
         actions,
@@ -69,6 +120,7 @@ def _generate_empty_dylib(
         disabled_features,
         features,
         framework_basename,
+        has_versioned_framework_files,
         label_name,
         output_discriminator,
         platform_prerequisites):
@@ -83,6 +135,7 @@ def _generate_empty_dylib(
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features enabled by the user. Typically from `ctx.features`.
         framework_basename: A string representing the framework path's basename.
+        has_versioned_framework_files: Boolean. Indicates if the framework has versioned symlinks.
         label_name: Name of the target being built.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -133,15 +186,25 @@ def _generate_empty_dylib(
         )
         linking_outputs.append(linking_output)
 
-    # TODO(b/326440971): Have this account for /Versions/{id} for macOS, per
-    # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
+    framework_binary_subdir = ""
+    if has_versioned_framework_files:
+        framework_binary_subdir = framework_import_support.macos_versioned_root_binary_path
+
+    fat_stub_binary_relative_path = ""
+    if framework_binary_subdir:
+        fat_stub_binary_relative_path = paths.join(
+            framework_basename,
+            framework_binary_subdir,
+            framework_name,
+        )
+    else:
+        fat_stub_binary_relative_path = paths.join(framework_basename, framework_name)
+
     fat_stub_binary = intermediates.file(
         actions = actions,
-        target_name = label_name,
+        file_name = fat_stub_binary_relative_path,
         output_discriminator = output_discriminator,
-        file_name = "{framework_name}.framework/{framework_name}".format(
-            framework_name = framework_name,
-        ),
+        target_name = label_name,
     )
 
     linking_support.lipo_or_symlink_inputs(
@@ -159,44 +222,88 @@ def _generate_minos_overridden_root_info_plist(
         actions,
         apple_mac_toolchain_info,
         framework_basename,
+        has_versioned_framework_files,
         label_name,
         mac_exec_group,
-        original_root_infoplist,
         output_discriminator,
-        platform_prerequisites):
+        platform_prerequisites,
+        potential_root_infoplists):
     """Generates an updated root Info.plist with the built target's minimum OS version. (FB13657402)
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: tools from the shared Apple toolchain.
         framework_basename: A string representing the framework path's basename.
+        has_versioned_framework_files: Boolean. Indicates if the framework has versioned symlinks.
         label_name: Name of the target being built.
         mac_exec_group: Exec group associated with apple_mac_toolchain_info
-        original_root_infoplist: A File representing the original original Info.plist.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        potential_root_infoplists: A list of Files representing potential candidates for the
+            original Info.plist.
 
     Returns:
-        A File representing the generated Info.plist with a minimum OS version matching the target
-            being built.
+        `Struct` containing the following fields:
+
+        *   `disqualified_root_infoplists`: A List of Files left untouched, which should still be
+            processed as additional files downstream by the import dynamic framework processor tool.
+
+        *   `overridden_root_infoplist`: A File representing the generated Info.plist with a minimum
+            OS version matching the target being built.
     """
     framework_name = paths.split_extension(framework_basename)[0]
 
-    # TODO(b/326440971): Have this account for /Versions/{id}/Resources for macOS, per
-    # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
+    framework_infoplist_subdir = ""
+    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+        if has_versioned_framework_files:
+            framework_infoplist_subdir = _MACOS_VERSIONED_ROOT_INFOPLIST_PATH
+        else:
+            framework_infoplist_subdir = _MACOS_UNVERSIONED_ROOT_INFOPLIST_PATH
+
+    infoplist_filename = "Info.plist"
+    framework_infoplist_relative_path = ""
+    if framework_infoplist_subdir:
+        framework_infoplist_relative_path = paths.join(
+            framework_basename,
+            framework_infoplist_subdir,
+            infoplist_filename,
+        )
+    else:
+        framework_infoplist_relative_path = paths.join(framework_basename, infoplist_filename)
+
     overridden_root_infoplist = intermediates.file(
         actions = actions,
-        target_name = label_name,
+        file_name = framework_infoplist_relative_path,
         output_discriminator = output_discriminator,
-        file_name = "{framework_name}.framework/Info.plist".format(
-            framework_name = framework_name,
-        ),
+        target_name = label_name,
     )
 
     minos_plist_key = "MinimumOSVersion"
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         minos_plist_key = "LSMinimumSystemVersion"
+
+    original_root_infoplist = None
+    disqualified_root_infoplists = []
+    for potential_root_infoplist in potential_root_infoplists:
+        if potential_root_infoplist.path.endswith(framework_infoplist_relative_path):
+            if original_root_infoplist:
+                fail("""
+Internal Error: Found two potential root Info.plists to override in a codeless framework:
+
+- {first_found_infoplist}
+
+- {second_found_infoplist}
+
+Cannot determine which one is the canonical Info.plist for this framework. Please file an issue \
+with the Apple BUILD Rules.
+""".format(
+                    first_found_infoplist = str(original_root_infoplist),
+                    second_found_infoplist = str(potential_root_infoplist),
+                ))
+            original_root_infoplist = potential_root_infoplist
+        else:
+            disqualified_root_infoplists.append(potential_root_infoplist)
 
     plisttool_control = struct(
         binary = True,
@@ -234,7 +341,10 @@ def _generate_minos_overridden_root_info_plist(
         plisttool = apple_mac_toolchain_info.plisttool,
     )
 
-    return overridden_root_infoplist
+    return struct(
+        disqualified_root_infoplists = disqualified_root_infoplists,
+        overridden_root_infoplist = overridden_root_infoplist,
+    )
 
 def _framework_import_partial_impl(
         *,
@@ -253,27 +363,18 @@ def _framework_import_partial_impl(
         targets,
         targets_to_avoid):
     """Implementation for the framework import file processing partial."""
-    transitive_sets = [
-        x[AppleFrameworkImportInfo].framework_imports
-        for x in targets
-        if AppleFrameworkImportInfo in x and
-           hasattr(x[AppleFrameworkImportInfo], "framework_imports")
-    ]
-    files_to_bundle = depset(transitive = transitive_sets).to_list()
 
-    if targets_to_avoid:
-        avoid_transitive_sets = [
-            x[AppleFrameworkImportInfo].framework_imports
-            for x in targets_to_avoid
-            if AppleFrameworkImportInfo in x and
-               hasattr(x[AppleFrameworkImportInfo], "framework_imports")
-        ]
-        if avoid_transitive_sets:
-            avoid_files = depset(transitive = avoid_transitive_sets).to_list()
+    bundling_files_to_bundle = _framework_provider_files_to_bundle(
+        field_name = "bundling_imports",
+        targets = targets,
+        targets_to_avoid = targets_to_avoid,
+    )
 
-            # Remove any files present in the targets to avoid from framework files that need to be
-            # bundled.
-            files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
+    binary_files_to_bundle = _framework_provider_files_to_bundle(
+        field_name = "binary_imports",
+        targets = targets,
+        targets_to_avoid = targets_to_avoid,
+    )
 
     # Collect the architectures that we are using for the build.
     build_archs_found = [
@@ -288,43 +389,53 @@ def _framework_import_partial_impl(
     signed_frameworks_list = []
 
     # Separating our files by framework path, to better address what should be passed in.
-    framework_binaries_by_framework = dict()
+    infoplists_by_framework = dict()
     files_by_framework = dict()
-    root_infoplists_by_framework = dict()
 
-    for file in files_to_bundle:
+    for file in bundling_files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
 
         # Use the framework path's basename to distinguish groups of files.
         framework_basename = paths.basename(framework_path)
         if not files_by_framework.get(framework_basename):
             files_by_framework[framework_basename] = []
-        if not framework_binaries_by_framework.get(framework_basename):
-            framework_binaries_by_framework[framework_basename] = []
+        if not infoplists_by_framework.get(framework_basename):
+            infoplists_by_framework[framework_basename] = []
 
-        # Check if this file is a binary to slice and code sign.
-        framework_relative_path = paths.relativize(file.short_path, framework_path)
-
-        parent_dir = framework_basename
-        framework_relative_dir = paths.dirname(framework_relative_path).strip("/")
-        if framework_relative_dir:
-            parent_dir = paths.join(parent_dir, framework_relative_dir)
-
-        # Classify if it's a file to bundle or framework binary
-        if paths.replace_extension(parent_dir, "") == file.basename:
-            framework_binaries_by_framework[framework_basename].append(file)
+        # Classify if it's a file to bundle or an Info.plist
+        if file.basename == "Info.plist":
+            infoplists_by_framework[framework_basename].append(file)
             continue
-        elif file.basename == "Info.plist":
-            # TODO(b/326440971): Have this account for /Versions/{id}/Resources for macOS, per
-            # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle
-            if (platform_prerequisites.platform_type != apple_common.platform_type.macos and
-                not framework_relative_dir):
-                # For non-macOS platforms, check specifically if this Info.plist was at the root of
-                # the framework bundle. This is the one which we will want to change the declared
-                # MinimumOSVersion to match the generated empty dylib for App Store Connect.
-                root_infoplists_by_framework[framework_basename] = file
-                continue
         files_by_framework[framework_basename].append(file)
+
+    framework_binaries_by_framework = dict()
+    for file in binary_files_to_bundle:
+        framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
+
+        # Continue using the framework path's basename to distinguish groups of files.
+        framework_basename = paths.basename(framework_path)
+
+        # Check that there's only one precompiled framework binary in this bundle, and that we don't
+        # have multiple references to one binary, which is possible when merging providers.
+        existing_framework_binary = framework_binaries_by_framework.get(framework_basename)
+        if existing_framework_binary and existing_framework_binary.short_path != file.short_path:
+            fail("""
+Internal Error: Expected to find only one precompiled framework binary when processing deps for \
+the framework {framework_basename} referenced by {label_name}, but found the following instead:
+
+- {existing_framework_binary}
+
+- {latest_framework_binary}
+
+There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
+""".format(
+                existing_framework_binary = existing_framework_binary,
+                framework_basename = framework_basename,
+                latest_framework_binary = file,
+                label_name = label_name,
+            ))
+
+        framework_binaries_by_framework[framework_basename] = file
 
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
@@ -337,31 +448,33 @@ def _framework_import_partial_impl(
         )
         temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
 
+        has_versioned_framework_files = False
+        if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+            has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
+                files_by_framework[framework_basename],
+            )
+
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
 
-        # TODO(b/326440971): Correctly account for the Versions/Current symlink and a Versions/{id}
-        # binary when targeting macOS, both at analysis time when identifying binaries and in the
-        # implementation of _generate_empty_dylib(...).
-        if (not framework_binaries_by_framework.get(framework_basename) and
-            platform_prerequisites.platform_type != apple_common.platform_type.macos):
+        framework_binary = framework_binaries_by_framework.get(framework_basename)
+        if not framework_binary:
             # If the framework doesn't have a binary (i.e. from an imported Static Framework
             # XCFramework), generate an empty dylib to fulfill Xcode 15 requirements.
-            framework_binaries_by_framework[framework_basename] = [
-                _generate_empty_dylib(
-                    actions = actions,
-                    cc_configured_features_init = cc_configured_features_init,
-                    cc_toolchains = cc_toolchains,
-                    disabled_features = disabled_features,
-                    features = features,
-                    framework_basename = framework_basename,
-                    label_name = label_name,
-                    output_discriminator = output_discriminator,
-                    platform_prerequisites = platform_prerequisites,
-                ),
-            ]
+            framework_binaries_by_framework[framework_basename] = _generate_empty_dylib(
+                actions = actions,
+                cc_configured_features_init = cc_configured_features_init,
+                cc_toolchains = cc_toolchains,
+                disabled_features = disabled_features,
+                features = features,
+                framework_basename = framework_basename,
+                has_versioned_framework_files = has_versioned_framework_files,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
+                platform_prerequisites = platform_prerequisites,
+            )
 
-            if not root_infoplists_by_framework.get(framework_basename):
+            if not infoplists_by_framework.get(framework_basename):
                 fail("""
 Error: The framework {framework_basename} does not have a root Info.plist. One is needed to submit \
 a framework that is bundled and signed as a "codeless framework" for Xcode 15+, such as a static \
@@ -371,23 +484,24 @@ framework or a framework with mergeable libraries.
             # Update the corresponding Info.plist with relevant minimum OS version information per
             # Xcode 15.3 implementation for "bundle & sign"ing a codeless framework, enough to get
             # past App Store Connect validation without a MinimumOSVersion of 100 hack (FB13657402).
-            overridden_root_infoplist = _generate_minos_overridden_root_info_plist(
+            processed_infoplists = _generate_minos_overridden_root_info_plist(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 framework_basename = framework_basename,
+                has_versioned_framework_files = has_versioned_framework_files,
                 label_name = label_name,
                 mac_exec_group = mac_exec_group,
-                original_root_infoplist = root_infoplists_by_framework[framework_basename],
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
+                potential_root_infoplists = infoplists_by_framework[framework_basename],
             )
 
-            root_infoplists_by_framework[framework_basename] = overridden_root_infoplist
+            infoplists_by_framework[framework_basename] = (
+                [processed_infoplists.overridden_root_infoplist] +
+                processed_infoplists.disqualified_root_infoplists
+            )
 
-        args.add_all(
-            framework_binaries_by_framework[framework_basename],
-            before_each = "--framework_binary",
-        )
+        args.add("--framework_binary", framework_binaries_by_framework[framework_basename])
 
         args.add_all(build_archs_found, before_each = "--slice")
 
@@ -397,9 +511,12 @@ framework or a framework with mergeable libraries.
 
         args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
 
-        root_infoplist = root_infoplists_by_framework.get(framework_basename)
-        if root_infoplist:
-            args.add("--framework_file", root_infoplists_by_framework[framework_basename])
+        infoplists = infoplists_by_framework.get(framework_basename)
+        if infoplists:
+            args.add_all(
+                infoplists_by_framework[framework_basename],
+                before_each = "--framework_file",
+            )
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
@@ -424,10 +541,10 @@ framework or a framework with mergeable libraries.
         # current build's preferred architecture, and the provisioning profile if specified.
         input_files = (
             files_by_framework[framework_basename] +
-            framework_binaries_by_framework[framework_basename]
+            [framework_binaries_by_framework[framework_basename]]
         )
-        if root_infoplist:
-            input_files.append(root_infoplist)
+        if infoplists:
+            input_files.extend(infoplists)
         if provisioning_profile:
             input_files.append(provisioning_profile)
 

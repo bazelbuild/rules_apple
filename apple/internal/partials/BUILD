@@ -205,6 +205,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:cc_toolchain_info_support",
         "//apple/internal:codesigning_support",
+        "//apple/internal:framework_import_support",
         "//apple/internal:intermediates",
         "//apple/internal:linking_support",
         "//apple/internal:processor",

@@ -28,6 +28,10 @@ visibility([
     "//test/...",
 ])
 
+# This comes from Apple's recommended paths for placing content in a macOS bundle for a Framework:
+# https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle#3875936
+_MACOS_VERSIONED_ROOT_BINARY_PATH = "Versions/A"
+
 def _cc_info_with_dependencies(
         *,
         actions,
@@ -181,11 +185,11 @@ def _classify_file_imports(import_files):
         bundling_imports = bundling_imports,
     )
 
-def _classify_framework_imports(framework_imports):
+def _classify_framework_imports(*, framework_imports):
     """Classify a list of files referencing an Apple framework.
 
     Args:
-        framework_imports: List of File for an imported Apple framework.
+        framework_imports: List of Files for an imported Apple framework.
     Returns:
         A struct containing classified framework import files by categories:
             - bundle_name: The framework bundle name infered by filepaths.
@@ -200,16 +204,24 @@ def _classify_framework_imports(framework_imports):
     bundle_name = None
     bundling_imports = []
     binary_imports = []
+
+    # Infer the framework bundle name before identifying the binary names.
     for file in framework_imports_by_category.bundling_imports:
-        # Infer framework bundle name and binary
         parent_dir_name = paths.basename(file.dirname)
-        is_bundle_root_file = parent_dir_name.endswith(".framework")
-        if is_bundle_root_file:
+        if parent_dir_name.endswith(".framework"):
             bundle_name, _ = paths.split_extension(parent_dir_name)
-            if file.basename == bundle_name:
+            break
+
+    # Now find all of the matching binaries of interest and files to import.
+    for file in framework_imports_by_category.bundling_imports:
+        if file.basename == bundle_name:
+            parent_dir_name = paths.basename(file.dirname)
+            if parent_dir_name.endswith(".framework"):
                 binary_imports.append(file)
                 continue
-
+            elif file.dirname.endswith(_MACOS_VERSIONED_ROOT_BINARY_PATH):
+                binary_imports.append(file)
+                continue
         bundling_imports.append(file)
 
     if not bundle_name:
@@ -285,28 +297,41 @@ def _framework_import_info_with_dependencies(
         *,
         build_archs,
         deps,
-        framework_imports = []):
+        binary_imports = [],
+        bundling_imports = []):
     """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs.
 
     Args:
         build_archs: List of supported architectures for the imported framework.
         deps: List of transitive dependencies of the current target.
-        framework_imports: List of files to bundle for the imported framework.
+        binary_imports: List of files representing binaries to bundle for the imported framework.
+        bundling_imports: List of files to bundle for the imported framework.
     Returns:
         AppleFrameworkImportInfo provider.
     """
-    transitive_framework_imports = [
-        dep[AppleFrameworkImportInfo].framework_imports
+    transitive_binary_imports = [
+        dep[AppleFrameworkImportInfo].binary_imports
         for dep in deps
         if (AppleFrameworkImportInfo in dep and
-            hasattr(dep[AppleFrameworkImportInfo], "framework_imports"))
+            hasattr(dep[AppleFrameworkImportInfo], "binary_imports"))
+    ]
+
+    transitive_bundling_imports = [
+        dep[AppleFrameworkImportInfo].bundling_imports
+        for dep in deps
+        if (AppleFrameworkImportInfo in dep and
+            hasattr(dep[AppleFrameworkImportInfo], "bundling_imports"))
     ]
 
     return new_appleframeworkimportinfo(
         build_archs = depset(build_archs),
-        framework_imports = depset(
-            framework_imports,
-            transitive = transitive_framework_imports,
+        binary_imports = depset(
+            binary_imports,
+            transitive = transitive_binary_imports,
+        ),
+        bundling_imports = depset(
+            bundling_imports,
+            transitive = transitive_bundling_imports,
         ),
     )
 
@@ -365,6 +390,17 @@ def _has_versioned_framework_files(framework_files):
         if ".framework/Versions/" in f.short_path:
             return True
     return False
+
+def _get_canonical_versioned_framework_files(framework_files):
+    """Returns all framework Files under a Versions/A directory.
+
+    Args:
+        framework_files: List of File references for imported framework or XCFramework files.
+    Returns:
+        A List of Files that have paths that include ".framework/Versions/A".
+    """
+    versioned_path_suffix = paths.join(".framework/", _MACOS_VERSIONED_ROOT_BINARY_PATH)
+    return [f for f in framework_files if versioned_path_suffix in f.short_path]
 
 def _swift_info_from_module_interface(
         *,
@@ -435,8 +471,10 @@ framework_import_support = struct(
     classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
+    get_canonical_versioned_framework_files = _get_canonical_versioned_framework_files,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     has_versioned_framework_files = _has_versioned_framework_files,
+    macos_versioned_root_binary_path = _MACOS_VERSIONED_ROOT_BINARY_PATH,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )
