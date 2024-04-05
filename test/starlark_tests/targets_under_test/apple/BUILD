@@ -789,9 +789,82 @@ apple_static_xcframework(
     ],
 )
 
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_no_bundle_id",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_invalid_character_bundle_id",
+    bundle_id = "my#bundle",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
 apple_static_xcframework(
     name = "ios_static_framework_xcframework_with_no_bundle_id",
     bundle_format = "framework",
+    data = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_framework_xcframework_with_invalid_character_bundle_id",
+    bundle_format = "framework",
+    bundle_id = "my#bundle",
     data = [
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:resource_bundle",

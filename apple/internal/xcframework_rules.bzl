@@ -34,6 +34,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
     "cc_info_support",
 )
@@ -160,8 +164,10 @@ def _xcframework_resource_attrs():
     return {
         "bundle_id": attr.string(
             doc = """
-The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. If
-present, this value will be embedded in an Info.plist within each framework bundle.
+The bundle ID (reverse-DNS path followed by app name) for each of the embedded frameworks. This
+value will be embedded in an Info.plist within each framework bundle. This is only required if the
+XCFramework produces framework bundles, and will raise an error if the XCFramework produces library
+bundles.
 """,
         ),
         "data": attr.label_list(
@@ -563,6 +569,14 @@ def _create_framework_outputs(
       *   `framework_output_groups`: A list of dictionaries with keys representing output group
         names and values representing the Files that should be appended to that output group.
     """
+
+    if not nested_bundle_id:
+        fail("""
+No bundle ID was given for the target \"{label_name}\". Please add one by setting a valid \
+bundle_id on the target.
+""".format(label_name = rule_label.name))
+
+    bundling_support.validate_bundle_id(nested_bundle_id)
 
     # Bundle extension needs to be ".xcframework" for the root bundle, but this output's extension
     # will always be ".framework"

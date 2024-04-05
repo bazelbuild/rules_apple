@@ -606,6 +606,20 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_has_no_bundle_id_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_no_bundle_id",
+        expected_error = "No bundle ID was given for the target \"ios_dynamic_xcframework_with_no_bundle_id\". Please add one by setting a valid bundle_id on the target.",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_has_invalid_character_bundle_id_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_invalid_character_bundle_id",
+        expected_error = "Error in fail: Invalid character(s) in bundle_id: \"my#bundle\"",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

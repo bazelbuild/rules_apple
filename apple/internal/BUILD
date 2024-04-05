@@ -752,6 +752,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":apple_toolchains",
+        ":bundling_support",
         ":cc_info_support",
         ":experimental",
         ":intermediates",
