@@ -114,16 +114,16 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         _maybe(
             http_archive,
             name = "build_bazel_apple_support",
-            sha256 = "a8ba6fd09d0ffeba9b5f398f3a46262470fe0addddb4ef5afa7eab18d001a7b0",
-            url = "https://github.com/bazelbuild/apple_support/releases/download/1.14.0/apple_support.1.14.0.tar.gz",
+            sha256 = "c4bb2b7367c484382300aee75be598b92f847896fb31bbd22f3a2346adf66a80",
+            url = "https://github.com/bazelbuild/apple_support/releases/download/1.15.1/apple_support.1.15.1.tar.gz",
             ignore_version_differences = ignore_version_differences,
         )
 
         _maybe(
             http_archive,
             name = "build_bazel_rules_swift",
-            sha256 = "9bc9dc949062405412404c0f07f7323ba310f3f91f42af414ac27e338ba7bb8c",
-            url = "https://github.com/bazelbuild/rules_swift/releases/download/1.17.0/rules_swift.1.17.0.tar.gz",
+            sha256 = "bb01097c7c7a1407f8ad49a1a0b1960655cf823c26ad2782d0b7d15b323838e2",
+            url = "https://github.com/bazelbuild/rules_swift/releases/download/1.18.0/rules_swift.1.18.0.tar.gz",
             ignore_version_differences = ignore_version_differences,
         )
 
@@ -131,21 +131,10 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             http_archive,
             name = "platforms",
             urls = [
-                "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
-                "https://github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
+                "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.7.tar.gz",
+                "https://github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
             ],
-            sha256 = "3a561c99e7bdbe9173aa653fd579fe849f1d8d67395780ab4770b1f381431d51",
-            ignore_version_differences = ignore_version_differences,
-        )
-
-        _maybe(
-            http_archive,
-            name = "platforms",
-            urls = [
-                "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
-                "https://github.com/bazelbuild/platforms/releases/download/0.0.7/platforms-0.0.7.tar.gz",
-            ],
-            sha256 = "3a561c99e7bdbe9173aa653fd579fe849f1d8d67395780ab4770b1f381431d51",
+            sha256 = "5eda539c841265031c2f82d8ae7a3a6490bd62176e0c038fc469eabf91f6149b",
             ignore_version_differences = ignore_version_differences,
         )
 
