@@ -472,10 +472,6 @@ apple_xcframework(
 apple_xcframework(
     name = "ios_dynamic_xcframework_with_data_resource_bundle",
     bundle_id = "com.google.example",
-    data = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     # TODO(b/239957001): Remove this when the rule no longer forces library
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
@@ -491,6 +487,10 @@ apple_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
@@ -500,10 +500,6 @@ apple_static_xcframework(
     name = "ios_static_framework_xcframework_with_data_resource_bundle",
     bundle_format = "framework",
     bundle_id = "com.google.example",
-    data = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     # TODO(b/239957001): Remove this when the rule no longer forces library
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
@@ -519,6 +515,10 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
@@ -837,10 +837,6 @@ apple_xcframework(
 apple_static_xcframework(
     name = "ios_static_framework_xcframework_with_no_bundle_id",
     bundle_format = "framework",
-    data = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     # TODO(b/239957001): Remove this when the rule no longer forces library
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
@@ -856,6 +852,10 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
@@ -865,10 +865,6 @@ apple_static_xcframework(
     name = "ios_static_framework_xcframework_with_invalid_character_bundle_id",
     bundle_format = "framework",
     bundle_id = "my#bundle",
-    data = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     # TODO(b/239957001): Remove this when the rule no longer forces library
     # evolution.
     features = ["apple.no_legacy_swiftinterface"],
@@ -884,6 +880,10 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
@@ -1348,10 +1348,6 @@ apple_static_xcframework(
 apple_static_xcframework(
     name = "ios_swift_static_xcframework_with_invalid_attrs_for_library_outputs",
     bundle_id = "com.google.example",
-    data = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
     families_required = {
         "ios": ["ipad"],
     },
@@ -1371,6 +1367,10 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
     tags = common.fixture_tags,
     deps = [":SwiftFmwkWithInvalidModuleDeps"],
 )
