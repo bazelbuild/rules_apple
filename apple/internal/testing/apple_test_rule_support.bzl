@@ -61,7 +61,7 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Collect this target's coverage files.
     for attr in ["srcs", "hdrs", "non_arc_srcs"]:
-        for files in [x.files for x in getattr(ctx.rule.attr, attr, [])]:
+        for files in [x[DefaultInfo].files for x in getattr(ctx.rule.attr, attr, [])]:
             coverage_files.append(files)
 
     # Collect the binaries themselves from the various bundles involved in the test. These will be
@@ -282,10 +282,10 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         direct_runfiles.append(test_host_artifact)
 
     if ctx.configuration.coverage_enabled:
-        apple_coverage_support_files = ctx.attr._apple_coverage_support.files
+        apple_coverage_support_files = ctx.files._apple_coverage_support
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
-        gcov_files = ctx.attr._gcov.files
-        mcov_files = ctx.attr._mcov.files
+        gcov_files = ctx.files._gcov
+        mcov_files = ctx.files._mcov
 
         execution_environment = dicts.add(
             execution_environment,
@@ -324,14 +324,14 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     )
 
     transitive_runfile_objects = [
-        runner_attr.default_runfiles,
-        runner_attr.data_runfiles,
+        runner_attr[DefaultInfo].default_runfiles,
+        runner_attr[DefaultInfo].data_runfiles,
     ]
 
     # Add required data into the runfiles to make it available during test
     # execution.
     for data_dep in ctx.attr.data:
-        transitive_runfiles.append(data_dep.files)
+        transitive_runfiles.append(data_dep[DefaultInfo].files)
         transitive_runfile_objects.append(data_dep.default_runfiles)
 
     return [
