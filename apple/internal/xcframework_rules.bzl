@@ -170,17 +170,6 @@ XCFramework produces framework bundles, and will raise an error if the XCFramewo
 bundles.
 """,
         ),
-        # TODO(b/332554303): Remove "data" once clients are migrated to "resources".
-        "data": attr.label_list(
-            allow_files = True,
-            aspects = [apple_resource_aspect],
-            cfg = transition_support.xcframework_split_transition,
-            doc = """
-(DEPRECATED; use `resources` instead. This will be going away in a future release.) A list of
-resources or files bundled with the bundle. The resources will be stored in the appropriate
-resources location within each of the embedded framework bundles.
-""",
-        ),
         "families_required": attr.string_list_dict(
             doc = """
 A list of device families supported by this framework, with platforms such as `ios` as keys. Valid
@@ -635,9 +624,8 @@ bundle_id on the target.
             ),
         )
 
-        # TODO(b/332554303): Remove "data" once clients are migrated to "resources".
         resource_deps = _unioned_attrs(
-            attr_names = ["data", "deps", "resources"],
+            attr_names = ["deps", "resources"],
             split_attr = resource_split_attrs,
             split_attr_keys = link_output.split_attr_keys,
         )
@@ -645,13 +633,6 @@ bundle_id on the target.
         top_level_infoplists = resources.collect(
             attr = resource_split_attrs,
             res_attrs = ["infoplists"],
-            split_attr_keys = link_output.split_attr_keys,
-        )
-
-        # TODO(b/332554303): Remove "data" once clients are migrated to "resources".
-        top_level_legacy_resources = resources.collect(
-            attr = resource_split_attrs,
-            res_attrs = ["data"],
             split_attr_keys = link_output.split_attr_keys,
         )
 
@@ -712,7 +693,7 @@ bundle_id on the target.
                 targets_to_avoid = split_avoid_deps,
                 targets_to_avoid_must_be_owned = targets_to_avoid_must_be_owned,
                 top_level_infoplists = top_level_infoplists,
-                top_level_resources = top_level_resources + top_level_legacy_resources,
+                top_level_resources = top_level_resources,
                 version = version,
                 version_keys_required = False,
             ),
