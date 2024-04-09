@@ -199,6 +199,7 @@ def _framework_import_partial_impl(
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
             executable = imported_dynamic_framework_processor,
+            execution_requirements = execution_requirements,
             inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
             outputs = [framework_zip],
