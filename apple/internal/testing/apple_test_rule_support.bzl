@@ -282,10 +282,10 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         direct_runfiles.append(test_host_artifact)
 
     if ctx.configuration.coverage_enabled:
-        apple_coverage_support_files = ctx.files._apple_coverage_support
+        apple_coverage_support_files = ctx.attr._apple_coverage_support[DefaultInfo].files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
-        gcov_files = ctx.files._gcov
-        mcov_files = ctx.files._mcov
+        gcov_files = ctx.attr._gcov[DefaultInfo].files
+        mcov_files = ctx.attr._mcov[DefaultInfo].files
 
         execution_environment = dicts.add(
             execution_environment,
