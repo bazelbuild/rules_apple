@@ -37,7 +37,6 @@ load(
 
 visibility("public")
 
-# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 watchos_application = _watchos_application
 watchos_extension = _watchos_extension
 

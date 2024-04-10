@@ -375,8 +375,7 @@ visionos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles a visionOS Application.",
     implementation = _visionos_application_impl,
     is_executable = True,
-    # TODO(b/288582842): Currently needed to supply a "dummy archive" for the tree artifact
-    # processor. See if we can avoid needing to declare this hack for a new rule type.
+    # Required to supply a "dummy archive" for the tree artifact processor.
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),

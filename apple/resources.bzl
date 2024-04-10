@@ -42,7 +42,6 @@ apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_core_data_model = _apple_core_data_model
 
-# TODO(b/124103649): Create a proper rule when ObjC compilation is available in Starlark.
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
 def apple_core_ml_library(name, mlmodel, **kwargs):
     # buildifier: disable=function-docstring-args

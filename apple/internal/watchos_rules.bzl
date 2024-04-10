@@ -218,8 +218,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     )
 
     # Collect all architectures found from the cc_toolchain forwarder.
-    # TODO(b/251911924): Consider sharing this trick with the swift stdlib tool, so we can= pass a
-    # list of archs instead of an entire binary dependency.
     requested_archs = sets.make()
     for cc_toolchain in cc_toolchain_forwarder.values():
         requested_archs = sets.insert(requested_archs, cc_toolchain[ApplePlatformInfo].target_arch)

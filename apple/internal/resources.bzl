@@ -715,9 +715,6 @@ def _minimize(*, bucket):
     swift_module_by_key = {}
 
     for parent_dir, swift_module, resources in bucket:
-        # TODO(b/275385433): Audit Starlark performance of different string interpolation methods.
-        # Particularly for the resource aspect, using the '%' operator yielded better results than
-        # using `str.format` and string concatenation.
         key = "%s_%s" % (parent_dir or "@root", swift_module or "@root")
 
         if parent_dir:
@@ -725,7 +722,7 @@ def _minimize(*, bucket):
         if swift_module:
             swift_module_by_key[key] = swift_module
 
-        # TODO(b/275385433): Audit Starlark performance of `dict.setdefault` vs. if/else statements.
+        # TODO(b/184668988): Audit Starlark performance of `dict.setdefault` vs. if/else statements.
         # Particularly for the resource aspect, using if/else statements yielded better results than
         # using `dict.setdefault` (from apple/internal/resources.bzl).
         if key in resources_by_key:

@@ -27,7 +27,6 @@ def _apple_resource_bundle_impl(_ctx):
     # To transform the attributes referenced by this rule into resource providers, that aspect must
     # be used to iterate through all relevant instances of this rule in the build graph.
     return [
-        # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),

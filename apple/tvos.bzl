@@ -39,7 +39,6 @@ load(
 
 visibility("public")
 
-# TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 tvos_application = _tvos_application
 tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework

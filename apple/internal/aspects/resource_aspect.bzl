@@ -139,11 +139,6 @@ def _apple_resource_aspect_impl(target, ctx):
     apple_resource_infos = []
     bucketize_args = {}
 
-    # TODO(b/174858377) Follow up to see if we need to define output_discriminator for process_args
-    # if an input from the aspect context indicates that the Apple resource aspect is being sent
-    # down a split transition that builds for multiple platforms. This should match an existing
-    # output_discriminator used for resource processing in the top level rule. It might not be
-    # necessary to do this on account of how deduping resources works in the resources partial.
     process_args = {
         "actions": ctx.actions,
         "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
@@ -346,9 +341,6 @@ def _apple_resource_aspect_impl(target, ctx):
                             transitive_target_bundle_infos = depset([target_apple_bundle_info]),
                         ),
                     )
-
-                # TODO(b/300268204): Find and append providers related to RealityKit Content
-                # processing here. Consider gating behavior on the presence of an aspect hint.
 
                 if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
                     # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to
