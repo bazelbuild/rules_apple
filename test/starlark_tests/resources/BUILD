@@ -325,10 +325,8 @@ write_file(
 apple_resource_bundle(
     name = "ios_device_dependent_text_file",
     resources = select({
-        "@bazel_tools//tools/objc:ios_x86_64": ["ios_foo_sim.txt"],
-        "@bazel_tools//tools/objc:ios_arm64": ["ios_foo_device.txt"],
-        "@bazel_tools//tools/objc:ios_arm64e": ["ios_foo_device.txt"],
-        "@bazel_tools//tools/objc:ios_sim_arm64": ["ios_foo_sim.txt"],
+        "@build_bazel_apple_support//constraints:device": ["ios_foo_device.txt"],
+        "@build_bazel_apple_support//constraints:simulator": ["ios_foo_sim.txt"],
         "//conditions:default": [],
     }),
 )
@@ -342,9 +340,8 @@ objc_library(
 apple_resource_bundle(
     name = "tvos_device_dependent_text_file",
     resources = select({
-        "@bazel_tools//tools/objc:tvos_x86_64": ["tvos_foo_sim.txt"],
-        "@bazel_tools//tools/objc:tvos_arm64": ["tvos_foo_device.txt"],
-        "@bazel_tools//tools/objc:tvos_sim_arm64": ["tvos_foo_sim.txt"],
+        "@build_bazel_apple_support//constraints:device": ["tvos_foo_device.txt"],
+        "@build_bazel_apple_support//constraints:simulator": ["tvos_foo_sim.txt"],
         "//conditions:default": [],
     }),
 )
