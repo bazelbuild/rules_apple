@@ -1244,7 +1244,8 @@ swift_library(
 swift_library(
     name = "Swift3PFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
-    features = ["swift.enable_library_evolution"],
+    # Uncomment when rule no longer enforces library evolution
+    # features = ["swift.enable_library_evolution"],
     generates_header = True,
     module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,
