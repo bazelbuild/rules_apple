@@ -29,12 +29,21 @@ swift_binary(
     target_compatible_with = ["@platforms//os:macos"],
     deps = [
         ":collect_signatures_options",
+        ":security_service_query",
     ],
 )
 
 swift_library(
     name = "collect_signatures_options",
     srcs = ["CollectSignaturesOptions.swift"],
+)
+
+swift_library(
+    name = "security_service_query",
+    srcs = ["SecurityServiceQuery.swift"],
+    deps = [
+        ":collect_signatures_options",
+    ],
 )
 
 build_test(

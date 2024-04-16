@@ -10,6 +10,7 @@ load(
     "apple_static_framework_import",
     "apple_static_xcframework",
     "apple_static_xcframework_import",
+    "apple_xcframework",
 )
 load(
     "//apple:ios.bzl",
@@ -41,7 +42,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
     "generate_static_xcframework",
 )
 
@@ -2002,24 +2002,61 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_xcframework_with_headers",
+objc_library(
+    name = "xcframework_shared_class",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.baseline,
-        "ios": common.min_os_ios.baseline,
-    },
-    platforms = {
-        "ios_simulator": [
+)
+
+apple_xcframework(
+    name = "dynamic_xcframework_with_headers",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_dynamic_xcframework_with_headers",
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
             "x86_64",
             "arm64",
         ],
-        "ios": [
+        "device": [
             "arm64",
             "arm64e",
         ],
     },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.arm_sim_support,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":xcframework_shared_class",
+    ],
+)
+
+genrule(
+    name = "generated_dynamic_xcframework_with_headers",
+    srcs = [":dynamic_xcframework_with_headers"],
+    outs = [
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/Info.plist",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
+        "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/ios:dynamic_xcframework_with_headers) -d $(RULEDIR)/generated_dynamic_xcframework_with_headers",
     tags = common.fixture_tags,
 )
 

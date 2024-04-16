@@ -28,25 +28,6 @@ def generate_dynamic_xcframework_test_suite(name):
       name: the base name to be used in things created by this macro
     """
     analysis_target_outputs_test(
-        name = "{}_ios_frameworks_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:generated_dynamic_xcframework_with_headers",
-        expected_outputs = [
-            "generated_dynamic_xcframework_with_headers.xcframework/Info.plist",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Info.plist",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Info.plist",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
-            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
-        ],
-        tags = [name],
-    )
-
-    analysis_target_outputs_test(
         name = "{}_macos_versioned_frameworks_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:generated_dynamic_macos_versioned_xcframework",
         expected_outputs = [
