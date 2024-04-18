@@ -4880,6 +4880,24 @@ swift_library(
     visibility = ["//visibility:public"],
 )
 
+objc_library(
+    name = "basic_objc_lib_with_data_and_docc_bundle_dependency",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = ["//test/starlark_tests/resources:additional.txt"],
+    deps = [":basic_framework_lib_with_docc_bundle"],
+)
+
+docc_archive(
+    name = "basic_objc_lib_with_data_and_docc_bundle_dependency.doccarchive",
+    dep = ":basic_objc_lib_with_data_and_docc_bundle_dependency",
+    fallback_bundle_identifier = "com.google.example.objc.lib",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "BasicLib",
+)
+
 ios_dynamic_framework(
     name = "basic_framework_with_docc_bundle",
     bundle_id = "com.google.example.framework",

@@ -69,6 +69,27 @@ def docc_test_suite(name):
         tags = [name],
     )
 
+    # Verify doccarchive bundle is created for an ObjC library which defines data and has a dependency on a Swift lib.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_when_objc_library_with_swift_dep".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_objc_lib_with_data_and_docc_bundle_dependency.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/basiclib/readme/index.html",
+        ],
+        text_file_not_contains = [],
+        text_test_file = "$BUNDLE_ROOT/metadata.json",
+        text_test_values = [
+            "\"bundleDisplayName\":\"BasicLib\"",
+            "\"bundleIdentifier\":\"com.google.example.objc.lib\"",
+            "\"major\":0",
+            "\"minor\":1",
+            "\"patch\":0",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
