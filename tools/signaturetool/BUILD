@@ -30,6 +30,7 @@ swift_binary(
     deps = [
         ":collect_signatures_options",
         ":security_service_query",
+        ":signature_xml_plist",
     ],
 )
 
@@ -43,6 +44,23 @@ swift_library(
     srcs = ["SecurityServiceQuery.swift"],
     deps = [
         ":collect_signatures_options",
+        ":signature_info",
+    ],
+)
+
+swift_library(
+    name = "signature_info",
+    srcs = ["SignatureInfo.swift"],
+    deps = [
+        ":collect_signatures_options",
+    ],
+)
+
+swift_library(
+    name = "signature_xml_plist",
+    srcs = ["SignatureXMLPlist.swift"],
+    deps = [
+        ":signature_info",
     ],
 )
 

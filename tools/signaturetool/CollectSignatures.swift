@@ -15,6 +15,7 @@
 import ArgumentParser
 import tools_signaturetool_collect_signatures_options
 import tools_signaturetool_security_service_query
+import tools_signaturetool_signature_xml_plist
 
 /// Signature Tool invocation that composes the necessary set of options to generate a Signatures
 /// XML plist file appropriate for bundling within an IPA or an xcarchive bundle.
@@ -27,10 +28,9 @@ public struct CollectSignatures: ParsableCommand {
   public func run() throws {
     let artifactToQuery = sharedOptions.signaturesInputPath
     let serviceQuery = SecurityServiceQuery(artifactToQuery: artifactToQuery)
-
-    // TODO(b/326280185): Write the results to an XML file, specified by the location given by the
-    // input `sharedOptions.signaturesOutputPath`.
-    let _ = try serviceQuery.signatureInfo(metadataInfo: sharedOptions.metadataInfo)
+    let signatureInfo = try serviceQuery.signatureInfo(metadataInfo: sharedOptions.metadataInfo)
+    let signatureXMLPlist = try SignatureXMLPlist(signatureInfo: signatureInfo)
+    try signatureXMLPlist.writeFile(outputPath: sharedOptions.signaturesOutputPath)
   }
 
 }
