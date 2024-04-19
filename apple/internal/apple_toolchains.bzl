@@ -71,6 +71,9 @@ substitution, merging, and conversion of plist files to binary format.
 The files_to_run for a tool that extracts entitlements from a
 provisioning profile.
 """,
+        "signature_tool": """\
+The files_to_run for a tool that extracts signatures XML from an artifact.
+""",
         "swift_stdlib_tool": """\
 The files_to_run for a tool that copies and lipos Swift stdlibs required
 for the target to run.
@@ -125,6 +128,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
         plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
+        signature_tool = ctx.attr.signature_tool.files_to_run,
         swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
         xcframework_processor_tool = ctx.attr.xcframework_processor_tool.files_to_run,
         xctoolrunner = ctx.attr.xctoolrunner.files_to_run,
@@ -199,6 +203,13 @@ conversion of plist files to binary format.
             executable = True,
             doc = """
 A `File` referencing a tool that extracts entitlements from a provisioning profile.
+""",
+        ),
+        "signature_tool": attr.label(
+            cfg = "target",
+            executable = True,
+            doc = """
+A `File` referencing a tool that extracts signatures XML from an artifact.
 """,
         ),
         "swift_stdlib_tool": attr.label(
