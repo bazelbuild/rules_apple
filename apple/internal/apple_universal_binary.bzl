@@ -81,6 +81,7 @@ def _apple_universal_binary_impl(ctx):
     ]
 
 apple_universal_binary = rule_factory.create_apple_rule(
+    avoid_apple_exec_group_toolchain = True,
     cfg = transition_support.apple_universal_binary_rule_transition,
     doc = """
 This rule produces a multi-architecture ("fat") binary targeting Apple platforms.

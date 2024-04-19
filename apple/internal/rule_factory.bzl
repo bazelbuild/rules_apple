@@ -96,6 +96,7 @@ _CPP_LINK_EXEC_GROUP = "cpp_link"
 
 def _create_apple_rule(
         *,
+        avoid_apple_exec_group_toolchain = False,
         cfg,
         doc,
         implementation,
@@ -106,6 +107,8 @@ def _create_apple_rule(
     """Creates an Apple bundling rule with additional control of the set of rule attributes.
 
     Args:
+        avoid_apple_exec_group_toolchain: Boolean to determine if the rule should depend on the
+            Apple exec group toolchain.
         cfg: The rule transition to be applied directly on the generated rule.
         doc: The documentation string for the rule itself.
         implementation: The method to handle the implementation of the given rule. Optional. True
@@ -122,6 +125,18 @@ def _create_apple_rule(
     if predeclared_outputs:
         extra_args["outputs"] = predeclared_outputs
 
+    exec_groups = {
+        _CPP_LINK_EXEC_GROUP: exec_group(),
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
+    }
+
+    if not avoid_apple_exec_group_toolchain:
+        exec_groups = dicts.add(
+            exec_groups,
+            apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        )
+
     return rule(
         implementation = implementation,
         attrs = dicts.add(
@@ -130,15 +145,14 @@ def _create_apple_rule(
         cfg = cfg,
         doc = doc,
         executable = is_executable,
-        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-        exec_groups = dicts.add(
-            {
-                _CPP_LINK_EXEC_GROUP: exec_group(),
-                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
-            },
-            apple_toolchain_utils.use_apple_exec_group_toolchain(),
-        ),
-        fragments = ["apple", "cpp", "objc", "j2objc"],
+        exec_groups = exec_groups,
+        fragments = [
+            "apple",
+            "cpp",
+            "objc",
+            # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+            "j2objc",
+        ],
         toolchains = toolchains,
         **extra_args
     )
@@ -168,10 +182,10 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
-        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
         exec_groups = dicts.add(
             {
                 _CPP_LINK_EXEC_GROUP: exec_group(),
+                # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
                 _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
             },
             apple_toolchain_utils.use_apple_exec_group_toolchain(),
