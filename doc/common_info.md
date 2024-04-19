@@ -506,7 +506,7 @@ bazelrc_lines=()
 
 if [[ $OSTYPE == darwin* ]]; then
   xcode_path=$(xcode-select -p)
-  xcode_version=$(xcodebuild -version | tail -1 | cut -d " " -f3)
+  xcode_version=$(/usr/bin/xcodebuild -version 2>/dev/null | head -1 | cut -d " " -f2)
   xcode_build_number=$(/usr/bin/xcodebuild -version 2>/dev/null | tail -1 | cut -d " " -f3)
 
   bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")
