@@ -214,7 +214,7 @@ invocation appear to be valid.
 """.format(
             architecture = target_triplet.architecture,
             binary_imports = "\n".join([
-                str(f.path)
+                f.path
                 for f in xcframework.files_by_category.binary_imports
             ]),
             environment = target_triplet.environment,
@@ -243,12 +243,12 @@ invocation appear to be valid.
 
     if len(binary_imports) > 1:
         fail("""
-Internal Error: Unexpectedly found more than one candidate for a framework binary:
+Error: Unexpectedly found more than one candidate for a framework binary:
 
 {binary_imports}
 
-There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
-""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
+There should only be one valid framework binary, given a name that matches its XCFramework bundle.
+""".format(binary_imports = "\n".join([f.path for f in binary_imports])))
 
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
     header_imports = filter_by_library_identifier(files_by_category.header_imports)
@@ -461,7 +461,7 @@ def _collect_signature_from_xcframework(
         )
     else:
         fail("""
-Internal Error: Could not determine metadata needed to generate a Signatures XML file for the \
+Error: Could not determine metadata needed to generate a Signatures XML file for the \
 framework referenced by {label_name}.
 
 Found binary with path of {binary_path} that does not end with a static library archive .a or \

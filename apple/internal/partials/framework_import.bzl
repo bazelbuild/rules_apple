@@ -285,8 +285,8 @@ Internal Error: Found two potential root Info.plists to override in a codeless f
 Cannot determine which one is the canonical Info.plist for this framework. Please file an issue \
 with the Apple BUILD Rules.
 """.format(
-                    first_found_infoplist = str(original_root_infoplist),
-                    second_found_infoplist = str(potential_root_infoplist),
+                    first_found_infoplist = original_root_infoplist.path,
+                    second_found_infoplist = potential_root_infoplist.path,
                 ))
             original_root_infoplist = potential_root_infoplist
         else:
@@ -420,18 +420,18 @@ def _framework_import_partial_impl(
         existing_framework_binary = framework_binaries_by_framework.get(framework_basename)
         if existing_framework_binary and existing_framework_binary.short_path != file.short_path:
             fail("""
-Internal Error: Expected to find only one precompiled framework binary when processing deps for \
-the framework {framework_basename} referenced by {label_name}, but found the following instead:
+Error: Expected to find only one precompiled framework binary when processing deps for the \
+framework {framework_basename} referenced by {label_name}, but found the following instead:
 
 - {existing_framework_binary}
 
 - {latest_framework_binary}
 
-There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
+There should only be one valid framework binary.
 """.format(
-                existing_framework_binary = existing_framework_binary,
+                existing_framework_binary = existing_framework_binary.path,
                 framework_basename = framework_basename,
-                latest_framework_binary = file,
+                latest_framework_binary = file.path,
                 label_name = label_name,
             ))
 

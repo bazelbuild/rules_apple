@@ -166,12 +166,12 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if len(binary_imports) > 1:
         fail("""
-Internal Error: Unexpectedly found more than one candidate for a framework binary:
+Error: Unexpectedly found more than one candidate for a framework binary:
 
 {binary_imports}
 
-There should only be one valid framework binary. Please file an issue with the Apple BUILD Rules.
-""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
+There should only be one valid framework binary, given a name that matches its framework bundle.
+""".format(binary_imports = "\n".join([f.path for f in binary_imports])))
 
     # Create AppleFrameworkImportInfo provider.
     providers.append(framework_import_support.framework_import_info_with_dependencies(
@@ -273,12 +273,12 @@ def _apple_static_framework_import_impl(ctx):
 
     if len(binary_imports) > 1:
         fail("""
-Internal Error: Unexpectedly found more than one candidate for a framework static library archive:
+Error: Unexpectedly found more than one candidate for a framework static library archive:
 
 {binary_imports}
 
-There should only be one valid framework archive. Please file an issue with the Apple BUILD Rules.
-""".format(binary_imports = "\n".join([str(f) for f in binary_imports])))
+There should only be one valid framework binary, given a name that matches its framework bundle.
+""".format(binary_imports = "\n".join([f.path for f in binary_imports])))
 
     # Create AppleFrameworkImportInfo provider
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
