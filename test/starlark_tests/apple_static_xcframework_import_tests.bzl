@@ -61,6 +61,26 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify that if codesigned_xcframework_files is set and the input is an unsigned XCFramework,
+    # the signatures plist is written out with appropriate values.
+    archive_contents_test(
+        name = "{}_with_unsigned_xcframework_bundles_signatures_xml_plist".format(name),
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64", "arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_library",
+        contains = [
+            "$ARCHIVE_ROOT/Signatures/generated_static_xcframework_with_headers.xcframework-ios.signature",
+        ],
+        plist_test_file = "$ARCHIVE_ROOT/Signatures/generated_static_xcframework_with_headers.xcframework-ios.signature",
+        plist_test_values = {
+            "isSecureTimestamp": "false",
+            "metadata:library": "generated_static_xcframework_with_headers.a",
+            "metadata:platform": "ios",
+            "signed": "false",
+        },
+        tags = [name],
+    )
+
     # Verify ios_application with XCFramework with Swift static library dependency contains
     # Objective-C symbols, doesn't bundle XCFramework, and does bundle Swift standard libraries.
     archive_contents_test(

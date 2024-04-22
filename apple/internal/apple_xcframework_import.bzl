@@ -400,6 +400,102 @@ def _get_library_identifier(
 
     return None
 
+def _collect_signature_from_xcframework(
+        *,
+        actions,
+        apple_fragment,
+        apple_mac_toolchain_info,
+        binary,
+        codesigned_xcframework_imports,
+        label,
+        mac_exec_group,
+        platform_type,
+        xcode_config):
+    """Given codesigned_xcframework_imports produces a signatures XML plist for the archive.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        binary: The singular binary File to help us identify the library to report in metadata.
+        codesigned_xcframework_imports: A List of Files representing the complete XCFramework to
+            generate the signature XML plist from, representing its code signed status.
+        label: Label of the target being built.
+        mac_exec_group: The exec_group associated with apple_mac_toolchain.
+        platform_type: Platform to report in metadata.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+    Returns:
+        A File representing a generated signatures XML plist if one is necessary or None.
+    """
+    if not codesigned_xcframework_imports:
+        return None
+
+    args = actions.args()
+    args.add("collect-signatures")
+
+    xcframework_path = "{xcframework_path_without_extension}.xcframework".format(
+        xcframework_path_without_extension = binary.path.rsplit(".xcframework/", 1)[0],
+    )
+    args.add("--signatures-input-path", xcframework_path)
+
+    inputs = codesigned_xcframework_imports
+    signature_output = intermediates.file(
+        actions = actions,
+        file_name = "{xcframework_basename}-{platform_type}.signature".format(
+            platform_type = platform_type,
+            xcframework_basename = paths.basename(xcframework_path),
+        ),
+        target_name = label.name,
+        output_discriminator = "",
+    )
+    args.add("--signatures-output-path", signature_output.path)
+
+    args.add("--metadata-info", "platform={0}".format(platform_type))
+
+    library_path = ""
+    if binary.extension == "a":
+        library_path = binary.path
+    elif not binary.extension:
+        library_path = "{framework_path_without_extension}.framework".format(
+            framework_path_without_extension = binary.path.rsplit(".framework/", 1)[0],
+        )
+    else:
+        fail("""
+Internal Error: Could not determine metadata needed to generate a Signatures XML file for the \
+framework referenced by {label_name}.
+
+Found binary with path of {binary_path} that does not end with a static library archive .a or \
+resemble a binary within a framework bundle.
+
+Please file an issue with the Apple BUILD rules if the contents of the XCFramework and the build \
+invocation appear to be valid.
+""".format(
+            binary_path = binary.path,
+            label_name = label.name,
+        ))
+    args.add(
+        "--metadata-info",
+        "library={library_basename}".format(
+            library_basename = paths.basename(library_path),
+        ),
+    )
+
+    signature_tool = apple_mac_toolchain_info.signature_tool
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [args],
+        executable = signature_tool,
+        exec_group = mac_exec_group,
+        inputs = inputs,
+        mnemonic = "CollectXCFrameworkSignature",
+        outputs = [signature_output],
+        xcode_config = xcode_config,
+    )
+
+    return signature_output
+
 def _apple_dynamic_xcframework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
@@ -407,6 +503,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
+    codesigned_xcframework_imports = ctx.files.codesigned_xcframework_imports
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -444,12 +541,25 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         ),
     ]
 
+    signature_file = _collect_signature_from_xcframework(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        binary = xcframework_library.binary,
+        codesigned_xcframework_imports = codesigned_xcframework_imports,
+        label = label,
+        mac_exec_group = mac_exec_group,
+        platform_type = target_triplet.os,
+        xcode_config = xcode_config,
+    )
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         binary_imports = [xcframework_library.binary],
         build_archs = [target_triplet.architecture],
         bundling_imports = xcframework_library.framework_imports,
         deps = deps,
+        signature_files = [signature_file] if signature_file else [],
     )
     providers.append(apple_framework_import_info)
 
@@ -510,6 +620,7 @@ def _apple_static_xcframework_import_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
+    codesigned_xcframework_imports = ctx.files.codesigned_xcframework_imports
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -550,6 +661,18 @@ def _apple_static_xcframework_import_impl(ctx):
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
         providers.append(DefaultInfo(files = depset(xcframework_imports)))
 
+    signature_file = _collect_signature_from_xcframework(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        binary = xcframework_library.binary,
+        codesigned_xcframework_imports = codesigned_xcframework_imports,
+        label = label,
+        mac_exec_group = mac_exec_group,
+        platform_type = target_triplet.os,
+        xcode_config = xcode_config,
+    )
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
@@ -557,6 +680,7 @@ def _apple_static_xcframework_import_impl(ctx):
             xcframework.bundle_type == _BUNDLE_TYPE.frameworks
         ) else [],
         deps = deps,
+        signature_files = [signature_file] if signature_file else [],
     )
     providers.append(apple_framework_import_info)
 
@@ -629,13 +753,12 @@ through the `deps` attribute.
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
-            "xcframework_imports": attr.label_list(
-                allow_empty = False,
+            "codesigned_xcframework_imports": attr.label_list(
                 allow_files = True,
-                mandatory = True,
                 doc = """
-List of files under a .xcframework directory which are provided to Apple based targets that depend
-on this target.
+Optional List of code signed Files under an .xcframework directory which will be used to generate a
+"Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
+code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
 """,
             ),
             "deps": attr.label_list(
@@ -648,6 +771,15 @@ linked into that target.
                     [CcInfo, AppleFrameworkImportInfo],
                 ],
                 aspects = [swift_clang_module_aspect],
+            ),
+            "xcframework_imports": attr.label_list(
+                allow_empty = False,
+                allow_files = True,
+                mandatory = True,
+                doc = """
+List of files under a .xcframework directory which are provided to Apple based targets that depend
+on this target.
+""",
             ),
             "_cc_toolchain": attr.label(
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
@@ -694,6 +826,14 @@ on runtime checks for protocol conformances added in extensions in the library b
 reference any other symbols in the object file that adds that conformance.
 """,
             ),
+            "codesigned_xcframework_imports": attr.label_list(
+                allow_files = True,
+                doc = """
+Optional List of code signed Files under an .xcframework directory which will be used to generate a
+"Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
+code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
+""",
+            ),
             "deps": attr.label_list(
                 doc = """
 List of targets that are dependencies of the target being built, which will provide headers and be
@@ -709,11 +849,9 @@ linked into that target.
 A boolean indicating if the target has Swift source code. This helps flag XCFrameworks that do not
 include Swift interface files.
 """,
-                mandatory = False,
                 default = False,
             ),
             "linkopts": attr.string_list(
-                mandatory = False,
                 doc = """
 A list of strings representing extra flags that should be passed to the linker.
 """,
@@ -723,7 +861,7 @@ A list of strings representing extra flags that should be passed to the linker.
                 allow_files = True,
                 mandatory = True,
                 doc = """
-List of files under a .xcframework directory which are provided to Apple based targets that depend
+List of files under an .xcframework directory which are provided to Apple based targets that depend
 on this target.
 """,
             ),

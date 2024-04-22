@@ -370,6 +370,12 @@ def _framework_import_partial_impl(
         targets_to_avoid = targets_to_avoid,
     )
 
+    signature_files_to_bundle = _framework_provider_files_to_bundle(
+        field_name = "signature_files",
+        targets = targets,
+        targets_to_avoid = targets_to_avoid,
+    )
+
     # Collect the architectures that we are using for the build.
     build_archs_found = [
         build_arch
@@ -560,7 +566,25 @@ framework or a framework with mergeable libraries.
         )
         signed_frameworks_list.append(framework_basename)
 
+    # Process signature files separately; we'll grab only one per signature basename, avoiding
+    # conflicts when bundling the imported framework inputs from fat builds.
+    signature_files_by_basename = dict()
+    for signature_file in signature_files_to_bundle:
+        signature_basename = paths.basename(signature_file.path)
+        if signature_basename not in signature_files_by_basename:
+            signature_files_by_basename[signature_basename] = signature_file
+
+    if signature_files_by_basename:
+        bundle_files = [(
+            processor.location.archive,
+            "Signatures",
+            depset(signature_files_by_basename.values()),
+        )]
+    else:
+        bundle_files = []
+
     return struct(
+        bundle_files = bundle_files,
         bundle_zips = bundle_zips,
         signed_frameworks = depset(signed_frameworks_list),
     )

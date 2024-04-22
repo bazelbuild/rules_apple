@@ -296,31 +296,38 @@ def _libraries_to_link_for_static_framework(
 def _framework_import_info_with_dependencies(
         *,
         build_archs,
-        deps,
         binary_imports = [],
-        bundling_imports = []):
+        bundling_imports = [],
+        deps,
+        signature_files = []):
     """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs.
 
     Args:
         build_archs: List of supported architectures for the imported framework.
-        deps: List of transitive dependencies of the current target.
         binary_imports: List of files representing binaries to bundle for the imported framework.
         bundling_imports: List of files to bundle for the imported framework.
+        deps: List of transitive dependencies of the current target.
+        signature_files: List of files representing the generated signature XML files for the
+            framework if any were generated. An empty List if not.
     Returns:
         AppleFrameworkImportInfo provider.
     """
     transitive_binary_imports = [
         dep[AppleFrameworkImportInfo].binary_imports
         for dep in deps
-        if (AppleFrameworkImportInfo in dep and
-            hasattr(dep[AppleFrameworkImportInfo], "binary_imports"))
+        if AppleFrameworkImportInfo in dep
     ]
 
     transitive_bundling_imports = [
         dep[AppleFrameworkImportInfo].bundling_imports
         for dep in deps
-        if (AppleFrameworkImportInfo in dep and
-            hasattr(dep[AppleFrameworkImportInfo], "bundling_imports"))
+        if AppleFrameworkImportInfo in dep
+    ]
+
+    transitive_signature_files = [
+        dep[AppleFrameworkImportInfo].signature_files
+        for dep in deps
+        if AppleFrameworkImportInfo in dep
     ]
 
     return new_appleframeworkimportinfo(
@@ -332,6 +339,10 @@ def _framework_import_info_with_dependencies(
         bundling_imports = depset(
             bundling_imports,
             transitive = transitive_bundling_imports,
+        ),
+        signature_files = depset(
+            signature_files,
+            transitive = transitive_signature_files,
         ),
     )
 

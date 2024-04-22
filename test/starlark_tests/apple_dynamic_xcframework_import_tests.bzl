@@ -113,6 +113,26 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify that if codesigned_xcframework_files is set and the input is an unsigned XCFramework,
+    # the signatures plist is written out with appropriate values.
+    archive_contents_test(
+        name = "{}_with_unsigned_xcframework_bundles_signatures_xml_plist".format(name),
+        build_type = "device",
+        cpus = {"ios_multi_cpus": ["arm64", "arm64e"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        contains = [
+            "$ARCHIVE_ROOT/Signatures/generated_dynamic_xcframework_with_headers.xcframework-ios.signature",
+        ],
+        plist_test_file = "$ARCHIVE_ROOT/Signatures/generated_dynamic_xcframework_with_headers.xcframework-ios.signature",
+        plist_test_values = {
+            "isSecureTimestamp": "false",
+            "metadata:library": "generated_dynamic_xcframework_with_headers.framework",
+            "metadata:platform": "ios",
+            "signed": "false",
+        },
+        tags = [name],
+    )
+
     # Verify the correct XCFramework library was bundled and sliced for the required architecture.
     binary_contents_test(
         name = "{}_xcframework_binary_file_info_test_x86_64".format(name),

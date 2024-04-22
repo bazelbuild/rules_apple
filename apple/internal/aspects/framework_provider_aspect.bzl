@@ -40,7 +40,9 @@ def _framework_provider_aspect_impl(target, ctx):
 
     apple_framework_info = apple_provider.merge_apple_framework_import_info(apple_framework_infos)
 
-    if apple_framework_info.binary_imports or apple_framework_info.bundling_imports:
+    if (apple_framework_info.binary_imports or
+        apple_framework_info.bundling_imports or
+        apple_framework_info.signature_files):
         return [apple_framework_info]
     return []
 
