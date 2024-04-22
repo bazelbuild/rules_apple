@@ -243,6 +243,7 @@ IPA_ALLOWED_SUBDIRS = [
     'WatchKitSupport2',
     'MessagesApplicationExtensionSupport',
     'BCSymbolMaps',
+    'Signatures',
     'Symbols',
 ]
 
