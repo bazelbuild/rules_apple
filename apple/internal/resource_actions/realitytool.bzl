@@ -163,12 +163,15 @@ support if you have a project that desires this feature.
         direct_inputs.append(schema_file)
     args.add("--output-reality", xctoolrunner_support.prefixed_path(output_file.path))
 
+    execution_requirements = {}
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         exec_group = mac_exec_group,
         executable = xctoolrunner,
+        execution_requirements = execution_requirements,
         inputs = depset(direct_inputs, transitive = [input_files]),
         mnemonic = "CompileRealityKitAssets",
         outputs = [output_file],
