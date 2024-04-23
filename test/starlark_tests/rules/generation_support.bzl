@@ -423,12 +423,14 @@ def _copy_framework_library(
     # Copy and modify the rpaths in the binary for macOS versioned frameworks if this is a dynamic
     # framework.
     #
-    # For all other platforms and static frameworks, symlink the framework binary as is.
+    # Else just copy it, because xcodebuild's -create-xcframework fails to resolve symlinks to
+    # framework binaries.
+    cp_command = "cp {src} {dest}".format(
+        src = library.path,
+        dest = framework_binary.path,
+    )
+
     if ".framework/Versions/" in framework_directory and kind == "dynamic":
-        cp_command = "cp {src} {dest}".format(
-            src = library.path,
-            dest = framework_binary.path,
-        )
         install_name_tool_command = "install_name_tool -id {name} {file}".format(
             name = "@rpath/{name}.framework/Versions/{version}/{name}".format(
                 name = bundle_name,
@@ -448,9 +450,13 @@ def _copy_framework_library(
             ),
         )
     else:
-        actions.symlink(
-            output = framework_binary,
-            target_file = library,
+        apple_support.run_shell(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            xcode_config = xcode_config,
+            outputs = [framework_binary],
+            inputs = [library],
+            command = cp_command,
         )
 
     return framework_binary
