@@ -666,7 +666,9 @@ def _watchos_dynamic_framework_impl(ctx):
     providers = processor_result.providers
     additional_providers = []
     for provider in providers:
-        if type(provider) == "AppleDynamicFramework":
+        # HACK: this should be updated so we do not need to dynamically check the provider instance.
+        # See: https://github.com/bazelbuild/bazel/issues/22095
+        if hasattr(provider, "framework_files"):
             # Make the ObjC provider using the framework_files depset found
             # in the AppleDynamicFramework provider. This is to make the
             # watchos_dynamic_framework usable as a dependency in swift_library
@@ -1851,7 +1853,7 @@ This attribute is deprecated, please use `extensions` instead.
                 doc = """
 In case of single-target watchOS app, a list of watchOS application extensions to include in the final watch app bundle.
 
-In case of an extension-based watchOS app, a list with a single element, 
+In case of an extension-based watchOS app, a list with a single element,
 the watchOS 2 `watchos_extension` that is required to be bundled within a watchOS 2 app.
 """,
             ),
