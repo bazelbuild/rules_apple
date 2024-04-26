@@ -8,8 +8,8 @@ Defines rules for building Apple DocC targets.
 
 <pre>
 docc_archive(<a href="#docc_archive-name">name</a>, <a href="#docc_archive-default_code_listing_language">default_code_listing_language</a>, <a href="#docc_archive-dep">dep</a>, <a href="#docc_archive-diagnostic_level">diagnostic_level</a>, <a href="#docc_archive-enable_inherited_docs">enable_inherited_docs</a>,
-             <a href="#docc_archive-fallback_bundle_identifier">fallback_bundle_identifier</a>, <a href="#docc_archive-fallback_bundle_version">fallback_bundle_version</a>, <a href="#docc_archive-fallback_display_name">fallback_display_name</a>, <a href="#docc_archive-kinds">kinds</a>,
-             <a href="#docc_archive-transform_for_static_hosting">transform_for_static_hosting</a>)
+             <a href="#docc_archive-fallback_bundle_identifier">fallback_bundle_identifier</a>, <a href="#docc_archive-fallback_bundle_version">fallback_bundle_version</a>, <a href="#docc_archive-fallback_display_name">fallback_display_name</a>,
+             <a href="#docc_archive-hosting_base_path">hosting_base_path</a>, <a href="#docc_archive-kinds">kinds</a>, <a href="#docc_archive-transform_for_static_hosting">transform_for_static_hosting</a>)
 </pre>
 
 Builds a .doccarchive for the given dependency.
@@ -44,6 +44,7 @@ docc_archive(
 | <a id="docc_archive-fallback_bundle_identifier"></a>fallback_bundle_identifier |  A fallback bundle identifier if no value is provided in the documentation bundle's Info.plist file.   | String | required |  |
 | <a id="docc_archive-fallback_bundle_version"></a>fallback_bundle_version |  A fallback bundle version if no value is provided in the documentation bundle's Info.plist file.   | String | required |  |
 | <a id="docc_archive-fallback_display_name"></a>fallback_display_name |  A fallback display name if no value is provided in the documentation bundle's Info.plist file.   | String | required |  |
+| <a id="docc_archive-hosting_base_path"></a>hosting_base_path |  The base path your documentation website will be hosted at. For example, to deploy your site to 'example.com/my_name/my_project/documentation' instead of 'example.com/documentation', pass '/my_name/my_project' as the base path..   | String | optional |  `""`  |
 | <a id="docc_archive-kinds"></a>kinds |  The kinds of entities to filter generated documentation for.   | List of strings | optional |  `[]`  |
 | <a id="docc_archive-transform_for_static_hosting"></a>transform_for_static_hosting |  -   | Boolean | optional |  `True`  |
 
