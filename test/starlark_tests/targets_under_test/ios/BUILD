@@ -4924,6 +4924,15 @@ docc_archive(
     fallback_display_name = "BasicFramework",
 )
 
+docc_archive(
+    name = "basic_framework_with_docc_bundle_custom_base_path.doccarchive",
+    dep = ":basic_framework_with_docc_bundle",
+    fallback_bundle_identifier = "com.google.example.framework",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "BasicFramework",
+    hosting_base_path = "custom/base/path",
+)
+
 # ---------------------------------------------------------------------------------------
 # Target for extension resource bundling.
 

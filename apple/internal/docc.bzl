@@ -48,6 +48,7 @@ def _docc_archive_impl(ctx):
     fallback_bundle_identifier = ctx.attr.fallback_bundle_identifier
     fallback_bundle_version = ctx.attr.fallback_bundle_version
     fallback_display_name = ctx.attr.fallback_display_name
+    hosting_base_path = ctx.attr.hosting_base_path
     kinds = ctx.attr.kinds
     platform = ctx.fragments.apple.single_arch_platform
     transform_for_static_hosting = ctx.attr.transform_for_static_hosting
@@ -91,6 +92,8 @@ def _docc_archive_impl(ctx):
         arguments.add_all("--kind", kinds)
     if transform_for_static_hosting:
         arguments.add("--transform-for-static-hosting")
+    if hosting_base_path:
+        arguments.add("--hosting-base-path", hosting_base_path)
 
     # Add symbol graphs
     if symbol_graphs_info:
@@ -224,6 +227,10 @@ Must be one of "error", "warning", "information", or "hint"
             "fallback_display_name": attr.string(
                 doc = "A fallback display name if no value is provided in the documentation bundle's Info.plist file.",
                 mandatory = True,
+            ),
+            "hosting_base_path": attr.string(
+                doc = "The base path your documentation website will be hosted at. For example, to deploy your site to 'example.com/my_name/my_project/documentation' instead of 'example.com/documentation', pass '/my_name/my_project' as the base path.",
+                mandatory = False,
             ),
             "kinds": attr.string_list(
                 doc = "The kinds of entities to filter generated documentation for.",
