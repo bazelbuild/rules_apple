@@ -229,7 +229,7 @@ Must be one of "error", "warning", "information", or "hint"
                 mandatory = True,
             ),
             "hosting_base_path": attr.string(
-                doc = "The base path your documentation website will be hosted at. For example, to deploy your site to 'example.com/my_name/my_project/documentation' instead of 'example.com/documentation', pass '/my_name/my_project' as the base path..",
+                doc = "The base path your documentation website will be hosted at. For example, to deploy your site to 'example.com/my_name/my_project/documentation' instead of 'example.com/documentation', pass '/my_name/my_project' as the base path.",
                 mandatory = False,
             ),
             "kinds": attr.string_list(
