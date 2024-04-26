@@ -90,6 +90,23 @@ def docc_test_suite(name):
         tags = [name],
     )
 
+    # Verify hosting_base_path support.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_with_docc_bundle_when_ios_framework_with_hosting_base_path".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_docc_bundle_custom_base_path.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/basicframework/readme/index.html",
+        ],
+        text_file_not_contains = [],
+        text_test_file = "$BUNDLE_ROOT/index.html",
+        text_test_values = [
+            "<script src=\"/custom/base/path/js/",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
