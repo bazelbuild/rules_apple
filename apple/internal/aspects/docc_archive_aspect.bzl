@@ -79,7 +79,7 @@ def _docc_bundle_info_aspect_impl(target, ctx):
         first_docc_bundle = _first_docc_bundle(target, ctx)
         if first_docc_bundle:
             return [DocCBundleInfo(bundle = first_docc_bundle)]
-    elif hasattr(ctx.rule.attr, "deps"):
+    if hasattr(ctx.rule.attr, "deps"):
         # If this target has "deps", try to find a DocCBundleInfo provider in its deps.
         for dep in ctx.rule.attr.deps:
             if DocCBundleInfo in dep:
