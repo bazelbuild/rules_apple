@@ -834,9 +834,6 @@ tvos_static_framework(
     hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -847,9 +844,6 @@ tvos_static_framework(
 tvos_static_framework(
     name = "swift_static_fmwk",
     bundle_name = "swift_static_fmwk",
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [":swift_fmwk_lib"],
