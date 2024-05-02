@@ -206,7 +206,7 @@ A `File` referencing a tool that extracts entitlements from a provisioning profi
 """,
         ),
         "signature_tool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that extracts signatures XML from an artifact.
