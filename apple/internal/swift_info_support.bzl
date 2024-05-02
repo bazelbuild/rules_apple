@@ -82,8 +82,8 @@ def _swift_include_info(
         if swift_module or (found_module_name and module.name != found_module_name):
             fail(
                 """\
-Error: Swift third party frameworks expect a single swift_library dependency with no transitive \
-swift_library dependencies.\
+Error: Swift third party frameworks expect a single swift_library dependency with \
+library_evolution = True and no transitive swift_library dependencies.\
 """,
             )
 
@@ -91,7 +91,7 @@ swift_library dependencies.\
             fail(
                 """\
 Error: Could not find all required artifacts and information to build a Swift framework. \
-Please file an issue with a reproducible error case.\
+Please make sure you have a single swift_library dependency with library_evolution = True.\
 """,
             )
 
