@@ -117,6 +117,10 @@ the binary directly at analysis time; for example, for code coverage.
         "bundle_name": """
 `String`. The name of the bundle, without the extension.
 """,
+        "device_families": """
+`List` of `String`s. Device families supported by the target being built (i.e. `["iphone", "ipad"]`
+for iOS bundles that support iPhones and iPad target devices).
+""",
         "entitlements": "`File`. Entitlements file used to codesign, if any.",
         "extension_safe": """
 `Boolean`. True if the target propagating this provider was

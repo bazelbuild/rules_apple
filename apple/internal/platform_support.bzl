@@ -154,7 +154,7 @@ def _platform_prerequisites(
         build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
-        device_families = device_families,
+        device_families = sorted(device_families) if device_families else None,
         minimum_os = explicit_minimum_os,
         platform = platform,
         platform_type = platform_type_attr,

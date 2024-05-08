@@ -2690,7 +2690,6 @@ ios_ui_test(
     name = "ui_test",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2709,7 +2708,6 @@ ios_ui_test(
     bundle_id = "my.test.bundle.id",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2746,7 +2744,6 @@ ios_ui_test(
     name = "ui_test_multiple_infoplists",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2765,7 +2762,6 @@ ios_ui_test(
     name = "ui_test_with_fmwk",
     families = [
         "iphone",
-        "ipad",
     ],
     frameworks = [
         ":fmwk",
@@ -2786,7 +2782,6 @@ ios_ui_test(
     name = "ui_test_dummy_runner",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2806,7 +2801,6 @@ ios_unit_test(
     name = "unit_test",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2829,7 +2823,6 @@ ios_unit_test(
     bundle_id = "my.test.bundle.id",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2866,7 +2859,6 @@ ios_unit_test(
     name = "unit_test_multiple_infoplists",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2885,7 +2877,6 @@ ios_unit_test(
     name = "unit_test_no_host",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -2978,7 +2969,6 @@ ios_unit_test(
     name = "unit_test_dummy_runner",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -3000,7 +2990,6 @@ ios_unit_test(
     name = "unit_test_with_swift_deps",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -3861,7 +3850,6 @@ ios_ui_test(
     bundle_id_suffix = "ui-test-with-base-bundle-id-derived-bundle-id",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -3881,7 +3869,6 @@ ios_unit_test(
     bundle_id_suffix = "unit-test-with-base-bundle-id-derived-bundle-id",
     families = [
         "iphone",
-        "ipad",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",

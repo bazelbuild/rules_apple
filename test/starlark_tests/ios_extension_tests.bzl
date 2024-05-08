@@ -135,7 +135,8 @@ def ios_extension_test_suite(name):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_ios.baseline,
-            "UIDeviceFamily:0": "1",
+            "UIDeviceFamily:0": "2",
+            "UIDeviceFamily:1": "1",
         },
         tags = [name],
     )

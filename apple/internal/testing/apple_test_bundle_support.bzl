@@ -95,6 +95,10 @@ visibility("//apple/...")
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
 
+# Suffix given by the test assembler to identify test bundles; these should be stripped from user-
+# visible error messaging.
+_TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
+
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
     transitive_files = []
@@ -318,6 +322,30 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
+
+    if test_host and (
+        platform_prerequisites.device_families != test_host[AppleBundleInfo].device_families
+    ):
+        test_bundle_label_no_internal = str(label).rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+        test_bundle_label_name_no_internal = label.name.rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("""
+WARNING: The test at {test_label} does not support the exact same device families as its test host \
+at {test_host_label}. These must match for correctness.
+
+{test_label_name} declares "families" of {test_families}
+{test_host_label_name} declares "families" of {test_host_families}
+""".format(
+            test_families = platform_prerequisites.device_families,
+            test_host_families = test_host[AppleBundleInfo].device_families,
+            test_label = test_bundle_label_no_internal,
+            test_label_name = test_bundle_label_name_no_internal,
+            test_host_label = str(test_host.label),
+            test_host_label_name = test_host.label.name,
+        ))
+
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
