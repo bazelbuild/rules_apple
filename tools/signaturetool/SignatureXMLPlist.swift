@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import OrderedPlistEncoder
 import tools_signaturetool_signature_info
 
 /// Converts a SignatureInfo data structure into an appropriate signatures XML plist file for an
@@ -29,11 +30,7 @@ public struct SignatureXMLPlist {
   }
 
   public init(signatureInfo: SignatureInfo) throws {
-    // TODO(b/304829417): Replace the use of PropertyListEncoder to write out an XML plist with an
-    // XML serializer that will sort keys in a stable, ordered fashion. One candidate is the macOS
-    // Foundation XMLDocument API, given options fully describing the format of an XML plist.
-    let plistEncoder = PropertyListEncoder()
-    plistEncoder.outputFormat = .xml
+    let plistEncoder = OrderedPlistEncoder(options: .prettyPrinted)
 
     guard let plistFileData = try? plistEncoder.encode(signatureInfo) else {
       throw Error.plistEncodingFailed
