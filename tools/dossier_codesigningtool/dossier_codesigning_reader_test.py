@@ -29,33 +29,33 @@ from build_bazel_rules_apple.tools.dossier_codesigningtool import dossier_codesi
 
 
 _FAKE_MANIFEST = {
-    'codesign_identity': '-',
+    'codesign_identity': 'Fake Identity',
     'embedded_bundle_manifests': [
         {
-            'codesign_identity': '-',
+            'codesign_identity': 'Fake Identity',
             'embedded_bundle_manifests': [],
             'embedded_relative_path': 'Extensions/AppIntentsExtension.appex',
             'entitlements': 'fake.entitlements',
-            'provisioning_profile': 'fake.mobileprovision'
+            'provisioning_profile': 'fake.mobileprovision',
         },
         {
-            'codesign_identity': '-',
+            'codesign_identity': 'Fake Identity',
             'embedded_bundle_manifests': [],
             'embedded_relative_path': 'PlugIns/IntentsExtension.appex',
             'entitlements': 'fake.entitlements',
-            'provisioning_profile': 'fake.mobileprovision'
+            'provisioning_profile': 'fake.mobileprovision',
         },
         {
-            'codesign_identity': '-',
+            'codesign_identity': 'Fake Identity',
             'embedded_bundle_manifests': [],
             'embedded_relative_path': 'PlugIns/IntentsUIExtension.appex',
             'entitlements': 'fake.entitlements',
-            'provisioning_profile': 'fake.mobileprovision'
+            'provisioning_profile': 'fake.mobileprovision',
         },
         {
-            'codesign_identity': '-',
+            'codesign_identity': 'Fake Identity',
             'embedded_bundle_manifests': [{
-                'codesign_identity': '-',
+                'codesign_identity': 'Fake Identity',
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': 'PlugIns/WatchExtension.appex',
                 'entitlements': 'fake.entitlements',
@@ -91,10 +91,13 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_MANIFEST,
         dossier_directory_path='/tmp/dossier/',
-        codesign_path='/usr/bin/fake_codesign',
-        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+            codesign_path='/usr/bin/fake_codesign',
+            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        ),
         override_codesign_identity='-',
-        allowed_entitlements=None)
+        allowed_entitlements=None,
+    )
 
     self.assertEqual(mock_codesign.call_count, 6)
     actual_paths = [
@@ -147,27 +150,119 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         actual_paths.index('/tmp/fake.app/'),
     )
 
-  @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
+  @mock.patch.object(dossier_codesigning_reader, '_execute_and_filter_output')
   def test_sign_adhoc_simple_bundle_with_manifest_codesign_invocations(
-      self, mock_codesign
+      self, execute_and_filter_output
   ):
     mock.patch('shutil.copy').start()
     dossier_codesigning_reader._sign_bundle_with_manifest(
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_SIMPLE_MANIFEST_NO_PROFILE,
         dossier_directory_path='/tmp/dossier/',
-        codesign_path='/usr/bin/fake_codesign',
-        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+            codesign_path='/usr/bin/fake_codesign',
+            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        ),
         override_codesign_identity='-',
-        allowed_entitlements=None)
-    self.assertEqual(mock_codesign.call_count, 1)
-    actual_paths = [
-        mock_codesign.call_args_list[0][1]['full_path_to_sign'],
-    ]
-    expected_paths = [
-        '/tmp/fake.app/',
-    ]
-    self.assertSetEqual(set(actual_paths), set(expected_paths))
+        allowed_entitlements=None,
+    )
+    execute_and_filter_output.assert_called_with(
+        [
+            '/usr/bin/fake_codesign',
+            '-v',
+            '--sign',
+            '-',
+            '--force',
+            '--timestamp=none',  # Simulator/Adhoc signing can't use timestamps.
+            '--keychain',
+            '/tmp/Library/Keychains/ios-dev-signing.keychain',
+            '/tmp/fake.app/',
+        ],
+        filtering=mock.ANY,
+        custom_env=mock.ANY,
+        print_output=True,
+    )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='timestamp_no_value',
+          timestamp_flag='--timestamp',
+      ),
+      dict(
+          testcase_name='timestamp_set_to_none',
+          timestamp_flag='--timestamp=none',
+      ),
+      dict(
+          testcase_name='timestamp_set_to_myserver',
+          timestamp_flag='--timestamp=myserver',
+      ),
+      dict(
+          testcase_name='timestamp_set_to_apple_explicit',
+          timestamp_flag='--timestamp=http://timestamp.apple.com/ts01 ',
+      ),
+  )
+  @mock.patch.object(
+      dossier_codesigning_reader, '_fetch_preferred_signing_identity'
+  )
+  @mock.patch.object(dossier_codesigning_reader, '_execute_and_filter_output')
+  @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
+  @mock.patch.object(
+      dossier_codesigning_reader, 'extract_zipped_dossier_if_required'
+  )
+  def test_sign_simple_bundle_with_codesign_invocations(
+      self,
+      mock_extract_dossier,
+      mock_read_manifest,
+      execute_and_filter_output,
+      mock_fetch_preferred_signing_identity,
+      timestamp_flag,
+  ):
+    with tempfile.NamedTemporaryFile() as tmp_fake_codesign, tempfile.NamedTemporaryFile(
+        suffix='.zip'
+    ) as tmp_dossier_zip, tempfile.TemporaryDirectory(
+        suffix='.app'
+    ) as tmp_app_bundle:
+
+      mock_read_manifest.return_value = _FAKE_MANIFEST
+      mock_extract_dossier.return_value = (
+          dossier_codesigning_reader.DossierDirectory('/tmp/dossier/', False)
+      )
+      mock_fetch_preferred_signing_identity.return_value = 'Fake Identity'
+
+      args = dossier_codesigning_reader.generate_arg_parser().parse_args(
+          [
+              'sign',
+              '--codesign',
+              tmp_fake_codesign.name,
+              '--dossier',
+              tmp_dossier_zip.name,
+              '--keychain',
+              _ADDITIONAL_SIGNING_KEYCHAIN,
+              tmp_app_bundle,
+              timestamp_flag,
+          ],
+      )
+      args.func(args)
+
+      execute_and_filter_output.assert_called_with(
+          [
+              tmp_fake_codesign.name,
+              '-v',
+              '--sign',
+              'Fake Identity',
+              '--force',
+              timestamp_flag,
+              '--entitlements',
+              '/tmp/dossier/fake.entitlements',
+              '--generate-entitlement-der',
+              '--keychain',
+              '/tmp/Library/Keychains/ios-dev-signing.keychain',
+              os.path.realpath(os.path.expanduser(tmp_app_bundle)),
+          ],
+          filtering=mock.ANY,
+          custom_env=mock.ANY,
+          print_output=True,
+      )
 
   @mock.patch.object(
       dossier_codesigning_reader, '_generate_entitlements_for_signing'
@@ -182,10 +277,13 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         root_bundle_path='/tmp/fake.app/',
         manifest=_FAKE_MANIFEST,
         dossier_directory_path='/tmp/dossier/',
-        codesign_path='/usr/bin/fake_codesign',
-        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+            codesign_path='/usr/bin/fake_codesign',
+            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        ),
         override_codesign_identity='-',
-        allowed_entitlements=['test-an-entitlement'])
+        allowed_entitlements=['test-an-entitlement'],
+    )
 
     self.assertEqual(mock_codesign.call_count, 6)
     self.assertEqual(mock_gen_entitlements.call_count, 6)
@@ -258,39 +356,44 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           root_bundle_path='/tmp/fake.app/',
           manifest=fake_manifest,
           dossier_directory_path='/tmp/dossier/',
-          signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-          codesign_path='/usr/bin/fake_codesign',
-          allowed_entitlements=None)
+          codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          allowed_entitlements=None,
+      )
 
   @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
   def test_sign_embedded_bundles_with_manifest(self, mock_sign_bundle):
     mock_sign_bundle.return_value = concurrent.futures.Future()
-    executor = concurrent.futures.ThreadPoolExecutor()
     futures = dossier_codesigning_reader._sign_embedded_bundles_with_manifest(
         manifest=_FAKE_MANIFEST,
         root_bundle_path='/tmp/fake.app/',
         dossier_directory_path='/tmp/dossier/',
-        codesign_path='/usr/bin/fake_codesign',
+        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+            codesign_path='/usr/bin/fake_codesign',
+            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        ),
         allowed_entitlements=None,
-        signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
         codesign_identity='-',
-        executor=executor)
+    )
     dossier_codesigning_reader._wait_signing_futures(futures)
     self.assertEqual(len(futures), 4)
     self.assertEqual(mock_sign_bundle.call_count, 4)
     default_args = (
         '/tmp/dossier/',
-        '/usr/bin/fake_codesign',
+        dossier_codesigning_reader.CodesignStaticParamsArgs(
+            codesign_path='/usr/bin/fake_codesign',
+            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        ),
         None,
-        _ADDITIONAL_SIGNING_KEYCHAIN,
         '-',
-        executor,
     )
     mock_sign_bundle.assert_has_calls([
         mock.call(
             '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
             {
-                'codesign_identity': '-',
+                'codesign_identity': 'Fake Identity',
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': (
                     'Extensions/AppIntentsExtension.appex'
@@ -298,43 +401,47 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
                 'entitlements': 'fake.entitlements',
                 'provisioning_profile': 'fake.mobileprovision',
             },
-            *default_args),
+            *default_args,
+        ),
         mock.call(
             '/tmp/fake.app/PlugIns/IntentsExtension.appex',
             {
-                'codesign_identity': '-',
+                'codesign_identity': 'Fake Identity',
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': 'PlugIns/IntentsExtension.appex',
                 'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision'
+                'provisioning_profile': 'fake.mobileprovision',
             },
-            *default_args),
+            *default_args,
+        ),
         mock.call(
             '/tmp/fake.app/PlugIns/IntentsUIExtension.appex',
             {
-                'codesign_identity': '-',
+                'codesign_identity': 'Fake Identity',
                 'embedded_bundle_manifests': [],
                 'embedded_relative_path': 'PlugIns/IntentsUIExtension.appex',
                 'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision'
+                'provisioning_profile': 'fake.mobileprovision',
             },
-            *default_args),
+            *default_args,
+        ),
         mock.call(
             '/tmp/fake.app/Watch/WatchApp.app',
             {
-                'codesign_identity': '-',
+                'codesign_identity': 'Fake Identity',
                 'embedded_bundle_manifests': [{
-                    'codesign_identity': '-',
+                    'codesign_identity': 'Fake Identity',
                     'embedded_bundle_manifests': [],
                     'embedded_relative_path': 'PlugIns/WatchExtension.appex',
                     'entitlements': 'fake.entitlements',
-                    'provisioning_profile': 'fake.mobileprovision'
+                    'provisioning_profile': 'fake.mobileprovision',
                 }],
                 'embedded_relative_path': 'Watch/WatchApp.app',
                 'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision'
+                'provisioning_profile': 'fake.mobileprovision',
             },
-            *default_args),
+            *default_args,
+        ),
     ])
 
   @mock.patch('shutil.copy')
@@ -402,25 +509,36 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
     mock_future_exception.cancel.assert_not_called()
     mock_future_done.cancel.assert_not_called()
 
-  @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
+  @mock.patch.object(
+      dossier_codesigning_reader, '_fetch_preferred_signing_identity'
+  )
+  @mock.patch.object(dossier_codesigning_reader, '_execute_and_filter_output')
+  @mock.patch.object(
+      dossier_codesigning_reader, '_copy_embedded_provisioning_profile'
+  )
   @mock.patch.object(dossier_codesigning_reader, 'read_manifest_from_dossier')
-  @mock.patch.object(dossier_codesigning_reader,
-                     'extract_zipped_dossier_if_required')
+  @mock.patch.object(
+      dossier_codesigning_reader, 'extract_zipped_dossier_if_required'
+  )
   def test_app_bundle_inputs(
       self,
       mock_extract_dossier,
       mock_read_manifest,
-      mock_sign_bundle):
+      copy_embedded_provisioning_profile,
+      execute_and_filter_output,
+      mock_fetch_preferred_signing_identity,
+  ):
     with tempfile.NamedTemporaryFile() as tmp_fake_codesign, \
         tempfile.NamedTemporaryFile(suffix='.zip') as tmp_dossier_zip, \
             tempfile.TemporaryDirectory(suffix='.app') as tmp_app_bundle:
 
-      dossier_dir = (
-          dossier_codesigning_reader.DossierDirectory('/tmp/dossier/', False)
+      dossier_dir = dossier_codesigning_reader.DossierDirectory(
+          '/tmp/dossier/', False
       )
 
       mock_read_manifest.return_value = _FAKE_MANIFEST
       mock_extract_dossier.return_value = dossier_dir
+      mock_fetch_preferred_signing_identity.return_value = 'Fake Identity'
 
       required_args = [
           'sign',
@@ -440,13 +558,27 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
       tmp_app_bundle_fullpath = os.path.realpath(
           os.path.expanduser(tmp_app_bundle))
 
-      mock_sign_bundle.assert_called_with(
+      copy_embedded_provisioning_profile.assert_called_with(
+          '/tmp/dossier/fake.mobileprovision',
           tmp_app_bundle_fullpath,
-          _FAKE_MANIFEST,
-          dossier_dir.path,
-          tmp_fake_codesign.name,
-          None,
-          _ADDITIONAL_SIGNING_KEYCHAIN,
+      )
+      execute_and_filter_output.assert_called_with(
+          [
+              tmp_fake_codesign.name,
+              '-v',
+              '--sign',
+              'Fake Identity',
+              '--force',
+              '--entitlements',
+              '/tmp/dossier/fake.entitlements',
+              '--generate-entitlement-der',
+              '--keychain',
+              '/tmp/Library/Keychains/ios-dev-signing.keychain',
+              tmp_app_bundle_fullpath,
+          ],
+          filtering=mock.ANY,
+          custom_env=mock.ANY,
+          print_output=True,
       )
 
   @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
@@ -493,9 +625,11 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           tmp_app_bundle,
           _FAKE_MANIFEST,
           dossier_dir.path,
-          tmp_fake_codesign.name,
+          dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path=tmp_fake_codesign.name,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
           None,
-          _ADDITIONAL_SIGNING_KEYCHAIN,
       )
       mock_package.assert_called_once()
 
@@ -541,9 +675,11 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           tmp_app_bundle,
           _FAKE_MANIFEST,
           os.path.join(temp_path, 'dossier'),
-          tmp_fake_codesign.name,
+          dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path=tmp_fake_codesign.name,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
           None,
-          _ADDITIONAL_SIGNING_KEYCHAIN,
       )
       mock_package.assert_called_once()
 
