@@ -46,7 +46,7 @@ def _boot_simulator(simulator_id: str) -> None:
             print(f"Not ignoring failure: {e.returncode}", file=sys.stderr)
             raise
     # Add more arbitrary delay before tests run. Even bootstatus doesn't wait
-    # long enough and tests can still fail because the simulator isn't read
+    # long enough and tests can still fail because the simulator isn't ready
     time.sleep(3)
 
 
