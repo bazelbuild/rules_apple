@@ -57,6 +57,7 @@ To use this script with a dossier directly within an extracted ipa's app bundle:
 """
 
 import argparse
+import atexit
 import collections
 import concurrent.futures
 import dataclasses
@@ -216,6 +217,15 @@ SigningFuture = collections.namedtuple('SigningFuture', ['future', 'note'])
 
 # Used to execute signing tasks. (see _submit_future and _wait_signing_futures)
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor()
+
+
+# Required cleanup when the Executor is allocated outside a with statement.
+# See https://github.com/pylint-dev/pylint/issues/4689#issuecomment-882672694
+def _complete_signing_tasks() -> None:
+  _EXECUTOR.shutdown()
+
+
+atexit.register(_complete_signing_tasks)
 
 
 def _submit_future(note, function, *args, **kwargs) -> SigningFuture:
