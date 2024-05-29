@@ -30,7 +30,15 @@ swift_binary(
     ],
     target_compatible_with = ["@platforms//os:macos"],
     deps = [
+        ":validate_library_identifier",
         ":validate_root_info_plist_options",
+    ],
+)
+
+swift_library(
+    name = "validate_library_identifier",
+    srcs = [
+        "ValidateLibraryIdentifier.swift",
     ],
 )
 

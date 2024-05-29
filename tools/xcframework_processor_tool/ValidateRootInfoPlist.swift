@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import tools_xcframework_processor_tool_validate_library_identifier
 import tools_xcframework_processor_tool_validate_root_info_plist_options
 
 /// XCFrameworkProcessorTool invocation that validates the root Info.plist matches earlier
@@ -24,11 +25,20 @@ public struct ValidateRootInfoPlist: ParsableCommand {
   public init() {}
 
   public func run() throws {
-    // TODO(b/336345916): Implement the three sequences to be run in this validation tool:
-    //
-    // - Check that the XCFramework version key is in the given Info.plist
-    // - Attempt to retrieve the library identifier for the incoming args given the Info.plist
-    // - Make sure that the library identifier retrieved matches the one determined at analysis time
+    // Setup the structures needed for validation.
+    let validateLibraryIdentifier = ValidateLibraryIdentifier(
+      architecture: sharedOptions.architecture,
+      bundleName: sharedOptions.bundleName,
+      environment: sharedOptions.environment,
+      libraryIdentifier: sharedOptions.libraryIdentifier,
+      platform: sharedOptions.platform,
+      rootInfoPlist: sharedOptions.infoPlistInputPath)
+
+    // Check that the library identifier matches expectations.
+    try validateLibraryIdentifier.validate()
+
+    // Signal to the build via the validation output group file output that validation succeeded.
+    try "Success!".write(to: sharedOptions.outputPath, atomically: true, encoding: .utf8)
   }
 
 }
