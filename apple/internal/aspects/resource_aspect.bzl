@@ -139,7 +139,7 @@ def _apple_resource_aspect_impl(target, ctx):
         if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
             owner = str(ctx.label)
 
-    elif ctx.rule.kind == "objc_import":
+    elif ctx.rule.kind in ["cc_import", "objc_import"]:
         collect_args["res_attrs"] = ["data"]
 
     elif ctx.rule.kind == "swift_library":
@@ -164,6 +164,14 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_structured_args["res_attrs"] = ["structured_resources"]
         process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
+
+    elif ctx.rule.kind == "cc_library":
+        collect_args["res_attrs"] = ["data"]
+
+        # Only set cc_library targets as owners if they have srcs or deps. This
+        # treats cc_library targets without sources as resource aggregators.
+        if ctx.rule.attr.srcs or ctx.rule.attr.deps:
+            owner = str(ctx.label)
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:

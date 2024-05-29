@@ -2907,3 +2907,58 @@ macos_unit_test(
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets to test resource processing with C/C++ rules.
+
+macos_application(
+    name = "app_with_cc_library_data",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:cc_lib_with_data",
+    ],
+)
+
+macos_application(
+    name = "app_with_cc_import_data",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:cc_lib_with_cc_import_with_data",
+    ],
+)
+
+macos_application(
+    name = "app_with_cc_library_structured_resources",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:cc_lib_with_structured_resources",
+    ],
+)
+
+macos_application(
+    name = "app_with_cc_import_structured_resources",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:cc_lib_with_cc_import_with_structured_resources",
+    ],
+)
