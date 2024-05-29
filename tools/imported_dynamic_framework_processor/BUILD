@@ -17,9 +17,7 @@ py_library(
     name = "imported_dynamic_framework_processor_lib",
     srcs = ["imported_dynamic_framework_processor.py"],
     srcs_version = "PY3",
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
+    visibility = ["//visibility:private"],
     deps = [
         "//tools/codesigningtool:codesigningtool_lib",
         "//tools/wrapper_common:execute",
