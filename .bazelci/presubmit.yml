@@ -15,7 +15,10 @@ x_defaults:
     test_flags:
     - --test_tag_filters=-skipci
   common_last_green: &common_last_green
-    bazel: last_green
+    # TODO: switch back to last_green once the breakage from
+    # https://github.com/bazelbuild/bazel/commit/8e783b065c66c005db26d85e9ec6e8e28c42b2f2
+    # is fixed.
+    bazel: fbdae6f28afda0131213dbb42cc80ee3515f7f8c
     test_flags:
       - --test_tag_filters=-skipci
 
