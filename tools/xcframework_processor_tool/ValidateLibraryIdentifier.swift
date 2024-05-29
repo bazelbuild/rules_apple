@@ -177,13 +177,15 @@ public struct ValidateLibraryIdentifier {
             libraryIndex: libraryIndex)
         }
 
-        // If we're looking for a "device" environment, no SupportedPlatformVariant key will be
-        // supplied by this particular instance of "AvailableLibraries".
-        if self.environment != "device" && self.environment != supportedEnvironment {
-          continue
-        } else if self.environment == "device" {
+        if self.environment != supportedEnvironment {
           continue
         }
+      } else if self.environment != "device" {
+        // If we are looking for a non-"device" environment, the SupportedPlatformVariant key HAS to
+        // be defined for the available library to match. Therefore, in all instances where the
+        // SupportedPlatformVariant is not defined, we assume the available library is for the
+        // "device" environment as we have defined it in the Apple BUILD rules.
+        continue
       }
 
       return libraryIdentifier
