@@ -6,7 +6,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
-        "//apple/internal:__pkg__",
+        "//apple/internal/toolchains:__pkg__",
     ],
     deps = [
         "//tools/imported_dynamic_framework_processor:imported_dynamic_framework_processor_lib",

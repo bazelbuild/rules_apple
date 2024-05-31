@@ -38,10 +38,6 @@ load(
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -72,6 +68,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
     "AppleResourceValidationInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_swift//swift:module_name.bzl",

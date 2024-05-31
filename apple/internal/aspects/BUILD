@@ -43,7 +43,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:apple_toolchains",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
         "//apple/internal:resources",
@@ -52,6 +51,7 @@ bzl_library(
         "//apple/internal/providers:apple_resource_hint_info",
         "//apple/internal/providers:apple_resource_swift_srcs_info",
         "//apple/internal/providers:apple_resource_validation_info",
+        "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",

@@ -44,10 +44,6 @@ load(
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
@@ -70,6 +66,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",

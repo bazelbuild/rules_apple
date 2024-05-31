@@ -1,0 +1,74 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
+    "//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_mac_tools_toolchain",
+    "apple_xplat_tools_toolchain",
+)
+
+licenses(["notice"])
+
+toolchain_type(name = "mac_tools_toolchain_type")
+
+toolchain(
+    name = "mac_toolchain_declaration",
+    toolchain = ":mac_tools_toolchain",
+    toolchain_type = ":mac_tools_toolchain_type",
+)
+
+apple_mac_tools_toolchain(
+    name = "mac_tools_toolchain",
+    bundletool_experimental = "//tools/bundletool:bundletool_experimental",
+    clangrttool = "//tools/clangrttool",
+    codesigningtool = "//tools/codesigningtool",
+    dossier_codesigningtool = "//tools/dossier_codesigningtool",
+    dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
+    environment_plist_tool = "//tools/environment_plist",
+    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
+    plisttool = "//tools/plisttool",
+    process_and_sign_template = "//tools/bundletool:process_and_sign_template",
+    provisioning_profile_tool = "//tools/provisioning_profile_tool",
+    signature_tool = "//tools/signaturetool:signature_tool_osx",
+    swift_stdlib_tool = "//tools/swift_stdlib_tool",
+    xcframework_processor_tool = "//tools/xcframework_processor_tool",
+    xctoolrunner = "//tools/xctoolrunner",
+)
+
+toolchain_type(name = "apple_xplat_toolchain_type")
+
+toolchain(
+    name = "apple_xplat_toolchain",
+    toolchain = ":xplat_tools_toolchain",
+    toolchain_type = ":apple_xplat_toolchain_type",
+)
+
+apple_xplat_tools_toolchain(
+    name = "xplat_tools_toolchain",
+    build_settings = build_settings_labels.all_labels,
+    bundletool = "//tools/bundletool",
+    versiontool = "//tools/versiontool",
+)
+
+bzl_library(
+    name = "apple_toolchains",
+    srcs = ["apple_toolchains.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_skylib//rules:common_settings",
+    ],
+)
+
+# Consumed by bazel tests.
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = glob(["**"]),
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)

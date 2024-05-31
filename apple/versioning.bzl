@@ -15,12 +15,12 @@
 """Rules related to Apple bundle versioning."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebundleversioninfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 
 visibility("public")

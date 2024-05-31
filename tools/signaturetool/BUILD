@@ -15,7 +15,7 @@ apple_universal_binary(
     minimum_os_version = "13.0",
     platform_type = "macos",
     visibility = [
-        "//apple/internal:__pkg__",
+        "//apple/internal/toolchains:__pkg__",
     ],
 )
 

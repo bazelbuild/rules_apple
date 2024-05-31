@@ -25,16 +25,16 @@ load(
     "AppleTestRunnerInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 
 visibility([

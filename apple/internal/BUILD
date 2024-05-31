@@ -2,60 +2,8 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
-    "//apple/internal:apple_toolchains.bzl",
-    "apple_mac_tools_toolchain",
-    "apple_xplat_tools_toolchain",
-)
-load(
     ":environment_plist.bzl",
     "environment_plist",
-)
-
-licenses(["notice"])
-
-toolchain_type(name = "mac_tools_toolchain_type")
-
-toolchain(
-    name = "mac_toolchain_declaration",
-    toolchain = ":mac_tools_toolchain",
-    toolchain_type = ":mac_tools_toolchain_type",
-)
-
-apple_mac_tools_toolchain(
-    name = "mac_tools_toolchain",
-    bundletool_experimental = "//tools/bundletool:bundletool_experimental",
-    clangrttool = "//tools/clangrttool",
-    codesigningtool = "//tools/codesigningtool",
-    dossier_codesigningtool = "//tools/dossier_codesigningtool",
-    dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
-    environment_plist_tool = "//tools/environment_plist",
-    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
-    plisttool = "//tools/plisttool",
-    process_and_sign_template = "//tools/bundletool:process_and_sign_template",
-    provisioning_profile_tool = "//tools/provisioning_profile_tool",
-    signature_tool = "//tools/signaturetool:signature_tool_osx",
-    swift_stdlib_tool = "//tools/swift_stdlib_tool",
-    xcframework_processor_tool = "//tools/xcframework_processor_tool",
-    xctoolrunner = "//tools/xctoolrunner",
-)
-
-toolchain_type(name = "apple_xplat_toolchain_type")
-
-toolchain(
-    name = "apple_xplat_toolchain",
-    toolchain = ":xplat_tools_toolchain",
-    toolchain_type = ":apple_xplat_toolchain_type",
-)
-
-apple_xplat_tools_toolchain(
-    name = "xplat_tools_toolchain",
-    build_settings = build_settings_labels.all_labels,
-    bundletool = "//tools/bundletool",
-    versiontool = "//tools/versiontool",
 )
 
 bzl_library(
@@ -107,30 +55,19 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_toolchains",
-    srcs = ["apple_toolchains.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "@bazel_skylib//rules:common_settings",
-    ],
-)
-
-bzl_library(
     name = "apple_xcframework_import",
     srcs = ["apple_xcframework_import.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
     deps = [
-        ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":framework_import_support",
         ":intermediates",
         ":rule_attrs",
         "//apple:providers",
         "//apple/internal/aspects:swift_usage_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils",
@@ -238,9 +175,9 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":apple_toolchains",
         ":platform_support",
         ":rule_attrs",
+        "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -315,7 +252,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":cc_info_support",
         ":entitlements_support",
@@ -338,6 +274,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:collections",
         "@bazel_tools//tools/cpp:toolchain_utils",
@@ -367,7 +304,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":codesigning_support",
         ":entitlements_support",
@@ -391,6 +327,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -533,7 +470,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":apple_toolchains",
         ":bundling_support",
         "//apple:common",
         "//apple:providers",
@@ -542,6 +478,7 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
+        "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
@@ -650,7 +587,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":cc_info_support",
         ":entitlements_support",
@@ -672,6 +608,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
@@ -687,7 +624,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
@@ -705,6 +641,7 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -718,7 +655,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":entitlements_support",
         ":features_support",
@@ -738,6 +674,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:sets",
         "@build_bazel_apple_support//lib:apple_support",
@@ -752,7 +689,6 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
-        ":apple_toolchains",
         ":bundling_support",
         ":cc_info_support",
         ":experimental",
@@ -772,6 +708,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:files",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -791,6 +728,7 @@ filegroup(
         "//apple/internal/resource_rules:for_bazel_tests",
         "//apple/internal/templates:for_bazel_tests",
         "//apple/internal/testing:for_bazel_tests",
+        "//apple/internal/toolchains:for_bazel_tests",
         "//apple/internal/utils:for_bazel_tests",
     ],
     visibility = [

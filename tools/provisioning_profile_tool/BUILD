@@ -6,7 +6,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
-        "//apple/internal:__pkg__",
+        "//apple/internal/toolchains:__pkg__",
     ],
 )
 
