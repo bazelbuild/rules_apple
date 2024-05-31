@@ -538,6 +538,61 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_swift_contains_asan_dylib_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "asan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_contains_asan_dylib_device_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_ios_dynamic.dylib",
+        ],
+        sanitizer = "asan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_contains_tsan_dylib_device_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "tsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_contains_ubsan_dylib_simulator_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.ubsan_iossim_dynamic.dylib",
+        ],
+        sanitizer = "ubsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_contains_ubsan_dylib_device_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.ubsan_ios_dynamic.dylib",
+        ],
+        sanitizer = "ubsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
+        tags = [name],
+    )
+
     # Tests analysis phase failure when an extension depends on a framework which
     # is not marked extension_safe.
     analysis_failure_message_test(

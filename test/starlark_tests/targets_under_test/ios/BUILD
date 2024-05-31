@@ -73,6 +73,21 @@ ios_application(
 )
 
 ios_application(
+    name = "swift_app_minimal",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_default_launch_screen",
     bundle_id = "com.google.example",
     default_launch_screen = True,
