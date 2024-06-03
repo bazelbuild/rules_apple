@@ -30,7 +30,7 @@ public struct SignatureXMLPlist {
   }
 
   public init(signatureInfo: SignatureInfo) throws {
-    let plistEncoder = OrderedPlistEncoder(options: .prettyPrinted)
+    let plistEncoder = OrderedPlistEncoder(options: [.prettyPrinted, .sortedKeys])
 
     guard let plistFileData = try? plistEncoder.encode(signatureInfo) else {
       throw Error.plistEncodingFailed
