@@ -33,7 +33,7 @@ apple_mac_tools_toolchain(
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
     signature_tool = "//tools/signaturetool:signature_tool_osx",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
-    xcframework_processor_tool = "//tools/xcframework_processor_tool",
+    xcframework_processor_tool = "//tools/xcframework_processor_tool:xcframework_processor_tool_osx",
     xctoolrunner = "//tools/xctoolrunner",
 )
 

@@ -261,9 +261,9 @@ There should only be one valid framework binary, given a name that matches its X
     )
 
     args = actions.args()
-    args.add("--library_identifier", library_identifier)
-    args.add("--bundle_name", xcframework.bundle_name)
-    args.add("--info_plist", xcframework.info_plist.path)
+    args.add("--library-identifier", library_identifier)
+    args.add("--bundle-name", xcframework.bundle_name)
+    args.add("--info-plist-input-path", xcframework.info_plist.path)
 
     args.add("--platform", target_triplet.os)
     args.add("--architecture", target_triplet.architecture)
@@ -276,7 +276,7 @@ There should only be one valid framework binary, given a name that matches its X
         target_name = label.name,
         output_discriminator = "",
     )
-    args.add("--output_path", processor_output.path)
+    args.add("--output-path", processor_output.path)
     outputs = [processor_output]
 
     xcframework_processor_tool = apple_mac_toolchain_info.xcframework_processor_tool
