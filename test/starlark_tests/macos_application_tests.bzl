@@ -397,6 +397,54 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with cc_library dependency that defines `data` attribute.
+    archive_contents_test(
+        name = "{}_contains_cc_library_data".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_data",
+        contains = [
+            "$CONTENT_ROOT/MacOS/app_with_cc_library_data",
+            "$CONTENT_ROOT/Resources/basic.bundle",
+        ],
+        tags = [name],
+    )
+
+    # Test app with cc_library dependency that defines structured resources.
+    archive_contents_test(
+        name = "{}_contains_cc_library_structured_resources".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_structured_resources",
+        contains = [
+            "$CONTENT_ROOT/MacOS/app_with_cc_library_structured_resources",
+            "$CONTENT_ROOT/Resources/Resources/some.file",
+        ],
+        tags = [name],
+    )
+
+    # Test app with cc_import dependency that defines `data` attribute.
+    archive_contents_test(
+        name = "{}_contains_cc_import_data".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_import_data",
+        contains = [
+            "$CONTENT_ROOT/MacOS/app_with_cc_import_data",
+            "$CONTENT_ROOT/Resources/basic.bundle",
+        ],
+        tags = [name],
+    )
+
+    # Test app with cc_import dependency that defines structured resources.
+    archive_contents_test(
+        name = "{}_contains_cc_import_structured_resources".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_import_structured_resources",
+        contains = [
+            "$CONTENT_ROOT/MacOS/app_with_cc_import_structured_resources",
+            "$CONTENT_ROOT/Resources/Resources/some.file",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
