@@ -1,4 +1,17 @@
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
+
 licenses(["notice"])
+
+swift_library(
+    name = "code_sign_process_options",
+    srcs = [
+        "CodeSignProcessOptions.swift",
+    ],
+    visibility = [
+        "//tools/codesigningtool:__pkg__",
+        "//tools/imported_dynamic_framework_processor:__pkg__",
+    ],
+)
 
 py_binary(
     name = "codesigningtool",
@@ -25,7 +38,10 @@ py_library(
 filegroup(
     name = "for_bazel_tests",
     testonly = 1,
-    srcs = glob(["**"]),
+    srcs = [
+        "BUILD",
+        "codesigningtool.py",
+    ],
     visibility = [
         "//tools:__pkg__",
     ],

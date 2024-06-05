@@ -1,4 +1,43 @@
+load("@build_bazel_rules_swift//swift:swift_binary.bzl", "swift_binary")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
+load("//apple:apple.bzl", "apple_universal_binary")
+
 licenses(["notice"])
+
+apple_universal_binary(
+    name = "imported_framework_processor_osx",
+    binary = ":imported_framework_processor_swift",
+    forced_cpus = [
+        "x86_64",
+        "arm64",
+    ],
+    minimum_os_version = "13.0",
+    platform_type = "macos",
+)
+
+swift_binary(
+    name = "imported_framework_processor_swift",
+    srcs = [
+        "ImportedFrameworkProcessor.swift",
+        "ProcessDynamicFramework.swift",
+    ],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":process_dynamic_framework_options",
+        "//tools/codesigningtool:code_sign_process_options",
+    ],
+)
+
+swift_library(
+    name = "process_dynamic_framework_options",
+    srcs = [
+        "ProcessDynamicFrameworkOptions.swift",
+    ],
+)
 
 py_binary(
     name = "imported_dynamic_framework_processor",
@@ -31,14 +70,4 @@ py_test(
     python_version = "PY3",
     tags = ["requires-darwin"],
     deps = [":imported_dynamic_framework_processor_lib"],
-)
-
-# Consumed by bazel tests.
-filegroup(
-    name = "for_bazel_tests",
-    testonly = 1,
-    srcs = glob(["**"]),
-    visibility = [
-        "//tools:__pkg__",
-    ],
 )
