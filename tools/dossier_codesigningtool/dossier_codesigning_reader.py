@@ -82,6 +82,9 @@ class CodesignStaticParamsArgs:
   # Path to the codesign tool.
   codesign_path: str
 
+  # Used to execute signing tasks.
+  executor: concurrent.futures.ThreadPoolExecutor
+
   # If not None, this will only search for the signing identity in the keychain
   # file specified, forwarding the path directly to the /usr/bin/codesign
   # invocation via its --keychain argument.
@@ -215,24 +218,13 @@ class DossierDirectory(object):
 
 SigningFuture = collections.namedtuple('SigningFuture', ['future', 'note'])
 
-# Used to execute signing tasks. (see _submit_future and _wait_signing_futures)
-_EXECUTOR = concurrent.futures.ThreadPoolExecutor()
 
-
-# Required cleanup when the Executor is allocated outside a with statement.
-# See https://github.com/pylint-dev/pylint/issues/4689#issuecomment-882672694
-def _complete_signing_tasks() -> None:
-  _EXECUTOR.shutdown()
-
-
-atexit.register(_complete_signing_tasks)
-
-
-def _submit_future(note, function, *args, **kwargs) -> SigningFuture:
+def _submit_future(note, executor, function, *args, **kwargs) -> SigningFuture:
   """Runs a function and creates a SigningFuture with the given note.
 
   Args:
     note: Text which is attached to this future for debugging
+    executor: Executor used to run future.
     function: The function to call.
     *args: Tuple of positional arguments for function.
     **kwargs: Dict of keyword arguments for function.
@@ -241,7 +233,7 @@ def _submit_future(note, function, *args, **kwargs) -> SigningFuture:
     The SigningFuture object.
   """
   print('Submitting task to threadpool: %s' % note)
-  return SigningFuture(_EXECUTOR.submit(function, *args, **kwargs), note)
+  return SigningFuture(executor.submit(function, *args, **kwargs), note)
 
 
 # Regex with benign codesign messages that can be safely ignored.
@@ -709,6 +701,7 @@ def _sign_framework(
       dylib_codesign_futures.append(
           _submit_future(
               'Signing dylib at: %s' % dylib_path,
+              codesign_params.executor,
               _invoke_codesign,
               codesign_params,
               codesign_identity,
@@ -726,6 +719,7 @@ def _sign_framework(
       dylib_codesign_futures.append(
           _submit_future(
               'Signing sub-framework at: %s' % path,
+              codesign_params.executor,
               _invoke_codesign,
               codesign_params,
               codesign_identity,
@@ -779,6 +773,7 @@ def _sign_embedded_bundles_with_manifest(
     codesign_futures.append(
         _submit_future(
             'embedded sign: %s' % embedded_bundle_path,
+            codesign_params.executor,
             _sign_bundle_with_manifest,
             embedded_bundle_path,
             embedded_manifest,
@@ -796,6 +791,7 @@ def _sign_embedded_bundles_with_manifest(
         codesign_futures.append(
             _submit_future(
                 'Signing base dylib at: %s' % entry_path,
+                codesign_params.executor,
                 _invoke_codesign,
                 codesign_params,
                 codesign_identity,
@@ -807,6 +803,7 @@ def _sign_embedded_bundles_with_manifest(
         codesign_futures.append(
             _submit_future(
                 'Signing framework at: %s' % entry_path,
+                codesign_params.executor,
                 _sign_framework,
                 entry_path,
                 codesign_params,
@@ -1004,84 +1001,83 @@ def _sign_bundle(parsed_args: argparse.Namespace) -> None:
     else:
       timestamp = ''
 
-  codesign_params = CodesignStaticParamsArgs(
-      codesign_path=parsed_args.codesign,
-      signing_keychain=parsed_args.keychain,
-      codesign_timestamp=timestamp,
-  )
-
-  if not os.path.exists(input_fullpath):
-    raise OSError('Specified input does not exist at path %s' % input_fullpath)
-
-  # Normalize the path (turning a potential .app/ into .app) then splitext to
-  # get a proper suffix for comparison.
-  input_path_suffix = os.path.splitext(os.path.normpath(input_fullpath))[1]
-  if input_path_suffix not in VALID_INPUT_EXTENSIONS:
-    raise OSError(
-        'Specified input path does not have a recognized extension.'
-        ' Expected one of: {}.'.format(', '.join(VALID_INPUT_EXTENSIONS))
+  with concurrent.futures.ThreadPoolExecutor() as signing_executor:
+    codesign_params = CodesignStaticParamsArgs(
+        codesign_path=parsed_args.codesign,
+        executor=signing_executor,
+        signing_keychain=parsed_args.keychain,
+        codesign_timestamp=timestamp,
     )
-  if input_path_suffix == '.zip':
-    if parsed_args.dossier:
+
+    if not os.path.exists(input_fullpath):
+      raise OSError('Input does not exist at path %s' % input_fullpath)
+
+    # Normalize the path (turning a potential .app/ into .app) then splitext to
+    # get a proper suffix for comparison.
+    input_path_suffix = os.path.splitext(os.path.normpath(input_fullpath))[1]
+    if input_path_suffix not in VALID_INPUT_EXTENSIONS:
       raise OSError(
-          'The --dossier arg is unused for combined zip signing. Please remove'
-          ' it from your invocation.'
+          'Input path does not have a recognized extension.'
+          ' Expected one of: {}.'.format(', '.join(VALID_INPUT_EXTENSIONS))
       )
-    _check_common_archived_bundle_args(
-        output_artifact=output_artifact,
-    )
-    with tempfile.TemporaryDirectory() as working_dir:
-      print(
-          'Working directory for combined zip extraction created: %s'
-          % working_dir
-      )
-      dossier_directory_path = os.path.join(working_dir, 'dossier')
-      _sign_archived_bundle(
-          allowed_entitlements=allowed_entitlements,
-          app_bundle_subdir='bundle',
-          codesign_params=codesign_params,
-          dossier_directory_path=dossier_directory_path,
-          output_ipa=output_artifact,
-          working_dir=working_dir,
-          unsigned_archive_path=input_fullpath,
-      )
-  else:
-    with extract_zipped_dossier_if_required(
-        parsed_args.dossier
-    ) as dossier_directory, \
-        tempfile.TemporaryDirectory() as working_dir:
-      if input_path_suffix == '.app':
-        if output_artifact:
-          raise OSError(
-              '--output_artifact support for app bundles has not yet been'
-              ' implemented!'
-          )
-        # Ensure that the app bundle is writable before we attempt to sign it.
-        subprocess.check_call(['chmod', '-R', 'u+w', input_fullpath])
-        manifest = read_manifest_from_dossier(dossier_directory.path)
-        _sign_bundle_with_manifest(
-            input_fullpath,
-            manifest,
-            dossier_directory.path,
-            codesign_params,
-            allowed_entitlements,
+    if input_path_suffix == '.zip':
+      if parsed_args.dossier:
+        raise OSError(
+            'The --dossier arg is unused for combined zip signing. Please'
+            ' remove it from your invocation.'
         )
-      elif input_path_suffix == '.ipa':
-        _check_common_archived_bundle_args(
-            output_artifact=output_artifact,
-        )
+      _check_common_archived_bundle_args(
+          output_artifact=output_artifact,
+      )
+      with tempfile.TemporaryDirectory() as working_dir:
         print(
-            'Working directory for ipa extraction is: %s' % working_dir
+            'Working directory for combined zip extraction created: %s'
+            % working_dir
         )
+        dossier_directory_path = os.path.join(working_dir, 'dossier')
         _sign_archived_bundle(
             allowed_entitlements=allowed_entitlements,
-            app_bundle_subdir='',
+            app_bundle_subdir='bundle',
             codesign_params=codesign_params,
-            dossier_directory_path=dossier_directory.path,
+            dossier_directory_path=dossier_directory_path,
             output_ipa=output_artifact,
             working_dir=working_dir,
             unsigned_archive_path=input_fullpath,
         )
+    else:
+      with extract_zipped_dossier_if_required(
+          parsed_args.dossier
+      ) as dossier_directory, tempfile.TemporaryDirectory() as working_dir:
+        if input_path_suffix == '.app':
+          if output_artifact:
+            raise OSError(
+                '--output_artifact support for app bundles has not yet been'
+                ' implemented!'
+            )
+          # Ensure that the app bundle is writable before we attempt to sign it.
+          subprocess.check_call(['chmod', '-R', 'u+w', input_fullpath])
+          manifest = read_manifest_from_dossier(dossier_directory.path)
+          _sign_bundle_with_manifest(
+              input_fullpath,
+              manifest,
+              dossier_directory.path,
+              codesign_params,
+              allowed_entitlements,
+          )
+        elif input_path_suffix == '.ipa':
+          _check_common_archived_bundle_args(
+              output_artifact=output_artifact,
+          )
+          print('Working directory for ipa extraction is: %s' % working_dir)
+          _sign_archived_bundle(
+              allowed_entitlements=allowed_entitlements,
+              app_bundle_subdir='',
+              codesign_params=codesign_params,
+              dossier_directory_path=dossier_directory.path,
+              output_ipa=output_artifact,
+              working_dir=working_dir,
+              unsigned_archive_path=input_fullpath,
+          )
 
 
 def read_manifest_from_dossier(dossier_directory_path):

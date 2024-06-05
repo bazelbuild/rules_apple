@@ -87,17 +87,19 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
   @mock.patch.object(dossier_codesigning_reader, '_invoke_codesign')
   def test_sign_bundle_with_manifest_codesign_invocations(self, mock_codesign):
     mock.patch('shutil.copy').start()
-    dossier_codesigning_reader._sign_bundle_with_manifest(
-        root_bundle_path='/tmp/fake.app/',
-        manifest=_FAKE_MANIFEST,
-        dossier_directory_path='/tmp/dossier/',
-        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
-            codesign_path='/usr/bin/fake_codesign',
-            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-        ),
-        override_codesign_identity='-',
-        allowed_entitlements=None,
-    )
+    with concurrent.futures.ThreadPoolExecutor() as signing_executor:
+      dossier_codesigning_reader._sign_bundle_with_manifest(
+          root_bundle_path='/tmp/fake.app/',
+          manifest=_FAKE_MANIFEST,
+          dossier_directory_path='/tmp/dossier/',
+          codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          override_codesign_identity='-',
+          allowed_entitlements=None,
+      )
 
     self.assertEqual(mock_codesign.call_count, 6)
     actual_paths = [
@@ -155,33 +157,35 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
       self, execute_and_filter_output
   ):
     mock.patch('shutil.copy').start()
-    dossier_codesigning_reader._sign_bundle_with_manifest(
-        root_bundle_path='/tmp/fake.app/',
-        manifest=_FAKE_SIMPLE_MANIFEST_NO_PROFILE,
-        dossier_directory_path='/tmp/dossier/',
-        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
-            codesign_path='/usr/bin/fake_codesign',
-            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-        ),
-        override_codesign_identity='-',
-        allowed_entitlements=None,
-    )
-    execute_and_filter_output.assert_called_with(
-        [
-            '/usr/bin/fake_codesign',
-            '-v',
-            '--sign',
-            '-',
-            '--force',
-            '--timestamp=none',  # Simulator/Adhoc signing can't use timestamps.
-            '--keychain',
-            '/tmp/Library/Keychains/ios-dev-signing.keychain',
-            '/tmp/fake.app/',
-        ],
-        filtering=mock.ANY,
-        custom_env=mock.ANY,
-        print_output=True,
-    )
+    with concurrent.futures.ThreadPoolExecutor() as signing_executor:
+      dossier_codesigning_reader._sign_bundle_with_manifest(
+          root_bundle_path='/tmp/fake.app/',
+          manifest=_FAKE_SIMPLE_MANIFEST_NO_PROFILE,
+          dossier_directory_path='/tmp/dossier/',
+          codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          override_codesign_identity='-',
+          allowed_entitlements=None,
+      )
+      execute_and_filter_output.assert_called_with(
+          [
+              '/usr/bin/fake_codesign',
+              '-v',
+              '--sign',
+              '-',
+              '--force',
+              '--timestamp=none',  # Simulator/Adhoc can't use timestamps.
+              '--keychain',
+              '/tmp/Library/Keychains/ios-dev-signing.keychain',
+              '/tmp/fake.app/',
+          ],
+          filtering=mock.ANY,
+          custom_env=mock.ANY,
+          print_output=True,
+      )
 
   @parameterized.named_parameters(
       dict(
@@ -273,17 +277,19 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
   ):
     mock.patch('shutil.copy').start()
     mock_gen_entitlements.return_value = None
-    dossier_codesigning_reader._sign_bundle_with_manifest(
-        root_bundle_path='/tmp/fake.app/',
-        manifest=_FAKE_MANIFEST,
-        dossier_directory_path='/tmp/dossier/',
-        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
-            codesign_path='/usr/bin/fake_codesign',
-            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-        ),
-        override_codesign_identity='-',
-        allowed_entitlements=['test-an-entitlement'],
-    )
+    with concurrent.futures.ThreadPoolExecutor() as signing_executor:
+      dossier_codesigning_reader._sign_bundle_with_manifest(
+          root_bundle_path='/tmp/fake.app/',
+          manifest=_FAKE_MANIFEST,
+          dossier_directory_path='/tmp/dossier/',
+          codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          override_codesign_identity='-',
+          allowed_entitlements=['test-an-entitlement'],
+      )
 
     self.assertEqual(mock_codesign.call_count, 6)
     self.assertEqual(mock_gen_entitlements.call_count, 6)
@@ -342,22 +348,28 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         mock_codesign.call_args_list[5][1]['entitlements_path'],
     ]
     self.assertSetEqual(
-        set(actual_dest_paths), set(actual_codesign_entitlements_paths))
+        set(actual_dest_paths), set(actual_codesign_entitlements_paths)
+    )
 
   @mock.patch.object(
-      dossier_codesigning_reader, '_fetch_preferred_signing_identity')
+      dossier_codesigning_reader, '_fetch_preferred_signing_identity'
+  )
   def test_sign_bundle_with_manifest_raises_identity_infer_error(
-      self, mock_fetch_preferred_signing_identity):
+      self, mock_fetch_preferred_signing_identity
+  ):
     fake_manifest = {'provisioning_profile': 'fake.mobileprovision'}
     mock_fetch_preferred_signing_identity.return_value = None
 
-    with self.assertRaisesRegex(SystemExit, 'unable to infer identity'):
+    with self.assertRaisesRegex(
+        SystemExit, 'unable to infer identity'
+    ), concurrent.futures.ThreadPoolExecutor() as signing_executor:
       dossier_codesigning_reader._sign_bundle_with_manifest(
           root_bundle_path='/tmp/fake.app/',
           manifest=fake_manifest,
           dossier_directory_path='/tmp/dossier/',
           codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
               codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
               signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
           ),
           allowed_entitlements=None,
@@ -366,83 +378,86 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
   @mock.patch.object(dossier_codesigning_reader, '_sign_bundle_with_manifest')
   def test_sign_embedded_bundles_with_manifest(self, mock_sign_bundle):
     mock_sign_bundle.return_value = concurrent.futures.Future()
-    futures = dossier_codesigning_reader._sign_embedded_bundles_with_manifest(
-        manifest=_FAKE_MANIFEST,
-        root_bundle_path='/tmp/fake.app/',
-        dossier_directory_path='/tmp/dossier/',
-        codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
-            codesign_path='/usr/bin/fake_codesign',
-            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-        ),
-        allowed_entitlements=None,
-        codesign_identity='-',
-    )
-    dossier_codesigning_reader._wait_signing_futures(futures)
-    self.assertEqual(len(futures), 4)
-    self.assertEqual(mock_sign_bundle.call_count, 4)
-    default_args = (
-        '/tmp/dossier/',
-        dossier_codesigning_reader.CodesignStaticParamsArgs(
-            codesign_path='/usr/bin/fake_codesign',
-            signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
-        ),
-        None,
-        '-',
-    )
-    mock_sign_bundle.assert_has_calls([
-        mock.call(
-            '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
-            {
-                'codesign_identity': 'Fake Identity',
-                'embedded_bundle_manifests': [],
-                'embedded_relative_path': (
-                    'Extensions/AppIntentsExtension.appex'
-                ),
-                'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision',
-            },
-            *default_args,
-        ),
-        mock.call(
-            '/tmp/fake.app/PlugIns/IntentsExtension.appex',
-            {
-                'codesign_identity': 'Fake Identity',
-                'embedded_bundle_manifests': [],
-                'embedded_relative_path': 'PlugIns/IntentsExtension.appex',
-                'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision',
-            },
-            *default_args,
-        ),
-        mock.call(
-            '/tmp/fake.app/PlugIns/IntentsUIExtension.appex',
-            {
-                'codesign_identity': 'Fake Identity',
-                'embedded_bundle_manifests': [],
-                'embedded_relative_path': 'PlugIns/IntentsUIExtension.appex',
-                'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision',
-            },
-            *default_args,
-        ),
-        mock.call(
-            '/tmp/fake.app/Watch/WatchApp.app',
-            {
-                'codesign_identity': 'Fake Identity',
-                'embedded_bundle_manifests': [{
-                    'codesign_identity': 'Fake Identity',
-                    'embedded_bundle_manifests': [],
-                    'embedded_relative_path': 'PlugIns/WatchExtension.appex',
-                    'entitlements': 'fake.entitlements',
-                    'provisioning_profile': 'fake.mobileprovision',
-                }],
-                'embedded_relative_path': 'Watch/WatchApp.app',
-                'entitlements': 'fake.entitlements',
-                'provisioning_profile': 'fake.mobileprovision',
-            },
-            *default_args,
-        ),
-    ])
+    with concurrent.futures.ThreadPoolExecutor() as signing_executor:
+      futures = dossier_codesigning_reader._sign_embedded_bundles_with_manifest(
+          manifest=_FAKE_MANIFEST,
+          root_bundle_path='/tmp/fake.app/',
+          dossier_directory_path='/tmp/dossier/',
+          codesign_params=dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          allowed_entitlements=None,
+          codesign_identity='-',
+      )
+      dossier_codesigning_reader._wait_signing_futures(futures)
+      self.assertLen(futures, 4)
+      self.assertEqual(mock_sign_bundle.call_count, 4)
+      default_args = (
+          '/tmp/dossier/',
+          dossier_codesigning_reader.CodesignStaticParamsArgs(
+              codesign_path='/usr/bin/fake_codesign',
+              executor=signing_executor,
+              signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          ),
+          None,
+          '-',
+      )
+      mock_sign_bundle.assert_has_calls([
+          mock.call(
+              '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
+              {
+                  'codesign_identity': 'Fake Identity',
+                  'embedded_bundle_manifests': [],
+                  'embedded_relative_path': (
+                      'Extensions/AppIntentsExtension.appex'
+                  ),
+                  'entitlements': 'fake.entitlements',
+                  'provisioning_profile': 'fake.mobileprovision',
+              },
+              *default_args,
+          ),
+          mock.call(
+              '/tmp/fake.app/PlugIns/IntentsExtension.appex',
+              {
+                  'codesign_identity': 'Fake Identity',
+                  'embedded_bundle_manifests': [],
+                  'embedded_relative_path': 'PlugIns/IntentsExtension.appex',
+                  'entitlements': 'fake.entitlements',
+                  'provisioning_profile': 'fake.mobileprovision',
+              },
+              *default_args,
+          ),
+          mock.call(
+              '/tmp/fake.app/PlugIns/IntentsUIExtension.appex',
+              {
+                  'codesign_identity': 'Fake Identity',
+                  'embedded_bundle_manifests': [],
+                  'embedded_relative_path': 'PlugIns/IntentsUIExtension.appex',
+                  'entitlements': 'fake.entitlements',
+                  'provisioning_profile': 'fake.mobileprovision',
+              },
+              *default_args,
+          ),
+          mock.call(
+              '/tmp/fake.app/Watch/WatchApp.app',
+              {
+                  'codesign_identity': 'Fake Identity',
+                  'embedded_bundle_manifests': [{
+                      'codesign_identity': 'Fake Identity',
+                      'embedded_bundle_manifests': [],
+                      'embedded_relative_path': 'PlugIns/WatchExtension.appex',
+                      'entitlements': 'fake.entitlements',
+                      'provisioning_profile': 'fake.mobileprovision',
+                  }],
+                  'embedded_relative_path': 'Watch/WatchApp.app',
+                  'entitlements': 'fake.entitlements',
+                  'provisioning_profile': 'fake.mobileprovision',
+              },
+              *default_args,
+          ),
+      ])
 
   @mock.patch('shutil.copy')
   @mock.patch('os.path.exists')
@@ -627,6 +642,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           dossier_dir.path,
           dossier_codesigning_reader.CodesignStaticParamsArgs(
               codesign_path=tmp_fake_codesign.name,
+              executor=mock.ANY,
               signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
           ),
           None,
@@ -677,6 +693,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           os.path.join(temp_path, 'dossier'),
           dossier_codesigning_reader.CodesignStaticParamsArgs(
               codesign_path=tmp_fake_codesign.name,
+              executor=mock.ANY,
               signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
           ),
           None,
