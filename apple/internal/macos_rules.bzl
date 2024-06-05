@@ -761,10 +761,13 @@ def _macos_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    bundle_location = ""
     embedded_bundles_args = {}
     if rule_descriptor.product_type == apple_product_type.app_extension:
+        bundle_location = processor.location.plugin
         embedded_bundles_args["plugins"] = [archive]
     elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
+        bundle_location = processor.location.extension
         embedded_bundles_args["extensions"] = [archive]
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
@@ -804,7 +807,7 @@ def _macos_extension_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             entitlements = entitlements,
