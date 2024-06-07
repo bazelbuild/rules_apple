@@ -506,8 +506,8 @@ def ios_application_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_contains_tsan_dylib_device_test".format(name),
-        build_type = "simulator",
+        name = "{}_contains_tsan_dylib_simulator_test".format(name),
+        build_type = "simulator",  # There is no thread sanitizer for the device, so only test sim.
         contains = [
             "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
         ],
@@ -561,8 +561,8 @@ def ios_application_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_swift_contains_tsan_dylib_device_test".format(name),
-        build_type = "simulator",
+        name = "{}_swift_contains_tsan_dylib_simulator_test".format(name),
+        build_type = "simulator",  # There is no thread sanitizer for the device, so only test sim.
         contains = [
             "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
         ],

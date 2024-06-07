@@ -266,8 +266,8 @@ def watchos_application_test_suite(name):
 
     # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
     archive_contents_test(
-        name = "{}_contains_tsan_dylib_device_test".format(name),
-        build_type = "simulator",
+        name = "{}_contains_tsan_dylib_simulator_test".format(name),
+        build_type = "simulator",  # There is no thread sanitizer for the device, so only test sim.
         cpus = {
             # Thread sanitizer support does not exist for the 32 bit Intel simulator; force the
             # build to be 64 bit to get around this issue.
