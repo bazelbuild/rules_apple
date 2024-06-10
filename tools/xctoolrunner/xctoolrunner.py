@@ -49,6 +49,31 @@ _PATH_PREFIX = "[ABSOLUTE]"
 _PATH_PREFIX_LEN = len(_PATH_PREFIX)
 
 
+_MISSING_SIMULATOR_RUNTIME_MESSAGE = """
+ERROR: It appears that your local Mac may be missing a Simulator runtime.
+
+Consider running the following sequence in a terminal to install the missing \
+simulator runtimes:
+
+xcodebuild -runFirstLaunch
+xcodebuild -downloadAllPlatforms
+
+"""
+
+
+def _is_missing_simulator_runtime_error(line):
+  """Returns True if the message indicates that a simulator is missing."""
+  common_simulator_runtime_errors = [
+      "Failed to locate any simulator runtime matching options",
+      "Failed to find newest available Simulator runtime",
+      "Platform Not Installed",
+  ]
+  for runtime_error in common_simulator_runtime_errors:
+    if runtime_error in line:
+      return True
+  return False
+
+
 def _apply_realpath(argv):
   """Run "realpath" on any path-related arguments.
 
@@ -90,9 +115,14 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     return False
 
   stdout = []
+  missing_simulator_runtime_error = False
+
   for line in raw_stdout.splitlines():
     if not is_spurious_message(line):
       stdout.append(line + "\n")
+
+    if _is_missing_simulator_runtime_error(line):
+      missing_simulator_runtime_error = True
 
   # Some of the time, in a successful run, ibtool reports on stderr some
   # internal assertions and ask "Please file a bug report with Apple", but
@@ -101,6 +131,9 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   # on successful runs.
   if tool_exit_status == 0:
     raw_stderr = None
+
+  if missing_simulator_runtime_error:
+    stdout.append(_MISSING_SIMULATOR_RUNTIME_MESSAGE)
 
   return (tool_exit_status, "".join(stdout), raw_stderr)
 
@@ -178,6 +211,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   output = set()
   current_section = None
+  missing_simulator_runtime_error = False
 
   for line in raw_stdout.splitlines():
     header_match = section_header.search(line)
@@ -197,6 +231,9 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         line = line.replace(": notice: ", ": error: ")
         tool_exit_status = 1
 
+      if _is_missing_simulator_runtime_error(line):
+        missing_simulator_runtime_error = True
+
       output.add(line + "\n")
 
   # Some of the time, in a successful run, actool reports on stderr some
@@ -206,6 +243,9 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   # on successful runs.
   if tool_exit_status == 0:
     raw_stderr = None
+
+  if missing_simulator_runtime_error:
+    output.add(_MISSING_SIMULATOR_RUNTIME_MESSAGE)
 
   return (tool_exit_status, "".join(output), raw_stderr)
 
@@ -286,6 +326,33 @@ def mapc(_, toolargs):
   return return_code
 
 
+def realitytool_filtering(tool_exit_status, raw_stdout, raw_stderr):
+  """Filter the stdout messages from "realitytool".
+
+  Args:
+    tool_exit_status: The exit status of "xcrun realitytool".
+    raw_stdout: This is the unmodified stdout captured from "xcrun realitytool".
+    raw_stderr: This is the unmodified stderr captured from "xcrun realitytool".
+
+  Returns:
+    A tuple of the filtered exit_status, stdout and stderr.
+  """
+
+  stdout = []
+  missing_simulator_runtime_error = False
+
+  for line in raw_stdout.splitlines():
+    stdout.append(line + "\n")
+
+    if _is_missing_simulator_runtime_error(line):
+      missing_simulator_runtime_error = True
+
+  if missing_simulator_runtime_error:
+    stdout.append(_MISSING_SIMULATOR_RUNTIME_MESSAGE)
+
+  return (tool_exit_status, "".join(stdout), raw_stderr)
+
+
 def realitytool(args, toolargs):
   """Assemble the call to "xcrun realitytool"."""
   xcrunargs = ["xcrun", "realitytool"]
@@ -316,8 +383,8 @@ def realitytool(args, toolargs):
     xcrunargs += [destination_bundle]
 
   return_code, _, _ = execute.execute_and_filter_output(
-      xcrunargs, print_output=True
-  )
+      xcrunargs, filtering=realitytool_filtering, print_output=True)
+
   if temp_bundle_path:
     shutil.rmtree(temp_bundle_path)
   return return_code
