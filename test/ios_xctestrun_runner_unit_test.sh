@@ -944,7 +944,7 @@ function test_ios_unit_test_parallel_testing_pass() {
 
   expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
   expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
-  expect_log "@@\?//ios:SmallUnitTest\s\+PASSED"
+  expect_log "//ios:SmallUnitTest\s\+PASSED"
   expect_log "Executed 1 out of 1 test: 1 test passes."
 }
 
@@ -962,7 +962,7 @@ function test_ios_unit_test_parallel_testing_no_tests_fail() {
 
   expect_not_log "Test suite 'SmallUnitTest1' started"
   expect_not_log "Test suite 'SmallUnitTest2' started"
-  expect_log "@@\?//ios:SmallUnitTest\s\+FAILED"
+  expect_log "FAIL: //ios:SmallUnitTest"
   expect_log "Executed 1 out of 1 test: 1 fails locally."
 }
 
