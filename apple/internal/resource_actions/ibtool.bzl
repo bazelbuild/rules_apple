@@ -195,12 +195,16 @@ def compile_xib(
         xctoolrunner_support.prefixed_path(input_file.path),
     ])
 
+    execution_requirements = {
+        "no-sandbox": "1",
+    }
+
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
-        execution_requirements = {"no-sandbox": "1"},
+        execution_requirements = execution_requirements,
         exec_group = mac_exec_group,
         inputs = [input_file],
         mnemonic = "XibCompile",

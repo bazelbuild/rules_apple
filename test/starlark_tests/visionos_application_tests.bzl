@@ -64,10 +64,7 @@ def visionos_application_test_suite(name):
         name = "{}_default_app_bundle_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         expected_outputs = ["app.app"],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -81,10 +78,7 @@ def visionos_application_test_suite(name):
         ],
         binary_test_file = "$BUNDLE_ROOT/app",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -94,10 +88,7 @@ def visionos_application_test_suite(name):
         text_test_file = "$BUNDLE_ROOT/Assets.car",
         text_test_values = ["Bazel_logo.png"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -110,10 +101,7 @@ def visionos_application_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -125,10 +113,7 @@ def visionos_application_test_suite(name):
             "$BUNDLE_ROOT/Another.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -138,10 +123,7 @@ def visionos_application_test_suite(name):
         is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
         is_not_binary_plist = ["$BUNDLE_ROOT/Another.plist"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -153,10 +135,7 @@ def visionos_application_test_suite(name):
             "$BUNDLE_ROOT/Another.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -168,10 +147,7 @@ def visionos_application_test_suite(name):
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
         ],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     analysis_output_group_info_files_test(
@@ -182,10 +158,7 @@ def visionos_application_test_suite(name):
             "app.app.dSYM/Contents/Info.plist",
             "app.app.dSYM/Contents/Resources/DWARF/app_arm64",
         ],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     apple_dsym_bundle_info_test(
@@ -197,10 +170,7 @@ def visionos_application_test_suite(name):
         expected_transitive_dsyms = [
             "dSYMs/app.app.dSYM",
         ],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     infoplist_contents_test(
@@ -224,10 +194,7 @@ def visionos_application_test_suite(name):
             "MinimumOSVersion": common.min_os_visionos.baseline,
             "UIDeviceFamily:0": "7",
         },
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
@@ -236,10 +203,7 @@ def visionos_application_test_suite(name):
         name = "{}_linkmap_test".format(name),
         architectures = ["arm64"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     analysis_output_group_info_files_test(
@@ -249,10 +213,7 @@ def visionos_application_test_suite(name):
         expected_outputs = [
             "app_arm64.linkmap",
         ],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     # Tests that the provisioning profile is present when built for device.
@@ -263,10 +224,7 @@ def visionos_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -277,10 +235,7 @@ def visionos_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -291,10 +246,7 @@ def visionos_application_test_suite(name):
         ],
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -305,10 +257,7 @@ def visionos_application_test_suite(name):
         ],
         sanitizer = "tsan",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -319,10 +268,7 @@ def visionos_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -333,20 +279,14 @@ def visionos_application_test_suite(name):
         ],
         sanitizer = "ubsan",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     apple_codesigning_dossier_info_provider_test(
         name = "{}_codesigning_dossier_info_provider_test".format(name),
         expected_dossier = "app_dossier.zip",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -354,10 +294,7 @@ def visionos_application_test_suite(name):
         build_type = "simulator",
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -365,20 +302,14 @@ def visionos_application_test_suite(name):
         build_type = "simulator",
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_standalone_realitykit_content",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     analysis_failure_message_test(
         name = "{}_two_apple_resource_hints_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_two_apple_resource_hints",
         expected_error = "Conflicting Apple resource hint info from aspect hints",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     archive_contents_test(
@@ -386,10 +317,7 @@ def visionos_application_test_suite(name):
         build_type = "simulator",
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_dependent_realitykit_content",
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     # TODO(b/288582842): Support an IPA output via this output group. This will require some changes
@@ -405,10 +333,7 @@ def visionos_application_test_suite(name):
     #        "bundle/Payload/app.app/app",
     #        "dossier/manifest.json",
     #    ],
-    #    tags = [
-    #        name,
-    #        "needs-xcode-latest-beta",
-    #    ],
+    #    tags = [name],
     #)
 
     native.test_suite(

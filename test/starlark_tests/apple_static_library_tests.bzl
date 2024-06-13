@@ -366,10 +366,7 @@ def apple_static_library_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
-        tags = [
-            name,
-            "needs-xcode-latest-beta",
-        ],
+        tags = [name],
     )
 
     native.test_suite(

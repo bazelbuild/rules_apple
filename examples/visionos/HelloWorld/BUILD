@@ -31,18 +31,12 @@ visionos_application(
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
     minimum_os_version = "1.0",
-    tags = [
-        "needs-xcode-latest-beta",
-    ],
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )
 
 build_test(
     name = "HelloWorldBuildTest",
-    tags = [
-        "needs-xcode-latest-beta",
-    ],
     targets = [
         ":HelloWorld",
     ],
