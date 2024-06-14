@@ -29,6 +29,19 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
+    "force_app_intents_linked_binary": struct(
+        doc = """
+Forces a linked binary to be generated as an input to the tool that generates app intents metadata
+bundles.
+
+This is no longer required for Xcode 15.3 and later, as the app intents metadata processor considers
+its source of truth to be in Swift const value files instead of a linked binary. However, this is
+still a required input of the app intents metadata processor xcodebuild action, and subsequent
+versions of Xcode still pass a linked binary as a required build input even though it appears to be
+redundant (FB347041279).
+""",
+        default = False,
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(

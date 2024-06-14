@@ -68,7 +68,16 @@ def generate_app_intents_metadata_bundle(
     args = actions.args()
     args.add("appintentsmetadataprocessor")
 
-    args.add("--binary-file", bundle_binary)
+    direct_inputs = []
+    if (xcode_version_config.xcode_version() >= apple_common.dotted_version("15.3") and
+        not platform_prerequisites.build_settings.force_app_intents_linked_binary):
+        # FB347041279: Though this is not required for --compile-time-extraction, which is the only
+        # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
+        # required by the appintentsmetadataprocessor.
+        args.add("--binary-file", "/bazel_rules_apple/fakepath")
+    else:
+        args.add("--binary-file", bundle_binary)
+        direct_inputs.append(bundle_binary)
 
     if len(intents_module_names) > 1:
         fail("""
@@ -101,13 +110,12 @@ Could not find a module name for app_intents. One is required for App Intents me
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
-    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
-        args.add_all(
-            constvalues_files,
-            before_each = "--swift-const-vals",
-        )
-        transitive_inputs.append(depset(constvalues_files))
-        args.add("--compile-time-extraction")
+    args.add_all(
+        constvalues_files,
+        before_each = "--swift-const-vals",
+    )
+    transitive_inputs.append(depset(constvalues_files))
+    args.add("--compile-time-extraction")
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.3"):
         # Read the build version from the fourth component of the Xcode version.
         xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
@@ -126,7 +134,7 @@ an issue with the Apple BUILD rules with repro steps.
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         executable = "/usr/bin/xcrun",
-        inputs = depset([bundle_binary], transitive = transitive_inputs),
+        inputs = depset(direct_inputs, transitive = transitive_inputs),
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
         xcode_config = xcode_version_config,
