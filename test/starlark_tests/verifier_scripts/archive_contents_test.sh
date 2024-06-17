@@ -397,7 +397,7 @@ if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
 
   # Use a regular expression to extract the "Name" fields with each value on a
   # separate line.
-  asset_names=$(sed -nE 's/\"Name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p' <<< "$json")
+  asset_names=$(sed -nE 's/"Name"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/p' <<< "$json")
 
   if [[ -n "${ASSET_CATALOG_CONTAINS-}" ]]; then
     for expected_name in "${ASSET_CATALOG_CONTAINS[@]}"
