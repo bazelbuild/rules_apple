@@ -128,6 +128,8 @@ an issue with the Apple BUILD rules with repro steps.
                 xcode_version_string = str(xcode_version_config.xcode_version()),
             ))
         args.add("--xcode-version", xcode_version_split[3])
+    if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.0"):
+        args.add("--validate-assistant-intents")
 
     apple_support.run(
         actions = actions,
