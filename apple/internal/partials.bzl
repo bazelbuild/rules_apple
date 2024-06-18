@@ -55,6 +55,10 @@ load(
     _embedded_bundles_partial = "embedded_bundles_partial",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/partials:cc_info_dylibs.bzl",
+    _cc_info_dylibs_partial = "cc_info_dylibs_partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials:extension_safe_validation.bzl",
     _extension_safe_validation_partial = "extension_safe_validation_partial",
 )
@@ -121,6 +125,7 @@ partials = struct(
     codesigning_dossier_partial = _codesigning_dossier_partial,
     debug_symbols_partial = _debug_symbols_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
+    cc_info_dylibs_partial = _cc_info_dylibs_partial,
     extension_safe_validation_partial = _extension_safe_validation_partial,
     framework_import_partial = _framework_import_partial,
     framework_header_modulemap_partial = _framework_header_modulemap_partial,
