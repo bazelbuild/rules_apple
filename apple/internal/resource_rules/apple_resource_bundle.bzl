@@ -18,18 +18,116 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
 
 def _apple_resource_bundle_impl(_ctx):
-    # All of the resource processing logic for this rule exists in the apple_resource_aspect.
-    #
-    # To transform the attributes referenced by this rule into resource providers, that aspect must
-    # be used to iterate through all relevant instances of this rule in the build graph.
+    # Owner to attach to the resources as they're being bucketed.
+    owner = None
+
+    apple_resource_infos = []
+    process_args = {
+        "actions": ctx.actions,
+        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "bundle_id": ctx.attr.bundle_id or None,
+        "product_type": None,
+        "rule_label": ctx.label,
+    }
+
+    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
+
+    infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    if infoplists:
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+            bucket_type = "infoplists",
+            owner = owner,
+            parent_dir_param = bundle_name,
+            resources = infoplists,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = struct(),  # ME: Unsure what to do with this
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    resource_files = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
+
+    if resource_files:
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
+            resources = resource_files,
+            owner = owner,
+            parent_dir_param = bundle_name,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = struct(),  # ME: Unsure what to do with this
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    structured_files = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["structured_resources"],
+    )
+    if structured_files:
+        if bundle_name:
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+                parent_dir = bundle_name,
+            )
+        else:
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+            )
+
+        # Avoid processing PNG files that are referenced through the structured_resources
+        # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
+            allowed_buckets = ["strings", "plists"],
+            owner = owner,
+            parent_dir_param = structured_parent_dir_param,
+            resources = structured_files,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = struct(),  # ME: Unsure what to do with this
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),
-    ]
+    ].extend(resources.merge_providers(
+        default_owner = owner,
+        providers = apple_resource_infos,
+    ))
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
