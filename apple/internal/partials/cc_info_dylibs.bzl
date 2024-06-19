@@ -27,14 +27,15 @@ def _cc_info_dylibs_partial_impl(
     bundle_files = []
 
     for target in embedded_targets:
-        if CcInfo in target:
-            cc_info = target[CcInfo]
-            for linker_input in cc_info.linking_context.linker_inputs.to_list():
-                for library in linker_input.libraries:
-                    if library.dynamic_library:
-                        bundle_files.append(
-                            (processor.location.framework, None, depset([library.dynamic_library])),
-                        )
+        if CcInfo not in target:
+            continue
+        cc_info = target[CcInfo]
+        for linker_input in cc_info.linking_context.linker_inputs.to_list():
+            for library in linker_input.libraries:
+                if library.dynamic_library:
+                    bundle_files.append(
+                        (processor.location.framework, None, depset([library.dynamic_library])),
+                    )
 
     return struct(bundle_files = bundle_files)
 
