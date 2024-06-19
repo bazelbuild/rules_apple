@@ -445,6 +445,16 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_archive_contains_ccinfo_deps_dylibs_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ccinfo_dylib_deps",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libmylib_with_rpath.dylib",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

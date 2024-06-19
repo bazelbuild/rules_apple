@@ -1170,3 +1170,47 @@ cc_import(
     ],
     tags = common.fixture_tags,
 )
+
+# Targets for CcInfo dylib tests
+
+# Generate a .dylib for testing as if it were a precompiled library supplied by a third party
+cc_binary(
+    name = "ccinfo_dylibs_mylib-shared",
+    srcs = ["ccinfo_dylibs/mylib/lib.cpp"],
+    linkshared = True,
+)
+
+# Set up the rpath of the .dylib using install_name_tool. Bazel should probably do this again when packaging
+genrule(
+    name = "ccinfo_dylibs_mylib-shared-with-rpath",
+    srcs = [":ccinfo_dylibs_mylib-shared"],
+    outs = ["libmylib_with_rpath.dylib"],
+    cmd = "install_name_tool -id @rpath/libmylib_with_rpath.dylib $(location :ccinfo_dylibs_mylib-shared) && cp $(location :ccinfo_dylibs_mylib-shared) $@",
+)
+
+# Import our dynamically linked library.
+cc_import(
+    name = "ccinfo_dylibs_mylib-import",
+    hdrs = ["ccinfo_dylibs/mylib/lib.hpp"],
+    shared_library = ":ccinfo_dylibs_mylib-shared-with-rpath",
+)
+
+# Wrap our dylib in a cc_library so we can add data[] to it. This is common practice for adding
+# data or include paths.
+cc_library(
+    name = "ccinfo_dylibs_mylib-import-with-data",
+    data = ["ccinfo_dylibs/mylib/data.txt"],
+    deps = ["ccinfo_dylibs_mylib-import"],
+)
+
+# This is our main executable, except we make it into a cc_library so macos_application can do
+# the actual linking.
+cc_library(
+    name = "ccinfo_dylibs_libapp",
+    srcs = [
+        "ccinfo_dylibs/main.cpp",
+    ],
+    deps = [
+        ":ccinfo_dylibs_mylib-import-with-data",
+    ],
+)
