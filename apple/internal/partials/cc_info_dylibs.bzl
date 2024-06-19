@@ -46,6 +46,17 @@ def cc_info_dylibs_partial(
         embedded_targets):
     """Constructor for the CcInfo dylibs processing partial.
 
+    This partial searches through the embedded_targets for dynamic_libraries and adds them
+    as bundle_files destined for the Framework folder. The cc_* targets (like cc_library) can
+    depend on dynamic libraries (.dylibs), usually pulled in from a cc_import. These .dylibs are required
+    at runtime and are similar to .dlls on windows. The macos_application adds the /Contents/Frameworks
+    folder as an @rpath search path so placing all of the dylibs in this folder seems reasonable.
+    Generally, .dylibs should have their install name set to @rpath/libname.dylib for this strategy to work.
+    You can check the install name using
+        otool -L libname.dylib
+    and change it using
+        install_name_tool -id @rpath/libname.dylib libname.dylib
+
     Args:
         embedded_targets: The list of targets that may have CcInfo specifying dylibs that need to be bundled.
 
