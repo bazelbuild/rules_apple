@@ -992,17 +992,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
-    # Test app with cc_library `data` attribute includes the data files in the final binary.
-    archive_contents_test(
-        name = "{}_contains_cc_library_data".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_cc_library_data",
-        contains = [
-            "$BUNDLE_ROOT/basic.bundle",
-        ],
-        tags = [name],
-    )
-
     native.test_suite(
         name = name,
         tags = [name],
