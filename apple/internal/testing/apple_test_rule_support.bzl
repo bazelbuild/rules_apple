@@ -269,6 +269,13 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     runner_info = runner_attr[AppleTestRunnerInfo]
     execution_requirements = getattr(runner_info, "execution_requirements", {})
 
+    # ctx.expand_make_variables is marked deprecated in the docs but every ruleset uses it. Not
+    # sure how they're planning on getting rid of it for good.
+    rule_test_env = {
+        k: ctx.expand_make_variables("env", v, {})
+        for k, v in ctx.attr.env.items()
+    }
+
     test_bundle_target = ctx.attr.deps[0]
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
 
@@ -286,7 +293,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     test_environment = _get_simulator_test_environment(
         command_line_test_env = ctx.configuration.test_env,
         features = ctx.features,
-        rule_test_env = ctx.attr.env,
+        rule_test_env = rule_test_env,
         runner_test_env = getattr(runner_info, "test_environment", {}),
     )
 
