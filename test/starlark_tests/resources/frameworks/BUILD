@@ -40,5 +40,7 @@ swift_library(
 # package.
 exports_files(
     glob(["**"]),
-    visibility = ["//test:__subpackages__"],
+    visibility = [
+        "//test:__subpackages__",
+    ],
 )
