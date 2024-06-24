@@ -20,7 +20,7 @@ import ArgumentParser
 /// plist given the input file or bundle that was given to it.
 @main
 struct SignatureTool: AsyncParsableCommand {
-  static var configuration = CommandConfiguration(
+  static let configuration = CommandConfiguration(
     commandName: "signature_tool",
     abstract: """
       SignatureTool: Tool to support generating "Signatures" XML suitable for an xcarchive or IPA.
