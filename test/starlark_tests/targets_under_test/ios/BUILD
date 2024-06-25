@@ -4957,19 +4957,3 @@ ios_extension(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
-
-# ---------------------------------------------------------------------------------------
-# Targets to test resource processing with C/C++ rules.
-
-ios_application(
-    name = "app_with_cc_library_data",
-    bundle_id = "com.google.example",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    deps = [
-        "//test/starlark_tests/resources:cc_lib_with_data",
-    ],
-)
