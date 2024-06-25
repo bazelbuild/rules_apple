@@ -47,7 +47,8 @@ _COMMON_TEST_ATTRS = {
     ),
     "env": attr.string_dict(
         doc = """
-Dictionary of environment variables that should be set during the test execution.
+Dictionary of environment variables that should be set during the test execution. The values of
+the dictionary are subject to "Make" variable expansion.
 """,
     ),
     "runner": attr.label(
