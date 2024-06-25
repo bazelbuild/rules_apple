@@ -327,6 +327,9 @@ def _macos_application_impl(ctx):
             embeddable_targets = embedded_targets,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.cc_info_dylibs_partial(
+            embedded_targets = embedded_targets,
+        ),
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

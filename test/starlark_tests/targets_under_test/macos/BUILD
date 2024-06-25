@@ -2907,3 +2907,17 @@ macos_unit_test(
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for CcInfo dylib bundling tests
+
+macos_application(
+    name = "app_with_ccinfo_dylib_deps",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:ccinfo_dylibs_libapp"],
+)
