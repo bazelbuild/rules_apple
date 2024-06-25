@@ -396,6 +396,71 @@ ios_unit_test(
 EOF
 }
 
+function create_ios_unit_make_var_test() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/make_var_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+#include <assert.h>
+#include <stdlib.h>
+
+@interface MakeVarUnitTest : XCTestCase
+
+@end
+
+@implementation MakeVarUnitTest
+
+- (void)testMakeVar {
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"MY_MAKE_VAR"], @"$1", @"should pass");
+}
+
+@end
+EOF
+
+  cat >ios/MakeVarUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>MakeVarUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+load("@bazel_skylib//lib:common_settings.bzl", "string_flag")
+
+string_flag(
+    name = "my_make_var",
+    build_setting_default = "",
+    make_variable = "MY_MAKE_VAR",
+)
+
+objc_library(
+    name = "make_var_unit_test_lib",
+    srcs = ["make_var_unit_test.m"],
+)
+
+ios_unit_test(
+    name = 'MakeVarUnitTest',
+    infoplists = ["MakeVarUnitTest-Info.plist"],
+    deps = [":make_var_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = 'MakeVarWithHost',
+    infoplists = ["MakeVarUnitTest-Info.plist"],
+    deps = [":make_var_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+EOF
+}
+
 function create_ios_unit_argtest() {
   if [[ ! -f ios/BUILD ]]; then
     fail "create_sim_runners must be called first."
@@ -704,6 +769,40 @@ function test_ios_unit_test_with_host_with_env() {
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_make_var_empty() {
+  create_sim_runners
+  create_ios_unit_make_var_test ""
+  do_ios_test //ios:MakeVarUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
+
+function test_ios_unit_test_with_make_var_set() {
+  create_sim_runners
+  create_ios_unit_make_var_test MAKE_VAR_VALUE1
+  do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
+
+function test_ios_unit_test_with_host_with_make_var_empty() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_make_var_test ""
+  do_ios_test //ios:MakeVarWithHost || fail "should pass"
+
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
+
+function test_ios_unit_test_with_host_with_make_var_set() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_make_var_test MAKE_VAR_VALUE1
+  do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarWithHost || fail "should pass"
+
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
 }
 
 function test_ios_unit_test_dot_separated_command_line_args() {
