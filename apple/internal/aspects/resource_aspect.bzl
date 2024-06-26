@@ -322,6 +322,34 @@ def _apple_resource_aspect_impl(target, ctx):
     elif inherited_apple_resource_infos:
         apple_resource_infos.extend(inherited_apple_resource_infos)
 
+    # The use_runfiles aspect hint adds an empty AppleResourceInfo to a target.
+    # We use this to detect the desire to package runfiles. We package all
+    # runfiles except for .dylibs, which should be placed in the Frameworks folder
+
+    # TODO: remove usage of `getattr` and use `aspect_ctx.rule.attr.aspect_hints` directly when we drop Bazel 6.
+    aspect_hint = None
+    for hint in getattr(ctx.rule.attr, "aspect_hints", []):
+        if AppleResourceInfo in hint:
+            if aspect_hint:
+                fail(("Conflicting AppleResourceInfo from aspect hints " +
+                      "'{hint1}' and '{hint2}'. Only one is " +
+                      "allowed.").format(
+                    hint1 = str(aspect_hint.label),
+                    hint2 = str(hint.label),
+                ))
+            aspect_hint = hint
+
+    if aspect_hint:
+        # Gather the runfiles and mark them as pre-processed/unprocessed
+        apple_resource_infos.append(
+            resources.bucketize_typed(
+                [x for x in target[DefaultInfo].default_runfiles.files.to_list() if x.extension != "dylib"],
+                owner = None,
+                bucket_type = "unprocessed",
+                parent_dir_param = partial.make(resources.runfiles_resources_parent_dir),
+            ),
+        )
+
     providers = []
     if apple_resource_infos:
         # If any providers were collected, merge them.
