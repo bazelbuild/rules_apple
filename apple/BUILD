@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//apple/internal/aspects:resource_aspect_use_runfiles_hint.bzl", "use_runfiles_hint")
 load(":cc_toolchain_forwarder.bzl", "cc_toolchain_forwarder")
 
 package(default_visibility = ["//visibility:public"])
@@ -277,4 +278,10 @@ filegroup(
         "//apple/testing:for_bazel_tests",
     ],
     visibility = ["//:__pkg__"],
+)
+
+# An aspect hint that enables runfile inclusion as AppleResources
+# for cc_libraries. Runfiles keep their folder structure.
+use_runfiles_hint(
+    name = "use_runfiles",
 )
