@@ -535,6 +535,20 @@ is an iOS app clip should use this provider to describe that requirement.
     init = _make_banned_init(provider_name = "IosAppClipBundleInfo"),
 )
 
+IosBundleBundleInfo, new_iosbundlebundleinfo = provider(
+    doc = """
+Denotes that a target is an iOS loadable bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an iOS loadable bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is an iOS loadable bundle should use this provider to describe that
+requirement.
+""",
+    fields = {},
+    init = _make_banned_init(provider_name = "IosBundleBundleInfo"),
+)
+
 IosExtensionBundleInfo, new_iosextensionbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS application extension.
