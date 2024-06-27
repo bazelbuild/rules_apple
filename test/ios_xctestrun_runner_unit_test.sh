@@ -448,6 +448,10 @@ ios_unit_test(
     deps = [":make_var_unit_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
+    env = {
+        "MY_MAKE_VAR": "\$(MY_MAKE_VAR)",
+    },
+    toolchains = [":my_make_var"],
 )
 
 ios_unit_test(
@@ -457,6 +461,10 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
+    env = {
+        "MY_MAKE_VAR": "\$(MY_MAKE_VAR)",
+    },
+    toolchains = [":my_make_var"],
 )
 EOF
 }
