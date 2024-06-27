@@ -554,6 +554,22 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # visionos_unit_test
+        apple_product_type.unit_test_bundle: _describe_rule_type(
+            allowed_device_families = ["vision"],
+            bundle_extension = ".xctest",
+            bundle_package_type = bundle_package_type.bundle,
+            product_type = apple_product_type.unit_test_bundle,
+            requires_signing_for_device = False,
+            rpaths = [
+                # Test binaries live in Application.app/PlugIns/Test.xctest/Test
+                # Frameworks are packaged in Application.app/Frameworks and in
+                # Application.app/PlugIns/Test.xctest/Frameworks
+                "@executable_path/Frameworks",
+                "@loader_path/Frameworks",
+            ],
+            skip_simulator_signing_allowed = False,
+        ),
     },
     "watchos": {
         # watchos_application (single target application)
