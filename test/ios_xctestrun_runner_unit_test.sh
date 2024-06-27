@@ -429,7 +429,7 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
-load("@bazel_skylib//lib:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 string_flag(
     name = "my_make_var",
