@@ -22,6 +22,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
 
 def apple_static_xcframework_test_suite(name):
     """Test suite for apple_static_xcframework.
@@ -29,6 +33,99 @@ def apple_static_xcframework_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+
+    # Test Objective-C(++) XCFramework Info.plist contents with and without public headers.
+    infoplist_contents_test(
+        name = "{}_objc_without_public_headers_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_objc_with_no_public_headers",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework_objc_with_no_public_headers.a",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedPlatform": "ios",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework_objc_with_no_public_headers.a",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "ios",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        not_expected_keys = [
+            "AvailableLibraries:0:HeadersPath",
+            "AvailableLibraries:1:HeadersPath",
+        ],
+        tags = [name],
+    )
+    infoplist_contents_test(
+        name = "{}_objc_with_public_headers_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_oldest_supported",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcframework_oldest_supported.a",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedPlatform": "ios",
+            "AvailableLibraries:0:HeadersPath": "Headers",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcframework_oldest_supported.a",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "ios",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "AvailableLibraries:1:HeadersPath": "Headers",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        tags = [name],
+    )
+
+    # Test Swift XCFramework Info.plist contents with and without Swift generated headers.
+    infoplist_contents_test(
+        name = "{}_swift_without_generated_headers_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcfmwk_with_swift.a",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedPlatform": "ios",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcfmwk_with_swift.a",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "ios",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        not_expected_keys = [
+            "AvailableLibraries:0:HeadersPath",
+            "AvailableLibraries:1:HeadersPath",
+        ],
+        tags = [name],
+    )
+    infoplist_contents_test(
+        name = "{}_with_swift_generated_header_infoplist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_generated_headers",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "ios_static_xcfmwk_with_swift_generated_headers.a",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedPlatform": "ios",
+            "AvailableLibraries:0:HeadersPath": "Headers",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "ios_static_xcfmwk_with_swift_generated_headers.a",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "ios",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "AvailableLibraries:1:HeadersPath": "Headers",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_ios_root_plist_test".format(name),
         build_type = "device",
