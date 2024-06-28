@@ -83,7 +83,7 @@ function test_localized_unprocessed_resources_filter_all() {
 
   do_build macos //app:app --define "apple.locales_to_include=sw" \
       || fail "Should build"
-  expect_log_once "Please verify apple.locales_to_include is defined properly"
+  expect_log_once "Please verify apple.locales_to_include or your bundle's resource_locales is defined properly."
   expect_log_once "\[\"sw\"\]"
   assert_zip_not_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
@@ -96,7 +96,81 @@ function test_localized_unprocessed_resources_filter_mixed() {
 
   do_build macos //app:app --define "apple.locales_to_include=fr,it" \
       || fail "Should build"
-  expect_not_log "Please verify apple.locales_to_include is defined properly"
+  expect_not_log "Please verify apple.locales_to_include or your bundle's resource_locales is defined properly."
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/it.lproj/localized.txt"
+}
+
+# Should generate a warning because 'sw' doesn't match anything, but things
+# were filtered, so it could have been a typo.
+function test_apple_resource_locales_filter_all() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_locales")
+
+objc_library(
+    name = "resources",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
+    ],
+)
+
+apple_resource_locales(
+    name = "locales",
+    locales_to_include = ["sw"],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    resource_locales = ":locales",
+    deps = [":lib", ":resources"],
+)
+
+EOF
+
+  do_build ios //app:app || fail "Should build"
+  expect_log_once "Please verify apple.locales_to_include or your bundle's resource_locales is defined properly."
+  expect_log_once "\[\"sw\"\]"
+  assert_zip_not_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Resources/it.lproj/localized.txt"
+}
+
+# Should not generate a warning because although 'fr' doesn't match anything
+# nothing was filtered away (i.e. - no harm if it was a typo).
+function test_apple_resource_locales_filter_mixed() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_locales")
+
+objc_library(
+    name = "resources",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
+    ],
+)
+
+apple_resource_locales(
+    name = "locales",
+    locales_to_include = ["fr", "it"],
+)
+
+macos_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    resource_locales = ":locales",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+  expect_not_log "Please verify apple.locales_to_include or your bundle's resource_locales is defined properly."
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Resources/it.lproj/localized.txt"
 }

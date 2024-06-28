@@ -34,12 +34,17 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_locales.bzl",
+    _apple_resource_locales = "apple_resource_locales",
+)
 
 visibility("public")
 
 apple_bundle_import = _apple_bundle_import
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
+apple_resource_locales = _apple_resource_locales
 apple_core_data_model = _apple_core_data_model
 
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.

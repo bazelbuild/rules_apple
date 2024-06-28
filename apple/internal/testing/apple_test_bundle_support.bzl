@@ -491,6 +491,7 @@ at {test_host_label}. These must match for correctness.
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
+            resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = targets_to_avoid,

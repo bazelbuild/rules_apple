@@ -32,6 +32,7 @@ load(
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "AppleResourceBundleInfo",
+    "AppleResourceLocalesInfo",
     "AppleSharedCapabilityInfo",
 )
 load(
@@ -546,6 +547,12 @@ in the bundle.
 A list of resources or files bundled with the bundle. The resources will be stored in the
 appropriate resources location within the bundle.
 """,
+        ),
+        "resource_locales": attr.label(
+            doc = """
+An `apple_resource_locales` target providing an allow list of locales to be included in the bundle.
+""",
+            providers = [AppleResourceLocalesInfo],
         ),
         "version": attr.label(
             providers = [[AppleBundleVersionInfo]],

@@ -277,6 +277,7 @@ Resolved Xcode is version {xcode_version}.
             platform_prerequisites = platform_prerequisites,
             primary_icon_name = ctx.attr.primary_app_icon,
             resource_deps = resource_deps,
+            resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             top_level_infoplists = top_level_infoplists,

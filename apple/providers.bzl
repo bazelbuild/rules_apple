@@ -37,6 +37,7 @@ load(
     _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
     _AppleResourceInfo = "AppleResourceInfo",
+    _AppleResourceLocalesInfo = "AppleResourceLocalesInfo",
     _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
     _AppleStaticXcframeworkBundleInfo = "AppleStaticXcframeworkBundleInfo",
     _AppleTestInfo = "AppleTestInfo",
@@ -87,6 +88,7 @@ AppleFrameworkImportInfo = _AppleFrameworkImportInfo
 ApplePlatformInfo = _ApplePlatformInfo
 AppleResourceBundleInfo = _AppleResourceBundleInfo
 AppleResourceInfo = _AppleResourceInfo
+AppleResourceLocalesInfo = _AppleResourceLocalesInfo
 AppleSharedCapabilityInfo = _AppleSharedCapabilityInfo
 AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo
 AppleTestInfo = _AppleTestInfo

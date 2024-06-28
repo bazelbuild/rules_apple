@@ -1131,3 +1131,23 @@ macos_unit_test(
         "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for apple_resource_locales testing.
+
+macos_application(
+    name = "macos_locale_it",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    resource_locales = "//test/starlark_tests/resources:locales_it",
+    resources = [
+        "//test/starlark_tests/resources:localized_strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)

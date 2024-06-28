@@ -204,6 +204,19 @@ def macos_application_resources_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_opt_compilation_mode_on_apple_resource_locales_filter_test".format(name),
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/it.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$RESOURCE_ROOT/en.lproj/localized.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_locale_it",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

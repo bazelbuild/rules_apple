@@ -11,6 +11,7 @@ load(
     "apple_bundle_import",
     "apple_resource_bundle",
     "apple_resource_group",
+    "apple_resource_locales",
 )
 load(
     "//apple/hints:apple_resource_hint.bzl",
@@ -944,4 +945,9 @@ objc_library(
         "//apple/hints:realitykit_library_hint",
     ],
     tags = common.fixture_tags,
+)
+
+apple_resource_locales(
+    name = "locales_it",
+    locales_to_include = ["it"],
 )

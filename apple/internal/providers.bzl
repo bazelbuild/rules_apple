@@ -384,6 +384,20 @@ only be bucketed with the `bucketize_typed` method.""",
     init = make_banned_init(provider_name = "AppleResourceInfo"),
 )
 
+AppleResourceLocalesInfo, new_appleresourcelocalesinfo = provider(
+    doc = """
+Provides an allow list of locales to be included in the bundle.
+Locales not in this list will be excluded from the bundle.
+""",
+    fields = {
+        "locales_to_include": """
+`StringList`. List of [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers)
+strings in `<language_id>[_<region_subtag>]` format (ex: `[en, pt_PT]`)
+""",
+    },
+    init = make_banned_init(provider_name = "AppleResourceLocalesInfo"),
+)
+
 AppleSharedCapabilityInfo, new_applesharedcapabilityinfo = provider(
     doc = "Provides information on a mergeable set of shared capabilities.",
     fields = {

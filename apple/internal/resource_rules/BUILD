@@ -75,6 +75,17 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "apple_resource_locales",
+    srcs = ["apple_resource_locales.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:providers",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

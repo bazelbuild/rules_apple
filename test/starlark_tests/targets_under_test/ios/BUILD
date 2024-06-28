@@ -3958,3 +3958,25 @@ ios_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for apple_resource_locales testing.
+
+ios_application(
+    name = "ios_locale_it",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resource_locales = "//test/starlark_tests/resources:locales_it",
+    resources = [
+        "//test/starlark_tests/resources:localized_strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)

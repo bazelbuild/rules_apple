@@ -14,7 +14,7 @@
 
 """Partial implementations for resource processing.
 
-Resources are procesed according to type, by a series of methods that deal with the specifics for
+Resources are processed according to type, by a series of methods that deal with the specifics for
 each resource type. Each of this methods returns a struct, which always have a `files` field
 containing resource tuples as described in processor.bzl. Optionally, the structs can also have an
 `infoplists` field containing a list of plists that should be merged into the root Info.plist.
@@ -32,6 +32,7 @@ load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleResourceInfo",
+    "AppleResourceLocalesInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -249,14 +250,17 @@ def _deduplicate(
 
     return deduped_tuples
 
-def _locales_requested(*, config_vars):
+def _locales_requested(*, config_vars, resource_locales):
     """Determines which locales to include when resource actions.
 
-    If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
+    If the user has specified "apple.locales_to_include" we use those. Otherwise if there is an
+    allow list specified in the `resource_locales` attribute we use those.
+    Otherwise we don't filter.
     'Base' is included by default to any given list of locales to include.
 
     Args:
         config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
+        resource_locales: An allow list of locales to be included in the bundle.
 
     Returns:
         A set of locales to include or None if all should be included.
@@ -264,6 +268,8 @@ def _locales_requested(*, config_vars):
     requested_locales = config_vars.get("apple.locales_to_include")
     if requested_locales != None:
         return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
+    elif resource_locales != None:
+        return sets.make(["Base"] + resource_locales[AppleResourceLocalesInfo].locales_to_include)
     else:
         return None
 
@@ -280,7 +286,7 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
             # buildifier: disable=print
             print("Warning: " + str(label) + " did not have resources that matched " +
                   sets.str(unused_locales) + " in locale filter. Please verify " +
-                  "apple.locales_to_include is defined properly.")
+                  "apple.locales_to_include or your bundle's resource_locales is defined properly.")
 
 def _resources_partial_impl(
         *,
@@ -300,6 +306,7 @@ def _resources_partial_impl(
         platform_prerequisites,
         primary_icon_name,
         resource_deps,
+        resource_locales,
         rule_descriptor,
         rule_label,
         top_level_infoplists,
@@ -395,7 +402,10 @@ def _resources_partial_impl(
 
     infoplists = []
 
-    locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
+    locales_requested = _locales_requested(
+        config_vars = platform_prerequisites.config_vars,
+        resource_locales = resource_locales,
+    )
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
@@ -549,6 +559,7 @@ def resources_partial(
         platform_prerequisites,
         primary_icon_name = None,
         resource_deps,
+        resource_locales,
         rule_descriptor,
         rule_label,
         targets_to_avoid = [],
@@ -594,6 +605,7 @@ def resources_partial(
         primary_icon_name: An optional String to identify the name of the primary app icon when
             alternate app icons have been provided for the app.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
+        resource_locales: An allow list of locales to be included in the bundle.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
@@ -630,6 +642,7 @@ def resources_partial(
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
         resource_deps = resource_deps,
+        resource_locales = resource_locales,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
