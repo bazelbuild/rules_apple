@@ -41,6 +41,10 @@ load(
     "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
+load(
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 _is_bazel_7 = not hasattr(apple_common, "apple_crosstool_transition")
@@ -346,9 +350,12 @@ def _command_line_options_for_xcframework_platform(
     """
     output_dictionary = {}
     for target_environment in target_environments:
-        if not platform_attr.get(target_environment):
-            continue
-        for arch in platform_attr[target_environment]:
+        if types.is_dict(platform_attr):
+            if not platform_attr.get(target_environment):
+                continue
+            platform_attr = platform_attr[target_environment]
+
+        for arch in platform_attr:
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
                 environment = target_environment,

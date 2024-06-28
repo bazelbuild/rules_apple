@@ -202,7 +202,7 @@ def _group_link_outputs_by_library_identifier(
 
             # If there's any Swift dependencies on this framework rule,
             # look for providers to see if we need to generate Swift interfaces.
-            if swift_support.uses_swift(deps[split_attr_key]):
+            if split_attr_key in deps and swift_support.uses_swift(deps[split_attr_key]):
                 uses_swift = True
                 for dep in deps[split_attr_key]:
                     if SwiftInfo in dep:
@@ -866,6 +866,11 @@ A dictionary of strings indicating which platform variants should be built for t
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
             ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
+""",
+            ),
             "minimum_deployment_os_versions": attr.string_dict(
                 doc = """
 A dictionary of strings indicating the minimum deployment OS version supported by the target,
@@ -1184,6 +1189,11 @@ Currently, this only affects processing of `ios` resources.
 A dictionary of strings indicating which platform variants should be built for the `ios` platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
 """,
             ),
             "minimum_deployment_os_versions": attr.string_dict(

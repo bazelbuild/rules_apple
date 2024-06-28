@@ -32,7 +32,8 @@ def _get_all_deps(*, deps, split_deps_keys = []):
 
     all_deps = []
     for split_deps_key in split_deps_keys:
-        all_deps += deps[split_deps_key]
+        if split_deps_key in deps:
+            all_deps += deps[split_deps_key]
     return all_deps
 
 def _get_sdk_frameworks(*, deps, split_deps_keys = [], include_weak = False):
