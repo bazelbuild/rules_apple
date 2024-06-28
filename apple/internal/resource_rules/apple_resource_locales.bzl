@@ -21,26 +21,37 @@ load(
 
 visibility("//apple/...")
 
-def _apple_resource_locales_impl(_ctx):
-    locales_to_include = []
+def apple_locale_from_unicode_locale(unicode_locale):
+    """Converts a Unicode Locale Identifier to an Apple locale.
 
-    # TODO(b/349902843): Add some input verification for locales_to_include to make sure they are
+    Apple locales are a subset of
+    [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers) strings that are in
+    `<language_id>[_<region_subtag>]` format.
+
+    Args:
+        unicode_locale: The Unicode Locale Identifier to convert.
+    Returns:
+        The Apple locale.
+    """
+
+    # TODO(b/349902843): Add some input verification for unicode_locale to make sure it is
     # somewhat decent.
-    for locale in _ctx.attr.locales_to_include:
-        if locale == "iw":
-            # Apple prefers `he` to `iw` for Hebrew.
-            locale = "he"
-        elif locale == "no":
-            # Apple prefers `nb` to `no` for Norwegian.
-            locale = "nb"
-        elif locale == "in":
-            # Apple prefers `id` to `in` for Indonesian.
-            locale = "id"
-        else:
-            # Replace the separator with an underscore to match lproj conventions.
-            locale = locale.replace("-", "_", 1)
-        locales_to_include.append(locale)
+    if unicode_locale == "iw":
+        # Apple prefers `he` to `iw` for Hebrew.
+        return "he"
+    elif unicode_locale == "no":
+        # Apple prefers `nb` to `no` for Norwegian.
+        return "nb"
+    elif unicode_locale == "in":
+        # Apple prefers `id` to `in` for Indonesian.
+        return "id"
+    else:
+        # Replace the separator with an underscore to match lproj conventions.
+        return unicode_locale.replace("-", "_", 1)
 
+def _apple_resource_locales_impl(_ctx):
+    ctx_locales = _ctx.attr.locales_to_include
+    locales_to_include = [apple_locale_from_unicode_locale(locale) for locale in ctx_locales]
     return new_appleresourcelocalesinfo(
         locales_to_include = locales_to_include,
     )
