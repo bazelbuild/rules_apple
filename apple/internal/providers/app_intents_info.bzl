@@ -15,6 +15,13 @@
 """AppIntentsInfo provider implementation for AppIntents support for Apple rules."""
 
 AppIntentsInfo = provider(
-    doc = "Private provider to propagate `.swift` source files required by AppIntents processing.",
-    fields = ["swift_source_files"],
+    doc = "Private provider to propagate source files required by AppIntents processing.",
+    fields = {
+        "intent_module_names": """
+A List with the module names where App Intents are expected to be found.""",
+        "swift_source_files": """
+A List with the swift source Files to handle via app intents processing.""",
+        "swiftconstvalues_files": """
+A List with the swiftconstvalues Files to handle via app intents processing for Xcode 15+.""",
+    },
 )
