@@ -225,11 +225,18 @@ def _get_simulator_test_environment(
         test_env_dyld_insert_pairs,
     )
 
-def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
+def _apple_test_rule_impl(
+        *,
+        ctx,
+        requires_apple_silicon = False,
+        requires_dossiers,
+        test_type):
     """Generates an implementation for the Apple test rules, given arguments.
 
     Args:
         ctx: A rule context.
+        requires_apple_silicon: A Boolean to indicate if the test rule requires the test to be run
+            on Apple Silicon machines.
         requires_dossiers: A Boolean to indicate if the test rule depends on dossiers from the test
             bundle and the optional test host.
         test_type: A String indicating the test type. For example, "xctest" or "xcuitest".

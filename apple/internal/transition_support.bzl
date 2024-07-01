@@ -581,6 +581,18 @@ _apple_rule_bundle_output_transition = transition(
     outputs = [build_settings_labels.use_tree_artifacts_outputs],
 )
 
+def _apple_rule_force_macos_cpus_arm64_transition_impl(_, __):
+    """Rule transition for Apple rules that always sets the macos_cpus option to arm64."""
+    return {
+        "//command_line_option:macos_cpus": ["arm64"],
+    }
+
+_apple_rule_force_macos_cpus_arm64_transition = transition(
+    implementation = _apple_rule_force_macos_cpus_arm64_transition_impl,
+    inputs = [],
+    outputs = ["//command_line_option:macos_cpus"],
+)
+
 def _apple_rule_arm64_as_arm64e_transition_impl(settings, attr):
     """Rule transition for Apple rules that map arm64 to arm64e."""
     key = "//command_line_option:macos_cpus"
@@ -795,6 +807,7 @@ transition_support = struct(
     apple_platforms_rule_bundle_output_base_transition = _apple_platforms_rule_bundle_output_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_rule_bundle_output_transition = _apple_rule_bundle_output_transition,
+    apple_rule_force_macos_cpus_arm64_transition = _apple_rule_force_macos_cpus_arm64_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
     xcframework_base_transition = _xcframework_base_transition,

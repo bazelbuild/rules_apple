@@ -77,6 +77,7 @@ def _visionos_unit_test_impl(ctx):
     """Implementation of visionos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
+        requires_apple_silicon = True,
         requires_dossiers = True,
         test_type = "xctest",
     ) + [
@@ -134,6 +135,7 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
 visionos_internal_unit_test_bundle = _visionos_internal_unit_test_bundle
 
 visionos_unit_test = rule_factory.create_apple_test_rule(
+    cfg = transition_support.apple_rule_force_macos_cpus_arm64_transition,
     doc = "visionOS Unit Test rule.",
     implementation = _visionos_unit_test_impl,
     platform_type = "visionos",
