@@ -22,9 +22,9 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
+load("//apple/internal:cc_info_support.bzl", "cc_info_support")
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
+    "//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsInfo",
 )
 load(
