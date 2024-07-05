@@ -55,6 +55,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "resource_aspect_hint",
+    srcs = ["resource_aspect_hint.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+        "//apple/internal/testing:__pkg__",
+    ],
+    deps = [
+        "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
     name = "swift_dynamic_framework_aspect",
     srcs = ["swift_dynamic_framework_aspect.bzl"],
     visibility = [
