@@ -412,8 +412,8 @@ def macos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_data",
         contains = [
-            "$CONTENT_ROOT/Resources/external/build_bazel_rules_apple/test/testdata/resources/structured/nested.txt",
-            "$CONTENT_ROOT/Resources/external/build_bazel_rules_apple/test/testdata/resources/basic.bundle/nested/should_be_nested.strings",
+            "$CONTENT_ROOT/Resources/test/testdata/resources/structured/nested.txt",
+            "$CONTENT_ROOT/Resources/test/testdata/resources/basic.bundle/nested/should_be_nested.strings",
         ],
         tags = [name],
     )
