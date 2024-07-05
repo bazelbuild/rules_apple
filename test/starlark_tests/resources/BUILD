@@ -1122,51 +1122,35 @@ swift_library(
 # C/C++ rules with data
 
 cc_library(
-    name = "cc_lib_with_data",
+    name = "cc_library_with_data",
     srcs = ["main.cc"],
     data = [
-        "//test/testdata/resources:basic_bundle",
+        # this file should be placed in nested runfiles-like structure
+        "//test/testdata/resources:structured/nested.txt",
     ],
     tags = common.fixture_tags,
-)
-
-cc_library(
-    name = "cc_lib_with_structured_resources",
-    srcs = ["main.cc"],
-    data = [
-        ":structured_resources_in_resources",
-    ],
-    tags = common.fixture_tags,
-)
-
-cc_library(
-    name = "cc_lib_with_cc_import_with_data",
-    srcs = ["main.cc"],
     deps = [
-        ":cc_import_with_data",
+        ":cc_library2_with_data",
     ],
 )
 
 cc_library(
-    name = "cc_lib_with_cc_import_with_structured_resources",
+    name = "cc_library2_with_data",
     srcs = ["main.cc"],
-    deps = [
-        ":cc_import_with_structured_resources",
-    ],
-)
-
-cc_import(
-    name = "cc_import_with_data",
     data = [
-        "//test/testdata/resources:basic_bundle",
+        # this file should be placed in nested runfiles-like structure
+        "//test/testdata/resources:basic.bundle/nested/should_be_nested.strings",
     ],
     tags = common.fixture_tags,
 )
 
-cc_import(
-    name = "cc_import_with_structured_resources",
+cc_library(
+    name = "cc_library_with_resources",
+    srcs = ["main.cc"],
+    aspect_hints = ["@build_bazel_rules_apple//apple:use_resources"],
     data = [
-        ":structured_resources_in_resources",
+        # because of aspect-hint, this file should be placed in /Resources/nested.txt
+        "//test/testdata/resources:structured/nested.txt",
     ],
     tags = common.fixture_tags,
 )

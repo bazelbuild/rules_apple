@@ -407,6 +407,27 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_archive_contains_cc_library_with_data_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_data",
+        contains = [
+            "$CONTENT_ROOT/Resources/external/build_bazel_rules_apple/test/testdata/resources/structured/nested.txt",
+            "$CONTENT_ROOT/Resources/external/build_bazel_rules_apple/test/testdata/resources/basic.bundle/nested/should_be_nested.strings",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_archive_contains_cc_library_with_resources_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_resources",
+        contains = [
+            "$CONTENT_ROOT/Resources/nested.txt",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
