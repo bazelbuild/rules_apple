@@ -429,7 +429,7 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
-load("@bazel_skylib//lib:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 string_flag(
     name = "my_make_var",
@@ -448,6 +448,10 @@ ios_unit_test(
     deps = [":make_var_unit_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
+    env = {
+        "MY_MAKE_VAR": "\$(MY_MAKE_VAR)",
+    },
+    toolchains = [":my_make_var"],
 )
 
 ios_unit_test(
@@ -457,6 +461,10 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
+    env = {
+        "MY_MAKE_VAR": "\$(MY_MAKE_VAR)",
+    },
+    toolchains = [":my_make_var"],
 )
 EOF
 }
@@ -944,7 +952,7 @@ function test_ios_unit_test_parallel_testing_pass() {
 
   expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
   expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
-  expect_log "@@\?//ios:SmallUnitTest\s\+PASSED"
+  expect_log "//ios:SmallUnitTest\s\+PASSED"
   expect_log "Executed 1 out of 1 test: 1 test passes."
 }
 
@@ -962,7 +970,7 @@ function test_ios_unit_test_parallel_testing_no_tests_fail() {
 
   expect_not_log "Test suite 'SmallUnitTest1' started"
   expect_not_log "Test suite 'SmallUnitTest2' started"
-  expect_log "@@\?//ios:SmallUnitTest\s\+FAILED"
+  expect_log "FAIL: //ios:SmallUnitTest"
   expect_log "Executed 1 out of 1 test: 1 fails locally."
 }
 

@@ -160,6 +160,15 @@ if [[ -n "$test_host_path" ]]; then
   # If this is set in the case there is no test host, some tests hang indefinitely
   xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
 
+  developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+  libraries_path="$developer_path/Library"
+
+  # Added in Xcode 16.0
+  testing_framework_path="$libraries_path/Frameworks/Testing.framework"
+  if [[ -d "$testing_framework_path" ]]; then
+    xctestrun_env+="<key>DYLD_FRAMEWORK_PATH</key><string>$libraries_path/Frameworks</string>"
+  fi
+
   if [[ "$test_type" = "XCUITEST" ]]; then
     xcrun_is_xctrunner_hosted_bundle="true"
     xcrun_is_ui_test_bundle="true"
@@ -169,8 +178,6 @@ if [[ -n "$test_host_path" ]]; then
     readonly runner_app_name="$test_bundle_name-Runner"
     readonly runner_app="$runner_app_name.app"
     readonly runner_app_destination="$test_tmp_dir/$runner_app"
-    developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
-    libraries_path="$developer_path/Library"
     cp -R "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
     chmod -R 777 "$runner_app_destination"
     xctestrun_test_host_path="__TESTROOT__/$runner_app"
@@ -190,7 +197,9 @@ if [[ -n "$test_host_path" ]]; then
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
     /usr/bin/sed \
+      -e "s@\$(WRAPPEDPRODUCTNAME)@XCTRunner@g"\
       -e "s@WRAPPEDPRODUCTNAME@XCTRunner@g"\
+      -e "s@\$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)@$xcrun_test_host_bundle_identifier@g"\
       -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@$xcrun_test_host_bundle_identifier@g"\
       -i "" \
       "$runner_app_destination/Info.plist"
@@ -208,6 +217,10 @@ if [[ -n "$test_host_path" ]]; then
     xctestsupport_framework_path="$libraries_path/PrivateFrameworks/XCTestSupport.framework"
     if [[ -d "$xctestsupport_framework_path" ]]; then
       cp -R "$xctestsupport_framework_path" "$runner_app_frameworks_destination/XCTestSupport.framework"
+    fi
+    # Added in Xcode 16.0
+    if [[ -d "$testing_framework_path" ]]; then
+      cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
