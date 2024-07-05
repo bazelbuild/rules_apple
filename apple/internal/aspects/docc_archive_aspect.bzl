@@ -15,29 +15,30 @@
 """Defines aspects for collecting information required to build .docc and .doccarchive files."""
 
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
+    "@build_bazel_rules_swift//swift:providers.bzl",
+    "SwiftSymbolGraphInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift_symbol_graph_aspect.bzl",
+    "swift_symbol_graph_aspect",
+)
+load(
+    "//apple:providers.bzl",
     "DocCBundleInfo",
     "DocCSymbolGraphsInfo",
 )
 
-def _swift_symbol_graph(swift_info):
-    """Returns the symbol graph from a SwiftInfo provider or fails if it doesn't exist."""
-    direct_modules = swift_info.direct_modules
-    if len(direct_modules) != 1:
-        return None
-    module = direct_modules[0]
-    if not module.swift:
-        return None
-    swift_module = module.swift
-    if not swift_module.symbol_graph:
-        return None
-    return swift_module.symbol_graph
+def _swift_symbol_graphs(*, swift_symbol_graph_info):
+    """Returns a `List` of symbol graph directories from a `SwiftSymbolGraphInfo` provider or fails if it doesn't exist."""
+    direct_symbol_graphs = swift_symbol_graph_info.direct_symbol_graphs
+    transitive_symbol_graphs = swift_symbol_graph_info.transitive_symbol_graphs
 
-def _first_docc_bundle(target, ctx):
+    return [
+        symbol_graph.symbol_graph_dir
+        for symbol_graph in (direct_symbol_graphs + transitive_symbol_graphs.to_list())
+    ]
+
+def _first_docc_bundle(*, target, ctx):
     """Returns the first .docc bundle for the target or its deps by looking in it's data."""
     docc_bundles = []
 
@@ -57,15 +58,20 @@ def _docc_symbol_graphs_aspect_impl(target, ctx):
 
     symbol_graphs = []
 
-    if SwiftInfo in target:
-        symbol_graphs.append(_swift_symbol_graph(target[SwiftInfo]))
+    if SwiftSymbolGraphInfo in target:
+        symbol_graphs.extend(
+            _swift_symbol_graphs(
+                swift_symbol_graph_info = target[SwiftSymbolGraphInfo],
+            ),
+        )
     elif hasattr(ctx.rule.attr, "deps"):
         for dep in ctx.rule.attr.deps:
-            if SwiftInfo in dep:
-                symbol_graphs.append(_swift_symbol_graph(dep[SwiftInfo]))
-
-    # Filter out None
-    symbol_graphs = [symbol_graph for symbol_graph in symbol_graphs if symbol_graph]
+            if SwiftSymbolGraphInfo in dep:
+                symbol_graphs.extend(
+                    _swift_symbol_graphs(
+                        swift_symbol_graph_info = dep[SwiftSymbolGraphInfo],
+                    ),
+                )
 
     if not symbol_graphs:
         return []
@@ -76,7 +82,10 @@ def _docc_bundle_info_aspect_impl(target, ctx):
     """Creates a DocCBundleInfo provider for targets which have a .docc bundle (or which bundle a target that does)"""
 
     if hasattr(ctx.rule.attr, "data"):
-        first_docc_bundle = _first_docc_bundle(target, ctx)
+        first_docc_bundle = _first_docc_bundle(
+            target = target,
+            ctx = ctx,
+        )
         if first_docc_bundle:
             return [DocCBundleInfo(bundle = first_docc_bundle)]
     if hasattr(ctx.rule.attr, "deps"):
@@ -90,19 +99,21 @@ def _docc_bundle_info_aspect_impl(target, ctx):
 docc_bundle_info_aspect = aspect(
     implementation = _docc_bundle_info_aspect_impl,
     doc = """
-    Creates or collects the DocCBundleInfo provider for a target or its deps.
+    Creates or collects the `DocCBundleInfo` provider for a target or its deps.
 
-    This aspect works with targets that have a .docc bundle in their data, or which bundle a target that does.
+    This aspect works with targets that have a `.docc` bundle in their data, or which bundle a target that does.
     """,
     attr_aspects = ["data", "deps"],
 )
 
 docc_symbol_graphs_aspect = aspect(
     implementation = _docc_symbol_graphs_aspect_impl,
+    required_aspect_providers = [SwiftSymbolGraphInfo],
+    requires = [swift_symbol_graph_aspect],
     doc = """
-    Creates or collects the DocCSymbolGraphsInfo provider for a target or its deps.
+    Creates or collects the `DocCSymbolGraphsInfo` provider for a target or its deps.
 
-    This aspect works with targets that have a SwiftInfo provider, or which bundle a target that does.
+    This aspect works with targets that have a `SwiftSymbolGraphInfo` provider, or which bundle a target that does.
     """,
     attr_aspects = ["deps"],
 )
