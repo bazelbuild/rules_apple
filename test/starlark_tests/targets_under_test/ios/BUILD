@@ -4915,7 +4915,7 @@ swift_library(
     name = "basic_framework_lib_with_docc_bundle",
     srcs = ["//test/starlark_tests/resources:BasicFramework.swift"],
     data = ["//test/starlark_tests/resources:basic_docc_bundle_files"],
-    module_name = "BasicFramework",
+    module_name = "BasicFrameworkWithDocCBundle",
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
 )
@@ -4941,7 +4941,7 @@ docc_archive(
 ios_dynamic_framework(
     name = "basic_framework_with_docc_bundle",
     bundle_id = "com.google.example.framework",
-    bundle_name = "BasicFramework",
+    bundle_name = "BasicFrameworkWithDocCBundle",
     families = [
         "iphone",
         "ipad",

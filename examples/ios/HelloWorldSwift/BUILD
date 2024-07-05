@@ -96,8 +96,10 @@ docc_archive(
     default_code_listing_language = "en",
     dep = ":HelloWorldSwift",
     diagnostic_level = "information",
+    emit_extension_block_symbols = "1",
     enable_inherited_docs = True,
     fallback_bundle_identifier = "com.example.hello-world-swift",
     fallback_bundle_version = "1.0.0",
     fallback_display_name = "HelloWorldSwift",
+    minimum_access_level = "internal",
 )

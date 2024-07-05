@@ -53,7 +53,7 @@ def _docc_archive_impl(ctx):
     platform = ctx.fragments.apple.single_arch_platform
     transform_for_static_hosting = ctx.attr.transform_for_static_hosting
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    dep = ctx.attr.dep[0]  # this isn't actually a list target but transition makes it one.
+    dep = ctx.attr.dep
     symbol_graphs_info = None
     docc_bundle_info = None
     docc_build_inputs = []
@@ -155,19 +155,6 @@ def _docc_archive_impl(ctx):
         doccarchive_binary_info,
     ]
 
-def _swift_emit_symbol_graph_transition_impl(settings, _attr):
-    """A transition that enables "swift.emit_symbol_graph" feature"""
-    if "//command_line_option:features" in settings:
-        return {"//command_line_option:features": settings["//command_line_option:features"] + ["swift.emit_symbol_graph"]}
-    else:
-        return {"//command_line_option:features": ["swift.emit_symbol_graph"]}
-
-swift_emit_symbol_graph_transition = transition(
-    implementation = _swift_emit_symbol_graph_transition_impl,
-    inputs = ["//command_line_option:features"],
-    outputs = ["//command_line_option:features"],
-)
-
 docc_archive = rule(
     implementation = _docc_archive_impl,
     fragments = ["apple"],
@@ -179,7 +166,7 @@ NOTE: At this time Swift is the only supported language for this rule.
 
 Example:
 
-```python
+```starlark
 load("@build_bazel_rules_apple//apple:docc.bzl", "docc_archive")
 
 docc_archive(
@@ -198,7 +185,6 @@ docc_archive(
                     docc_bundle_info_aspect,
                     docc_symbol_graphs_aspect,
                 ],
-                cfg = swift_emit_symbol_graph_transition,
                 providers = [[DocCBundleInfo], [DocCSymbolGraphsInfo]],
             ),
             "default_code_listing_language": attr.string(
@@ -211,6 +197,19 @@ This filter level is inclusive. If a level of `information` is specified, diagno
 Must be one of "error", "warning", "information", or "hint"
                 """,
                 values = ["error", "warning", "information", "hint"],
+            ),
+            # TODO: use `attr.bool` once https://github.com/bazelbuild/bazel/issues/22809 is resolved.
+            "emit_extension_block_symbols": attr.string(
+                default = "0",
+                doc = """
+Defines if the symbol graph information for `extension` blocks should be
+emitted in addition to the default symbol graph information.
+
+This value must be either `"0"` or `"1"`.When the value is `"1"`, the symbol
+graph information for `extension` blocks will be emitted in addition to
+the default symbol graph information. The default value is `"0"`.
+                """,
+                values = ["0", "1"],
             ),
             "enable_inherited_docs": attr.bool(
                 default = False,
@@ -235,11 +234,21 @@ Must be one of "error", "warning", "information", or "hint"
             "kinds": attr.string_list(
                 doc = "The kinds of entities to filter generated documentation for.",
             ),
+            "minimum_access_level": attr.string(
+                default = "public",
+                doc = """"
+The minimum access level of the declarations that should be emitted in the symbol graphs.
+This value must be either `fileprivate`, `internal`, `private`, or `public`. The default value is `public`.
+                """,
+                values = [
+                    "fileprivate",
+                    "internal",
+                    "private",
+                    "public",
+                ],
+            ),
             "transform_for_static_hosting": attr.bool(
                 default = True,
-            ),
-            "_allowlist_function_transition": attr.label(
-                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
             ),
             "_preview_template": attr.label(
                 allow_single_file = True,
