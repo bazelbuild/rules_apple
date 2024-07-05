@@ -1159,15 +1159,15 @@ cc_library(
     name = "cc_library_with_suppressed_resources",
     srcs = ["main.cc"],
     aspect_hints = ["@build_bazel_rules_apple//apple:suppress_resources"],
-    deps = [
-        # dep will follow cc_library_runfileB rules and be included as a runfile
-        ":cc_library_with_runfile_b",
-    ],
     data = [
         # because of aspect-hint, this file should not be included in the application
         "//test/starlark_tests/resources:cc_lib_resources/suppressed_resource.txt",
     ],
     tags = common.fixture_tags,
+    deps = [
+        # dep will follow cc_library_runfileB rules and be included as a runfile
+        ":cc_library_with_runfile_b",
+    ],
 )
 
 # Targets for CcInfo dylib tests
