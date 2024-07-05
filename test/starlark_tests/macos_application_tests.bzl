@@ -408,12 +408,12 @@ def macos_application_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_archive_contains_cc_library_with_data_test".format(name),
+        name = "{}_archive_contains_cc_library_with_runfiles_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_data",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_runfiles",
         contains = [
-            "$CONTENT_ROOT/Resources/test/testdata/resources/structured/nested.txt",
-            "$CONTENT_ROOT/Resources/test/testdata/resources/basic.bundle/nested/should_be_nested.strings",
+            "$CONTENT_ROOT/Resources/test/starlark_tests/resources/cc_lib_resources/runfile_a.txt",
+            "$CONTENT_ROOT/Resources/test/starlark_tests/resources/cc_lib_resources/runfile_b.txt",
         ],
         tags = [name],
     )
@@ -423,7 +423,22 @@ def macos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_with_resources",
         contains = [
-            "$CONTENT_ROOT/Resources/nested.txt",
+            "$CONTENT_ROOT/Resources/resource_a.txt",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_archive_contains_cc_library_suppress_resources_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_cc_library_suppress_resources",
+        contains = [
+            "$CONTENT_ROOT/Resources/test/starlark_tests/resources/cc_lib_resources/runfile_b.txt",
+        ],
+        not_contains = [
+            # Suppressed resource shouldn't be in either runfile or resource location
+            "$CONTENT_ROOT/Resources/test/starlark_tests/resources/cc_lib_resources/suppressed_resource.txt",
+            "$CONTENT_ROOT/Resources/suppressed_resource.txt",
         ],
         tags = [name],
     )

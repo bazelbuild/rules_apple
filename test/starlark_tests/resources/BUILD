@@ -1122,35 +1122,50 @@ swift_library(
 # C/C++ rules with data
 
 cc_library(
-    name = "cc_library_with_data",
+    name = "cc_library_with_runfile_a",
     srcs = ["main.cc"],
     data = [
         # this file should be placed in nested runfiles-like structure
-        "//test/testdata/resources:structured/nested.txt",
+        "//test/starlark_tests/resources:cc_lib_resources/runfile_a.txt",
     ],
     tags = common.fixture_tags,
     deps = [
-        ":cc_library2_with_data",
+        ":cc_library_with_runfile_b",
     ],
 )
 
 cc_library(
-    name = "cc_library2_with_data",
+    name = "cc_library_with_runfile_b",
     srcs = ["main.cc"],
     data = [
         # this file should be placed in nested runfiles-like structure
-        "//test/testdata/resources:basic.bundle/nested/should_be_nested.strings",
+        "//test/starlark_tests/resources:cc_lib_resources/runfile_b.txt",
     ],
     tags = common.fixture_tags,
 )
 
 cc_library(
-    name = "cc_library_with_resources",
+    name = "cc_library_with_resource_a",
     srcs = ["main.cc"],
     aspect_hints = ["@build_bazel_rules_apple//apple:use_resources"],
     data = [
         # because of aspect-hint, this file should be placed in /Resources/nested.txt
-        "//test/testdata/resources:structured/nested.txt",
+        "//test/starlark_tests/resources:cc_lib_resources/resource_a.txt",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_library(
+    name = "cc_library_with_suppressed_resources",
+    srcs = ["main.cc"],
+    aspect_hints = ["@build_bazel_rules_apple//apple:suppress_resources"],
+    deps = [
+        # dep will follow cc_library_runfileB rules and be included as a runfile
+        ":cc_library_with_runfile_b",
+    ],
+    data = [
+        # because of aspect-hint, this file should not be included in the application
+        "//test/starlark_tests/resources:cc_lib_resources/suppressed_resource.txt",
     ],
     tags = common.fixture_tags,
 )
