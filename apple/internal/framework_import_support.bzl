@@ -515,7 +515,6 @@ def _swift_info_from_module_interface(
             requested_features = features,
             unsupported_features = disabled_features,
         ),
-        target_name = module_name,
         module_name = module_name,
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,
