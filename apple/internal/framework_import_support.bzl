@@ -519,6 +519,7 @@ def _swift_info_from_module_interface(
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,
         swift_toolchain = swift_toolchain,
+        target_name = ctx.label.name,
     )
 
     return swift_common.create_swift_info(
