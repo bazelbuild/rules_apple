@@ -501,21 +501,19 @@ framework or a framework with mergeable libraries.
                 processed_infoplists.disqualified_root_infoplists
             )
 
-        args.add("--framework_binary", framework_binaries_by_framework[framework_basename])
+        args.add("--framework-binary-path", framework_binaries_by_framework[framework_basename])
 
-        args.add_all(build_archs_found, before_each = "--slice")
+        args.add_all(build_archs_found, before_each = "--requested-architectures")
 
-        args.add("--output_zip", framework_zip.path)
+        args.add("--output-zip-path", framework_zip.path)
 
-        args.add("--temp_path", temp_framework_bundle_path)
-
-        args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
+        args.add_all(files_by_framework[framework_basename], before_each = "--framework-file-paths")
 
         infoplists = infoplists_by_framework.get(framework_basename)
         if infoplists:
             args.add_all(
                 infoplists_by_framework[framework_basename],
-                before_each = "--framework_file",
+                before_each = "--framework-file-paths",
             )
 
         codesign_args = codesigning_support.codesigning_args(
@@ -532,7 +530,7 @@ framework or a framework with mergeable libraries.
         else:
             # Add required argument to disable signing because
             # code sign arguments are mutually exclusive groups.
-            args.add("--disable_signing")
+            args.add("--disable-signing")
 
         codesigningtool = apple_mac_toolchain_info.codesigningtool
         imported_dynamic_framework_processor = apple_mac_toolchain_info.imported_dynamic_framework_processor

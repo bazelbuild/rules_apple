@@ -177,7 +177,7 @@ final bundles.
 """,
         ),
         "imported_dynamic_framework_processor": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to process an imported dynamic framework such that the given framework

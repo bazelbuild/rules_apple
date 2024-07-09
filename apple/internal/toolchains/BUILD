@@ -27,7 +27,7 @@ apple_mac_tools_toolchain(
     dossier_codesigningtool = "//tools/dossier_codesigningtool",
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",
-    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
+    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_osx",
     plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
