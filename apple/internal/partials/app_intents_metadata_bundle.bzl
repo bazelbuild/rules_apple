@@ -88,15 +88,30 @@ def _app_intents_metadata_bundle_partial_impl(
         label.name + "_app_intents_stub_binary",
     )
 
+    # Mirroring Xcode 15+ behavior, the metadata tool only looks at the first split for a given arch
+    # rather than every possible set of source files and inputs. Oddly, this only applies to the
+    # swift source files and the swiftconstvalues files; the triples and other files do cover all
+    # available archs.
+    first_cc_toolchain_key = cc_toolchains.keys()[0]
+
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         bundle_binary = fat_stub_binary,
+        constvalues_files = [
+            swiftconstvalues_file
+            for dep in deps[first_cc_toolchain_key]
+            for swiftconstvalues_file in dep[AppIntentsInfo].swiftconstvalues_files
+        ],
+        intents_module_names = [
+            intent_module_name
+            for dep in deps[first_cc_toolchain_key]
+            for intent_module_name in dep[AppIntentsInfo].intent_module_names
+        ],
         label = label,
         source_files = [
             swift_source_file
-            for split_deps in deps.values()
-            for dep in split_deps
+            for dep in deps[first_cc_toolchain_key]
             for swift_source_file in dep[AppIntentsInfo].swift_source_files
         ],
         target_triples = [
@@ -134,9 +149,10 @@ def app_intents_metadata_bundle_partial(
 
     Args:
         actions: The actions provider from ctx.actions.
-        cc_toolchains: Dictionary of CcToolchainInfo providers for current target splits.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information.
         ctx: The Starlark context for a rule target being built.
-        deps: List of dependencies implementing the AppIntents protocol.
+        deps: Dictionary of targets under a split transition implementing the AppIntents protocol.
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.

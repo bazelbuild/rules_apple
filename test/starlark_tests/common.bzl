@@ -37,6 +37,7 @@ _min_os_ios = struct(
     oldest_supported = "11.0",
     nplus1 = "13.0",
     stable_swift_abi = "12.2",
+    widget_configuration_intents_support = "16.0",
 )
 
 _min_os_macos = struct(
