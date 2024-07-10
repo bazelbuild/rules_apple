@@ -15,20 +15,61 @@
 import SwiftUI
 
 @main
-struct BazelApp: App {
-  var body: some Scene {
+public struct BazelApp: App {
+  public init() { }
+
+  public var body: some Scene {
     WindowGroup {
       Text("Hello World")
         .accessibility(identifier: "HELLO_WORLD")
     }
   }
 
-  /// A foo API to test DooC documentation generation.
+  /// A public API to test DooC documentation generation.
   ///
-  /// Example referencing ``AppDelegate``:
+  /// Example referencing ``BazelApp``:
   ///
   /// ```swift
-  /// let appDelegate = AppDelegate()
+  /// let app = BazelApp()
   /// ```
   public func foo() { }
+
+  /// An internal API to test `minimum_access_level` DooC option.
+  internal func internalFoo() { }
+}
+
+// MARK: - View Extension
+
+extension View {
+
+  /// A public API extension on ``View`` to test DooC documentation generation.
+  public func viewFoo() { }
+
+  /// An internal API extension on ``View`` to test `minimum_access_level` DooC option.
+  internal func internalViewFoo() { }
+}
+
+// MARK: - Custom type
+
+/// My Struct
+///
+/// Example referencing ``MyStruct``:
+///
+/// ```swift
+///
+/// let foo = MyStruct()
+/// ```
+public struct MyStruct {
+  public init() { }
+
+  /// My Struct's foo API to test DooC documentation generation.
+  /// - Parameters:
+  ///  - bar: A bar parameter.
+  public func foo(bar: Int) { }
+
+  /// An internal foo API to test DooC documentation generation with `minimum_access_level` set to `internal`.
+  ///
+  /// - Parameters:
+  /// - bar: A bar parameter.
+  internal func internalFoo(bar: Int) { }
 }
