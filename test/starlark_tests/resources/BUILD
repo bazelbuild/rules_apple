@@ -465,6 +465,11 @@ filegroup(
 )
 
 filegroup(
+    name = "dark_and_tinted_app_icons_ios",
+    srcs = glob(["dark_and_tinted_app_icons_ios.xcassets/**"]),
+)
+
+filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )

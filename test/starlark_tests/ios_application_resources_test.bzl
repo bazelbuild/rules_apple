@@ -231,6 +231,35 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    # Test that when the primary app icon has dark mode and tinted variants, that the legacy icons
+    # are still bundled in expected locations with the app, that the legacy icons are embedded
+    # within the plist referencing their file names, and that they are also bundled within the asset
+    # catalog for the application.
+    archive_contents_test(
+        name = "{}_dark_and_tinted_app_icons_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dark_and_tinted_app_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon",
+        },
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = [
+            "Bazel_logo.png",
+            "Bazel_dark_logo.png",
+            "Bazel_tinted_logo.png",
+            "UIAppearanceDark",
+            "ISAppearanceTintable",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     # Tests that apple_bundle_import files are bundled correctly with the application.
     archive_contents_test(
         name = "{}_apple_bundle_test".format(name),
