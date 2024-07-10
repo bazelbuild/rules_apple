@@ -31,12 +31,16 @@ visionos_application(
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
     minimum_os_version = "1.0",
+    tags = [
+    ],
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )
 
 build_test(
     name = "HelloWorldBuildTest",
+    tags = [
+    ],
     targets = [
         ":HelloWorld",
     ],
