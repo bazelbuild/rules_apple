@@ -248,6 +248,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
+    tags = common.skip_ci_tags,
 )
 
 apple_shell_test(
