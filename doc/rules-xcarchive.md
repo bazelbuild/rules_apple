@@ -18,7 +18,7 @@ metadata for the .xcarchive.
 Example:
 
 ````starlark
-load("@build_bazel_rules_apple//apple:xcarchive.bzl", "xcarchive")
+load("//apple:xcarchive.bzl", "xcarchive")
 
 ios_application(
     name = "App",

@@ -32,13 +32,13 @@ load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
-load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
-load("@build_bazel_rules_apple//apple/internal:rule_attrs.bzl", "rule_attrs")
+load("//apple/internal:intermediates.bzl", "intermediates")
+load("//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
+load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",

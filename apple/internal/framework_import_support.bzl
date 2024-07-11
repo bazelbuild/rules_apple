@@ -14,11 +14,11 @@
 
 """Support methods for Apple framework import rules."""
 
-load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
-load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
-load("@build_bazel_rules_apple//apple/internal/utils:defines.bzl", "defines")
-load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
+load("//apple/internal/utils:files.bzl", "files")
+load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
+load("//apple:providers.bzl", "AppleFrameworkImportInfo")
+load("//apple/internal/utils:defines.bzl", "defines")
+load("//apple:utils.bzl", "group_files_by_directory")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",

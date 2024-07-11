@@ -15,7 +15,7 @@
 """AppIntents intents related actions."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
-load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
+load("//apple/internal:intermediates.bzl", "intermediates")
 
 def generate_app_intents_metadata_bundle(
         *,
