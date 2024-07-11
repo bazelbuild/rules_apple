@@ -416,7 +416,7 @@ def _filter_codesign_tool_output(exit_status, codesign_stdout, codesign_stderr):
 def _invoke_codesign(
     codesign_params: CodesignStaticParamsArgs,
     identity: str,
-    entitlements_path: str,
+    entitlements_path: Optional[str],
     full_path_to_sign: str,
 ) -> None:
   """Invokes the codesign tool on the given path to sign.
@@ -740,7 +740,7 @@ def _sign_embedded_bundles_with_manifest(
     codesign_params: CodesignStaticParamsArgs,
     allowed_entitlements: list[str],
     codesign_identity: str,
-) -> list[concurrent.futures.Future[Any]]:
+) -> list[SigningFuture]:
   """Signs embedded bundles/dylibs/frameworks concurrently and returns futures.
 
   Args:

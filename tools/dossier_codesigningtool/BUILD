@@ -34,6 +34,9 @@ py_test(
     ],
 )
 
+# TODO(b/277604599): Address supporting Apple Silicon. This target is only supported on an Intel
+# Mac, which incurs a performance penalty for all spawned subprocesses including /usr/bin/codesign
+# when it is executed.
 py_binary(
     name = "dossier_codesigning_reader",
     srcs = ["dossier_codesigning_reader.py"],
