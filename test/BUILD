@@ -196,7 +196,7 @@ apple_multi_shell_test(
 
 apple_shell_test(
     name = "ios_coverage_test",
-    size = "medium",
+    size = "large",
     src = "ios_coverage_test.sh",
 )
 
