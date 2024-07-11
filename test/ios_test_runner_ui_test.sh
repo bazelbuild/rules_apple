@@ -41,7 +41,7 @@ load(
 
 ios_test_runner(
     name = "ios_x86_64_sim_runner",
-    device_type = "iPhone 12",
+    device_type = "iPhone Xs",
 )
 EOF
 }
@@ -208,6 +208,7 @@ ios_ui_test(
     deps = [":pass_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
+    timeout = "long",
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -223,6 +224,7 @@ ios_ui_test(
     deps = [":pass_ui_swift_test_lib"],
     minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     test_host = ":app",
+    timeout = "long",
     runner = ":ios_x86_64_sim_runner",
 )
 
@@ -237,6 +239,7 @@ ios_ui_test(
     deps = [":fail_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
+    timeout = "long",
     runner = ":ios_x86_64_sim_runner",
 )
 EOF
@@ -297,13 +300,19 @@ ios_ui_test(
     deps = [":env_ui_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
+    timeout = "long",
     runner = ":ios_x86_64_sim_runner",
 )
 EOF
 }
 
 function do_ios_test() {
-  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=11.0" "$@"
+  do_test ios \
+    "--test_output=all" \
+    "--spawn_strategy=local" \
+    "--ios_minimum_os=11.0" \
+    "--test_env=STARTUP_TIMEOUT_SEC=300" \
+    "$@"
 }
 
 function test_ios_ui_test_pass() {
