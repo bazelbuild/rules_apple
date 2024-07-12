@@ -1,3 +1,8 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
 load(
     "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
@@ -6,18 +11,10 @@ load(
     "apple_universal_binary",
     "apple_xcframework",
 )
-load(
-    "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
-    "generate_static_xcframework",
-)
+load("//apple:header_map.bzl", "header_map")
 load(
     "//apple:ios.bzl",
     "ios_application",
-)
-load(
-    "//apple:versioning.bzl",
-    "apple_bundle_version",
 )
 load(
     "//apple:macos.bzl",
@@ -31,19 +28,22 @@ load(
     "swift_apple_core_ml_library",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
+    "//apple:versioning.bzl",
+    "apple_bundle_version",
 )
 load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
 load(
+    "//test/starlark_tests/rules:generate_xcframework.bzl",
+    "generate_dynamic_xcframework",
+    "generate_static_xcframework",
+)
+load(
     "//test/testdata/rules:dummy_test_runner.bzl",
     "dummy_test_runner",
 )
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("//apple:header_map.bzl", "header_map")
 
 licenses(["notice"])
 
