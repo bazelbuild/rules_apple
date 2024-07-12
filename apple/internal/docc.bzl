@@ -15,12 +15,12 @@
 """Defines rules for building Apple DocC targets."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",

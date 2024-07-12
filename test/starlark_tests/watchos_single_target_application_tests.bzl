@@ -15,12 +15,16 @@
 """watchos_application Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
 )
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
@@ -35,12 +39,8 @@ load(
     "infoplist_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_target_actions_test",
-)
-load(
-    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_test",
+    ":common.bzl",
+    "common",
 )
 
 def watchos_single_target_application_test_suite(name):

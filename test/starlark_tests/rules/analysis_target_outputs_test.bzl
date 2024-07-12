@@ -15,16 +15,16 @@
 "Starlark test for testing the outputs of analysis phase."
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
+)
+load(
     "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:assertions.bzl",
     "assertions",
-)
-load(
-    "@bazel_skylib//lib:unittest.bzl",
-    "analysistest",
 )
 
 def _analysis_target_outputs_test_impl(ctx):

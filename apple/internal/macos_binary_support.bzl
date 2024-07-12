@@ -15,6 +15,15 @@
 """Internal helper definitions used by macOS command line rules."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfoplistInfo",
+    "AppleBundleVersionInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -28,12 +37,12 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
@@ -54,15 +63,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfoplistInfo",
-    "AppleBundleVersionInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
 )
 
 def _macos_binary_infoplist_impl(ctx):

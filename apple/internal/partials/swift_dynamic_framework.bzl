@@ -15,20 +15,20 @@
 """Partial implementation for Swift dynamic frameworks."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "processor",
 )
 
 # TODO(b/161370390): Remove ctx from the args when ctx is removed from all partials.

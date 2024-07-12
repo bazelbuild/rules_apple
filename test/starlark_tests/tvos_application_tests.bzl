@@ -15,12 +15,16 @@
 """tvos_application Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
@@ -43,12 +47,8 @@ load(
     "linkmap_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_target_actions_test",
-)
-load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
+    ":common.bzl",
+    "common",
 )
 
 def tvos_application_test_suite(name):

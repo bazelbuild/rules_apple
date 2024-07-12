@@ -15,13 +15,13 @@
 """Rules for writing build tests for libraries that target Apple platforms."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
-    "transition_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBinaryInfo",
     "AppleDsymBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "transition_support",
 )
 
 _PASSING_TEST_SCRIPT = """\

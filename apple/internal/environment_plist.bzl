@@ -17,8 +17,8 @@ A rule for generating the environment plist
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
@@ -29,16 +29,16 @@ load(
     "AppleMacToolsToolchainInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
 )
 
 def _environment_plist_impl(ctx):

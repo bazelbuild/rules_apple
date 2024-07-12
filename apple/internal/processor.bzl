@@ -64,16 +64,20 @@ rule.
 """
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
@@ -88,16 +92,12 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 # Location enum that can be used to tag files into their appropriate location

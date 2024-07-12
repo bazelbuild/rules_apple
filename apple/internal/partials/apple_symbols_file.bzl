@@ -15,6 +15,11 @@
 """Partial implementation for Apple .symbols file processing."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load("@bazel_skylib//lib:shell.bzl", "shell")
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -30,11 +35,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load("@bazel_skylib//lib:shell.bzl", "shell")
 
 _AppleSymbolsFileInfo = provider(
     doc = "Private provider to propagate the transitive .symbols `File`s.",

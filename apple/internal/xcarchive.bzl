@@ -8,12 +8,12 @@ load(
     "AppleDsymBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebinaryinfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
 )
 
 def _xcarchive_impl(ctx):

@@ -15,17 +15,13 @@
 """xcframework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
-)
-load(
-    "//test/starlark_tests/rules:action_command_line_test.bzl",
-    "action_command_line_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -42,6 +38,10 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def apple_xcframework_test_suite(name):

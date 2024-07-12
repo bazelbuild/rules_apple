@@ -19,12 +19,12 @@ load(
     "AppleDsymBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:assertions.bzl",
-    "assertions",
-)
-load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
+)
+load(
+    "@build_bazel_rules_apple//test/starlark_tests/rules:assertions.bzl",
+    "assertions",
 )
 
 visibility("//test/starlark_tests/...")

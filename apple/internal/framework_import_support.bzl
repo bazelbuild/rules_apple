@@ -14,17 +14,17 @@
 
 """Support methods for Apple framework import rules."""
 
-load("//apple/internal/utils:files.bzl", "files")
-load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
-load("//apple:providers.bzl", "AppleFrameworkImportInfo")
-load("//apple/internal/utils:defines.bzl", "defines")
-load("//apple:utils.bzl", "group_files_by_directory")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
     "swift_common",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//apple:providers.bzl", "AppleFrameworkImportInfo")
+load("//apple:utils.bzl", "group_files_by_directory")
+load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
+load("//apple/internal/utils:defines.bzl", "defines")
+load("//apple/internal/utils:files.bzl", "files")
 
 # TODO: Remove once we drop bazel 7.x
 _OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")

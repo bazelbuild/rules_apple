@@ -15,16 +15,16 @@
 """Intent definitions related actions."""
 
 load(
+    "@bazel_skylib//lib:versions.bzl",
+    "versions",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
-)
-load(
-    "@bazel_skylib//lib:versions.bzl",
-    "versions",
 )
 
 def generate_intent_classes_sources(

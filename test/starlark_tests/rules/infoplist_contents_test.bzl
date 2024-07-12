@@ -22,17 +22,17 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfo",
+    "AppleBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
 load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:output_group_test_support.bzl",
     "output_group_test_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
-    "AppleBundleInfo",
 )
 
 def _infoplist_contents_test_impl(ctx):
