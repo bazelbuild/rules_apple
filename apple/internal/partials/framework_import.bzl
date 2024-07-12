@@ -72,12 +72,18 @@ _MACOS_UNVERSIONED_ROOT_INFOPLIST_PATH = "Resources"
 
 def _framework_provider_files_to_bundle(
         *,
+        deduplicate_short_paths,
         field_name,
         targets,
         targets_to_avoid):
     """Collect AppleFrameworkImportInfo files for the given field, subtracted by targets to avoid
 
     Args:
+        deduplicate_short_paths: Boolean. Indicates if the returned set of files should be
+            deduplicated by short path, ensuring no duplicated files are returned based on the
+            transitions applied to the targets. This will return the first file found for each given
+            short path, and ignore any subsequent files found with the same short path, losing any
+            detection of when the files aren't guaranteed to be the same in the process.
         field_name: A String representing the field name of the AppleFrameworkImportInfo provider to
             collect files from.
         targets: A List of Targets to collect AppleFrameworkImportInfo providers from.
@@ -109,6 +115,14 @@ def _framework_provider_files_to_bundle(
             # Remove any files present in the targets to avoid from framework files that need to be
             # bundled.
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
+
+    if deduplicate_short_paths:
+        deduplicated_files_to_bundle = dict()
+        for file in files_to_bundle:
+            if file.short_path in deduplicated_files_to_bundle:
+                continue
+            deduplicated_files_to_bundle[file.short_path] = file
+        files_to_bundle = deduplicated_files_to_bundle.values()
 
     return files_to_bundle
 
@@ -359,18 +373,21 @@ def _framework_import_partial_impl(
     """Implementation for the framework import file processing partial."""
 
     bundling_files_to_bundle = _framework_provider_files_to_bundle(
+        deduplicate_short_paths = True,
         field_name = "bundling_imports",
         targets = targets,
         targets_to_avoid = targets_to_avoid,
     )
 
     binary_files_to_bundle = _framework_provider_files_to_bundle(
+        deduplicate_short_paths = False,  # Required to handle stub dylibs for codeless frameworks.
         field_name = "binary_imports",
         targets = targets,
         targets_to_avoid = targets_to_avoid,
     )
 
     signature_files_to_bundle = _framework_provider_files_to_bundle(
+        deduplicate_short_paths = True,
         field_name = "signature_files",
         targets = targets,
         targets_to_avoid = targets_to_avoid,
@@ -564,19 +581,12 @@ framework or a framework with mergeable libraries.
         )
         signed_frameworks_list.append(framework_basename)
 
-    # Process signature files separately; we'll grab only one per signature basename, avoiding
-    # conflicts when bundling the imported framework inputs from fat builds.
-    signature_files_by_basename = dict()
-    for signature_file in signature_files_to_bundle:
-        signature_basename = paths.basename(signature_file.path)
-        if signature_basename not in signature_files_by_basename:
-            signature_files_by_basename[signature_basename] = signature_file
-
-    if signature_files_by_basename:
+    # Process signature files separately; we can bundle them as is thanks to earlier deduplication.
+    if signature_files_to_bundle:
         bundle_files = [(
             processor.location.archive,
             "Signatures",
-            depset(signature_files_by_basename.values()),
+            depset(signature_files_to_bundle),
         )]
     else:
         bundle_files = []
