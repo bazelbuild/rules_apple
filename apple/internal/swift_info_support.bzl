@@ -91,8 +91,23 @@ library_evolution = True and no transitive swift_library dependencies.\
             fail(
                 """\
 Error: Could not find all required artifacts and information to build a Swift framework. \
-Please make sure you have a single swift_library dependency with library_evolution = True.\
-""",
+Please make sure you have a single swift_library dependency with library_evolution = True.
+
+For the Swift module found for this framework:
+- Swift module name was "{module_name}"
+- Generated swiftdoc file was "{swiftdoc}"
+- Generated swiftinterface file was "{swiftinterface}"
+
+If this is not a module that you expect to see in your distribution (i.e., it is not your \
+framework's module or one of its public dependencies), you may be leaking a private dependency \
+unintentionally. Consider putting that module (or the one that depends on it, if it is a \
+transitive dependency) in the 'private_deps' of your 'swift_library' and use '@_implementationOnly \
+import' to import it.\
+""".format(
+                    module_name = module.name or "<not found>",
+                    swiftdoc = module.swift.swiftdoc or "<not found>",
+                    swiftinterface = module.swift.swiftinterface or "<not found>",
+                ),
             )
 
         swift_module = module
