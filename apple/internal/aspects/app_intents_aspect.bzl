@@ -22,11 +22,6 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load("//apple/internal:cc_info_support.bzl", "cc_info_support")
-load(
-    "//apple/internal/providers:app_intents_info.bzl",
-    "AppIntentsInfo",
-)
 load(
     "@build_bazel_rules_swift//swift:module_name.bzl",
     "derive_swift_module_name",
@@ -34,6 +29,11 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
+)
+load("//apple/internal:cc_info_support.bzl", "cc_info_support")
+load(
+    "//apple/internal/providers:app_intents_info.bzl",
+    "AppIntentsInfo",
 )
 
 def _app_intents_aspect_impl(target, ctx):

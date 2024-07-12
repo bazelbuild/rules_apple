@@ -15,6 +15,10 @@
 """Helper methods for implementing test rules."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
@@ -22,10 +26,6 @@ load(
     "AppleExtraOutputsInfo",
     "AppleTestInfo",
     "AppleTestRunnerInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
 )
 
 _CoverageFilesInfo = provider(

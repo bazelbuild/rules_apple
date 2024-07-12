@@ -19,16 +19,16 @@ registered to generate these files.
 """
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 def _archive(

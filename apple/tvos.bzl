@@ -15,6 +15,14 @@
 """Bazel rules for creating tvOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
+    _tvos_application = "tvos_application",
+    _tvos_dynamic_framework = "tvos_dynamic_framework",
+    _tvos_extension = "tvos_extension",
+    _tvos_framework = "tvos_framework",
+    _tvos_static_framework = "tvos_static_framework",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
@@ -28,14 +36,6 @@ load(
     _tvos_internal_unit_test_bundle = "tvos_internal_unit_test_bundle",
     _tvos_ui_test = "tvos_ui_test",
     _tvos_unit_test = "tvos_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
-    _tvos_application = "tvos_application",
-    _tvos_dynamic_framework = "tvos_dynamic_framework",
-    _tvos_extension = "tvos_extension",
-    _tvos_framework = "tvos_framework",
-    _tvos_static_framework = "tvos_static_framework",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.

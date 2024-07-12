@@ -15,10 +15,6 @@
 """ios_app_clip Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -41,6 +37,10 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def ios_app_clip_test_suite(name):

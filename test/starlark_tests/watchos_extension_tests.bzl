@@ -19,10 +19,6 @@ load(
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -33,10 +29,6 @@ load(
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
-)
-load(
-    "//test/starlark_tests/rules:product_type_test.bzl",
-    "product_type_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -50,6 +42,14 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    "//test/starlark_tests/rules:product_type_test.bzl",
+    "product_type_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def watchos_extension_test_suite(name):

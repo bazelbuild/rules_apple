@@ -15,8 +15,12 @@
 """Partial implementation for processing additional contents for macOS apps."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
@@ -24,16 +28,12 @@ load(
     "AppleBundleInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "processor",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 def _macos_additional_contents_partial_impl(*, additional_contents):

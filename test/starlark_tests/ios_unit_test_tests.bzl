@@ -15,8 +15,8 @@
 """ios_unit_test Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
@@ -43,8 +43,8 @@ load(
     "infoplist_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:action_command_line_test.bzl",
-    "action_command_line_test",
+    ":common.bzl",
+    "common",
 )
 
 def ios_unit_test_test_suite(name):
