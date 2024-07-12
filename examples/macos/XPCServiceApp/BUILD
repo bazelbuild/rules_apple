@@ -1,5 +1,9 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_xpc_service",
@@ -7,10 +11,6 @@ load(
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
 )
 
 licenses(["notice"])

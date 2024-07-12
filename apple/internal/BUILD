@@ -1,18 +1,18 @@
 # Internal implementation details of the Apple rules.
 
-load(
-    ":environment_plist.bzl",
-    "environment_plist",
-)
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 load(
     "//apple/internal:apple_toolchains.bzl",
     "apple_mac_tools_toolchain",
     "apple_xplat_tools_toolchain",
 )
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
+    ":environment_plist.bzl",
+    "environment_plist",
 )
 
 licenses(["notice"])

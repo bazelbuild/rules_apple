@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner",
@@ -22,7 +23,6 @@ load(
     "//apple/testing/default_runner:watchos_test_runner.bzl",
     "watchos_test_runner",
 )
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])
 

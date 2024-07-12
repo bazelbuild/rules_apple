@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//test:configurations.bzl",
     "IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS",
@@ -7,15 +8,14 @@ load(
     "WATCHOS_CONFIGURATIONS",
 )
 load(
-    "//test/starlark_tests:common.bzl",
-    "common",
-)
-load(
     "//test:test_rules.bzl",
     "apple_multi_shell_test",
     "apple_shell_test",
 )
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
 
 licenses(["notice"])
 

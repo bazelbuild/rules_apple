@@ -1,7 +1,7 @@
 # Build settings used throughout rules_apple build rules.
 
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings",
