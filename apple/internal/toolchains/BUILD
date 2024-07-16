@@ -23,7 +23,7 @@ apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
-    codesigningtool = "//tools/codesigningtool",
+    codesigningtool = "//tools/codesigningtool:codesigntool_osx",
     dossier_codesigningtool = "//tools/dossier_codesigningtool",
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",

@@ -1,13 +1,28 @@
+load("//apple:apple.bzl", "apple_universal_binary")
+
 licenses(["notice"])
 
-py_binary(
+# Force an Apple transition on "exec" config, but keep it single arch to avoid invoking lipo on a
+# script that's architecture independent. py_binary doesn't support Apple Silicon natively, so this
+# is the best we can do right now.
+apple_universal_binary(
     name = "codesigningtool",
-    srcs = ["codesigningtool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
+    binary = ":codesigningtool_binary",
+    forced_cpus = [
+        "x86_64",
+    ],
+    minimum_os_version = "13.0",
+    platform_type = "macos",
     visibility = [
         "//apple/internal/toolchains:__pkg__",
     ],
+)
+
+py_binary(
+    name = "codesigningtool_binary",
+    srcs = ["codesigningtool.py"],
+    python_version = "PY3",
+    srcs_version = "PY3",
     deps = [":codesigningtool_lib"],
 )
 
