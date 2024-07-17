@@ -35,7 +35,8 @@ if [[ -n "$ARCHIVE_PATH" ]]; then
   # copying the directory recursively is enough.
   if [ -d "$ARCHIVE_PATH/" ];
   then
-    cp -rf "$ARCHIVE_PATH" "$ARCHIVE_ROOT"
+    FULL_BUNDLE_NAME="$(basename "$ARCHIVE_PATH")"
+    ditto "$ARCHIVE_PATH" "$ARCHIVE_ROOT/$FULL_BUNDLE_NAME"
     # Set write permission to allow for safe file removal in test cleanup.
     chmod -R +w "$ARCHIVE_ROOT"
   else

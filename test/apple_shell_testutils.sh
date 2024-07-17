@@ -716,5 +716,6 @@ function assert_permissions_equal() {
     actual_permissions=$(stat -f "%p" "$file")
   fi
 
-  assert_equals "$expected_permissions" "$actual_permissions"
+  # Make sure to return the file path when comparing to make context clear.
+  assert_equals "$file $expected_permissions" "$file $actual_permissions"
 }
