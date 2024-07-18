@@ -207,39 +207,18 @@ def _create_combined_zip_artifact(
         "progress_message": "Creating combined dossier zip for %s" % label_name,
     }
 
-    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
+    actions.run(
+        arguments = [bundletool_control_file.path],
+        executable = bundletool.files_to_run,
+        inputs = depset(
+            direct = [bundletool_control_file],
+            transitive = [
+                depset([input_archive, dossier_merge_zip]),
+            ],
+        ),
+        exec_group = xplat_exec_group,
+        **common_combined_dossier_zip_args
     )
-
-    if tree_artifact_is_enabled:
-        # Run a shell command to report an error when attempting to build the combined zip with the
-        # tree artifact output. We aren't supposed to know when an output_group has been requested
-        # in a rule implementation, so this error in the execution phase will have to suffice.
-        actions.run_shell(
-            command = "echo '{error_message}' 1>&2 && exit 1".format(
-                error_message = (
-                    "ERROR: The combined dossier zip output group does not yet support the " +
-                    "experimental tree artifact. Please ensure that the " +
-                    "`apple.experimental.tree_artifact_outputs` variable is not set to 1 on " +
-                    "the command line or in your active build " +
-                    "configuration."
-                ),
-            ),
-            **common_combined_dossier_zip_args
-        )
-    else:
-        actions.run(
-            arguments = [bundletool_control_file.path],
-            executable = bundletool.files_to_run,
-            inputs = depset(
-                direct = [bundletool_control_file],
-                transitive = [
-                    depset([input_archive, dossier_merge_zip]),
-                ],
-            ),
-            exec_group = xplat_exec_group,
-            **common_combined_dossier_zip_args
-        )
 
 def _codesigning_dossier_partial_impl(
         *,
@@ -323,31 +302,43 @@ def _codesigning_dossier_partial_impl(
         ),
     )
 
-    output_archive = outputs.archive(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
     )
 
-    output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
+    combined_zip_files = []
 
-    _create_combined_zip_artifact(
-        actions = actions,
-        dossier_merge_zip = output_dossier,
-        input_archive = output_archive,
-        label_name = label_name,
-        output_combined_zip = output_combined_zip,
-        output_discriminator = output_discriminator,
-        platform_prerequisites = platform_prerequisites,
-        bundletool = apple_xplat_toolchain_info.bundletool,
-        xplat_exec_group = xplat_exec_group,
-    )
+    if not tree_artifact_is_enabled:
+        # The combined zip is only created when the rule's output is a zip file; if it's a tree
+        # artifact, we supply the bits necessary to create a combined zip in a downstream rule via
+        # the contents of the AppleBundleArchiveSupportInfo provider.
+        output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
+
+        output_archive = outputs.archive(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+        )
+
+        _create_combined_zip_artifact(
+            actions = actions,
+            dossier_merge_zip = output_dossier,
+            input_archive = output_archive,
+            label_name = label_name,
+            output_combined_zip = output_combined_zip,
+            output_discriminator = output_discriminator,
+            platform_prerequisites = platform_prerequisites,
+            bundletool = apple_xplat_toolchain_info.bundletool,
+            xplat_exec_group = xplat_exec_group,
+        )
+
+        combined_zip_files.append(output_combined_zip)
 
     return struct(
         output_groups = {
-            "combined_dossier_zip": depset([output_combined_zip]),
+            "combined_dossier_zip": depset(combined_zip_files),
             "dossier": depset([output_dossier]),
         },
         providers = providers,

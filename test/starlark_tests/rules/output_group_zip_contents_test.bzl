@@ -60,6 +60,24 @@ def _output_group_zip_contents_test_impl(ctx):
             "fi",
         ])
 
+    for value in ctx.attr.not_contains:
+        test_lines.extend([
+            "VALUE_FOUND=false",
+            "for ACTUAL_VALUE in \"${ACTUAL_VALUES[@]}\"",
+            "do",
+            "  if [[ \"$ACTUAL_VALUE\" == \"{}\" ]]; then".format(value),
+            "    VALUE_FOUND=true",
+            "    break",
+            "  fi",
+            "done",
+            "if [[ \"$VALUE_FOUND\" = true ]]; then",
+            "  echo \"Unexpected file at \"{}\" was found.\"".format(value),
+            "  echo \"Actual files in the zip file were:\"",
+            "  echo ${ACTUAL_VALUES[@]}",
+            "  exit 1",
+            "fi",
+        ])
+
     test_script = ctx.actions.declare_file("{}_output_group_zip_test_script".format(ctx.label.name))
     ctx.actions.write(test_script, "\n".join(test_lines), is_executable = True)
 
@@ -103,7 +121,11 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
         ),
         "contains": attr.string_list(
             doc = "A list of paths expected to be found in the referenced archive.",
-            mandatory = True,
+            mandatory = False,
+        ),
+        "not_contains": attr.string_list(
+            doc = "A list of paths not expected to be found in the referenced archive.",
+            mandatory = False,
         ),
         "output_group_name": attr.string(
             doc = "The name of the output group that has the archive file to verify.",

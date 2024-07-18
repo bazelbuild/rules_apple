@@ -47,6 +47,10 @@ load(
     "linkmap_test",
 )
 load(
+    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
+    "output_group_zip_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -368,21 +372,17 @@ def visionos_application_test_suite(name):
         ],
     )
 
-    # TODO(b/288582842): Support an IPA output via this output group. This will require some changes
-    # to bundling, as the bundle-first build goes through a different set of Python tooling.
-    #output_group_zip_contents_test(
-    #    name = "{}_has_combined_zip_output_group".format(name),
-    #    build_type = "device",
-    #    target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-    #    output_group_name = "combined_dossier_zip",
-    #    output_group_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/visionos/app_dossier_with_bundle.zip",
-    #    contains = [
-    #        "bundle/Payload/app.app/Info.plist",
-    #        "bundle/Payload/app.app/app",
-    #        "dossier/manifest.json",
-    #    ],
-    #    tags = [name],
-    #)
+    output_group_zip_contents_test(
+        name = "{}_has_dossier_output_group".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        output_group_name = "dossier",
+        output_group_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/visionos/app_dossier.zip",
+        contains = [
+            "manifest.json",
+        ],
+        tags = [name],
+    )
 
     native.test_suite(
         name = name,
