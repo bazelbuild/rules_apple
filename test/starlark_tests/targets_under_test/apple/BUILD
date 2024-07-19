@@ -336,13 +336,8 @@ apple_xcframework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    ios = {
-        "simulator": ["x86_64"],
-        "device": ["arm64"],
-    },
     minimum_os_versions = {
         "tvos": common.min_os_tvos.baseline,
-        "ios": common.min_os_ios.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -354,6 +349,70 @@ apple_xcframework(
             "arm64",
         ],
         "device": ["arm64"],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "visionos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "multiplatform_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "ios": common.min_os_ios.baseline,
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
     },
     deps = [":fmwk_lib"],
 )
@@ -668,6 +727,7 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
         "tvos": common.min_os_tvos.baseline,
+        "visionos": common.min_os_visionos.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -677,10 +737,19 @@ apple_static_xcframework(
         "simulator": ["x86_64"],
         "device": ["arm64"],
     },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
     deps = [
         ":fmwk_lib",
         "//test/starlark_tests/resources:ios_device_dependent_resources",
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
+        "//test/starlark_tests/resources:visionos_device_dependent_resources",
     ],
 )
 
@@ -688,6 +757,7 @@ apple_static_xcframework(
     name = "static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps",
     avoid_deps = [
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
+        "//test/starlark_tests/resources:visionos_device_dependent_resources",
     ],
     bundle_format = "framework",
     bundle_id = "com.google.example",
@@ -701,6 +771,7 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
         "tvos": common.min_os_tvos.baseline,
+        "visionos": common.min_os_visionos.baseline,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -710,10 +781,19 @@ apple_static_xcframework(
         "simulator": ["x86_64"],
         "device": ["arm64"],
     },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
     deps = [
         ":fmwk_lib",
         "//test/starlark_tests/resources:ios_device_dependent_resources",
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
+        "//test/starlark_tests/resources:visionos_device_dependent_resources",
     ],
 )
 

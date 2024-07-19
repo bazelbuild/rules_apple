@@ -776,8 +776,7 @@ def _xcframework_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     output_dictionary = {}
 
-    # TODO(b/288582842): Update for visionOS when we're ready to support it in XCFramework rules.
-    for platform_type in ["ios", "tvos", "watchos", "macos"]:
+    for platform_type in ["ios", "tvos", "watchos", "visionos", "macos"]:
         if not hasattr(attr, platform_type):
             continue
         target_environments = ["device"]

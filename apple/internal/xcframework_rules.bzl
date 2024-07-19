@@ -128,6 +128,7 @@ def _xcframework_platform_attrs():
             default = [
                 "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+                "@build_bazel_rules_apple//apple/internal:environment_plist_visionos",
             ],
         ),
         "ios": attr.string_list_dict(
@@ -144,6 +145,13 @@ A dictionary of strings indicating which platform variants should be built for t
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
         ),
+        "visionos": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the visionOS platform
+(`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `arm64`) as their values.
+""",
+        ),
         "minimum_os_versions": attr.string_dict(
             doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
@@ -153,6 +161,7 @@ or `tvos` as keys:
     minimum_os_versions = {
         "ios": "13.0",
         "tvos": "15.0",
+        "visionos": "1.0",
     }
 """,
             mandatory = True,
@@ -208,6 +217,16 @@ resource processing if the XCFramework produces framework bundles. See
 
 # Reference the resource attrs names here to allow access to these names in a rule implementation.
 _XCFRAMEWORK_RESOURCE_ATTR_NAMES = _xcframework_resource_attrs().keys()
+
+# Maps the platform type to the XCFramework platform name as declared within the Info.plist and
+# subdirectory name.
+_PLATFORM_TYPE_TO_XCFRAMEWORK_PLATFORM_NAME = {
+    "ios": "ios",
+    "macos": "macos",
+    "tvos": "tvos",
+    "watchos": "watchos",
+    "visionos": "xros",
+}
 
 def _validate_resource_attrs(
         *,
@@ -395,16 +414,18 @@ def _library_identifier(*, architectures, environment, platform):
             Typically `device` or `simulator`.
         platform: The platform of the target that was built, which corresponds to the toolchain's
             target triple values as reported by `apple_common` linking APIs.
-            For example, `ios`, `macos`, `tvos` or `watchos`.
+            For example, `ios`, `macos`, `tvos`, `visionos` or `watchos`.
 
     Returns:
         A string that can be used to determine the subfolder this embedded framework will be found
         in the final XCFramework bundle. This mirrors the formatting for subfolders as given by the
         xcodebuild -create-xcframework tool.
     """
-    library_identifier = "{}-{}".format(platform, "_".join(architectures))
-    if environment != "device":
-        library_identifier += "-{}".format(environment)
+    library_identifier = "{platform_name}-{archs}{environment}".format(
+        platform_name = _PLATFORM_TYPE_TO_XCFRAMEWORK_PLATFORM_NAME[platform],
+        archs = "_".join(architectures),
+        environment = "-{}".format(environment) if environment != "device" else "",
+    )
     return library_identifier
 
 def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
@@ -464,7 +485,7 @@ def _available_library_dictionary(
         "LibraryIdentifier": library_identifier,
         "LibraryPath": library_path,
         "SupportedArchitectures": architectures,
-        "SupportedPlatform": platform,
+        "SupportedPlatform": _PLATFORM_TYPE_TO_XCFRAMEWORK_PLATFORM_NAME[platform],
     }
 
     if headers_path:
@@ -990,14 +1011,14 @@ def _apple_xcframework_impl(ctx):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
-            # iOS, tvOS and watchOS single target app framework binaries live in
+            # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
             # Application.app/Frameworks/Framework.framework/Framework
             # watchOS 2 extension-dependent app framework binaries live in
             # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
             #
-            # iOS, tvOS and watchOS single target app frameworks are packaged in executable as
+            # iOS, tvOS, visionOS and watchOS single target app frameworks are packaged in
             # Application.app/Frameworks
-            # watchOS 2 extension-dependent app frameworks are packaged in executable as
+            # watchOS 2 extension-dependent app frameworks are packaged in
             # Application.app/PlugIns/Extension.appex/Frameworks
             #
             # While different, these resolve to the same paths relative to their respective

@@ -207,7 +207,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../Frameworks",
             ],
         ),
-        # ios_framework
+        # ios_framework and iOS support for apple_xcframework, apple_static_xcframework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
@@ -485,7 +485,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../Frameworks",
             ],
         ),
-        # tvos_framework
+        # tvos_framework and tvOS support for apple_xcframework, apple_static_xcframework
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["tv"],
             bundle_extension = ".framework",
@@ -540,7 +540,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "visionos": {
-        # visionos_application (single target application)
+        # visionos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["vision"],
             allows_locale_trimming = True,
@@ -551,6 +551,20 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_pkginfo = True,
             rpaths = [
                 # Application binaries live in Application.app/Application
+                "@executable_path/Frameworks",
+            ],
+        ),
+        # visionOS support for apple_xcframework, apple_static_xcframework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["vision"],
+            bundle_extension = ".framework",
+            bundle_package_type = bundle_package_type.framework,
+            codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
+            product_type = apple_product_type.framework,
+            rpaths = [
+                # Framework binaries live in
+                # Application.app/Frameworks/Framework.framework/Framework
+                # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
             ],
         ),

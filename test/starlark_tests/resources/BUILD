@@ -323,6 +323,20 @@ write_file(
     tags = common.fixture_tags,
 )
 
+write_file(
+    name = "foo_visionos_device_text_file",
+    out = "visionos_foo_device.txt",
+    content = ["visionos_foo_device"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_visionos_sim_text_file",
+    out = "visionos_foo_sim.txt",
+    content = ["visionos_foo_sim"],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "ios_device_dependent_text_file",
     resources = select({
@@ -335,7 +349,10 @@ apple_resource_bundle(
 objc_library(
     name = "ios_device_dependent_resources",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
-    data = [":ios_device_dependent_text_file"],
+    data = select({
+        "@platforms//os:ios": [":ios_device_dependent_text_file"],
+        "//conditions:default": [],
+    }),
 )
 
 apple_resource_bundle(
@@ -350,7 +367,28 @@ apple_resource_bundle(
 objc_library(
     name = "tvos_device_dependent_resources",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
-    data = [":tvos_device_dependent_text_file"],
+    data = select({
+        "@platforms//os:tvos": [":tvos_device_dependent_text_file"],
+        "//conditions:default": [],
+    }),
+)
+
+apple_resource_bundle(
+    name = "visionos_device_dependent_text_file",
+    resources = select({
+        "@build_bazel_apple_support//constraints:device": ["visionos_foo_device.txt"],
+        "@build_bazel_apple_support//constraints:simulator": ["visionos_foo_sim.txt"],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "visionos_device_dependent_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = select({
+        "@platforms//os:visionos": [":visionos_device_dependent_text_file"],
+        "//conditions:default": [],
+    }),
 )
 
 write_file(
