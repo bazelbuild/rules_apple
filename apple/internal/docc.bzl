@@ -167,7 +167,7 @@ NOTE: At this time Swift is the only supported language for this rule.
 Example:
 
 ```starlark
-load("//apple:docc.bzl", "docc_archive")
+load("@build_bazel_rules_apple//apple:docc.bzl", "docc_archive")
 
 docc_archive(
     name = "Lib.doccarchive",

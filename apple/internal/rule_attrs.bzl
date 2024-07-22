@@ -23,6 +23,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
     "//apple:common.bzl",
     "entitlements_validation_mode",
 )
@@ -61,10 +65,6 @@ load(
 load(
     "//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_info_aspect",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 def _common_attrs():

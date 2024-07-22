@@ -20,6 +20,7 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleVersionInfo",
@@ -111,7 +112,6 @@ load(
     "//apple/internal/utils:files.bzl",
     "files",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 
 def _group_link_outputs_by_library_identifier(
         *,

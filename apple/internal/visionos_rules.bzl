@@ -16,6 +16,10 @@
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
     "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -129,10 +133,6 @@ load(
 load(
     "//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 visibility([

@@ -32,6 +32,12 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftToolchainInfo",
+    "swift_clang_module_aspect",
+    "swift_common",
+)
+load(
     "//apple:providers.bzl",
     "AppleFrameworkImportInfo",
 )
@@ -70,12 +76,6 @@ load(
 load(
     "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftToolchainInfo",
-    "swift_clang_module_aspect",
-    "swift_common",
 )
 
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):

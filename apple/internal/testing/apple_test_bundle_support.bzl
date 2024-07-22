@@ -19,6 +19,10 @@ load(
     "types",
 )
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleTestInfo",
@@ -92,10 +96,6 @@ load(
 load(
     "//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given

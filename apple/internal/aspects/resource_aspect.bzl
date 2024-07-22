@@ -27,6 +27,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
     "//apple:providers.bzl",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
@@ -65,10 +69,6 @@ load(
 load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):

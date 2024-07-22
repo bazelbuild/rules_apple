@@ -14,6 +14,7 @@
 
 """# Rules related to Apple resources and resource bundles."""
 
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load(
     "//apple/internal:resources.bzl",
     _resources_common = "resources",
@@ -46,7 +47,6 @@ load(
     "//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 apple_bundle_import = _apple_bundle_import
 apple_intent_library = _apple_intent_library

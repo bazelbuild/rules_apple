@@ -195,13 +195,13 @@ You can use this rule directly if you need to override 'device_type' or
 'os_version', otherwise you can use the predefined runners:
 
 ```
-"//apple/testing/default_runner:ios_xctestrun_ordered_runner"
+"@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner"
 ```
 
 or:
 
 ```
-"//apple/testing/default_runner:ios_xctestrun_random_runner"
+"@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner"
 ```
 
 Depending on if you want random test ordering or not. Set these as the `runner`
@@ -211,7 +211,7 @@ attribute on your `ios_unit_test` target:
 ios_unit_test(
     name = "Tests",
     minimum_os_version = "15.5",
-    runner = "//apple/testing/default_runner:ios_xctestrun_random_runner",
+    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
     deps = [":TestsLib"],
 )
 ```
