@@ -716,7 +716,7 @@ def _sign_framework(
   if os.path.exists(subframework_dir):
     for subframework in os.listdir(subframework_dir):
       path = os.path.join(subframework_dir, subframework)
-      dylib_codesign_futures.append(
+      subframwork_codesign_futures.append(
           _submit_future(
               'Signing sub-framework at: %s' % path,
               codesign_params.executor,
