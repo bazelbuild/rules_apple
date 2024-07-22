@@ -15,7 +15,7 @@
 """watchOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "apple_provider",
 )
 
@@ -90,7 +90,7 @@ By default, it is the latest supported version of the device type.'
         ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:watchos_test_runner.template.sh",
+                "//apple/testing/default_runner:watchos_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),

@@ -15,12 +15,12 @@
 """Implementation of the aspect that propagates framework providers."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleFrameworkImportInfo",
     "apple_provider",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
+    "//apple/internal/providers:embeddable_info.bzl",
     "AppleEmbeddableInfo",
     "embeddable_info",
 )

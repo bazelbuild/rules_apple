@@ -15,47 +15,47 @@
 """Proxy file for referencing resource processing actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:actool.bzl",
+    "//apple/internal/resource_actions:actool.bzl",
     _compile_asset_catalog = "compile_asset_catalog",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:datamodel.bzl",
+    "//apple/internal/resource_actions:datamodel.bzl",
     _compile_datamodels = "compile_datamodels",
     _compile_mappingmodel = "compile_mappingmodel",
     _generate_datamodels = "generate_datamodels",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:ibtool.bzl",
+    "//apple/internal/resource_actions:ibtool.bzl",
     _compile_storyboard = "compile_storyboard",
     _compile_xib = "compile_xib",
     _link_storyboards = "link_storyboards",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:intent.bzl",
+    "//apple/internal/resource_actions:intent.bzl",
     _generate_intent_classes_sources = "generate_intent_classes_sources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:metals.bzl",
+    "//apple/internal/resource_actions:metals.bzl",
     _compile_metals = "compile_metals",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:mlmodel.bzl",
+    "//apple/internal/resource_actions:mlmodel.bzl",
     _compile_mlmodel = "compile_mlmodel",
     _generate_mlmodel_sources = "generate_mlmodel_sources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:plist.bzl",
+    "//apple/internal/resource_actions:plist.bzl",
     _compile_plist = "compile_plist",
     _merge_resource_infoplists = "merge_resource_infoplists",
     _merge_root_infoplists = "merge_root_infoplists",
     _plisttool_action = "plisttool_action",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:png.bzl",
+    "//apple/internal/resource_actions:png.bzl",
     _copy_png = "copy_png",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:texture_atlas.bzl",
+    "//apple/internal/resource_actions:texture_atlas.bzl",
     _compile_texture_atlas = "compile_texture_atlas",
 )
 

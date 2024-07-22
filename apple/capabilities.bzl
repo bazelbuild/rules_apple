@@ -15,7 +15,7 @@
 """Rules related to Apple capabilities."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:capabilities_rules.bzl",
+    "//apple/internal:capabilities_rules.bzl",
     _apple_base_bundle_id = "apple_base_bundle_id",
     _apple_capability_set = "apple_capability_set",
 )

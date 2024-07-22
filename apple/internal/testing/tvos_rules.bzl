@@ -15,50 +15,50 @@
 """Implementation of tvOS test rules."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleInfo",
     "TvosApplicationBundleInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_tvosxctestbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
+    "//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_bundle_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
+    "//apple/internal/testing:apple_test_rule_support.bzl",
     "apple_test_rule_support",
 )
 

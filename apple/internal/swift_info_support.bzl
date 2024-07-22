@@ -16,7 +16,7 @@
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(

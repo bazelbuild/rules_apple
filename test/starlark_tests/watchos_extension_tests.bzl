@@ -15,7 +15,7 @@
 """watchos_extension Starlark tests."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 load(

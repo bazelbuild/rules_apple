@@ -17,7 +17,7 @@ Rules for creating Xcode archives.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:xcarchive.bzl",
+    "//apple/internal:xcarchive.bzl",
     _xcarchive = "xcarchive",
 )
 

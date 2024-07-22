@@ -15,23 +15,23 @@
 """Implementation for apple universal binary rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "//apple/internal:linking_support.bzl",
     "linking_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebinaryinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 

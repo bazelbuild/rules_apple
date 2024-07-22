@@ -15,7 +15,7 @@
 """Implementation of apple_resource_bundle rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
 

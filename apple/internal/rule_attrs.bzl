@@ -23,11 +23,11 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
+    "//apple:common.bzl",
     "entitlements_validation_mode",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
@@ -35,31 +35,31 @@ load(
     "AppleSharedCapabilityInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
+    "//apple/internal/aspects:app_intents_aspect.bzl",
     "app_intents_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "//apple/internal/aspects:swift_usage_aspect.bzl",
     "swift_usage_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
+    "//apple/internal/testing:apple_test_bundle_support.bzl",
     "apple_test_info_aspect",
 )
 load(
@@ -121,7 +121,7 @@ def _cc_toolchain_forwarder_attrs(*, deps_cfg):
             cfg = deps_cfg,
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
             default =
-                "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+                "//apple:default_cc_toolchain_forwarder",
         ),
     }
 
@@ -144,7 +144,7 @@ def _common_linking_api_attrs(*, deps_cfg):
             cfg = deps_cfg,
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
             default =
-                "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
+                "//apple:default_cc_toolchain_forwarder",
         ),
     })
 
@@ -363,7 +363,7 @@ binaries/libraries will be created combining all architectures specified by
         platform_attrs = dicts.add(platform_attrs, {
             "_environment_plist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(
+                default = "//apple/internal:environment_plist_{}".format(
                     platform_type,
                 ),
             ),
@@ -707,7 +707,7 @@ def _simulator_runner_template_attr():
             cfg = "exec",
             allow_single_file = True,
             default = Label(
-                "@build_bazel_rules_apple//apple/internal/templates:apple_simulator_template",
+                "//apple/internal/templates:apple_simulator_template",
             ),
         ),
     }
@@ -728,7 +728,7 @@ This value takes precedence (and is preferred) over locales defined using `--def
 _TEST_HOST_ASPECTS = [framework_provider_aspect]
 
 # Returns the default root Info.plist required to support a test bundle rule.
-_test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBundlePlist"
+_test_bundle_infoplist = "//apple/testing:DefaultTestBundlePlist"
 
 rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,

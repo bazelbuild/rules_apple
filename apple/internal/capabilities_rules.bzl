@@ -15,15 +15,15 @@
 """Rules related to Apple capabilities."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBaseBundleIdInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebasebundleidinfo",
     "new_applesharedcapabilityinfo",
 )
