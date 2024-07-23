@@ -768,8 +768,6 @@ def _sign_embedded_bundles_with_manifest(
   codesign_futures = []
   framework_dir = os.path.join(root_bundle_path, 'Frameworks')
   for embedded_manifest in manifest.get(EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
-    if not embedded_manifest.get(PROVISIONING_PROFILE_KEY):
-      continue
     embedded_relative_path = embedded_manifest[EMBEDDED_RELATIVE_PATH_KEY]
     if embedded_relative_path.startswith('Frameworks/'):
       continue
