@@ -404,7 +404,24 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           None,
           '-',
       )
-      mock_sign_bundle.assert_has_calls([
+      self.assertSequenceEqual([
+          mock.call(
+              '/tmp/fake.app/Watch/WatchApp.app',
+              {
+                  'codesign_identity': 'Fake Identity',
+                  'embedded_bundle_manifests': [{
+                      'codesign_identity': 'Fake Identity',
+                      'embedded_bundle_manifests': [],
+                      'embedded_relative_path': 'PlugIns/WatchExtension.appex',
+                      'entitlements': 'fake.entitlements',
+                      'provisioning_profile': 'fake.mobileprovision',
+                  }],
+                  'embedded_relative_path': 'Watch/WatchApp.app',
+                  'entitlements': 'fake.entitlements',
+                  'provisioning_profile': 'fake.mobileprovision',
+              },
+              *default_args,
+          ),
           mock.call(
               '/tmp/fake.app/Extensions/AppIntentsExtension.appex',
               {
@@ -440,24 +457,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
               },
               *default_args,
           ),
-          mock.call(
-              '/tmp/fake.app/Watch/WatchApp.app',
-              {
-                  'codesign_identity': 'Fake Identity',
-                  'embedded_bundle_manifests': [{
-                      'codesign_identity': 'Fake Identity',
-                      'embedded_bundle_manifests': [],
-                      'embedded_relative_path': 'PlugIns/WatchExtension.appex',
-                      'entitlements': 'fake.entitlements',
-                      'provisioning_profile': 'fake.mobileprovision',
-                  }],
-                  'embedded_relative_path': 'Watch/WatchApp.app',
-                  'entitlements': 'fake.entitlements',
-                  'provisioning_profile': 'fake.mobileprovision',
-              },
-              *default_args,
-          ),
-      ])
+      ], mock_sign_bundle.call_args_list)
 
   @mock.patch('shutil.copy')
   @mock.patch('os.path.exists')

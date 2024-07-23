@@ -659,8 +659,8 @@ def _sign_bundle_with_manifest(
             dest=entitlements_for_signing_path,
         )
 
-    # submit each embedded manifest to sign concurrently
-    codesign_futures = _sign_embedded_bundles_with_manifest(
+    # submit and wait for each embedded manifest to sign concurrently
+    _sign_embedded_bundles_with_manifest(
         manifest,
         root_bundle_path,
         dossier_directory_path,
@@ -668,7 +668,6 @@ def _sign_bundle_with_manifest(
         allowed_entitlements,
         codesign_identity,
     )
-    _wait_signing_futures(codesign_futures)
 
     if provisioning_profile_file_path:
       _copy_embedded_provisioning_profile(
@@ -760,22 +759,89 @@ def _sign_embedded_bundles_with_manifest(
     codesign_identity: The codesign identity to use for codesigning.
 
   Returns:
-    List of asynchronous Future tasks submited to executor.
+    List of asynchronous Future tasks submited to executor. The implementation
+    of this method will wait for all futures to complete or fail before
+    returning, so this is soley for accounting in tests.
 
   Raises:
     OSError: If Framework not formed properly
   """
-  codesign_futures = []
   framework_dir = os.path.join(root_bundle_path, 'Frameworks')
+  extension_manifests = []
+  embedded_bundle_manifests = []
   for embedded_manifest in manifest.get(EMBEDDED_BUNDLE_MANIFESTS_KEY, []):
     embedded_relative_path = embedded_manifest[EMBEDDED_RELATIVE_PATH_KEY]
     if embedded_relative_path.startswith('Frameworks/'):
+      # These entries are ignored, as the frameworks are only written to the
+      # dossier if they have an assigned provisioning profile. Instead, sign
+      # all contents of Frameworks based on items found in the file system later
+      # within this method.
       continue
+    if embedded_relative_path.startswith(('Extensions/', 'PlugIns/')):
+      # Sign the extensions explicitly after the frameworks/dylibs (see below).
+      extension_manifests.append(embedded_manifest)
+      continue
+    embedded_bundle_manifests.append(embedded_manifest)
+
+  embedded_bundle_futures = []
+  for embedded_manifest in embedded_bundle_manifests:
+    embedded_relative_path = embedded_manifest[EMBEDDED_RELATIVE_PATH_KEY]
     embedded_bundle_path = os.path.join(root_bundle_path,
                                         embedded_relative_path)
-    codesign_futures.append(
+    embedded_bundle_futures.append(_submit_future(
+        'embedded bundle sign: %s' % embedded_bundle_path,
+        codesign_params.executor,
+        _sign_bundle_with_manifest,
+        embedded_bundle_path,
+        embedded_manifest,
+        dossier_directory_path,
+        codesign_params,
+        allowed_entitlements,
+        codesign_identity,
+    ))
+
+  framework_futures = []
+  if os.path.exists(framework_dir):
+    for entry in os.listdir(framework_dir):
+      entry_path = os.path.join(framework_dir, entry)
+      if entry.endswith('.dylib'):
+        framework_futures.append(_submit_future(
+            'Signing base dylib at: %s' % entry_path,
+            codesign_params.executor,
+            _invoke_codesign,
+            codesign_params,
+            codesign_identity,
+            None,
+            entry_path,
+        ))
+      elif entry.endswith('.framework'):
+        framework_futures.append(_submit_future(
+            'Signing framework at: %s' % entry_path,
+            codesign_params.executor,
+            _sign_framework,
+            entry_path,
+            codesign_params,
+            codesign_identity,
+        ))
+      else:
+        raise OSError('Error: Unexpected entry in Framework folder: %s' % entry)
+
+  # Per DTS guidance https://forums.developer.apple.com/forums/thread/130855
+  # under "Signing Order", frameworks should be signed before any extensions
+  # that depend on them. The dossier doesn't tip us off as to where the deps may
+  # lie, so we opt to be safe by having extensions wait for frameworks to finish
+  # signing.
+  _wait_signing_futures(framework_futures)
+
+  extension_futures = []
+  for embedded_manifest in extension_manifests:
+    embedded_relative_path = embedded_manifest[EMBEDDED_RELATIVE_PATH_KEY]
+    embedded_bundle_path = os.path.join(
+        root_bundle_path, embedded_relative_path
+    )
+    extension_futures.append(
         _submit_future(
-            'embedded sign: %s' % embedded_bundle_path,
+            'embedded extension sign: %s' % embedded_bundle_path,
             codesign_params.executor,
             _sign_bundle_with_manifest,
             embedded_bundle_path,
@@ -787,35 +853,12 @@ def _sign_embedded_bundles_with_manifest(
         )
     )
 
-  if os.path.exists(framework_dir):
-    for entry in os.listdir(framework_dir):
-      entry_path = os.path.join(framework_dir, entry)
-      if entry.endswith('.dylib'):
-        codesign_futures.append(
-            _submit_future(
-                'Signing base dylib at: %s' % entry_path,
-                codesign_params.executor,
-                _invoke_codesign,
-                codesign_params,
-                codesign_identity,
-                None,
-                entry_path,
-            )
-        )
-      elif entry.endswith('.framework'):
-        codesign_futures.append(
-            _submit_future(
-                'Signing framework at: %s' % entry_path,
-                codesign_params.executor,
-                _sign_framework,
-                entry_path,
-                codesign_params,
-                codesign_identity,
-            )
-        )
-      else:
-        raise OSError('Error: Unexpected entry in Framework folder: %s' % entry)
+  _wait_signing_futures(embedded_bundle_futures + extension_futures)
 
+  # Return futures in order of dispatch for accounting in tests.
+  codesign_futures = (
+      embedded_bundle_futures + framework_futures + extension_futures
+  )
   return codesign_futures
 
 
