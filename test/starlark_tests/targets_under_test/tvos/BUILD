@@ -1,3 +1,15 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
+    "//apple:apple.bzl",
+    "apple_dynamic_framework_import",
+    "apple_dynamic_xcframework_import",
+    "apple_static_framework_import",
+    "apple_static_xcframework_import",
+)
 load(
     "//apple:tvos.bzl",
     "tvos_application",
@@ -7,13 +19,6 @@ load(
     "tvos_static_framework",
     "tvos_ui_test",
     "tvos_unit_test",
-)
-load(
-    "//apple:apple.bzl",
-    "apple_dynamic_framework_import",
-    "apple_dynamic_xcframework_import",
-    "apple_static_framework_import",
-    "apple_static_xcframework_import",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -28,11 +33,6 @@ load(
     "generate_dynamic_xcframework",
     "generate_static_xcframework",
 )
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
-)
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 
 licenses(["notice"])
 

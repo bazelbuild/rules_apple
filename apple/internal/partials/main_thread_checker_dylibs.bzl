@@ -15,6 +15,14 @@
 """Partial implementation for Main Thread Checker libraries processing."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -25,14 +33,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _should_include_main_thread_checker(features):

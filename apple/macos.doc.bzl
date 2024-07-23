@@ -14,14 +14,6 @@
 
 """# Bazel rules for creating macOS applications and bundles."""
 
-# Re-export original rules rather than their wrapper macros
-# so that stardoc documents the rule attributes, not an opaque
-# **kwargs argument.
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
-    _macos_ui_test = "macos_ui_test",
-    _macos_unit_test = "macos_unit_test",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
@@ -36,6 +28,15 @@ load(
     _macos_spotlight_importer = "macos_spotlight_importer",
     _macos_static_framework = "macos_static_framework",
     _macos_xpc_service = "macos_xpc_service",
+)
+
+# Re-export original rules rather than their wrapper macros
+# so that stardoc documents the rule attributes, not an opaque
+# **kwargs argument.
+load(
+    "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
+    _macos_ui_test = "macos_ui_test",
+    _macos_unit_test = "macos_unit_test",
 )
 load(":macos.bzl", _macos_build_test = "macos_build_test")
 

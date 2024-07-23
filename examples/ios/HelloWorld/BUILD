@@ -1,10 +1,10 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("//apple:ios.bzl", "ios_application")
-load("//apple:xcarchive.bzl", "xcarchive")
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
+load("//apple:xcarchive.bzl", "xcarchive")
 
 licenses(["notice"])
 

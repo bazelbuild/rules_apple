@@ -15,16 +15,16 @@
 """Partial implementation for binary processing for bundles."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _binary_partial_impl(

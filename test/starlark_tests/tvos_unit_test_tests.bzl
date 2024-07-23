@@ -15,10 +15,6 @@
 """tvos_unit_test Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -41,6 +37,10 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def tvos_unit_test_test_suite(name):

@@ -15,20 +15,20 @@
 """IBTool related actions."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
-    xctoolrunner_support = "xctoolrunner",
-)
-load(
     "@bazel_skylib//lib:collections.bzl",
     "collections",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
+    xctoolrunner_support = "xctoolrunner",
 )
 
 def _ibtool_arguments(min_os, families):

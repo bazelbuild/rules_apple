@@ -15,16 +15,16 @@
 """Partial implementation for bundling header and modulemaps for external-facing frameworks."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _get_link_declarations(dylibs = [], frameworks = []):

@@ -15,12 +15,12 @@
 """xcframework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def apple_static_xcframework_test_suite(name):

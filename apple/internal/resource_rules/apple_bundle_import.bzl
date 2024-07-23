@@ -15,16 +15,16 @@
 """Implementation of apple_bundle_import rule."""
 
 load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _apple_bundle_import_impl(ctx):

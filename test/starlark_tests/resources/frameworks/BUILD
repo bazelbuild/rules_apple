@@ -1,5 +1,5 @@
-load("//test/starlark_tests:common.bzl", "common")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//test/starlark_tests:common.bzl", "common")
 
 package(
     default_visibility = ["//test/starlark_tests:__subpackages__"],

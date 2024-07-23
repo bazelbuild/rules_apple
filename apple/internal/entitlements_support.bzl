@@ -19,8 +19,8 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
+    "@build_bazel_rules_apple//apple:common.bzl",
+    "entitlements_validation_mode",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
@@ -35,8 +35,8 @@ load(
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
-    "entitlements_validation_mode",
+    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 def _tool_validation_mode(*, is_device, rules_mode):

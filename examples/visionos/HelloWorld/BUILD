@@ -3,8 +3,8 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
-load("//apple:visionos.bzl", "visionos_application")
 load("//apple:versioning.bzl", "apple_bundle_version")
+load("//apple:visionos.bzl", "visionos_application")
 
 licenses(["notice"])
 

@@ -15,8 +15,20 @@
 """Implementation of Apple Core Data Model resource rule."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple:utils.bzl",
+    "group_files_by_directory",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -28,28 +40,16 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
-    "group_files_by_directory",
 )
 
 def _apple_core_data_model_impl(ctx):

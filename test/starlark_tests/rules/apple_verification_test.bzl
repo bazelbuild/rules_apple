@@ -19,19 +19,6 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
-    "apple_product_type",
-)  # buildifier: disable=bzl-visibility
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBinaryInfo",
-    "AppleBundleInfo",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -39,6 +26,19 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBinaryInfo",
+    "AppleBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "apple_product_type",
+)  # buildifier: disable=bzl-visibility
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 

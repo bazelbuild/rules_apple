@@ -1,12 +1,12 @@
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//apple:resources.bzl",
     "apple_bundle_import",
     "apple_resource_bundle",
     "apple_resource_group",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -1115,6 +1115,14 @@ swift_library(
     name = "app_intent",
     srcs = ["app_intent.swift"],
     linkopts = ["-Wl,-framework,AppIntents"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    module_name = "WidgetConfigurationIntent",
     tags = common.fixture_tags,
 )
 

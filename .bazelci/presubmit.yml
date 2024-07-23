@@ -4,7 +4,7 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
-    xcode_version: "15.2"
+    xcode_version: "15.4"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -44,4 +44,4 @@ tasks:
     - "doc/..."
     <<: *common_last_green
 
-buildifier: 6.3.2
+buildifier: 6.4.0
