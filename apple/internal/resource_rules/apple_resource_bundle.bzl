@@ -15,25 +15,266 @@
 """Implementation of apple_resource_bundle rule."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:partials.bzl",
+    "partials",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "processor",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
 
 def _apple_resource_bundle_impl(_ctx):
-    # All of the resource processing logic for this rule exists in the apple_resource_aspect.
-    #
-    # To transform the attributes referenced by this rule into resource providers, that aspect must
-    # be used to iterate through all relevant instances of this rule in the build graph.
+    # Owner to attach to the resources as they're being bucketed.
+    owner = None
+    bucketize_args = {}
+
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = "ios",
+        product_type = apple_product_type.application,
+    )
+
+    _, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = _ctx.attr.bundle_name,
+        label_name = _ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+
+    features = features_support.compute_enabled_features(
+        requested_features = _ctx.features,
+        unsupported_features = _ctx.disabled_features,
+    )
+
+    apple_mac_toolchain_info = _ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = _ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+
+    predeclared_outputs = _ctx.outputs
+
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = _ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = _ctx.var,
+        cpp_fragment = _ctx.fragments.cpp,
+        device_families = "ios",
+        explicit_minimum_deployment_os = None,
+        explicit_minimum_os = None,
+        features = features,
+        objc_fragment = _ctx.fragments.objc,
+        platform_type_string = "ios",
+        uses_swift = False,
+        xcode_version_config = _ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    bundle_name = "{}.bundle".format(_ctx.attr.bundle_name or _ctx.label.name)
+    bundle_id = _ctx.attr.bundle_id or None
+
+    apple_resource_infos = []
+    process_args = {
+        "actions": _ctx.actions,
+        "apple_mac_toolchain_info": _ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "bundle_id": bundle_id,
+        "product_type": None,
+        "rule_label": _ctx.label,
+    }
+
+    infoplists = resources.collect(
+        attr = _ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    if infoplists:
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+            bucket_type = "infoplists",
+            owner = owner,
+            parent_dir_param = bundle_name,
+            resources = infoplists,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = platform_prerequisites,
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    resource_files = resources.collect(
+        attr = _ctx.attr,
+        res_attrs = ["resources"],
+    )
+
+    if resource_files:
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
+            resources = resource_files,
+            owner = owner,
+            parent_dir_param = bundle_name,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = platform_prerequisites,
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    structured_files = resources.collect(
+        attr = _ctx.attr,
+        res_attrs = ["structured_resources"],
+    )
+    if structured_files:
+        if bundle_name:
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+                parent_dir = bundle_name,
+            )
+        else:
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+            )
+
+        # Avoid processing PNG files that are referenced through the structured_resources
+        # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
+            allowed_buckets = ["strings", "plists"],
+            owner = owner,
+            parent_dir_param = structured_parent_dir_param,
+            resources = structured_files,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = platform_prerequisites,
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = _ctx.actions,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = "executable_name",
+            label_name = _ctx.label.name,
+            platform_prerequisites = platform_prerequisites,
+            product_type = "product_type",
+            rule_descriptor = rule_descriptor,
+            bundle_extension = bundle_extension,
+            predeclared_outputs = predeclared_outputs,
+        ),
+        partials.resources_partial(
+            actions = _ctx.actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = None,
+            executable_name = "executable_name",
+            launch_storyboard = None,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = _ctx.attr.resources + _ctx.attr.structured_resources,
+            rule_descriptor = rule_descriptor,
+            rule_label = _ctx.label,
+            # targets_to_avoid = _ctx.attr.frameworks,
+            top_level_infoplists = _ctx.attr.infoplists,
+            top_level_resources = _ctx.attr.resources,
+            version = "1",
+            version_keys_required = False,
+        ),
+    ]
+
+    processor_result = processor.process(
+        actions = _ctx.actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_name = bundle_name,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
+        rule_label = _ctx.label,
+        bundle_extension = bundle_extension,
+        features = features,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+    )
+
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),
-    ]
+        DefaultInfo(
+            files = processor_result.output_files,
+        ),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                processor_result.output_groups,
+            )
+        ),
+    ].extend(resources.merge_providers(
+        default_owner = owner,
+        providers = apple_resource_infos,
+    )) + processor_result.providers
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
-    attrs = {
+    fragments = ["apple", "cpp", "objc"],
+    outputs = {"archive": "%{name}.bundle"},
+    attrs = dicts.add({
         "bundle_id": attr.string(
             doc = """
 The bundle ID for this target. It will replace `$(PRODUCT_BUNDLE_IDENTIFIER)` found in the files
@@ -92,7 +333,13 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
 `res/foo.png` inside the bundle.
 """,
         ),
-    },
+        "_xcode_config": attr.label(
+            default = configuration_field(
+                fragment = "apple",
+                name = "xcode_config_label",
+            ),
+        ),
+    }, apple_toolchain_utils.shared_attrs()),
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
 `apple_resource_bundle`'s resources are put in a resource bundle in the top
