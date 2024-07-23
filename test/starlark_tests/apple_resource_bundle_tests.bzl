@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load(
+    "//test/starlark_tests/rules:output_group_test.bzl",
+    "output_group_test",
+)
+
 """apple_resource_bundle Starlark tests."""
 
 def apple_resource_bundle_test_suite(name):
