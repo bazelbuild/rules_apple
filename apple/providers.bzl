@@ -27,6 +27,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleBinaryInfo = "AppleBinaryInfo",
+    _AppleBundleArchiveSupportInfo = "AppleBundleArchiveSupportInfo",
     _AppleBundleInfo = "AppleBundleInfo",
     _AppleBundleVersionInfo = "AppleBundleVersionInfo",
     _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
@@ -77,6 +78,7 @@ load(
 visibility("public")
 
 AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
+AppleBundleArchiveSupportInfo = _AppleBundleArchiveSupportInfo
 AppleBundleInfo = _AppleBundleInfo
 AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
