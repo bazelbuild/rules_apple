@@ -66,6 +66,7 @@ def _is_missing_simulator_runtime_error(line):
   common_simulator_runtime_errors = [
       "Failed to locate any simulator runtime matching options",
       "Failed to find newest available Simulator runtime",
+      "No simulator runtime version from",
       "Platform Not Installed",
   ]
   for runtime_error in common_simulator_runtime_errors:
