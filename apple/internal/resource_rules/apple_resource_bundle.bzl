@@ -75,7 +75,7 @@ def _apple_resource_bundle_impl(_ctx):
     bucketize_args = {}
 
     rule_descriptor = rule_support.rule_descriptor(
-        platform_type = "ios",
+        platform_type = str(_ctx.fragments.apple.single_arch_platform.platform_type),
         product_type = apple_product_type.application,
     )
 
@@ -100,12 +100,12 @@ def _apple_resource_bundle_impl(_ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = _ctx.var,
         cpp_fragment = _ctx.fragments.cpp,
-        device_families = "ios",
+        device_families = None,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
         features = features,
         objc_fragment = _ctx.fragments.objc,
-        platform_type_string = "ios",
+        platform_type_string = str(_ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = _ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -203,12 +203,24 @@ def _apple_resource_bundle_impl(_ctx):
             ),
         )
 
+    top_level_resources = resources.collect(
+        attr = _ctx.attr,
+        res_attrs = [
+            "alternate_icons",
+            "app_icons",
+            "launch_images",
+            "launch_storyboard",
+            "strings",
+            "resources",
+        ],
+    )
+
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = _ctx.actions,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            executable_name = "executable_name",
+            executable_name = None,
             label_name = _ctx.label.name,
             platform_prerequisites = platform_prerequisites,
             product_type = "product_type",
@@ -223,15 +235,15 @@ def _apple_resource_bundle_impl(_ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = None,
-            executable_name = "executable_name",
+            executable_name = None,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = _ctx.attr.resources + _ctx.attr.structured_resources,
+            resource_deps = getattr(_ctx.attr, "deps", []) + _ctx.attr.resources,
             rule_descriptor = rule_descriptor,
             rule_label = _ctx.label,
-            # targets_to_avoid = _ctx.attr.frameworks,
+            targets_to_avoid = [],
             top_level_infoplists = _ctx.attr.infoplists,
-            top_level_resources = _ctx.attr.resources,
+            top_level_resources = top_level_resources,
             version = "1",
             version_keys_required = False,
         ),
@@ -250,6 +262,8 @@ def _apple_resource_bundle_impl(_ctx):
         features = features,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        codesignopts = [],
+        bundle_post_process_and_sign = False,
     )
 
     return [
@@ -265,10 +279,7 @@ def _apple_resource_bundle_impl(_ctx):
                 processor_result.output_groups,
             )
         ),
-    ].extend(resources.merge_providers(
-        default_owner = owner,
-        providers = apple_resource_infos,
-    )) + processor_result.providers
+    ] + processor_result.providers
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
