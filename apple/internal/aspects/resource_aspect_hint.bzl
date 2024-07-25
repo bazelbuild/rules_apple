@@ -17,7 +17,15 @@
 _resource_actions = ["RESOURCES", "RUNFILES", "SUPPRESS"]
 
 AppleResourceHintInfo = provider(
-    doc = """Provider that propagates desire to automatically bundle runfiles, resources, or suppress both.""",
+    doc = """
+Provider that propagates desire to automatically bundle runfiles, resources, or suppress both. 
+Available actions are
+    `RESOURCES` collect all labels referenced in the data attribute, process them based on
+                file extension, flatten the folder heirarchy and include them in Contents/Resources
+    `RUNFILES`  collect all runfiles without processing and include them in Contents/Resources.
+    `SUPPRESS`  stop any collection of resources on this target. Transitive runfiles may still be
+                collected based on ancestor resource rules.
+""",
     fields = {
         "action": "Which resource action to run.",
     },
