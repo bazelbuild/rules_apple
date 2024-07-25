@@ -203,8 +203,11 @@ def _apple_resource_aspect_impl(target, ctx):
     if hint_action != None:
         default_action = hint_action
 
+    is_resource_action = default_action == "RESOURCES"
+    is_runfiles_action = default_action == "RUNFILES"
+
     # Collect all resource files related to this target.
-    if collect_infoplists_args and default_action == "RESOURCES":
+    if collect_infoplists_args and is_resource_action:
         infoplists = resources.collect(
             attr = ctx.rule.attr,
             **collect_infoplists_args
@@ -228,7 +231,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 ),
             )
 
-    if collect_args and default_action == "RESOURCES":
+    if collect_args and is_resource_action:
         resource_files = resources.collect(
             attr = ctx.rule.attr,
             **collect_args
@@ -251,7 +254,7 @@ def _apple_resource_aspect_impl(target, ctx):
                 ),
             )
 
-    if collect_structured_args and default_action == "RESOURCES":
+    if collect_structured_args and is_resource_action:
         # `structured_resources` requires an explicit parent directory, requiring them to be
         # processed differently from `resources` and resources inherited from other fields.
         #
@@ -302,7 +305,7 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Collect .bundle/ files from framework_import rules
-    if collect_framework_import_bundle_files and default_action == "RESOURCES":
+    if collect_framework_import_bundle_files and is_resource_action:
         parent_dir_param = partial.make(
             resources.bundle_relative_parent_dir,
             extension = "bundle",
@@ -316,7 +319,7 @@ def _apple_resource_aspect_impl(target, ctx):
             ),
         )
 
-    if default_action == "RUNFILES":
+    if is_runfiles_action:
         # Gather the runfiles and mark them as pre-processed/unprocessed
         apple_resource_infos.append(
             resources.bucketize_typed(
