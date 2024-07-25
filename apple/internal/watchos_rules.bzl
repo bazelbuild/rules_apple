@@ -275,6 +275,7 @@ reproducible error case.".format(
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.binary_partial(
@@ -533,6 +534,7 @@ def _watchos_extension_impl(ctx):
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.binary_partial(
@@ -806,6 +808,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.binary_partial(

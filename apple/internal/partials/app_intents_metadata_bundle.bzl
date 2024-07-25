@@ -38,6 +38,7 @@ def _app_intents_metadata_bundle_partial_impl(
         disabled_features,
         features,
         label,
+        mac_exec_group,
         platform_prerequisites):
     """Implementation of the AppIntents metadata bundle partial."""
     if not app_intent:
@@ -112,6 +113,7 @@ def _app_intents_metadata_bundle_partial_impl(
             for intent_module_name in first_app_intents_info.intent_module_names
         ],
         label = label,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         source_files = [
             swift_source_file
@@ -144,6 +146,7 @@ def app_intents_metadata_bundle_partial(
         disabled_features,
         features,
         label,
+        mac_exec_group,
         platform_prerequisites):
     """Constructor for the AppIntents metadata bundle processing partial.
 
@@ -159,6 +162,7 @@ def app_intents_metadata_bundle_partial(
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
+        mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
     Returns:
         A partial that generates the Metadata.appintents bundle.
@@ -172,5 +176,6 @@ def app_intents_metadata_bundle_partial(
         disabled_features = disabled_features,
         features = features,
         label = label,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
     )

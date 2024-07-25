@@ -36,6 +36,7 @@ def generate_app_intents_metadata_bundle(
         constvalues_files,
         intents_module_names,
         label,
+        mac_exec_group,
         platform_prerequisites,
         source_files,
         target_triples):
@@ -49,6 +50,7 @@ def generate_app_intents_metadata_bundle(
         intents_module_names: List of Strings with the module names corresponding to the modules
             found which have intents compiled.
         label: Label for the current target (`ctx.label`).
+        mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
@@ -136,10 +138,12 @@ an issue with the Apple BUILD rules with repro steps.
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         executable = "/usr/bin/xcrun",
+        exec_group = mac_exec_group,
         inputs = depset(direct_inputs, transitive = transitive_inputs),
-        outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
+        outputs = [output],
         xcode_config = xcode_version_config,
+        xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
     )
 
     return output

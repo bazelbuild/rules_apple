@@ -279,6 +279,7 @@ def _ios_application_impl(ctx):
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.apple_bundle_info_partial(
@@ -1255,6 +1256,7 @@ def _ios_extension_impl(ctx):
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.clang_rt_dylibs_partial(
