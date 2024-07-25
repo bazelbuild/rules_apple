@@ -25,8 +25,8 @@ AppleResourceHintInfo = provider(
 
 def _apple_resource_hint_impl(ctx):
     if ctx.attr.action not in _resource_actions:
-        fail(str(ctx.label) + " apple resource hint allowed to take values {" +
-             ", ".join(_resource_actions) + "} but was set to unallowed value " +
+        fail(str(ctx.label) + " apple resource hint allowed to take values: (" +
+             ", ".join(_resource_actions) + ") but was set to unallowed value: " +
              ctx.attr.action)
     return AppleResourceHintInfo(
         action = ctx.attr.action,
