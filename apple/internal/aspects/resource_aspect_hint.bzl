@@ -18,7 +18,6 @@ _resource_actions = ["RESOURCES", "RUNFILES", "SUPPRESS"]
 
 AppleResourceHintInfo = provider(
     doc = """Provider that propagates desire to automatically bundle runfiles, resources, or suppress both.""",
-    # @unsorted-dict-items
     fields = {
         "action": "Which resource action to run.",
     },
