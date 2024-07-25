@@ -59,12 +59,12 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect_hint.bzl",
     "AppleResourceHintInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
