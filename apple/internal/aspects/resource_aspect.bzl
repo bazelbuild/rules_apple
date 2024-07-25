@@ -321,6 +321,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     if is_runfiles_action:
         # Gather the runfiles and mark them as pre-processed/unprocessed
+        # dylibs are excluded from runfile packaging because they are included in the Content/Resources directory instead.
         apple_resource_infos.append(
             resources.bucketize_typed(
                 [x for x in target[DefaultInfo].default_runfiles.files.to_list() if x.extension != "dylib"],
