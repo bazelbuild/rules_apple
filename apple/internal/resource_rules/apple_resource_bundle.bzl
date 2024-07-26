@@ -79,12 +79,6 @@ def _apple_resource_bundle_impl(_ctx):
         product_type = apple_product_type.application,
     )
 
-    _, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = _ctx.attr.bundle_name,
-        label_name = _ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
-
     features = features_support.compute_enabled_features(
         requested_features = _ctx.features,
         unsupported_features = _ctx.disabled_features,
@@ -110,7 +104,11 @@ def _apple_resource_bundle_impl(_ctx):
         xcode_version_config = _ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    bundle_name = "{}.bundle".format(_ctx.attr.bundle_name or _ctx.label.name)
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = _ctx.attr.bundle_name,
+        label_name = _ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
     bundle_id = _ctx.attr.bundle_id or None
 
     apple_resource_infos = []
@@ -118,7 +116,7 @@ def _apple_resource_bundle_impl(_ctx):
         "actions": _ctx.actions,
         "apple_mac_toolchain_info": _ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
         "bundle_id": bundle_id,
-        "product_type": None,
+        "product_type": rule_descriptor.product_type,
         "rule_label": _ctx.label,
     }
 
@@ -206,27 +204,25 @@ def _apple_resource_bundle_impl(_ctx):
     top_level_resources = resources.collect(
         attr = _ctx.attr,
         res_attrs = [
-            "alternate_icons",
-            "app_icons",
-            "launch_images",
-            "launch_storyboard",
-            "strings",
             "resources",
         ],
     )
 
+    label = _ctx.label
+    actions = _ctx.actions
     processor_partials = [
         partials.apple_bundle_info_partial(
-            actions = _ctx.actions,
+            actions = actions,
+            bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            executable_name = None,
-            label_name = _ctx.label.name,
+            executable_name = bundle_name,
+            entitlements = None,
+            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            product_type = "product_type",
-            rule_descriptor = rule_descriptor,
-            bundle_extension = bundle_extension,
             predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+            rule_descriptor = rule_descriptor,
         ),
         partials.resources_partial(
             actions = _ctx.actions,
@@ -234,15 +230,14 @@ def _apple_resource_bundle_impl(_ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            environment_plist = None,
-            executable_name = None,
+            environment_plist = _ctx.file._environment_plist,
+            executable_name = bundle_name,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = getattr(_ctx.attr, "deps", []) + _ctx.attr.resources,
+            resource_deps = getattr(_ctx.attr, "deps", []) + _ctx.attr.resources + _ctx.attr.structured_resources,
             rule_descriptor = rule_descriptor,
             rule_label = _ctx.label,
-            targets_to_avoid = [],
-            top_level_infoplists = _ctx.attr.infoplists,
+            top_level_infoplists = infoplists,
             top_level_resources = top_level_resources,
             version = "1",
             version_keys_required = False,
@@ -264,6 +259,16 @@ def _apple_resource_bundle_impl(_ctx):
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         codesignopts = [],
         bundle_post_process_and_sign = False,
+    )
+
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
 
     return [
@@ -349,6 +354,10 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
                 fragment = "apple",
                 name = "xcode_config_label",
             ),
+        ),
+        "_environment_plist": attr.label(
+            allow_single_file = True,
+            default = "@build_bazel_rules_apple//apple/internal:environment_plist_macos",
         ),
     }, apple_toolchain_utils.shared_attrs()),
     doc = """
