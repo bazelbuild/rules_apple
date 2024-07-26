@@ -29,7 +29,9 @@ load(
 licenses(["notice"])
 
 package(
-    default_visibility = ["//test/starlark_tests:__subpackages__"],
+    default_visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
 )
 
 # Exports all files in this package as targets to make it easier to depend on them.
