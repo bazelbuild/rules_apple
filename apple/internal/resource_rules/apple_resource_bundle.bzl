@@ -278,6 +278,9 @@ def _apple_resource_bundle_impl(_ctx):
         new_appleresourcebundleinfo(),
         DefaultInfo(
             files = processor_result.output_files,
+            runfiles = _ctx.runfiles(
+                files = [archive],
+            ),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
