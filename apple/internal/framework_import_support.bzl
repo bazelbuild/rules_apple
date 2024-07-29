@@ -31,6 +31,8 @@ visibility([
 # This comes from Apple's recommended paths for placing content in a macOS bundle for a Framework:
 # https://developer.apple.com/documentation/bundleresources/placing_content_in_a_bundle#3875936
 _MACOS_VERSIONED_ROOT_BINARY_PATH = "Versions/A"
+_MACOS_VERSIONED_ROOT_INFOPLIST_PATH = "Versions/A/Resources"
+_MACOS_NONVERSIONED_ROOT_INFOPLIST_PATH = "Resources"
 
 def _cc_info_with_dependencies(
         *,
@@ -197,6 +199,7 @@ def _classify_framework_imports(*, framework_imports):
             - bundling_imports: Apple framework bundle imports.
             - header_imports: Apple framework header imports.
             - module_map_imports: Apple framework modulemap imports.
+            - root_info_plists: Apple framework root Info.plist imports, if any.
             - swift_interface_imports: Apple framework Swift module interface imports.
     """
     framework_imports_by_category = _classify_file_imports(framework_imports)
@@ -204,6 +207,7 @@ def _classify_framework_imports(*, framework_imports):
     bundle_name = None
     bundling_imports = []
     binary_imports = []
+    root_info_plists = []
 
     # Infer the framework bundle name before identifying the binary names.
     for file in framework_imports_by_category.bundling_imports:
@@ -222,6 +226,17 @@ def _classify_framework_imports(*, framework_imports):
             elif file.dirname.endswith(_MACOS_VERSIONED_ROOT_BINARY_PATH):
                 binary_imports.append(file)
                 continue
+        elif file.basename == "Info.plist":
+            # These are distinguished from bundling imports as they are used to determine the stub
+            # binary's minimum OS version when needed, but they are still added to the bundling
+            # imports as they need to be bundled in the framework.
+            parent_dir_name = paths.basename(file.dirname)
+            if parent_dir_name.endswith(".framework"):
+                root_info_plists.append(file)
+            elif file.dirname.endswith(_MACOS_VERSIONED_ROOT_INFOPLIST_PATH):
+                root_info_plists.append(file)
+            elif file.dirname.endswith(_MACOS_NONVERSIONED_ROOT_INFOPLIST_PATH):
+                root_info_plists.append(file)
         bundling_imports.append(file)
 
     if not bundle_name:
@@ -235,6 +250,7 @@ def _classify_framework_imports(*, framework_imports):
         bundling_imports = bundling_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
+        root_info_plists = root_info_plists,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
 
@@ -486,6 +502,8 @@ framework_import_support = struct(
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     has_versioned_framework_files = _has_versioned_framework_files,
     macos_versioned_root_binary_path = _MACOS_VERSIONED_ROOT_BINARY_PATH,
+    macos_versioned_root_infoplist_path = _MACOS_VERSIONED_ROOT_INFOPLIST_PATH,
+    macos_nonversioned_root_infoplist_path = _MACOS_NONVERSIONED_ROOT_INFOPLIST_PATH,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )

@@ -203,13 +203,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:cc_toolchain_info_support",
         "//apple/internal:codesigning_support",
         "//apple/internal:framework_import_support",
         "//apple/internal:intermediates",
-        "//apple/internal:linking_support",
         "//apple/internal:processor",
-        "//apple/internal:resource_actions",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

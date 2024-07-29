@@ -42,6 +42,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
+load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
     "swift_clang_module_aspect",
 )
@@ -59,6 +63,40 @@ _BUNDLE_TYPE = struct(frameworks = 1, libraries = 2)
 # The name of the execution group that houses the Swift toolchain and is used to
 # run Swift actions.
 _SWIFT_EXEC_GROUP = "swift"
+
+def _anticipated_framework_root_info_plist_path(
+        *,
+        bundle_name,
+        has_versioned_framework_files,
+        target_triplet):
+    """Returns the anticipated path of the root Info.plist for a framework bundle.
+
+    Args:
+        bundle_name: The bundle name of the framework within the XCFramework.
+        has_versioned_framework_files: Boolean indicating whether the XCFramework contains versioned
+            framework files.
+        target_triplet: Effective target triplet from CcToolchainInfo provider.
+    Returns:
+        A String representing the anticipated path of the root Info.plist for a framework bundle
+            for actionable error messages.
+    """
+    example_root_info_plist_relative_path = ""
+    if target_triplet.os == "macos":
+        if has_versioned_framework_files:
+            example_root_info_plist_relative_path = "{}/Info.plist".format(
+                framework_import_support.macos_versioned_root_infoplist_path,
+            )
+        else:
+            example_root_info_plist_relative_path = "{}/Info.plist".format(
+                framework_import_support.macos_nonversioned_root_infoplist_path,
+            )
+    else:
+        example_root_info_plist_relative_path = "Info.plist"
+
+    return "{bundle_name}.framework/{relative_path}".format(
+        bundle_name = bundle_name,
+        relative_path = example_root_info_plist_relative_path,
+    )
 
 def _classify_xcframework_imports(
         *,
@@ -228,11 +266,10 @@ invocation appear to be valid.
     def filter_by_library_identifier(files):
         return [f for f in files if "/{}/".format(library_identifier) in f.short_path]
 
-    binary_imports = filter_by_library_identifier(files_by_category.binary_imports)
-
     # Do some extra filtering for binary_imports, in the event of a "Versioned" framework. These
     # will likely contain a symlink for the binary, which we want to filter out, as the dynamic
     # framework processor will insert one of its own.
+    binary_imports = filter_by_library_identifier(files_by_category.binary_imports)
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         binary_imports,
     )
@@ -251,6 +288,62 @@ There should only be one valid framework binary, given a name that matches its X
 """.format(binary_imports = "\n".join([f.path for f in binary_imports])))
 
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
+
+    framework_info_plist = None
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        # For XCFrameworks that contain frameworks, go through an extra filtering step for root
+        # Info.plists to ensure that we have only one valid candidate for the framework's root
+        # Info.plist.
+        root_info_plists = filter_by_library_identifier(files_by_category.root_info_plists)
+        if has_versioned_framework_files:
+            root_info_plists = framework_import_support.get_canonical_versioned_framework_files(
+                root_info_plists,
+            )
+
+        if len(root_info_plists) == 0:
+            fail("""
+Error: Unexpectedly found no root Info.plist from the non-binary files found in the XCFramework:
+
+{framework_imports}
+
+There must be one root Info.plist in the framework bundle at \
+\"{example_root_info_plist_path}\".
+
+Make sure that the precompiled XCFramework has included a root Info.plist declaring a valid \
+minimum OS version appropriate for the given platform at the specified location.
+""".format(
+                framework_imports = "\n".join([f.short_path for f in framework_imports]),
+                example_root_info_plist_path = _anticipated_framework_root_info_plist_path(
+                    bundle_name = xcframework.bundle_name,
+                    has_versioned_framework_files = has_versioned_framework_files,
+                    target_triplet = target_triplet,
+                ),
+            ))
+
+        if len(root_info_plists) > 1:
+            fail("""
+Error: Unexpectedly found more than one candidate for a root Info.plist from the non-binary files \
+found in the XCFramework:
+
+{root_info_plists}
+
+There must be only one root Info.plist in the framework bundle at \
+\"{example_root_info_plist_path}\".
+
+Conflicting Info.plists might have come from trying to build an Apple target relying on an \
+XCFramework with simulator and device architectures. Check that your build invocation is not \
+attempting to mix simulator and device architectures.
+""".format(
+                example_root_info_plist_path = _anticipated_framework_root_info_plist_path(
+                    bundle_name = xcframework.bundle_name,
+                    has_versioned_framework_files = has_versioned_framework_files,
+                    target_triplet = target_triplet,
+                ),
+                root_info_plists = "\n".join([f.path for f in root_info_plists]),
+            ))
+
+        framework_info_plist = root_info_plists[0]
+
     header_imports = filter_by_library_identifier(files_by_category.header_imports)
     module_map_imports = filter_by_library_identifier(files_by_category.module_map_imports)
     swift_module_interfaces = framework_import_support.get_swift_module_files_with_target_triplet(
@@ -317,6 +410,7 @@ There should only be one valid framework binary, given a name that matches its X
         binary = binary_imports[0],
         framework_imports = framework_imports,
         framework_includes = framework_includes,
+        framework_info_plist = framework_info_plist,
         headers = header_imports,
         includes = includes,
         processor_output = processor_output,
@@ -434,9 +528,7 @@ def _collect_signature_from_xcframework(
     args = actions.args()
     args.add("collect-signatures")
 
-    xcframework_path = "{xcframework_path_without_extension}.xcframework".format(
-        xcframework_path_without_extension = binary.path.rsplit(".xcframework/", 1)[0],
-    )
+    xcframework_path = bundle_paths.farthest_parent(binary.path, "xcframework")
     args.add("--signatures-input-path", xcframework_path)
 
     inputs = codesigned_xcframework_imports
@@ -457,9 +549,7 @@ def _collect_signature_from_xcframework(
     if binary.extension == "a":
         library_path = binary.path
     elif not binary.extension:
-        library_path = "{framework_path_without_extension}.framework".format(
-            framework_path_without_extension = binary.path.rsplit(".framework/", 1)[0],
-        )
+        library_path = bundle_paths.farthest_parent(binary.path, "framework")
     else:
         fail("""
 Error: Could not determine metadata needed to generate a Signatures XML file for the \
@@ -496,6 +586,102 @@ invocation appear to be valid.
     )
 
     return signature_output
+
+def _generate_empty_dylib(
+        *,
+        actions,
+        apple_fragment,
+        apple_mac_toolchain_info,
+        framework_info_plist,
+        label,
+        mac_exec_group,
+        target_triplet,
+        xcode_config):
+    """Generates the empty dylib required for Apple static frameworks in Xcode 15.4 "bundle & sign".
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        framework_info_plist: The Info.plist file to base the generated framework binary path on and
+            to use for the empty dylib.
+        label: Label of the target being built.
+        mac_exec_group: The exec_group associated with apple_mac_toolchain.
+        target_triplet: The target triplet to use for the empty dylib.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+
+    Returns:
+        An empty dylib suitable for embedding within a static framework bundle for a shipping app in
+            Xcode 15+.
+    """
+
+    if not framework_info_plist:
+        fail("""
+Error: The framework generated by the target "{label_name}" does not have a root Info.plist. One \
+is needed to submit a framework that is bundled and signed as a "codeless framework" for Xcode, \
+such as a static framework or a framework with mergeable libraries.
+        """.format(label_name = label.name))
+
+    args = actions.args()
+    args.add("generate-stub-dylib")
+
+    inputs = [framework_info_plist]
+    args.add("--framework-info-plist-input-path", framework_info_plist.path)
+    args.add("--sdk-root-input-path", apple_support.path_placeholders.sdkroot())
+    args.add(
+        "--xcode-toolchain-input-path",
+        "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
+            xcode_path = apple_support.path_placeholders.xcode(),
+        ),
+    )
+
+    args.add("--platform", target_triplet.os)
+    args.add("--architecture", target_triplet.architecture)
+    args.add("--environment", target_triplet.environment)
+
+    framework_path = bundle_paths.farthest_parent(framework_info_plist.path, "framework")
+    framework_basename = paths.basename(framework_path)
+    framework_name = paths.split_extension(framework_basename)[0]
+
+    framework_binary_subdir = ""
+    if framework_import_support.has_versioned_framework_files([framework_info_plist]):
+        framework_binary_subdir = framework_import_support.macos_versioned_root_binary_path
+
+    stub_binary_relative_path = ""
+    if framework_binary_subdir:
+        stub_binary_relative_path = paths.join(
+            framework_basename,
+            framework_binary_subdir,
+            framework_name,
+        )
+    else:
+        stub_binary_relative_path = paths.join(framework_basename, framework_name)
+
+    stub_binary = intermediates.file(
+        actions = actions,
+        file_name = stub_binary_relative_path,
+        output_discriminator = "",
+        target_name = label.name,
+    )
+
+    args.add("--output-path", stub_binary.path)
+
+    xcframework_processor_tool = apple_mac_toolchain_info.xcframework_processor_tool
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [args],
+        executable = xcframework_processor_tool,
+        exec_group = mac_exec_group,
+        inputs = inputs,
+        mnemonic = "GenerateFrameworkEmptyDylib",
+        outputs = [stub_binary],
+        xcode_config = xcode_config,
+        xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
+    )
+
+    return stub_binary
 
 def _apple_dynamic_xcframework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
@@ -674,12 +860,28 @@ def _apple_static_xcframework_import_impl(ctx):
         xcode_config = xcode_config,
     )
 
+    stub_binary_imports = []
+    bundling_imports = []
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        # Add an empty dylib to the bundle to make the static framework valid for App Store Connect.
+        stub_binary = _generate_empty_dylib(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            framework_info_plist = xcframework_library.framework_info_plist,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            target_triplet = target_triplet,
+            xcode_config = xcode_config,
+        )
+        stub_binary_imports.append(stub_binary)
+        bundling_imports = xcframework_library.framework_imports
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
+        binary_imports = stub_binary_imports,
         build_archs = [target_triplet.architecture],
-        bundling_imports = xcframework_library.framework_imports if (
-            xcframework.bundle_type == _BUNDLE_TYPE.frameworks
-        ) else [],
+        bundling_imports = bundling_imports,
         deps = deps,
         signature_files = [signature_file] if signature_file else [],
     )

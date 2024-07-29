@@ -68,6 +68,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/toolchains:apple_toolchains",
+        "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils",

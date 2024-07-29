@@ -41,7 +41,14 @@ def apple_static_xcframework_import_test_suite(name):
     analysis_failure_message_test(
         name = "{}_fails_importing_xcframework_with_static_framework_without_infoplist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_frameworks_no_root_infoplists",
-        expected_error = "Error: The framework generated_static_framework_xcframework_without_root_infoplist.framework does not have a root Info.plist.",
+        expected_error = """
+Error: Unexpectedly found no root Info.plist from the non-binary files found in the XCFramework:
+
+third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/generated_static_framework_xcframework_without_root_infoplist.xcframework/ios-arm64_x86_64-simulator/generated_static_framework_xcframework_without_root_infoplist.framework/Resources/generated_static_framework_xcframework_without_root_infoplist.bundle/Info.plist
+
+There must be one root Info.plist in the framework bundle at \
+"generated_static_framework_xcframework_without_root_infoplist.framework/Info.plist".
+""",
         tags = [name],
     )
 
@@ -317,13 +324,13 @@ def apple_static_xcframework_import_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_framework_ios_device_root_infoplist_matches_empty_dylib_test".format(name),
+        name = "{}_framework_ios_device_empty_dylib_matches_original_info_plist_minos_test".format(name),
         build_type = "device",
         cpus = {"ios_multi_cpus": ["arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_minos_and_baseline_minos_imported_static_framework_xcframework",
         plist_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
         plist_test_values = {
-            "MinimumOSVersion": common.min_os_ios.nplus1,
+            "MinimumOSVersion": common.min_os_ios.baseline,
         },
         tags = [name],
     )

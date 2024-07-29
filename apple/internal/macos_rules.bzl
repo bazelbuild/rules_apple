@@ -305,9 +305,6 @@ def _macos_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
-            disabled_features = ctx.disabled_features,
             features = features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,

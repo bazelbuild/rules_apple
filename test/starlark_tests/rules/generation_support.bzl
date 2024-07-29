@@ -33,6 +33,33 @@ _SDK_TO_VERSION_ARG = {
     "watchos": "-mwatchos-version-min",
 }
 
+_MACOS_FRAMEWORK_PLIST_TEMPLATE = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>{0}</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.bazel.{0}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>{0}</string>
+  <key>CFBundlePackageType</key>
+  <string>FMWK</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1.0</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>12.0</string>
+</dict>
+</plist>
+"""
+
 _FRAMEWORK_PLIST_TEMPLATE = """
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -51,6 +78,8 @@ _FRAMEWORK_PLIST_TEMPLATE = """
   <key>CFBundleShortVersionString</key>
   <string>1.0</string>
   <key>CFBundleVersion</key>
+  <string>1.0</string>
+  <key>MinimumOSVersion</key>
   <string>1.0</string>
 </dict>
 </plist>
@@ -328,9 +357,14 @@ def _create_framework(
                 output_discriminator = None,
                 target_name = label.name,
             )
+            plist_content = ""
+            if is_macos_framework:
+                plist_content = _MACOS_FRAMEWORK_PLIST_TEMPLATE.format(bundle_name)
+            else:
+                plist_content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name)
             actions.write(
                 output = framework_plist,
-                content = _FRAMEWORK_PLIST_TEMPLATE.format(bundle_name),
+                content = plist_content,
             )
             framework_files.append(framework_plist)
 
