@@ -261,6 +261,7 @@ There should only be one valid framework binary, given a name that matches its X
     )
 
     args = actions.args()
+    args.add("validate-root-info-plist")
     args.add("--library-identifier", library_identifier)
     args.add("--bundle-name", xcframework.bundle_name)
     args.add("--info-plist-input-path", xcframework.info_plist.path)
