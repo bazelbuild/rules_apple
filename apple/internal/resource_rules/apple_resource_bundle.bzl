@@ -30,7 +30,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
-    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
@@ -39,10 +38,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
@@ -65,8 +60,16 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
+    "stub_support",
 )
 
 def _apple_resource_bundle_impl(_ctx):
@@ -94,9 +97,9 @@ def _apple_resource_bundle_impl(_ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = _ctx.var,
         cpp_fragment = _ctx.fragments.cpp,
-        device_families = None,
-        explicit_minimum_deployment_os = None,
-        explicit_minimum_os = None,
+        device_families = ["iphone"],
+        explicit_minimum_deployment_os = "15.0",
+        explicit_minimum_os = "15.0",
         features = features,
         objc_fragment = _ctx.fragments.objc,
         platform_type_string = str(_ctx.fragments.apple.single_arch_platform.platform_type),
@@ -210,20 +213,14 @@ def _apple_resource_bundle_impl(_ctx):
 
     label = _ctx.label
     actions = _ctx.actions
+    binary_artifact = stub_support.create_stub_binary(
+        actions = actions,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = label,
+        xcode_stub_path = rule_descriptor.stub_binary_path,
+    )
+
     processor_partials = [
-        partials.apple_bundle_info_partial(
-            actions = actions,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            executable_name = bundle_name,
-            entitlements = None,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
-            rule_descriptor = rule_descriptor,
-        ),
         partials.resources_partial(
             actions = _ctx.actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -239,7 +236,7 @@ def _apple_resource_bundle_impl(_ctx):
             rule_label = _ctx.label,
             top_level_infoplists = infoplists,
             top_level_resources = top_level_resources,
-            version = "1",
+            version = [],
             version_keys_required = False,
         ),
     ]
@@ -258,17 +255,7 @@ def _apple_resource_bundle_impl(_ctx):
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         codesignopts = [],
-        bundle_post_process_and_sign = False,
-    )
-
-    archive = outputs.archive(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label.name,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        rule_descriptor = rule_descriptor,
+        bundle_post_process_and_sign = True,
     )
 
     return [
@@ -278,38 +265,37 @@ def _apple_resource_bundle_impl(_ctx):
         new_appleresourcebundleinfo(),
         DefaultInfo(
             files = processor_result.output_files,
-            runfiles = _ctx.runfiles(
-                files = [archive],
-            ),
         ),
         OutputGroupInfo(
-            **outputs.merge_output_groups(
-                processor_result.output_groups,
-            )
+            bundle = processor_result.output_files,
+            # **outputs.merge_output_groups(
+            #     processor_result.output_groups,
+            # )
         ),
-    ] + processor_result.providers
+    ]  # +processor_result.providers
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
     fragments = ["apple", "cpp", "objc"],
     outputs = {"archive": "%{name}.bundle"},
-    attrs = dicts.add({
-        "bundle_id": attr.string(
-            doc = """
+    attrs = dicts.add(
+        {
+            "bundle_id": attr.string(
+                doc = """
 The bundle ID for this target. It will replace `$(PRODUCT_BUNDLE_IDENTIFIER)` found in the files
 from defined in the `infoplists` paramter.
 """,
-        ),
-        "bundle_name": attr.string(
-            doc = """
+            ),
+            "bundle_name": attr.string(
+                doc = """
 The desired name of the bundle (without the `.bundle` extension). If this attribute is not set,
 then the `name` of the target will be used instead.
 """,
-        ),
-        "infoplists": attr.label_list(
-            allow_empty = True,
-            allow_files = True,
-            doc = """
+            ),
+            "infoplists": attr.label_list(
+                allow_empty = True,
+                allow_files = True,
+                doc = """
 A list of `.plist` files that will be merged to form the `Info.plist` that represents the extension.
 At least one file must be specified.
 Please see [Info.plist Handling](/doc/common_info.md#infoplist-handling") for what is supported.
@@ -326,11 +312,11 @@ The key in ${} may be suffixed with :rfc1034identifier (for example
 ${PRODUCT_NAME::rfc1034identifier}) in which case Bazel will replicate Xcode's behavior and replace
 non-RFC1034-compliant characters with -.
 """,
-        ),
-        "resources": attr.label_list(
-            allow_empty = True,
-            allow_files = True,
-            doc = """
+            ),
+            "resources": attr.label_list(
+                allow_empty = True,
+                allow_files = True,
+                doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have
 those files as dependencies. Other file types that are not processed will be copied verbatim. These
@@ -341,28 +327,24 @@ they will be placed in a directory of the same name in the app bundle.
 You can also add other `apple_resource_bundle` and `apple_bundle_import` targets into `resources`,
 and the resource bundle structures will be propagated into the final bundle.
 """,
-        ),
-        "structured_resources": attr.label_list(
-            allow_empty = True,
-            allow_files = True,
-            doc = """
+            ),
+            "structured_resources": attr.label_list(
+                allow_empty = True,
+                allow_files = True,
+                doc = """
 Files to include in the final resource bundle. They are not processed or compiled in any way
 besides the processing done by the rules that actually generate them. These files are placed in the
 bundle root in the same structure passed to this argument, so `["res/foo.png"]` will end up in
 `res/foo.png` inside the bundle.
 """,
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                fragment = "apple",
-                name = "xcode_config_label",
             ),
-        ),
-        "_environment_plist": attr.label(
-            allow_single_file = True,
-            default = "@build_bazel_rules_apple//apple/internal:environment_plist_macos",
-        ),
-    }, apple_toolchain_utils.shared_attrs()),
+            "_environment_plist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            ),
+        },
+        rule_attrs.common_tool_attrs(),
+    ),
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
 `apple_resource_bundle`'s resources are put in a resource bundle in the top
