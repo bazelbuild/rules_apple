@@ -212,7 +212,7 @@ def _apple_resource_bundle_impl(_ctx):
 
     processor_partials = [
         partials.resources_partial(
-            actions = _ctx.actions,
+            actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -223,7 +223,7 @@ def _apple_resource_bundle_impl(_ctx):
             platform_prerequisites = platform_prerequisites,
             resource_deps = getattr(_ctx.attr, "deps", []) + _ctx.attr.resources + _ctx.attr.structured_resources,
             rule_descriptor = rule_descriptor,
-            rule_label = _ctx.label,
+            rule_label = label,
             top_level_infoplists = infoplists,
             top_level_resources = top_level_resources,
             version = [],
@@ -232,14 +232,14 @@ def _apple_resource_bundle_impl(_ctx):
     ]
 
     processor_result = processor.process(
-        actions = _ctx.actions,
+        actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
-        rule_label = _ctx.label,
+        rule_label = label,
         bundle_extension = bundle_extension,
         features = features,
         predeclared_outputs = predeclared_outputs,
