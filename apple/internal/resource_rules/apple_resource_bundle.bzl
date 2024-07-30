@@ -67,10 +67,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
-    "stub_support",
-)
 
 def _apple_resource_bundle_impl(_ctx):
     # Owner to attach to the resources as they're being bucketed.
@@ -213,12 +209,6 @@ def _apple_resource_bundle_impl(_ctx):
 
     label = _ctx.label
     actions = _ctx.actions
-    binary_artifact = stub_support.create_stub_binary(
-        actions = actions,
-        platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        xcode_stub_path = rule_descriptor.stub_binary_path,
-    )
 
     processor_partials = [
         partials.resources_partial(
