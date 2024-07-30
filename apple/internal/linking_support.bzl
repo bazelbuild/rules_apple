@@ -304,8 +304,8 @@ def _link_multi_arch_binary(
         *,
         actions,
         additional_inputs = [],
+        cc_configured_features_init,
         cc_toolchains,
-        ctx,
         deps,
         disabled_features,
         features,
@@ -326,9 +326,10 @@ def _link_multi_arch_binary(
         actions: The actions provider from `ctx.actions`.
         additional_inputs: List of additional `File`s required for the C++ linking action (e.g.
             linking scripts).
+        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+            without the need for a `ctx`.
         cc_toolchains: Dictionary of targets (`ctx.split_attr`) containing CcToolchainInfo
             providers to use for C++ actions.
-        ctx: The Starlark context for a rule target being built.
         deps: Dictionary of targets (`ctx.split_attr`) referencing dependencies for a given target
             to retrieve transitive CcInfo providers for C++ linking action.
         disabled_features: List of features to be disabled for C++ actions.
@@ -371,9 +372,8 @@ def _link_multi_arch_binary(
         cc_toolchain = cc_toolchain_target[cc_common.CcToolchainInfo]
         target_triple = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-        feature_configuration = cc_common.configure_features(
+        feature_configuration = cc_configured_features_init(
             cc_toolchain = cc_toolchain,
-            ctx = ctx,
             language = "objc",
             requested_features = features,
             unsupported_features = disabled_features,

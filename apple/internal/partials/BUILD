@@ -204,7 +204,6 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal:codesigning_support",
-        "//apple/internal:framework_import_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "//apple/internal/utils:bundle_paths",

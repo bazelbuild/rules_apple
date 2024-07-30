@@ -33,8 +33,8 @@ def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
         app_intent,
+        cc_configured_features_init,
         cc_toolchains,
-        ctx,
         disabled_features,
         features,
         label,
@@ -49,14 +49,10 @@ def _app_intents_metadata_bundle_partial_impl(
     # This binary should only contain symbols for structs implementing the AppIntents protocol.
     # Instead of containing all the application/extension/framework binary symbols, allowing
     # the action to run faster and avoid depending on the application binary linking step.
-    #
-    # TODO(b/315509311): Avoid this linker step for Xcode 15.0+ if we receive confirmation that it's
-    # safe to stub out the --binary-file arg on the App Intents Metadata Processor tool, or use a
-    # smaller artifact instead such as the library archive that has the app intents defined within.
     link_result = linking_support.link_multi_arch_binary(
         actions = actions,
+        cc_configured_features_init = cc_configured_features_init,
         cc_toolchains = cc_toolchains,
-        ctx = ctx,
         deps = app_intent,
         disabled_features = disabled_features,
         features = features,
@@ -141,8 +137,8 @@ def app_intents_metadata_bundle_partial(
         *,
         actions,
         app_intent,
+        cc_configured_features_init,
         cc_toolchains,
-        ctx,
         disabled_features,
         features,
         label,
@@ -154,11 +150,12 @@ def app_intents_metadata_bundle_partial(
 
     Args:
         actions: The actions provider from ctx.actions.
-        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
-            transition to relay target platform information.
-        ctx: The Starlark context for a rule target being built.
         app_intent: Dictionary for one target under a split transition implementing the AppIntents
             protocol.
+        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+            without the need for a `ctx`.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information.
         disabled_features: List of features to be disabled for C++ link actions.
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
@@ -171,8 +168,8 @@ def app_intents_metadata_bundle_partial(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
         app_intent = app_intent,
+        cc_configured_features_init = cc_configured_features_init,
         cc_toolchains = cc_toolchains,
-        ctx = ctx,
         disabled_features = disabled_features,
         features = features,
         label = label,

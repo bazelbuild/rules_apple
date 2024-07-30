@@ -270,8 +270,8 @@ reproducible error case.".format(
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intent = ctx.split_attr.app_intents,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_toolchains = cc_toolchain_forwarder,
-            ctx = ctx,
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
@@ -529,8 +529,8 @@ def _watchos_extension_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intent = ctx.split_attr.app_intents,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_toolchains = cc_toolchain_forwarder,
-            ctx = ctx,
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,
@@ -800,8 +800,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intent = ctx.split_attr.app_intents,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_toolchains = cc_toolchain_forwarder,
-            ctx = ctx,
             disabled_features = ctx.disabled_features,
             features = features,
             label = label,

@@ -35,10 +35,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
-    "framework_import_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -190,12 +186,6 @@ def _framework_import_partial_impl(
             file_name = temp_path + ".zip",
         )
         temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
-
-        has_versioned_framework_files = False
-        if platform_prerequisites.platform_type == apple_common.platform_type.macos:
-            has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
-                files_by_framework[framework_basename],
-            )
 
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
