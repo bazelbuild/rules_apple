@@ -61,6 +61,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect_hint.bzl",
     "AppleResourceHintInfo",
+    "apple_resource_hint_action",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
@@ -153,7 +154,7 @@ def _apple_resource_aspect_impl(target, ctx):
     bundle_name = None
 
     if ctx.rule.kind == "objc_library":
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         collect_args["res_attrs"] = ["data"]
 
         # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
@@ -162,38 +163,38 @@ def _apple_resource_aspect_impl(target, ctx):
             owner = str(ctx.label)
 
     elif ctx.rule.kind == "cc_library":
-        default_action = "RUNFILES"
+        default_action = apple_resource_hint_action.runfiles
         collect_args["res_attrs"] = ["data"]
 
     elif ctx.rule.kind == "objc_import":
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         collect_args["res_attrs"] = ["data"]
 
     elif ctx.rule.kind == "cc_import":
-        default_action = "RUNFILES"
+        default_action = apple_resource_hint_action.runfiles
         collect_args["res_attrs"] = ["data"]
 
     elif ctx.rule.kind == "swift_library":
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
     elif ctx.rule.kind in ["apple_static_framework_import", "apple_static_xcframework_import"]:
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         if AppleFrameworkImportBundleInfo in target:
             collect_framework_import_bundle_files = target[AppleFrameworkImportBundleInfo].bundle_files
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
     elif ctx.rule.kind == "apple_resource_group":
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
 
     elif ctx.rule.kind == "apple_resource_bundle":
-        default_action = "RESOURCES"
+        default_action = apple_resource_hint_action.resources
         collect_infoplists_args["res_attrs"] = ["infoplists"]
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
@@ -203,8 +204,8 @@ def _apple_resource_aspect_impl(target, ctx):
     if hint_action != None:
         default_action = hint_action
 
-    is_resource_action = default_action == "RESOURCES"
-    is_runfiles_action = default_action == "RUNFILES"
+    is_resource_action = default_action == apple_resource_hint_action.resources
+    is_runfiles_action = default_action == apple_resource_hint_action.runfiles
 
     # Collect all resource files related to this target.
     if collect_infoplists_args and is_resource_action:

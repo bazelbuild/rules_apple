@@ -14,16 +14,32 @@
 
 """Implementation of the `apple_resource_hint` rule."""
 
-_resource_actions = ["RESOURCES", "RUNFILES", "SUPPRESS"]
+# Possible actions for the AppleResourceHintInfo are
+#     `resources` collect all labels referenced in the data attribute, process them based on
+#                 file extension, flatten the folder heirarchy and include them in Contents/Resources
+#     `runfiles`  collect all runfiles without processing and include them in Contents/Resources.
+#     `suppress`  stop any collection of resources on this target. Transitive runfiles may still be
+#                 collected based on ancestor resource rules.
+apple_resource_hint_action = struct(
+    resources = "resources",
+    runfiles = "runfiles",
+    suppress = "suppress",
+)
+
+_resource_actions = [
+    apple_resource_hint_action.resources,
+    apple_resource_hint_action.runfiles,
+    apple_resource_hint_action.suppress,
+]
 
 AppleResourceHintInfo = provider(
     doc = """
 Provider that propagates desire to automatically bundle runfiles, resources, or suppress both. 
 Available actions are
-    `RESOURCES` collect all labels referenced in the data attribute, process them based on
+    `resources` collect all labels referenced in the data attribute, process them based on
                 file extension, flatten the folder heirarchy and include them in Contents/Resources
-    `RUNFILES`  collect all runfiles without processing and include them in Contents/Resources.
-    `SUPPRESS`  stop any collection of resources on this target. Transitive runfiles may still be
+    `runfiles`  collect all runfiles without processing and include them in Contents/Resources.
+    `suppress`  stop any collection of resources on this target. Transitive runfiles may still be
                 collected based on ancestor resource rules.
 """,
     fields = {
@@ -47,10 +63,10 @@ apple_resource_hint = rule(
             doc = """
 Hints the resource collector to take a specific action.
 Available actions are
-    `RESOURCES` collect all labels referenced in the data attribute, process them based on
+    `resources` collect all labels referenced in the data attribute, process them based on
                 file extension, flatten the folder heirarchy and include them in Contents/Resources
-    `RUNFILES`  collect all runfiles without processing and include them in Contents/Resources.
-    `SUPPRESS`  stop any collection of resources on this target. Transitive runfiles may still be
+    `runfiles`  collect all runfiles without processing and include them in Contents/Resources.
+    `suppress`  stop any collection of resources on this target. Transitive runfiles may still be
                 collected based on ancestor resource rules.
 """,
         ),
