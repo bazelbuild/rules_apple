@@ -201,7 +201,7 @@ def _apple_resource_aspect_impl(target, ctx):
         process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
 
-    if hint_action != None:
+    if hint_action:
         default_action = hint_action
 
     is_resource_action = default_action == apple_resource_hint_action.resources
