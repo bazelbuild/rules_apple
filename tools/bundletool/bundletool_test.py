@@ -139,11 +139,11 @@ class BundlerTest(unittest.TestCase):
             'Expected %r not to be executable, but it was' % entry)
 
       if compressed:
-        self.assertEquals(
+        self.assertEqual(
             zipfile.ZIP_DEFLATED, zipinfo.compress_type,
             'Expected %r to be compressed, but it was not' % entry)
       else:
-        self.assertEquals(
+        self.assertEqual(
             zipfile.ZIP_STORED, zipinfo.compress_type,
             'Expected %r not to be compressed, but it was' % entry)
     except KeyError:

@@ -15,13 +15,13 @@
 """Starlark analysis test inspecting target under test actions."""
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
     "unittest",
+)
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 
 _TARGET_CONTAINS_ACTION_WITH_ARGV_FAIL_MSG = """

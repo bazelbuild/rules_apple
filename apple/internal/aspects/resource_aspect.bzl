@@ -15,12 +15,22 @@
 """Implementation of the resource propagation aspect."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleDsymBundleInfo",
+    "AppleFrameworkBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
@@ -49,10 +59,8 @@ load(
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleDsymBundleInfo",
-    "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
+    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
@@ -61,14 +69,6 @@ load(
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
 )
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
@@ -282,7 +282,11 @@ def _apple_resource_aspect_impl(target, ctx):
     apple_debug_infos = []
     apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
-    provider_deps = ["deps", "private_deps", "implementation_deps"] + collect_args.get("res_attrs", [])
+    provider_deps = [
+        "deps",
+        "implementation_deps",
+        "private_deps",
+    ] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             targets = getattr(ctx.rule.attr, attr)
@@ -354,7 +358,14 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "private_deps", "implementation_deps", "resources", "structured_resources"],
+    attr_aspects = [
+        "data",
+        "deps",
+        "implementation_deps",
+        "private_deps",
+        "structured_resources",
+        "resources",
+    ],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),

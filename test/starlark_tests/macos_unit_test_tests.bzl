@@ -15,16 +15,16 @@
 """macos_unit_test Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
+    "analysis_runfiles_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
@@ -43,8 +43,8 @@ load(
     "infoplist_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
-    "analysis_runfiles_test",
+    ":common.bzl",
+    "common",
 )
 
 def macos_unit_test_test_suite(name):

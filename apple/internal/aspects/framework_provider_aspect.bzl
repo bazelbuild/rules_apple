@@ -29,7 +29,14 @@ load(
 # these are supported by `objc_library` for frameworks that should be present in the bundle, but not
 # linked against.
 # TODO(b/120205406): Remove `runtime_deps` support to use objc_library/swift_library `data` instead.
-_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = ["deps", "frameworks", "private_deps", "runtime_deps", "data"]
+_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = [
+    "data",
+    "deps",
+    "frameworks",
+    "implementation_deps",
+    "private_deps",
+    "runtime_deps",
+]
 
 def _framework_provider_aspect_impl(target, ctx):
     """Implementation of the framework provider propagation aspect."""

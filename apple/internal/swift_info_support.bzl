@@ -14,6 +14,7 @@
 
 """Support methods for handling artifacts from SwiftInfo providers."""
 
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
@@ -22,7 +23,6 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-load("@bazel_skylib//lib:sets.bzl", "sets")
 
 def _verify_found_module_name(*, bundle_name, found_module_name):
     """Validate that the module name fits the requirements for Swift frameworks.

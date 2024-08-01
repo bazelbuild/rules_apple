@@ -15,12 +15,12 @@
 """`dtrace_compile` Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:output_text_match_test.bzl",
-    "output_text_match_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
+)
+load(
+    "//test/starlark_tests/rules:output_text_match_test.bzl",
+    "output_text_match_test",
 )
 
 def dtrace_compile_test_suite(name):

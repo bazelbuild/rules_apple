@@ -15,6 +15,13 @@
 """Bazel rules for creating visionOS applications and bundles."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:visionos_rules.bzl",
+    _visionos_application = "visionos_application",
+    _visionos_dynamic_framework = "visionos_dynamic_framework",
+    _visionos_framework = "visionos_framework",
+    _visionos_static_framework = "visionos_static_framework",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
@@ -28,13 +35,6 @@ load(
     _visionos_internal_unit_test_bundle = "visionos_internal_unit_test_bundle",
     _visionos_ui_test = "visionos_ui_test",
     _visionos_unit_test = "visionos_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:visionos_rules.bzl",
-    _visionos_application = "visionos_application",
-    _visionos_dynamic_framework = "visionos_dynamic_framework",
-    _visionos_framework = "visionos_framework",
-    _visionos_static_framework = "visionos_static_framework",
 )
 
 visibility("public")

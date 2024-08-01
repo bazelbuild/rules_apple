@@ -1,12 +1,12 @@
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//apple:resources.bzl",
     "apple_bundle_import",
     "apple_resource_bundle",
     "apple_resource_group",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -483,6 +483,11 @@ filegroup(
 filegroup(
     name = "alternate_icons_ios",
     srcs = glob(["alticons/**"]),
+)
+
+filegroup(
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
 )
 
 filegroup(
@@ -1116,4 +1121,109 @@ swift_library(
     srcs = ["app_intent.swift"],
     linkopts = ["-Wl,-framework,AppIntents"],
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
+
+# --------------------------------------------------------------------------------
+# C/C++ rules with data
+
+cc_library(
+    name = "cc_lib_with_data",
+    srcs = ["main.cc"],
+    data = [
+        "//test/testdata/resources:basic_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_library(
+    name = "cc_lib_with_structured_resources",
+    srcs = ["main.cc"],
+    data = [
+        ":structured_resources_in_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_library(
+    name = "cc_lib_with_cc_import_with_data",
+    srcs = ["main.cc"],
+    deps = [
+        ":cc_import_with_data",
+    ],
+)
+
+cc_library(
+    name = "cc_lib_with_cc_import_with_structured_resources",
+    srcs = ["main.cc"],
+    deps = [
+        ":cc_import_with_structured_resources",
+    ],
+)
+
+cc_import(
+    name = "cc_import_with_data",
+    data = [
+        "//test/testdata/resources:basic_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_import(
+    name = "cc_import_with_structured_resources",
+    data = [
+        ":structured_resources_in_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+# Targets for CcInfo dylib tests
+
+# Generate a .dylib for testing as if it were a precompiled library supplied by a third party
+cc_binary(
+    name = "ccinfo_dylibs_mylib-shared",
+    srcs = ["ccinfo_dylibs/mylib/lib.cpp"],
+    linkshared = True,
+)
+
+# Set up the rpath of the .dylib using install_name_tool. Bazel should probably do this again when packaging
+genrule(
+    name = "ccinfo_dylibs_mylib-shared-with-rpath",
+    srcs = [":ccinfo_dylibs_mylib-shared"],
+    outs = ["libmylib_with_rpath.dylib"],
+    cmd = "install_name_tool -id @rpath/libmylib_with_rpath.dylib $(location :ccinfo_dylibs_mylib-shared) && cp $(location :ccinfo_dylibs_mylib-shared) $@",
+)
+
+# Import our dynamically linked library.
+cc_import(
+    name = "ccinfo_dylibs_mylib-import",
+    hdrs = ["ccinfo_dylibs/mylib/lib.hpp"],
+    shared_library = ":ccinfo_dylibs_mylib-shared-with-rpath",
+)
+
+# Wrap our dylib in a cc_library so we can add data[] to it. This is common practice for adding
+# data or include paths.
+cc_library(
+    name = "ccinfo_dylibs_mylib-import-with-data",
+    data = ["ccinfo_dylibs/mylib/data.txt"],
+    deps = ["ccinfo_dylibs_mylib-import"],
+)
+
+# This is our main executable, except we make it into a cc_library so macos_application can do
+# the actual linking.
+cc_library(
+    name = "ccinfo_dylibs_libapp",
+    srcs = [
+        "ccinfo_dylibs/main.cpp",
+    ],
+    deps = [
+        ":ccinfo_dylibs_mylib-import-with-data",
+    ],
 )

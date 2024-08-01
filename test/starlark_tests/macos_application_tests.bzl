@@ -15,10 +15,6 @@
 """macos_application Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
@@ -50,6 +46,10 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def macos_application_test_suite(name):
@@ -394,6 +394,16 @@ def macos_application_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_archive_contains_ccinfo_deps_dylibs_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ccinfo_dylib_deps",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libmylib_with_rpath.dylib",
+        ],
         tags = [name],
     )
 

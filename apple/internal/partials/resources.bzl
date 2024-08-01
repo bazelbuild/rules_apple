@@ -21,12 +21,17 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
@@ -49,17 +54,12 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceInfo",
+    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "resources_support",
 )
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 
 def _merge_root_infoplists(
@@ -190,6 +190,7 @@ def _resources_partial_impl(
         locales_to_include,
         output_discriminator,
         platform_prerequisites,
+        primary_icon_name,
         resource_deps,
         rule_descriptor,
         rule_label,
@@ -296,6 +297,7 @@ def _resources_partial_impl(
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                "primary_icon_name": primary_icon_name,
                 "product_type": rule_descriptor.product_type,
                 "rule_label": rule_label,
             }
@@ -398,6 +400,7 @@ def resources_partial(
         locales_to_include = [],
         output_discriminator = None,
         platform_prerequisites,
+        primary_icon_name = None,
         resource_deps,
         rule_descriptor,
         rule_label,
@@ -438,6 +441,8 @@ def resources_partial(
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        primary_icon_name: An optional String to identify the name of the primary app icon when
+            alternate app icons have been provided for the app.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
@@ -471,6 +476,7 @@ def resources_partial(
         locales_to_include = locales_to_include,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        primary_icon_name = primary_icon_name,
         resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,

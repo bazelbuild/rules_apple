@@ -15,6 +15,10 @@
 """apple_static_library Starlark implementation"""
 
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -33,10 +37,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "ApplePlatformInfo",
 )
 
 def _apple_static_library_impl(ctx):

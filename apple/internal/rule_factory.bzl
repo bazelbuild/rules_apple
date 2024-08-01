@@ -15,6 +15,16 @@
 """Helpers for defining Apple bundling rules uniformly."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
+load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleTestRunnerInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -26,16 +36,6 @@ load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
 )
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleTestRunnerInfo",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 
 # Returns the common set of rule attributes to support Apple test rules.
 # TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
@@ -47,7 +47,8 @@ _COMMON_TEST_ATTRS = {
     ),
     "env": attr.string_dict(
         doc = """
-Dictionary of environment variables that should be set during the test execution.
+Dictionary of environment variables that should be set during the test execution. The values of
+the dictionary are subject to "Make" variable expansion.
 """,
     ),
     "runner": attr.label(

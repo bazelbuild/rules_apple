@@ -30,12 +30,6 @@ load(
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 load(
-    ":ios.bzl",
-    _ios_build_test = "ios_build_test",
-    _ios_ui_test_suite = "ios_ui_test_suite",
-    _ios_unit_test_suite = "ios_unit_test_suite",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
     _ios_ui_test = "ios_ui_test",
     _ios_unit_test = "ios_unit_test",
@@ -47,6 +41,12 @@ load(
 load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
     _ios_xctestrun_runner = "ios_xctestrun_runner",
+)
+load(
+    ":ios.bzl",
+    _ios_build_test = "ios_build_test",
+    _ios_ui_test_suite = "ios_ui_test_suite",
+    _ios_unit_test_suite = "ios_unit_test_suite",
 )
 
 ios_app_clip = _ios_app_clip

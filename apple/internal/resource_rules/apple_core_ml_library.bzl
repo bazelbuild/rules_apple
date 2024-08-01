@@ -15,6 +15,14 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -29,12 +37,12 @@ load(
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
@@ -43,14 +51,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
-)
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 def _apple_core_ml_library_impl(ctx):

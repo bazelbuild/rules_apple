@@ -14,12 +14,12 @@
 
 """Apple frameworks and XCFramework generation support methods for testing."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",  # buildifier: disable=bzl-visibility
     "intermediates",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _SDK_TO_VERSION_ARG = {
     "iphonesimulator": "-mios-simulator-version-min",

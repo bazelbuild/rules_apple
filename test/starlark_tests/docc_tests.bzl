@@ -102,7 +102,8 @@ def docc_test_suite(name):
         text_file_not_contains = [],
         text_test_file = "$BUNDLE_ROOT/index.html",
         text_test_values = [
-            "<script src=\"/custom/base/path/js/",
+            "<script defer=\"defer\" src=\"/custom/base/path/js/",
+            "<link href=\"/custom/base/path/css/",
         ],
         tags = [name],
     )
