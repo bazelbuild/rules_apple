@@ -424,6 +424,45 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_alternate_app_icons",
+    app_icons = ["//test/starlark_tests/resources:app_icons_with_alts_ios"],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    primary_app_icon = "app_icon",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_alternate_app_icons_without_primary",
+    app_icons = ["//test/starlark_tests/resources:app_icons_with_alts_ios"],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_application(
@@ -2319,6 +2358,33 @@ int dynamic_xcframework_depending_lib_function() {
   return 0;
 }
 """],
+    tags = common.fixture_tags,
+)
+
+# Objective-C app with implementation deps imported Objective-C XCFramework.
+ios_application(
+    name = "app_with_implementation_deps_imported_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_implemetation_deps_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_implemetation_deps_depending_lib",
+    srcs = [":dynamic_xcframework_depending_lib_file"],
+    implementation_deps = [":ios_imported_dynamic_xcframework"],
     tags = common.fixture_tags,
 )
 

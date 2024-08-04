@@ -336,7 +336,11 @@ def _apple_resource_aspect_impl(target, ctx):
     apple_debug_infos = []
     apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
-    provider_deps = ["deps", "private_deps", "implementation_deps"] + collect_args.get("res_attrs", [])
+    provider_deps = [
+        "deps",
+        "implementation_deps",
+        "private_deps",
+    ] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             targets = getattr(ctx.rule.attr, attr)
@@ -408,7 +412,14 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "private_deps", "implementation_deps", "resources", "structured_resources"],
+    attr_aspects = [
+        "data",
+        "deps",
+        "implementation_deps",
+        "private_deps",
+        "structured_resources",
+        "resources",
+    ],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),

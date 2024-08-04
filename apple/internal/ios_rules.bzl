@@ -374,6 +374,7 @@ def _ios_application_impl(ctx):
             launch_storyboard = ctx.file.launch_storyboard,
             locales_to_include = ctx.attr.locales_to_include,
             platform_prerequisites = platform_prerequisites,
+            primary_icon_name = ctx.attr.primary_app_icon,
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
@@ -2520,6 +2521,7 @@ ios_application = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
+            supports_alternate_icons = True,
         ),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,

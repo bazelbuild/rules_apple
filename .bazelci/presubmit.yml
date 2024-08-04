@@ -14,10 +14,9 @@ x_defaults:
     - "examples/..."
     test_flags:
     - --test_tag_filters=-skipci
-  common_last_green: &common_last_green
-    bazel: last_green
+  bazel_6: &bazel_6
     test_flags:
-      - --test_tag_filters=-skipci
+    - --test_tag_filters=-skipci,-skip_bazel6_ci
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
@@ -31,17 +30,18 @@ tasks:
     name: "6.x LTS"
     bazel: 6.x
     <<: *common
+    <<: *bazel_6
 
   macos_last_green:
     name: "Last Green Bazel"
+    bazel: last_green
     <<: *common
-    <<: *common_last_green
 
   doc_tests:
     name: "Doc tests"
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."
-    <<: *common_last_green
 
 buildifier: 6.4.0

@@ -149,6 +149,7 @@ def _asset_catalogs(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
+        primary_icon_name,
         product_type,
         rule_label,
         **_kwargs):
@@ -159,7 +160,6 @@ def _asset_catalogs(
     assets_plist = None
     infoplists = []
     if not parent_dir:
-        # TODO(kaipi): Merge this into the top level Info.plist.
         assets_plist_path = paths.join(parent_dir or "", "xcassets-info.plist")
         assets_plist = intermediates.file(
             actions = actions,
@@ -211,6 +211,7 @@ def _asset_catalogs(
         output_dir = assets_dir,
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
+        primary_icon_name = primary_icon_name,
         product_type = product_type,
         rule_label = rule_label,
         xctoolrunner = apple_mac_toolchain_info.xctoolrunner,

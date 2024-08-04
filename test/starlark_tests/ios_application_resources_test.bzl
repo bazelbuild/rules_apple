@@ -175,6 +175,47 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    # Test that when alternate app icons are declared alongside the primary app icon, that they are
+    # bundled in expected locations with the app, that they are embedded within the plist
+    # referencing their file names, and that they are also bundled within the asset catalog for the
+    # application.
+    archive_contents_test(
+        name = "{}_alt_app_icons_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+            "$BUNDLE_ROOT/app_icon-bazel60x60@2x.png",
+            "$BUNDLE_ROOT/app_icon-bazel76x76@2x~ipad.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon",
+            "CFBundleIcons:CFBundleAlternateIcons:CFBundleIconFiles:0": "app_icon-bazel",
+        },
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = ["app_icon", "app_icon-bazel"],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_alt_app_icons_missing_primary_icon_name_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons_without_primary",
+        expected_error = """
+Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
+
+If you intend to assign multiple app icons to this target, please declare which of these is intended
+to be the primary app icon with the primary_app_icon attribute on the rule itself.
+
+app_icons was assigned the following: [
+  test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
+  test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
+]
+""",
+        tags = [name],
+    )
+
     # Tests that apple_bundle_import files are bundled correctly with the application.
     archive_contents_test(
         name = "{}_apple_bundle_test".format(name),
