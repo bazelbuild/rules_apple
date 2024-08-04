@@ -985,6 +985,6 @@ resources = struct(
     nest_in_bundle = _nest_in_bundle,
     populated_resource_fields = _populated_resource_fields,
     process_bucketized_data = _process_bucketized_data,
-    structured_resources_parent_dir = _structured_resources_parent_dir,
     runfiles_resources_parent_dir = _runfiles_resources_parent_dir,
+    structured_resources_parent_dir = _structured_resources_parent_dir,
 )
