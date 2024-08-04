@@ -116,6 +116,27 @@ objc_library(
 )
 ```
 
+Runfiles are described here: https://bazel.build/contribute/codebase#runfiles
+The runfiles tree reflects the project tree layout. For example, if you have these
+files in your project
+```
+myFile1.txt
+some_folder/myFile2.txt
+```
+with a build file
+```build
+cc_library(
+    name = "somelib",
+    data = ["myFile1.txt", "some_folder/myFile2.txt"],
+    aspect_hints = ["@build_bazel_rules_apple//apple:use_runfiles"],
+)
+```
+then the resources will be in
+```
+Contents/Resources/myFile1.txt
+Contents/Resources/some_folder/myFile2.txt
+```
+
 #### Suppress resource collection
 
 In some situations you may wish to suppress resource or runfile collection of
