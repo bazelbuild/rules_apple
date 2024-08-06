@@ -561,7 +561,6 @@ def _generate_codesigning_dossier_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         executable = dossier_codesigningtool,
-        execution_requirements = execution_requirements,
         inputs = input_files,
         mnemonic = mnemonic,
         outputs = [output_dossier],
