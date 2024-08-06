@@ -510,12 +510,6 @@ def _generate_codesigning_dossier_action(
 
     dossier_arguments = ["--output", output_dossier.path, "--zip"]
 
-    execution_requirements = {
-        # Unsure, but may be needed for keychain access, especially for files
-        # that live in $HOME.
-        "no-sandbox": "1",
-    }
-
     # Try to use the identity passed on the command line, if any. If it's a simulator build, use an
     # ad hoc identity.
     codesign_identity = _preferred_codesigning_identity(platform_prerequisites)
@@ -542,11 +536,6 @@ def _generate_codesigning_dossier_action(
         # Only reference and embed the provisioning profile in standard code signing.
         input_files.append(provisioning_profile)
         dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
-        if platform_prerequisites.platform.is_device:
-            # Added so that the output of this action is not cached remotely,
-            # in case multiple developers sign the same artifact with different
-            # identities.
-            execution_requirements["no-remote"] = "1"
 
     for embedded_dossier in embedded_dossiers:
         input_files.append(embedded_dossier.dossier_file)
