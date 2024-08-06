@@ -21,7 +21,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
+    "//apple:utils.bzl",
     "group_files_by_directory",
 )
 

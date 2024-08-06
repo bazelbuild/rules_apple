@@ -15,17 +15,17 @@
 """Partial implementation for processing AppIntents metadata bundle."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
-    "AppIntentsInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:app_intents.bzl",
-    "generate_app_intents_metadata_bundle",
-)
 load("//apple/internal:intermediates.bzl", "intermediates")
 load("//apple/internal:linking_support.bzl", "linking_support")
 load("//apple/internal:processor.bzl", "processor")
+load(
+    "//apple/internal/providers:app_intents_info.bzl",
+    "AppIntentsInfo",
+)
+load(
+    "//apple/internal/resource_actions:app_intents.bzl",
+    "generate_app_intents_metadata_bundle",
+)
 
 def _app_intents_metadata_bundle_partial_impl(
         *,

@@ -27,15 +27,15 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "//apple/internal/utils:defines.bzl",
     "defines",
 )
 

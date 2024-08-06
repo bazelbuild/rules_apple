@@ -17,7 +17,7 @@ Rules for creating header maps.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:header_map.bzl",
+    "//apple/internal:header_map.bzl",
     _header_map = "header_map",
 )
 

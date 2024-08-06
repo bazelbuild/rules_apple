@@ -23,7 +23,7 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
 

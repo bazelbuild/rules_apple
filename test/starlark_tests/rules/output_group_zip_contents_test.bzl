@@ -15,11 +15,11 @@
 """Starlark test rule to validate the zip file referenced from an output group."""
 
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:output_group_test_support.bzl",
+    "//test/starlark_tests/rules:output_group_test_support.bzl",
     "output_group_test_support",
 )
 

@@ -22,11 +22,11 @@ parameters that affect both the attributes and the implementation logic of the r
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundle_package_type.bzl",
+    "//apple/internal:bundle_package_type.bzl",
     "bundle_package_type",
 )
 

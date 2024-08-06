@@ -23,11 +23,11 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_info_support.bzl",
+    "//apple/internal:swift_info_support.bzl",
     "swift_info_support",
 )
 

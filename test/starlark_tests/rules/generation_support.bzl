@@ -17,7 +17,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",  # buildifier: disable=bzl-visibility
+    "//apple/internal:intermediates.bzl",  # buildifier: disable=bzl-visibility
     "intermediates",
 )
 

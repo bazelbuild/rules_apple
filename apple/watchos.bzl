@@ -15,7 +15,7 @@
 """Bazel rules for creating watchOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
+    "//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_dynamic_framework = "watchos_dynamic_framework",
     _watchos_extension = "watchos_extension",
@@ -23,15 +23,15 @@ load(
     _watchos_static_framework = "watchos_static_framework",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:watchos_rules.bzl",
+    "//apple/internal/testing:watchos_rules.bzl",
     _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
     _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
     _watchos_ui_test = "watchos_ui_test",

@@ -19,7 +19,7 @@ load(
     "xcode_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "apple_provider",
 )
 
@@ -107,7 +107,7 @@ macos_test_runner = rule(
     _macos_test_runner_impl,
     attrs = {
         "_test_template": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.sh"),
+            default = Label("//apple/testing/default_runner:macos_test_runner.template.sh"),
             allow_single_file = True,
         ),
         "_xcode_config": attr.label(
@@ -117,7 +117,7 @@ macos_test_runner = rule(
             ),
         ),
         "_xctestrun_template": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
+            default = Label("//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
             allow_single_file = True,
         ),
     },

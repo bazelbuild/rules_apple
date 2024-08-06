@@ -19,7 +19,7 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",  # buildifier: disable=bzl-visibility
+    "//apple/internal:providers.bzl",  # buildifier: disable=bzl-visibility
     "new_appleresourceinfo",
 )
 

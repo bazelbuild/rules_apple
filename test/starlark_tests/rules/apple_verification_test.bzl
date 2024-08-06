@@ -27,16 +27,16 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 
@@ -369,10 +369,10 @@ into a bash array.
         ),
         "_runner_script": attr.label(
             allow_single_file = True,
-            default = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh.template",
+            default = "//test/starlark_tests:verifier_scripts/apple_verification_test_runner.sh.template",
         ),
         "_test_deps": attr.label(
-            default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
+            default = "//test:apple_verification_test_deps",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

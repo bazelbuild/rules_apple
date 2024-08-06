@@ -1,11 +1,11 @@
 """# Bazel rules for creating visionOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple:visionos.bzl",
+    "//apple:visionos.bzl",
     _visionos_build_test = "visionos_build_test",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:visionos_rules.bzl",
+    "//apple/internal:visionos_rules.bzl",
     _visionos_application = "visionos_application",
     _visionos_dynamic_framework = "visionos_dynamic_framework",
     _visionos_framework = "visionos_framework",
@@ -16,7 +16,7 @@ load(
 # so that stardoc documents the rule attributes, not an opaque
 # **kwargs argument.
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:visionos_rules.bzl",
+    "//apple/internal/testing:visionos_rules.bzl",
     _visionos_ui_test = "visionos_ui_test",
     _visionos_unit_test = "visionos_unit_test",
 )

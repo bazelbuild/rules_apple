@@ -4,7 +4,7 @@
 # so that stardoc documents the rule attributes, not an opaque
 # **kwargs argument.
 load(
-    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
+    "//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_dynamic_framework = "tvos_dynamic_framework",
     _tvos_extension = "tvos_extension",
@@ -12,7 +12,7 @@ load(
     _tvos_static_framework = "tvos_static_framework",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:tvos_rules.bzl",
+    "//apple/internal/testing:tvos_rules.bzl",
     _tvos_ui_test = "tvos_ui_test",
     _tvos_unit_test = "tvos_unit_test",
 )

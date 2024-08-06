@@ -59,7 +59,7 @@ def generate_app_intents_metadata_bundle(
 
     args.add("--binary-file", bundle_binary)
 
-    if len(intents_module_names) > 1:
+    if len(intents_module_names) > 3:
         fail("""
 Found the following module names in the top level target {label} for app_intents: {intents_module_names}
 

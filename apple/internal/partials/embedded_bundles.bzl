@@ -19,15 +19,15 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
+    "//apple/internal/providers:embeddable_info.bzl",
     "AppleEmbeddableInfo",
 )
 

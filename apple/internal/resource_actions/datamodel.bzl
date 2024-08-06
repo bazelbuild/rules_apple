@@ -19,7 +19,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
+    "//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
 

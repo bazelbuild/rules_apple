@@ -16,12 +16,12 @@
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
 )
 
 def _verify_found_module_name(*, bundle_name, found_module_name):

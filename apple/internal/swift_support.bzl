@@ -15,7 +15,7 @@
 """Support functions for working with Swift."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
 

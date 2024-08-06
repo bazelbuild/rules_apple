@@ -16,11 +16,11 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
 

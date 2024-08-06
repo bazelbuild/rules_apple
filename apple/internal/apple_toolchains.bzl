@@ -120,12 +120,12 @@ def _shared_attrs():
     """Private attributes on every rule to provide access to bundling tools and other file deps."""
     return {
         "_mac_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:mac_tools_toolchain"),
+            default = Label("//apple/internal:mac_tools_toolchain"),
             providers = [[AppleMacToolsToolchainInfo]],
             cfg = "exec",
         ),
         "_xplat_toolchain": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/internal:xplat_tools_toolchain"),
+            default = Label("//apple/internal:xplat_tools_toolchain"),
             providers = [[AppleXPlatToolsToolchainInfo]],
             cfg = "exec",
         ),

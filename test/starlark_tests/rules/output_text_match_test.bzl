@@ -119,7 +119,7 @@ are expected to **not** be found somewhere in that file.
             doc = "The target whose outputs are to be verified.",
         ),
         "_test_deps": attr.label(
-            default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
+            default = "//test:apple_verification_test_deps",
         ),
     },
     implementation = _output_text_match_test_impl,

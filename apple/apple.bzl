@@ -15,35 +15,35 @@
 """# Rules that apply to all Apple platforms."""
 
 load(
-    "@build_bazel_rules_apple//apple:apple_static_library.bzl",
+    "//apple:apple_static_library.bzl",
     _apple_static_library = "apple_static_library",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_framework_import.bzl",
+    "//apple/internal:apple_framework_import.bzl",
     _apple_dynamic_framework_import = "apple_dynamic_framework_import",
     _apple_static_framework_import = "apple_static_framework_import",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_universal_binary.bzl",
+    "//apple/internal:apple_universal_binary.bzl",
     _apple_universal_binary = "apple_universal_binary",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_xcframework_import.bzl",
+    "//apple/internal:apple_xcframework_import.bzl",
     _apple_dynamic_xcframework_import = "apple_dynamic_xcframework_import",
     _apple_static_xcframework_import = "apple_static_xcframework_import",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental_mixed_language_library.bzl",
+    "//apple/internal:experimental_mixed_language_library.bzl",
     _experimental_mixed_language_library = "experimental_mixed_language_library",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:local_provisioning_profiles.bzl",
+    "//apple/internal:local_provisioning_profiles.bzl",
     _local_provisioning_profile = "local_provisioning_profile",
     _provisioning_profile_repository = "provisioning_profile_repository",
     _provisioning_profile_repository_extension = "provisioning_profile_repository_extension",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:xcframework_rules.bzl",
+    "//apple/internal:xcframework_rules.bzl",
     _apple_static_xcframework = "apple_static_xcframework",
     _apple_xcframework = "apple_xcframework",
 )

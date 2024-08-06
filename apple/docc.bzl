@@ -15,7 +15,7 @@
 """Defines rules for building Apple DocC targets."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:docc.bzl",
+    "//apple/internal:docc.bzl",
     _docc_archive = "docc_archive",
 )
 

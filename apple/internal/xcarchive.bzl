@@ -3,16 +3,16 @@ Rule for packaging a bundle into a .xcarchive.
 """
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleDsymBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebinaryinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
 
@@ -84,7 +84,7 @@ The label to a target to re-package into a .xcarchive. For example, an
             """,
         ),
         "_make_xcarchive": attr.label(
-            default = Label("@build_bazel_rules_apple//tools/xcarchivetool:make_xcarchive"),
+            default = Label("//tools/xcarchivetool:make_xcarchive"),
             executable = True,
             cfg = "exec",
             doc = """\
