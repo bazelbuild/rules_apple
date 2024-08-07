@@ -550,6 +550,28 @@ the expected outputs for each of the actions declared in this method.
 An AppleResourceInfo provider with resources bucketized according to type.
 
 
+<a id="resources_common.runfiles_resources_parent_dir"></a>
+
+## resources_common.runfiles_resources_parent_dir
+
+<pre>
+resources_common.runfiles_resources_parent_dir(<a href="#resources_common.runfiles_resources_parent_dir-resource">resource</a>)
+</pre>
+
+Returns the parent directory of the file.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="resources_common.runfiles_resources_parent_dir-resource"></a>resource |  The resource for which to calculate the package relative path.   |  none |
+
+**RETURNS**
+
+The package relative path to the parent directory of the resource.
+
+
 <a id="resources_common.structured_resources_parent_dir"></a>
 
 ## resources_common.structured_resources_parent_dir
