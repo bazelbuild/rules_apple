@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of apple_resource_bundle rule."""
+"""Implementation of apple_precompiled_resource_bundle rule."""
 
 load(
     "@bazel_skylib//lib:dicts.bzl",
@@ -68,7 +68,7 @@ load(
     "rule_support",
 )
 
-def _apple_resource_bundle_impl(_ctx):
+def _apple_precompiled_resource_bundle_impl(_ctx):
     # Owner to attach to the resources as they're being bucketed.
     owner = None
     bucketize_args = {}
@@ -264,8 +264,8 @@ def _apple_resource_bundle_impl(_ctx):
         ),
     ]  # +processor_result.providers
 
-apple_resource_bundle = rule(
-    implementation = _apple_resource_bundle_impl,
+apple_precompiled_resource_bundle = rule(
+    implementation = _apple_precompiled_resource_bundle_impl,
     fragments = ["apple", "cpp", "objc"],
     outputs = {"archive": "%{name}.bundle"},
     attrs = dicts.add(
@@ -314,7 +314,7 @@ files are placed in the root of the resource bundle (e.g. `Payload/foo.app/bar.b
 cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj),
 they will be placed in a directory of the same name in the app bundle.
 
-You can also add other `apple_resource_bundle` and `apple_bundle_import` targets into `resources`,
+You can also add other `apple_precompiled_resource_bundle` and `apple_bundle_import` targets into `resources`,
 and the resource bundle structures will be propagated into the final bundle.
 """,
             ),
@@ -337,8 +337,8 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
     ),
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
-`apple_resource_bundle`'s resources are put in a resource bundle in the top
-level Apple bundle dependent. apple_resource_bundle targets need to be added to
+`apple_precompiled_resource_bundle`'s resources are put in a resource bundle in the top
+level Apple bundle dependent. apple_precompiled_resource_bundle targets need to be added to
 library targets through the `data` attribute.
 """,
 )

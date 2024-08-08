@@ -39,16 +39,16 @@ load(
     _apple_metal_library = "apple_metal_library",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_precompiled_resource_bundle.bzl",
+    _apple_precompiled_resource_bundle = "apple_precompiled_resource_bundle",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
     _apple_resource_bundle = "apple_resource_bundle",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules/precompiled:apple_resource_bundle.bzl",
-    _apple_precompiled_resource_bundle = "apple_resource_bundle",
 )
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
