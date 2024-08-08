@@ -28,7 +28,7 @@ def apple_resource_bundle_test_suite(name):
 
     output_group_test(
         name = "{}_output_group".format(name),
-        target_under_test = "//test/starlark_tests/resources:resource_bundle",
+        target_under_test = "//test/starlark_tests/resources:precompiled_resource_bundle",
         expected_output_groups = ["bundle"],
         tags = [name],
     )
