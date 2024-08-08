@@ -81,7 +81,7 @@ swift_library dependencies.\
 """,
             )
 
-        if not all([module.name, module.swift.swiftdoc, module.swift.swiftinterface]):
+        if not all([module.name, module.swift.swiftdoc]) or not (module.swift.swiftmodule or module.swift.swiftinterface):
             fail(
                 """\
 error: Could not find all required artifacts and information to build a Swift framework. \
@@ -246,6 +246,38 @@ def _declare_swiftinterface(
     )
     return bundle_interface
 
+def _declare_swiftmodule(
+        *,
+        actions,
+        arch,
+        label_name,
+        output_discriminator,
+        swiftmodule):
+    """Declares the swiftmodule for this Swift framework.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        arch: The cpu architecture that the generated swiftdoc belongs to.
+        label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
+        swiftmodule: A File referencing the swiftmodule file from a SwiftInfo provider.
+
+    Returns:
+        A File referencing the intermediate swiftmodule.
+    """
+    bundle_module = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "{}.swiftmodule".format(arch),
+    )
+    actions.symlink(
+        target_file = swiftmodule,
+        output = bundle_module,
+    )
+    return bundle_module
+
 swift_info_support = struct(
     verify_found_module_name = _verify_found_module_name,
     modules_from_avoid_deps = _modules_from_avoid_deps,
@@ -254,4 +286,5 @@ swift_info_support = struct(
     declare_generated_header = _declare_generated_header,
     declare_swiftdoc = _declare_swiftdoc,
     declare_swiftinterface = _declare_swiftinterface,
+    declare_swiftmodule = _declare_swiftmodule,
 )
