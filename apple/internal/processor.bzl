@@ -467,6 +467,7 @@ def _bundle_post_process_and_sign(
         codesign_inputs,
         codesignopts,
         entitlements,
+        env,
         features,
         ipa_post_processor,
         locales_to_include,
@@ -490,6 +491,7 @@ def _bundle_post_process_and_sign(
         codesign_inputs: Extra inputs needed for the `codesign` tool.
         codesignopts: Extra options to pass to the `codesign` tool.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+        env: Environment variables. Typically from `ctx.configuration.default_shell_env`.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         locales_to_include: List of locales to bundle.
@@ -604,6 +606,7 @@ def _bundle_post_process_and_sign(
             codesigningtool = apple_mac_toolchain_info.codesigningtool,
             codesignopts = codesignopts,
             entitlements = entitlements,
+            env = env,
             features = features,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
@@ -674,6 +677,7 @@ def _bundle_post_process_and_sign(
                 codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 codesignopts = codesignopts,
                 entitlements = entitlements,
+                env = env,
                 features = features,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
@@ -700,6 +704,7 @@ def _process(
         codesign_inputs = [],
         codesignopts = [],
         entitlements = None,
+        env = None,
         features,
         ipa_post_processor = None,
         locales_to_include = [],
@@ -724,6 +729,7 @@ def _process(
       codesign_inputs: Extra inputs needed for the `codesign` tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      env: Environment variables. Typically from `ctx.configuration.default_shell_env`.
       features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
       locales_to_include: List of locales to explicitly include in the bundle. Defaults tp `[]`.
@@ -765,6 +771,7 @@ def _process(
             codesign_inputs = codesign_inputs,
             codesignopts = codesignopts,
             entitlements = entitlements,
+            env = env,
             features = features,
             ipa_post_processor = ipa_post_processor,
             locales_to_include = locales_to_include,
