@@ -5,6 +5,7 @@ load(
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
+    "apple_precompiled_resource_bundle",
     "apple_resource_bundle",
     "apple_resource_group",
 )
@@ -367,6 +368,13 @@ dummy_apple_resource_info(
 
 apple_resource_bundle(
     name = "resource_bundle",
+    infoplists = ["Another.plist"],
+    resources = [":custom_apple_resource_info"],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle",
     infoplists = ["Another.plist"],
     resources = [":custom_apple_resource_info"],
     tags = common.fixture_tags,

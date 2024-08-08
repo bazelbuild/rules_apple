@@ -101,6 +101,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_precompiled_resource_bundle",
+    srcs = ["apple_precompiled_resource_bundle.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:providers",
+    ],
+)
+
+bzl_library(
     name = "apple_resource_group",
     srcs = ["apple_resource_group.bzl"],
     visibility = [
