@@ -97,7 +97,11 @@ def _docc_archive_impl(ctx):
 
     # Add symbol graphs
     if symbol_graphs_info:
-        arguments.add_all("--additional-symbol-graph-dir", symbol_graphs_info.symbol_graphs, expand_directories = False)
+        arguments.add_all(
+            symbol_graphs_info.symbol_graphs,
+            before_each = "--additional-symbol-graph-dir",
+            expand_directories = False,
+        )
         docc_build_inputs.extend(symbol_graphs_info.symbol_graphs)
 
     # The .docc bundle (if provided, only one is allowed)

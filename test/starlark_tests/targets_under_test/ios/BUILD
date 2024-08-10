@@ -5039,6 +5039,14 @@ docc_archive(
     hosting_base_path = "custom/base/path",
 )
 
+docc_archive(
+    name = "basic_framework_with_transitive_dependency.doccarchive",
+    dep = ":basic_framework_with_transitive_dependency",
+    fallback_bundle_identifier = "com.google.example.framework",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "BasicFramework",
+)
+
 # ---------------------------------------------------------------------------------------
 # Target for extension resource bundling.
 

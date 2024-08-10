@@ -57,7 +57,6 @@ def docc_test_suite(name):
             "$BUNDLE_ROOT/index.html",
             "$BUNDLE_ROOT/documentation/basicframework/readme/index.html",
         ],
-        text_file_not_contains = [],
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
             "\"bundleDisplayName\":\"BasicFramework\"",
@@ -78,7 +77,6 @@ def docc_test_suite(name):
             "$BUNDLE_ROOT/index.html",
             "$BUNDLE_ROOT/documentation/basiclib/readme/index.html",
         ],
-        text_file_not_contains = [],
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
             "\"bundleDisplayName\":\"BasicLib\"",
@@ -99,11 +97,22 @@ def docc_test_suite(name):
             "$BUNDLE_ROOT/index.html",
             "$BUNDLE_ROOT/documentation/basicframework/readme/index.html",
         ],
-        text_file_not_contains = [],
         text_test_file = "$BUNDLE_ROOT/index.html",
         text_test_values = [
             "<script defer=\"defer\" src=\"/custom/base/path/js/",
             "<link href=\"/custom/base/path/css/",
+        ],
+        tags = [name],
+    )
+
+    # Verifying multiple symbol graph conversion via transitive dependencies.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_with_transitive_dependencies".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_transitive_dependency.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/transitivedependencytest/index.html",
         ],
         tags = [name],
     )
