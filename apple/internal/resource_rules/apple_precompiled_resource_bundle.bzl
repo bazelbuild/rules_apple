@@ -244,6 +244,7 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         features = features,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = _ctx.file._provisioning_profile,
         codesignopts = [],
         bundle_post_process_and_sign = True,
     )
@@ -331,6 +332,10 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
             "_environment_plist": attr.label(
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            ),
+            "_provisioning_profile": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
             ),
         },
         rule_attrs.common_tool_attrs(),
