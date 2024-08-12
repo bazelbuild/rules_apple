@@ -254,6 +254,46 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    # Tests that apple_precompiled_resource_bundle resources are compiled and bundled correctly
+    # with the application. This test uses a bundle library with many types of
+    # resources, both localized and nonlocalized, and also a nested bundle.
+    archive_contents_test(
+        name = "{}_apple_precompiled_resource_bundle_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.bundle-library-ios",
+            "CFBundleName": "bundle_library_ios.bundle",
+            "CFBundlePackageType": "BNDL",
+            "TargetName": "bundle_library_ios",
+        },
+        contains = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/default.metallib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/mapping_model.cdm",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/nested.txt",
+        ],
+        is_binary_plist = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/generated.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that apple_resource_bundle resources are compiled and bundled correctly
     # with the application. This test uses a bundle library with many types of
     # resources, both localized and nonlocalized, and also a nested bundle.
