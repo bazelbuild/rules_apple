@@ -40,8 +40,16 @@ load(
     "codesigning_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "linking_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
@@ -214,7 +222,52 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
     label = _ctx.label
     actions = _ctx.actions
 
+    entitlements = entitlements_support.process_entitlements(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        entitlements_file = _ctx.file._entitlements,
+        platform_prerequisites = platform_prerequisites,
+        product_type = rule_descriptor.product_type,
+        provisioning_profile = _ctx.file._provisioning_profile,
+        rule_label = label,
+        validation_mode = "error",
+    )
+
+    link_result = linking_support.register_binary_linking_action(
+        _ctx,
+        avoid_deps = [],
+        # Frameworks do not have entitlements.
+        entitlements = entitlements.linking,
+        exported_symbols_lists = [],
+        extra_linkopts = [],
+        platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
+        stamp = None,
+    )
+    binary_artifact = link_result.binary
+
     processor_partials = [
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            executable_name = bundle_name,
+            extension_safe = False,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = bundle_name,
+            label_name = label.name,
+        ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -267,7 +320,7 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
             #     processor_result.output_groups,
             # )
         ),
-    ]  # +processor_result.providers
+    ] + processor_result.providers
 
 apple_precompiled_resource_bundle = rule(
     implementation = _apple_precompiled_resource_bundle_impl,
@@ -340,6 +393,10 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
             "_provisioning_profile": attr.label(
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+            ),
+            "_entitlements": attr.label(
+                allow_single_file = True,
+                default = "//test/starlark_tests/resources:entitlements.plist",
             ),
             "codesignopts": attr.string_list(),
         },

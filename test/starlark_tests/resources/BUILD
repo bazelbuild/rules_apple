@@ -375,6 +375,7 @@ apple_resource_bundle(
 
 apple_precompiled_resource_bundle(
     name = "precompiled_resource_bundle",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
     infoplists = ["Another.plist"],
     resources = [":custom_apple_resource_info"],
     tags = common.fixture_tags,
