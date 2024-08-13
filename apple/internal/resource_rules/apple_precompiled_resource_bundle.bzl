@@ -48,8 +48,8 @@ load(
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
-    "linking_support",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
@@ -87,7 +87,7 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
 
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = str(_ctx.fragments.apple.single_arch_platform.platform_type),
-        product_type = apple_product_type.application,
+        product_type = apple_product_type.bundle,
     )
 
     features = features_support.compute_enabled_features(
@@ -234,19 +234,6 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         validation_mode = "error",
     )
 
-    link_result = linking_support.register_binary_linking_action(
-        _ctx,
-        avoid_deps = [],
-        # Frameworks do not have entitlements.
-        entitlements = entitlements.linking,
-        exported_symbols_lists = [],
-        extra_linkopts = [],
-        platform_prerequisites = platform_prerequisites,
-        rule_descriptor = rule_descriptor,
-        stamp = None,
-    )
-    binary_artifact = link_result.binary
-
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -254,19 +241,12 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = bundle_name,
-            extension_safe = False,
             label_name = label.name,
+            entitlements = entitlements.bundle,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
             rule_descriptor = rule_descriptor,
-        ),
-        partials.binary_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
-            executable_name = bundle_name,
-            label_name = label.name,
         ),
         partials.resources_partial(
             actions = actions,
@@ -306,16 +286,28 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         bundle_post_process_and_sign = True,
     )
 
+    archive = outputs.archive(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        label_name = label.name,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
+    )
+
+    print(archive.path)
+
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),
         DefaultInfo(
-            files = processor_result.output_files,
+            files = depset([archive]),
         ),
         OutputGroupInfo(
-            bundle = processor_result.output_files,
+            bundle = depset([archive]),
             # **outputs.merge_output_groups(
             #     processor_result.output_groups,
             # )
