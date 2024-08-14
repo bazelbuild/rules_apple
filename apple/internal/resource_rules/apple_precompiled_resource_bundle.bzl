@@ -44,6 +44,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -54,10 +58,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "new_appleresourcebundleinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -257,15 +257,13 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
-        new_appleresourcebundleinfo(),
         DefaultInfo(
             files = processor_result.output_files,
         ),
         OutputGroupInfo(
-            bundle = processor_result.output_files,
-            # **outputs.merge_output_groups(
-            #     processor_result.output_groups,
-            # )
+            **outputs.merge_output_groups(
+                processor_result.output_groups,
+            )
         ),
     ] + processor_result.providers
 
