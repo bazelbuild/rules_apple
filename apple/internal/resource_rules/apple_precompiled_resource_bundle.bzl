@@ -40,10 +40,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
-    "entitlements_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -217,18 +213,6 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
 
     label = _ctx.label
     actions = _ctx.actions
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        bundle_id = bundle_id,
-        entitlements_file = _ctx.file._entitlements,
-        platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
-        provisioning_profile = _ctx.file._provisioning_profile,
-        rule_label = label,
-        validation_mode = "error",
-    )
 
     processor_partials = [
         partials.resources_partial(
