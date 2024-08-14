@@ -385,7 +385,7 @@ app_icons was assigned the following: [
     # with the application. This test uses a bundle library with many types of
     # resources, both localized and nonlocalized, and also a nested bundle.
     archive_contents_test(
-        name = "{}_apple_resource_bundle_depending_on_AppleResourceInfo_and_DefaultInfo_rule_test".format(name),
+        name = "{}_apple_precompiled_resource_bundle_depending_on_AppleResourceInfo_and_DefaultInfo_rule_test".format(name),
         build_type = "simulator",
         contains = [
             "$BUNDLE_ROOT/resource_bundle.bundle/custom_apple_resource_info.out",
