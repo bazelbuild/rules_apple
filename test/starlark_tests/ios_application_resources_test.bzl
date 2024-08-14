@@ -232,6 +232,21 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_apple_bundle_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.plist",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that apple_bundle_import files are bundled correctly with the
     # application if the files have an owner-relative path that begins with
     # something other than the bundle name (for example, "foo/Bar.bundle/..."
@@ -252,6 +267,24 @@ app_icons was assigned the following: [
             "$BUNDLE_ROOT/nested_bundle/nested.bundle/nested/should_be_nested.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_nested_apple_bundle_test".format(name),
+        build_type = "simulator",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/nested.bundle/should_be_binary.strings",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/nested.bundle/nested/should_be_nested.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/nested_bundle/nested.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/nested_bundle/nested.bundle/nested/should_be_nested.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
         tags = [name],
     )
 
@@ -348,15 +381,40 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    # Tests that apple_precompiled_resource_bundle resources are compiled and bundled correctly
+    # with the application. This test uses a bundle library with many types of
+    # resources, both localized and nonlocalized, and also a nested bundle.
+    archive_contents_test(
+        name = "{}_apple_resource_bundle_depending_on_AppleResourceInfo_and_DefaultInfo_rule_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/resource_bundle.bundle/custom_apple_resource_info.out",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that structured processed generated strings have correct values.
     archive_contents_test(
-        name = "{}_generated_stromgs_test".format(name),
+        name = "{}_generated_strings_test".format(name),
         build_type = "simulator",
         plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/structured/generated.strings",
         plist_test_values = {
             "generated_structured_string": "I like turtles too!",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    # Tests that structured processed generated strings have correct values.
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_generated_strings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/structured/generated.strings",
+        plist_test_values = {
+            "generated_structured_string": "I like turtles too!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
         tags = [name],
     )
 
