@@ -387,7 +387,7 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
         else:
-            parent = partial.call(parent_dir_param, resource)
+            parent = partial.call(partial = parent_dir_param, resource = resource)
 
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
             lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
@@ -786,6 +786,17 @@ def _structured_resources_parent_dir(*, parent_dir = None, resource):
         path = paths.dirname(package_relative).rstrip("/")
     return paths.join(parent_dir or "", path or "") or None
 
+def _runfiles_resources_parent_dir(*, resource):
+    """Returns the parent directory of the file.
+
+    Args:
+        resource: The resource for which to calculate the package relative path.
+
+    Returns:
+        The package relative path to the parent directory of the resource.
+    """
+    return paths.dirname(resource.path)
+
 def _expand_owners(*, owners):
     """Converts a depset of (path, owner) to a dict of paths to dict of owners.
 
@@ -974,5 +985,6 @@ resources = struct(
     nest_in_bundle = _nest_in_bundle,
     populated_resource_fields = _populated_resource_fields,
     process_bucketized_data = _process_bucketized_data,
+    runfiles_resources_parent_dir = _runfiles_resources_parent_dir,
     structured_resources_parent_dir = _structured_resources_parent_dir,
 )
