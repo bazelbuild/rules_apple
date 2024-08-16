@@ -5,7 +5,6 @@ load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
 load(":apple_core_ml_library_tests.bzl", "apple_core_ml_library_test_suite")
 load(":apple_dynamic_xcframework_import_tests.bzl", "apple_dynamic_xcframework_import_test_suite")
 load(":apple_metal_library_tests.bzl", "apple_metal_library_test_suite")
-load(":apple_resource_bundle_tests.bzl", "apple_resource_bundle_test_suite")
 load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
 load(":apple_static_xcframework_import_tests.bzl", "apple_static_xcframework_import_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
@@ -62,8 +61,6 @@ load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 load(":xcarchive_tests.bzl", "xcarchive_test_suite")
 
 licenses(["notice"])
-
-apple_resource_bundle_test_suite(name = "apple_resource_bundle")
 
 apple_bundle_version_test_suite(name = "apple_bundle_version")
 
