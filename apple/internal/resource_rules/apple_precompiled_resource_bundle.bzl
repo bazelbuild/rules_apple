@@ -341,7 +341,7 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
     doc = """
 This rule encapsulates a target which is provided to dependers as a bundle. An
 `apple_precompiled_resource_bundle`'s resources are put in a resource bundle in the top
-level Apple bundle dependent. apple_precompiled_resource_bundle targets need to be added to
+level Apple bundle dependent. `apple_precompiled_resource_bundle` targets need to be added to
 library targets through the `data` attribute.
 """,
 )
