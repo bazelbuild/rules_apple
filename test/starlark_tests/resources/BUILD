@@ -424,6 +424,15 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_localization",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
 filegroup(
     name = "example_filegroup",
     srcs = [
@@ -484,10 +493,17 @@ apple_resource_group(
     ],
 )
 
+apple_resource_group(
+    name = "precompiled_processed_resources_in_structured_resources",
+    structured_resources = [
+        ":precompiled_resource_bundle_localization",
+    ],
+)
+
 objc_library(
-    name = "processed_resources_in_structured_resources_lib",
+    name = "precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
     data = [
-        ":processed_resources_in_structured_resources",
+        ":precompiled_processed_resources_in_structured_resources",
     ],
 )
 

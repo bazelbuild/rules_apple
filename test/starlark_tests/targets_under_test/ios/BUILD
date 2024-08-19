@@ -284,6 +284,27 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_precompiled_resource_bundle_processed_resources_in_structured_resources",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
+    ],
+)
+
+ios_application(
     name = "app_launch_images",
     app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
     bundle_id = "com.google.example",
