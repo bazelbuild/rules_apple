@@ -64,7 +64,7 @@ load(
     "rule_support",
 )
 
-def _apple_precompiled_resource_bundle_impl(_ctx):
+def _apple_precompiled_resource_bundle_impl(ctx):
     # Owner to attach to the resources as they're being bucketed.
     owner = None
     bucketize_args = {}
