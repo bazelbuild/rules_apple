@@ -239,7 +239,7 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         provisioning_profile = _ctx.file._provisioning_profile,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(_ctx),
-        bundle_post_process_and_sign = True,
+        bundle_post_process_and_sign = False,
     )
 
     providers = []
@@ -262,7 +262,6 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
 apple_precompiled_resource_bundle = rule(
     implementation = _apple_precompiled_resource_bundle_impl,
     fragments = ["apple", "cpp", "objc"],
-    outputs = {"archive": "%{name}.bundle"},
     attrs = dicts.add(
         {
             "bundle_id": attr.string(
