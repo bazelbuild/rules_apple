@@ -727,6 +727,21 @@ app_icons was assigned the following: [
     )
 
     archive_contents_test(
+        name = "{}_with_precompiled_resource_bundle_with_bundle_id".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_bundle_id",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.rules_apple.precompiled_resource_bundle",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_with_resource_group_with_resource_bundle".format(name),
         build_type = "device",
         compilation_mode = "opt",
