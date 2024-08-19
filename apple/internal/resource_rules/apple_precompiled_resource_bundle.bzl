@@ -32,20 +32,12 @@ load(
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
@@ -107,11 +99,8 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         xcode_version_config = _ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    bundle_name, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = _ctx.attr.bundle_name,
-        label_name = _ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
+    bundle_name = "{}.bundle".format(_ctx.attr.bundle_name or _ctx.label.name)
+    bundle_extension = ".bundle"
     bundle_id = _ctx.attr.bundle_id or None
 
     apple_resource_infos = []
@@ -253,19 +242,22 @@ def _apple_precompiled_resource_bundle_impl(_ctx):
         bundle_post_process_and_sign = True,
     )
 
-    return [
-        # TODO(b/122578556): Remove this ObjC provider instance.
-        apple_common.new_objc_provider(),
-        CcInfo(),
+    providers = []
+    if apple_resource_infos:
+        # If any providers were collected, merge them.
+        providers.append(
+            resources.merge_providers(
+                default_owner = owner,
+                providers = apple_resource_infos + processor_result.providers,
+            ),
+        )
+    providers.append(
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        OutputGroupInfo(
-            **outputs.merge_output_groups(
-                processor_result.output_groups,
-            )
-        ),
-    ] + processor_result.providers
+    )
+
+    return providers
 
 apple_precompiled_resource_bundle = rule(
     implementation = _apple_precompiled_resource_bundle_impl,
