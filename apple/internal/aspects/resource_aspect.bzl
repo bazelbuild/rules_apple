@@ -202,6 +202,7 @@ def _apple_resource_aspect_impl(target, ctx):
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
 
     elif ctx.rule.kind == "apple_precompiled_resource_bundle":
+        default_action = apple_resource_hint_action.resources
         collect_infoplists_args["res_attrs"] = ["infoplists"]
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
