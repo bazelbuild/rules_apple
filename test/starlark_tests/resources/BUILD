@@ -493,6 +493,13 @@ apple_resource_group(
     ],
 )
 
+objc_library(
+    name = "processed_resources_in_structured_resources_lib",
+    data = [
+        ":processed_resources_in_structured_resources",
+    ],
+)
+
 apple_resource_group(
     name = "precompiled_processed_resources_in_structured_resources",
     structured_resources = [
