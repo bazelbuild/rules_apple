@@ -296,17 +296,6 @@ _RULE_TYPE_DESCRIPTORS = {
             ],
             skip_simulator_signing_allowed = False,
         ),
-        # ios_bundle
-        apple_product_type.bundle: _describe_rule_type(
-            allowed_device_families = ["iphone", "ipad"],
-            bundle_extension = ".bundle",
-            bundle_package_type = bundle_package_type.bundle,
-            product_type = apple_product_type.bundle,
-            requires_signing_for_device = False,
-            rpaths = [
-                "@loader_path/Frameworks",
-            ],
-        ),
     },
     "macos": {
         # macos_application

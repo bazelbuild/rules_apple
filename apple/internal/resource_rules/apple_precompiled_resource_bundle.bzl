@@ -23,10 +23,6 @@ load(
     "partial",
 )
 load(
-    "//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
@@ -63,6 +59,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
 )
+load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
 
 def _apple_precompiled_resource_bundle_impl(ctx):
     # Owner to attach to the resources as they're being bucketed.
@@ -70,50 +70,50 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     bucketize_args = {}
 
     rule_descriptor = rule_support.rule_descriptor(
-        platform_type = str(_ctx.fragments.apple.single_arch_platform.platform_type),
+        platform_type = str(ctx.fragments.apple.single_arch_platform.platform_type),
         product_type = apple_product_type.application,
     )
 
     features = features_support.compute_enabled_features(
-        requested_features = _ctx.features,
-        unsupported_features = _ctx.disabled_features,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
     )
 
-    apple_mac_toolchain_info = _ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = _ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
 
-    predeclared_outputs = _ctx.outputs
+    predeclared_outputs = ctx.outputs
 
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = _ctx.fragments.apple,
+        apple_fragment = ctx.fragments.apple,
         build_settings = apple_xplat_toolchain_info.build_settings,
-        config_vars = _ctx.var,
-        cpp_fragment = _ctx.fragments.cpp,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
         features = features,
-        objc_fragment = _ctx.fragments.objc,
-        platform_type_string = str(_ctx.fragments.apple.single_arch_platform.platform_type),
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
-        xcode_version_config = _ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    bundle_name = "{}.bundle".format(_ctx.attr.bundle_name or _ctx.label.name)
+    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
     bundle_extension = ".bundle"
-    bundle_id = _ctx.attr.bundle_id or None
+    bundle_id = ctx.attr.bundle_id or None
 
     apple_resource_infos = []
     process_args = {
-        "actions": _ctx.actions,
-        "apple_mac_toolchain_info": _ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "actions": ctx.actions,
+        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
         "bundle_id": bundle_id,
         "product_type": rule_descriptor.product_type,
-        "rule_label": _ctx.label,
+        "rule_label": ctx.label,
     }
 
     infoplists = resources.collect(
-        attr = _ctx.attr,
+        attr = ctx.attr,
         res_attrs = ["infoplists"],
     )
     if infoplists:
@@ -136,7 +136,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         )
 
     resource_files = resources.collect(
-        attr = _ctx.attr,
+        attr = ctx.attr,
         res_attrs = ["resources"],
     )
 
@@ -159,7 +159,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         )
 
     structured_files = resources.collect(
-        attr = _ctx.attr,
+        attr = ctx.attr,
         res_attrs = ["structured_resources"],
     )
     if structured_files:
@@ -194,14 +194,14 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         )
 
     top_level_resources = resources.collect(
-        attr = _ctx.attr,
+        attr = ctx.attr,
         res_attrs = [
             "resources",
         ],
     )
 
-    label = _ctx.label
-    actions = _ctx.actions
+    label = ctx.label
+    actions = ctx.actions
 
     processor_partials = [
         partials.resources_partial(
@@ -210,11 +210,11 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            environment_plist = _ctx.file._environment_plist,
+            environment_plist = ctx.file._environment_plist,
             executable_name = None,
             launch_storyboard = None,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = getattr(_ctx.attr, "deps", []) + _ctx.attr.resources + _ctx.attr.structured_resources,
+            resource_deps = getattr(ctx.attr, "deps", []) + ctx.attr.resources + ctx.attr.structured_resources,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             top_level_infoplists = infoplists,
@@ -237,8 +237,8 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         features = features,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        provisioning_profile = _ctx.file._provisioning_profile,
-        codesignopts = codesigning_support.codesignopts_from_rule_ctx(_ctx),
+        provisioning_profile = ctx.file._provisioning_profile,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         bundle_post_process_and_sign = False,
     )
 
