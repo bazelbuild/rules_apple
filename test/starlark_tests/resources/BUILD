@@ -387,6 +387,12 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_structured_resource_group",
+    resources = [":structured_resources"],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "resource_bundle_with_bundle_id",
     bundle_id = "org.bazel.rules_apple.resource_bundle",
