@@ -20,13 +20,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "ApplePlatformInfo",
-    "TvosExtensionBundleInfo",
-    "TvosFrameworkBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -73,6 +66,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "ApplePlatformInfo",
+    "TvosExtensionBundleInfo",
+    "TvosFrameworkBundleInfo",
     "new_appleframeworkbundleinfo",
     "new_tvosapplicationbundleinfo",
     "new_tvosextensionbundleinfo",

@@ -31,18 +31,15 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleDsymBundleInfo",
-    "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "AppleDsymBundleInfo",
+    "AppleFrameworkBundleInfo",
+    "AppleResourceInfo",
     "new_appledsymbundleinfo",
 )
 load(
@@ -82,7 +79,7 @@ load(
     "SwiftInfo",
 )
 
-visibility("//apple/internal/...")
+visibility("//apple/...")
 
 def _find_apple_resource_hint_info(aspect_ctx):
     """Finds a `AppleResourceHintInfo` provider associated with the target."""
@@ -445,6 +442,15 @@ apple_resource_aspect = aspect(
     ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
-    doc = """Aspect that collects and propagates resource information to be bundled by a top-level
-bundling rule.""",
+    doc = """
+Aspect that collects and propagates transitive `AppleResourceInfo` providers to allow for resources
+to be bundled by a top-level Apple bundling rule.
+
+Supported resource-providing rules are:
+
+*   `objc_library`
+*   `swift_library`
+*   `apple_resource_group`
+*   `apple_resource_bundle`
+""",
 )

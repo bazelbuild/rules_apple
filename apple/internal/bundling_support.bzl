@@ -15,7 +15,7 @@
 """Low-level bundling name helpers."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
 )

@@ -74,6 +74,10 @@ load(
     _make_apple_test_runner_info = "make_apple_test_runner_info",
     _merge_apple_framework_import_info = "merge_apple_framework_import_info",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "resources",
+)
 
 visibility("public")
 
@@ -123,8 +127,21 @@ WatchosApplicationBundleInfo = _WatchosApplicationBundleInfo
 WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
 
+def _merge_apple_resource_info(providers):
+    """Merges multiple `AppleResourceInfo` providers into one.
+
+    Args:
+        providers: List of `AppleResourceInfo` providers to be merged.
+
+    Returns:
+        A new `AppleResourceInfo` provider based on the contents of the providers supplied by
+        `providers`.
+    """
+    return resources.merge_providers(providers = providers)
+
 apple_provider = struct(
     make_apple_bundle_version_info = _make_apple_bundle_version_info,
     make_apple_test_runner_info = _make_apple_test_runner_info,
     merge_apple_framework_import_info = _merge_apple_framework_import_info,
+    merge_apple_resource_info = _merge_apple_resource_info,
 )

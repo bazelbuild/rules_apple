@@ -15,9 +15,12 @@
 """Support methods for Apple framework import rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("@build_bazel_rules_apple//apple:utils.bzl", "group_files_by_directory")
-load("@build_bazel_rules_apple//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleFrameworkImportInfo",
+    "new_appleframeworkimportinfo",
+)
 load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")

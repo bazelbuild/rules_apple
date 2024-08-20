@@ -76,11 +76,8 @@ load(
     "types",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleFrameworkBundleInfo",
     "new_appleresourceinfo",
 )
 load(

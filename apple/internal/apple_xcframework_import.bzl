@@ -18,7 +18,6 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
-load("@build_bazel_rules_apple//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
@@ -32,6 +31,10 @@ load(
     "framework_import_support",
 )
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleFrameworkImportInfo",
+)
 load("@build_bazel_rules_apple//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",

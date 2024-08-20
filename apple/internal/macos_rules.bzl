@@ -23,13 +23,6 @@ load(
     "entitlements_validation_mode",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleBundleVersionInfo",
-    "MacosExtensionBundleInfo",
-    "MacosXPCServiceBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -76,6 +69,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "AppleBundleVersionInfo",
+    "MacosExtensionBundleInfo",
+    "MacosXPCServiceBundleInfo",
     "new_applebinaryinfo",
     "new_macosapplicationbundleinfo",
     "new_macosbundlebundleinfo",

@@ -22,7 +22,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:experimental",
@@ -50,7 +49,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:dicts",
     ],
 )
@@ -76,7 +75,6 @@ bzl_library(
     deps = [
         ":apple_test_bundle_support",
         ":apple_test_rule_support",
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",
@@ -97,7 +95,6 @@ bzl_library(
     deps = [
         ":apple_test_bundle_support",
         ":apple_test_rule_support",
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",
@@ -119,7 +116,6 @@ bzl_library(
     deps = [
         ":apple_test_bundle_support",
         ":apple_test_rule_support",
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",
@@ -141,7 +137,6 @@ bzl_library(
     deps = [
         ":apple_test_bundle_support",
         ":apple_test_rule_support",
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",
@@ -162,7 +157,6 @@ bzl_library(
     deps = [
         ":apple_test_bundle_support",
         ":apple_test_rule_support",
-        "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",

@@ -18,7 +18,12 @@ load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     _framework_provider_aspect = "framework_provider_aspect",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    _apple_resource_aspect = "apple_resource_aspect",
+)
 
 visibility("public")
 
+apple_resource_aspect = _apple_resource_aspect
 framework_provider_aspect = _framework_provider_aspect

@@ -17,7 +17,6 @@ bzl_library(
         ":framework_import_support",
         ":resources",
         ":rule_attrs",
-        "//apple:providers",
         "//apple:utils",
         "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:collections",
@@ -65,7 +64,6 @@ bzl_library(
         ":framework_import_support",
         ":intermediates",
         ":rule_attrs",
-        "//apple:providers",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:bundle_paths",
@@ -93,7 +91,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        ":providers",
     ],
 )
 
@@ -106,7 +104,6 @@ bzl_library(
     deps = [
         ":bundling_support",
         ":providers",
-        "//apple:providers",
     ],
 )
 
@@ -213,9 +210,8 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
+        ":providers",
         "//apple:utils",
-        "//apple/internal:providers",
         "//apple/internal/utils:files",
         "@bazel_skylib//lib:paths",
         "@build_bazel_rules_swift//swift:providers",
@@ -272,7 +268,6 @@ bzl_library(
         ":stub_support",
         ":swift_support",
         ":transition_support",
-        "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
@@ -325,7 +320,6 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:common",
-        "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
@@ -395,7 +389,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        "//apple/internal:providers",
+        ":providers",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -455,7 +449,6 @@ bzl_library(
     ],
     deps = [
         ":providers",
-        "//apple:providers",
         "//apple/internal/partials/support:resources_support",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
@@ -472,8 +465,8 @@ bzl_library(
     ],
     deps = [
         ":bundling_support",
+        ":providers",
         "//apple:common",
-        "//apple:providers",
         "//apple/internal/aspects:app_intents_aspect",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
@@ -494,10 +487,10 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":providers",
         ":rule_attrs",
         ":rule_support",
         "//apple:common",
-        "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
@@ -606,7 +599,6 @@ bzl_library(
         ":run_support",
         ":swift_support",
         ":transition_support",
-        "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
@@ -672,7 +664,6 @@ bzl_library(
         ":stub_support",
         ":swift_support",
         ":transition_support",
-        "//apple:providers",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
@@ -706,7 +697,6 @@ bzl_library(
         ":rule_support",
         ":swift_support",
         ":transition_support",
-        "//apple:providers",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/toolchains:apple_toolchains",

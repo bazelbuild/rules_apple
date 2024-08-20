@@ -20,7 +20,7 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleTestRunnerInfo",
 )

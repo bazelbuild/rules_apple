@@ -37,11 +37,9 @@ bzl_library(
     name = "resource_aspect",
     srcs = ["resource_aspect.bzl"],
     visibility = [
-        "//apple/internal:__pkg__",
-        "//apple/internal/testing:__pkg__",
+        "//apple:__subpackages__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
         "//apple/internal:resources",

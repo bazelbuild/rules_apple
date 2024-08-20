@@ -19,11 +19,6 @@ load(
     "types",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleTestInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -61,6 +56,8 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "AppleTestInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
 )

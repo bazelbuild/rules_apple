@@ -36,10 +36,6 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkImportInfo",
-)
-load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -54,6 +50,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
     "framework_import_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleFrameworkImportInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",

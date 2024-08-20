@@ -55,7 +55,6 @@ bzl_library(
     name = "apple_static_library",
     srcs = ["apple_static_library.bzl"],
     deps = [
-        ":providers",
         "//apple/internal:linking_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
@@ -69,6 +68,7 @@ bzl_library(
     srcs = ["aspects.bzl"],
     deps = [
         "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
@@ -134,6 +134,7 @@ bzl_library(
     srcs = ["providers.bzl"],
     deps = [
         "//apple/internal:providers",
+        "//apple/internal:resources",
     ],
 )
 

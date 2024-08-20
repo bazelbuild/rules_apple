@@ -27,17 +27,17 @@ load(
     "entitlements_validation_mode",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "AppleResourceBundleInfo",
     "AppleResourceLocalesInfo",
     "AppleSharedCapabilityInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundle_id_suffix_default",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",

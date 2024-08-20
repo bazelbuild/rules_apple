@@ -21,16 +21,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "ApplePlatformInfo",
-    "IosAppClipBundleInfo",
-    "IosExtensionBundleInfo",
-    "IosFrameworkBundleInfo",
-    "IosImessageExtensionBundleInfo",
-    "WatchosApplicationBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -77,6 +67,13 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
+    "ApplePlatformInfo",
+    "IosAppClipBundleInfo",
+    "IosExtensionBundleInfo",
+    "IosFrameworkBundleInfo",
+    "IosImessageExtensionBundleInfo",
+    "WatchosApplicationBundleInfo",
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
     "new_iosapplicationbundleinfo",
