@@ -16,19 +16,19 @@ import UIKit
 
 // Shim to compile with older Xcodes.
 #if !swift(>=4.2)
-extension UIApplication {
-  typealias LaunchOptionsKey = UIApplicationLaunchOptionsKey
-}
+  extension UIApplication {
+    typealias LaunchOptionsKey = UIApplicationLaunchOptionsKey
+  }
 #endif
 
-@UIApplicationMain
+@main
 class AppDelegate: NSObject, UIApplicationDelegate {
 
   var window: UIWindow?
 
   func application(
     _ application: UIApplication,
-    didFinishLaunchingWithOptions: [UIApplication.LaunchOptionsKey : Any]?
+    didFinishLaunchingWithOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     return true
   }
