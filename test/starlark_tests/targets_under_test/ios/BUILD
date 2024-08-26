@@ -2773,10 +2773,7 @@ ios_ui_test(
 ios_ui_test(
     name = "ui_test_invalid_bundle_id",
     bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
+    families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2888,10 +2885,7 @@ ios_unit_test(
 ios_unit_test(
     name = "unit_test_invalid_bundle_id",
     bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
+    families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
