@@ -28,10 +28,6 @@ load(
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -238,7 +234,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         provisioning_profile = ctx.file._provisioning_profile,
-        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        codesignopts = [],
         bundle_post_process_and_sign = False,
     )
 
@@ -326,15 +322,6 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
             ),
-            "_provisioning_profile": attr.label(
-                allow_single_file = True,
-                default = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-            ),
-            "_entitlements": attr.label(
-                allow_single_file = True,
-                default = "//test/starlark_tests/resources:entitlements.plist",
-            ),
-            "codesignopts": attr.string_list(),
         },
         rule_attrs.common_tool_attrs(),
     ),
