@@ -233,7 +233,6 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         features = features,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        provisioning_profile = ctx.file._provisioning_profile,
         codesignopts = [],
         bundle_post_process_and_sign = False,
     )
