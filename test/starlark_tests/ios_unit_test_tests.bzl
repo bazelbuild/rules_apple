@@ -127,6 +127,13 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_test_bundle_families_different_from_test_host_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_different_families",
+        expected_error = "ERROR: The test at //test/starlark_tests/targets_under_test/ios:unit_test_different_families does not support the exact same device families as its test host at //test/starlark_tests/targets_under_test/ios:app. These must match for correctness.",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_multiple_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_multiple_infoplists",

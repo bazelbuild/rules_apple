@@ -2787,6 +2787,21 @@ ios_ui_test(
 )
 
 ios_ui_test(
+    name = "ui_test_different_families",
+    bundle_id = "com.google.exampletest",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
     name = "ui_test_multiple_infoplists",
     families = [
         "iphone",
@@ -2886,6 +2901,21 @@ ios_unit_test(
     name = "unit_test_invalid_bundle_id",
     bundle_id = "com.google.example",
     families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_different_families",
+    bundle_id = "com.google.exampletest",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

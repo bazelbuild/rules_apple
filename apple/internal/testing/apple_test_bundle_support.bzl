@@ -326,10 +326,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         test_bundle_label_no_internal = str(label).rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
         test_bundle_label_name_no_internal = label.name.rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
 
-        # There is no other way to issue a warning, so print is the only way to message.
-        # buildifier: disable=print
-        print("""
-WARNING: The test at {test_label} does not support the exact same device families as its test host \
+        fail("""
+ERROR: The test at {test_label} does not support the exact same device families as its test host \
 at {test_host_label}. These must match for correctness.
 
 {test_label_name} declares "families" of {test_families}
