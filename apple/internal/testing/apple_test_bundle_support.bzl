@@ -330,8 +330,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 ERROR: The test at {test_label} does not support the exact same device families as its test host \
 at {test_host_label}. These must match for correctness.
 
-{test_label_name} declares "families" of {test_families}
-{test_host_label_name} declares "families" of {test_host_families}
+- {test_label_name} declares "families" of {test_families}
+
+- {test_host_label_name} declares "families" of {test_host_families}
+
+Please assign "families" a value of {test_host_families} on the BUILD target {test_label_name} \
+to match the test host {test_host_label_name}.
 """.format(
             test_families = platform_prerequisites.device_families,
             test_host_families = test_host[AppleBundleInfo].device_families,
