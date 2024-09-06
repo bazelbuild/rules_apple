@@ -71,8 +71,8 @@ def ios_imessage_application_test_suite(name):
             "DTXcodeBuild": "*",
             "LSApplicationLaunchProhibited": "true",
             "MinimumOSVersion": common.min_os_ios.baseline,
-            "UIDeviceFamily:0": "1",
-            "UIDeviceFamily:1": "2",
+            "UIDeviceFamily:0": "2",
+            "UIDeviceFamily:1": "1",
         },
         tags = [name],
     )

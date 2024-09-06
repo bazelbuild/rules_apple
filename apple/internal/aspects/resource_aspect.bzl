@@ -111,12 +111,15 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
+    # TODO(b/176548199): Support device_families when rule_descriptor can be accessed from an
+    # aspect, or the list of allowed device families can be determined independently of the
+    # rule_descriptor.
     return platform_support.platform_prerequisites(
         apple_fragment = apple_fragment,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(aspect_ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,
-        device_families = apple_xplat_toolchain_info.build_settings.device_families,
+        device_families = None,
         explicit_minimum_os = cpp_fragment.minimum_os_version(),
         objc_fragment = None,
         uses_swift = uses_swift,

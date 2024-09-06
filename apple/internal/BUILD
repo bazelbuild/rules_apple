@@ -390,7 +390,6 @@ bzl_library(
     ],
     deps = [
         ":providers",
-        "//apple/internal/utils:platform_defaults",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -570,7 +569,6 @@ bzl_library(
     ],
     deps = [
         "//apple/build_settings",
-        "//apple/internal/utils:platform_defaults",
         "@bazel_skylib//lib:dicts",
     ],
 )

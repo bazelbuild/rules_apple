@@ -91,8 +91,8 @@ def ios_imessage_extension_test_suite(name):
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_ios.baseline,
             "NSExtension:NSExtensionPointIdentifier": "com.apple.widget-extension",
-            "UIDeviceFamily:0": "1",
-            "UIDeviceFamily:1": "2",
+            "UIDeviceFamily:0": "2",
+            "UIDeviceFamily:1": "1",
         },
         tags = [name],
     )

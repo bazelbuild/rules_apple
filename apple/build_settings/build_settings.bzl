@@ -62,18 +62,6 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 # List of all registered build settings without command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_settings = {
-    "device_families": struct(
-        doc = """
-Used by the transitions to pass down the required device families for processing resources. For most
-Apple platforms these will correspond to defaults, but for iOS, users will either indicate "iphone",
-"iphone" and "ipad", or (rarely) exclusively "ipad".
-
-This list should remain sorted where possible to foster sharing the results of processed resources,
-as no Apple tool should depend on the ordering of this list.
-""",
-        default = [],
-        type = "string_list",
-    ),
     "enable_wip_features": struct(
         doc = """
 Enables functionality that is still a work in progress, with interfaces and output that can change
