@@ -37,6 +37,10 @@ load(
     "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:platform_defaults.bzl",
+    "platform_defaults",
+)
 
 visibility([
     "//apple/...",
@@ -299,6 +303,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 def _command_line_options(
         *,
         apple_platforms = [],
+        device_families,
         environment_arch = None,
         force_bundle_outputs = False,
         minimum_os_version,
@@ -313,6 +318,7 @@ def _command_line_options(
             first element will be applied to `platforms` as that will be what is resolved by the
             underlying rule. Defaults to an empty list, which will signal to Bazel that platform
             mapping can take place as a fallback measure.
+        device_families: The list of device families that apply to the target being built.
         environment_arch: A valid Apple environment when applicable with its architecture as a
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
@@ -335,6 +341,7 @@ def _command_line_options(
         platform_type = platform_type,
         settings = settings,
     )
+
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple_platform_type": platform_type,
@@ -372,6 +379,10 @@ def _command_line_options(
             platform = "watchos",
             platform_type = platform_type,
         ),
+        "@build_bazel_rules_apple//apple/build_settings:device_families": sorted(
+            device_families,
+            reverse = True,
+        ),
     }
 
 def _xcframework_split_attr_key(*, arch, environment, platform_type):
@@ -406,6 +417,7 @@ def _resolved_environment_arch_for_arch(*, arch, environment):
 
 def _command_line_options_for_xcframework_platform(
         *,
+        device_families,
         minimum_os_version,
         platform_attr,
         platform_type,
@@ -414,6 +426,7 @@ def _command_line_options_for_xcframework_platform(
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
 
     Args:
+        device_families: The list of device families that apply to the target being built.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_attr: The attribute for the apple platform specifying in dictionary form which
@@ -447,6 +460,7 @@ def _command_line_options_for_xcframework_platform(
                     environment = target_environment,
                     platform_type = platform_type,
                 ): _command_line_options(
+                    device_families = device_families,
                     environment_arch = resolved_environment_arch,
                     minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
@@ -462,6 +476,11 @@ def _apple_rule_base_transition_impl(settings, attr):
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     return _command_line_options(
+        device_families = getattr(
+            attr,
+            "families",
+            platform_defaults.device_families(platform_type),
+        ),
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
@@ -507,6 +526,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
     "//command_line_option:watchos_minimum_os",
+    "@build_bazel_rules_apple//apple/build_settings:device_families",
 ]
 _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_outputs + [
     "//command_line_option:ios_multi_cpus",
@@ -532,6 +552,11 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
+        device_families = getattr(
+            attr,
+            "families",
+            platform_defaults.device_families(platform_type),
+        ),
         environment_arch = environment_arch,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
@@ -554,6 +579,11 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
+        device_families = getattr(
+            attr,
+            "families",
+            platform_defaults.device_families(platform_type),
+        ),
         environment_arch = environment_arch,
         force_bundle_outputs = True,
         minimum_os_version = minimum_os_version,
@@ -653,6 +683,9 @@ def _apple_platform_split_transition_impl(settings, attr):
 
     invalid_requested_archs = []
 
+    platform_type = attr.platform_type
+    minimum_os_version = attr.minimum_os_version
+    device_families = getattr(attr, "families", platform_defaults.device_families(platform_type))
     if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         platforms = (
             settings["//command_line_option:apple_platforms"] or
@@ -673,14 +706,13 @@ def _apple_platform_split_transition_impl(settings, attr):
             if str(platform) not in output_dictionary:
                 output_dictionary[str(platform)] = _command_line_options(
                     apple_platforms = apple_platforms,
-                    minimum_os_version = attr.minimum_os_version,
-                    platform_type = attr.platform_type,
+                    device_families = device_families,
+                    minimum_os_version = minimum_os_version,
+                    platform_type = platform_type,
                     settings = settings,
                 )
 
     else:
-        minimum_os_version = attr.minimum_os_version
-        platform_type = attr.platform_type
         for environment_arch in _environment_archs(platform_type, minimum_os_version, settings):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
@@ -721,6 +753,7 @@ def _apple_platform_split_transition_impl(settings, attr):
                 continue
 
             output_dictionary[found_cpu] = _command_line_options(
+                device_families = device_families,
                 environment_arch = environment_arch,
                 minimum_os_version = minimum_os_version,
                 platform_type = platform_type,
@@ -757,10 +790,13 @@ def _xcframework_base_transition_impl(settings, _):
     # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
     # incoming settings meant for other platforms overriding the settings for the xcframework rule's
     # underlying actions, and allow for toolchain resolution in the future.
+    fixed_platform_type = "macos"
+
     return _command_line_options(
+        device_families = platform_defaults.device_families(fixed_platform_type),
         environment_arch = _DEFAULT_ARCH,
         minimum_os_version = None,
-        platform_type = "macos",
+        platform_type = fixed_platform_type,
         settings = settings,
     )
 
@@ -782,6 +818,7 @@ def _xcframework_split_transition_impl(settings, attr):
             target_environments.append("simulator")
 
         command_line_options = _command_line_options_for_xcframework_platform(
+            device_families = platform_defaults.device_families(platform_type),
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             platform_attr = getattr(attr, platform_type),
             platform_type = platform_type,

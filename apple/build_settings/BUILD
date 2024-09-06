@@ -6,6 +6,7 @@ load(
     "bool_flag",
     "bool_setting",
     "string_flag",
+    "string_list_setting",
 )
 load(
     "//apple/build_settings:build_settings.bzl",
@@ -47,6 +48,15 @@ licenses(["notice"])
     )
     for build_flag_name, build_flag_info in build_flags.items()
     if type(build_flag_info.default) == "string"
+]
+
+[
+    string_list_setting(
+        name = build_setting_name,
+        build_setting_default = build_setting_info.default,
+    )
+    for build_setting_name, build_setting_info in build_settings.items()
+    if type(build_setting_info.default) == "list" and build_setting_info.type == "string_list"
 ]
 
 bzl_library(

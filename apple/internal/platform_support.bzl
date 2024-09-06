@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleplatforminfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:platform_defaults.bzl",
+    "platform_defaults",
+)
 
 visibility([
     "//apple/...",
@@ -149,12 +153,17 @@ def _platform_prerequisites(
     platform_type_attr = getattr(apple_common.platform_type, apple_platform_info.target_os)
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
+    if device_families:
+        device_families = sorted(device_families, reverse = True)
+    else:
+        device_families = platform_defaults.device_families(str(platform_type_attr))
+
     return struct(
         apple_fragment = apple_fragment,
         build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
-        device_families = sorted(device_families) if device_families else None,
+        device_families = device_families,
         minimum_os = explicit_minimum_os,
         platform = platform,
         platform_type = platform_type_attr,
