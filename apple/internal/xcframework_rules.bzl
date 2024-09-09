@@ -561,6 +561,7 @@ def _apple_xcframework_impl(ctx):
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+            environment = link_output.environment,
         )
 
         overridden_predeclared_outputs = struct(
@@ -1040,6 +1041,7 @@ def _apple_static_xcframework_impl(ctx):
             platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+            environment = link_output.environment,
         )
         resource_deps = _unioned_attrs(
             attr_names = ["deps"],

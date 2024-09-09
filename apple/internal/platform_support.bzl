@@ -72,7 +72,8 @@ def _platform_prerequisites(
         objc_fragment,
         platform_type_string,
         uses_swift,
-        xcode_version_config):
+        xcode_version_config, 
+        environment = None):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
@@ -93,7 +94,14 @@ def _platform_prerequisites(
       A struct representing the collected platform information.
     """
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
-    platform = apple_fragment.multi_arch_platform(platform_type_attr)
+    
+    if platform_type_attr == apple_common.platform_type.ios and environment:
+        if environment == "simulator":
+            platform = apple_common.platform.ios_simulator
+        elif environment == "device":
+            platform = apple_common.platform.ios_device
+    else:
+        platform = apple_fragment.multi_arch_platform(platform_type_attr)
 
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
