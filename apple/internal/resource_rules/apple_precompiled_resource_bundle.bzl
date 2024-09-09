@@ -62,7 +62,7 @@ load(
 
 def _apple_precompiled_resource_bundle_impl(ctx):
     # Owner to attach to the resources as they're being bucketed.
-    owner = None
+    owner = str(ctx.label)
     bucketize_args = {}
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -75,10 +75,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
 
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-
-    predeclared_outputs = ctx.outputs
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -96,7 +93,6 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     )
 
     bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
-    bundle_extension = ".bundle"
     bundle_id = ctx.attr.bundle_id or None
 
     apple_resource_infos = []
@@ -189,68 +185,15 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             ),
         )
 
-    top_level_resources = resources.collect(
-        attr = ctx.attr,
-        res_attrs = [
-            "resources",
-        ],
-    )
-
-    label = ctx.label
-    actions = ctx.actions
-
-    processor_partials = [
-        partials.resources_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            environment_plist = ctx.file._environment_plist,
-            executable_name = None,
-            launch_storyboard = None,
-            platform_prerequisites = platform_prerequisites,
-            resource_deps = getattr(ctx.attr, "deps", []) + ctx.attr.resources + ctx.attr.structured_resources,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            top_level_infoplists = infoplists,
-            top_level_resources = top_level_resources,
-            version = [],
-            version_keys_required = False,
-        ),
-    ]
-
-    processor_result = processor.process(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_name = bundle_name,
-        partials = processor_partials,
-        platform_prerequisites = platform_prerequisites,
-        rule_descriptor = rule_descriptor,
-        rule_label = label,
-        bundle_extension = bundle_extension,
-        features = features,
-        predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        codesignopts = [],
-        bundle_post_process_and_sign = False,
-    )
-
     providers = []
     if apple_resource_infos:
         # If any providers were collected, merge them.
         providers.append(
             resources.merge_providers(
                 default_owner = owner,
-                providers = apple_resource_infos + processor_result.providers,
+                providers = apple_resource_infos,
             ),
         )
-    providers.append(
-        DefaultInfo(
-            files = processor_result.output_files,
-        ),
-    )
 
     return providers
 

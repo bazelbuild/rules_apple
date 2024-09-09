@@ -770,6 +770,12 @@ app_icons was assigned the following: [
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_bundle_id",
         contains = [
             "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/en.lproj/greetings.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
         ],
         plist_test_file = "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
         plist_test_values = {
