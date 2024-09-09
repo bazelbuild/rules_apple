@@ -201,6 +201,17 @@ def _apple_resource_aspect_impl(target, ctx):
         process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
 
+    elif ctx.rule.kind == "apple_precompiled_resource_bundle":
+        # If the target already propagates a AppleResourceInfo, do nothing.
+        if AppleResourceInfo in target:
+            return []
+        default_action = apple_resource_hint_action.resources
+        collect_infoplists_args["res_attrs"] = ["infoplists"]
+        collect_args["res_attrs"] = ["resources"]
+        collect_structured_args["res_attrs"] = ["structured_resources"]
+        process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
+        bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
+
     if hint_action:
         default_action = hint_action
 
