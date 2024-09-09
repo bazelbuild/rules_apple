@@ -32,16 +32,8 @@ load(
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
