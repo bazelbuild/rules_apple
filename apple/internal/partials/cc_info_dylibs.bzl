@@ -32,7 +32,7 @@ def _cc_info_dylibs_partial_impl(
         cc_info = target[CcInfo]
         for linker_input in cc_info.linking_context.linker_inputs.to_list():
             for library in linker_input.libraries:
-                if library.dynamic_library:
+                if library.dynamic_library and library.dynamic_library.extension == "dylib":
                     bundle_files.append(
                         (processor.location.framework, None, depset([library.dynamic_library])),
                     )
