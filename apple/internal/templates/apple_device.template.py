@@ -39,17 +39,11 @@ import os.path
 import pathlib
 import platform
 import plistlib
-import shutil
 import subprocess
 import sys
 import tempfile
-import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 import zipfile
-
-
-# Custom type for methods yielding an Apple simulator UDID.
-AppleSimulatorUDID = collections.abc.Generator[str, None, None]
 
 
 logging.basicConfig(
@@ -81,31 +75,31 @@ class Device(collections.abc.Mapping):
     self.list_index = list_index
 
   @property
-  def device_properties(self):
+  def device_properties(self) -> Dict[str, Any]:
     return self["deviceProperties"]
 
   @property
-  def hardware_properties(self):
+  def hardware_properties(self) -> Dict[str, Any]:
     return self["hardwareProperties"]
 
   @property
-  def name(self):
+  def name(self) -> str:
     return self.device_properties["name"]
 
   @property
-  def identifier(self):
+  def identifier(self) -> str:
     return self["identifier"]
 
   @property
-  def udid(self):
+  def udid(self) -> str:
     return self.hardware_properties["udid"]
 
   @property
-  def device_type(self):
+  def device_type(self) -> str:
     return self.hardware_properties["deviceType"]
 
   @property
-  def os_version_number(self):
+  def os_version_number(self) -> str:
     return self.device_properties["osVersionNumber"]
 
   @property
@@ -285,7 +279,7 @@ def register_dsyms(dsyms_dir: str):
 @contextlib.contextmanager
 def extracted_app(
     application_output_path: str, app_name: str
-) -> AppleSimulatorUDID:
+) -> collections.abc.Generator[str, None, None]:
   """Extracts Foo.app from *_application() output and makes it writable.
 
   Args:
@@ -467,9 +461,8 @@ def main(
       )
     else:
       logger.info(
-        "Found device %s with UUID %s and identifier %s",
+        "Found device %s with identifier %s",
         device.name,
-        device.udid,
         device.identifier,
       )
     device_identifier = device.identifier
