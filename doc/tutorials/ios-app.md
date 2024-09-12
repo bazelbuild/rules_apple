@@ -391,8 +391,18 @@ rules.
 
 ### Install the app on a device
 
-The easiest way to install the app on the device is to launch Xcode and use the
-`Windows > Devices` command. Select your plugged-in device from the list on the
+You can install the app on a physical device using the bazel run command, just as you would for a simulator:
+
+```bash
+bazel run //:iOSApp --ios_multi_cpus=arm64
+```
+
+The runner will find any available physical device with an OS version higher than `minimum_os_version`.
+If you want to specify a particular device, you can specify it like this `--@build_bazel_rules_apple//apple/build_settings:ios_device=<uuid|ecid|serial_number|udid|name|dns_name>`.
+To see a list of available devices, use `xcrun devicectl list devices`.
+
+Another way to install the app on the device is to launch Xcode and use the
+`Window > Devices and Simulators` command. Select your plugged-in device from the list on the
 left, then add the app by clicking the **Add** (plus sign) button under
 "Installed Apps" and selecting the `.ipa` file that you built.
 
