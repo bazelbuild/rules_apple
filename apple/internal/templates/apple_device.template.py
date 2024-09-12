@@ -390,7 +390,7 @@ def run_app(
   root_dir = os.path.dirname(application_output_path)
   register_dsyms(root_dir)
   with extracted_app(application_output_path, app_name) as app_path:
-    logger.debug("Installing app %s to device %s", app_path, device_identifier)
+    logger.info("Installing app %s to device %s", app_path, device_identifier)
     subprocess.run(
         [
           devicectl_path,
@@ -449,6 +449,11 @@ def main(
   devicectl_path = os.path.join(developer_path, "usr", "bin", "devicectl")
 
   if not device_identifier:
+    logger.info(
+        f"Searching for a compatible device for platform type %s with minimum OS %s",
+        platform_type,
+        minimum_os,
+    )
     device = discover_best_compatible_device(
       platform_type=platform_type,
       devicectl_path=devicectl_path,
@@ -456,10 +461,20 @@ def main(
     )
     if not device:
       raise Exception(
-          f"No compatible device found for platform type {platform_type}"
-          f"with minimum OS {minimum_os}."
+          f"No compatible device found for platform type % with minimum OS %s",
+          platform_type,
+          minimum_os,
+      )
+    else:
+      logger.info(
+        "Found device %s with UUID %s and identifier %s",
+        device.name,
+        device.udid,
+        device.identifier,
       )
     device_identifier = device.identifier
+  else:
+    logger.info("Using device %s", device_identifier)
 
   run_app(
       device_identifier=device_identifier,
