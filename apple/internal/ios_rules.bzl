@@ -479,7 +479,7 @@ def _ios_application_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._device_runner_template,
-            device = ctx.fragments.objc.ios_simulator_device,
+            device = apple_xplat_toolchain_info.build_settings.ios_device,
         )
     else:
         run_support.register_simulator_executable(
@@ -797,7 +797,7 @@ def _ios_app_clip_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._device_runner_template,
-            device = ctx.fragments.objc.ios_simulator_device,
+            device = apple_xplat_toolchain_info.build_settings.ios_device,
         )
     else:
         run_support.register_simulator_executable(
