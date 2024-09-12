@@ -43,6 +43,7 @@ _BUNDLE_ATTRS = {
 _SHARED_TEST_BUNDLE_ATTRS = {
     x: None
     for x in [
+        "features",
         "minimum_os_version",
         "tags",
         "test_host",
