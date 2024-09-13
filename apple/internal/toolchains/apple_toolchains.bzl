@@ -149,7 +149,7 @@ post-processing, and signing steps into a single action that eliminates the arch
 """,
         ),
         "clangrttool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to find all Clang runtime libs linked to a binary.",
         ),

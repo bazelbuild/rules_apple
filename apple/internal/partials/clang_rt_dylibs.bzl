@@ -58,15 +58,15 @@ def _clang_rt_dylibs_partial_impl(
             file_name = "clang_rt.zip",
         )
 
-        clangrttool = apple_mac_toolchain_info.clangrttool
+        args = actions.args()
+        args.add("--binary-path", binary_artifact.path)
+        args.add("--output-zip-path", clang_rt_zip.path)
+
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            arguments = [
-                binary_artifact.path,
-                clang_rt_zip.path,
-            ],
-            executable = clangrttool,
+            arguments = [args],
+            executable = apple_mac_toolchain_info.clangrttool,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
             exec_group = mac_exec_group,
