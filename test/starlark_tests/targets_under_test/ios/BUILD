@@ -1132,6 +1132,21 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_transitive_precompiled_resource_bundle_with_bundle_id",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_transitive_precompiled_resource_bundles",
+    ],
+)
+
+ios_application(
     name = "app_with_resource_group_with_resource_bundle",
     bundle_id = "com.google.example",
     families = ["iphone"],

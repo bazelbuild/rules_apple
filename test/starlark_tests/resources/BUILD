@@ -172,6 +172,17 @@ objc_library(
     ],
 )
 
+objc_library(
+    name = "objc_shared_lib_with_precompiled_resource_bundles",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:simple_precompiled_bundle_library",
+    ],
+)
+
 # --------------------------------------------------------------------------------
 # Objective-C main.m libraries
 
@@ -204,6 +215,15 @@ objc_library(
     tags = common.fixture_tags,
     deps = [
         ":objc_shared_lib_with_resource_bundles",
+    ],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_precompiled_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_precompiled_resource_bundles",
     ],
 )
 

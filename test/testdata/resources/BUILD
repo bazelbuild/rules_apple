@@ -1,6 +1,7 @@
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
+    "apple_precompiled_resource_bundle",
     "apple_resource_bundle",
 )
 
@@ -222,6 +223,29 @@ apple_resource_bundle(
 apple_resource_bundle(
     name = "simple_bundle_library",
     bundle_name = "simple_bundle_library",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+)
+
+apple_precompiled_resource_bundle(
+    name = "simple_precompiled_bundle_library",
+    bundle_name = "simple_precompiled_bundle_library",
     infoplists = [
         "Info-template.plist",
     ],
