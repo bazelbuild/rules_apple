@@ -246,26 +246,26 @@ EOF
 
 function test_standalone_unit_test_coverage() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:standalone_test || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
 
 function test_standalone_unit_test_coverage_new_runner() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:standalone_test_new_runner || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:standalone_test_new_runner || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/standalone_test/coverage.dat"
 }
 
 function test_standalone_unit_test_coverage_json() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --test_env=COVERAGE_PRODUCE_JSON=1 //app:standalone_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs --test_env=COVERAGE_PRODUCE_JSON=1 //app:standalone_test || fail "Should build"
   unzip_single_file "test-testlogs/app/standalone_test/test.outputs/outputs.zip" coverage.json \
       grep -q '"name":"SharedLogic.m:-\[SharedLogic doSomething\]"'
 }
 
 function test_standalone_unit_test_coverage_coverage_manifest() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:coverage_manifest_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:coverage_manifest_test || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test/coverage.dat"
   assert_contains "SF:app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test/coverage.dat"
   cat "test-testlogs/app/coverage_manifest_test/coverage.dat"
@@ -274,7 +274,7 @@ function test_standalone_unit_test_coverage_coverage_manifest() {
 
 function test_standalone_unit_test_coverage_coverage_manifest_new_runner() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:coverage_manifest_test_new_runner || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:coverage_manifest_test_new_runner || fail "Should build"
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   assert_contains "SF:app/SharedLogic.m" "test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat"
   cat test-testlogs/app/coverage_manifest_test_new_runner/coverage.dat
@@ -283,7 +283,7 @@ function test_standalone_unit_test_coverage_coverage_manifest_new_runner() {
 
 function test_hosted_unit_test_coverage() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap //app:hosted_test || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=9.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:hosted_test || fail "Should build"
 
   # Validate normal coverage is included
   assert_contains "SharedLogic.m:-\[SharedLogic doSomething\]" "test-testlogs/app/hosted_test/coverage.dat"
@@ -306,7 +306,7 @@ function test_hosted_unit_test_coverage() {
 
 function test_ui_test_coverage_new_runner() {
   create_common_files
-  do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap //app:test_coverage_ui_test_new_runner || fail "Should build"
+  do_coverage ios --test_output=errors --ios_minimum_os=15.0 --experimental_use_llvm_covmap --zip_undeclared_test_outputs //app:test_coverage_ui_test_new_runner || fail "Should build"
   assert_contains "DA:5,1" "test-testlogs/app/test_coverage_ui_test_new_runner/coverage.dat"
 }
 

@@ -1314,8 +1314,8 @@ macos_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedDynamicFrameworkWithDebugInfo",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFrameworkWithDebugInfo",
     ],
 )
 
@@ -2026,8 +2026,8 @@ macos_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedDynamicFrameworkWithBitcode",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFrameworkWithBitcode",
     ],
 )
 
@@ -2041,9 +2041,9 @@ macos_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        ":macOSImportedDynamicFrameworkWithDebugInfo",
+        ":macOSImportedDynamicFrameworkWithDsym",
         "//test/starlark_tests/resources:objc_main_lib",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFrameworkWithDebugInfo",
-        "//test/starlark_tests/targets_under_test/apple:macOSImportedDynamicFrameworkWithDsym",
     ],
 )
 

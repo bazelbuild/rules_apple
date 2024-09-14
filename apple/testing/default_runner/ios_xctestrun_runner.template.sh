@@ -284,12 +284,25 @@ if [[ -e "$main_thread_checker" ]]; then
     main_thread_checker_dyld_env="$main_thread_checker"
 fi
 
-xctestrun_libraries="__PLATFORMS__/$test_execution_platform/Developer/usr/lib/libXCTestBundleInject.dylib"
-if [[ -n "$sanitizer_dyld_env" ]]; then
-  xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
+xctestrun_libraries=""
+if [[ "$test_type" != "XCUITEST" ]]; then
+  xctestrun_libraries="__PLATFORMS__/$test_execution_platform/Developer/usr/lib/libXCTestBundleInject.dylib"
 fi
+
+if [[ -n "$sanitizer_dyld_env" ]]; then
+  if [[ -n "$xctestrun_libraries" ]]; then
+    xctestrun_libraries="${xctestrun_libraries}:${sanitizer_dyld_env}"
+  else
+    xctestrun_libraries="${sanitizer_dyld_env}"
+  fi
+fi
+
 if [[ -n "$main_thread_checker_dyld_env" ]]; then
-  xctestrun_libraries="${xctestrun_libraries}:${main_thread_checker_dyld_env}"
+  if [[ -n "$xctestrun_libraries" ]]; then
+    xctestrun_libraries="${xctestrun_libraries}:${main_thread_checker_dyld_env}"
+  else
+    xctestrun_libraries="${main_thread_checker_dyld_env}"
+  fi
 fi
 
 TEST_FILTER="%(test_filter)s"

@@ -202,6 +202,10 @@ def _classify_file_imports(config_vars, import_files):
         if framework_relative_path.startswith("Headers/"):
             header_imports.append(file)
             continue
+        if framework_relative_path.startswith("Modules/") and framework_relative_path.endswith(".abi.json"):
+            # Ignore abi.json files, as they don't matter in the build, and are most commonly used to detect source-breaking API changes during the evolution of a Swift library.
+            # See: https://github.com/swiftlang/swift/blob/main/lib/DriverTool/swift_api_digester_main.cpp
+            continue
 
         # Unknown file type, sending to unknown (i.e. resources, Info.plist, etc.)
         bundling_imports.append(file)
