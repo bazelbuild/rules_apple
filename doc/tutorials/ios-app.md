@@ -391,7 +391,7 @@ rules.
 
 ### Install the app on a device
 
-You can install the app on a physical device using the bazel run command, just as you would for a simulator:
+You can install the app on a physical device using a bazel run command when targeting a specific device architecture:
 
 ```bash
 bazel run //:iOSApp --ios_multi_cpus=arm64
