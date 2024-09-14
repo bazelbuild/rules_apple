@@ -7,6 +7,8 @@ load(
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
+    "apple_static_xcframework",
+    "apple_xcframework",
 )
 load(
     "//apple:macos.bzl",
@@ -2962,4 +2964,44 @@ macos_application(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:ccinfo_dylibs_libapp"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for macOS xcframework tests.
+
+apple_xcframework(
+    name = "macos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    macos = [
+        "arm64",
+        "x86_64",
+    ],
+    minimum_os_versions = {
+        "macos": common.min_os_macos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "macos_static_xcframework",
+    macos = [
+        "arm64",
+        "x86_64",
+    ],
+    minimum_os_versions = {
+        "macos": common.min_os_macos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
 )
