@@ -173,13 +173,12 @@ class Device(collections.abc.Mapping):
       return self.is_apple_vision
     else:
       raise ValueError(
-          f"Apple platform type not supported for simulator: {platform_type}."
+          f"Apple platform type not supported for running on device: {platform_type}."
       )
 
 
 def os_version_number_to_int(version: str) -> int:
   """Converts a OS version number string to an integer.
-å
   Args:
     minimum_os: A string in the form '12.2' or '13.2.3'.
 
@@ -201,7 +200,9 @@ def discover_best_compatible_device(
     devicectl_path: str,
     minimum_os: str,
 ) -> Optional[Device]:
-  """Discovers the best compatible device.
+  """Discovers the most suitable compatible device by prioritizing booted devices
+  over shutdown ones, paired devices over unpaired ones, and iPhones over iPads
+  and also maintains the original order from devicectl list devices.
 
   Args:
     platform_type: The Apple platform type for the given *_application() target.
@@ -373,7 +374,7 @@ def run_app(
     application_output_path: str,
     app_name: str,
 ) -> None:
-  """Installs and runs an app in the specified simulator.
+  """Installs and runs an app on the specified device.
 
   Args:
     device_identifier: The identifier of the device.
@@ -431,7 +432,7 @@ def main(
     application_output_path: Path to the output of an *_application().
     minimum_os: The minimum OS version required by the *_application() target.
     platform_type: The Apple platform type for the given *_application() target.
-    device: The identifier of the device ( <uuid|ecid|serial_number|udid|name|dns_name> ).
+    device: The identifier of the device (<uuid|ecid|serial_number|udid|name|dns_name>).
   """
   xcode_select_result = subprocess.run(
       ["xcode-select", "-p"],

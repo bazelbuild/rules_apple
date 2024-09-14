@@ -729,7 +729,7 @@ def _simulator_runner_template_attr():
     }
 
 def _device_runner_template_attr():
-    """Returns the attribute required to `bazel run` a *_application target with on a physical device."""
+    """Returns the attribute required to `bazel run` a *_application target on a physical device."""
     return {
         "_device_runner_template": attr.label(
             cfg = "exec",

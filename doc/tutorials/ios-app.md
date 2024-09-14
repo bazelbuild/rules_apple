@@ -398,7 +398,8 @@ bazel run //:iOSApp --ios_multi_cpus=arm64
 ```
 
 The runner will find any available physical device with an OS version higher than `minimum_os_version`.
-If you want to specify a particular device, you can specify it like this `--@build_bazel_rules_apple//apple/build_settings:ios_device=<uuid|ecid|serial_number|udid|name|dns_name>`.
+To specify a particular device, use this flag: `--@build_bazel_rules_apple//apple/build_settings:ios_device=<uuid|ecid|serial_number|udid|name|dns_name>`.
+Alternatively, add this flag alias to your `.bazelrc` file: `common --flag_alias=ios_device=@rules_apple//apple/build_settings:ios_device`. Then you can use it like this: `bazel run //:iOSApp --ios_device=<uuid|ecid|serial_number|udid|name|dns_namee>`.
 To see a list of available devices, use `xcrun devicectl list devices`.
 
 Another way to install the app on the device is to launch Xcode and use the

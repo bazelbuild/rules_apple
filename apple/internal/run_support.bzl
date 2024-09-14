@@ -158,7 +158,7 @@ def _register_macos_executable(
 
 # Define the loadable module that lists the exported symbols in this file.
 run_support = struct(
-    register_simulator_executable = _register_simulator_executable,
     register_device_executable = _register_device_executable,
     register_macos_executable = _register_macos_executable,
+    register_simulator_executable = _register_simulator_executable,
 )
