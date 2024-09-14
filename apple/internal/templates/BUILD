@@ -19,6 +19,15 @@ filegroup(
 )
 
 filegroup(
+    name = "apple_device_template",
+    srcs = ["apple_device.template.py"],
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "macos_template",
     srcs = ["macos.template.sh"],
     # Used by the rule implementations, so it needs to be public; but

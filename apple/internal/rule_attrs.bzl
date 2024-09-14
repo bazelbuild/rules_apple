@@ -719,11 +719,23 @@ bundle in a directory named `Settings.bundle`.
 def _simulator_runner_template_attr():
     """Returns the attribute required to `bazel run` a *_application target with an Apple sim."""
     return {
-        "_runner_template": attr.label(
+        "_simulator_runner_template": attr.label(
             cfg = "exec",
             allow_single_file = True,
             default = Label(
                 "@build_bazel_rules_apple//apple/internal/templates:apple_simulator_template",
+            ),
+        ),
+    }
+
+def _device_runner_template_attr():
+    """Returns the attribute required to `bazel run` a *_application target on a physical device."""
+    return {
+        "_device_runner_template": attr.label(
+            cfg = "exec",
+            allow_single_file = True,
+            default = Label(
+                "@build_bazel_rules_apple//apple/internal/templates:apple_device_template",
             ),
         ),
     }
@@ -757,6 +769,7 @@ rule_attrs = struct(
     common_tool_attrs = _common_tool_attrs,
     custom_transition_allowlist_attr = _custom_transition_allowlist_attr,
     device_family_attrs = _device_family_attrs,
+    device_runner_template_attr = _device_runner_template_attr,
     extensionkit_attrs = _extensionkit_attrs,
     infoplist_attrs = _infoplist_attrs,
     ipa_post_processor_attrs = _ipa_post_processor_attrs,

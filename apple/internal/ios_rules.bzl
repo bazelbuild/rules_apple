@@ -468,20 +468,33 @@ def _ios_application_impl(ctx):
         label_name = label.name,
     )
 
-    # TODO(b/254511920): Consider creating a custom build config for iOS simulator device/version.
-    run_support.register_simulator_executable(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label.name,
-        output = executable,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        rule_descriptor = rule_descriptor,
-        runner_template = ctx.file._runner_template,
-        simulator_device = ctx.fragments.objc.ios_simulator_device,
-        simulator_version = ctx.fragments.objc.ios_simulator_version,
-    )
+    if platform_prerequisites.platform.is_device:
+        run_support.register_device_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._device_runner_template,
+            device = apple_xplat_toolchain_info.build_settings.ios_device,
+        )
+    else:
+        run_support.register_simulator_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._simulator_runner_template,
+            simulator_device = ctx.fragments.objc.ios_simulator_device,
+            simulator_version = ctx.fragments.objc.ios_simulator_version,
+        )
 
     archive = outputs.archive(
         actions = actions,
@@ -773,20 +786,33 @@ def _ios_app_clip_impl(ctx):
         label_name = label.name,
     )
 
-    # TODO(b/254511920): Consider creating a custom build config for iOS simulator device/version.
-    run_support.register_simulator_executable(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label.name,
-        output = executable,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        rule_descriptor = rule_descriptor,
-        runner_template = ctx.file._runner_template,
-        simulator_device = ctx.fragments.objc.ios_simulator_device,
-        simulator_version = ctx.fragments.objc.ios_simulator_version,
-    )
+    if platform_prerequisites.platform.is_device:
+        run_support.register_device_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._device_runner_template,
+            device = apple_xplat_toolchain_info.build_settings.ios_device,
+        )
+    else:
+        run_support.register_simulator_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._simulator_runner_template,
+            simulator_device = ctx.fragments.objc.ios_simulator_device,
+            simulator_version = ctx.fragments.objc.ios_simulator_version,
+        )
 
     archive = outputs.archive(
         actions = actions,
@@ -2544,6 +2570,7 @@ ios_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
+        rule_attrs.device_runner_template_attr(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.launch_images_attrs(),
@@ -2656,6 +2683,7 @@ ios_app_clip = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.ios,
             is_mandatory = True,
         ),
+        rule_attrs.device_runner_template_attr(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.locales_to_include_attrs(),
