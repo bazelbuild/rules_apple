@@ -100,24 +100,30 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         attr = ctx.attr,
         res_attrs = ["infoplists"],
     )
-    if infoplists:
-        bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
-            bucket_type = "infoplists",
-            owner = owner,
-            parent_dir_param = bundle_name,
-            resources = infoplists,
-            **bucketize_args
+
+    if not infoplists:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["_fallback_infoplist"],
         )
-        apple_resource_infos.append(
-            resources.process_bucketized_data(
-                bucketized_owners = bucketized_owners,
-                buckets = buckets,
-                platform_prerequisites = platform_prerequisites,
-                processing_owner = owner,
-                unowned_resources = unowned_resources,
-                **process_args
-            ),
-        )
+
+    bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+        bucket_type = "infoplists",
+        owner = owner,
+        parent_dir_param = bundle_name,
+        resources = infoplists,
+        **bucketize_args
+    )
+    apple_resource_infos.append(
+        resources.process_bucketized_data(
+            bucketized_owners = bucketized_owners,
+            buckets = buckets,
+            platform_prerequisites = platform_prerequisites,
+            processing_owner = owner,
+            unowned_resources = unowned_resources,
+            **process_args
+        ),
+    )
 
     resource_files = resources.collect(
         attr = ctx.attr,
@@ -255,6 +261,10 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
             "_environment_plist": attr.label(
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+            ),
+            "_fallback_infoplist": attr.label(
+                allow_single_file = True,
+                default = "@build_bazel_rules_apple//apple/internal/resource_rules:Info.plist",
             ),
         },
         rule_attrs.common_tool_attrs(),

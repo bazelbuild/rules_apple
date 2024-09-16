@@ -785,6 +785,27 @@ app_icons was assigned the following: [
     )
 
     archive_contents_test(
+        name = "{}_with_precompiled_resource_bundle_with_bundle_id_no_infoplist".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_bundle_id_no_infoplist",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/Info.plist",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/en.lproj/greetings.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.rules_apple.precompiled_resource_bundle",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_with_transitive_precompiled_resource_bundle_with_bundle_id".format(name),
         build_type = "device",
         compilation_mode = "opt",

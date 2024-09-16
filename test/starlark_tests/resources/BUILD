@@ -435,6 +435,16 @@ apple_precompiled_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_bundle_id_no_infoplist",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "localization",
     resources = [
