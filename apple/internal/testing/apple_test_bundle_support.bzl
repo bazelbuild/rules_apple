@@ -264,6 +264,49 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
+def _validate_test_host_shared_attributes(*, label, platform_prerequisites, test_host):
+    """Validates attributes between the test host and test bundle that should be the same."""
+    if not test_host:
+        return
+
+    test_attribute_mismatch_message = """The test at {test_label} does not support the exact same \
+{rule_attribute_name} as its test host at {test_host_label}. These must match for correctness.
+
+- {test_label_name} declares "{rule_attribute_name}" of {test_rule_attribute}
+
+- {test_host_label_name} declares "{rule_attribute_name}" of {test_host_rule_attribute}
+
+Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on the BUILD target \
+{test_label_name} to match the test host {test_host_label_name}.
+"""
+
+    test_host_bundle_info = test_host[AppleBundleInfo]
+    test_bundle_label_no_internal = str(label).rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+    test_bundle_label_name_no_internal = label.name.rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+
+    if platform_prerequisites.device_families != test_host_bundle_info.device_families:
+        fail("\nERROR: " + test_attribute_mismatch_message.format(
+            rule_attribute_name = "families",
+            test_rule_attribute = platform_prerequisites.device_families,
+            test_host_rule_attribute = test_host_bundle_info.device_families,
+            test_label = test_bundle_label_no_internal,
+            test_label_name = test_bundle_label_name_no_internal,
+            test_host_label = str(test_host.label),
+            test_host_label_name = test_host.label.name,
+        ))
+    if platform_prerequisites.minimum_os != test_host_bundle_info.minimum_os_version:
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("\nWARNING: " + test_attribute_mismatch_message.format(
+            rule_attribute_name = "minimum_os_version",
+            test_rule_attribute = platform_prerequisites.minimum_os,
+            test_host_rule_attribute = test_host_bundle_info.minimum_os_version,
+            test_label = test_bundle_label_no_internal,
+            test_label_name = test_bundle_label_name_no_internal,
+            test_host_label = str(test_host.label),
+            test_host_label_name = test_host.label.name,
+        ))
+
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
     test_host = ctx.attr.test_host
@@ -320,30 +363,11 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    if test_host and (
-        platform_prerequisites.device_families != test_host[AppleBundleInfo].device_families
-    ):
-        test_bundle_label_no_internal = str(label).rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
-        test_bundle_label_name_no_internal = label.name.rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
-
-        fail("""
-ERROR: The test at {test_label} does not support the exact same device families as its test host \
-at {test_host_label}. These must match for correctness.
-
-- {test_label_name} declares "families" of {test_families}
-
-- {test_host_label_name} declares "families" of {test_host_families}
-
-Please assign "families" a value of {test_host_families} on the BUILD target {test_label_name} \
-to match the test host {test_host_label_name}.
-""".format(
-            test_families = platform_prerequisites.device_families,
-            test_host_families = test_host[AppleBundleInfo].device_families,
-            test_label = test_bundle_label_no_internal,
-            test_label_name = test_bundle_label_name_no_internal,
-            test_host_label = str(test_host.label),
-            test_host_label_name = test_host.label.name,
-        ))
+    _validate_test_host_shared_attributes(
+        label = label,
+        platform_prerequisites = platform_prerequisites,
+        test_host = test_host,
+    )
 
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile

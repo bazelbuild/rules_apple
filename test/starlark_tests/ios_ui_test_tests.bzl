@@ -124,7 +124,7 @@ def ios_ui_test_test_suite(name):
     analysis_failure_message_test(
         name = "{}_test_bundle_families_different_from_test_host_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_different_families",
-        expected_error = "ERROR: The test at //test/starlark_tests/targets_under_test/ios:ui_test_different_families does not support the exact same device families as its test host at //test/starlark_tests/targets_under_test/ios:app. These must match for correctness.",
+        expected_error = "ERROR: The test at //test/starlark_tests/targets_under_test/ios:ui_test_different_families does not support the exact same families as its test host at //test/starlark_tests/targets_under_test/ios:app. These must match for correctness.",
         tags = [name],
     )
 

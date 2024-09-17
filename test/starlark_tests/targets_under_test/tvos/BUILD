@@ -1054,7 +1054,7 @@ tvos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_tvos.arm_sim_support,
+    minimum_os_version = common.min_os_tvos.baseline,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",

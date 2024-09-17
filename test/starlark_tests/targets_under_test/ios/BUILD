@@ -2957,7 +2957,6 @@ ios_unit_test(
     minimum_os_version = common.min_os_ios.arm_sim_support,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
-    test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
@@ -3067,7 +3066,7 @@ ios_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.arm_sim_support,
+    minimum_os_version = common.min_os_ios.baseline,
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
