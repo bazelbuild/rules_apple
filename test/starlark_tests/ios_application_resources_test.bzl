@@ -40,10 +40,11 @@ def ios_application_resources_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # Tests that various nonlocalized resource types are bundled correctly with
-    # the application (at the top-level, rather than inside an .lproj directory).
+    # Tests that various nonlocalized resource types are bundled correctly with the application (at
+    # the top-level, rather than inside an .lproj directory)and that they're built when the app
+    # specifies that it's to be built exclusively for iPhone.
     archive_contents_test(
-        name = "{}_non_localized_processed_resources_test".format(name),
+        name = "{}_non_localized_processed_resources_iphone_test".format(name),
         build_type = "device",
         compilation_mode = "opt",
         contains = [
@@ -61,6 +62,31 @@ def ios_application_resources_test_suite(name):
             "$BUNDLE_ROOT/nonlocalized.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    # Tests that various nonlocalized resource types are bundled correctly with the application
+    # (at the top-level, rather than inside an .lproj directory) and that they're built when the app
+    # specifies that it's to be built exclusively for iPad.
+    archive_contents_test(
+        name = "{}_non_localized_processed_resources_ipad_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        contains = [
+            "$BUNDLE_ROOT/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/mapping_model.cdm",
+            "$BUNDLE_ROOT/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/sample.png",
+            "$BUNDLE_ROOT/view_ios.nib",
+        ],
+        is_binary_plist = [
+            "$BUNDLE_ROOT/nonlocalized.strings",
+            "$BUNDLE_ROOT/nonlocalized.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipad_only_app",
         tags = [name],
     )
 

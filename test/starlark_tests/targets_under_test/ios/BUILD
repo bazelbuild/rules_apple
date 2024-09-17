@@ -153,6 +153,40 @@ ios_application(
 )
 
 ios_application(
+    name = "ipad_only_app",
+    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["ipad"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    launch_storyboard = "//test/starlark_tests/resources:launch_screen_ios.storyboard",
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    settings_bundle = "//test/starlark_tests/resources:settings_bundle_ios",
+    tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:basic_bundle_lib",
+        "//test/starlark_tests/resources:bundle_library_ios_lib",
+        "//test/starlark_tests/resources:empty_strings_file_lib",
+        "//test/starlark_tests/resources:ios_localized_assets_lib",
+        "//test/starlark_tests/resources:ios_non_localized_assets_lib",
+        "//test/starlark_tests/resources:nested_bundle_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     families = ["iphone"],
