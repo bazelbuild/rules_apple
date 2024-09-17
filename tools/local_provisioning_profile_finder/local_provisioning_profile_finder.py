@@ -6,6 +6,7 @@ import subprocess
 import sys
 from typing import List, Optional, Tuple
 
+_USE_SECURITY = sys.platform == "darwin"
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -31,7 +32,23 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _profile_contents(profile: str) -> Tuple[str, datetime.datetime, str]:
-    output = subprocess.check_output(["security", "cms", "-D", "-i", profile])
+    if _USE_SECURITY:
+        output = subprocess.check_output(
+            ["security", "cms", "-D", "-i", profile],
+        )
+    else:
+        # We call it this way to silence the "Verification successful" message
+        # for the non-error case
+        try:
+            output = subprocess.run(
+                ["openssl", "smime", "-inform", "der", "-verify", "-noverify", "-in", profile],
+                check=True,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            ).stdout
+        except subprocess.CalledProcessError as e:
+            print(e.stderr, file=sys.stderr)
+            raise e
     plist = plistlib.loads(output)
     return plist["Name"], plist["UUID"], plist["CreationDate"], plist["TeamIdentifier"][0]
 
