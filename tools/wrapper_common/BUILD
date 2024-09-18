@@ -5,7 +5,6 @@ py_library(
     srcs = ["execute.py"],
     srcs_version = "PY3",
     visibility = [
-        "//tools/clangrttool:__pkg__",
         "//tools/codesigningtool:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
         "//tools/xctoolrunner:__pkg__",
