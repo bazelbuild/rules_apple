@@ -488,7 +488,7 @@ This repository rule depends on the following environment variables:
 ## provisioning_profile_repository_extension
 
 <pre>
-provisioning_profile_repository_extension = use_extension("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository_extension")
+provisioning_profile_repository_extension = use_extension("@rules_apple//apple:apple.bzl", "provisioning_profile_repository_extension")
 provisioning_profile_repository_extension.setup(<a href="#provisioning_profile_repository_extension.setup-fallback_profiles">fallback_profiles</a>)
 </pre>
 
