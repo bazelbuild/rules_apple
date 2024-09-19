@@ -85,7 +85,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     )
 
     bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
-    bundle_id = ctx.attr.bundle_id or None
+    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_".format(ctx.attr.bundle_name or ctx.label.name)
 
     apple_resource_infos = []
     process_args = {
@@ -96,12 +96,14 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         "rule_label": ctx.label,
     }
 
-    infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists"],
-    )
+    infoplists = []
 
-    if not infoplists:
+    if ctx.files.infoplists:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["infoplists"],
+        )
+    else:
         infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["_fallback_infoplist"],
