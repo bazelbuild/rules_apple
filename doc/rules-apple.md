@@ -475,7 +475,7 @@ ios_application(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="provisioning_profile_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="provisioning_profile_repository-fallback_profiles"></a>fallback_profiles |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  In `WORKSPACE` settings only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` settings (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
+| <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  In `WORKSPACE` context only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` context (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
 
 **ENVIRONMENT VARIABLES**
 
@@ -488,7 +488,7 @@ This repository rule depends on the following environment variables:
 ## provisioning_profile_repository_extension
 
 <pre>
-provisioning_profile_repository_extension = use_extension("@rules_apple//apple:apple.bzl", "provisioning_profile_repository_extension")
+provisioning_profile_repository_extension = use_extension("@build_bazel_rules_apple//apple:apple.bzl", "provisioning_profile_repository_extension")
 provisioning_profile_repository_extension.setup(<a href="#provisioning_profile_repository_extension.setup-fallback_profiles">fallback_profiles</a>)
 </pre>
 
