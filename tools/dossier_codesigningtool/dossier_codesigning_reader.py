@@ -72,6 +72,7 @@ import sys
 import tempfile
 import traceback
 
+_MACOS = sys.platform == "darwin"
 
 # LINT.IfChange
 _DEFAULT_TIMEOUT = 900
@@ -288,6 +289,12 @@ If specified, during signing, only search for the signing identity in the
 keychain file specified. This is equivalent to the --keychain argument on
 /usr/bin/codesign itself.
 ''')
+  sign_parser.add_argument(
+      '--certificates',
+      help='''
+If specified, during signing, only search for the signing identity in `.cer`
+files in the directory specified.
+''')
   sign_parser.set_defaults(func=_sign_bundle)
 
   return parser
@@ -295,13 +302,36 @@ keychain file specified. This is equivalent to the --keychain argument on
 
 def _parse_provisioning_profile(provisioning_profile_path):
   """Reads and parses a provisioning profile."""
-  plist_xml = subprocess.check_output([
-      'security',
-      'cms',
-      '-D',
-      '-i',
-      provisioning_profile_path,
-  ])
+  if _MACOS:
+    plist_xml = subprocess.check_output([
+        'security',
+        'cms',
+        '-D',
+        '-i',
+        provisioning_profile_path,
+    ])
+  else:
+    # We call it this way to silence the "Verification successful" message for
+    # the non-error case
+    try:
+        plist_xml = subprocess.run(
+          [
+            'openssl',
+            'smime',
+            '-inform',
+            'der',
+            '-verify',
+            '-noverify',
+            '-in',
+            provisioning_profile_path,
+          ],
+          check=True,
+          stderr=subprocess.PIPE,
+          stdout=subprocess.PIPE,
+        ).stdout
+    except subprocess.CalledProcessError as e:
+        print(e.stderr, file=sys.stderr)
+        raise e
   return plistlib.loads(plist_xml)
 
 
@@ -310,39 +340,71 @@ def _generate_sha1(data):
   return hashlib.sha1(data).hexdigest().upper()
 
 
-def _find_codesign_identities(signing_keychain=None):
+def extract_identity_hash(cer_path):
+  try:
+    der_cert_cmd = ['openssl', 'x509', '-in', cer_path, '-outform', 'DER']
+    der_cert = subprocess.check_output(der_cert_cmd, stderr=subprocess.STDOUT)
+
+    sha1_hash = _generate_sha1(der_cert)
+
+    subject_cmd = ['openssl', 'x509', '-in', cer_path, '-noout', '-subject']
+    subject_output = subprocess.check_output(subject_cmd, stderr=subprocess.STDOUT).decode().strip()
+
+    return sha1_hash, subject_output
+  except subprocess.CalledProcessError as e:
+    raise OSError(f'Failed to extract certificate from {cer_path}: {e.output.decode()}')
+
+
+def _find_codesign_identities(signing_keychain=None, certificates_directory_path=None):
   """Finds the code signing identities in a specified keychain."""
   ids = {}
-  execute_command = [
-      'security',
-      'find-identity',
-      '-v',
-      '-p',
-      'codesigning',
-  ]
-  if signing_keychain:
-    execute_command.extend([signing_keychain])
-  output = _execute_and_filter_output(execute_command)
-  output = output.strip()
-  for line in output.splitlines():
-    m = _SECURITY_FIND_IDENTITY_OUTPUT_REGEX.search(line)
-    if m:
-      ids[m.groupdict()['hash']] = line
+  if _MACOS:
+    execute_command = [
+        'security',
+        'find-identity',
+        '-v',
+        '-p',
+        'codesigning',
+    ]
+    if signing_keychain:
+      execute_command.extend([signing_keychain])
+    output = _execute_and_filter_output(execute_command)
+    output = output.strip()
+    for line in output.splitlines():
+      m = _SECURITY_FIND_IDENTITY_OUTPUT_REGEX.search(line)
+      if m:
+        ids[m.groupdict()['hash']] = (line, None)
+  else:
+    if not certificates_directory_path:
+      raise OSError('--certificates is required when finding identities on non-macOS platforms.')
+
+    cer_paths = glob.glob(os.path.join(certificates_directory_path, "*.cer"))
+    if not cer_paths:
+      raise OSError(f'No .cer files found in {certificates_directory_path}.')
+
+    for cer_path in cer_paths:
+      hash, subject = extract_identity_hash(cer_path)
+      ids[hash] = (subject, cer_path)
   return ids
 
 
 def _resolve_codesign_identity(
-    provisioning_profile_path, codesign_identity, signing_keychain
-):
+    provisioning_profile_path,
+    codesign_identity,
+    signing_keychain,
+    certificates_directory_path):
   """Finds the best identity on the system given a profile and identity."""
   mpf = _parse_provisioning_profile(provisioning_profile_path)
-  ids_codesign = _find_codesign_identities(signing_keychain)
+  ids_codesign = _find_codesign_identities(signing_keychain, certificates_directory_path)
   best_codesign_identity = codesign_identity
   for id_mpf in _get_identities_from_provisioning_profile(mpf):
     if id_mpf in ids_codesign.keys():
-      best_codesign_identity = id_mpf
+      subject, cer_path = ids_codesign[id_mpf]
+      # If we have a certificate path, use that instead of the identity hash
+      # On Linux the `codesign` implementation will use the certifcate directly
+      best_codesign_identity = cer_path if cer_path else id_mpf
       # Return early if the specified codesign_identity matches a valid entity.
-      if codesign_identity in ids_codesign[id_mpf]:
+      if not codesign_identity or codesign_identity in subject:
         break
   return best_codesign_identity
 
@@ -409,9 +471,12 @@ def _invoke_codesign(codesign_path, identity, entitlements_path,
     ])
   cmd.append(full_path_to_sign)
 
-  # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
-  # version.
-  custom_env = {'CODESIGN_ALLOCATE': _find_codesign_allocate()}
+  if _MACOS:
+    # Just like Xcode, ensure CODESIGN_ALLOCATE is set to point to the correct
+    # version.
+    custom_env = {'CODESIGN_ALLOCATE': _find_codesign_allocate()}
+  else:
+    custom_env = None
   _execute_and_filter_output(
       cmd,
       filtering=_filter_codesign_tool_output,
@@ -420,11 +485,15 @@ def _invoke_codesign(codesign_path, identity, entitlements_path,
 
 
 def _fetch_preferred_signing_identity(
-    manifest, provisioning_profile_file_path, signing_keychain
-):
+    certificates_directory_path,
+    manifest,
+    provisioning_profile_file_path,
+    signing_keychain):
   """Returns the preferred signing identity.
 
   Args:
+    certificates_directory_path: If not None, this will only search for the
+      signing identity in `.cer` files in the directory specified.
     manifest: The contents of the manifest in this dossier.
     provisioning_profile_file_path: Directory of the provisioning profile to be
       used for signing.
@@ -446,7 +515,10 @@ def _fetch_preferred_signing_identity(
   # signing, which doesn't need to be validated against a provisioning profile.
   if codesign_identity != '-' and provisioning_profile_file_path:
     codesign_identity = _resolve_codesign_identity(
-        provisioning_profile_file_path, codesign_identity, signing_keychain
+        provisioning_profile_file_path,
+        codesign_identity,
+        signing_keychain,
+        certificates_directory_path,
     )
   return codesign_identity
 
@@ -499,8 +571,14 @@ def _extract_archive(*, app_bundle_subdir, working_dir, unsigned_archive_path):
   Raises:
     OSError: when app bundle is not found in extracted archive.
   """
-  subprocess.check_call(
-      ['ditto', '-x', '-k', unsigned_archive_path, working_dir])
+  if sys.platform == "darwin":
+    subprocess.check_call(
+      ['ditto', '-x', '-k', unsigned_archive_path, working_dir],
+    )
+  else:
+    subprocess.check_call(
+      ['unzip', '-q' '-X', unsigned_archive_path, '-d', working_dir],
+    )
 
   extracted_bundles = glob.glob(
       os.path.join(working_dir, app_bundle_subdir, 'Payload', '*.app'))
@@ -540,8 +618,20 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
     if entry.name not in IPA_ALLOWED_SUBDIRS:
       raise OSError(f'Disallowed IPA base directory detected: {entry.path}')
 
-  subprocess.check_call(
-      ['ditto', '-c', '-k', '--norsrc', '--noextattr', bundle_path, output_ipa])
+  if _MACOS:
+    subprocess.check_call([
+      'ditto',
+      '-c',
+      '-k',
+      '--norsrc',
+      '--noextattr',
+      bundle_path,
+      output_ipa,
+    ])
+  else:
+    if os.path.exists(output_ipa):
+      os.remove(output_ipa)
+    subprocess.check_call(['zip', '-X', '-r', output_ipa, '.'], cwd=bundle_path)
 
 
 def _sign_bundle_with_manifest(
@@ -551,6 +641,7 @@ def _sign_bundle_with_manifest(
     codesign_path,
     allowed_entitlements,
     signing_keychain,
+    certificates_directory_path,
     override_codesign_identity=None,
     executor=concurrent.futures.ThreadPoolExecutor()):
   """Signs a bundle with a dossier.
@@ -570,6 +661,8 @@ def _sign_bundle_with_manifest(
     signing_keychain: If not None, this will first search for the signing
       identity in the keychain file specified, forwarding the path directly to
       the /usr/bin/codesign invocation via its --keychain argument.
+    certificates_directory_path: If not None, this will only search for the
+      signing identity in `.cer` files in the directory specified.
     override_codesign_identity: If set, this will override the identity
       specified in the manifest. This is primarily useful when signing an
       embedded bundle, as all bundles must use the same codesigning identity,
@@ -588,7 +681,10 @@ def _sign_bundle_with_manifest(
                                                   provisioning_profile_filename)
   if not codesign_identity:
     codesign_identity = _fetch_preferred_signing_identity(
-        manifest, provisioning_profile_file_path, signing_keychain
+        certificates_directory_path,
+        manifest,
+        provisioning_profile_file_path,
+        signing_keychain,
     )
   if not codesign_identity:
     raise SystemExit(
@@ -618,7 +714,7 @@ def _sign_bundle_with_manifest(
     # submit each embedded manifest to sign concurrently
     codesign_futures = _sign_embedded_bundles_with_manifest(
         manifest, root_bundle_path, dossier_directory_path, codesign_path,
-        allowed_entitlements, signing_keychain, codesign_identity, executor)
+        allowed_entitlements, signing_keychain, certificates_directory_path, codesign_identity, executor)
     _wait_signing_futures(codesign_futures)
 
     if provisioning_profile_file_path:
@@ -686,6 +782,7 @@ def _sign_embedded_bundles_with_manifest(
     codesign_path,
     allowed_entitlements,
     signing_keychain,
+    certificates_directory_path,
     codesign_identity,
     executor):
   """Signs embedded bundles/dylibs/frameworks concurrently and returns futures.
@@ -702,6 +799,8 @@ def _sign_embedded_bundles_with_manifest(
     signing_keychain: If not None, this will only search for the signing
       identity in the keychain file specified, forwarding the path directly to
       the /usr/bin/codesign invocation via its --keychain argument.
+    certificates_directory_path: If not None, this will only search for the
+      signing identity in `.cer` files in the directory specified.
     codesign_identity: The codesign identity to use for codesigning.
     executor: Asynchronous jobs Executor from concurrent.futures.
 
@@ -727,6 +826,7 @@ def _sign_embedded_bundles_with_manifest(
                       embedded_bundle_path, embedded_manifest,
                       dossier_directory_path, codesign_path,
                       allowed_entitlements, signing_keychain,
+                      certificates_directory_path,
                       codesign_identity, executor))
 
   if os.path.exists(framework_dir):
@@ -871,6 +971,7 @@ def _sign_archived_bundle(
     dossier_directory_path,
     output_ipa,
     signing_keychain,
+    certificates_directory_path,
     working_dir,
     unsigned_archive_path):
   """Signs the bundle and packages it as an IPA to output_artifact.
@@ -887,6 +988,8 @@ def _sign_archived_bundle(
     signing_keychain: If not None, this will only search for the signing
       identity in the keychain file specified, forwarding the path directly to
       the /usr/bin/codesign invocation via its --keychain argument.
+    certificates_directory_path: If not None, this will only search for the
+      signing identity in `.cer` files in the directory specified.
     working_dir: String, the path to unzip the archive file into.
     unsigned_archive_path: String, the full path to a unsigned archive.
   """
@@ -898,7 +1001,8 @@ def _sign_archived_bundle(
   manifest = read_manifest_from_dossier(dossier_directory_path)
   _sign_bundle_with_manifest(extracted_bundle, manifest,
                              dossier_directory_path, codesign_path,
-                             allowed_entitlements, signing_keychain)
+                             allowed_entitlements, signing_keychain,
+                             certificates_directory_path)
   _package_ipa(
       app_bundle_subdir=app_bundle_subdir,
       working_dir=working_dir,
@@ -926,6 +1030,7 @@ def _sign_bundle(parsed_args):
   codesign_path = parsed_args.codesign
   allowed_entitlements = parsed_args.allow_entitlement
   signing_keychain = parsed_args.keychain
+  certificates_directory_path = parsed_args.certificates
   output_artifact = parsed_args.output_artifact
 
   if not os.path.exists(input_fullpath):
@@ -957,6 +1062,7 @@ def _sign_bundle(parsed_args):
       _sign_archived_bundle(
           allowed_entitlements=allowed_entitlements,
           app_bundle_subdir='bundle',
+          certificates_directory_path=certificates_directory_path,
           codesign_path=codesign_path,
           dossier_directory_path=dossier_directory_path,
           output_ipa=output_artifact,
@@ -978,7 +1084,8 @@ def _sign_bundle(parsed_args):
         manifest = read_manifest_from_dossier(dossier_directory.path)
         _sign_bundle_with_manifest(input_fullpath, manifest,
                                    dossier_directory.path, codesign_path,
-                                   allowed_entitlements, signing_keychain)
+                                   allowed_entitlements, signing_keychain,
+                                   certificates_directory_path)
       elif input_path_suffix == '.ipa':
         _check_common_archived_bundle_args(
             output_artifact=output_artifact,
@@ -989,6 +1096,7 @@ def _sign_bundle(parsed_args):
         _sign_archived_bundle(
             allowed_entitlements=allowed_entitlements,
             app_bundle_subdir='',
+            certificates_directory_path=certificates_directory_path,
             codesign_path=codesign_path,
             dossier_directory_path=dossier_directory.path,
             output_ipa=output_artifact,
