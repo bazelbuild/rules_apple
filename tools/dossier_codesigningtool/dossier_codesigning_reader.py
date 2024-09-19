@@ -60,6 +60,7 @@ import argparse
 import collections
 import concurrent.futures
 import glob
+import hashlib
 import io
 import json
 import os
@@ -306,9 +307,7 @@ def _parse_provisioning_profile(provisioning_profile_path):
 
 def _generate_sha1(data):
   """Returns the SHA1 of the data as a string in uppercase."""
-  openssl_command = ['openssl', 'sha1']
-  cmd_output = _execute_and_filter_output(openssl_command, inputstr=data)
-  return cmd_output.upper().strip()
+  return hashlib.sha1(data).hexdigest().upper()
 
 
 def _find_codesign_identities(signing_keychain=None):
