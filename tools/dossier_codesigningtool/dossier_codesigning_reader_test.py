@@ -92,6 +92,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        certificates_directory_path='/tmp/certs/',
         override_codesign_identity='-',
         allowed_entitlements=None)
 
@@ -157,6 +158,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        certificates_directory_path='/tmp/certs/',
         override_codesign_identity='-',
         allowed_entitlements=None)
     self.assertEqual(mock_codesign.call_count, 1)
@@ -183,6 +185,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         dossier_directory_path='/tmp/dossier/',
         codesign_path='/usr/bin/fake_codesign',
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        certificates_directory_path='/tmp/certs/',
         override_codesign_identity='-',
         allowed_entitlements=['test-an-entitlement'])
 
@@ -258,6 +261,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           manifest=fake_manifest,
           dossier_directory_path='/tmp/dossier/',
           signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+          certificates_directory_path='/tmp/certs/',
           codesign_path='/usr/bin/fake_codesign',
           allowed_entitlements=None)
 
@@ -272,6 +276,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         codesign_path='/usr/bin/fake_codesign',
         allowed_entitlements=None,
         signing_keychain=_ADDITIONAL_SIGNING_KEYCHAIN,
+        certificates_directory_path='/tmp/certs/',
         codesign_identity='-',
         executor=executor)
     dossier_codesigning_reader._wait_signing_futures(futures)
@@ -282,6 +287,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
         '/usr/bin/fake_codesign',
         None,
         _ADDITIONAL_SIGNING_KEYCHAIN,
+        '/tmp/certs/',
         '-',
         executor,
     )
@@ -446,6 +452,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           tmp_fake_codesign.name,
           None,
           _ADDITIONAL_SIGNING_KEYCHAIN,
+          None,
       )
 
   @mock.patch.object(dossier_codesigning_reader, '_package_ipa')
@@ -495,6 +502,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           tmp_fake_codesign.name,
           None,
           _ADDITIONAL_SIGNING_KEYCHAIN,
+          None,
       )
       mock_package.assert_called_once()
 
@@ -543,6 +551,7 @@ class DossierCodesigningReaderTest(unittest.TestCase):
           tmp_fake_codesign.name,
           None,
           _ADDITIONAL_SIGNING_KEYCHAIN,
+          None,
       )
       mock_package.assert_called_once()
 
