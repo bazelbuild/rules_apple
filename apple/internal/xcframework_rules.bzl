@@ -1046,6 +1046,11 @@ def _apple_static_xcframework_impl(ctx):
             split_attr = ctx.split_attr,
             split_attr_keys = link_output.split_attr_keys,
         )
+        targets_to_avoid = _unioned_attrs(
+            attr_names = ["avoid_bundles"],
+            split_attr = ctx.split_attr,
+            split_attr_keys = link_output.split_attr_keys,
+        )
         partial_output = partial.call(partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1060,6 +1065,7 @@ def _apple_static_xcframework_impl(ctx):
             resource_deps = resource_deps,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = targets_to_avoid,
             version = None,
         ))
 
@@ -1153,6 +1159,16 @@ the target will be used instead.
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.
+""",
+            ),
+            "avoid_bundles": attr.label_list(
+                aspects = [apple_resource_aspect],
+                allow_files = True,
+                cfg = transition_support.xcframework_transition,
+                mandatory = False,
+                doc = """
+A list of library targets containing resources on which this framework depends to compile, but the transitive
+closure will not be bundled into final XCFramework.
 """,
             ),
             "bundle_name": attr.string(
