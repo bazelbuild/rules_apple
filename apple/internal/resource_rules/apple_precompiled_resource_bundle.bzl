@@ -96,37 +96,6 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         "rule_label": ctx.label,
     }
 
-    infoplists = []
-
-    if ctx.files.infoplists:
-        infoplists = resources.collect(
-            attr = ctx.attr,
-            res_attrs = ["infoplists"],
-        )
-    else:
-        infoplists = resources.collect(
-            attr = ctx.attr,
-            res_attrs = ["_fallback_infoplist"],
-        )
-
-    bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
-        bucket_type = "infoplists",
-        owner = owner,
-        parent_dir_param = bundle_name,
-        resources = infoplists,
-        **bucketize_args
-    )
-    apple_resource_infos.append(
-        resources.process_bucketized_data(
-            bucketized_owners = bucketized_owners,
-            buckets = buckets,
-            platform_prerequisites = platform_prerequisites,
-            processing_owner = owner,
-            unowned_resources = unowned_resources,
-            **process_args
-        ),
-    )
-
     resource_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
@@ -172,6 +141,30 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             owner = owner,
             parent_dir_param = structured_parent_dir_param,
             resources = structured_files,
+            **bucketize_args
+        )
+        apple_resource_infos.append(
+            resources.process_bucketized_data(
+                bucketized_owners = bucketized_owners,
+                buckets = buckets,
+                platform_prerequisites = platform_prerequisites,
+                processing_owner = owner,
+                unowned_resources = unowned_resources,
+                **process_args
+            ),
+        )
+
+    infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists", "_fallback_infoplist"],
+    )
+
+    if infoplists and apple_resource_infos:
+        bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+            bucket_type = "infoplists",
+            owner = owner,
+            parent_dir_param = bundle_name,
+            resources = infoplists,
             **bucketize_args
         )
         apple_resource_infos.append(
