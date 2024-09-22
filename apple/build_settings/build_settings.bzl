@@ -38,6 +38,14 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),
+    "ios_device": struct(
+        doc = """
+The identifier, ECID, serial number, UDID, user-provided name, or DNS name
+of the device for running an iOS application.
+You can get a list of devices by running 'xcrun devicectl list devices`.
+""",
+        default = "",
+    ),
 }
 
 _BUILD_SETTING_LABELS = {

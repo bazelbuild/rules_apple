@@ -185,7 +185,7 @@ def _framework_import_partial_impl(
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
-        if provisioning_profile:
+        if codesign_args and provisioning_profile:
             input_files.append(provisioning_profile)
             execution_requirements = {"no-sandbox": "1"}
             if platform_prerequisites.platform.is_device:
