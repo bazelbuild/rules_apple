@@ -245,6 +245,7 @@ apple_resource_bundle(
 
 apple_precompiled_resource_bundle(
     name = "simple_precompiled_bundle_library",
+    bundle_id = "org.bazel.simple-precompiled-bundle-library",
     bundle_name = "simple_precompiled_bundle_library",
     infoplists = [
         "Info-template.plist",
