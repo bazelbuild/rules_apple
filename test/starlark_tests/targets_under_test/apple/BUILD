@@ -946,7 +946,7 @@ objc_library(
         "//test/starlark_tests/resources:shared.m",
     ],
     tags = common.fixture_tags,
-    deps = [":fmwk_lib_with_resources"]
+    deps = [":fmwk_lib_with_resources"],
 )
 
 apple_static_xcframework(
@@ -1018,7 +1018,7 @@ apple_static_xcframework_import(
 )
 
 apple_static_xcframework(
-    name = 'ios_xcframework_bundling_static_fmwks_with_avoid_bundles',
+    name = "ios_xcframework_bundling_static_fmwks_with_avoid_bundles",
     avoid_bundles = [":fmwk_lib_with_resources"],
     ios = {
         "simulator": [
