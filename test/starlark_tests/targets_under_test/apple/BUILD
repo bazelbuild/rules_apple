@@ -939,6 +939,16 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "fmwk_lib_with_resources_upper_lib",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib_with_resources"],
+)
+
 apple_static_xcframework(
     name = "ios_static_xcframework_with_resources",
     ios = {
@@ -1005,6 +1015,23 @@ apple_static_xcframework_import(
     ],
     tags = ["manual"],
     xcframework_imports = [":generated_ios_static_xcframework_with_resources"],
+)
+
+apple_static_xcframework(
+    name = "ios_xcframework_bundling_static_fmwks_with_avoid_deps",
+    avoid_deps = [":fmwk_lib_with_resources"],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib_with_resources_upper_lib"],
 )
 
 apple_static_xcframework(
