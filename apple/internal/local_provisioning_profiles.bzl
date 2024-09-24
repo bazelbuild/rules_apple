@@ -20,8 +20,8 @@ def _provisioning_profile_repository(repository_ctx):
 filegroup(
     name = "profiles",
     srcs = glob([
-    "profiles/*.mobileprovision",
-    "user profiles/*.mobileprovision",
+      "profiles/*.mobileprovision",
+      "user profiles/*.mobileprovision",
     ], allow_empty = True),
     visibility = ["//visibility:public"],
 )
