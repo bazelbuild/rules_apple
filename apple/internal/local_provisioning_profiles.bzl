@@ -10,10 +10,19 @@ def _provisioning_profile_repository(repository_ctx):
     repository_ctx.execute(["mkdir", "-p", system_profiles_path])
     repository_ctx.symlink(system_profiles_path, "profiles")
 
+    # Since Xcode 16 there is a new location for the provisioning profiles.
+    # We need to keep the both old and new path for quite some time.
+    user_profiles_path = "{}/Library/Developer/Xcode/UserData/Provisioning Profiles".format(repository_ctx.os.environ["HOME"])
+    repository_ctx.execute(["mkdir", "-p", user_profiles_path])
+    repository_ctx.symlink(user_profiles_path, "user profiles")
+
     repository_ctx.file("BUILD.bazel", """\
 filegroup(
     name = "profiles",
-    srcs = glob(["profiles/*.mobileprovision"], allow_empty = True),
+    srcs = glob([
+      "profiles/*.mobileprovision",
+      "user profiles/*.mobileprovision",
+    ], allow_empty = True),
     visibility = ["//visibility:public"],
 )
 
