@@ -4,7 +4,13 @@
 <dict>
 	<key>CFBundleName</key>
 	<string>$(BUNDLE_NAME)</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
 </dict>
 </plist>

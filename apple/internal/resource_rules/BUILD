@@ -101,6 +101,29 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_precompiled_resource_bundle",
+    srcs = ["apple_precompiled_resource_bundle.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:apple_product_type",
+        "//apple/internal:apple_toolchains",
+        "//apple/internal:codesigning_support",
+        "//apple/internal:features_support",
+        "//apple/internal:partials",
+        "//apple/internal:platform_support",
+        "//apple/internal:processor",
+        "//apple/internal:providers",
+        "//apple/internal:resources",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:rule_support",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
     name = "apple_resource_group",
     srcs = ["apple_resource_group.bzl"],
     visibility = [

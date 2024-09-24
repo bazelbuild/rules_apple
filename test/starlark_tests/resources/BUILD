@@ -5,6 +5,7 @@ load(
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
+    "apple_precompiled_resource_bundle",
     "apple_resource_bundle",
     "apple_resource_group",
 )
@@ -171,6 +172,17 @@ objc_library(
     ],
 )
 
+objc_library(
+    name = "objc_shared_lib_with_precompiled_resource_bundles",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:simple_precompiled_bundle_library",
+    ],
+)
+
 # --------------------------------------------------------------------------------
 # Objective-C main.m libraries
 
@@ -203,6 +215,15 @@ objc_library(
     tags = common.fixture_tags,
     deps = [
         ":objc_shared_lib_with_resource_bundles",
+    ],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_precompiled_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_precompiled_resource_bundles",
     ],
 )
 
@@ -372,8 +393,22 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    infoplists = ["Another.plist"],
+    resources = [":custom_apple_resource_info"],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "resource_bundle_with_structured_resource_group",
+    resources = [":structured_resources"],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_structured_resource_group",
     resources = [":structured_resources"],
     tags = common.fixture_tags,
 )
@@ -389,8 +424,38 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_bundle_id",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    infoplists = ["Info-noversion.plist"],
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_bundle_id_no_infoplist",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "localization",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_localization",
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
@@ -462,6 +527,20 @@ objc_library(
     name = "processed_resources_in_structured_resources_lib",
     data = [
         ":processed_resources_in_structured_resources",
+    ],
+)
+
+apple_resource_group(
+    name = "precompiled_processed_resources_in_structured_resources",
+    structured_resources = [
+        ":precompiled_resource_bundle_localization",
+    ],
+)
+
+objc_library(
+    name = "precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
+    data = [
+        ":precompiled_processed_resources_in_structured_resources",
     ],
 )
 

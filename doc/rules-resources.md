@@ -100,6 +100,33 @@ Compiles Metal shader language sources into a Metal library.
 | <a id="apple_metal_library-includes"></a>includes |  A list of header search paths.   | List of strings | optional |  `[]`  |
 
 
+<a id="apple_precompiled_resource_bundle"></a>
+
+## apple_precompiled_resource_bundle
+
+<pre>
+apple_precompiled_resource_bundle(<a href="#apple_precompiled_resource_bundle-name">name</a>, <a href="#apple_precompiled_resource_bundle-resources">resources</a>, <a href="#apple_precompiled_resource_bundle-bundle_id">bundle_id</a>, <a href="#apple_precompiled_resource_bundle-bundle_name">bundle_name</a>, <a href="#apple_precompiled_resource_bundle-infoplists">infoplists</a>,
+                                  <a href="#apple_precompiled_resource_bundle-structured_resources">structured_resources</a>)
+</pre>
+
+This rule encapsulates a target which is provided to dependers as a bundle. An
+`apple_precompiled_resource_bundle`'s resources are put in a resource bundle in the top
+level Apple bundle dependent. `apple_precompiled_resource_bundle` targets need to be added to
+library targets through the `data` attribute.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_precompiled_resource_bundle-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="apple_precompiled_resource_bundle-resources"></a>resources |  Files to include in the resource bundle. Files that are processable resources, like .xib, .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have those files as dependencies. Other file types that are not processed will be copied verbatim. These files are placed in the root of the resource bundle (e.g. `Payload/foo.app/bar.bundle/...`) in most cases. However, if they appear to be localized (i.e. are contained in a directory called *.lproj), they will be placed in a directory of the same name in the app bundle.<br><br>You can also add other `apple_precompiled_resource_bundle` and `apple_bundle_import` targets into `resources`, and the resource bundle structures will be propagated into the final bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="apple_precompiled_resource_bundle-bundle_id"></a>bundle_id |  The bundle ID for this target. It will replace `$(PRODUCT_BUNDLE_IDENTIFIER)` found in the files from defined in the `infoplists` paramter.   | String | optional |  `""`  |
+| <a id="apple_precompiled_resource_bundle-bundle_name"></a>bundle_name |  The desired name of the bundle (without the `.bundle` extension). If this attribute is not set, then the `name` of the target will be used instead.   | String | optional |  `""`  |
+| <a id="apple_precompiled_resource_bundle-infoplists"></a>infoplists |  A list of `.plist` files that will be merged to form the `Info.plist` that represents the extension. At least one file must be specified. Please see [Info.plist Handling](/doc/common_info.md#infoplist-handling") for what is supported.<br><br>Duplicate keys between infoplist files will cause an error if and only if the values conflict. Bazel will perform variable substitution on the Info.plist file for the following values (if they are strings in the top-level dict of the plist):<br><br>${BUNDLE_NAME}: This target's name and bundle suffix (.bundle or .app) in the form name.suffix. ${PRODUCT_NAME}: This target's name. ${TARGET_NAME}: This target's name. The key in ${} may be suffixed with :rfc1034identifier (for example ${PRODUCT_NAME::rfc1034identifier}) in which case Bazel will replicate Xcode's behavior and replace non-RFC1034-compliant characters with -.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="apple_precompiled_resource_bundle-structured_resources"></a>structured_resources |  Files to include in the final resource bundle. They are not processed or compiled in any way besides the processing done by the rules that actually generate them. These files are placed in the bundle root in the same structure passed to this argument, so `["res/foo.png"]` will end up in `res/foo.png` inside the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
 <a id="apple_resource_bundle"></a>
 
 ## apple_resource_bundle

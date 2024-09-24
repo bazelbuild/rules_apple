@@ -115,6 +115,19 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_precompiled_resource_bundle_invalid_resources_in_structured_resources".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_processed_resources_in_structured_resources",
+        expected_error = (
+            "Error: Found ignored resource providers for target {target}. Check " +
+            "that there are no processed resource targets being referenced by " +
+            "structured_resources."
+        ).format(
+            target = Label("//test/starlark_tests/resources:precompiled_processed_resources_in_structured_resources"),
+        ),
+        tags = [name],
+    )
+
     # Tests that various localized resource types are bundled correctly with the
     # application (preserving their parent .lproj directory).
     archive_contents_test(
@@ -232,6 +245,21 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_apple_bundle_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/basic.bundle/should_be_binary.plist",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/basic.bundle/nested/should_be_nested.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that apple_bundle_import files are bundled correctly with the
     # application if the files have an owner-relative path that begins with
     # something other than the bundle name (for example, "foo/Bar.bundle/..."
@@ -252,6 +280,24 @@ app_icons was assigned the following: [
             "$BUNDLE_ROOT/nested_bundle/nested.bundle/nested/should_be_nested.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_nested_apple_bundle_test".format(name),
+        build_type = "simulator",
+        compilation_mode = "opt",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/nested.bundle/should_be_binary.strings",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/nested.bundle/nested/should_be_nested.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/nested_bundle/nested.bundle/should_be_binary.strings",
+            "$BUNDLE_ROOT/nested_bundle/nested.bundle/nested/should_be_nested.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
         tags = [name],
     )
 
@@ -295,6 +341,46 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    # Tests that apple_precompiled_resource_bundle resources are compiled and bundled correctly
+    # with the application. This test uses a bundle library with many types of
+    # resources, both localized and nonlocalized, and also a nested bundle.
+    archive_contents_test(
+        name = "{}_apple_precompiled_resource_bundle_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.bundle-library-ios",
+            "CFBundleName": "bundle_library_ios.bundle",
+            "CFBundlePackageType": "BNDL",
+            "TargetName": "bundle_library_ios",
+        },
+        contains = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/default.metallib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/localized.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/it.lproj/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/mapping_model.cdm",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/nonlocalized_resource.txt",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/storyboard_ios.storyboardc/",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/view_ios.nib",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/nested.txt",
+        ],
+        is_binary_plist = [
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/generated.strings",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.plist",
+            "$BUNDLE_ROOT/bundle_library_ios.bundle/structured/should_be_binary.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that apple_resource_bundle resources are compiled and bundled correctly
     # with the application. This test uses a bundle library with many types of
     # resources, both localized and nonlocalized, and also a nested bundle.
@@ -308,15 +394,40 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    # Tests that apple_precompiled_resource_bundle resources are compiled and bundled correctly
+    # with the application. This test uses a bundle library with many types of
+    # resources, both localized and nonlocalized, and also a nested bundle.
+    archive_contents_test(
+        name = "{}_apple_precompiled_resource_bundle_depending_on_AppleResourceInfo_and_DefaultInfo_rule_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle.bundle/custom_apple_resource_info.out",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that structured processed generated strings have correct values.
     archive_contents_test(
-        name = "{}_generated_stromgs_test".format(name),
+        name = "{}_generated_strings_test".format(name),
         build_type = "simulator",
         plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/structured/generated.strings",
         plist_test_values = {
             "generated_structured_string": "I like turtles too!",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    # Tests that structured processed generated strings have correct values.
+    archive_contents_test(
+        name = "{}_precompiled_resource_bundle_generated_strings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_ios.bundle/structured/generated.strings",
+        plist_test_values = {
+            "generated_structured_string": "I like turtles too!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_precompiled_resource_bundle",
         tags = [name],
     )
 
@@ -627,6 +738,17 @@ app_icons was assigned the following: [
     )
 
     archive_contents_test(
+        name = "{}_with_precompiled_resource_bundle_with_structured_resource_group_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_structured_resource_group",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_structured_resource_group.bundle/Another.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_with_resource_bundle_with_bundle_id".format(name),
         build_type = "device",
         compilation_mode = "opt",
@@ -637,6 +759,67 @@ app_icons was assigned the following: [
         plist_test_file = "$BUNDLE_ROOT/resource_bundle_with_bundle_id.bundle/Info.plist",
         plist_test_values = {
             "CFBundleIdentifier": "org.bazel.rules_apple.resource_bundle",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_precompiled_resource_bundle_with_bundle_id".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_bundle_id",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/en.lproj/greetings.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.rules_apple.precompiled_resource_bundle",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_precompiled_resource_bundle_with_bundle_id_no_infoplist".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_precompiled_resource_bundle_with_bundle_id_no_infoplist",
+        contains = [
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/Info.plist",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/en.lproj/greetings.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/en.lproj/files.stringsdict",
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/precompiled_resource_bundle_with_bundle_id_no_infoplist.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.rules_apple.precompiled_resource_bundle",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_transitive_precompiled_resource_bundle_with_bundle_id".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_precompiled_resource_bundle_with_bundle_id",
+        contains = [
+            "$BUNDLE_ROOT/simple_precompiled_bundle_library.bundle/Info.plist",
+            "$BUNDLE_ROOT/simple_precompiled_bundle_library.bundle/it.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/simple_precompiled_bundle_library.bundle/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "org.bazel.simple-precompiled-bundle-library",
         },
         tags = [name],
     )
