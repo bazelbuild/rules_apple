@@ -90,18 +90,18 @@ def apple_static_xcframework_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_ios_avoid_bundles_test".format(name),
+        name = "{}_ios_avoid_deps_bundles_test".format(name),
         build_type = "device",
         compilation_mode = "opt",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_bundling_static_fmwks_with_avoid_bundles",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_bundling_static_fmwks_with_avoid_deps",
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_bundling_static_fmwks_with_avoid_bundles.framework/ios_xcframework_bundling_static_fmwks_with_avoid_bundles",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_bundling_static_fmwks_with_avoid_bundles.framework/ios_xcframework_bundling_static_fmwks_with_avoid_bundles",
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_bundling_static_fmwks_with_avoid_deps.framework/ios_xcframework_bundling_static_fmwks_with_avoid_deps",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_bundling_static_fmwks_with_avoid_deps.framework/ios_xcframework_bundling_static_fmwks_with_avoid_deps",
             "$BUNDLE_ROOT/Info.plist",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_bundling_static_fmwks_with_avoid_bundles.framework/resource_bundle.bundle",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_bundling_static_fmwks_with_avoid_bundles.framework/resource_bundle.bundle",
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_bundling_static_fmwks_with_avoid_deps.framework/resource_bundle.bundle",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_bundling_static_fmwks_with_avoid_deps.framework/resource_bundle.bundle",
         ],
         tags = [name],
     )

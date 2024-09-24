@@ -1018,8 +1018,8 @@ apple_static_xcframework_import(
 )
 
 apple_static_xcframework(
-    name = "ios_xcframework_bundling_static_fmwks_with_avoid_bundles",
-    avoid_bundles = [":fmwk_lib_with_resources"],
+    name = "ios_xcframework_bundling_static_fmwks_with_avoid_deps",
+    avoid_deps = [":fmwk_lib_with_resources"],
     ios = {
         "simulator": [
             "x86_64",
