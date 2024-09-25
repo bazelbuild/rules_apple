@@ -618,6 +618,7 @@ def _apple_universal_binary_rule_transition_impl(settings, attr):
     # for the target's platform type with those CPUs. We do this before applying
     # the base rule transition in case it wants to read that setting.
     if forced_cpus:
+        forced_cpus = sorted(forced_cpus)
         new_settings[_platform_specific_cpu_setting_name(platform_type)] = forced_cpus
 
     # Next, apply the base transition and get its output settings.
