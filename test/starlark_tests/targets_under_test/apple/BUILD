@@ -863,9 +863,6 @@ apple_xcframework(
     name = "ios_swift_3p_xcframework_with_generated_header",
     bundle_id = "com.google.example",
     bundle_name = "Swift3PFmwkWithGenHeader",
-    # TODO(b/239957001): Remove this when the rule no longer forces library
-    # evolution.
-    features = ["apple.no_legacy_swiftinterface"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1271,7 +1268,6 @@ swift_library(
 swift_library(
     name = "Swift3PFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
-    features = ["swift.enable_library_evolution"],
     generates_header = True,
     module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,
