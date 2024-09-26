@@ -28,10 +28,6 @@ load(
     "cc_toolchain_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
@@ -452,19 +448,8 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
+
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
-    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
-        xcframework_imports,
-    )
-    tree_artifact_enabled = (
-        apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = ctx.var)
-    )
-    if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
-        fail("The apple_dynamic_xcframework_import rule does not yet support versioned " +
-             "frameworks with the experimental tree artifact feature/build setting. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
 
     xcframework = _classify_xcframework_imports(ctx.var, xcframework_imports)
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:

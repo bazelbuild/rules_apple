@@ -21,7 +21,6 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -448,17 +447,6 @@ def apple_dynamic_xcframework_import_test_suite(name):
         binary_test_architecture = "arm64e",
         binary_not_contains_architectures = ["arm64", "x86_64"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
-        tags = [name],
-    )
-
-    # Verify importing XCFramework with versioned frameworks and tree artifacts fails.
-    analysis_failure_message_with_tree_artifact_outputs_test(
-        name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
-        expected_error = (
-            "The apple_dynamic_xcframework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
-        ),
         tags = [name],
     )
 
