@@ -295,6 +295,10 @@ EOF
   else
     assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
   fi
+
+  # Clean up the file to check; if it's dumped_entitlements, stale instances can
+  # lead to flakes.
+  rm -f "${FILE_TO_CHECK}"
 }
 
 # Tests that debugger entitlement is not auto-added to the application correctly
