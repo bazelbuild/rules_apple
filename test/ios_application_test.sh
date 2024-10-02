@@ -274,6 +274,8 @@ EOF
 </plist>
 EOF
 
+  ENTITLEMENTS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/entitlements_dir.XXXXXX")"
+
   if is_device_build ios ; then
     # For device builds, entitlements are in the codesign output.
     create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
@@ -285,9 +287,9 @@ EOF
     # the binary.
     do_build ios "$@" //app:app || fail "Should build"
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
-        print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
+        print_debug_entitlements - > "${ENTITLEMENTS_DIR}/dumped_entitlements"
 
-    readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
+    readonly FILE_TO_CHECK="${ENTITLEMENTS_DIR}/dumped_entitlements"
   fi
 
   if [[ "${SHOULD_CONTAIN}" == "y" ]] ; then
@@ -296,9 +298,8 @@ EOF
     assert_not_contains "<key>get-task-allow</key>" "${FILE_TO_CHECK}"
   fi
 
-  # Clean up the file to check; if it's dumped_entitlements, stale instances can
-  # lead to flakes.
-  rm -f "${FILE_TO_CHECK}"
+  # Clean up any additional temporary files created outside of test-bin and app.
+  rm -rf "${ENTITLEMENTS_DIR}"
 }
 
 # Tests that debugger entitlement is not auto-added to the application correctly
