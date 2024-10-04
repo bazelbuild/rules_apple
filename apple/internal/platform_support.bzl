@@ -29,7 +29,7 @@ _DEVICE_FAMILY_VALUES = {
     "mac": None,
 }
 
-# Align with Migrate apple_common.platform to Starlark implimentaion
+# Align with migrated apple_common.platform to Starlark implementation
 TARGET_ENVIROMENT = struct(
     device = "device",
     catalyst = "macabi",

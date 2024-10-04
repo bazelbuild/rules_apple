@@ -361,7 +361,7 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Tests checks respect to platfrom name with ios build for iphonesimulator. 
+    # Test checks respect to platform name with ios build for iphonesimulator.
     archive_contents_test(
         name = "{}_multiple_infoplist_test_platform_name_iphonesimulator".format(name),
         build_type = "device",
@@ -373,7 +373,7 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Tests checks respect to platfrom name with ios build for iphoneos. 
+    # Test checks respect to platform name with ios build for iphoneos. 
     archive_contents_test(
         name = "{}_multiple_infoplist_test_platform_name_iphoneos".format(name),
         build_type = "device",
