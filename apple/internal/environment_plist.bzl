@@ -61,6 +61,7 @@ def _environment_plist_impl(ctx):
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        environment = getattr(ctx.fragments.apple.single_arch_platform, "get_target_environment", None),
     )
     environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].environment_plist_tool
     platform = platform_prerequisites.platform

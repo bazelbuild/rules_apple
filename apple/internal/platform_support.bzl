@@ -29,6 +29,13 @@ _DEVICE_FAMILY_VALUES = {
     "mac": None,
 }
 
+# Align with Migrate apple_common.platform to Starlark implimentaion
+TARGET_ENVIROMENT = struct(
+    device = "device",
+    catalyst = "macabi",
+    simulator = "simulator",
+)
+
 def _ui_device_family_plist_value(*, platform_prerequisites):
     """Returns the value to use for `UIDeviceFamily` in an info.plist.
 
@@ -72,7 +79,9 @@ def _platform_prerequisites(
         objc_fragment,
         platform_type_string,
         uses_swift,
-        xcode_version_config):
+        xcode_version_config,
+        environment = None,
+        ):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
@@ -88,6 +97,7 @@ def _platform_prerequisites(
       platform_type_string: The platform type for the current target as a string.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+      environment: "device" or "simulator" environment of the current target. Optional.
 
     Returns:
       A struct representing the collected platform information.
@@ -95,6 +105,18 @@ def _platform_prerequisites(
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
     platform = apple_fragment.multi_arch_platform(platform_type_attr)
 
+    if environment == TARGET_ENVIROMENT.simulator:
+        if platform_type_attr == apple_common.platform_type.ios:
+            platform = apple_common.platform.ios_simulator
+        elif platform_type_attr == apple_common.platform_type.tvos:
+            platform = apple_common.platform.tvos_simulator
+        elif platform_type_attr == apple_common.platform_type.visionos:
+            platform = apple_common.platform.tvos_simulator
+        elif platform_type_attr == apple_common.platform_type.watchos:
+            platform = apple_common.platform.watchos_simulator
+        else:
+            # no `macos_simulator` exists 
+            fail("Simulator environment is not supported for platform type: %s" % platform_type_string) 
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
     else:

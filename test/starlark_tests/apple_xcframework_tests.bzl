@@ -361,6 +361,30 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Tests checks respect to platfrom name with ios build for iphonesimulator. 
+    archive_contents_test(
+        name = "{}_multiple_infoplist_test_platform_name_iphonesimulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_multiple_infoplists",
+        plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework_multiple_infoplists.framework/Info.plist",
+        plist_test_values = {
+            "DTPlatformName": "iphonesimulator",
+        },
+        tags = [name],
+    )
+
+    # Tests checks respect to platfrom name with ios build for iphoneos. 
+    archive_contents_test(
+        name = "{}_multiple_infoplist_test_platform_name_iphoneos".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_multiple_infoplists",
+        plist_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_multiple_infoplists.framework/Info.plist",
+        plist_test_values = {
+            "DTPlatformName": "iphoneos",
+        },
+        tags = [name],
+    )
+
     # Tests that resource bundles and files assigned through "data" are respected.
     archive_contents_test(
         name = "{}_dbg_resources_data_test".format(name),

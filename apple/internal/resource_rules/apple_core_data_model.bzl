@@ -78,6 +78,9 @@ def _apple_core_data_model_impl(ctx):
         uses_swift = True,
         xcode_version_config =
             ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        environment = getattr(
+            ctx.fragments.apple.single_arch_platform, "get_target_environment", None
+        ),
     )
 
     datamodel_groups = group_files_by_directory(
