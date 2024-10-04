@@ -80,8 +80,7 @@ def _platform_prerequisites(
         platform_type_string,
         uses_swift,
         xcode_version_config,
-        environment = None,
-        ):
+        environment = None):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
@@ -115,8 +114,8 @@ def _platform_prerequisites(
         elif platform_type_attr == apple_common.platform_type.watchos:
             platform = apple_common.platform.watchos_simulator
         else:
-            # no `macos_simulator` exists 
-            fail("Simulator environment is not supported for platform type: %s" % platform_type_string) 
+            # no `macos_simulator` exists
+            fail("Simulator environment is not supported for platform type: %s" % platform_type_string)
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
     else:
