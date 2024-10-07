@@ -103,8 +103,19 @@ def _platform_prerequisites(
     """
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
     platform = apple_fragment.multi_arch_platform(platform_type_attr)
-
-    if environment == TARGET_ENVIROMENT.simulator:
+    
+    if environment == TARGET_ENVIROMENT.device:
+        if platform_type_attr == apple_common.platform_type.ios:
+            platform = apple_common.platform.ios_device
+        elif platform_type_attr == apple_common.platform_type.tvos:
+            platform = apple_common.platform.tvos_device
+        elif platform_type_attr == apple_common.platform_type.visionos:
+            platform = apple_common.platform.visionos_device
+        elif platform_type_attr == apple_common.platform_type.watchos:
+            platform = apple_common.platform.watchos_device
+        else:
+            platform = apple_common.platform.macos
+    elif environment == TARGET_ENVIROMENT.simulator:
         if platform_type_attr == apple_common.platform_type.ios:
             platform = apple_common.platform.ios_simulator
         elif platform_type_attr == apple_common.platform_type.tvos:
