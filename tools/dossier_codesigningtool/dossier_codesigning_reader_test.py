@@ -489,7 +489,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
     stdout = io.StringIO()
     with self.assertRaises(RuntimeError), contextlib.redirect_stdout(stdout):
       dossier_codesigning_reader._wait_signing_futures(futures)
-    self.assertNotRegex(stdout.getvalue(), 'Multiple codesign tasks failed:')
+    self.assertRegex(stdout.getvalue(), r'Codesign task\(s\) failed\:')
 
   def test_wait_signing_futures_does_not_raises_exception(self):
     futures = []
