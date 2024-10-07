@@ -110,7 +110,7 @@ def _platform_prerequisites(
         elif platform_type_attr == apple_common.platform_type.tvos:
             platform = apple_common.platform.tvos_simulator
         elif platform_type_attr == apple_common.platform_type.visionos:
-            platform = apple_common.platform.tvos_simulator
+            platform = apple_common.platform.visionos_simulator
         elif platform_type_attr == apple_common.platform_type.watchos:
             platform = apple_common.platform.watchos_simulator
         else:
