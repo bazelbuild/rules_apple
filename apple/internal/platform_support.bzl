@@ -103,7 +103,7 @@ def _platform_prerequisites(
     """
     platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
     platform = apple_fragment.multi_arch_platform(platform_type_attr)
-    
+
     if environment == TARGET_ENVIROMENT.device:
         if platform_type_attr == apple_common.platform_type.ios:
             platform = apple_common.platform.ios_device
