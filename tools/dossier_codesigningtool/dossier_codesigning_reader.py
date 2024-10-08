@@ -908,8 +908,16 @@ def _wait_signing_futures(signing_futures):
     print('Codesign task(s) failed:\n' +
           '\n\n'.join(f'\t{i}) {repr(f.note)}\n{repr(f.future.exception())}'
                       for i, f in enumerate(crashed_signing_futures, start=1)))
+    sys.stdout.flush()
     raise crashed_signing_futures[0].future.exception()
 
+  # TODO(b/228389039): Calling flush to work around an assert in the Python
+  # runtime when the stdout is flushed with large buffers. The actual issue is
+  # likely caused by a threading bug somewhere else.
+  #
+  # This is placed within this method as a common source of logging is from
+  # pending codesign tasks.
+  sys.stdout.flush()
 
 def _extract_zipped_dossier(zipped_dossier_path):
   """Unpacks a zipped dossier.
