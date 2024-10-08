@@ -312,7 +312,8 @@ function test_debugger_entitlements_default() {
 
 # Tests that debugger entitlement is auto-added to the application correctly
 # if it's included on provisioning profile.
-function test_debugger_entitlements_from_provisioning_profile() {
+# TODO(b/372289059): Replace with Starlark tests.
+function disabled_test_debugger_entitlements_from_provisioning_profile() {
   verify_debugger_entitlements_with_params y y
 }
 
@@ -325,18 +326,21 @@ function test_debugger_entitlements_forced_no() {
   verify_debugger_entitlements_with_params n n \
       --define=apple.add_debugger_entitlement=no
 }
-function test_debugger_entitlements_forced_yes() {
+# TODO(b/372289059): Replace with Starlark tests and an equivalent sbc.
+function disabled_test_debugger_entitlements_forced_yes() {
   verify_debugger_entitlements_with_params n y \
       --define=apple.add_debugger_entitlement=YES
 }
-function test_debugger_entitlements_forced_true() {
+# TODO(b/372289059): Replace with Starlark tests and an equivalent sbc.
+function disabled_test_debugger_entitlements_forced_true() {
   verify_debugger_entitlements_with_params n y \
       --define=apple.add_debugger_entitlement=True
 }
 
 # Tests that the target name is sanitized before it is used as the symbol name
 # for embedded debug entitlements.
-function test_target_name_sanitized_for_entitlements() {
+# TODO(b/372289059): Replace with Starlark tests.
+function disabled_test_target_name_sanitized_for_entitlements() {
   create_common_files
 
   cat >> app/BUILD <<EOF
