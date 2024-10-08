@@ -18,6 +18,10 @@ import os
 import re
 import subprocess
 import sys
+import threading
+
+
+_PRINTING_LOCK = threading.Lock()
 
 # LINT.IfChange
 _DEFAULT_TIMEOUT = 900
@@ -115,12 +119,13 @@ def execute_and_filter_output(cmd_args,
       ):
         s.reconfigure(encoding="utf8")
 
-    if stdout:
-      _ensure_utf8_encoding(sys.stdout)
-      sys.stdout.write(stdout)
-    if stderr:
-      _ensure_utf8_encoding(sys.stderr)
-      sys.stderr.write(stderr)
+    with _PRINTING_LOCK:
+      if stdout:
+        _ensure_utf8_encoding(sys.stdout)
+        sys.stdout.write(stdout)
+      if stderr:
+        _ensure_utf8_encoding(sys.stderr)
+        sys.stderr.write(stderr)
 
   return cmd_result, stdout, stderr
 

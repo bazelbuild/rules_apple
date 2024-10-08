@@ -57,7 +57,6 @@ To use this script with a dossier directly within an extracted ipa's app bundle:
 """
 
 import argparse
-import atexit
 import collections
 import concurrent.futures
 import dataclasses
@@ -71,6 +70,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import traceback
 from typing import Any, Optional
 
@@ -94,6 +94,15 @@ class CodesignStaticParamsArgs:
   # string is set it will be passed to the codesign invocation. Ignored for
   # signing with the pseudo identity("-").
   codesign_timestamp: Optional[str] = None
+
+
+_PRINTING_LOCK = threading.Lock()
+
+
+def print_w_lock(*args, **kwargs):
+  """Acquire a lock before printing so the output isn't stomped when using multiple threads."""
+  with _PRINTING_LOCK:
+    print(*args, **kwargs)
 
 
 # LINT.IfChange
@@ -162,12 +171,14 @@ def _execute_and_filter_output(cmd_args,
 
   if (stdout or stderr) and filtering:
     if not callable(filtering):
-      raise TypeError('\'filtering\' must be callable.')
+      raise TypeError("'filtering' must be callable.")
     cmd_result, stdout, stderr = filtering(cmd_result, stdout, stderr)
 
   if cmd_result != 0:
     # print the stdout and stderr, as the exception won't print it.
-    print('ERROR:{stdout}\n\n{stderr}'.format(stdout=stdout, stderr=stderr))
+    print_w_lock(
+        'ERROR:{stdout}\n\n{stderr}'.format(stdout=stdout, stderr=stderr)
+    )
     raise subprocess.CalledProcessError(proc.returncode, cmd_args)
   elif print_output:
     # The default encoding of stdout/stderr is 'ascii', so we need to reopen the
@@ -182,12 +193,13 @@ def _execute_and_filter_output(cmd_args,
       ):
         s.reconfigure(encoding='utf8')
 
-    if stdout:
-      _ensure_utf8_encoding(sys.stdout)
-      sys.stdout.write(stdout)
-    if stderr:
-      _ensure_utf8_encoding(sys.stderr)
-      sys.stderr.write(stderr)
+    with _PRINTING_LOCK:
+      if stdout:
+        _ensure_utf8_encoding(sys.stdout)
+        sys.stdout.write(stdout)
+      if stderr:
+        _ensure_utf8_encoding(sys.stderr)
+        sys.stderr.write(stderr)
 
   return stdout
 # LINT.ThenChange(../wrapper_common/execute.py)
@@ -232,7 +244,7 @@ def _submit_future(note, executor, function, *args, **kwargs) -> SigningFuture:
   Returns:
     The SigningFuture object.
   """
-  print('Submitting task to threadpool: %s' % note)
+  print_w_lock('Submitting task to threadpool: %s' % note)
   return SigningFuture(executor.submit(function, *args, **kwargs), note)
 
 
@@ -523,10 +535,10 @@ def _generate_entitlements_for_signing(*, src, allowed_entitlements, dest):
     if key in allowed_entitlements:
       new_entitlements[key] = original_entitlements[key]
     else:
-      print('WARNING: Invalid entitlement key found: %s' % key)
+      print_w_lock('WARNING: Invalid entitlement key found: %s' % key)
 
   # log the entitlements for debug purpose
-  print('Dumping entitlements to %s: %s' % (dest, new_entitlements))
+  print_w_lock('Dumping entitlements to %s: %s' % (dest, new_entitlements))
   with open(dest, 'wb') as f:
     plistlib.dump(new_entitlements, f)
 
@@ -577,7 +589,7 @@ def _package_ipa(*, app_bundle_subdir, working_dir, output_ipa):
   output_ipa = os.path.realpath(os.path.expanduser(output_ipa))
   bundle_path = os.path.join(working_dir, app_bundle_subdir)
 
-  print(f'Archiving IPA package {output_ipa} from {bundle_path}')
+  print_w_lock(f'Archiving IPA package {output_ipa} from {bundle_path}')
 
   if not os.path.exists(os.path.join(bundle_path, 'Payload')):
     raise OSError(f'Could not find a Payload for IPA in: {bundle_path}')
@@ -637,10 +649,13 @@ def _sign_bundle_with_manifest(
   if not codesign_identity:
     raise SystemExit(
         'Signing failed - codesigning identity not specified in manifest '
-        'and unable to infer identity.')
+        'and unable to infer identity.'
+    )
 
   with tempfile.TemporaryDirectory() as working_dir:
-    print('Working dir for temp signing artifacts created: %s' % working_dir)
+    print_w_lock(
+        'Working dir for temp signing artifacts created: %s' % working_dir
+    )
     entitlements_filename = manifest.get(ENTITLEMENTS_KEY)
     entitlements_for_signing_path = None
     if entitlements_filename:
@@ -673,7 +688,7 @@ def _sign_bundle_with_manifest(
       _copy_embedded_provisioning_profile(
           provisioning_profile_file_path, root_bundle_path)
 
-    print('Signing bundle at: %s' % root_bundle_path)
+    print_w_lock('Signing bundle at: %s' % root_bundle_path)
     _invoke_codesign(
         codesign_params=codesign_params,
         identity=codesign_identity,
@@ -733,7 +748,7 @@ def _sign_framework(
       )
   _wait_signing_futures(subframwork_codesign_futures)
 
-  print('Signing framework at: %s' % root_path)
+  print_w_lock('Signing framework at: %s' % root_path)
   _invoke_codesign(codesign_params, codesign_identity, None, root_path)
 
 
@@ -905,19 +920,15 @@ def _wait_signing_futures(signing_futures):
     not_done_future.cancel()
 
   if any(crashed_signing_futures):
-    print('Codesign task(s) failed:\n' +
-          '\n\n'.join(f'\t{i}) {repr(f.note)}\n{repr(f.future.exception())}'
-                      for i, f in enumerate(crashed_signing_futures, start=1)))
-    sys.stdout.flush()
+    print_w_lock(
+        'Codesign task(s) failed:\n'
+        + '\n\n'.join(
+            f'\t{i}) {repr(f.note)}\n{repr(f.future.exception())}'
+            for i, f in enumerate(crashed_signing_futures, start=1)
+        )
+    )
     raise crashed_signing_futures[0].future.exception()
 
-  # TODO(b/228389039): Calling flush to work around an assert in the Python
-  # runtime when the stdout is flushed with large buffers. The actual issue is
-  # likely caused by a threading bug somewhere else.
-  #
-  # This is placed within this method as a common source of logging is from
-  # pending codesign tasks.
-  sys.stdout.flush()
 
 def _extract_zipped_dossier(zipped_dossier_path):
   """Unpacks a zipped dossier.
@@ -1026,7 +1037,7 @@ def _sign_archived_bundle(
       working_dir=working_dir,
       output_ipa=output_ipa,
   )
-  print('Output artifact is: %s' % output_ipa)
+  print_w_lock('Output artifact is: %s' % output_ipa)
 
 
 def _sign_bundle(parsed_args: argparse.Namespace) -> None:
@@ -1088,7 +1099,7 @@ def _sign_bundle(parsed_args: argparse.Namespace) -> None:
           output_artifact=output_artifact,
       )
       with tempfile.TemporaryDirectory() as working_dir:
-        print(
+        print_w_lock(
             'Working directory for combined zip extraction created: %s'
             % working_dir
         )
@@ -1126,7 +1137,9 @@ def _sign_bundle(parsed_args: argparse.Namespace) -> None:
           _check_common_archived_bundle_args(
               output_artifact=output_artifact,
           )
-          print('Working directory for ipa extraction is: %s' % working_dir)
+          print_w_lock(
+              'Working directory for ipa extraction is: %s' % working_dir
+          )
           _sign_archived_bundle(
               allowed_entitlements=allowed_entitlements,
               app_bundle_subdir='',
@@ -1162,7 +1175,7 @@ def _main():
   parser = generate_arg_parser()
   args = parser.parse_args()
   if not vars(args):
-    print('No additional args for dossier signing were found.')
+    print_w_lock('No additional args for dossier signing were found.')
     parser.print_help()
     sys.exit(1)
   sys.exit(args.func(args))
