@@ -161,15 +161,6 @@ def _j2objc_binary_linking_attrs(*, deps_cfg):
             cfg = deps_cfg,
             default = Label("@bazel_tools//tools/objc:dummy_lib"),
         ),
-        "_j2objc_dead_code_pruner": attr.label(
-            executable = True,
-            # Setting `allow_single_file=True` would be more correct. Unfortunately,
-            # doing so prevents using py_binary as the underlying target because py_binary
-            # produces at least _two_ output files (the executable plus any files in srcs)
-            allow_files = True,
-            cfg = "exec",
-            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
-        ),
         # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
         # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
         # See CompilationSupport.java:
