@@ -136,7 +136,7 @@ def _create_apple_rule(
         cfg = cfg,
         doc = doc,
         executable = is_executable,
-        fragments = ["apple", "cpp", "objc", "j2objc"],
+        fragments = ["apple", "cpp", "objc"],
         toolchains = toolchains,
         **extra_args
     )
