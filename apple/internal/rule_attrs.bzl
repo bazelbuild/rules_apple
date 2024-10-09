@@ -148,25 +148,16 @@ def _common_linking_api_attrs(*, deps_cfg):
         ),
     })
 
-def _j2objc_binary_linking_attrs(*, deps_cfg):
+def _j2objc_binary_linking_attrs():
     """Returns a dictionary of required attributes for J2ObjC processing code in native linking.
-
-    Args:
-        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
-            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
-            use the same transition.
     """
     return {
-        "_dummy_lib": attr.label(
-            cfg = deps_cfg,
-            default = Label("@bazel_tools//tools/objc:dummy_lib"),
-        ),
         # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
         # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
         # See CompilationSupport.java:
         # - `registerJ2ObjcDeadCodeRemovalActions()`
         # - `registerLinkActions()` --> `registerBinaryStripAction()`
-        # TODO(b/117932394): Remove this attribute once Bazel no longer uses xcrunwrapper.
+        # TODO(b/117932394): Remove this once Bazel 6 support is dropped.
         "_xcrunwrapper": attr.label(
             cfg = "exec",
             executable = True,
@@ -227,7 +218,7 @@ def _binary_linking_attrs(
     return dicts.add(
         extra_attrs,
         _common_linking_api_attrs(deps_cfg = deps_cfg),
-        _j2objc_binary_linking_attrs(deps_cfg = deps_cfg),
+        _j2objc_binary_linking_attrs(),
         {
             "codesign_inputs": attr.label_list(
                 doc = """
