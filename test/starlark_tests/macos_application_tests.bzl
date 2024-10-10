@@ -15,10 +15,6 @@
 """macos_application Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -362,17 +358,6 @@ def macos_application_test_suite(name):
         expected_values = {
             "LSMinimumSystemVersion": "11.0",
         },
-        tags = [name],
-    )
-
-    # Verify importing versioned framework with tree artifacts enabled fails.
-    analysis_failure_message_with_tree_artifact_outputs_test(
-        name = "{}_fails_with_imported_versioned_framework_and_tree_artifact_outputs".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
-        expected_error = (
-            "The apple_dynamic_framework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
-        ),
         tags = [name],
     )
 
