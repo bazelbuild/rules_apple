@@ -17,7 +17,7 @@ bazel_dep(
 
 bazel_dep(
     name = "stardoc",
-    version = "0.6.2",
+    version = "0.7.1",
     dev_dependency = True,
     repo_name = "io_bazel_stardoc",
 )
