@@ -572,17 +572,28 @@ if [[ "${ERROR_ON_NO_TESTS_RAN:-1}" == "1" ]]; then
   # Fail when bundle executes nothing
   no_tests_ran=false
   if [[ $parallel_testing_enabled == true ]]; then
+    echo "Parallel testing is enabled" >&2
     # When executing tests in parallel, test start markers are absent when no
     # tests are run.
-    test_execution_count=$(grep -c -e "Test suite '.*' started*" "$testlog")
+    test_execution_count=$(grep -c -e "Test suite '.*' started.*" "$testlog")
     if [[ "$test_execution_count" == "0" ]]; then
       no_tests_ran=true
     fi
   else
+    echo "Testing is serialized" >&2
     # Assume the final 'Executed N tests' or 'Executed 1 test' is the
     # total execution count for the test bundle.
-    test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
-    if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
+    xctest_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} test.*," "$testlog" | tail -n1)
+    swift_testing_target_execution_count=$(grep -e "Test run with [[:digit:]]\{1,\} test.*" "$testlog" | tail -n1 || true)
+    if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+      [ -z "$swift_testing_target_execution_count" ] ; then
+      echo "No tests ran -> no count lines found" >&2
+      no_tests_ran=true
+    fi
+
+    if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+      echo "$swift_testing_target_execution_count" | grep -q -e "Test run with 0 tests" ; then
+      echo "No tests ran -> count line was 0" >&2
       no_tests_ran=true
     fi
   fi
