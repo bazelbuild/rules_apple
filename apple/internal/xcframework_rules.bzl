@@ -1002,33 +1002,49 @@ def _apple_xcframework_impl(ctx):
         rule_label = rule_label,
     )
 
+    extra_linkopts = []
+
+    # Computing for all deps, rather than a subset via the `ctx.split_attr` interface.
+    if swift_support.uses_swift(ctx.attr.deps):
+        # This must always go in front of the rpath for Frameworks, as we must prioritize system
+        # Swift libraries over the ones supplied by the framework bundle.
+        #
+        # Further, we need to do this here because we can't supply an accurate structure for
+        # platform_preerequisites until the splits are known from the transition on "deps" and the
+        # results of link_multi_arch_binary(...).
+        extra_linkopts.append("-Wl,-rpath,/usr/lib/swift")
+
+    extra_linkopts.extend([
+        # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
+        # Application.app/Frameworks/Framework.framework/Framework
+        # watchOS 2 extension-dependent app framework binaries live in
+        # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
+        #
+        # iOS, tvOS, visionOS and watchOS single target app frameworks are packaged in
+        # Application.app/Frameworks
+        # watchOS 2 extension-dependent app frameworks are packaged in
+        # Application.app/PlugIns/Extension.appex/Frameworks
+        #
+        # While different, these resolve to the same paths relative to their respective
+        # executables. Only macOS (which is not yet supported) is an outlier; this will require
+        # changes to native Bazel linking logic for Apple binary targets or clever use of CcInfo
+        # providers through a split transition.
+        "-Wl,-rpath,@executable_path/Frameworks",
+        "-install_name",
+        "@rpath/{name}.framework/{name}".format(
+            name = bundle_name,
+        ),
+    ])
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = [
-            # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
-            # Application.app/Frameworks/Framework.framework/Framework
-            # watchOS 2 extension-dependent app framework binaries live in
-            # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
-            #
-            # iOS, tvOS, visionOS and watchOS single target app frameworks are packaged in
-            # Application.app/Frameworks
-            # watchOS 2 extension-dependent app frameworks are packaged in
-            # Application.app/PlugIns/Extension.appex/Frameworks
-            #
-            # While different, these resolve to the same paths relative to their respective
-            # executables. Only macOS (which is not yet supported) is an outlier; this will require
-            # changes to native Bazel linking logic for Apple binary targets or clever use of CcInfo
-            # providers through a split transition.
-            "-Wl,-rpath,@executable_path/Frameworks",
-            "-install_name",
-            "@rpath/{name}.framework/{name}".format(
-                name = bundle_name,
-            ),
-        ],
+        extra_linkopts = extra_linkopts,
         extra_requested_features = ["link_dylib"],
+        # platform_prerequisites only contains knowledge for a specific platform; as we can have
+        # multiple set, we supply the platform-specific values through extra_linkopts instead.
         platform_prerequisites = None,
         # All required knowledge for 3P facing frameworks is passed directly through the given
         # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.

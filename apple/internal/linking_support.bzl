@@ -194,6 +194,9 @@ def _register_binary_linking_action(
         )
         link_inputs.append(der_entitlements)
 
+    if platform_prerequisites and platform_prerequisites.uses_swift:
+        linkopts.append("-Wl,-rpath,/usr/lib/swift")
+
     # TODO(b/248317958): Migrate rule_descriptor.rpaths as direct inputs of the extra_linkopts arg
     # on this method.
     if rule_descriptor:
