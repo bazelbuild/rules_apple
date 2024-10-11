@@ -67,6 +67,7 @@ py_test(
         "//test/starlark_tests/targets_under_test/watchos:app_companion",
     ],
     python_version = "PY3",
+    tags = ["requires-darwin"],
     deps = [
         ":dossier_codesigning_reader_lib",
         "@absl_py//absl/testing:parameterized",
