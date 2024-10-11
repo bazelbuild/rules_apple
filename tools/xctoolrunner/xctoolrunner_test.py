@@ -59,6 +59,7 @@ class TestMomcTool(unittest.TestCase):
     self.execute_patch = execute_patch.start()
     self.addCleanup(execute_patch.stop)
 
+  @unittest.skip('b/372928311 - requires running on a Mac.')
   def testRaisesFileNotFoundError(self):
     args = [
         "momc",
@@ -75,6 +76,7 @@ class TestMomcTool(unittest.TestCase):
         FileNotFoundError, "xcrun momc did not generate artifacts.*"):
       xctoolrunner.main(args)
 
+  @unittest.skip('b/372928311 - requires running on a Mac.')
   def testRaisesSystemExit(self):
     args = ["momc", "--action", "generate", self.momc_input, self.momc_output]
     self.execute_patch.return_value = (0, None, None)

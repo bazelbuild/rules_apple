@@ -722,6 +722,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           ['Payload', 'WatchKitSupport2'],
       ),
   )
+  @unittest.skip('b/372928311 - requires running on a Mac.')
   def test_extract_and_package_flow(
       self, unsigned_archive_path, app_name, app_bundle_subdir, expected_folders
   ):
