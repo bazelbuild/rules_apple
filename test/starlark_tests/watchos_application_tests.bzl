@@ -253,17 +253,6 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
-    # Tests inclusion of extensions within Watch extensions
-    archive_contents_test(
-        name = "{}_contains_watchos_extension_extension".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",
-        contains = [
-            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/PlugIns/watchos_app_extension.appex/watchos_app_extension",
-        ],
-        tags = [name],
-    )
-
     # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
     archive_contents_test(
         name = "{}_contains_tsan_dylib_simulator_test".format(name),
@@ -275,7 +264,7 @@ def watchos_application_test_suite(name):
         },
         contains = [
             "$BUNDLE_ROOT/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib",
-            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libclang_rt.tsan_watchossim_dynamic.dylib",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/watchos_app_extension.appex/Frameworks/libclang_rt.tsan_watchossim_dynamic.dylib",
         ],
         sanitizer = "tsan",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension",

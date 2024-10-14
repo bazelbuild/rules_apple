@@ -509,8 +509,6 @@ def _watchos_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
-    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -560,7 +558,6 @@ def _watchos_extension_impl(ctx):
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
-            embedded_targets = ctx.attr.extensions,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -572,7 +569,6 @@ def _watchos_extension_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.extensions,
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
@@ -583,9 +579,7 @@ def _watchos_extension_impl(ctx):
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
-            bundle_embedded_bundles = True,
             platform_prerequisites = platform_prerequisites,
-            embeddable_targets = ctx.attr.extensions,
             plugins = [archive],
         ),
         # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
@@ -607,7 +601,6 @@ def _watchos_extension_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
-            bundle_verification_targets = bundle_verification_targets,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
@@ -626,7 +619,6 @@ def _watchos_extension_impl(ctx):
             binary_artifact = binary_artifact,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
-            dependency_targets = ctx.attr.extensions,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -1044,16 +1036,5 @@ watchos_extension = rule_factory.create_apple_rule(
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.watchos2_app_extension,
         ),
-        {
-            # TODO(b/155313625): Support extensions within a `watchos_extension`, add validation to
-            # make sure that this is only possible within an extension that contains code for the
-            # watchOS 2 extension delegate and not other types of watchOS extensions.
-            "extensions": attr.label_list(
-                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
-                doc = """
-A list of watchOS application extensions to include in the final watch extension bundle.
-""",
-            ),
-        },
     ],
 )

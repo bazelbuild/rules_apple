@@ -297,23 +297,6 @@ watchos_extension(
     bundle_id = "com.google.example.watchosext.nestedwatchosext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-watchos_extension(
-    name = "watchos_ext_with_extension",
-    bundle_id = "com.google.example.watchosext",
-    bundle_name = "ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    extensions = [":watchos_app_extension"],
-    infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
     minimum_os_version = common.min_os_watchos.baseline,
@@ -329,7 +312,7 @@ watchos_application(
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
     bundle_name = "app",
-    extension = ":watchos_ext_with_extension",
+    extension = ":watchos_app_extension",
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
