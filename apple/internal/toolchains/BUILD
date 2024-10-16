@@ -9,6 +9,10 @@ load(
     "apple_xplat_tools_toolchain",
 )
 
+package(
+    default_visibility = ["//apple/internal/toolchains:__subpackages__"],
+)
+
 licenses(["notice"])
 
 toolchain_type(name = "mac_tools_toolchain_type")

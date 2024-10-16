@@ -4,7 +4,7 @@ sh_binary(
     name = "environment_plist",
     srcs = ["environment_plist.sh"],
     visibility = [
-        "//apple/internal/toolchains:__pkg__",
+        "//apple/internal/toolchains:__subpackages__",
     ],
 )
 

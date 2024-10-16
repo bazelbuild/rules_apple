@@ -3,7 +3,7 @@ licenses(["notice"])
 filegroup(
     name = "dsym_info_plist_template",
     srcs = ["dSYM-Info.plist.template"],
-    visibility = ["//apple/internal/toolchains:__pkg__"],
+    visibility = ["//apple/internal/toolchains:__subpackages__"],
 )
 
 filegroup(

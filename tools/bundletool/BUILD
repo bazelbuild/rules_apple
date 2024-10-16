@@ -6,7 +6,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
-        "//apple/internal/toolchains:__pkg__",
+        "//apple/internal/toolchains:__subpackages__",
     ],
     deps = [":bundletool_lib"],
 )
@@ -23,7 +23,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
-        "//apple/internal/toolchains:__pkg__",
+        "//apple/internal/toolchains:__subpackages__",
     ],
 )
 
@@ -40,7 +40,7 @@ filegroup(
     name = "process_and_sign_template",
     srcs = ["process_and_sign.sh.template"],
     visibility = [
-        "//apple/internal/toolchains:__pkg__",
+        "//apple/internal/toolchains:__subpackages__",
     ],
 )
 

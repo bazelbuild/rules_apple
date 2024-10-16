@@ -9,7 +9,7 @@ py_binary(
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
-        "//apple/internal/toolchains:__pkg__",
+        "//apple/internal/toolchains:__subpackages__",
     ],
     deps = [":xctoolrunner_lib"],
 )
