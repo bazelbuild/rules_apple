@@ -15,8 +15,6 @@
 """Partial implementation for processing AppIntents metadata bundle."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
-load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
-load("@build_bazel_rules_apple//apple/internal:linking_support.bzl", "linking_support")
 load("@build_bazel_rules_apple//apple/internal:processor.bzl", "processor")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
@@ -33,10 +31,7 @@ def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
         app_intent,
-        cc_configured_features_init,
         cc_toolchains,
-        disabled_features,
-        features,
         label,
         mac_exec_group,
         platform_prerequisites):
@@ -44,51 +39,6 @@ def _app_intents_metadata_bundle_partial_impl(
     if not app_intent:
         # No `app_intents` were set by the rule calling this partial.
         return struct()
-
-    # Link 'stub' binary to use for app intents metadata processing.
-    # This binary should only contain symbols for structs implementing the AppIntents protocol.
-    # Instead of containing all the application/extension/framework binary symbols, allowing
-    # the action to run faster and avoid depending on the application binary linking step.
-    link_result = linking_support.link_multi_arch_binary(
-        actions = actions,
-        cc_configured_features_init = cc_configured_features_init,
-        cc_toolchains = cc_toolchains,
-        deps = app_intent,
-        disabled_features = disabled_features,
-        features = features,
-        label = label,
-        user_link_flags = [
-            # Ignore unresolved symbols if possible as this 'stub' binary does not need to be
-            # executable, we only use it as a proxy for scanning symbols to generate the metadata
-            # bundle from. This covers `_main` and any other symbols that will be unresolved for
-            # the subset of code referenced via the `app_intents` attribute on the rule.
-            "-Wl,-undefined,dynamic_lookup",
-            # Suppress linker warnings, which avoids warnings on the stub binary that shouldn't
-            # affect the main app binary. This is particularly needed to avoid a deprecation warning
-            # to avoid printing "ld: warning: -undefined dynamic_lookup is deprecated on iOS" even
-            # though it's still supported in Xcode 15.1 beta.
-            "-Wl,-w",
-        ],
-    )
-
-    fat_stub_binary = intermediates.file(
-        actions = actions,
-        target_name = label.name,
-        output_discriminator = None,
-        file_name = "{}_app_intents_stub_binary".format(label.name),
-    )
-
-    linking_support.lipo_or_symlink_inputs(
-        actions = actions,
-        inputs = [output.binary for output in link_result.outputs],
-        output = fat_stub_binary,
-        apple_fragment = platform_prerequisites.apple_fragment,
-        xcode_config = platform_prerequisites.xcode_version_config,
-    )
-
-    label.relative(
-        label.name + "_app_intents_stub_binary",
-    )
 
     # Mirroring Xcode 15+ behavior, the metadata tool only looks at the first split for a given arch
     # rather than every possible set of source files and inputs. Oddly, this only applies to the
@@ -99,7 +49,6 @@ def _app_intents_metadata_bundle_partial_impl(
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
-        bundle_binary = fat_stub_binary,
         constvalues_files = [
             swiftconstvalues_file
             for swiftconstvalues_file in first_app_intents_info.swiftconstvalues_files
@@ -137,10 +86,7 @@ def app_intents_metadata_bundle_partial(
         *,
         actions,
         app_intent,
-        cc_configured_features_init,
         cc_toolchains,
-        disabled_features,
-        features,
         label,
         mac_exec_group,
         platform_prerequisites):
@@ -152,12 +98,8 @@ def app_intents_metadata_bundle_partial(
         actions: The actions provider from ctx.actions.
         app_intent: Dictionary for one target under a split transition implementing the AppIntents
             protocol.
-        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
-            without the need for a `ctx`.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
-        disabled_features: List of features to be disabled for C++ link actions.
-        features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -168,10 +110,7 @@ def app_intents_metadata_bundle_partial(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
         app_intent = app_intent,
-        cc_configured_features_init = cc_configured_features_init,
         cc_toolchains = cc_toolchains,
-        disabled_features = disabled_features,
-        features = features,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,

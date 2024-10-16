@@ -286,7 +286,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":cc_toolchain_info_support",
         ":entitlements_support",
         "@build_bazel_apple_support//lib:lipo",
     ],

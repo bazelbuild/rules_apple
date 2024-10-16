@@ -32,7 +32,6 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
 def generate_app_intents_metadata_bundle(
         *,
         actions,
-        bundle_binary,
         constvalues_files,
         intents_module_names,
         label,
@@ -44,7 +43,6 @@ def generate_app_intents_metadata_bundle(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        bundle_binary: File referencing an application/extension/framework binary.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
         intents_module_names: List of Strings with the module names corresponding to the modules
@@ -70,16 +68,10 @@ def generate_app_intents_metadata_bundle(
     args = actions.args()
     args.add("appintentsmetadataprocessor")
 
-    direct_inputs = []
-    if (xcode_version_config.xcode_version() >= apple_common.dotted_version("15.3") and
-        not platform_prerequisites.build_settings.force_app_intents_linked_binary):
-        # FB347041279: Though this is not required for --compile-time-extraction, which is the only
-        # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
-        # required by the appintentsmetadataprocessor.
-        args.add("--binary-file", "/bazel_rules_apple/fakepath")
-    else:
-        args.add("--binary-file", bundle_binary)
-        direct_inputs.append(bundle_binary)
+    # FB347041279: Though this is not required for --compile-time-extraction, which is the only
+    # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
+    # required by the appintentsmetadataprocessor.
+    args.add("--binary-file", "/bazel_rules_apple/fakepath")
 
     if len(intents_module_names) > 1:
         fail("""
@@ -103,11 +95,10 @@ Could not find a module name for app_intents. One is required for App Intents me
     )
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
-    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.1"):
-        platform_type_string = str(platform_prerequisites.platform_type)
-        platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]
-        args.add("--platform-family", platform_family)
-        args.add("--deployment-target", platform_prerequisites.minimum_os)
+    platform_type_string = str(platform_prerequisites.platform_type)
+    platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]
+    args.add("--platform-family", platform_family)
+    args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
@@ -118,18 +109,18 @@ Could not find a module name for app_intents. One is required for App Intents me
     )
     transitive_inputs.append(depset(constvalues_files))
     args.add("--compile-time-extraction")
-    if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.3"):
-        # Read the build version from the fourth component of the Xcode version.
-        xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
-        if len(xcode_version_split) < 4:
-            fail("""\
+
+    # Read the build version from the fourth component of the Xcode version.
+    xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
+    if len(xcode_version_split) < 4:
+        fail("""\
 Internal Error: Expected xcode_config to report the Xcode version with the build version as the \
 fourth component of the full version string, but instead found {xcode_version_string}. Please file \
 an issue with the Apple BUILD rules with repro steps.
 """.format(
-                xcode_version_string = str(xcode_version_config.xcode_version()),
-            ))
-        args.add("--xcode-version", xcode_version_split[3])
+            xcode_version_string = str(xcode_version_config.xcode_version()),
+        ))
+    args.add("--xcode-version", xcode_version_split[3])
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.0"):
         args.add("--validate-assistant-intents")
 
@@ -139,7 +130,7 @@ an issue with the Apple BUILD rules with repro steps.
         arguments = [args],
         executable = "/usr/bin/xcrun",
         exec_group = mac_exec_group,
-        inputs = depset(direct_inputs, transitive = transitive_inputs),
+        inputs = depset(transitive = transitive_inputs),
         mnemonic = "AppIntentsMetadataProcessor",
         outputs = [output],
         xcode_config = xcode_version_config,

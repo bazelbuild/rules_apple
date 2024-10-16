@@ -16,10 +16,6 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
-    "cc_toolchain_info_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -303,142 +299,8 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
         # Symlink if there was only a single architecture created; it's faster.
         actions.symlink(target_file = inputs[0], output = output)
 
-def _link_multi_arch_binary(
-        *,
-        actions,
-        additional_inputs = [],
-        cc_configured_features_init,
-        cc_toolchains,
-        deps,
-        disabled_features,
-        features,
-        label,
-        stamp = -1,
-        user_link_flags = []):
-    """Experimental Starlark version of multiple architecture binary linking action.
-
-    This Stalark version is an experimental re-write of the apple_common.link_multi_arch_binary API
-    with minimal support for linking multiple architecture binaries from split dependencies.
-
-    Specifically, this lacks support for:
-        - Generating Apple dSYM binaries.
-        - Generating Objective-C linkmaps.
-        - Avoid linking symbols from Objective-C(++) dependencies (i.e. avoid_deps).
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        additional_inputs: List of additional `File`s required for the C++ linking action (e.g.
-            linking scripts).
-        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
-            without the need for a `ctx`.
-        cc_toolchains: Dictionary of targets (`ctx.split_attr`) containing CcToolchainInfo
-            providers to use for C++ actions.
-        deps: Dictionary of targets (`ctx.split_attr`) referencing dependencies for a given target
-            to retrieve transitive CcInfo providers for C++ linking action.
-        disabled_features: List of features to be disabled for C++ actions.
-        features: List of features to be enabled for C++ actions.
-        label: Label for the current target (`ctx.label`).
-        stamp: Boolean to indicate whether to include build information in the linked binary.
-            If 1, build information is always included.
-            If 0, the default build information is always excluded.
-            If -1, uses the default behavior, which may be overridden by the --[no]stamp flag.
-            This should be set to 0 when generating the executable output for test rules.
-        user_link_flags: List of `str` user link flags to add to the C++ linking action.
-    Returns:
-        A struct containing the following information:
-            - cc_info: Merged CcInfo providers from each linked binary CcInfo provider.
-            - output_groups: OutputGroupInfo provider with CcInfo validation artifacts.
-            - outputs: List of `struct`s containing the linking output information below.
-                - architecture: The target Apple architecture.
-                - binary: `File` referencing the linked binary.
-                - environment: The target Apple environment.
-                - platform: The target Apple platform/os.
-    """
-    if type(deps) != "dict" or type(cc_toolchains) != "dict":
-        fail(
-            "Expected deps and cc_toolchains to be split attributes (dictionaries).\n",
-            "deps: %s\n" % deps,
-            "cc_toolchains: %s" % cc_toolchains,
-        )
-
-    if deps.keys() != cc_toolchains.keys():
-        fail(
-            "Expected deps and cc_toolchains split attribute keys to match",
-            "deps: %s\n" % deps.keys(),
-            "cc_toolchains: %s\n" % cc_toolchains.keys(),
-        )
-
-    all_cc_infos = []
-    linking_outputs = []
-    validation_artifacts = []
-    for split_attr_key, cc_toolchain_target in cc_toolchains.items():
-        cc_toolchain = cc_toolchain_target[cc_common.CcToolchainInfo]
-        target_triple = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
-
-        feature_configuration = cc_configured_features_init(
-            cc_toolchain = cc_toolchain,
-            language = "objc",
-            requested_features = features,
-            unsupported_features = disabled_features,
-        )
-
-        cc_infos = []
-        if type(deps[split_attr_key]) == "list":
-            cc_infos = [
-                dep[CcInfo]
-                for dep in deps[split_attr_key]
-                if CcInfo in dep
-            ]
-        elif CcInfo in deps[split_attr_key]:
-            cc_infos = [deps[split_attr_key][CcInfo]]
-        all_cc_infos.extend(cc_infos)
-
-        cc_linking_contexts = [cc_info.linking_context for cc_info in cc_infos]
-        output_name = "{label}_{os}_{architecture}_bin".format(
-            architecture = target_triple.architecture,
-            label = label.name,
-            os = target_triple.os,
-        )
-        linking_output = cc_common.link(
-            actions = actions,
-            additional_inputs = additional_inputs,
-            cc_toolchain = cc_toolchain,
-            feature_configuration = feature_configuration,
-            linking_contexts = cc_linking_contexts,
-            name = output_name,
-            stamp = stamp,
-            user_link_flags = user_link_flags,
-        )
-
-        validation_artifacts.extend([
-            cc_info.compilation_context.validation_artifacts
-            for cc_info in cc_infos
-        ])
-
-        linking_outputs.append(
-            struct(
-                architecture = target_triple.architecture,
-                binary = linking_output.executable,
-                environment = target_triple.environment,
-                platform = target_triple.os,
-            ),
-        )
-
-    return struct(
-        cc_info = cc_common.merge_cc_infos(
-            cc_infos = all_cc_infos,
-        ),
-        output_groups = {
-            "_validation": depset(
-                transitive = validation_artifacts,
-            ),
-        },
-        outputs = linking_outputs,
-    )
-
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
-    link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_linking_action = _register_static_library_linking_action,
