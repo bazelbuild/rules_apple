@@ -342,7 +342,6 @@ bzl_library(
     ],
     deps = [
         ":apple_toolchains",
-        ":cc_toolchain_info_support",
         ":compilation_support",
         ":entitlements_support",
         ":intermediates",
