@@ -42,14 +42,6 @@ filegroup(
 
 # ----------------------------------------------------------------------------
 
-# Tests that end up needing things like ibtool or actool run under the hood
-# are better off as a dedicated *_resources_test.sh that can then be marked
-# with `flaky = 1`. When building for some Apple platforms, the tools can end
-# up talking to other services running on the machine (CoreSimulator) during
-# the build and flake/fail. So by grouping them and marking them as flaky, it
-# allows bazel to auto retry them and help minimize the unreliability in those
-# tools.
-
 apple_shell_test(
     name = "apple_bundle_version_test",
     size = "medium",
@@ -73,7 +65,6 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
-    flaky = 1,
 )
 
 apple_multi_shell_test(
