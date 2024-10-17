@@ -33,7 +33,7 @@ def generate_app_intents_metadata_bundle(
         *,
         actions,
         constvalues_files,
-        intents_module_names,
+        intents_module_name,
         label,
         mac_exec_group,
         platform_prerequisites,
@@ -45,8 +45,8 @@ def generate_app_intents_metadata_bundle(
         actions: The actions provider from `ctx.actions`.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
-        intents_module_names: List of Strings with the module names corresponding to the modules
-            found which have intents compiled.
+        intents_module_name: A String with the module name corresponding to the module found which
+            defines a set of compiled App Intents.
         label: Label for the current target (`ctx.label`).
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -72,22 +72,7 @@ def generate_app_intents_metadata_bundle(
     # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
     # required by the appintentsmetadataprocessor.
     args.add("--binary-file", "/bazel_rules_apple/fakepath")
-
-    if len(intents_module_names) > 1:
-        fail("""
-Found the following module names in the top level target {label} for app_intents: {intents_module_names}
-
-App Intents must have only one module name for metadata generation to work correctly.
-""".format(
-            intents_module_names = ", ".join(intents_module_names),
-            label = str(label),
-        ))
-    elif len(intents_module_names) == 0:
-        fail("""
-Could not find a module name for app_intents. One is required for App Intents metadata generation.
-""")
-
-    args.add("--module-name", intents_module_names[0])
+    args.add("--module-name", intents_module_name)
     args.add("--output", output.dirname)
     args.add_all(
         source_files,

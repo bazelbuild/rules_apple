@@ -47,22 +47,33 @@ def _app_intents_metadata_bundle_partial_impl(
     first_cc_toolchain_key = cc_toolchains.keys()[0]
     first_app_intents_info = app_intent[first_cc_toolchain_key][AppIntentsInfo]
 
+    metadata_bundle_inputs = first_app_intents_info.metadata_bundle_inputs.to_list()
+    if len(metadata_bundle_inputs) != 1:
+        fail("""
+Internal Error: Expected only one metadata bundle input for App Intents, but found \
+{number_of_inputs} metadata bundle inputs instead.
+
+Please file an issue with the Apple BUILD rules with repro steps.
+""".format(
+            number_of_inputs = len(metadata_bundle_inputs),
+        ))
+
+    # TODO(b/365825041): Support App Intents from multiple modules, starting with frameworks.
+    metadata_bundle_input = metadata_bundle_inputs[0]
+
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
         constvalues_files = [
             swiftconstvalues_file
-            for swiftconstvalues_file in first_app_intents_info.swiftconstvalues_files
+            for swiftconstvalues_file in metadata_bundle_input.swiftconstvalues_files
         ],
-        intents_module_names = [
-            intent_module_name
-            for intent_module_name in first_app_intents_info.intent_module_names
-        ],
+        intents_module_name = metadata_bundle_input.module_name,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         source_files = [
             swift_source_file
-            for swift_source_file in first_app_intents_info.swift_source_files
+            for swift_source_file in metadata_bundle_input.swift_source_files
         ],
         target_triples = [
             cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name

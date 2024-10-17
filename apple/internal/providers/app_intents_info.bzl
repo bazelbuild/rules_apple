@@ -19,11 +19,16 @@ visibility("//apple/internal/...")
 AppIntentsInfo = provider(
     doc = "Private provider to propagate source files required by AppIntents processing.",
     fields = {
-        "intent_module_names": """
-A List with the module names where App Intents are expected to be found.""",
-        "swift_source_files": """
-A List with the swift source Files to handle via app intents processing.""",
-        "swiftconstvalues_files": """
-A List with the swiftconstvalues Files to handle via app intents processing for Xcode 15+.""",
+        "metadata_bundle_inputs": """
+A depset of structs with the following fields, which represent providers from targets that have
+providers that must be processed at the top level bundling rule through the
+`app_intents_metadata_bundle` partial:
+
+*   `module_name`: a String representing the module name that these files belong to.
+
+*   `swift_source_files`: A depset of the Swift source files for this module.
+
+*   `swiftconstvalues_files`:  A depset of the swiftconstvalues files for this module.
+""",
     },
 )
