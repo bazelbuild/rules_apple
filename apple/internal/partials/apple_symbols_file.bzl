@@ -35,12 +35,9 @@ load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
-
-_AppleSymbolsFileInfo = provider(
-    doc = "Private provider to propagate the transitive .symbols `File`s.",
-    fields = {
-        "symbols_output_dirs": "Depset of `File`s containing directories of $UUID.symbols files for transitive dependencies.",
-    },
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_symbols_file_info.bzl",
+    "AppleSymbolsFileInfo",
 )
 
 def _apple_symbols_file_partial_impl(
@@ -89,9 +86,9 @@ def _apple_symbols_file_partial_impl(
     transitive_output_files = depset(
         direct = outputs,
         transitive = [
-            x[_AppleSymbolsFileInfo].symbols_output_dirs
+            x[AppleSymbolsFileInfo].symbols_output_dirs
             for x in dependency_targets
-            if _AppleSymbolsFileInfo in x
+            if AppleSymbolsFileInfo in x
         ],
     )
 
@@ -102,7 +99,7 @@ def _apple_symbols_file_partial_impl(
 
     return struct(
         bundle_files = bundle_files,
-        providers = [_AppleSymbolsFileInfo(symbols_output_dirs = transitive_output_files)],
+        providers = [AppleSymbolsFileInfo(symbols_output_dirs = transitive_output_files)],
     )
 
 def apple_symbols_file_partial(
