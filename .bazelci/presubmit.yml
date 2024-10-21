@@ -43,5 +43,8 @@ tasks:
     platform: ubuntu2004
     test_targets:
     - "doc/..."
+    test_flags:
+    # TODO: Remove this once stardoc is updated to 0.7.1+ (https://github.com/bazelbuild/stardoc/pull/238)
+    - --noincompatible_disallow_empty_glob
 
 buildifier: 6.4.0
