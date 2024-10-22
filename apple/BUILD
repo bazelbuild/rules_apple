@@ -43,6 +43,7 @@ bzl_library(
         "//apple/internal:experimental_mixed_language_library",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -121,6 +122,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:ios_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -144,6 +146,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:macos_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -178,6 +181,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_precompiled_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -189,6 +193,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:tvos_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -221,6 +226,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:visionos_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
@@ -238,6 +244,7 @@ bzl_library(
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:watchos_rules",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
 
