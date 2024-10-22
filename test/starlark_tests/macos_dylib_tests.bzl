@@ -113,10 +113,10 @@ def macos_dylib_test_suite(name):
     )
 
     apple_verification_test(
-        name = "{}_bundle_id_entitlements_test".format(name),
+        name = "{}_bundle_id_in_codesigning_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
-        verifier_script = "verifier_scripts/bundle_id_entitlements_verifier.sh",
+        verifier_script = "verifier_scripts/bundle_id_codesigning_verifier.sh",
         tags = [name],
     )
 
