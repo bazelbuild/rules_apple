@@ -54,7 +54,8 @@ load(
 
 def _apple_precompiled_resource_bundle_impl(ctx):
     # Owner to attach to the resources as they're being bucketed.
-    owner = str(ctx.label)
+    label = ctx.label
+    owner = str(label)
     bucketize_args = {}
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -67,6 +68,8 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
 
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -84,16 +87,16 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
-    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_".format(ctx.attr.bundle_name or ctx.label.name)
+    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or label.name)
+    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_".format(ctx.attr.bundle_name or label.name)
 
     apple_resource_infos = []
     process_args = {
-        "actions": ctx.actions,
-        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "actions": actions,
+        "apple_mac_toolchain_info": apple_mac_toolchain_info,
         "bundle_id": bundle_id,
         "product_type": rule_descriptor.product_type,
-        "rule_label": ctx.label,
+        "rule_label": label,
     }
 
     resource_files = resources.collect(
