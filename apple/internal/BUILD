@@ -812,6 +812,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "xctrunner",
+    srcs = ["xctrunner.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal/providers:apple_debug_info",
+    ],
+)
+
+bzl_library(
     name = "docc",
     srcs = ["docc.bzl"],
     visibility = [
