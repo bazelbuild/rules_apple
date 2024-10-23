@@ -124,15 +124,10 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         res_attrs = ["structured_resources"],
     )
     if structured_files:
-        if bundle_name:
-            structured_parent_dir_param = partial.make(
-                resources.structured_resources_parent_dir,
-                parent_dir = bundle_name,
-            )
-        else:
-            structured_parent_dir_param = partial.make(
-                resources.structured_resources_parent_dir,
-            )
+        structured_parent_dir_param = partial.make(
+            resources.structured_resources_parent_dir,
+            parent_dir = bundle_name,
+        )
 
         # Avoid processing PNG files that are referenced through the structured_resources
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
