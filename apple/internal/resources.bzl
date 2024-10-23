@@ -85,21 +85,19 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
+    "PROVIDER_TO_FIELD_ACTION",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
 
-_CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
-    "infoplists": (resources_support.infoplists, False),
-    "plists": (resources_support.plists_and_strings, False),
-    "pngs": (resources_support.pngs, False),
-    "strings": (resources_support.plists_and_strings, False),
-}
-
-_PROCESSED_FIELDS = _CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
+_CACHEABLE_PROVIDER_FIELDS = [
+    "infoplists",
+    "plists",
+    "pngs",
+    "strings",
+]
 
 def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
     """Helper method to always get an attribute as a list within an existing list.
@@ -446,38 +444,54 @@ def _process_bucketized_data(
         platform_prerequisites,
         processing_owner = None,
         product_type,
+        resource_types_to_process = _CACHEABLE_PROVIDER_FIELDS,
         rule_label,
         unowned_resources = []):
-    """Registers actions for cacheable resource types, given bucketized groupings of data.
+    """Registers actions for select resource types, given bucketized groupings of data.
 
-    This method performs the same actions as bucketize_data, and further iterates through a subset
-    of supported resource types to register actions to process them as necessary before returning an
-    AppleResourceInfo. This AppleResourceInfo has an additional field, called "processed", featuring
-    the expected outputs for each of the actions declared in this method.
+    This method performs the same actions as bucketize_data, and further
+    iterates through a subset of resource types to register actions to process
+    them as necessary before returning an AppleResourceInfo. This
+    AppleResourceInfo has an additional field, called "processed", featuring the
+    expected outputs for each of the actions declared in this method.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-        bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
-        buckets: A dictionary with bucketized resources organized by resource type.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple
+            toolchain.
+        bucketized_owners: A list of tuples indicating the owner of each
+            bucketized resource.
+        buckets: A dictionary with bucketized resources organized by resource
+            type.
         bundle_id: The bundle ID to configure for this target.
-        output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        processing_owner: An optional string that has a unique identifier to the target that should
-            own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        product_type: The product type identifier used to describe the current bundle type.
+        output_discriminator: A string to differentiate between different target
+            intermediate files or `None`.
+        platform_prerequisites: Struct containing information on the platform
+            being targeted.
+        processing_owner: An optional string that has a unique identifier to the
+            target that should own the resources. If an owner should be passed,
+            it's usually equal to `str(ctx.label)`.
+        product_type: The product type identifier used to describe the current
+            bundle type.
+        resource_types_to_process: A list of bucket types to process.
         rule_label: The label of the target being analyzed.
         unowned_resources: A list of "unowned" resources.
 
     Returns:
-        An AppleResourceInfo provider with resources bucketized according to type.
+        An AppleResourceInfo provider with resources bucketized according to
+        type.
     """
 
     # Keep a list to reference what the processed files are based from.
     processed_origins = []
 
-    for bucket_name, bucket_action in _CACHEABLE_PROVIDER_FIELD_TO_ACTION.items():
+    field_to_action_map = {}
+    for field in resource_types_to_process:
+        action = PROVIDER_TO_FIELD_ACTION.get(field)
+        if action:
+            field_to_action_map[field] = action
+
+    for bucket_name, bucket_action in field_to_action_map.items():
         processed_field = buckets.pop(bucket_name, default = None)
         if not processed_field:
             continue
@@ -492,6 +506,9 @@ def _process_bucketized_data(
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                # If asset catalogs are being processed, it's not the top-level
+                # target, so we don't support setting the primary icon name.
+                "primary_icon_name": None,
                 "product_type": product_type,
                 "rule_label": rule_label,
             }
@@ -910,7 +927,7 @@ def _deduplicate_field(
                 if path_origins in processed_deduplication_list:
                     continue
                 processed_deduplication_list.append(path_origins)
-            elif field in _PROCESSED_FIELDS:
+            elif field in _CACHEABLE_PROVIDER_FIELDS:
                 # Check for duplicates across fields that can be processed by a resource aspect, to
                 # avoid dupes between top-level fields and fields processed by the resource aspect.
                 all_path_origins = [
