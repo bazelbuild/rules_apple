@@ -154,10 +154,16 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             ),
         )
 
-    infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists", "_fallback_infoplist"],
-    )
+    if ctx.files.infoplists:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["infoplists"],
+        )
+    else:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["_fallback_infoplist"],
+        )
 
     if infoplists and apple_resource_infos:
         bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
