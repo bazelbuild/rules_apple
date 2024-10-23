@@ -544,15 +544,16 @@ Returns a list of field names of the provider's resource buckets that are non em
 resources_common.process_bucketized_data(<a href="#resources_common.process_bucketized_data-actions">actions</a>, <a href="#resources_common.process_bucketized_data-apple_mac_toolchain_info">apple_mac_toolchain_info</a>, <a href="#resources_common.process_bucketized_data-bucketized_owners">bucketized_owners</a>,
                                          <a href="#resources_common.process_bucketized_data-buckets">buckets</a>, <a href="#resources_common.process_bucketized_data-bundle_id">bundle_id</a>, <a href="#resources_common.process_bucketized_data-output_discriminator">output_discriminator</a>,
                                          <a href="#resources_common.process_bucketized_data-platform_prerequisites">platform_prerequisites</a>, <a href="#resources_common.process_bucketized_data-processing_owner">processing_owner</a>, <a href="#resources_common.process_bucketized_data-product_type">product_type</a>,
-                                         <a href="#resources_common.process_bucketized_data-rule_label">rule_label</a>, <a href="#resources_common.process_bucketized_data-unowned_resources">unowned_resources</a>)
+                                         <a href="#resources_common.process_bucketized_data-resource_types_to_process">resource_types_to_process</a>, <a href="#resources_common.process_bucketized_data-rule_label">rule_label</a>, <a href="#resources_common.process_bucketized_data-unowned_resources">unowned_resources</a>)
 </pre>
 
-Registers actions for cacheable resource types, given bucketized groupings of data.
+Registers actions for select resource types, given bucketized groupings of data.
 
-This method performs the same actions as bucketize_data, and further iterates through a subset
-of supported resource types to register actions to process them as necessary before returning an
-AppleResourceInfo. This AppleResourceInfo has an additional field, called "processed", featuring
-the expected outputs for each of the actions declared in this method.
+This method performs the same actions as bucketize_data, and further
+iterates through a subset of resource types to register actions to process
+them as necessary before returning an AppleResourceInfo. This
+AppleResourceInfo has an additional field, called "processed", featuring the
+expected outputs for each of the actions declared in this method.
 
 
 **PARAMETERS**
@@ -569,12 +570,14 @@ the expected outputs for each of the actions declared in this method.
 | <a id="resources_common.process_bucketized_data-platform_prerequisites"></a>platform_prerequisites |  Struct containing information on the platform being targeted.   |  none |
 | <a id="resources_common.process_bucketized_data-processing_owner"></a>processing_owner |  An optional string that has a unique identifier to the target that should own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.   |  `None` |
 | <a id="resources_common.process_bucketized_data-product_type"></a>product_type |  The product type identifier used to describe the current bundle type.   |  none |
+| <a id="resources_common.process_bucketized_data-resource_types_to_process"></a>resource_types_to_process |  A list of bucket types to process.   |  `["infoplists", "plists", "pngs", "strings"]` |
 | <a id="resources_common.process_bucketized_data-rule_label"></a>rule_label |  The label of the target being analyzed.   |  none |
 | <a id="resources_common.process_bucketized_data-unowned_resources"></a>unowned_resources |  A list of "unowned" resources.   |  `[]` |
 
 **RETURNS**
 
-An AppleResourceInfo provider with resources bucketized according to type.
+An AppleResourceInfo provider with resources bucketized according to
+  type.
 
 
 <a id="resources_common.runfiles_resources_parent_dir"></a>
