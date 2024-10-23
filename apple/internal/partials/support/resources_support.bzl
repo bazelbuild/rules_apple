@@ -704,6 +704,7 @@ def _texture_atlases(
     atlasc_files = []
     processed_origins = {}
     for atlas_path, files in atlases_groups.items():
+        input_files = files.to_list()
         atlasc_path = paths.join(
             parent_dir or "",
             paths.replace_extension(paths.basename(atlas_path), ".atlasc"),
@@ -714,10 +715,10 @@ def _texture_atlases(
             output_discriminator = output_discriminator,
             dir_name = atlasc_path,
         )
-        processed_origins[atlasc_dir.short_path] = [f.short_path for f in files]
+        processed_origins[atlasc_dir.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_texture_atlas(
             actions = actions,
-            input_files = files,
+            input_files = input_files,
             input_path = atlas_path,
             output_dir = atlasc_dir,
             platform_prerequisites = platform_prerequisites,
