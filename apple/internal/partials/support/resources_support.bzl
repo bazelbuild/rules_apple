@@ -714,7 +714,7 @@ def _texture_atlases(
             output_discriminator = output_discriminator,
             dir_name = atlasc_path,
         )
-        processed_origins[atlasc_dir.short_path] = [atlas_path.short_path]
+        processed_origins[atlasc_dir.short_path] = [f.short_path for f in files]
         resource_actions.compile_texture_atlas(
             actions = actions,
             input_files = files,
