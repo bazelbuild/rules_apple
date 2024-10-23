@@ -114,6 +114,18 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                resource_types_to_process = [
+                    "asset_catalogs",
+                    "datamodels",
+                    "metals",
+                    "mlmodels",
+                    "plists",
+                    "pngs",
+                    "storyboards",
+                    "strings",
+                    "texture_atlases",
+                    "xibs",
+                ],
                 unowned_resources = unowned_resources,
                 **process_args
             ),
@@ -149,6 +161,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                resource_types_to_process = ["strings", "plists"],
                 unowned_resources = unowned_resources,
                 **process_args
             ),
@@ -173,6 +186,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                resource_types_to_process = ["infoplists"],
                 unowned_resources = unowned_resources,
                 **process_args
             ),

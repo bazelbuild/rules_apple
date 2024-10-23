@@ -55,7 +55,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
+    "PROVIDER_TO_FIELD_ACTION",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
@@ -242,25 +242,6 @@ def _resources_partial_impl(
         if AppleResourceInfo in x
     ]
 
-    # Map of resource provider fields to a tuple that contains the method to use to process those
-    # resources and a boolean indicating whether the Swift module is required for that processing.
-    provider_field_to_action = {
-        "asset_catalogs": (resources_support.asset_catalogs, False),
-        "datamodels": (resources_support.datamodels, True),
-        "framework": (resources_support.apple_bundle(processor.location.framework), False),
-        "infoplists": (resources_support.infoplists, False),
-        "metals": (resources_support.metals, False),
-        "mlmodels": (resources_support.mlmodels, False),
-        "plists": (resources_support.plists_and_strings, False),
-        "pngs": (resources_support.pngs, False),
-        "processed": (resources_support.noop, False),
-        "storyboards": (resources_support.storyboards, True),
-        "strings": (resources_support.plists_and_strings, False),
-        "texture_atlases": (resources_support.texture_atlases, False),
-        "unprocessed": (resources_support.noop, False),
-        "xibs": (resources_support.xibs, True),
-    }
-
     # List containing all the files that the processor will bundle in their
     # configured location.
     bundle_files = []
@@ -274,7 +255,7 @@ def _resources_partial_impl(
     locales_dropped = sets.make()
 
     def _deduplicated_field_handler(field, deduplicated):
-        processing_func, requires_swift_module = provider_field_to_action[field]
+        processing_func, requires_swift_module = PROVIDER_TO_FIELD_ACTION[field]
         for parent_dir, module_name, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
