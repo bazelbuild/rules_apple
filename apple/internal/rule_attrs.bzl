@@ -282,6 +282,7 @@ A list of dependent targets that will be linked into this target's binary(s). An
 asset catalogs, that are referenced by those targets will also be transitively included in the final
 bundle(s).
 """,
+                providers = [CcInfo],
             ),
         },
     )
