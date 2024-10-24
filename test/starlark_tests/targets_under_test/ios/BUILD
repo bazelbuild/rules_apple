@@ -3634,6 +3634,37 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_transitive_app_intents",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate_referencing_app_intent",
+    ],
+)
+
+ios_application(
+    name = "app_with_transitive_and_direct_app_intents",
+    app_intents = "//test/starlark_tests/resources:app_intent",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate_referencing_app_intent",
+    ],
+)
+
+ios_application(
     name = "app_with_widget_configuration_intent",
     app_intents = "//test/starlark_tests/resources:widget_configuration_intent",
     bundle_id = "com.google.example",

@@ -916,6 +916,22 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_uikit_appdelegate_referencing_app_intent",
+    srcs = ["AppDelegate.swift"],
+    tags = common.fixture_tags,
+    deps = [
+        ":hinted_app_intent",
+    ],
+)
+
+swift_library(
+    name = "hinted_app_intent",
+    srcs = ["app_intent.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
     module_name = "WidgetConfigurationIntent",

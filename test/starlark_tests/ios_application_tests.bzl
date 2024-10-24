@@ -663,6 +663,28 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with transitive App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_transitive_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test that an app with transitive and direct App Intents fails to build (at present time).
+    analysis_failure_message_test(
+        name = "{}_too_many_app_intents_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_and_direct_app_intents",
+        expected_error = """
+Error: Expected only one metadata bundle input for App Intents, but found 2 metadata bundle inputs instead.
+""",
+        tags = [name],
+    )
+
     # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),

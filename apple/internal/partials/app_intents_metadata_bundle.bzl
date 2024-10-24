@@ -27,35 +27,68 @@ load(
 
 visibility("//apple/...")
 
+def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
+    """Finds the AppIntentsInfo providers from the given app_intents.
+
+    Args:
+        app_intents: A list of dictionaries for targets under a split transition providing
+            AppIntentsInfo. The only supported targets are targets provided by a label list and
+            targets provided by labels from the bundle rule.
+        first_cc_toolchain_key: The key for the first cc_toolchain found in the split transition.
+    Returns:
+        A list of all AppIntentsInfo providers that were found.
+    """
+    app_intents_infos = []
+    for split_target in app_intents:
+        if not split_target:
+            continue
+        if not first_cc_toolchain_key in split_target:
+            continue
+        split_values = split_target[first_cc_toolchain_key]
+        targets = split_values if type(split_values) == "list" else [split_values]
+        for target in targets:
+            if AppIntentsInfo in target:
+                app_intents_infos.append(target[AppIntentsInfo])
+    return app_intents_infos
+
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
-        app_intent,
+        app_intents,
         cc_toolchains,
         label,
         mac_exec_group,
         platform_prerequisites):
     """Implementation of the AppIntents metadata bundle partial."""
-    if not app_intent:
-        # No `app_intents` were set by the rule calling this partial.
-        return struct()
 
     # Mirroring Xcode 15+ behavior, the metadata tool only looks at the first split for a given arch
     # rather than every possible set of source files and inputs. Oddly, this only applies to the
     # swift source files and the swiftconstvalues files; the triples and other files do cover all
     # available archs.
     first_cc_toolchain_key = cc_toolchains.keys()[0]
-    first_app_intents_info = app_intent[first_cc_toolchain_key][AppIntentsInfo]
 
-    metadata_bundle_inputs = first_app_intents_info.metadata_bundle_inputs.to_list()
-    if len(metadata_bundle_inputs) != 1:
+    app_intents_infos = _find_app_intents_info(
+        app_intents = app_intents,
+        first_cc_toolchain_key = first_cc_toolchain_key,
+    )
+
+    if not app_intents_infos:
+        # No `app_intents` were set by the rule or any of its transitive deps.
+        return struct()
+
+    metadata_bundle_inputs = app_intents_infos[0].metadata_bundle_inputs.to_list()
+
+    if len(app_intents_infos) > 1 or len(metadata_bundle_inputs) != 1:
+        # TODO(b/365825041): Report where the multiple app intents were defined once we relay that
+        # information from the AppIntentsInfo provider for easier debugging on the user's behalf.
+        number_of_inputs = 0
+        for app_intents_info in app_intents_infos:
+            number_of_inputs += len(app_intents_info.metadata_bundle_inputs.to_list())
         fail("""
-Internal Error: Expected only one metadata bundle input for App Intents, but found \
-{number_of_inputs} metadata bundle inputs instead.
-
-Please file an issue with the Apple BUILD rules with repro steps.
+Error: Expected only one metadata bundle input for App Intents, but found {number_of_inputs} \
+metadata bundle inputs instead.
 """.format(
-            number_of_inputs = len(metadata_bundle_inputs),
+            number_of_inputs = number_of_inputs,
         ))
 
     # TODO(b/365825041): Support App Intents from multiple modules, starting with frameworks.
@@ -96,7 +129,7 @@ Please file an issue with the Apple BUILD rules with repro steps.
 def app_intents_metadata_bundle_partial(
         *,
         actions,
-        app_intent,
+        app_intents,
         cc_toolchains,
         label,
         mac_exec_group,
@@ -107,8 +140,8 @@ def app_intents_metadata_bundle_partial(
 
     Args:
         actions: The actions provider from ctx.actions.
-        app_intent: Dictionary for one target under a split transition implementing the AppIntents
-            protocol.
+        app_intents: A list of dictionaries for targets under a split transition providing
+            AppIntentsInfo.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
         label: Label of the target being built.
@@ -120,7 +153,7 @@ def app_intents_metadata_bundle_partial(
     return partial.make(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
-        app_intent = app_intent,
+        app_intents = app_intents,
         cc_toolchains = cc_toolchains,
         label = label,
         mac_exec_group = mac_exec_group,

@@ -232,7 +232,7 @@ def _macos_application_impl(ctx):
     processor_partials = [
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intent = ctx.split_attr.app_intents,
+            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
             cc_toolchains = cc_toolchain_forwarder,
             label = label,
             mac_exec_group = mac_exec_group,
