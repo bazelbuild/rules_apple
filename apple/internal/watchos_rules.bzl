@@ -96,6 +96,10 @@ load(
     "transition_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
+    "app_intents_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -939,6 +943,7 @@ watchos_application = rule_factory.create_apple_rule(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
+                app_intents_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
@@ -1004,6 +1009,7 @@ watchos_extension = rule_factory.create_apple_rule(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
+                app_intents_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
