@@ -14,7 +14,15 @@
 
 """AppIntentsInfo provider implementation for AppIntents support for Apple rules."""
 
-visibility("//apple/internal/...")
+visibility([
+    "//apple/hints/...",
+    "//apple/internal/...",
+])
+
+AppIntentsHintInfo = provider(
+    doc = "Private provider to mark targets that are hinted to define AppIntents processing.",
+    fields = {},
+)
 
 AppIntentsInfo = provider(
     doc = "Private provider to propagate source files required by AppIntents processing.",
@@ -26,9 +34,9 @@ providers that must be processed at the top level bundling rule through the
 
 *   `module_name`: a String representing the module name that these files belong to.
 
-*   `swift_source_files`: A depset of the Swift source files for this module.
+*   `swift_source_files`: A List of the Swift source files for this module.
 
-*   `swiftconstvalues_files`:  A depset of the swiftconstvalues files for this module.
+*   `swiftconstvalues_files`:  A List of the swiftconstvalues files for this module.
 """,
     },
 )

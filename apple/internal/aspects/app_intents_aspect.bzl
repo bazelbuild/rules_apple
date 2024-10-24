@@ -21,6 +21,7 @@ load(
 load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
+    "AppIntentsHintInfo",
     "AppIntentsInfo",
 )
 load(
@@ -34,18 +35,9 @@ load(
 
 visibility("//apple/internal/...")
 
-def _app_intents_aspect_impl(target, ctx):
-    """Implementation of the App Intents aspect."""
+def _verify_app_intents_dependency(*, target):
+    """Verifies that the target has a dependency on the AppIntents framework."""
 
-    # TODO(b/365825041): Allow for App Intents to be defined from any dependency in "deps", as long
-    # as there is only one found (for now). This will require transitively propagating the
-    # AppIntentsInfo provider from all dependencies, and making sure that there's only one per top
-    # level bundling rule (app, its extensions, its frameworks) at the top level bundling rule.
-
-    if ctx.rule.kind != "swift_library":
-        return []
-
-    label = ctx.label
     sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = [target], include_weak = True)
     if "AppIntents" not in sdk_frameworks.to_list():
         fail(
@@ -53,6 +45,17 @@ def _app_intents_aspect_impl(target, ctx):
             "Instead found the following system frameworks: %s" % sdk_frameworks.to_list(),
         )
 
+def _find_valid_module_name(*, label, target):
+    """Verifies that the target has a single module name and returns it.
+
+    Args:
+        label: The label of the target.
+        target: The target to find the module name for.
+
+    Returns:
+        The module name of the target, if one can be found. If not, or if multiple were found, raise
+        a user-actionable error.
+    """
     module_names = collections.uniq([x.name for x in target[SwiftInfo].direct_modules if x.swift])
     if not module_names:
         module_names = [derive_swift_module_name(label)]
@@ -74,20 +77,105 @@ metadata generation.
 """.format(
             label = str(label),
         ))
+    return module_names[0]
+
+def _generate_metadata_bundle_inputs(*, files, module_name, target):
+    """Helper to generate the metadata bundle inputs struct for the AppIntentsInfo provider.
+
+    Args:
+        files: The files from the rule being evaluated by the aspect.
+        module_name: The module name of the target.
+        target: The target to generate the metadata bundle inputs for.
+
+    Returns:
+        A struct containing the metadata bundle inputs assuming that the inputs represent a direct
+        dependency for the AppIntentsInfo provider.
+    """
+    return struct(
+        module_name = module_name,
+        swift_source_files = [f for f in files.srcs if f.extension == "swift"],
+        swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
+    )
+
+def _legacy_app_intents_aspect_impl(target, ctx):
+    """Legacy implementation of the App Intents aspect to support `app_intents` bundle attrs."""
+
+    if ctx.rule.kind != "swift_library":
+        return []
+
+    _verify_app_intents_dependency(target = target)
+    module_name = _find_valid_module_name(label = ctx.label, target = target)
 
     return [
         AppIntentsInfo(
             metadata_bundle_inputs = depset([
-                struct(
-                    module_name = module_names[0],
-                    swift_source_files = [f for f in ctx.rule.files.srcs if f.extension == "swift"],
-                    swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
+                _generate_metadata_bundle_inputs(
+                    files = ctx.rule.files,
+                    module_name = module_name,
+                    target = target,
                 ),
             ]),
         ),
     ]
 
+legacy_app_intents_aspect = aspect(
+    implementation = _legacy_app_intents_aspect_impl,
+    doc = "Collects App Intents metadata dependencies from a single swift_library target.",
+)
+
+_APP_INTENTS_ATTR_ASPECTS = ["deps", "private_deps"]
+
+def _has_app_intents_hint(aspect_hints):
+    """Returns True if the target has an AppIntentsHintInfo provider."""
+    for hint in aspect_hints:
+        if AppIntentsHintInfo in hint:
+            return True
+    return False
+
+def _app_intents_aspect_impl(target, ctx):
+    """Implementation of the App Intents aspect for transitive App Intents processing."""
+
+    # TODO(b/365825041): Allow for App Intents to be defined from any dependency in "deps", as long
+    # as there is only one found (for now). This requires making sure that there's only one
+    # AppIntentsInfo provider per top level bundling rule (app, its extensions, its frameworks) at
+    # the top level bundling rule until we're ready to support multiple App Intents in a single
+    # top level bundling rule.
+
+    transitive_metadata_bundle_inputs = []
+
+    for attr in _APP_INTENTS_ATTR_ASPECTS:
+        for found_attr in getattr(ctx.rule.attr, attr, []):
+            if AppIntentsInfo in found_attr:
+                transitive_metadata_bundle_inputs.append(
+                    found_attr[AppIntentsInfo].metadata_bundle_inputs,
+                )
+
+    if ctx.rule.kind == "swift_library" and _has_app_intents_hint(ctx.rule.attr.aspect_hints):
+        _verify_app_intents_dependency(target = target)
+        module_name = _find_valid_module_name(label = ctx.label, target = target)
+        direct_metadata_bundle_input = _generate_metadata_bundle_inputs(
+            files = ctx.rule.files,
+            module_name = module_name,
+            target = target,
+        )
+        return [AppIntentsInfo(
+            metadata_bundle_inputs = depset(
+                [direct_metadata_bundle_input],
+                transitive = transitive_metadata_bundle_inputs,
+            ),
+        )]
+
+    if transitive_metadata_bundle_inputs:
+        return [AppIntentsInfo(
+            metadata_bundle_inputs = depset(
+                transitive = transitive_metadata_bundle_inputs,
+            ),
+        )]
+
+    return []
+
 app_intents_aspect = aspect(
     implementation = _app_intents_aspect_impl,
+    attr_aspects = _APP_INTENTS_ATTR_ASPECTS,
     doc = "Collects App Intents metadata dependencies from swift_library targets.",
 )

@@ -16,7 +16,9 @@ bzl_library(
     srcs = ["app_intents_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `app_intents_aspect` and `app_intents_metadata_bundle` partial.
+        # by the `app_intents_aspect` and `app_intents_metadata_bundle` partial, as well as for the
+        # App Intents aspect hint.
+        "//apple/hints:__subpackages__",
         "//apple/internal:__subpackages__",
     ],
 )

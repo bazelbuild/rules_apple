@@ -41,7 +41,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
-    "app_intents_aspect",
+    "legacy_app_intents_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
@@ -104,7 +104,7 @@ def _app_intents_attrs(*, deps_cfg):
         "app_intents": attr.label(
             doc = "Label for the swift_library implementing the AppIntents protocol.",
             cfg = deps_cfg,
-            aspects = [app_intents_aspect],
+            aspects = [legacy_app_intents_aspect],
             providers = [SwiftInfo],
         ),
     }
