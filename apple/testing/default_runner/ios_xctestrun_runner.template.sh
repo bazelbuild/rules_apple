@@ -544,8 +544,15 @@ if [[ $parallel_testing_enabled == true ]]; then
 else
   # Assume the final 'Executed N tests' or 'Executed 1 test' is the
   # total execution count for the test bundle.
-  test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
-  if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
+  xctest_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
+  swift_testing_target_execution_count=$(grep -e "Test run with [[:digit:]]\{1,\} test" "$testlog" | tail -n1 || true)
+  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+     [ -z "$swift_testing_target_execution_count" ] ; then
+    no_tests_ran=true
+  fi
+
+  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+     echo "$swift_testing_target_execution_count" | grep -q -e "Test run with 0 tests" ; then
     no_tests_ran=true
   fi
 fi
