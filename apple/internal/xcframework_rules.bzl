@@ -859,6 +859,11 @@ A dictionary of strings indicating which platform variants should be built for t
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
             ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
+""",
+            ),
             "tvos": attr.string_list_dict(
                 doc = """
 A dictionary of strings indicating which platform variants should be built for the tvOS platform (
@@ -1191,6 +1196,11 @@ Currently, this only affects processing of `ios` resources.
 A dictionary of strings indicating which platform variants should be built for the `ios` platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
 """,
             ),
             "minimum_deployment_os_versions": attr.string_dict(
