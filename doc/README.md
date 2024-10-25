@@ -2,9 +2,9 @@
 
 ## Guides
 
-- [Common Information](common_info.md)
-- [Frameworks Guide](frameworks.md)
-- [Resources Guide](resources.md)
+*   [Common Information](common_info.md)
+*   [Frameworks Guide](frameworks.md)
+*   [Resources Guide](resources.md)
 
 ## Platform-specific rules
 
