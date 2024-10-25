@@ -36,6 +36,10 @@ load(
     "platform_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -196,7 +200,9 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             ),
         )
 
-    providers = []
+    providers = [
+        new_appleresourcebundleinfo(),
+    ]
     if apple_resource_infos:
         # If any providers were collected, merge them.
         providers.append(
