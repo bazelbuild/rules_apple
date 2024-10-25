@@ -152,6 +152,7 @@ below.
         <code><a href="rules-resources.md#apple_bundle_import">apple_bundle_import</a></code><br/>
         <code><a href="rules-resources.md#apple_core_data_model">apple_core_data_model</a></code><br/>
         <code><a href="rules-resources.md#apple_core_ml_library">apple_core_ml_library</a></code><br/>
+        <code><a href="rules-resources.md#apple_precompiled_resource_bundle">apple_precompiled_resource_bundle</a></code><br/>
         <code><a href="rules-resources.md#apple_resource_bundle">apple_resource_bundle</a></code><br/>
         <code><a href="rules-resources.md#apple_resource_group">apple_resource_group</a></code><br/>
         <code><a href="rules-resources.md#swift_apple_core_ml_library">swift_apple_core_ml_library</a></code><br/>
