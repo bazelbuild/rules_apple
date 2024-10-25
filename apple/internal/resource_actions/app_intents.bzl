@@ -32,6 +32,7 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
 def generate_app_intents_metadata_bundle(
         *,
         actions,
+        bundle_id,
         constvalues_files,
         intents_module_name,
         label,
@@ -43,6 +44,7 @@ def generate_app_intents_metadata_bundle(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        bundle_id: The bundle ID to configure for this target.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
         intents_module_name: A String with the module name corresponding to the module found which
@@ -108,6 +110,8 @@ an issue with the Apple BUILD rules with repro steps.
     args.add("--xcode-version", xcode_version_split[3])
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.0"):
         args.add("--validate-assistant-intents")
+    if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.1"):
+        args.add("--bundle-identifier", bundle_id)
 
     apple_support.run(
         actions = actions,

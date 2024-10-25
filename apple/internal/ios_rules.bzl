@@ -275,6 +275,7 @@ def _ios_application_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             label = label,
             mac_exec_group = mac_exec_group,
@@ -1243,6 +1244,7 @@ def _ios_extension_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            bundle_id = bundle_id,
             cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
             label = label,
             mac_exec_group = mac_exec_group,

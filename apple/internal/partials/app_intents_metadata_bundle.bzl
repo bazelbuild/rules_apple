@@ -55,6 +55,7 @@ def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
         app_intents,
+        bundle_id,
         cc_toolchains,
         label,
         mac_exec_group,
@@ -96,6 +97,7 @@ metadata bundle inputs instead.
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
+        bundle_id = bundle_id,
         constvalues_files = [
             swiftconstvalues_file
             for swiftconstvalues_file in metadata_bundle_input.swiftconstvalues_files
@@ -130,6 +132,7 @@ def app_intents_metadata_bundle_partial(
         *,
         actions,
         app_intents,
+        bundle_id,
         cc_toolchains,
         label,
         mac_exec_group,
@@ -142,6 +145,7 @@ def app_intents_metadata_bundle_partial(
         actions: The actions provider from ctx.actions.
         app_intents: A list of dictionaries for targets under a split transition providing
             AppIntentsInfo.
+        bundle_id: The bundle ID to configure for this target.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
         label: Label of the target being built.
@@ -154,6 +158,7 @@ def app_intents_metadata_bundle_partial(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
         app_intents = app_intents,
+        bundle_id = bundle_id,
         cc_toolchains = cc_toolchains,
         label = label,
         mac_exec_group = mac_exec_group,
