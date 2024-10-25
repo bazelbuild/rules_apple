@@ -786,12 +786,18 @@ def _populated_resource_fields(provider):
         if f not in ["owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
     ]
 
-def _structured_resources_parent_dir(*, parent_dir = None, resource):
+def _structured_resources_parent_dir(
+        *,
+        parent_dir = None,
+        resource,
+        strip_prefixes = []):
     """Returns the package relative path for the parent directory of a resource.
 
     Args:
         parent_dir: Parent directory to prepend to the package relative path.
         resource: The resource for which to calculate the package relative path.
+        strip_prefixes: A list of prefixes to strip from the package relative
+            path. The first prefix that matches will be used.
 
     Returns:
         The package relative path to the parent directory of the resource.
@@ -801,6 +807,12 @@ def _structured_resources_parent_dir(*, parent_dir = None, resource):
         path = package_relative
     else:
         path = paths.dirname(package_relative).rstrip("/")
+
+    for prefix in strip_prefixes:
+        if path.startswith(prefix):
+            path = path[(len(prefix) + 1):]
+            break
+
     return paths.join(parent_dir or "", path or "") or None
 
 def _runfiles_resources_parent_dir(*, resource):

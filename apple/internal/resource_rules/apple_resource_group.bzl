@@ -39,6 +39,19 @@ You can also add apple_resource_bundle and apple_bundle_import targets into `res
 resource bundle structures will be propagated into the final bundle.
 """,
         ),
+        "strip_structured_resources_prefixes": attr.string_list(
+            doc = """
+A list of prefixes to strip from the paths of structured resources. For each
+structured resource, if the path starts with one of these prefixes, the first
+matching prefix will be removed from the path when the resource is placed in
+the bundle root. This is useful for removing intermediate directories from the
+resource paths.
+
+For example, if `structured_resources` contains `["intermediate/res/foo.png"]`,
+and `strip_structured_resources_prefixes` contains `["intermediate"]`,
+`res/foo.png` will end up inside the bundle.
+""",
+        ),
         "structured_resources": attr.label_list(
             allow_empty = True,
             allow_files = True,
