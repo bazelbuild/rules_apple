@@ -471,6 +471,7 @@ def _tvos_framework_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
     cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     cc_features = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -542,6 +543,15 @@ def _tvos_framework_impl(ctx):
     )
 
     processor_partials = [
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            app_intents = [ctx.split_attr.deps],
+            bundle_id = bundle_id,
+            cc_toolchains = cc_toolchain_forwarder,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+        ),
         partials.apple_bundle_info_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -1223,6 +1233,9 @@ tvos_framework = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

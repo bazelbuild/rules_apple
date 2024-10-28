@@ -135,12 +135,6 @@ def _has_app_intents_hint(aspect_hints):
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the App Intents aspect for transitive App Intents processing."""
 
-    # TODO(b/365825041): Allow for App Intents to be defined from any dependency in "deps", as long
-    # as there is only one found (for now). This requires making sure that there's only one
-    # AppIntentsInfo provider per top level bundling rule (app, its extensions, its frameworks) at
-    # the top level bundling rule until we're ready to support multiple App Intents in a single
-    # top level bundling rule.
-
     transitive_metadata_bundle_inputs = []
 
     for attr in _APP_INTENTS_ATTR_ASPECTS:

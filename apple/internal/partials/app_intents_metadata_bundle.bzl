@@ -121,6 +121,8 @@ metadata bundle inputs instead.
         bundle_location = processor.location.resource
 
     return struct(
+        # TODO(b/365825041): Start relaying the providers here so that we can grab them from
+        # extensions and frameworks. Refer to the codesigning dossier partial for implementation.
         bundle_files = [(
             bundle_location,
             "Metadata.appintents",
