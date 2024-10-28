@@ -468,7 +468,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   fi
 
   args=(
-    -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
 
