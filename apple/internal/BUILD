@@ -330,7 +330,10 @@ bzl_library(
 
 bzl_library(
     name = "linking_support",
-    srcs = ["linking_support.bzl"],
+    srcs = [
+        "linking_support.bzl",
+        "multi_arch_binary_support.bzl",
+    ],
     visibility = [
         "//apple:__subpackages__",
     ],
