@@ -635,7 +635,7 @@ def _storyboards(
 
     # First, compile all the storyboard files and collect the output folders.
     compiled_storyboardcs = []
-    processed_origins = {}
+    origin_short_paths = []
     for storyboard in files.to_list():
         storyboardc_path = paths.join(
             # We append something at the end of the name to avoid having X.lproj names in the path.
@@ -652,7 +652,7 @@ def _storyboards(
             output_discriminator = output_discriminator,
             dir_name = storyboardc_path,
         )
-        processed_origins[storyboardc_dir.short_path] = [storyboard.short_path]
+        origin_short_paths.append(storyboard.short_path)
         resource_actions.compile_storyboard(
             actions = actions,
             input_file = storyboard,
@@ -682,7 +682,9 @@ def _storyboards(
         files = [
             (processor.location.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
         ],
-        processed_origins = processed_origins,
+        processed_origins = {
+            linked_storyboard_dir.short_path: origin_short_paths,
+        },
     )
 
 def _texture_atlases(
