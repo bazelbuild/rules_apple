@@ -92,7 +92,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     )
 
     bundle_name = "{}.bundle".format(ctx.attr.bundle_name or label.name)
-    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_".format(ctx.attr.bundle_name or label.name)
+    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_{}".format(ctx.attr.bundle_name or label.name)
 
     apple_resource_infos = []
     process_args = {
