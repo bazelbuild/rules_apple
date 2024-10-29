@@ -235,6 +235,7 @@ def _macos_application_impl(ctx):
             app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
+            embedded_bundles = embedded_targets,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,

@@ -1300,6 +1300,52 @@ ios_extension(
     ],
 )
 
+ios_application(
+    name = "app_with_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+ios_application(
+    name = "app_with_load_deferred_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":load_deferred_framework_app_intents",
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+objc_library(
+    name = "load_deferred_framework_app_intents",
+    data = [":framework_with_app_intents"],
+)
+
 ios_framework(
     name = "framework_with_app_intents",
     bundle_id = "com.google.example.framework",
@@ -1310,11 +1356,11 @@ ios_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:hinted_app_intent",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )

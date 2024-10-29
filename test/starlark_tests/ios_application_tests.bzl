@@ -930,6 +930,19 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -938,6 +938,24 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "framework_defined_app_intent",
+    srcs = ["framework_defined_app_intent.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    module_name = "FrameworkDefinedHelloWorldIntents",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "framework_app_intent_dependent_main",
+    srcs = ["framework_app_intent_dependent_main.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    tags = common.fixture_tags,
+    deps = [
+        ":framework_defined_app_intent",
+    ],
+)
+
 objc_library(
     name = "realitykit_codeless_content",
     data = [":realitykit_assets"],

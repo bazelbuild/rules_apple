@@ -26,6 +26,7 @@ _fixture_tags = [
 # The current baseline for iOS is version 13.0, based on Xcode 15.3's minimum version for XCTest.
 _min_os_ios = struct(
     app_intents_support = "16.0",
+    app_intents_package_support = "17.0",
     appclip_support = "14.0",
     arm_sim_support = "14.0",
     baseline = "13.0",

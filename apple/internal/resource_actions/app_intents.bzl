@@ -14,6 +14,7 @@
 
 """AppIntents intents related actions."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
 
@@ -37,6 +38,7 @@ def generate_app_intents_metadata_bundle(
         intents_module_name,
         label,
         mac_exec_group,
+        owned_metadata_bundles,
         platform_prerequisites,
         source_files,
         target_triples):
@@ -51,6 +53,8 @@ def generate_app_intents_metadata_bundle(
             defines a set of compiled App Intents.
         label: Label for the current target (`ctx.label`).
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
+        owned_metadata_bundles: List of depsets of (bundle, owner) pairs collected from the
+            AppIntentsBundleInfo providers found from embedded targets.
         platform_prerequisites: Struct containing information on the platform being targeted.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
@@ -66,6 +70,8 @@ def generate_app_intents_metadata_bundle(
         output_discriminator = None,
         dir_name = "Metadata.appintents",
     )
+
+    direct_inputs = []
 
     args = actions.args()
     args.add("appintentsmetadataprocessor")
@@ -110,6 +116,32 @@ an issue with the Apple BUILD rules with repro steps.
     args.add("--xcode-version", xcode_version_split[3])
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.0"):
         args.add("--validate-assistant-intents")
+
+        if owned_metadata_bundles:
+            owned_metadata_bundle_files = [
+                p.bundle
+                for x in owned_metadata_bundles
+                for p in x.to_list()
+            ]
+            direct_inputs.extend(owned_metadata_bundle_files)
+
+            dependency_metadata_file_list = intermediates.file(
+                actions = actions,
+                target_name = label.name,
+                output_discriminator = None,
+                file_name = "{}.DependencyMetadataFileList".format(intents_module_name),
+            )
+            direct_inputs.append(dependency_metadata_file_list)
+            actions.write(
+                output = dependency_metadata_file_list,
+                content = "\n".join([
+                    paths.join(x.short_path, "extract.actionsdata")
+                    for x in owned_metadata_bundle_files
+                ]),
+            )
+
+            args.add("--metadata-file-list", dependency_metadata_file_list.path)
+
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.1"):
         args.add("--bundle-identifier", bundle_id)
 
@@ -119,7 +151,7 @@ an issue with the Apple BUILD rules with repro steps.
         arguments = [args],
         executable = "/usr/bin/xcrun",
         exec_group = mac_exec_group,
-        inputs = depset(transitive = transitive_inputs),
+        inputs = depset(direct_inputs, transitive = transitive_inputs),
         mnemonic = "AppIntentsMetadataProcessor",
         outputs = [output],
         xcode_config = xcode_version_config,

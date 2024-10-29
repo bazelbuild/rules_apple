@@ -681,6 +681,13 @@ Please remove one of the two from your rule definition.
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_app_intents_within_load_deferred_framework_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_load_deferred_framework_app_intents",
+        expected_error = "An App Intents metadata bundle was found in the following framework that is not directly loaded by an app/extension:",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

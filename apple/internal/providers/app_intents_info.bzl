@@ -32,11 +32,26 @@ A depset of structs with the following fields, which represent providers from ta
 providers that must be processed at the top level bundling rule through the
 `app_intents_metadata_bundle` partial:
 
-*   `module_name`: a String representing the module name that these files belong to.
+*   `module_name`: A String representing the module name that these files belong to.
+
+*   `owner`: A String based on the label of the target that provided this metadata bundle input.
 
 *   `swift_source_files`: A List of the Swift source files for this module.
 
 *   `swiftconstvalues_files`:  A List of the swiftconstvalues files for this module.
+""",
+    },
+)
+
+AppIntentsBundleInfo = provider(
+    doc = "Private provider to propagate AppIntents metadata bundle files to dependencies.",
+    fields = {
+        "owned_metadata_bundles": """
+A depset of structs defined as the following:
+
+*   `bundle`: A File representing the metadata bundle file.
+
+*   `owner`: A String based on the label of the target that provided this metadata bundle.
 """,
     },
 )

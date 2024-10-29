@@ -245,9 +245,11 @@ def _tvos_application_impl(ctx):
             app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
+            embedded_bundles = embeddable_targets,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -548,9 +550,11 @@ def _tvos_framework_impl(ctx):
             app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
+            embedded_bundles = ctx.attr.frameworks,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,

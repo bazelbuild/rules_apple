@@ -51,6 +51,10 @@ load(
     "swift_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
+    "AppIntentsBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
@@ -321,23 +325,42 @@ def _apple_resource_aspect_impl(target, ctx):
         if hasattr(ctx.rule.attr, attr):
             targets = getattr(ctx.rule.attr, attr)
             for target in targets:
-                if AppleFrameworkBundleInfo in target and AppleBundleInfo in target:
-                    # Create a reference to the AppleBundleInfo for any rules that output a
-                    # framework bundle for validation in the top level bundling rule.
-                    #
-                    # Further, we want to track the source of this AppleBundleInfo for logging via
-                    # the rule label. Otherwise we won't be able to get at the target/label later.
-                    target_apple_bundle_info = struct(
-                        apple_bundle_info = target[AppleBundleInfo],
-                        target_label = str(target.label),
-                    )
+                if AppleFrameworkBundleInfo in target:
+                    if AppleBundleInfo in target:
+                        # Create a reference to the AppleBundleInfo for any rules that output a
+                        # framework bundle for validation in the top level bundling rule.
+                        #
+                        # Further, we want to track the source of this AppleBundleInfo for logging
+                        # via the rule label. Otherwise we won't be able to get at the target/label
+                        # later.
+                        target_apple_bundle_info = struct(
+                            apple_bundle_info = target[AppleBundleInfo],
+                            target_label = str(target.label),
+                        )
 
-                    apple_resource_validation_infos.append(
-                        AppleResourceValidationInfo(
-                            direct_target_bundle_infos = [target_apple_bundle_info],
-                            transitive_target_bundle_infos = depset([target_apple_bundle_info]),
-                        ),
-                    )
+                        apple_resource_validation_infos.append(
+                            AppleResourceValidationInfo(
+                                direct_target_bundle_infos = [target_apple_bundle_info],
+                                transitive_target_bundle_infos = depset([target_apple_bundle_info]),
+                            ),
+                        )
+
+                    if AppIntentsBundleInfo in target:
+                        fail("""
+An App Intents metadata bundle was found in the following framework that is not directly loaded by \
+an app/extension:
+
+- {framework_target}
+
+This was loaded by the following library target:
+
+- {loading_target}
+
+App Intents are not supported within frameworks that aren't directly loaded by an app/extension.
+                        """.format(
+                            loading_target = str(ctx.label),
+                            framework_target = str(target.label),
+                        ))
 
                 if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
                     # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to

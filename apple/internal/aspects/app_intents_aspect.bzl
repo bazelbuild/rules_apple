@@ -79,11 +79,12 @@ metadata generation.
         ))
     return module_names[0]
 
-def _generate_metadata_bundle_inputs(*, files, module_name, target):
+def _generate_metadata_bundle_inputs(*, files, label, module_name, target):
     """Helper to generate the metadata bundle inputs struct for the AppIntentsInfo provider.
 
     Args:
         files: The files from the rule being evaluated by the aspect.
+        label: The label of the target.
         module_name: The module name of the target.
         target: The target to generate the metadata bundle inputs for.
 
@@ -93,6 +94,7 @@ def _generate_metadata_bundle_inputs(*, files, module_name, target):
     """
     return struct(
         module_name = module_name,
+        owner = str(label),
         swift_source_files = [f for f in files.srcs if f.extension == "swift"],
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
     )
@@ -104,13 +106,16 @@ def _legacy_app_intents_aspect_impl(target, ctx):
         return []
 
     _verify_app_intents_dependency(target = target)
-    module_name = _find_valid_module_name(label = ctx.label, target = target)
+
+    label = ctx.label
+    module_name = _find_valid_module_name(label = label, target = target)
 
     return [
         AppIntentsInfo(
             metadata_bundle_inputs = depset([
                 _generate_metadata_bundle_inputs(
                     files = ctx.rule.files,
+                    label = label,
                     module_name = module_name,
                     target = target,
                 ),
@@ -146,9 +151,11 @@ def _app_intents_aspect_impl(target, ctx):
 
     if ctx.rule.kind == "swift_library" and _has_app_intents_hint(ctx.rule.attr.aspect_hints):
         _verify_app_intents_dependency(target = target)
-        module_name = _find_valid_module_name(label = ctx.label, target = target)
+        label = ctx.label
+        module_name = _find_valid_module_name(label = label, target = target)
         direct_metadata_bundle_input = _generate_metadata_bundle_inputs(
             files = ctx.rule.files,
+            label = label,
             module_name = module_name,
             target = target,
         )
