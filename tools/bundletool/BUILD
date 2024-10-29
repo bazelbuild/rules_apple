@@ -5,9 +5,7 @@ py_binary(
     srcs = ["bundletool.py"],
     python_version = "PY3",
     srcs_version = "PY3",
-    visibility = [
-        "//apple/internal/toolchains:__subpackages__",
-    ],
+    visibility = ["//apple/internal/toolchains:__subpackages__"],
     deps = [":bundletool_lib"],
 )
 
