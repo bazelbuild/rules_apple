@@ -374,9 +374,9 @@ def _apple_resource_aspect_impl(target, ctx):
         x[AppleResourceInfo]
         for x in targets
         if AppleResourceInfo in x and
-            # Filter Apple framework targets to avoid propagating and bundling
-            # framework resources to the top-level target (eg. ios_application).
-            AppleFrameworkBundleInfo not in x
+           # Filter Apple framework targets to avoid propagating and bundling
+           # framework resources to the top-level target (eg. ios_application).
+           AppleFrameworkBundleInfo not in x
     ]
 
     # Propagate AppleDebugInfo providers from dependencies required for the debug_symbols
@@ -438,13 +438,13 @@ def _apple_resource_aspect_impl(target, ctx):
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects =
-    (
-        _TRANSITIVE_RESOURCE_ASPECT_ATTRS +
-        _TRANSITIVE_SINGLE_RESOURCE_ASPECT_ATTRS + [
-            "resources",
-            "structured_resources",
-        ]
-    ),
+        (
+            _TRANSITIVE_RESOURCE_ASPECT_ATTRS +
+            _TRANSITIVE_SINGLE_RESOURCE_ASPECT_ATTRS + [
+                "resources",
+                "structured_resources",
+            ]
+        ),
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
