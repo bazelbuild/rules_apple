@@ -36,6 +36,9 @@ _FRAMEWORK_PROVIDERS_ASPECT_ATTRS = [
     "implementation_deps",
     "private_deps",
     "runtime_deps",
+    # rules_swift `mixed_language_target`
+    "clang_target",
+    "swift_target",
 ]
 
 def _framework_provider_aspect_impl(target, ctx):

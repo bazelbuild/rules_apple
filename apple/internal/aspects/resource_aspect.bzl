@@ -430,6 +430,9 @@ apple_resource_aspect = aspect(
         "private_deps",
         "structured_resources",
         "resources",
+        # rules_swift `mixed_language_target`
+        "clang_target",
+        "swift_target",
     ],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
