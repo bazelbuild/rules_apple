@@ -76,6 +76,21 @@ load(
     "SwiftInfo",
 )
 
+# The list of attributes to look at, outside of rule-specific attributes, to
+# find resource providers
+_TRANSITIVE_RESOURCE_ASPECT_ATTRS = [
+    "data",
+    "deps",
+    "implementation_deps",
+    "private_deps",
+]
+
+_TRANSITIVE_SINGLE_RESOURCE_ASPECT_ATTRS = [
+    # rules_swift `mixed_language_target`
+    "clang_target",
+    "swift_target",
+]
+
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
     apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
@@ -344,39 +359,38 @@ def _apple_resource_aspect_impl(target, ctx):
         )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
-    apple_debug_infos = []
-    apple_dsym_bundle_infos = []
-    inherited_apple_resource_infos = []
-    provider_deps = [
-        "deps",
-        "implementation_deps",
-        "private_deps",
-    ] + collect_args.get("res_attrs", [])
+    provider_deps = (
+        _TRANSITIVE_RESOURCE_ASPECT_ATTRS + collect_args.get("res_attrs", [])
+    )
+    targets = []
     for attr in provider_deps:
-        if hasattr(ctx.rule.attr, attr):
-            targets = getattr(ctx.rule.attr, attr)
+        targets.extend(getattr(ctx.rule.attr, attr, []))
+    for attr in _TRANSITIVE_SINGLE_RESOURCE_ASPECT_ATTRS:
+        dep = getattr(ctx.rule.attr, attr, None)
+        if dep:
+            targets.append(dep)
 
-            inherited_apple_resource_infos.extend([
-                x[AppleResourceInfo]
-                for x in targets
-                if AppleResourceInfo in x and
-                   # Filter Apple framework targets to avoid propagating and bundling
-                   # framework resources to the top-level target (eg. ios_application).
-                   AppleFrameworkBundleInfo not in x
-            ])
+    inherited_apple_resource_infos = [
+        x[AppleResourceInfo]
+        for x in targets
+        if AppleResourceInfo in x and
+            # Filter Apple framework targets to avoid propagating and bundling
+            # framework resources to the top-level target (eg. ios_application).
+            AppleFrameworkBundleInfo not in x
+    ]
 
-            # Propagate AppleDebugInfo providers from dependencies required for the debug_symbols
-            # partial.
-            apple_debug_infos.extend([
-                x[AppleDebugInfo]
-                for x in targets
-                if AppleDebugInfo in x
-            ])
-            apple_dsym_bundle_infos.extend([
-                x[AppleDsymBundleInfo]
-                for x in targets
-                if AppleDsymBundleInfo in x
-            ])
+    # Propagate AppleDebugInfo providers from dependencies required for the debug_symbols
+    # partial.
+    apple_debug_infos = [
+        x[AppleDebugInfo]
+        for x in targets
+        if AppleDebugInfo in x
+    ]
+    apple_dsym_bundle_infos = [
+        x[AppleDsymBundleInfo]
+        for x in targets
+        if AppleDsymBundleInfo in x
+    ]
 
     if inherited_apple_resource_infos and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.
@@ -423,17 +437,14 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = [
-        "data",
-        "deps",
-        "implementation_deps",
-        "private_deps",
-        "structured_resources",
-        "resources",
-        # rules_swift `mixed_language_target`
-        "clang_target",
-        "swift_target",
-    ],
+    attr_aspects =
+    (
+        _TRANSITIVE_RESOURCE_ASPECT_ATTRS +
+        _TRANSITIVE_SINGLE_RESOURCE_ASPECT_ATTRS + [
+            "resources",
+            "structured_resources",
+        ]
+    ),
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
