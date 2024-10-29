@@ -286,15 +286,15 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_structured_args
         )
         if structured_files:
-            if bundle_name:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                    parent_dir = bundle_name,
-                )
-            else:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                )
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+                parent_dir = bundle_name,
+                strip_prefixes = getattr(
+                    ctx.rule.attr,
+                    "strip_structured_resources_prefixes",
+                    [],
+                ),
+            )
 
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
