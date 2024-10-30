@@ -181,6 +181,13 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
+    elif ctx.rule.kind == "mixed_language_library":
+        default_action = apple_resource_hint_action.resources
+        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
+        bucketize_args["swift_module"] = module_names[0] if module_names else None
+        collect_args["res_attrs"] = ["data"]
+        owner = str(ctx.label)
+
     elif ctx.rule.kind in ["apple_static_framework_import", "apple_static_xcframework_import"]:
         default_action = apple_resource_hint_action.resources
         if AppleFrameworkImportBundleInfo in target:
@@ -430,9 +437,6 @@ apple_resource_aspect = aspect(
         "private_deps",
         "structured_resources",
         "resources",
-        # rules_swift `mixed_language_target`
-        "clang_target",
-        "swift_target",
     ],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
