@@ -680,7 +680,11 @@ def ios_application_test_suite(name):
         name = "{}_too_many_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_and_direct_app_intents",
         expected_error = """
-Error: Expected only one metadata bundle input for App Intents, but found 2 metadata bundle inputs instead.
+Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple target at //test/starlark_tests/targets_under_test/ios:app_with_transitive_and_direct_app_intents, but found 2 targets defining App Intents instead.
+
+App Intents bundles were defined by the following targets:
+- //test/starlark_tests/resources:app_intent
+- //test/starlark_tests/resources:hinted_app_intent
 """,
         tags = [name],
     )
@@ -930,6 +934,8 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
+    # bundle's Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
         build_type = "simulator",

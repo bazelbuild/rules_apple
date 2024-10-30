@@ -130,13 +130,29 @@ def _app_intents_metadata_bundle_partial_impl(
         targets_to_avoid = targets_to_avoid,
     )
 
+    # TODO(b/365825041): Have a more useful error message for `len(metadata_bundle_inputs) == 0`,
+    # which can happen if the framework(s) define(s) a superset of hinted swift_library targets that
+    # the app depends on.
+
     if len(metadata_bundle_inputs) != 1:
-        # TODO(b/365825041): Report where the multiple app intents were defined once we relay that
-        # information from the AppIntentsInfo provider for easier debugging on the user's behalf.
         fail("""
-Error: Expected only one metadata bundle input for App Intents, but found {number_of_inputs} \
-metadata bundle inputs instead.
+Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
+target at {label}, but found {number_of_inputs} targets defining App Intents instead.
+
+App Intents bundles were defined by the following targets:
+- {bundle_owners}
+
+Please ensure that only a single "swift_library" target is marked as providing App Intents \
+metadata exclusively to the given top level Apple target via the "aspect_hints" attribute with \
+{app_intents_hint_target}.
+
+App Intents can also be shared via AppIntentsPackage APIs from a dynamic framework to apps, \
+extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
+for more information: https://developer.apple.com/documentation/appintents/appintentspackage
 """.format(
+            app_intents_hint_target = "@build_bazel_rules_apple//apple/hints:app_intents_hint",
+            bundle_owners = "\n- ".join([x.owner for x in metadata_bundle_inputs]),
+            label = str(label),
             number_of_inputs = len(metadata_bundle_inputs),
         ))
 
