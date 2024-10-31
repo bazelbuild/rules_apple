@@ -1321,6 +1321,26 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_no_exclusive_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_load_deferred_framework_app_intents",
     bundle_id = "com.google.example",
     families = [

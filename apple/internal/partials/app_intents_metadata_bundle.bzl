@@ -28,6 +28,8 @@ load(
 
 visibility("//apple/...")
 
+_APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
+
 def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
     """Finds the AppIntentsInfo providers from the given app_intents.
 
@@ -52,18 +54,20 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
                 app_intents_infos.append(target[AppIntentsInfo])
     return app_intents_infos
 
-def _find_exclusively_owned_metadata_bundle_inputs(*, app_intents_infos, targets_to_avoid):
-    """Find the metadata bundles owned by the current rule that aren't in targets to avoid.
+def _find_exclusively_owned_metadata_bundle_input(*, app_intents_infos, label, targets_to_avoid):
+    """Find the expected metadata bundle owned by the current rule that isn't in targets to avoid.
 
     Args:
         app_intents_infos: A list of AppIntentsInfo providers.
+        label: The label of the current rule.
         targets_to_avoid: A list of targets that should be ignored when collecting metadata bundle
             inputs.
     Returns:
-        A list of metadata bundle inputs that are exclusively owned by dependencies of the current
-        rule.
+        A single metadata bundle input that is exclusively owned by dependencies of the current
+        rule if it exists. If more than one exclusively owned metadata bundle input was found, or
+        if no exclusively owned metadata bundle input was found, a failure is reported to the user.
     """
-    exclusively_owned_metadata_bundle_inputs = []
+    metadata_bundle_inputs = []
 
     avoid_owned_metadata_bundles = [
         x[AppIntentsBundleInfo].owned_metadata_bundles
@@ -75,9 +79,49 @@ def _find_exclusively_owned_metadata_bundle_inputs(*, app_intents_infos, targets
     for app_intents_info in app_intents_infos:
         for metadata_bundle_input in app_intents_info.metadata_bundle_inputs.to_list():
             if metadata_bundle_input.owner not in avoid_owners:
-                exclusively_owned_metadata_bundle_inputs.append(metadata_bundle_input)
+                metadata_bundle_inputs.append(metadata_bundle_input)
 
-    return exclusively_owned_metadata_bundle_inputs
+    if len(metadata_bundle_inputs) == 0:
+        fail("""
+Error: Expected one swift_library defining App Intents exclusive to the given top level Apple \
+target at {label}, but only found {number_of_inputs} targets defining App Intents owned by \
+frameworks.
+
+App Intents bundles were defined by the following framework-referenced targets:
+- {bundle_owners}
+
+Please ensure that a single "swift_library" target is marked as providing App Intents metadata \
+exclusively to the given top level Apple target via the "aspect_hints" attribute with \
+{app_intents_hint_target}.
+""".format(
+            app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+            bundle_owners = "\n- ".join(avoid_owners),
+            label = str(label),
+            number_of_inputs = len(avoid_owners),
+        ))
+    elif len(metadata_bundle_inputs) != 1:
+        fail("""
+Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
+target at {label}, but found {number_of_inputs} targets defining App Intents instead.
+
+App Intents bundles were defined by the following targets:
+- {bundle_owners}
+
+Please ensure that only a single "swift_library" target is marked as providing App Intents \
+metadata exclusively to the given top level Apple target via the "aspect_hints" attribute with \
+{app_intents_hint_target}.
+
+App Intents can also be shared via AppIntentsPackage APIs from a dynamic framework to apps, \
+extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
+for more information: https://developer.apple.com/documentation/appintents/appintentspackage
+""".format(
+            app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+            bundle_owners = "\n- ".join([x.owner for x in metadata_bundle_inputs]),
+            label = str(label),
+            number_of_inputs = len(metadata_bundle_inputs),
+        ))
+
+    return metadata_bundle_inputs[0]
 
 def _app_intents_metadata_bundle_partial_impl(
         *,
@@ -125,38 +169,11 @@ def _app_intents_metadata_bundle_partial_impl(
     # Remove deps found from dependent bundle deps before determining if we have the right number of
     # AppIntentsInfo providers. Reusing the concept of "owners" from resources, where the owner is
     # a String based on the label of the swift_library target that provided the metadata bundle.
-    metadata_bundle_inputs = _find_exclusively_owned_metadata_bundle_inputs(
+    metadata_bundle_input = _find_exclusively_owned_metadata_bundle_input(
         app_intents_infos = app_intents_infos,
+        label = label,
         targets_to_avoid = targets_to_avoid,
     )
-
-    # TODO(b/365825041): Have a more useful error message for `len(metadata_bundle_inputs) == 0`,
-    # which can happen if the framework(s) define(s) a superset of hinted swift_library targets that
-    # the app depends on.
-
-    if len(metadata_bundle_inputs) != 1:
-        fail("""
-Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
-target at {label}, but found {number_of_inputs} targets defining App Intents instead.
-
-App Intents bundles were defined by the following targets:
-- {bundle_owners}
-
-Please ensure that only a single "swift_library" target is marked as providing App Intents \
-metadata exclusively to the given top level Apple target via the "aspect_hints" attribute with \
-{app_intents_hint_target}.
-
-App Intents can also be shared via AppIntentsPackage APIs from a dynamic framework to apps, \
-extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
-for more information: https://developer.apple.com/documentation/appintents/appintentspackage
-""".format(
-            app_intents_hint_target = "@build_bazel_rules_apple//apple/hints:app_intents_hint",
-            bundle_owners = "\n- ".join([x.owner for x in metadata_bundle_inputs]),
-            label = str(label),
-            number_of_inputs = len(metadata_bundle_inputs),
-        ))
-
-    metadata_bundle_input = metadata_bundle_inputs[0]
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,

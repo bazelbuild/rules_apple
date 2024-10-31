@@ -689,6 +689,18 @@ App Intents bundles were defined by the following targets:
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_no_exclusive_app_intents_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_exclusive_framework_app_intents",
+        expected_error = """
+Error: Expected one swift_library defining App Intents exclusive to the given top level Apple target at //test/starlark_tests/targets_under_test/ios:app_with_no_exclusive_framework_app_intents, but only found 1 targets defining App Intents owned by frameworks.
+
+App Intents bundles were defined by the following framework-referenced targets:
+- //test/starlark_tests/resources:framework_defined_app_intent
+""",
+        tags = [name],
+    )
+
     # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
