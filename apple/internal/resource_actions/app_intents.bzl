@@ -82,10 +82,18 @@ def generate_app_intents_metadata_bundle(
     args.add("--binary-file", "/bazel_rules_apple/fakepath")
     args.add("--module-name", intents_module_name)
     args.add("--output", output.dirname)
-    args.add_all(
-        source_files,
-        before_each = "--source-files",
+    source_file_list = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = "{}.SwiftFileList".format(intents_module_name),
     )
+    direct_inputs.append(source_file_list)
+    actions.write(
+        output = source_file_list,
+        content = "\n".join([x.path for x in source_files]),
+    )
+    args.add("--source-file-list", source_file_list.path)
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     platform_type_string = str(platform_prerequisites.platform_type)
@@ -96,10 +104,18 @@ def generate_app_intents_metadata_bundle(
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
-    args.add_all(
-        constvalues_files,
-        before_each = "--swift-const-vals",
+    swift_const_vals_file_list = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = "{}.SwiftConstValuesFileList".format(intents_module_name),
     )
+    direct_inputs.append(swift_const_vals_file_list)
+    actions.write(
+        output = swift_const_vals_file_list,
+        content = "\n".join([x.path for x in constvalues_files]),
+    )
+    args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
     transitive_inputs.append(depset(constvalues_files))
     args.add("--compile-time-extraction")
 
@@ -135,7 +151,7 @@ an issue with the Apple BUILD rules with repro steps.
             actions.write(
                 output = dependency_metadata_file_list,
                 content = "\n".join([
-                    paths.join(x.short_path, "extract.actionsdata")
+                    paths.join(x.path, "extract.actionsdata")
                     for x in owned_metadata_bundle_files
                 ]),
             )
