@@ -30,6 +30,44 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
     "visionos": "xrOS",
 }
 
+def _generate_intermediate_file_list(
+        *,
+        actions,
+        file_extension,
+        input_paths,
+        intents_module_name,
+        label):
+    """Generate an intermediate file list for the AppIntents metadata processor tool.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        file_extension: The file extension to use for the generated file list.
+        input_paths: A list of paths to the files to include in the file list.
+        intents_module_name: A String with the module name corresponding to the module found which
+            defines a set of compiled App Intents.
+        label: Label for the current target (`ctx.label`).
+    Returns:
+        A File referencing the generated file list.
+    """
+
+    file_list = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = "{module_name}.{file_extension}".format(
+            file_extension = file_extension,
+            module_name = intents_module_name,
+        ),
+    )
+    file_list_args = actions.args()
+    file_list_args.set_param_file_format("multiline")
+    file_list_args.add_all(input_paths)
+    actions.write(
+        output = file_list,
+        content = file_list_args,
+    )
+    return file_list
+
 def generate_app_intents_metadata_bundle(
         *,
         actions,
@@ -82,17 +120,14 @@ def generate_app_intents_metadata_bundle(
     args.add("--binary-file", "/bazel_rules_apple/fakepath")
     args.add("--module-name", intents_module_name)
     args.add("--output", output.dirname)
-    source_file_list = intermediates.file(
+    source_file_list = _generate_intermediate_file_list(
         actions = actions,
-        target_name = label.name,
-        output_discriminator = None,
-        file_name = "{}.SwiftFileList".format(intents_module_name),
+        file_extension = "SwiftFileList",
+        input_paths = [x.path for x in source_files],
+        intents_module_name = intents_module_name,
+        label = label,
     )
     direct_inputs.append(source_file_list)
-    actions.write(
-        output = source_file_list,
-        content = "\n".join([x.path for x in source_files]),
-    )
     args.add("--source-file-list", source_file_list.path)
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
@@ -104,17 +139,14 @@ def generate_app_intents_metadata_bundle(
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
-    swift_const_vals_file_list = intermediates.file(
+    swift_const_vals_file_list = _generate_intermediate_file_list(
         actions = actions,
-        target_name = label.name,
-        output_discriminator = None,
-        file_name = "{}.SwiftConstValuesFileList".format(intents_module_name),
+        file_extension = "SwiftConstValuesFileList",
+        input_paths = [x.path for x in constvalues_files],
+        intents_module_name = intents_module_name,
+        label = label,
     )
     direct_inputs.append(swift_const_vals_file_list)
-    actions.write(
-        output = swift_const_vals_file_list,
-        content = "\n".join([x.path for x in constvalues_files]),
-    )
     args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
     transitive_inputs.append(depset(constvalues_files))
     args.add("--compile-time-extraction")
@@ -141,21 +173,17 @@ an issue with the Apple BUILD rules with repro steps.
             ]
             direct_inputs.extend(owned_metadata_bundle_files)
 
-            dependency_metadata_file_list = intermediates.file(
+            dependency_metadata_file_list = _generate_intermediate_file_list(
                 actions = actions,
-                target_name = label.name,
-                output_discriminator = None,
-                file_name = "{}.DependencyMetadataFileList".format(intents_module_name),
-            )
-            direct_inputs.append(dependency_metadata_file_list)
-            actions.write(
-                output = dependency_metadata_file_list,
-                content = "\n".join([
+                file_extension = "DependencyMetadataFileList",
+                input_paths = [
                     paths.join(x.path, "extract.actionsdata")
                     for x in owned_metadata_bundle_files
-                ]),
+                ],
+                intents_module_name = intents_module_name,
+                label = label,
             )
-
+            direct_inputs.append(dependency_metadata_file_list)
             args.add("--metadata-file-list", dependency_metadata_file_list.path)
 
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.1"):
