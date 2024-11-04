@@ -130,9 +130,8 @@ def _cc_toolchain_forwarder_attrs(*, deps_cfg):
 def _common_linking_api_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for Bazel Apple linking APIs.
 
-    These rule attributes are required by both Bazel Apple linking APIs under apple_common module:
-      - apple_common.link_multi_arch_binary
-      - apple_common.link_multi_arch_static_library
+    These rule attributes are required by _link_multi_arch_binary and
+    _link_multi_arch_static_library in rules_apple/apple/internal/linking_support.bzl.
 
     Args:
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
@@ -177,7 +176,7 @@ def _j2objc_binary_linking_attrs(*, base_cfg):
     }
 
 def _static_library_linking_attrs(*, deps_cfg):
-    """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
+    """Returns dict of required attributes for linking_support._link_multi_arch_static_library.
 
     Args:
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
@@ -193,7 +192,7 @@ def _binary_linking_attrs(
         extra_deps_aspects = [],
         is_test_supporting_rule,
         requires_legacy_cc_toolchain):
-    """Returns dictionary of required attributes for apple_common.link_multi_arch_binary.
+    """Returns dictionary of required attributes for linking_support._link_multi_arch_binary.
 
     Args:
         base_cfg: The Bazel base transition used by the rule implementation. To satisfy native Bazel
