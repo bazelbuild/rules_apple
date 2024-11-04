@@ -149,6 +149,25 @@ Provides information around the use of a code signing dossier.
 | <a id="AppleCodesigningDossierInfo-dossier"></a>dossier |  A `File` reference to the code signing dossier zip that acts as a direct dependency of the given target if one was generated.    |
 
 
+<a id="AppleDeviceTestRunnerInfo"></a>
+
+## AppleDeviceTestRunnerInfo
+
+<pre>
+AppleDeviceTestRunnerInfo(<a href="#AppleDeviceTestRunnerInfo-device_type">device_type</a>, <a href="#AppleDeviceTestRunnerInfo-os_version">os_version</a>)
+</pre>
+
+Provider that device-based runner targets must propagate.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDeviceTestRunnerInfo-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.    |
+| <a id="AppleDeviceTestRunnerInfo-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5.    |
+
+
 <a id="AppleDsymBundleInfo"></a>
 
 ## AppleDsymBundleInfo

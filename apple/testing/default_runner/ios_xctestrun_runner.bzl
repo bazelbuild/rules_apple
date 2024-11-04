@@ -5,6 +5,7 @@ simulators. This rule currently doesn't support UI tests or running on device.
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
 
@@ -81,6 +82,10 @@ def _ios_xctestrun_runner_impl(ctx):
             execution_requirements = {"requires-darwin": ""},
             test_runner_template = ctx.outputs.test_runner_template,
         ),
+        AppleDeviceTestRunnerInfo(
+            device_type = device_type,
+            os_version = os_version,
+        ),
         DefaultInfo(
             runfiles = ctx.runfiles(
                 files = [
@@ -141,7 +146,7 @@ will always use `xcodebuild test-without-building` to run the test bundle.
             default = "keepNever",
             doc = """
 Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
-or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using 
+or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
 `xcodebuild` or an XCTestRun file but the value will be used in that case.
 """,
         ),
