@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleplatforminfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:platform_defaults.bzl",
+    "platform_defaults",
+)
 
 visibility([
     "//apple/...",
@@ -123,7 +127,7 @@ def _platform_prerequisites(
         build_settings,
         config_vars,
         cpp_fragment = None,
-        device_families,
+        device_families = None,
         explicit_minimum_os,
         objc_fragment = None,
         uses_swift,
@@ -136,7 +140,8 @@ def _platform_prerequisites(
       build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
-      device_families: The list of device families that apply to the target being built.
+      device_families: The list of device families that apply to the target being built. If not
+          specified, the default for the platform will be used.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
@@ -149,12 +154,15 @@ def _platform_prerequisites(
     platform_type_attr = getattr(apple_common.platform_type, apple_platform_info.target_os)
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
+    if not device_families:
+        device_families = platform_defaults.device_families(str(platform_type_attr))
+
     return struct(
         apple_fragment = apple_fragment,
         build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
-        device_families = sorted(device_families) if device_families else None,
+        device_families = sorted(device_families, reverse = True),
         minimum_os = explicit_minimum_os,
         platform = platform,
         platform_type = platform_type_attr,

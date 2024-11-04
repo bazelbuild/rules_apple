@@ -35,6 +35,11 @@ bzl_library(
 )
 
 bzl_library(
+    name = "platform_defaults",
+    srcs = ["platform_defaults.bzl"],
+)
+
+bzl_library(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.bzl"],
 )
