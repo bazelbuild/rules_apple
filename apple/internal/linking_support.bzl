@@ -24,6 +24,15 @@ load(
     "get_split_target_triplet",
     "subtract_linking_contexts",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
+    "new_appledebugoutputsinfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+)
 
 ObjcInfo = apple_common.Objc
 
@@ -183,14 +192,14 @@ def _link_multi_arch_binary(
         ))
 
     avoid_cc_infos = [
-        dep[apple_common.AppleDynamicFramework].cc_info
+        dep[AppleDynamicFrameworkInfo].cc_info
         for dep in avoid_deps
-        if apple_common.AppleDynamicFramework in dep
+        if AppleDynamicFrameworkInfo in dep
     ]
     avoid_cc_infos.extend([
-        dep[apple_common.AppleExecutableBinary].cc_info
+        dep[AppleExecutableBinaryInfo].cc_info
         for dep in avoid_deps
-        if apple_common.AppleExecutableBinary in dep
+        if AppleExecutableBinaryInfo in dep
     ])
     avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
     avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
@@ -307,7 +316,7 @@ def _link_multi_arch_binary(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
         outputs = outputs,
-        debug_outputs_provider = apple_common.AppleDebugOutputs(outputs_map = legacy_debug_outputs),
+        debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
 def _debug_outputs_by_architecture(link_outputs):
@@ -389,11 +398,11 @@ def _register_binary_linking_action(
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
-            This target must propagate the `apple_common.AppleExecutableBinary` provider.
+            This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
             path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
-            provider of its dependencies (obtained from the `AppleExecutableBinary` provider)
+            provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
         entitlements: An optional `File` that provides the processed entitlements for the
@@ -488,7 +497,7 @@ def _register_binary_linking_action(
 
     all_avoid_deps = list(avoid_deps)
     if bundle_loader:
-        bundle_loader_file = bundle_loader[apple_common.AppleExecutableBinary].binary
+        bundle_loader_file = bundle_loader[AppleExecutableBinaryInfo].binary
         all_avoid_deps.append(bundle_loader)
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)

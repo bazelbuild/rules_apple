@@ -221,6 +221,21 @@ target if one was generated.
     init = make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
 )
 
+AppleDebugOutputsInfo, new_appledebugoutputsinfo = provider(
+    """
+Holds debug outputs of an Apple binary rule.
+
+This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
+
+The only field is `output_map`, which is a dictionary of:
+  `{ arch: { "dsym_binary": File, "linkmap": File }`
+
+Where `arch` is any Apple architecture such as "arm64" or "armv7".
+""",
+    fields = ["outputs_map"],
+    init = make_banned_init(provider_name = "AppleDebugOutputsInfo"),
+)
+
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
@@ -234,6 +249,23 @@ dependencies of the given target if any were generated.
 """,
     },
     init = make_banned_init(provider_name = "AppleDsymBundleInfo"),
+)
+
+AppleExecutableBinaryInfo, new_appleexecutablebinaryinfo = provider(
+    doc = """
+Contains the executable binary output that was built using
+`link_multi_arch_binary` with the `executable` binary type.
+""",
+    fields = {
+        "binary": """\
+The executable binary artifact output by `link_multi_arch_binary`.
+""",
+        "cc_info": """\
+A `CcInfo` which contains information about the transitive dependencies linked
+into the binary.
+""",
+    },
+    init = make_banned_init(provider_name = "AppleExecutableBinaryInfo"),
 )
 
 AppleExtraOutputsInfo, new_appleextraoutputsinfo = provider(

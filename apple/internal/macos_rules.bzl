@@ -71,9 +71,11 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleExecutableBinaryInfo",
     "MacosExtensionBundleInfo",
     "MacosXPCServiceBundleInfo",
     "new_applebinaryinfo",
+    "new_appleexecutablebinaryinfo",
     "new_macosapplicationbundleinfo",
     "new_macosbundlebundleinfo",
     "new_macosextensionbundleinfo",
@@ -424,7 +426,7 @@ def _macos_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
@@ -2071,7 +2073,7 @@ def _macos_command_line_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = output_file,
             cc_info = link_result.cc_info,
         ),
@@ -2401,7 +2403,7 @@ The target representing the executable that will be loading this bundle. Undefin
 bundle are checked against this execuable during linking as if it were one of the dynamic libraries
 the bundle was linked with.
 """,
-                providers = [apple_common.AppleExecutableBinary],
+                providers = [AppleExecutableBinaryInfo],
             ),
         },
     ],

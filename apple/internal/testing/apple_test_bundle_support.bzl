@@ -57,6 +57,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
+    "AppleExecutableBinaryInfo",
     "AppleTestInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
@@ -387,7 +388,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     # is never passed as the bundle loader, because the host application is loaded out-of-process.)
     if (
         rule_descriptor.product_type == apple_product_type.unit_test_bundle and
-        test_host and apple_common.AppleExecutableBinary in test_host
+        test_host and AppleExecutableBinaryInfo in test_host
     ):
         bundle_loader = test_host
     else:

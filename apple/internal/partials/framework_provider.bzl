@@ -22,6 +22,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+)
 
 visibility("//apple/...")
 
@@ -77,7 +81,7 @@ def _framework_provider_partial_impl(
         ],
     )
 
-    framework_provider = apple_common.new_dynamic_framework_provider(
+    framework_provider = AppleDynamicFrameworkInfo(
         binary = binary_artifact,
         cc_info = wrapper_cc_info,
         framework_dirs = depset([absolute_framework_dir]),

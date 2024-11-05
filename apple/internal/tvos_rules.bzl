@@ -70,6 +70,7 @@ load(
     "ApplePlatformInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_tvosapplicationbundleinfo",
     "new_tvosextensionbundleinfo",
@@ -440,7 +441,7 @@ def _tvos_application_impl(ctx):
             )
         ),
         new_tvosapplicationbundleinfo(),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),

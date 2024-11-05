@@ -57,6 +57,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleexecutablebinaryinfo",
     "new_visionosapplicationbundleinfo",
 )
 load(
@@ -365,7 +366,7 @@ Resolved Xcode is version {xcode_version}.
             )
         ),
         new_visionosapplicationbundleinfo(),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),

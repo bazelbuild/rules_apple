@@ -219,6 +219,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal/providers:apple_dynamic_framework_info",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],

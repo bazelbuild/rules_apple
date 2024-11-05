@@ -74,6 +74,7 @@ load(
     "IosFrameworkBundleInfo",
     "IosImessageExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
     "new_iosapplicationbundleinfo",
@@ -511,7 +512,7 @@ def _ios_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
@@ -811,7 +812,7 @@ def _ios_app_clip_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        apple_common.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),

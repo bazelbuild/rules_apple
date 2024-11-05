@@ -68,6 +68,10 @@ load(
     "SwiftUsageInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -200,7 +204,8 @@ There should only be one valid framework binary, given a name that matches its f
     # Create AppleDynamicFramework provider.
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    providers.append(apple_common.new_dynamic_framework_provider(
+
+    providers.append(AppleDynamicFrameworkInfo(
         cc_info = cc_info,
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),

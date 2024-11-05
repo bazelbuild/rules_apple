@@ -291,6 +291,8 @@ bzl_library(
     ],
     deps = [
         ":entitlements_support",
+        ":providers",
+        "//apple/internal/providers:apple_dynamic_framework_info",
         "@build_bazel_apple_support//lib:lipo",
     ],
 )
@@ -383,6 +385,7 @@ bzl_library(
         "//apple/internal/partials:swift_dylibs",
         "//apple/internal/partials:swift_framework",
         "//apple/internal/partials:watchos_stub",
+        "//apple/internal/providers:apple_dynamic_framework_info",
     ],
 )
 
