@@ -86,7 +86,9 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
     "new_applebinaryinfo",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_macosapplicationbundleinfo",
     "new_macosbundlebundleinfo",
@@ -2093,7 +2095,7 @@ def _macos_command_line_application_impl(ctx):
             )
         ),
         new_appleexecutablebinaryinfo(
-            binary = binary_artifact,
+            binary = output_file,
             cc_info = link_result.cc_info,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.

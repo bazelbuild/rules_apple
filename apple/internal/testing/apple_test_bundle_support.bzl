@@ -74,6 +74,7 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
 )

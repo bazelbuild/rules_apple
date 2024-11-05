@@ -24,7 +24,7 @@ load(
 )
 load(
     "//apple/internal:framework_import_support.bzl",
-    "framework_import_support",
+    "AppleDynamicFrameworkInfo",
 )
 
 def _framework_provider_partial_impl(

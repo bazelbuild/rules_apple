@@ -29,6 +29,11 @@ load(
     "subtract_linking_contexts",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
+    "new_appledebugoutputsinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
 )
@@ -326,7 +331,7 @@ def _link_multi_arch_binary(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
         outputs = outputs,
-        debug_outputs_provider = apple_common.AppleDebugOutputs(outputs_map = legacy_debug_outputs),
+        debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
 def _debug_outputs_by_architecture(link_outputs):
@@ -420,7 +425,7 @@ def _register_binary_linking_action(
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
             path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
-            provider of its dependencies (obtained from the `AppleExecutableBinary` provider)
+            provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
         entitlements: An optional `File` that provides the processed entitlements for the

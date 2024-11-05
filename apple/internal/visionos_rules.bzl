@@ -79,6 +79,7 @@ load(
     "ApplePlatformInfo",
     "VisionosExtensionBundleInfo",
     "VisionosFrameworkBundleInfo",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_visionosapplicationbundleinfo",
     "new_visionosextensionbundleinfo",

@@ -341,7 +341,9 @@ bzl_library(
         ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":entitlements_support",
+        ":providers",
         ":rule_support",
+        "//apple/internal/providers:apple_dynamic_framework_info",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:lipo",
     ],
@@ -449,6 +451,7 @@ bzl_library(
         "//apple/internal/partials:swift_dynamic_framework",
         "//apple/internal/partials:swift_framework",
         "//apple/internal/partials:watchos_stub",
+        "//apple/internal/providers:apple_dynamic_framework_info",
     ],
 )
 

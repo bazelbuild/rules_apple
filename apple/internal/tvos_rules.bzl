@@ -82,6 +82,7 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_tvosapplicationbundleinfo",
     "new_tvosextensionbundleinfo",
