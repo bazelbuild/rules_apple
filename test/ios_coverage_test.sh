@@ -202,14 +202,18 @@ ios_application(
 ios_unit_test(
     name = "hosted_test",
     deps = [":hosted_test_lib"],
+    env = {"STARTUP_TIMEOUT_SEC": "300"},
     minimum_os_version = "${MIN_OS_IOS}",
+    size = "large",
     test_host = ":app",
 )
 
 ios_unit_test(
     name = "standalone_test",
     deps = [":standalone_test_lib"],
+    env = {"STARTUP_TIMEOUT_SEC": "300"},
     minimum_os_version = "${MIN_OS_IOS}",
+    size = "large",
 )
 
 ios_unit_test(
@@ -217,6 +221,7 @@ ios_unit_test(
     deps = [":standalone_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+    size = "large",
 )
 
 ios_unit_test(
@@ -224,6 +229,7 @@ ios_unit_test(
     deps = [":standalone_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_coverage_manifest = "coverage_manifest.txt",
+    size = "large",
 )
 
 ios_unit_test(
@@ -232,6 +238,7 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_coverage_manifest = "coverage_manifest.txt",
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    size = "large",
 )
 
 ios_ui_test(
@@ -240,6 +247,7 @@ ios_ui_test(
     minimum_os_version = "15",
     test_host = ":coverage_app",
     runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+    size = "large",
 )
 EOF
 }
