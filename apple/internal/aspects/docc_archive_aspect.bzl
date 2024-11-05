@@ -76,7 +76,7 @@ def _docc_symbol_graphs_aspect_impl(target, ctx):
     if not symbol_graphs:
         return []
 
-    return [DocCSymbolGraphsInfo(symbol_graphs = symbol_graphs)]
+    return [DocCSymbolGraphsInfo(symbol_graphs = depset(symbol_graphs))]
 
 def _docc_bundle_info_aspect_impl(target, ctx):
     """Creates a DocCBundleInfo provider for targets which have a .docc bundle (or which bundle a target that does)"""

@@ -235,6 +235,6 @@ DocCBundleInfo = provider(
 DocCSymbolGraphsInfo = provider(
     doc = "Provides the symbol graphs required to archive a .docc bundle.",
     fields = {
-        "symbol_graphs": "the paths to the symbol graphs",
+        "symbol_graphs": "the depset of paths to the symbol graphs",
     },
 )

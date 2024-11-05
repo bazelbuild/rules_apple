@@ -66,6 +66,8 @@ def _docc_archive_impl(ctx):
     if not symbol_graphs_info and not docc_bundle_info:
         fail("At least one of DocCSymbolGraphsInfo or DocCBundleInfo must be provided for target %s" % ctx.attr.name)
 
+    symbol_graphs = symbol_graphs_info.symbol_graphs.to_list() if symbol_graphs_info else []
+
     if ctx.attr.name.endswith(".doccarchive"):
         doccarchive_dir = ctx.actions.declare_directory(ctx.attr.name)
     else:
@@ -75,7 +77,6 @@ def _docc_archive_impl(ctx):
     arguments = ctx.actions.args()
     arguments.add("docc")
     arguments.add("convert")
-    arguments.add("--index")
     arguments.add("--fallback-display-name", fallback_display_name)
     arguments.add("--fallback-bundle-identifier", fallback_bundle_identifier)
     arguments.add("--fallback-bundle-version", fallback_bundle_version)
@@ -98,11 +99,11 @@ def _docc_archive_impl(ctx):
     # Add symbol graphs
     if symbol_graphs_info:
         arguments.add_all(
-            symbol_graphs_info.symbol_graphs,
+            symbol_graphs,
             before_each = "--additional-symbol-graph-dir",
             expand_directories = False,
         )
-        docc_build_inputs.extend(symbol_graphs_info.symbol_graphs)
+        docc_build_inputs.extend(symbol_graphs)
 
     # The .docc bundle (if provided, only one is allowed)
     if docc_bundle_info:
@@ -136,7 +137,7 @@ def _docc_archive_impl(ctx):
             "{fallback_display_name}": fallback_display_name,
             "{platform}": platform.name_in_plist,
             "{sdk_version}": str(xcode_config.sdk_version_for_platform(platform)),
-            "{symbol_graph_dirs}": ",".join([f.path for f in symbol_graphs_info.symbol_graphs]) if symbol_graphs_info else "",
+            "{symbol_graph_dirs}": " ".join([f.short_path for f in symbol_graphs]) if symbol_graphs else "",
             "{target_name}": ctx.attr.name,
             "{xcode_version}": str(xcode_config.xcode_version()),
         },
@@ -154,7 +155,9 @@ def _docc_archive_impl(ctx):
         DefaultInfo(
             files = depset([doccarchive_dir]),
             executable = preview_script,
-            runfiles = ctx.runfiles(files = [preview_script] + docc_build_inputs),
+            runfiles = ctx.runfiles(files = [
+                preview_script,
+            ] + docc_build_inputs),
         ),
         doccarchive_binary_info,
     ]
@@ -257,6 +260,10 @@ This value must be either `fileprivate`, `internal`, `private`, or `public`. The
             "_preview_template": attr.label(
                 allow_single_file = True,
                 default = "//apple/internal/templates:docc_preview_template",
+            ),
+            "_bash_runfiles": attr.label(
+                allow_files = True,
+                default = "@bazel_tools//tools/bash/runfiles",
             ),
         },
     ),
