@@ -124,7 +124,7 @@ ios_application(
 
 ios_application(
     name = "app",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     families = ["iphone"],
@@ -160,7 +160,7 @@ ios_application(
 
 ios_application(
     name = "app_precompiled_resource_bundle",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     families = ["iphone"],
@@ -306,7 +306,7 @@ ios_application(
 
 ios_application(
     name = "app_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -378,7 +378,7 @@ ios_application(
 
 ios_application(
     name = "app_launch_images_from_library",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -398,7 +398,7 @@ ios_application(
 
 ios_application(
     name = "app_with_duplicated_library_scoped_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -419,7 +419,7 @@ ios_application(
 
 ios_application(
     name = "app_with_top_level_and_library_scoped_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -440,8 +440,8 @@ ios_application(
 
 ios_application(
     name = "app_with_alternate_icons",
-    alternate_icons = ["//test/starlark_tests/resources:alternate_icons_ios"],
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    alternate_icons = ["//test/testdata/resources:alternate_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -462,8 +462,8 @@ ios_application(
 
 ios_application(
     name = "iphone_only_app_with_alternate_icons",
-    alternate_icons = ["//test/starlark_tests/resources:alternate_icons_ios"],
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
+    alternate_icons = ["//test/testdata/resources:alternate_icons_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -483,7 +483,7 @@ ios_application(
 
 ios_application(
     name = "app_with_alternate_app_icons",
-    app_icons = ["//test/starlark_tests/resources:app_icons_with_alts_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_with_alts_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",
@@ -503,7 +503,7 @@ ios_application(
 
 ios_application(
     name = "app_with_alternate_app_icons_without_primary",
-    app_icons = ["//test/starlark_tests/resources:app_icons_with_alts_ios"],
+    app_icons = ["//test/testdata/resources:app_icons_with_alts_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",

@@ -555,21 +555,6 @@ filegroup(
 )
 
 filegroup(
-    name = "app_icons_ios",
-    srcs = glob(["app_icons_ios.xcassets/**"]),
-)
-
-filegroup(
-    name = "alternate_icons_ios",
-    srcs = glob(["alticons/**"]),
-)
-
-filegroup(
-    name = "app_icons_with_alts_ios",
-    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
-)
-
-filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )
