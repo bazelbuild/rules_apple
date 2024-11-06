@@ -163,36 +163,6 @@ genrule(
 )
 
 apple_resource_bundle(
-    name = "bundle_library_ios",
-    infoplists = [
-        "Info-template.plist",
-    ],
-    resources = [
-        "generated.strings",
-        "nonlocalized.plist",
-        "nonlocalized.strings",
-        "nonlocalized_resource.txt",
-        "sample.png",
-        "storyboard_ios.storyboard",
-        "view_ios.xib",
-        ":assets",
-        ":basic_bundle",
-        ":localized_generic_resources",
-        ":localized_plists",
-        ":localized_storyboards_ios",
-        ":localized_strings",
-        ":localized_xibs_ios",
-        ":mapping_model",
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
-    ],
-    structured_resources = [
-        ":generate_structured_strings",
-        ":structured",
-    ],
-)
-
-apple_resource_bundle(
     name = "bundle_library_macos",
     bundle_name = "bundle_library_macos",
     # TODO: Bazel seems to crash with an exception if given datamodels
