@@ -222,8 +222,8 @@ If you intend to assign multiple app icons to this target, please declare which 
 to be the primary app icon with the primary_app_icon attribute on the rule itself.
 
 app_icons was assigned the following: [
-  test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
-  test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
+  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
+  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
 ]
 """,
         tags = [name],

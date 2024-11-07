@@ -107,6 +107,16 @@ filegroup(
 )
 
 filegroup(
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "alternate_icons_ios",
+    srcs = glob(["alticons/**"]),
+)
+
+filegroup(
     name = "assets",
     srcs = glob(["assets.xcassets/**"]),
 )
