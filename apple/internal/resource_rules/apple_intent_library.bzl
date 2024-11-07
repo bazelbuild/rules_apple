@@ -146,7 +146,6 @@ Label to a single `.intentdefinition` files from which to generate sources files
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 This rule supports the integration of Intents `.intentdefinition` files into Apple rules.

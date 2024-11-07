@@ -173,7 +173,6 @@ into mlmodelc files.
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 This rule takes a single mlmodel file or mlpackage bundle and creates a target that can be added

@@ -96,7 +96,6 @@ def _header_map_impl(ctx):
 
 header_map = rule(
     implementation = _header_map_impl,
-    output_to_genfiles = True,
     attrs = {
         "module_name": attr.string(
             mandatory = False,
