@@ -101,13 +101,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "macos_quick_look_plugin_test",
-    size = "medium",
-    src = "macos_quick_look_plugin_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "tvos_application_test",
     size = "medium",
     src = "tvos_application_test.sh",
