@@ -78,7 +78,6 @@ dtrace_compile = rule(
             doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 Compiles
