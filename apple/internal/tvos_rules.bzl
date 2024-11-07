@@ -580,18 +580,6 @@ def _tvos_framework_impl(ctx):
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
-        # the can be skipped.
-        partials.clang_rt_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
-        ),
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

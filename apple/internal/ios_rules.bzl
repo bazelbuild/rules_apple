@@ -970,18 +970,6 @@ def _ios_framework_impl(ctx):
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
-        # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
-        # the can be skipped.
-        partials.clang_rt_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
-            binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
-        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
