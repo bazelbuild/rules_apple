@@ -34,12 +34,18 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    # FIXME: Use last_green once we cherry-pick in changes needed by
+    # https://github.com/bazelbuild/bazel/commit/b59004dd17366b09b0758b833f98294fd0e89345
+    # bazel: last_green
+    bazel: 21a12c72d84e9108142421d9a8526edf8dceb78c
     <<: *common
 
   doc_tests:
     name: "Doc tests"
-    bazel: last_green
+    # FIXME: Use last_green once we cherry-pick in changes needed by
+    # https://github.com/bazelbuild/bazel/commit/b59004dd17366b09b0758b833f98294fd0e89345
+    # bazel: last_green
+    bazel: 21a12c72d84e9108142421d9a8526edf8dceb78c
     platform: ubuntu2004
     test_targets:
     - "doc/..."
