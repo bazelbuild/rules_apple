@@ -200,6 +200,21 @@ def tvos_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the
+    # extension bundle's Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

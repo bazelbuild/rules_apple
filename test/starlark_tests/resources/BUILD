@@ -166,6 +166,16 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_main_lib_with_common_lib_referencing_app_intent",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":hinted_app_intent",
+        ":objc_common_lib",
+    ],
+)
+
+objc_library(
     name = "objc_main_lib_with_structured_images",
     srcs = ["main.m"],
     data = [":structured_image_resources"],
@@ -204,6 +214,15 @@ swift_library(
     name = "watchkit_single_target_app_main_lib",
     srcs = ["WatchKitAppMain.swift"],
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "watchkit_single_target_app_main_lib_referencing_app_intent",
+    srcs = ["WatchKitAppMain.swift"],
+    tags = common.fixture_tags,
+    deps = [
+        ":hinted_app_intent",
+    ],
 )
 
 objc_library(

@@ -664,6 +664,75 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with transitive App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_transitive_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_transitive_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test that an app with transitive and direct App Intents fails to build (at present time).
+    analysis_failure_message_test(
+        name = "{}_too_many_app_intents_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_transitive_and_direct_app_intents",
+        expected_error = """
+Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple target at //test/starlark_tests/targets_under_test/tvos:app_with_transitive_and_direct_app_intents, but found 2 targets defining App Intents instead.
+
+App Intents bundles were defined by the following targets:
+- //test/starlark_tests/resources:app_intent
+- //test/starlark_tests/resources:hinted_app_intent
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_no_exclusive_app_intents_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_no_exclusive_framework_app_intents",
+        expected_error = """
+Error: Expected one swift_library defining App Intents exclusive to the given top level Apple target at //test/starlark_tests/targets_under_test/tvos:app_with_no_exclusive_framework_app_intents, but only found 1 targets defining App Intents owned by frameworks.
+
+App Intents bundles were defined by the following framework-referenced targets:
+- //test/starlark_tests/resources:framework_defined_app_intent
+""",
+        tags = [name],
+    )
+
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
+    # bundle's Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
+    # bundle's Metadata.appintents bundle even when there is an extension that also references the
+    # same framework-defined App Intents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_extension_and_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_and_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

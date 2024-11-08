@@ -59,6 +59,18 @@ def macos_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test ext with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_transitive_app_intents",
+        contains = [
+            "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$RESOURCE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

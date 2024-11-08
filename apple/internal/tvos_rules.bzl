@@ -810,6 +810,17 @@ def _tvos_extension_impl(ctx):
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
     processor_partials = [
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            app_intents = [ctx.split_attr.deps],
+            bundle_id = bundle_id,
+            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            embedded_bundles = ctx.attr.frameworks,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
+        ),
         partials.apple_bundle_info_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -1176,11 +1187,15 @@ tvos_extension = rule_factory.create_apple_rule(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
+                app_intents_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.cc_toolchain_forwarder_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

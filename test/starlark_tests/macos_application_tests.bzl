@@ -433,6 +433,18 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with transitive App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_transitive_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_transitive_app_intents",
+        contains = [
+            "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$RESOURCE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_capability_set_derived_bundle_id",

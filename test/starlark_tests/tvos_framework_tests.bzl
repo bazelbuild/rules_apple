@@ -239,7 +239,7 @@ def tvos_framework_test_suite(name):
     # Verifies shared resources between app and frameworks propagated via 'data' are not deduped,
     # therefore both app and frameworks contain shared resources.
     archive_contents_test(
-        name = "{}_bundles_shared_resources_from_app_and_fmwks_with_data_ios_frameworks".format(name),
+        name = "{}_bundles_shared_resources_from_app_and_fmwks_with_data_tvos_frameworks".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
         contains = [
@@ -375,6 +375,25 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.fmwk-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    # Test framework with App Intents generates and bundles Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:framework_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_app_intents_within_load_deferred_framework_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_load_deferred_framework_app_intents",
+        expected_error = "An App Intents metadata bundle was found in the following framework that is not directly loaded by an app/extension:",
         tags = [name],
     )
 
