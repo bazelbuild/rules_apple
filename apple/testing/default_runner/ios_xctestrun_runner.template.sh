@@ -80,6 +80,9 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
+# Delta update won't update the binary if it has the same timestamp
+touch "$test_bundle_binary"
+
 build_for_device=false
 test_execution_platform="iPhoneSimulator.platform"
 if [[ -n "$device_id" ]]; then
