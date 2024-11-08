@@ -29,8 +29,9 @@ load(
 visibility("//apple/...")
 
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
+_APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."
 
-def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
+def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
     """Finds the AppIntentsInfo providers from the given app_intents.
 
     Args:
@@ -38,6 +39,7 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
             AppIntentsInfo. The only supported targets are targets provided by a label list and
             targets provided by labels from the bundle rule.
         first_cc_toolchain_key: The key for the first cc_toolchain found in the split transition.
+        label: The label of the current rule.
     Returns:
         A list of all AppIntentsInfo providers that were found.
     """
@@ -48,6 +50,28 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
         if not first_cc_toolchain_key in split_target:
             continue
         split_values = split_target[first_cc_toolchain_key]
+        if type(split_values) != "list":
+            # TODO(b/377974185): Remove this warning once the legacy app_intents attribute is
+            # cleaned up.
+            #
+            # Emit a warning if the legacy app_intents attribute is used; we currently fall on the
+            # assumption that if the input was not a list (i.e. from "deps"), it's "app_intents",
+            # which takes in only a single label referencing a BUILD target.
+            # buildifier: disable=print
+            print("""
+WARNING: Found app intents defined through the legacy app_intents attribute on the target at \
+{label}.
+
+Please define app intents by assigning {app_intents_hint_target} via the referenced \
+swift_library's "aspect_hints" attribute instead, and remove the existing reference to the \
+swift_library target from the deprecated app_intents attribute found at {label}.
+
+{app_intents_hint_docs}
+""".format(
+                app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
+                app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+                label = str(label),
+            ))
         targets = split_values if type(split_values) == "list" else [split_values]
         for target in targets:
             if AppIntentsInfo in target:
@@ -93,7 +117,10 @@ App Intents bundles were defined by the following framework-referenced targets:
 Please ensure that a single "swift_library" target is marked as providing App Intents metadata \
 exclusively to the given top level Apple target via the "aspect_hints" attribute with \
 {app_intents_hint_target}.
+
+{app_intents_hint_docs}
 """.format(
+            app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
             app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
             bundle_owners = "\n- ".join(avoid_owners),
             label = str(label),
@@ -114,7 +141,10 @@ metadata exclusively to the given top level Apple target via the "aspect_hints" 
 App Intents can also be shared via AppIntentsPackage APIs from a dynamic framework to apps, \
 extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
 for more information: https://developer.apple.com/documentation/appintents/appintentspackage
+
+{app_intents_hint_docs}
 """.format(
+            app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
             app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
             bundle_owners = "\n- ".join([x.owner for x in metadata_bundle_inputs]),
             label = str(label),
@@ -151,6 +181,7 @@ def _app_intents_metadata_bundle_partial_impl(
     app_intents_infos = _find_app_intents_info(
         app_intents = app_intents,
         first_cc_toolchain_key = first_cc_toolchain_key,
+        label = label,
     )
 
     if not app_intents_infos:
