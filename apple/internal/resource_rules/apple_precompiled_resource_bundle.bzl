@@ -23,6 +23,11 @@ load(
     "partial",
 )
 load(
+    "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleFrameworkBundleInfo",
+    "AppleResourceInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
@@ -50,6 +55,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
 )
 load(
     "//apple/internal:apple_product_type.bzl",
@@ -205,6 +214,27 @@ def _apple_precompiled_resource_bundle_impl(ctx):
             ),
         )
 
+    # Get the providers from dependencies
+    inherited_apple_resource_infos = [
+        x[AppleResourceInfo]
+        for x in ctx.attr.resources
+        if AppleResourceInfo in x and
+           # Filter Apple framework targets to avoid propagating and bundling
+           # framework resources to the top-level target (eg. ios_application)
+           AppleFrameworkBundleInfo not in x
+    ]
+    if inherited_apple_resource_infos:
+        # Nest the inherited resource providers within the bundle, if one is
+        # needed for this rule
+        merged_inherited_provider = resources.merge_providers(
+            default_owner = owner,
+            providers = inherited_apple_resource_infos,
+        )
+        apple_resource_infos.append(resources.nest_in_bundle(
+            provider_to_nest = merged_inherited_provider,
+            nesting_bundle_dir = bundle_name,
+        ))
+
     providers = [
         new_appleresourcebundleinfo(),
     ]
@@ -260,6 +290,7 @@ non-RFC1034-compliant characters with -.
             "resources": attr.label_list(
                 allow_empty = True,
                 allow_files = True,
+                aspects = [apple_resource_aspect],
                 doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have
