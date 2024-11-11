@@ -16,6 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
+    "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
 
@@ -56,12 +57,16 @@ def _ios_test_runner_impl(ctx):
     )
     return [
         apple_provider.make_apple_test_runner_info(
-            test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = ctx.attr.execution_requirements,
             execution_environment = _get_execution_environment(
                 xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
             ),
             test_environment = ctx.attr.test_environment,
+            test_runner_template = ctx.outputs.test_runner_template,
+        ),
+        AppleDeviceTestRunnerInfo(
+            device_type = device_type,
+            os_version = os_version,
         ),
         DefaultInfo(
             runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
