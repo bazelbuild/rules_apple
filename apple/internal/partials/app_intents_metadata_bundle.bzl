@@ -91,7 +91,7 @@ def _find_exclusively_owned_metadata_bundle_input(*, app_intents_infos, label, t
         rule if it exists. If more than one exclusively owned metadata bundle input was found, or
         if no exclusively owned metadata bundle input was found, a failure is reported to the user.
     """
-    metadata_bundle_inputs = []
+    owned_metadata_bundle_inputs = []
 
     avoid_owned_metadata_bundles = [
         x[AppIntentsBundleInfo].owned_metadata_bundles
@@ -100,12 +100,18 @@ def _find_exclusively_owned_metadata_bundle_input(*, app_intents_infos, label, t
     ]
     avoid_owners = [p.owner for x in avoid_owned_metadata_bundles for p in x.to_list()]
 
-    for app_intents_info in app_intents_infos:
-        for metadata_bundle_input in app_intents_info.metadata_bundle_inputs.to_list():
-            if metadata_bundle_input.owner not in avoid_owners:
-                metadata_bundle_inputs.append(metadata_bundle_input)
+    # Use a transitive depset to remove incoming duplicates.
+    metadata_bundle_inputs = depset(transitive = [
+        app_intents_info.metadata_bundle_inputs
+        for app_intents_info in app_intents_infos
+    ])
 
-    if len(metadata_bundle_inputs) == 0:
+    for metadata_bundle_input in metadata_bundle_inputs.to_list():
+        owner = metadata_bundle_input.owner
+        if owner not in avoid_owners:
+            owned_metadata_bundle_inputs.append(metadata_bundle_input)
+
+    if len(owned_metadata_bundle_inputs) == 0:
         fail("""
 Error: Expected one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but only found {number_of_inputs} targets defining App Intents owned by \
@@ -126,7 +132,7 @@ exclusively to the given top level Apple target via the "aspect_hints" attribute
             label = str(label),
             number_of_inputs = len(avoid_owners),
         ))
-    elif len(metadata_bundle_inputs) != 1:
+    elif len(owned_metadata_bundle_inputs) != 1:
         fail("""
 Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but found {number_of_inputs} targets defining App Intents instead.
@@ -146,12 +152,12 @@ for more information: https://developer.apple.com/documentation/appintents/appin
 """.format(
             app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
             app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
-            bundle_owners = "\n- ".join([x.owner for x in metadata_bundle_inputs]),
+            bundle_owners = "\n- ".join([x.owner for x in owned_metadata_bundle_inputs]),
             label = str(label),
-            number_of_inputs = len(metadata_bundle_inputs),
+            number_of_inputs = len(owned_metadata_bundle_inputs),
         ))
 
-    return metadata_bundle_inputs[0]
+    return owned_metadata_bundle_inputs[0]
 
 def _app_intents_metadata_bundle_partial_impl(
         *,

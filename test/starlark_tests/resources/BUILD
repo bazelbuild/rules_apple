@@ -950,6 +950,15 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "objc_lib_referencing_app_intent",
+    tags = common.fixture_tags,
+    deps = [
+        ":hinted_app_intent",
+        ":swift_uikit_appdelegate_referencing_app_intent",
+    ],
+)
+
 swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],

@@ -653,9 +653,22 @@ def ios_application_test_suite(name):
 
     # Test app with App Intents generates and bundles Metadata.appintents bundle.
     archive_contents_test(
-        name = "{}_contains_app_intents_metadata_bundle_test".format(name),
+        name = "{}_with_app_intents_contains_app_intents_metadata_bundle_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test app with repeated references to the same App Intent generates and bundles a single
+    # Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_repeated_references_to_the_same_app_intent_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_repeated_references_to_the_same_app_intent",
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
