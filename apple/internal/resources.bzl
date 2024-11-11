@@ -526,19 +526,19 @@ def _process_bucketized_data(
                 processed_origins.append((processed_resource, tuple(processed_origin)))
 
             processed_field = {}
-            for _, _, processed_file in result.files:
+            for _, processed_parent_dir, processed_files in result.files:
                 processed_field.setdefault(
-                    parent_dir if parent_dir else "",
+                    processed_parent_dir or "",
                     [],
-                ).append(processed_file)
+                ).append(processed_files)
 
             # Save files to the "processed" field for copying in the bundling phase.
-            for _, processed_files in processed_field.items():
+            for processed_parent_dir, processed_files in processed_field.items():
                 buckets.setdefault(
                     "processed",
                     default = [],
                 ).append((
-                    parent_dir,
+                    processed_parent_dir,
                     swift_module,
                     depset(transitive = processed_files),
                 ))
