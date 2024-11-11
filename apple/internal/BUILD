@@ -740,29 +740,29 @@ filegroup(
 environment_plist(
     name = "environment_plist_ios",
     platform_type = "ios",
-    visibility = ["//apple/internal:__subpackages__"],
+    visibility = ["//apple:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_macos",
     platform_type = "macos",
-    visibility = ["//apple/internal:__subpackages__"],
+    visibility = ["//apple:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_visionos",
     platform_type = "visionos",
-    visibility = ["//apple/internal:__subpackages__"],
+    visibility = ["//apple:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_watchos",
     platform_type = "watchos",
-    visibility = ["//apple/internal:__subpackages__"],
+    visibility = ["//apple:__subpackages__"],
 )
 
 environment_plist(
     name = "environment_plist_tvos",
     platform_type = "tvos",
-    visibility = ["//apple/internal:__subpackages__"],
+    visibility = ["//apple:__subpackages__"],
 )

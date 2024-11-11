@@ -61,8 +61,19 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:apple_product_type",
+        "//apple/internal:partials",
+        "//apple/internal:platform_support",
         "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:rule_support",
+        "//apple/internal:swift_support",
         "//apple/internal:transition_support",
+        "//apple/internal/aspects:resource_aspect",
+        "//apple/internal/toolchains:apple_toolchains",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

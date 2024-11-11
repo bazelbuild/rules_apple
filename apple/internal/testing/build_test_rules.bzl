@@ -15,13 +15,57 @@
 """Rules for writing build tests for libraries that target Apple platforms."""
 
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:partials.bzl",
+    "partials",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBinaryInfo",
     "AppleDsymBundleInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 
 visibility("//apple/...")
@@ -58,7 +102,45 @@ def _apple_build_test_rule_impl(ctx):
                     rule_kind = ctx.attr._platform_type + "_build_test",
                 ))
 
+    # Simulate an application bundle for building resources.
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.application,
+    )
+
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
+        build_settings = apple_toolchain_utils.get_xplat_toolchain(ctx).build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        uses_swift = swift_support.uses_swift(ctx.attr.targets),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    resource_artifacts = partial.call(partials.resources_partial(
+        actions = ctx.actions,
+        apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx),
+        avoid_root_infoplist = True,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+        bundle_extension = ".app",
+        bundle_name = ctx.label.name + "_build_test",
+        environment_plist = ctx.file._environment_plist,
+        platform_prerequisites = platform_prerequisites,
+        resource_deps = ctx.attr.targets,
+        resource_locales = None,
+        rule_descriptor = rule_descriptor,
+        rule_label = ctx.label,
+        version = None,
+        version_keys_required = False,
+    ))
+
     transitive_files = [target[DefaultInfo].files for target in targets]
+    if hasattr(resource_artifacts, "bundle_files"):
+        for _, _, files in resource_artifacts.bundle_files:
+            transitive_files.append(files)
 
     # The test's executable is a vacuously passing script. We pass all of the
     # default outputs from the list of targets as the test's runfiles, so as
@@ -87,36 +169,34 @@ def apple_build_test_rule(doc, platform_type):
     Returns:
         The created `rule`.
     """
-
-    # TODO(b/161808913): Once resource processing actions have all been moved
-    #  into the resource aspect (that is, they are processed at the library
-    # level), apply the aspect to the targets and collect the processed
-    # resource outputs so that the build test can verify that resources also
-    # compile successfully; right now we just verify that the code in the
-    # libraries compiles.
     return rule(
-        attrs = {
-            "minimum_os_version": attr.string(
-                mandatory = True,
-                doc = """\
-A required string indicating the minimum OS version that will be used as the
-deployment target when building the targets, represented as a dotted version
-number (for example, `"9.0"`).
-""",
+        attrs = dicts.add(
+            apple_support.platform_constraint_attrs(),
+            rule_attrs.common_attrs(),
+            rule_attrs.platform_attrs(
+                platform_type = platform_type,
+                add_environment_plist = True,
             ),
-            "targets": attr.label_list(
-                allow_empty = False,
-                cfg = transition_support.apple_platform_split_transition,
-                doc = "The targets to check for successful build.",
-            ),
-            # This is a public attribute due to an implementation detail of
-            # `apple_platform_split_transition`. The private attribute of the
-            # same name is used in the implementation function to verify that
-            # the user has not modified it.
-            "platform_type": attr.string(default = platform_type),
-            "_platform_type": attr.string(default = platform_type),
-        },
+            {
+                "_platform_type": attr.string(
+                    default = platform_type,
+                    doc = "The platform type for which the test should build its targets.",
+                ),
+                "targets": attr.label_list(
+                    allow_empty = False,
+                    aspects = [apple_resource_aspect],
+                    cfg = transition_support.apple_platform_split_transition,
+                    doc = "The targets to check for successful build.",
+                ),
+            },
+        ),
         doc = doc,
+        fragments = [
+            "apple",
+            "cpp",
+            "objc",
+        ],
+        exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
         implementation = _apple_build_test_rule_impl,
         test = True,
         cfg = transition_support.apple_rule_transition,
