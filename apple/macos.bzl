@@ -77,7 +77,7 @@ def macos_kernel_extension(name, **kwargs):
     """Packages a macOS Kernel Extension."""
     bundling_args = dict(kwargs)
     features = bundling_args.pop("features", [])
-    features.append("kernel_extension")
+    features.extend(["kernel_extension", "-lld_compatible"])
 
     _macos_kernel_extension(
         name = name,
