@@ -453,7 +453,7 @@ requirement.
 ## DocCBundleInfo
 
 <pre>
-DocCBundleInfo(<a href="#DocCBundleInfo-bundle">bundle</a>)
+DocCBundleInfo(<a href="#DocCBundleInfo-bundle">bundle</a>, <a href="#DocCBundleInfo-bundle_files">bundle_files</a>)
 </pre>
 
 Provides general information about a .docc bundle.
@@ -464,6 +464,7 @@ Provides general information about a .docc bundle.
 | Name  | Description |
 | :------------- | :------------- |
 | <a id="DocCBundleInfo-bundle"></a>bundle |  the path to the .docc bundle    |
+| <a id="DocCBundleInfo-bundle_files"></a>bundle_files |  the file targets contained within the .docc bundle    |
 
 
 <a id="DocCSymbolGraphsInfo"></a>
@@ -481,7 +482,7 @@ Provides the symbol graphs required to archive a .docc bundle.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="DocCSymbolGraphsInfo-symbol_graphs"></a>symbol_graphs |  the paths to the symbol graphs    |
+| <a id="DocCSymbolGraphsInfo-symbol_graphs"></a>symbol_graphs |  the depset of paths to the symbol graphs    |
 
 
 <a id="IosAppClipBundleInfo"></a>
