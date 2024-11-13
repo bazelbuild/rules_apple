@@ -107,8 +107,8 @@ def _docc_bundle_info_aspect_impl(target, ctx):
             return [
                 DocCBundleInfo(
                     bundle = docc_bundle,
-                    bundle_files = docc_bundle_files
-                )
+                    bundle_files = docc_bundle_files,
+                ),
             ]
     if hasattr(ctx.rule.attr, "deps"):
         # If this target has "deps", try to find a DocCBundleInfo provider in its deps.

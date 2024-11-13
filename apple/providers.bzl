@@ -229,7 +229,7 @@ DocCBundleInfo = provider(
     doc = "Provides general information about a .docc bundle.",
     fields = {
         "bundle": "the path to the .docc bundle",
-        "bundle_files": "the file targets contained within the .docc bundle"
+        "bundle_files": "the file targets contained within the .docc bundle",
     },
 )
 
