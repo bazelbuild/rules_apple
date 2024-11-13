@@ -34,17 +34,48 @@ def _boot_simulator(simulator_id: str) -> None:
         output = _simctl(["bootstatus", simulator_id, "-b"])
         print(output, file=sys.stderr)
     except subprocess.CalledProcessError as e:
+        exit_code = e.returncode
+
+        # When reusing simulators we may encounter the error:
+        # 'Unable to boot device in current state: Booted'.
+        #
+        # This is because the simulator is already booted, and we can ignore it
+        # if we check and the simulator is in fact booted.
+        if exit_code == 149:
+            devices = json.loads(
+                _simctl(["list", "devices", "-j", simulator_id]),
+            )["devices"]
+            device = next(
+                (
+                    blob
+                    for devices_for_os in devices.values()
+                    for blob in devices_for_os
+                    if blob["udid"] == simulator_id
+                ),
+                None
+            )
+            if device and device["state"].lower() == "booted":
+                print(
+                    f"Simulator '{device['name']}' ({simulator_id}) is already booted",
+                    file=sys.stderr,
+                )
+                exit_code = 0
+
         # Both of these errors translate to strange simulator states that may
         # end up causing issues, but attempting to actually use the simulator
         # instead of failing at this point might still succeed
         #
         # 164: EBADDEVICE
         # 165: EBADDEVICESTATE
-        if e.returncode in (164, 165):
-            print(f"Ignoring a failure: {e.returncode}", file=sys.stderr)
-        else:
-            print(f"Not ignoring failure: {e.returncode}", file=sys.stderr)
+        if exit_code in (164, 165):
+            print(
+                f"Ignoring 'simctl bootstatus' exit code {exit_code}",
+                file=sys.stderr,
+            )
+        elif exit_code != 0:
+            print(f"'simctl bootstatus' exit code {exit_code}", file=sys.stderr)
             raise
+
     # Add more arbitrary delay before tests run. Even bootstatus doesn't wait
     # long enough and tests can still fail because the simulator isn't ready
     time.sleep(3)
