@@ -138,7 +138,7 @@ def _docc_archive_impl(ctx):
             "{fallback_display_name}": fallback_display_name,
             "{platform}": platform.name_in_plist,
             "{sdk_version}": str(xcode_config.sdk_version_for_platform(platform)),
-            "{symbol_graph_dirs}": " ".join([f.short_path for f in symbol_graphs]) if symbol_graphs else "",
+            "{symbol_graph_dirs}": " ".join([f.path for f in symbol_graphs]) if symbol_graphs else "",
             "{target_name}": ctx.attr.name,
             "{xcode_version}": str(xcode_config.xcode_version()),
         },
