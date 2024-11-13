@@ -183,13 +183,13 @@ ios_application(
     ],
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",
-        "//test/starlark_tests/resources:bundle_library_ios_lib",
         "//test/starlark_tests/resources:empty_strings_file_lib",
         "//test/starlark_tests/resources:ios_localized_assets_lib",
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:nested_bundle_lib",
         "//test/starlark_tests/resources:objc_linkopt_lib",
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:precompiled_bundle_library_ios_lib",
         "//test/starlark_tests/resources:sticker_pack_ios_lib",
     ],
 )
@@ -1064,6 +1064,23 @@ ios_application(
         "//test/starlark_tests/resources:bundle_library_apple_lib",
         "//test/starlark_tests/resources:bundle_library_ios_lib",
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_multiple_precompiled_resource_bundles_with_shared_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:precompiled_bundle_library_apple_lib",
+        "//test/starlark_tests/resources:precompiled_bundle_library_ios_lib",
     ],
 )
 

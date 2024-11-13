@@ -779,6 +779,38 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_ios",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        "storyboard_ios.storyboard",
+        "view_ios.xib",
+        ":assets",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_storyboards_ios",
+        ":localized_strings",
+        ":localized_xibs_ios",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_macos",
     infoplists = [
@@ -817,6 +849,14 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "precompiled_bundle_library_ios_lib",
+    data = [
+        ":precompiled_bundle_library_ios",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_apple",
     infoplists = [
@@ -848,6 +888,41 @@ objc_library(
     name = "bundle_library_apple_lib",
     data = [
         ":bundle_library_apple",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_apple",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "precompiled_bundle_library_apple_lib",
+    data = [
+        ":precompiled_bundle_library_apple",
     ],
     tags = common.fixture_tags,
 )
