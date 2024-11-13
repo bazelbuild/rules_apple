@@ -245,12 +245,13 @@ DocCBundleInfo = provider(
     doc = "Provides general information about a .docc bundle.",
     fields = {
         "bundle": "the path to the .docc bundle",
+        "bundle_files": "the file targets contained within the .docc bundle",
     },
 )
 
 DocCSymbolGraphsInfo = provider(
     doc = "Provides the symbol graphs required to archive a .docc bundle.",
     fields = {
-        "symbol_graphs": "the paths to the symbol graphs",
+        "symbol_graphs": "the depset of paths to the symbol graphs",
     },
 )

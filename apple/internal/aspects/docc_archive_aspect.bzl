@@ -40,18 +40,28 @@ def _swift_symbol_graphs(*, swift_symbol_graph_info):
 
 def _first_docc_bundle(*, target, ctx):
     """Returns the first .docc bundle for the target or its deps by looking in it's data."""
-    docc_bundles = []
+    docc_bundle_paths = {}
 
     # Find the path to the .docc directory if it exists.
     for data_target in ctx.rule.attr.data:
         for file in data_target.files.to_list():
-            if file.extension == "docc":
-                docc_bundles.append(file)
+            components = file.short_path.split("/")
+            for index, component in enumerate(components):
+                if component.endswith(".docc"):
+                    docc_bundle_path = "/".join(components[0:index + 1])
+                    docc_bundle_files = docc_bundle_paths[docc_bundle_path] if docc_bundle_path in docc_bundle_paths else []
+                    docc_bundle_files.append(file)
+                    docc_bundle_paths[docc_bundle_path] = docc_bundle_files
+                    break
 
-    if len(docc_bundles) > 1:
+    # Validate the docc bundle, if any.
+    if len(docc_bundle_paths) > 1:
         fail("Expected target %s to have at most one .docc bundle in its data" % target.label)
+    if len(docc_bundle_paths) == 0:
+        return None, []
 
-    return docc_bundles[0] if docc_bundles else None
+    # Return the docc bundle path and files:
+    return docc_bundle_paths.items()[0]
 
 def _docc_symbol_graphs_aspect_impl(target, ctx):
     """Creates a DocCSymbolGraphsInfo provider for targets which have a SwiftInfo provider (or which bundle a target that does)."""
@@ -76,18 +86,23 @@ def _docc_symbol_graphs_aspect_impl(target, ctx):
     if not symbol_graphs:
         return []
 
-    return [DocCSymbolGraphsInfo(symbol_graphs = symbol_graphs)]
+    return [DocCSymbolGraphsInfo(symbol_graphs = depset(symbol_graphs))]
 
 def _docc_bundle_info_aspect_impl(target, ctx):
     """Creates a DocCBundleInfo provider for targets which have a .docc bundle (or which bundle a target that does)"""
 
     if hasattr(ctx.rule.attr, "data"):
-        first_docc_bundle = _first_docc_bundle(
+        docc_bundle, docc_bundle_files = _first_docc_bundle(
             target = target,
             ctx = ctx,
         )
-        if first_docc_bundle:
-            return [DocCBundleInfo(bundle = first_docc_bundle)]
+        if docc_bundle:
+            return [
+                DocCBundleInfo(
+                    bundle = docc_bundle,
+                    bundle_files = docc_bundle_files,
+                ),
+            ]
     if hasattr(ctx.rule.attr, "deps"):
         # If this target has "deps", try to find a DocCBundleInfo provider in its deps.
         for dep in ctx.rule.attr.deps:
