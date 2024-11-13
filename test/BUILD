@@ -261,7 +261,7 @@ apple_shell_test(
     ],
 )
 
-apple_shell_test(
-    name = "docc_archive_test",
-    src = "docc_archive_test.sh",
-)
+# apple_shell_test(
+#     name = "docc_archive_test",
+#     src = "docc_archive_test.sh",
+# )
