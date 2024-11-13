@@ -261,10 +261,6 @@ This value must be either `fileprivate`, `internal`, `private`, or `public`. The
                 allow_single_file = True,
                 default = "//apple/internal/templates:docc_preview_template",
             ),
-            "_bash_runfiles": attr.label(
-                allow_files = True,
-                default = "@bazel_tools//tools/bash/runfiles",
-            ),
         },
     ),
     executable = True,
