@@ -23,6 +23,7 @@ simulator_name=""
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
+destination_timeout="%(destination_timeout)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -473,6 +474,10 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   args=(
     -xctestrun "$xctestrun_file" \
   )
+
+  if [[ -n "$destination_timeout" ]]; then
+    args+=(-destination-timeout "$destination_timeout")
+  fi
 
   if [[ "$build_for_device" == true ]]; then
     args+=(-destination "platform=iOS,id=$device_id")

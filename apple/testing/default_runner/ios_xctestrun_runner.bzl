@@ -20,6 +20,7 @@ def _get_template_substitutions(
         command_line_args,
         xctestrun_template,
         attachment_lifetime,
+        destination_timeout,
         reuse_simulator,
         xctrunner_entitlements_template):
     substitutions = {
@@ -34,6 +35,7 @@ def _get_template_substitutions(
         "xctestrun_template": xctestrun_template,
         "attachment_lifetime": attachment_lifetime,
         "reuse_simulator": reuse_simulator,
+        "destination_timeout": destination_timeout,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
 
@@ -71,6 +73,7 @@ def _ios_xctestrun_runner_impl(ctx):
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             attachment_lifetime = ctx.attr.attachment_lifetime,
+            destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
@@ -149,6 +152,9 @@ Attachment lifetime to set in the xctestrun file when running the test bundle - 
 or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
 `xcodebuild` or an XCTestRun file but the value will be used in that case.
 """,
+        ),
+        "destination_timeout": attr.int(
+            doc = "Use the specified timeout when searching for a destination device. The default is 30 seconds.",
         ),
         "reuse_simulator": attr.bool(
             default = True,
