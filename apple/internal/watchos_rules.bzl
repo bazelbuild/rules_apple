@@ -270,7 +270,7 @@ reproducible error case.".format(
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = [ctx.attr.extension],
@@ -526,7 +526,7 @@ def _watchos_extension_impl(ctx):
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = [],
@@ -790,7 +790,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = [],
@@ -942,9 +942,6 @@ watchos_application = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(),
-        rule_attrs.app_intents_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1008,9 +1005,6 @@ watchos_extension = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
-        rule_attrs.app_intents_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,

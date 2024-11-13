@@ -929,12 +929,6 @@ cc_binary(
 )
 
 swift_library(
-    name = "app_intent",
-    srcs = ["app_intent.swift"],
-    tags = common.fixture_tags,
-)
-
-swift_library(
     name = "swift_uikit_appdelegate_referencing_app_intent",
     srcs = ["AppDelegate.swift"],
     tags = common.fixture_tags,
@@ -962,6 +956,7 @@ objc_library(
 swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
     module_name = "WidgetConfigurationIntent",
     tags = common.fixture_tags,
 )

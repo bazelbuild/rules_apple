@@ -233,7 +233,7 @@ def _macos_application_impl(ctx):
     processor_partials = [
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embedded_targets,
@@ -2041,9 +2041,6 @@ macos_application = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(),
-        rule_attrs.app_intents_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,

@@ -1381,7 +1381,6 @@ tvos_framework(
 
 tvos_application(
     name = "app_with_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1390,6 +1389,7 @@ tvos_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:hinted_app_intent",
         "//test/starlark_tests/resources:swift_uikit_appdelegate",
     ],
 )
@@ -1410,7 +1410,6 @@ tvos_application(
 
 tvos_application(
     name = "app_with_transitive_and_direct_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1420,6 +1419,7 @@ tvos_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_uikit_appdelegate_referencing_app_intent",
+        "//test/starlark_tests/resources:widget_configuration_intent",
     ],
 )
 

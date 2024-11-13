@@ -1281,7 +1281,6 @@ ios_extension(
 
 ios_extension(
     name = "ext_with_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     families = [
@@ -1295,7 +1294,7 @@ ios_extension(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:hinted_app_intent",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -3746,7 +3745,6 @@ ios_app_clip(
 
 ios_application(
     name = "app_with_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -3756,7 +3754,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:hinted_app_intent",
         "//test/starlark_tests/resources:swift_uikit_appdelegate",
     ],
 )
@@ -3795,7 +3793,6 @@ ios_application(
 
 ios_application(
     name = "app_with_transitive_and_direct_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -3806,12 +3803,12 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_uikit_appdelegate_referencing_app_intent",
+        "//test/starlark_tests/resources:widget_configuration_intent",
     ],
 )
 
 ios_application(
     name = "app_with_widget_configuration_intent",
-    app_intents = "//test/starlark_tests/resources:widget_configuration_intent",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [

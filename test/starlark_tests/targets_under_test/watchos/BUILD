@@ -717,7 +717,6 @@ generate_static_xcframework(
 
 watchos_application(
     name = "app_with_app_intents",
-    app_intents = "//test/starlark_tests/resources:app_intent",
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
@@ -727,6 +726,7 @@ watchos_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:hinted_app_intent",
         "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
     ],
 )

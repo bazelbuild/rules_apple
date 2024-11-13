@@ -30,6 +30,7 @@ visibility("//apple/...")
 
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
 _APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."
+_LEGACY_APP_INTENTS_ALLOWLIST = []
 
 def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
     """Finds the AppIntentsInfo providers from the given app_intents.
@@ -51,27 +52,36 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
             continue
         split_values = split_target[first_cc_toolchain_key]
         if type(split_values) != "list":
-            # TODO(b/377974185): Remove this warning once the legacy app_intents attribute is
+            # TODO(b/377974185): Remove this messaging once the legacy app_intents attribute is
             # cleaned up.
             #
             # Emit a warning if the legacy app_intents attribute is used; we currently fall on the
             # assumption that if the input was not a list (i.e. from "deps"), it's "app_intents",
             # which takes in only a single label referencing a BUILD target.
-            # buildifier: disable=print
-            print("""
-WARNING: Found app intents defined through the legacy app_intents attribute on the target at \
-{label}.
+
+            legacy_app_intents_message = """Found app intents defined through the legacy \
+app_intents attribute on the target at {label}.
 
 Please define app intents by assigning {app_intents_hint_target} via the referenced \
 swift_library's "aspect_hints" attribute instead, and remove the existing reference to the \
 swift_library target from the deprecated app_intents attribute found at {label}.
 
 {app_intents_hint_docs}
-""".format(
-                app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
-                app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
-                label = str(label),
-            ))
+"""
+            if str(label) not in _LEGACY_APP_INTENTS_ALLOWLIST:
+                fail("\nERROR: " + legacy_app_intents_message.format(
+                    app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
+                    app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+                    label = str(label),
+                ))
+            else:
+                # buildifier: disable=print
+                print("\nWARNING: " + legacy_app_intents_message.format(
+                    app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
+                    app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+                    label = str(label),
+                ))
+
         targets = split_values if type(split_values) == "list" else [split_values]
         for target in targets:
             if AppIntentsInfo in target:

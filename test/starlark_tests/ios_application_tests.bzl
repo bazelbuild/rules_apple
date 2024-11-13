@@ -696,8 +696,8 @@ def ios_application_test_suite(name):
 Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple target at //test/starlark_tests/targets_under_test/ios:app_with_transitive_and_direct_app_intents, but found 2 targets defining App Intents instead.
 
 App Intents bundles were defined by the following targets:
-- //test/starlark_tests/resources:app_intent
 - //test/starlark_tests/resources:hinted_app_intent
+- //test/starlark_tests/resources:widget_configuration_intent
 """,
         tags = [name],
     )
