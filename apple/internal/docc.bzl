@@ -112,7 +112,6 @@ def _docc_archive_impl(ctx):
         # TODO: no-sandbox seems to be required when running docc convert with a .docc bundle provided
         # in the sandbox the tool is unable to open the .docc bundle.
         execution_requirements["no-sandbox"] = "1"
-        docc_build_inputs.append(docc_bundle_info.bundle)
         docc_build_inputs.extend(docc_bundle_info.bundle_files)
 
     apple_support.run(
@@ -132,7 +131,7 @@ def _docc_archive_impl(ctx):
         output = preview_script,
         template = ctx.file._preview_template,
         substitutions = {
-            "{docc_bundle}": docc_bundle_info.bundle.path if docc_bundle_info else "",
+            "{docc_bundle}": docc_bundle_info.bundle if docc_bundle_info else "",
             "{fallback_bundle_identifier}": fallback_bundle_identifier,
             "{fallback_bundle_version}": str(fallback_bundle_version),
             "{fallback_display_name}": fallback_display_name,
