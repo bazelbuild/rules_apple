@@ -56,10 +56,7 @@ def _run_main_thread_checker(
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = [
-            binary_artifact.path,
-            main_thread_checker_dylib.path,
-        ],
+        arguments = [main_thread_checker_dylib.path],
         executable = main_thread_checker_tool,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [binary_artifact] + dylibs,
