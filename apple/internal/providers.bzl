@@ -739,6 +739,20 @@ requirement.
     init = make_banned_init(provider_name = "MacosKernelExtensionBundleInfo"),
 )
 
+MacosQuickLookPluginBundleInfo, new_macosquicklookpluginbundleinfo = provider(
+    doc = """
+Denotes that a target is a macOS Quick Look Generator bundle.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS Quick Look generator
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a macOS Quick Look generator should use this provider to describe
+that requirement.
+""",
+    fields = {},
+    init = make_banned_init(provider_name = "MacosQuickLookPluginBundleInfo"),
+)
+
 MacosSpotlightImporterBundleInfo, new_macosspotlightimporterbundleinfo = provider(
     doc = """
 Denotes that a target is a macOS Spotlight Importer bundle.

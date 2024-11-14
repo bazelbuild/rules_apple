@@ -62,6 +62,9 @@ visibility([
 # * `messages_extension`: An extension that integrates custom code/behavior into
 #   a Messages application. This product type should contain a user-provided
 #   binary.
+# * `quicklook_plugin`: A macOS Quick Look generator plug-in. This is the default
+#   product type for `macos_quick_look_plugin` targets; it does not need to be set
+#   explicitly (and cannot be changed).
 # * `spotlight_importer`: A macOS Spotlight importer plug-in. This product type
 #   should be used with a `macos_bundle` target to create such a plug-in; the
 #   built bundle will have the extension `.mdimporter`.
@@ -97,6 +100,7 @@ apple_product_type = struct(
     kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",
     messages_extension = "com.apple.product-type.app-extension.messages",
+    quicklook_plugin = "com.apple.product-type.quicklook-plugin",
     spotlight_importer = "com.apple.product-type.spotlight-importer",
     static_framework = "com.apple.product-type.framework.static",
     tool = "com.apple.product-type.tool",

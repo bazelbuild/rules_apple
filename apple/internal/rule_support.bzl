@@ -349,6 +349,15 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../../../Frameworks",
             ],
         ),
+        # macos_quick_look_plugin
+        apple_product_type.quicklook_plugin: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            bundle_extension = ".qlgenerator",
+            bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.quicklook_plugin,
+            requires_signing_for_device = False,
+        ),
         # macos_bundle
         apple_product_type.bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
