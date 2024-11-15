@@ -57,6 +57,9 @@ def _get_framework_binary_file(framework_imports, framework_binary_path):
     fail("Framework must contain a binary named after the framework")
 
 def _generate_import_framework_dsym_impl(ctx):
+    apple_fragment = ctx.fragments.apple
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     framework_imports = ctx.files.framework_imports
     framework_groups = group_files_by_directory(
         framework_imports,
@@ -93,7 +96,9 @@ def _generate_import_framework_dsym_impl(ctx):
     args.add("--out", dsym_binary_file)
     args.add(framework_binary)
     apple_support.run(
-        ctx,
+        actions = ctx.actions,
+        xcode_config = xcode_config,
+        apple_fragment = apple_fragment,
         inputs = inputs,
         outputs = [dsym_binary_file],
         executable = "/usr/bin/xcrun",
