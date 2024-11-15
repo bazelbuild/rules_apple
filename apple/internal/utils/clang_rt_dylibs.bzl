@@ -16,7 +16,7 @@
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _should_package_clang_runtime(*, features):
     """Returns whether the Clang runtime should be bundled."""

@@ -20,8 +20,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # TODO(b/266604130): Remove helper method once users of define flag have been migrated.

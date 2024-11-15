@@ -47,7 +47,7 @@ load(
     "apple_toolchain_utils",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""

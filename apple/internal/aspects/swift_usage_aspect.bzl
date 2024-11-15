@@ -28,7 +28,7 @@ depends on.
 )
 
 visibility([
-    "//apple/internal/...",
+    "@build_bazel_rules_apple//apple/internal/...",
 ])
 
 def _swift_usage_aspect_impl(target, aspect_ctx):

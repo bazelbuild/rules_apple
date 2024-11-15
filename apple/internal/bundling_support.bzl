@@ -21,8 +21,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # Predeclared defaults for the suffix of a given bundle ID.

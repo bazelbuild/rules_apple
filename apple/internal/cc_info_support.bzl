@@ -15,8 +15,8 @@
 """Support methods for handling artifacts from CcInfo providers."""
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _get_all_deps(*, deps, split_deps_keys = []):

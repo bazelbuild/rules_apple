@@ -27,7 +27,7 @@ load(
     "processor",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _binary_partial_impl(
         *,

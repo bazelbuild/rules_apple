@@ -25,8 +25,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _verify_found_module_name(*, bundle_name, found_module_name):

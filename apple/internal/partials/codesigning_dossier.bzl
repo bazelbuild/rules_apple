@@ -51,7 +51,7 @@ load(
     "new_applecodesigningdossierinfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _AppleCodesigningDossierInfo = provider(
     doc = """

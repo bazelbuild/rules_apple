@@ -21,8 +21,8 @@ load(
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _has_only_one_non_system_swift_module(*, target):

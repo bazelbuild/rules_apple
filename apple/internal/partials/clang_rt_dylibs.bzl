@@ -35,7 +35,7 @@ load(
     "clang_rt_dylibs",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _clang_rt_dylibs_partial_impl(
         *,

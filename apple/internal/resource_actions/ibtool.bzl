@@ -31,7 +31,7 @@ load(
     xctoolrunner_support = "xctoolrunner",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _ibtool_arguments(min_os, families):
     """Returns common `ibtool` command line arguments.

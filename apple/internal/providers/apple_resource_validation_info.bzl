@@ -14,7 +14,7 @@
 
 """AppleResourceValidationInfo provider implementation."""
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 AppleResourceValidationInfo = provider(
     doc = """

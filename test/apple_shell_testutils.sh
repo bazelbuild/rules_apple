@@ -487,7 +487,7 @@ function do_action() {
   fi
 
   if is_device_build "$platform"; then
-    bazel_options+=("--ios_signing_cert_name=-")
+    bazel_options+=() # OSS: "--ios_signing_cert_name=-"
   fi
 
   if [[ -n "${EXTRA_BUILD_OPTIONS[@]-}" ]]; then

@@ -23,7 +23,7 @@ load(
     xctoolrunner_support = "xctoolrunner",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def compile_mlmodel(
         *,

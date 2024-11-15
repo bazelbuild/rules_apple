@@ -47,7 +47,7 @@ load(
     "bundle_paths",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _framework_provider_files_to_bundle(
         *,

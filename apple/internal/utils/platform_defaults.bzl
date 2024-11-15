@@ -14,7 +14,7 @@
 
 """Shared default values for Apple platforms."""
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 _PLATFORM_TYPE_TO_DEVICE_FAMILIES = {
     "ios": ["iphone", "ipad"],

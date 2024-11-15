@@ -15,8 +15,8 @@
 """Support methods for handling CcToolchainInfo providers."""
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _get_apple_clang_triplet(cc_toolchain):

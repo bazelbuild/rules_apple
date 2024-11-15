@@ -64,7 +64,7 @@ load(
     "bundle_paths",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 

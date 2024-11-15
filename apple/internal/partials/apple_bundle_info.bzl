@@ -27,7 +27,7 @@ load(
     "new_applebundleinfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _apple_bundle_info_partial_impl(
         *,

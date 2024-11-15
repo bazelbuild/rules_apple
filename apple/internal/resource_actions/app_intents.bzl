@@ -18,7 +18,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 # Maps the strings passed in to the "families" attribute to the string represention used as an input
 # for the App Intents Metadata Processor tool.

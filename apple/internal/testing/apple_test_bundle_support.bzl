@@ -87,7 +87,7 @@ load(
     "SwiftInfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.

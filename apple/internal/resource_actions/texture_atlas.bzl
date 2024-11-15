@@ -19,7 +19,7 @@ load(
     "apple_support",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def compile_texture_atlas(
         *,

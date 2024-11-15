@@ -27,8 +27,8 @@ load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # This comes from Apple's recommended paths for placing content in a macOS bundle for a Framework:

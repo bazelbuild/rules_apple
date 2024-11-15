@@ -17,8 +17,8 @@
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _compute_enabled_features(*, requested_features, unsupported_features):

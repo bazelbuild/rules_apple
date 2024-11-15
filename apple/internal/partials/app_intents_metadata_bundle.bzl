@@ -26,7 +26,7 @@ load(
     "generate_app_intents_metadata_bundle",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
 _APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."

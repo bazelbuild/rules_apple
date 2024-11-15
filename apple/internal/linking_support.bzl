@@ -37,8 +37,8 @@ load(
 ObjcInfo = apple_common.Objc
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _link_multi_arch_static_library(ctx):

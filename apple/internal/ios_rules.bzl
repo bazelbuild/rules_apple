@@ -139,8 +139,8 @@ load(
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _ios_application_impl(ctx):

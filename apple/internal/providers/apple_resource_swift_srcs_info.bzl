@@ -15,7 +15,7 @@
 """AppleResourceSwiftSrcsInfo provider implementation."""
 
 visibility([
-    "//apple/internal/...",
+    "@build_bazel_rules_apple//apple/internal/...",
 ])
 
 AppleResourceSwiftSrcsInfo = provider(

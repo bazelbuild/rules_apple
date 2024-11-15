@@ -105,8 +105,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # Location enum that can be used to tag files into their appropriate location

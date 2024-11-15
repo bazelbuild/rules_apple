@@ -15,7 +15,7 @@
 """Support for common environment variables affecting rules_apple Bazel scripts."""
 
 visibility([
-    "//tools/...",
+    "@build_bazel_rules_apple//tools/...",
 ])
 
 def _common_python_utf8_env():

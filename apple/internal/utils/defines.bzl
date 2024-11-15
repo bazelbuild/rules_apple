@@ -14,7 +14,7 @@
 
 """Support functions for common --define operations."""
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _bool_value(define_name, default, *, config_vars = None):
     """Looks up a define on ctx for a boolean value.

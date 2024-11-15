@@ -33,7 +33,7 @@ load(
     "SwiftInfo",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _verify_app_intents_dependency(*, target):
     """Verifies that the target has a dependency on the AppIntents framework."""

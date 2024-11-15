@@ -15,8 +15,8 @@
 """Support for bundle package type used by Apple bundling rules."""
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # Bundle package type identifiers

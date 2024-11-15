@@ -62,7 +62,7 @@ load(
     "apple_test_rule_support",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _TVOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, TvosApplicationBundleInfo]]
 

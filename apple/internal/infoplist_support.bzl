@@ -17,8 +17,8 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def _launch_screen_values(

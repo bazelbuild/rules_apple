@@ -39,7 +39,7 @@ load(
     "defines",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _AppleSwiftDylibsInfo = provider(
     doc = """

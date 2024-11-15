@@ -19,7 +19,7 @@ load(
     "new_appleresourcelocalesinfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def apple_locale_from_unicode_locale(unicode_locale):
     """Converts a Unicode Locale Identifier to an Apple locale.

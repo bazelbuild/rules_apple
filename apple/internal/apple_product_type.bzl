@@ -19,8 +19,8 @@ type of rule being created and thus its descriptor to control behaviors.
 """
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # Product type identifiers used to describe various bundle types.

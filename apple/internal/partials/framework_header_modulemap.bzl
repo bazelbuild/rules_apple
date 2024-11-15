@@ -31,7 +31,7 @@ load(
     "processor",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _framework_header_modulemap_partial_impl(
         *,

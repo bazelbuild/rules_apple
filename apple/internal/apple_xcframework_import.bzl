@@ -59,8 +59,8 @@ load(
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.

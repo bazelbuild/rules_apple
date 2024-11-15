@@ -85,8 +85,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # The name of the execution group that houses the Swift toolchain and is used to

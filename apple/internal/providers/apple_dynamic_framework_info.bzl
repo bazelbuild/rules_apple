@@ -15,7 +15,7 @@
 """AppleDynamicFrameworkInfo provider implementation."""
 
 visibility([
-    "//apple/internal/...",
+    "@build_bazel_rules_apple//apple/internal/...",
 ])
 
 AppleDynamicFrameworkInfo = provider(

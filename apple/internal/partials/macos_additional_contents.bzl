@@ -36,7 +36,7 @@ load(
     "bundle_paths",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _macos_additional_contents_partial_impl(*, additional_contents):
     """Implementation for the additional contents processing partial."""

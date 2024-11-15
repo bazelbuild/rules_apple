@@ -15,8 +15,8 @@
 """AppleResourceHintInfo provider implementation."""
 
 visibility([
-    "//apple/hints/...",
-    "//apple/internal/aspects/...",
+    "@build_bazel_rules_apple//apple/hints/...",
+    "@build_bazel_rules_apple//apple/internal/aspects/...",
 ])
 
 def _apple_resource_hint_info_init(

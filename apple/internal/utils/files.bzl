@@ -16,7 +16,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _get_file_with_name(*, files, name):
     """Traverse a given file list and return file matching given name (without extension).

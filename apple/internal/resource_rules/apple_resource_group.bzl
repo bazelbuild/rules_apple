@@ -14,7 +14,7 @@
 
 """Implementation of apple_resource_group rule."""
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _apple_resource_group_impl(_ctx):
     # All of the resource processing logic for this rule exists in the apple_resource_aspect.

@@ -27,7 +27,7 @@ load(
     xctoolrunner_support = "xctoolrunner",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 # Maps the apple_common platforms supported for rkassets schema generation to the string
 # represention used as an input for realitytool.

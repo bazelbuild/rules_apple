@@ -14,7 +14,7 @@
 
 """AppleEmbeddableInfo provider implementation for embeddable bundles propagation."""
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 AppleEmbeddableInfo = provider(
     doc = """

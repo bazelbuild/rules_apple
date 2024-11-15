@@ -40,8 +40,8 @@ load(
 )
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 # The adhoc signature used as an identity, partially documented at https://developer.apple.com/documentation/security/seccodesignatureflags/1397793-adhoc

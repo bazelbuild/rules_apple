@@ -83,7 +83,7 @@ load(
     "SwiftInfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _find_apple_resource_hint_info(aspect_ctx):
     """Finds a `AppleResourceHintInfo` provider associated with the target."""

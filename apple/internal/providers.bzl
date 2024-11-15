@@ -24,8 +24,8 @@ boundary with well-defined public APIs for broader usage.
 """
 
 visibility([
-    "//apple/...",
-    "//test/...",
+    "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 def make_banned_init(*, preferred_public_factory = None, provider_name):

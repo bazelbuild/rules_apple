@@ -27,7 +27,7 @@ load(
     "resources",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _apple_bundle_import_impl(ctx):
     """Implementation of the apple_bundle_import rule."""

@@ -68,7 +68,7 @@ load(
     "apple_toolchain_utils",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _PASSING_TEST_SCRIPT = """\
 #!/bin/bash

@@ -32,7 +32,7 @@ load(
     "processor",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 _AppleSymbolsFileInfo = provider(
     doc = "Private provider to propagate the transitive .symbols `File`s.",

@@ -56,7 +56,7 @@ load(
     "resource_actions",
 )
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _compile_datamodels(
         *,

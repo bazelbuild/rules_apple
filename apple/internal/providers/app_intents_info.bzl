@@ -15,8 +15,8 @@
 """AppIntentsInfo provider implementation for AppIntents support for Apple rules."""
 
 visibility([
-    "//apple/hints/...",
-    "//apple/internal/...",
+    "@build_bazel_rules_apple//apple/hints/...",
+    "@build_bazel_rules_apple//apple/internal/...",
 ])
 
 AppIntentsHintInfo = provider(

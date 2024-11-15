@@ -26,7 +26,7 @@ _AppleExtensionSafeValidationInfo = provider(
     },
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _extension_safe_validation_partial_impl(
         *,

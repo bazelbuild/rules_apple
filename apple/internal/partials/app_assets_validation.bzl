@@ -27,7 +27,7 @@ load(
     "bundling_support",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _app_assets_validation_partial_impl(
         *,

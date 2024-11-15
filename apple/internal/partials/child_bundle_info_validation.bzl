@@ -31,7 +31,7 @@ load(
     "AppleResourceValidationInfo",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def compare_min_os(
         *,

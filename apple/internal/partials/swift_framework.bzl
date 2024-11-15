@@ -39,7 +39,7 @@ load(
     "swift_info_support",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _swift_framework_partial_impl(
         *,

@@ -15,7 +15,7 @@
 """Support utility for creating multi-arch Apple binaries."""
 
 visibility([
-    "//apple/...",
+    "@build_bazel_rules_apple//apple/...",
 ])
 
 TargetTripletInfo = provider(

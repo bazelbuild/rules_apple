@@ -63,7 +63,7 @@ load(
     "apple_test_rule_support",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _ios_ui_test_bundle_impl(ctx):
     """Implementation of ios_ui_test."""

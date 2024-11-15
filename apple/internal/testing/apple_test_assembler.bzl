@@ -14,7 +14,7 @@
 
 """Helper methods for assembling the test targets."""
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 # Attributes belonging to the bundling rules that should be removed from the test targets.
 #

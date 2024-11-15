@@ -14,7 +14,7 @@
 
 """AppleDebugInfo provider implementation for resource aspect and debug symbols partial support."""
 
-visibility("//apple/internal/...")
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 AppleDebugInfo = provider(
     doc = """

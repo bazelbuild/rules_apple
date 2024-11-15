@@ -35,7 +35,7 @@ load(
     "bundle_paths",
 )
 
-visibility("//apple/...")
+visibility("@build_bazel_rules_apple//apple/...")
 
 def _settings_bundle_partial_impl(
         *,
