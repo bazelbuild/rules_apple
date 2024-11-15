@@ -33,6 +33,9 @@ load(
 
 def _dtrace_compile_impl(ctx):
     """Implementation for dtrace_compile."""
+    apple_fragment = ctx.fragments.apple
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     output_hdrs = []
     include_dir = None
 
@@ -44,7 +47,9 @@ def _dtrace_compile_impl(ctx):
         )
         output_hdrs.append(hdr)
         apple_support.run(
-            ctx,
+            actions = ctx.actions,
+            xcode_config = xcode_config,
+            apple_fragment = apple_fragment,
             inputs = [src],
             outputs = [hdr],
             mnemonic = "dtraceCompile",

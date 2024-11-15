@@ -41,6 +41,7 @@ def _docc_archive_impl(ctx):
     """Builds a .doccarchive for the given module.
     """
 
+    apple_fragment = ctx.fragments.apple
     default_code_listing_language = ctx.attr.default_code_listing_language
     diagnostic_level = ctx.attr.diagnostic_level
     enable_inherited_docs = ctx.attr.enable_inherited_docs
@@ -115,7 +116,9 @@ def _docc_archive_impl(ctx):
         docc_build_inputs.extend(docc_bundle_info.bundle_files)
 
     apple_support.run(
-        ctx,
+        actions = ctx.actions,
+        xcode_config = xcode_config,
+        apple_fragment = apple_fragment,
         inputs = depset(docc_build_inputs),
         outputs = [doccarchive_dir],
         mnemonic = "DocCConvert",
