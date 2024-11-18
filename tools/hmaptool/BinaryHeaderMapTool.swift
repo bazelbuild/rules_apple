@@ -25,6 +25,23 @@ struct BinaryHeaderMapTool {
             var arguments = arguments
             var output: URL?
 
+            // If the first argument starts with @, treat it as a response file.
+            // Since this is an internal tool, it's safe to just check the first argument.
+            if let arg = arguments.first, arg.hasPrefix("@") {
+                // Remove @ prefix to get file path
+                let filePath = String(arg.dropFirst())
+
+                guard FileManager.default.fileExists(atPath: filePath) else {
+                    fatalError("The response file doesn't exist: \(filePath)")
+                }
+
+                guard let fileContents = try? String(contentsOfFile: filePath, encoding: .utf8) else {
+                    fatalError("The response file cannot be read: \(filePath)")
+                }
+
+                arguments = fileContents.components(separatedBy: .newlines)
+            }
+
             if let outputIndex = arguments.firstIndex(of: "--output") {
                 guard outputIndex + 1 < arguments.count else {
                     fatalError("Missing output path after --output")
