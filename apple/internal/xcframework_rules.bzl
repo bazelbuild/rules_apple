@@ -270,6 +270,57 @@ Check that the "bundle_format" attribute on the rule is set correctly.
             bundle_format = bundle_format,
         ))
 
+def _validate_platform_attrs(
+        *,
+        all_attrs,
+        rule_label):
+    """Validates the attributes around platforms and minimum OS version before linking.
+
+    Args:
+        all_attrs: All of the rule attributes set as found from ctx.attr.
+        rule_label: The label of the target being analyzed.
+    """
+
+    supported_apple_platform_types = ["ios", "tvos", "visionos"]
+
+    for platform_type in all_attrs.minimum_os_versions.keys():
+        if platform_type not in supported_apple_platform_types:
+            fail("""
+ERROR: In the minimum_os_versions attribute of {rule_label}: received a minimum OS version for \
+{platform_type}, but this is not supported by the XCFramework rules.
+
+Expected one of: {supported_apple_platform_types}
+""".format(
+                platform_type = platform_type,
+                rule_label = str(rule_label),
+                supported_apple_platform_types = ", ".join(supported_apple_platform_types),
+            ))
+
+        if getattr(all_attrs, platform_type) == {}:
+            fail("""
+ERROR: In the minimum_os_versions attribute of {rule_label}: received a minimum OS version for \
+{platform_type}, but the platforms to build for that OS were not supplied by a corresponding \
+{platform_type} attribute.
+
+Please add a {platform_type} attribute to the rule to declare the platforms to build for that OS.
+""".format(
+                platform_type = platform_type,
+                rule_label = str(rule_label),
+            ))
+    for platform_type in supported_apple_platform_types:
+        if getattr(all_attrs, platform_type) != {}:
+            if platform_type not in all_attrs.minimum_os_versions.keys():
+                fail("""
+ERROR: In the {platform_type} attribute of {rule_label}: minimum_os_versions attribute must \
+contain a key to declare the minimum OS version to build for {platform_type}.
+
+Please add a dictionary to the minimum_os_versions attribute with the minimum OS version to build \
+for {platform_type} as the value.
+""".format(
+                    platform_type = platform_type,
+                    rule_label = str(rule_label),
+                ))
+
 def _group_link_outputs_by_library_identifier(
         *,
         actions,
@@ -1002,6 +1053,11 @@ def _apple_xcframework_impl(ctx):
         rule_label = rule_label,
     )
 
+    _validate_platform_attrs(
+        all_attrs = ctx.attr,
+        rule_label = rule_label,
+    )
+
     extra_linkopts = []
 
     # Computing for all deps, rather than a subset via the `ctx.split_attr` interface.
@@ -1365,6 +1421,11 @@ def _apple_static_xcframework_impl(ctx):
     _validate_resource_attrs(
         all_attrs = ctx.attr,
         bundle_format = bundle_format,
+        rule_label = rule_label,
+    )
+
+    _validate_platform_attrs(
+        all_attrs = ctx.attr,
         rule_label = rule_label,
     )
 

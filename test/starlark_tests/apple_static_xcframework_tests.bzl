@@ -618,6 +618,56 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_does_not_define_platforms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_without_platforms",
+        expected_error = """received a minimum OS version for ios, but the platforms to build for that OS were not supplied by a corresponding ios attribute.
+
+Please add a ios attribute to the rule to declare the platforms to build for that OS.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_does_not_define_correct_ios_minimum_os_versions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_without_correct_minimum_os_versions",
+        expected_error = """received a minimum OS version for tvos, but the platforms to build for that OS were not supplied by a corresponding tvos attribute.
+
+Please add a tvos attribute to the rule to declare the platforms to build for that OS.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_does_not_define_valid_minimum_os_versions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_without_valid_minimum_os_versions",
+        expected_error = "received a minimum OS version for xros, but this is not supported by the XCFramework rules.",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_framework_does_not_define_platforms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_framework_without_platforms",
+        expected_error = """received a minimum OS version for ios, but the platforms to build for that OS were not supplied by a corresponding ios attribute.
+
+Please add a ios attribute to the rule to declare the platforms to build for that OS.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_framework_does_not_define_correct_ios_minimum_os_versions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_framework_without_correct_minimum_os_versions",
+        expected_error = """received a minimum OS version for tvos, but the platforms to build for that OS were not supplied by a corresponding tvos attribute.
+
+Please add a tvos attribute to the rule to declare the platforms to build for that OS.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_framework_does_not_define_valid_minimum_os_versions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_framework_without_valid_minimum_os_versions",
+        expected_error = "received a minimum OS version for xros, but this is not supported by the XCFramework rules.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -582,6 +582,62 @@ apple_xcframework(
     ],
 )
 
+apple_xcframework(
+    name = "ios_dynamic_xcframework_without_correct_minimum_os_versions",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework_without_valid_minimum_os_versions",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "xros": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework_without_platforms",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
 apple_static_xcframework(
     name = "ios_static_framework_xcframework_with_deps_resource_bundle",
     bundle_format = "framework",
@@ -1330,6 +1386,126 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":SwiftFmwkWithInvalidModuleDeps"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_without_correct_minimum_os_versions",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_without_valid_minimum_os_versions",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "xros": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_without_platforms",
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_framework_without_correct_minimum_os_versions",
+    bundle_format = "framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_framework_without_valid_minimum_os_versions",
+    bundle_format = "framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "xros": common.min_os_tvos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_framework_without_platforms",
+    bundle_format = "framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
 )
 
 genrule(
