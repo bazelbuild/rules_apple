@@ -58,7 +58,6 @@ load(
     _MacosBundleBundleInfo = "MacosBundleBundleInfo",
     _MacosExtensionBundleInfo = "MacosExtensionBundleInfo",
     _MacosKernelExtensionBundleInfo = "MacosKernelExtensionBundleInfo",
-    _MacosQuickLookPluginBundleInfo = "MacosQuickLookPluginBundleInfo",
     _MacosSpotlightImporterBundleInfo = "MacosSpotlightImporterBundleInfo",
     _MacosXPCServiceBundleInfo = "MacosXPCServiceBundleInfo",
     _MacosXcTestBundleInfo = "MacosXcTestBundleInfo",
@@ -116,7 +115,6 @@ MacosApplicationBundleInfo = _MacosApplicationBundleInfo
 MacosBundleBundleInfo = _MacosBundleBundleInfo
 MacosExtensionBundleInfo = _MacosExtensionBundleInfo
 MacosKernelExtensionBundleInfo = _MacosKernelExtensionBundleInfo
-MacosQuickLookPluginBundleInfo = _MacosQuickLookPluginBundleInfo
 MacosSpotlightImporterBundleInfo = _MacosSpotlightImporterBundleInfo
 MacosXPCServiceBundleInfo = _MacosXPCServiceBundleInfo
 MacosXcTestBundleInfo = _MacosXcTestBundleInfo

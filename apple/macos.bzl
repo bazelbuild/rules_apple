@@ -22,7 +22,6 @@ load(
     _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
     _macos_kernel_extension = "macos_kernel_extension",
-    _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
     _macos_xpc_service = "macos_xpc_service",
 )
@@ -44,7 +43,6 @@ load(
 
 visibility("public")
 
-macos_quick_look_plugin = _macos_quick_look_plugin
 macos_spotlight_importer = _macos_spotlight_importer
 macos_xpc_service = _macos_xpc_service
 

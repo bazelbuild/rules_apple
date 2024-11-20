@@ -12,7 +12,6 @@ load(
     "macos_dylib",
     "macos_extension",
     "macos_kernel_extension",
-    "macos_quick_look_plugin",
     "macos_ui_test",
     "macos_unit_test",
 )
@@ -734,64 +733,6 @@ macos_kernel_extension(
 
 # ---------------------------------------------------------------------------------------
 
-macos_quick_look_plugin(
-    name = "ql_plugin",
-    additional_contents = {
-        "//test/starlark_tests/resources:additional.txt": "Additional",
-        "//test/starlark_tests/resources:all_nested": "Nested",
-    },
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-macos_quick_look_plugin(
-    name = "ql_plugin_dead_stripped",
-    additional_contents = {
-        "//test/starlark_tests/resources:additional.txt": "Additional",
-        "//test/starlark_tests/resources:all_nested": "Nested",
-    },
-    bundle_id = "com.google.example",
-    exported_symbols_lists = [
-        "//test/starlark_tests/resources:ExportAnotherFunctionMain.exp",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-macos_quick_look_plugin(
-    name = "ql_plugin_special_linkopts",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    linkopts = [
-        "-alias",
-        "_main",
-        "_linkopts_test_main",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-# ---------------------------------------------------------------------------------------
-
 macos_ui_test(
     name = "ui_test",
     additional_contents = {
@@ -1108,22 +1049,6 @@ macos_kernel_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources/kext_resources:kext_lib",
-    ],
-)
-
-macos_quick_look_plugin(
-    name = "ql_plugin_with_capability_set_derived_bundle_id",
-    bundle_name = "ql-plugin-with-capability-set-derived-bundle-id",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
