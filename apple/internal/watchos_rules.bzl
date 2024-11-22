@@ -22,6 +22,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleExtensionSafeValidationInfo",
     "ApplePlatformInfo",
     "WatchosExtensionBundleInfo",
     "WatchosFrameworkBundleInfo",
@@ -1934,7 +1935,11 @@ A list of watchOS application extensions to include in the final watch extension
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    WatchosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
@@ -1996,7 +2001,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    WatchosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
@@ -2059,7 +2068,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    WatchosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))

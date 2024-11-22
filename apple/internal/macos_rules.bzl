@@ -20,6 +20,7 @@ load(
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleExtensionSafeValidationInfo",
     "ApplePlatformInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
@@ -2442,7 +2443,11 @@ desired Contents subdirectory.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    MacosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
@@ -3508,7 +3513,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    MacosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
@@ -3571,7 +3580,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    MacosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))

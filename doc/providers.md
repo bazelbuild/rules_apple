@@ -187,6 +187,24 @@ Provides information for an Apple dSYM bundle.
 | <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
 
 
+<a id="AppleExtensionSafeValidationInfo"></a>
+
+## AppleExtensionSafeValidationInfo
+
+<pre>
+AppleExtensionSafeValidationInfo(<a href="#AppleExtensionSafeValidationInfo-is_extension_safe">is_extension_safe</a>)
+</pre>
+
+Provider that propagates whether the target is marked as extension safe or not.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleExtensionSafeValidationInfo-is_extension_safe"></a>is_extension_safe |  Boolean indicating that the target is extension safe or not.    |
+
+
 <a id="AppleExtraOutputsInfo"></a>
 
 ## AppleExtraOutputsInfo

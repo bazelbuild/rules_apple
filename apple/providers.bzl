@@ -160,6 +160,17 @@ correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5.
     },
 )
 
+AppleExtensionSafeValidationInfo = provider(
+    doc = """
+Provider that propagates whether the target is marked as extension safe or not.
+""",
+    fields = {
+        "is_extension_safe": """
+Boolean indicating that the target is extension safe or not.
+""",
+    },
+)
+
 AppleProvisioningProfileInfo = provider(
     doc = "Provides information about a provisioning profile.",
     fields = {

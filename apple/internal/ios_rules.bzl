@@ -19,6 +19,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleExtensionSafeValidationInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
     "IosExtensionBundleInfo",
@@ -2768,7 +2769,11 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
         ),
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    IosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
@@ -2838,7 +2843,11 @@ to manually dlopen the framework at runtime.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    IosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
@@ -2909,7 +2918,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    IosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
@@ -3112,7 +3125,11 @@ ios_imessage_extension = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    IosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))

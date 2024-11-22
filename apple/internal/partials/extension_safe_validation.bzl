@@ -18,13 +18,7 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-
-_AppleExtensionSafeValidationInfo = provider(
-    doc = "Private provider that propagates whether the target is marked as extension safe or not.",
-    fields = {
-        "is_extension_safe": "Boolean indicating that the target is extension safe or not.",
-    },
-)
+load("//apple:providers.bzl", "AppleExtensionSafeValidationInfo")
 
 def _extension_safe_validation_partial_impl(
         *,
@@ -35,17 +29,24 @@ def _extension_safe_validation_partial_impl(
 
     if is_extension_safe:
         for target in targets_to_validate:
-            if not target[_AppleExtensionSafeValidationInfo].is_extension_safe:
-                # TODO(b/133173778): Revisit the extension_safe attribute, since it's currently
-                # not propagating the -fapplication-extension compilation flags to dependencies.
+            if (AppleExtensionSafeValidationInfo in target and
+                not target[AppleExtensionSafeValidationInfo].is_extension_safe):
+                # TODO(b/133173778): Revisit the extension_safe attribute, since
+                # it's currently not propagating the -fapplication-extension
+                # compilation flags to dependencies.
                 fail((
-                    "The target {current_label} is for an extension but its framework " +
-                    "dependency {target_label} is not marked extension-safe. " +
-                    "Specify 'extension_safe = True' on the framework target."
+                    "The target {current_label} is for an extension but its " +
+                    "framework dependency {target_label} is not marked " +
+                    "extension-safe. Specify 'extension_safe = True' on the " +
+                    "framework target."
                 ).format(current_label = rule_label, target_label = target.label))
 
     return struct(
-        providers = [_AppleExtensionSafeValidationInfo(is_extension_safe = is_extension_safe)],
+        providers = [
+            AppleExtensionSafeValidationInfo(
+                is_extension_safe = is_extension_safe,
+            ),
+        ],
     )
 
 def extension_safe_validation_partial(

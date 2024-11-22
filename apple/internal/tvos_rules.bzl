@@ -18,6 +18,7 @@ load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleExtensionSafeValidationInfo",
     "ApplePlatformInfo",
     "TvosExtensionBundleInfo",
     "TvosFrameworkBundleInfo",
@@ -1576,7 +1577,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    TvosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
@@ -1625,7 +1630,11 @@ tvos_extension = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    TvosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
@@ -1687,7 +1696,11 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                providers = [[
+                    AppleBundleInfo,
+                    AppleExtensionSafeValidationInfo,
+                    TvosFrameworkBundleInfo,
+                ]],
                 doc = """
 A list of framework targets (see
 [`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
