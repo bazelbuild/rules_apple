@@ -541,10 +541,12 @@ def _tvos_dynamic_framework_impl(ctx):
     )
 
     signed_frameworks = []
-    if getattr(ctx.file, "provisioning_profile", None):
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = ctx.file.provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -816,10 +818,12 @@ def _tvos_framework_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     signed_frameworks = []
-    if provisioning_profile:
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
