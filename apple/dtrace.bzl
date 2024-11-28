@@ -82,6 +82,7 @@ dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
         "dtrace": attr.label(
+            doc = "dtrace binary to use.",
             mandatory = False,
             executable = True,
             cfg = "exec",
