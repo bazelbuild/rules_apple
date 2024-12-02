@@ -39,6 +39,10 @@ def _dtrace_compile_impl(ctx):
     output_hdrs = []
     include_dir = None
 
+    dtrace = "/usr/sbin/dtrace"
+    if ctx.executable.dtrace:
+        dtrace = ctx.executable.dtrace
+
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
         label_scoped_owner_path = ctx.label.name + "/" + owner_relative_path.lstrip("/")
@@ -53,7 +57,7 @@ def _dtrace_compile_impl(ctx):
             inputs = [src],
             outputs = [hdr],
             mnemonic = "dtraceCompile",
-            executable = "/usr/sbin/dtrace",
+            executable = dtrace,
             arguments = ["-h", "-s", src.path, "-o", hdr.path],
             progress_message = ("Compiling dtrace probes %s" % (src.basename)),
         )
@@ -77,6 +81,12 @@ def _dtrace_compile_impl(ctx):
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
+        "dtrace": attr.label(
+            doc = "dtrace binary to use.",
+            mandatory = False,
+            executable = True,
+            cfg = "exec",
+        ),
         "srcs": attr.label_list(
             allow_files = [".d"],
             allow_empty = False,

@@ -7,7 +7,7 @@
 ## dtrace_compile
 
 <pre>
-dtrace_compile(<a href="#dtrace_compile-name">name</a>, <a href="#dtrace_compile-srcs">srcs</a>)
+dtrace_compile(<a href="#dtrace_compile-name">name</a>, <a href="#dtrace_compile-srcs">srcs</a>, <a href="#dtrace_compile-dtrace">dtrace</a>)
 </pre>
 
 Compiles
@@ -32,5 +32,6 @@ and a target named `dtrace_gen` the header path would be
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="dtrace_compile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="dtrace_compile-srcs"></a>srcs |  dtrace(.d) source files to be compiled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="dtrace_compile-dtrace"></a>dtrace |  dtrace binary to use.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 
 
