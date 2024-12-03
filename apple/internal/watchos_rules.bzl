@@ -147,6 +147,14 @@ Please remove the assigned watchOS 2 app `extension` and make sure a valid watch
 delegate is referenced in the single-target `watchos_application`'s `deps`.
 """)
 
+    if not ctx.attr.extension or not len(ctx.attr.extension):
+        fail("""
+Error: No extension specified for a watchOS 2 extension-based application.
+
+If this is supposed to be a single-target watchOS application, please make sure that a valid \
+watchOS application delegate is referenced in this watchos_application's "deps".
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.watch2_application,
@@ -171,6 +179,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    embeddable_targets = [ctx.attr.extension[0]]
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -239,7 +248,7 @@ reproducible error case.".format(
 
     bundle_verification_targets = [
         struct(
-            target = ctx.attr.extension,
+            target = ctx.attr.extension[0],
             parent_bundle_id_reference = [
                 "NSExtension",
                 "NSExtensionAttributes",
@@ -273,7 +282,7 @@ reproducible error case.".format(
             app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = [ctx.attr.extension],
+            embedded_bundles = embeddable_targets,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -294,7 +303,7 @@ reproducible error case.".format(
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
-            embedded_targets = [ctx.attr.extension],
+            embedded_targets = embeddable_targets,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -306,7 +315,7 @@ reproducible error case.".format(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = [ctx.attr.extension],
+            debug_dependencies = embeddable_targets,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -316,7 +325,7 @@ reproducible error case.".format(
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = [ctx.attr.extension],
+            embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
@@ -343,7 +352,7 @@ reproducible error case.".format(
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
-            dependency_targets = [ctx.attr.extension],
+            dependency_targets = embeddable_targets,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -395,17 +404,24 @@ reproducible error case.".format(
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
 
-    # TODO(b/155313625): Set the product type as apple_product_type.extension if the attrs set on
-    # the rule match a criteria appropriate for watchOS extensions (i.e. SiriKit, Notification
-    # Center, WidgetKit).
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+
+    product_type = apple_product_type.app_extension
+
+    # TODO(b/155313625): Add a rule attribute to allow the user to declare an instance of a
+    # watchos_extension as an ExtensionKit extension, and "fail" if the
+    # watchos2_app_extension_transition is active.
+
+    if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
+        product_type = apple_product_type.watch2_extension
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.watch2_extension,
+        product_type = product_type,
     )
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
@@ -512,6 +528,18 @@ def _watchos_extension_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
+    bundle_location = ""
+    embedded_bundles_args = {}
+    if (rule_descriptor.product_type == apple_product_type.app_extension or
+        rule_descriptor.product_type == apple_product_type.watch2_extension):
+        bundle_location = processor.location.plugin
+        embedded_bundles_args["plugins"] = [archive]
+    elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
+        bundle_location = processor.location.extension
+        embedded_bundles_args["extensions"] = [archive]
+    else:
+        fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
+
     processor_partials = [
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -557,7 +585,7 @@ def _watchos_extension_impl(ctx):
             xplat_exec_group = xplat_exec_group,
             mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
             entitlements = entitlements,
@@ -582,11 +610,8 @@ def _watchos_extension_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
-            plugins = [archive],
+            **embedded_bundles_args
         ),
-        # Following guidance of the watchOS 2 migration guide's recommendations for placement of a
-        # framework, scoping dynamic frameworks only to the watch extension bundles:
-        # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -971,9 +996,9 @@ watchos_application = rule_factory.create_apple_rule(
             default_bundle_id_suffix = bundle_id_suffix_default.watchos_app,
         ),
         {
-            # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr and check for
-            # the incoming AppleBundleInfo product_type.
+            # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr.
             "extension": attr.label(
+                cfg = transition_support.watchos2_app_extension_transition,
                 providers = [
                     [AppleBundleInfo, WatchosExtensionBundleInfo],
                 ],

@@ -300,6 +300,13 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_test_watchos_app_has_no_extension_or_deps_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_no_extension_or_deps",
+        expected_error = "Error: No extension specified for a watchOS 2 extension-based application.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

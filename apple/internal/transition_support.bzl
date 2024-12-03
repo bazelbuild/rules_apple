@@ -752,6 +752,18 @@ _apple_platform_split_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
+def _watchos2_app_extension_transition_impl(_, __):
+    """Rule transition for watchOS 2 app extensions that forces required linking options."""
+    return {
+        build_settings_labels.link_watchos_2_app_extension: True,
+    }
+
+_watchos2_app_extension_transition = transition(
+    implementation = _watchos2_app_extension_transition_impl,
+    inputs = [],
+    outputs = [build_settings_labels.link_watchos_2_app_extension],
+)
+
 def _xcframework_base_transition_impl(settings, _):
     """Rule transition for XCFramework rules producing SDK-adjacent artifacts."""
 
@@ -807,6 +819,7 @@ transition_support = struct(
     apple_rule_force_macos_cpus_arm64_transition = _apple_rule_force_macos_cpus_arm64_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
+    watchos2_app_extension_transition = _watchos2_app_extension_transition,
     xcframework_base_transition = _xcframework_base_transition,
     xcframework_split_attr_key = _xcframework_split_attr_key,
     xcframework_split_transition = _xcframework_split_transition,

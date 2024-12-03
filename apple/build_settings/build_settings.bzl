@@ -59,6 +59,14 @@ functionality that is never intended to be production-ready but is required of a
 """,
         default = False,
     ),
+    "link_watchos_2_app_extension": struct(
+        doc = """
+Enables linking of a watchOS 2 app extension, rather than a standard watchOS extension.
+
+These require extra options to be set, and must be embedded within a watchOS 2 app bundle.
+""",
+        default = False,
+    ),
 }
 
 _all_build_settings = dicts.add(build_settings, build_flags)

@@ -616,6 +616,32 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        # watchos_extension (NSExtension)
+        apple_product_type.app_extension: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.app_extension,
+            rpaths = [
+                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
+        ),
+        # watchos_extension (ExtensionKit)
+        apple_product_type.extensionkit_extension: _describe_rule_type(
+            allowed_device_families = ["watch"],
+            allows_locale_trimming = True,
+            bundle_extension = ".appex",
+            bundle_package_type = bundle_package_type.extension_or_xpc,
+            product_type = apple_product_type.extensionkit_extension,
+            rpaths = [
+                # ExtensionKit binaries live in Application.app/Extensions/Extension.appex/Extension
+                # Frameworks are packaged in Application.app/Frameworks
+                "@executable_path/../../Frameworks",
+            ],
+        ),
         # watchos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
             allowed_device_families = ["watch"],
