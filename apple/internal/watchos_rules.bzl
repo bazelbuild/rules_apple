@@ -485,11 +485,21 @@ def _watchos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
-    extra_linkopts = [
-        "-fapplication-extension",
-        "-e",
-        "_WKExtensionMain",
-    ]
+    extra_linkopts = ["-fapplication-extension"]
+    if product_type == apple_product_type.watch2_extension:
+        # Required for supporting minimum_os_version < 6.0.
+        extra_linkopts.extend([
+            "-e",
+            "_WKExtensionMain",
+        ])
+    else:
+        # Assuming standard extension (ExtensionKit or standard NSExtension; the former builds off
+        # of the latter). In this case WKExtensionMain is likely not available as the
+        # WatchKit.framework does not have to be referenced.
+        extra_linkopts.extend([
+            "-e",
+            "_NSExtensionMain",
+        ])
 
     # This is required when building with watchOS SDK 6.0 or higher but with a minimum
     # deployment version lower than 6.0. See

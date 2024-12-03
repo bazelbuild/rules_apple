@@ -23,6 +23,8 @@ saw_lc_main=0
 saw_entryoff=0
 entryoff=0
 
+binary_path=$(eval echo "$BINARY_TEST_FILE")
+
 while read -r line ; do
   if [[ $saw_text_segment -eq 0 && "$line" =~ 'segname __TEXT' ]] ; then
     # Record that we saw the first __TEXT segment if we haven't seen one yet.
@@ -42,7 +44,7 @@ while read -r line ; do
     entryoff="${BASH_REMATCH[1]}"
     break
   fi
-done < <(xcrun llvm-objdump --macho --private-headers "$BINARY")
+done < <(xcrun llvm-objdump --macho --private-headers "${binary_path}")
 
 # Fail if we didn't get a valid entryoff; something must have gone wrong
 # earlier.
@@ -65,7 +67,7 @@ entry_addr=$(/usr/bin/env python3 -c "print(hex(int('${text_vmaddr}', 16) + ${en
 # an arbitrary number of leading zeroes so that we don't need to have the Python
 # snippet above match the objdump output exactly.
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/entry_point_output.XXXXXX")"
-xcrun llvm-objdump --macho --syms --indirect-symbols "$BINARY" > "$TEMP_OUTPUT"
+xcrun llvm-objdump --macho --syms --indirect-symbols "${binary_path}" > "$TEMP_OUTPUT"
 
 if ! grep "^\(0x\)\?0*${entry_addr}[[:space:]].*[[:space:]]${ENTRY_POINT}$" "$TEMP_OUTPUT" ; then
   cat "$TEMP_OUTPUT" >>$TEST_log

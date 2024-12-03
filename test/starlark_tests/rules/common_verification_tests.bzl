@@ -347,7 +347,9 @@ def apple_symbols_file_test(
     )
 
 def entry_point_test(
+        *,
         name,
+        binary_test_file = "",
         build_type,
         entry_point,
         tags,
@@ -356,6 +358,8 @@ def entry_point_test(
 
     Args:
         name: Name of the generated test target.
+        binary_test_file: Optional, the binary file to test. Uses the main bundle binary if not
+            specified.
         build_type: Type of build for the target. Possible values are
             `simulator` and `device`.
         entry_point: The name of the symbol that is expected to be the entry
@@ -367,6 +371,7 @@ def entry_point_test(
         name = name,
         build_type = build_type,
         env = {
+            "BINARY_TEST_FILE": [binary_test_file or "$BINARY"],
             "ENTRY_POINT": [entry_point],
         },
         target_under_test = target_under_test,

@@ -29,6 +29,7 @@ load(
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+    "entry_point_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -206,6 +207,23 @@ def watchos_extension_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.watchkitapp.watchkitextension",
         },
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_nsextensionmain_standalone_test".format(name),
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_wkextensionmain_from_watchos2_app_test".format(name),
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+        build_type = "simulator",
+        entry_point = "_WKExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
         tags = [name],
     )
 
