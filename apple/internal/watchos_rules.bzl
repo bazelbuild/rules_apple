@@ -155,6 +155,19 @@ If this is supposed to be a single-target watchOS application, please make sure 
 watchOS application delegate is referenced in this watchos_application's "deps".
 """)
 
+    if ctx.attr.extensions:
+        fail("""
+Error: Multiple extensions specified for a watchOS 2 extension-based application.
+
+The Apple BUILD rules only support a single extension for a watchOS 2 extension-based application, \
+on account of regressions reported when migrating hosted extensions within watchOS 2 \
+extension-based applications to single-target watchOS applications.
+
+Consider migrating to a single-target watchOS application by removing the assigned watchOS 2 app \
+extension and making sure a valid watchOS application delegate is referenced in this \
+watchos_application's "deps".
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.watch2_application,
@@ -408,9 +421,15 @@ def _watchos_extension_impl(ctx):
 
     product_type = apple_product_type.app_extension
 
-    # TODO(b/155313625): Add a rule attribute to allow the user to declare an instance of a
-    # watchos_extension as an ExtensionKit extension, and "fail" if the
-    # watchos2_app_extension_transition is active.
+    if ctx.attr.extensionkit_extension:
+        if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
+            fail("""
+Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not \
+possible.
+
+Please remove the "extensionkit_extension" attribute on this watchos_extension rule.
+""")
+        product_type = apple_product_type.extensionkit_extension
 
     if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
         product_type = apple_product_type.watch2_extension
@@ -641,6 +660,7 @@ def _watchos_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            extensionkit_keys_required = ctx.attr.extensionkit_extension,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
@@ -742,8 +762,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = ctx.attr.deps
+    embeddable_targets = ctx.attr.extensions
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -871,7 +892,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = embeddable_targets,
+            debug_dependencies = embeddable_targets + ctx.attr.deps,
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
@@ -896,7 +917,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps,
+            targets = embeddable_targets + ctx.attr.deps,
         ),
         partials.resources_partial(
             actions = actions,
@@ -904,6 +925,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1021,6 +1043,22 @@ watchOS application, which is constructed if the `watchos_application` target is
 This attribute will not support additional types of `watchos_extension`s in the future.
 """,
             ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
+                doc = """
+A list of watchOS application extensions to include in the final application bundle.
+
+This is only supported for single target watchOS applications, on account of how watchOS poorly
+handles migrating existing extensions to the new single target watchOS application format.
+
+Specifically, existing Shortcuts and other API integrations will be broken for the user on an app
+update if an existing watchOS 2-hosted extension is migrated to the single target application
+format.
+
+It is considered an error if any extensions are assigned to a legacy watchOS 2 application, which is
+constructed if the `watchos_application` target is not assigned `deps`.
+""",
+            ),
             "storyboards": attr.label_list(
                 allow_files = [".storyboard"],
                 doc = """
@@ -1059,6 +1097,7 @@ watchos_extension = rule_factory.create_apple_rule(
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
+        rule_attrs.extensionkit_attrs(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(

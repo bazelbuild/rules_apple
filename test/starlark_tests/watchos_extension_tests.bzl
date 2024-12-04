@@ -15,6 +15,10 @@
 """watchos_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -224,6 +228,49 @@ def watchos_extension_test_suite(name):
         build_type = "simulator",
         entry_point = "_WKExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        tags = [name],
+    )
+
+    entry_point_test(
+        name = "{}_entry_point_nsextensionmain_from_single_target_app_test".format(name),
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/generic_ext.appex/generic_ext",
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_generic_ext",
+        tags = [name],
+    )
+
+    # Test that a generic extension is bundled in PlugIns and not Extensions.
+    archive_contents_test(
+        name = "{}_single_target_app_with_generic_extension_bundling_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_generic_ext",
+        contains = ["$BUNDLE_ROOT/PlugIns/generic_ext.appex/generic_ext"],
+        not_contains = ["$BUNDLE_ROOT/Extensions/generic_ext.appex/generic_ext"],
+        tags = [name],
+    )
+
+    # Test that an ExtensionKit extension is bundled in Extensions and not PlugIns.
+    archive_contents_test(
+        name = "{}_single_target_app_with_extensionkit_bundling_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_extensionkit_ext",
+        contains = ["$BUNDLE_ROOT/Extensions/extensionkit_ext.appex/extensionkit_ext"],
+        not_contains = ["$BUNDLE_ROOT/PlugIns/extensionkit_ext.appex/extensionkit_ext"],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_watchos2_app_has_generic_extensions_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_generic_ext",
+        expected_error = "Error: Multiple extensions specified for a watchOS 2 extension-based application.",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_watchos2_app_extension_is_extensionkit_extension_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_watchos2_delegate_extensionkit_ext",
+        expected_error = "Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not possible.",
         tags = [name],
     )
 
