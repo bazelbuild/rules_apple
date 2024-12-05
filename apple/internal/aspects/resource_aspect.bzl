@@ -133,9 +133,8 @@ def _apple_resource_aspect_impl(target, ctx):
     hint_action = None
     default_action = None
 
-    # TODO: remove usage of `getattr` and use `aspect_ctx.rule.attr.aspect_hints` directly when we drop Bazel 6.
     aspect_hint = None
-    for hint in getattr(ctx.rule.attr, "aspect_hints", []):
+    for hint in ctx.rule.attr.aspect_hints:
         if AppleResourceHintInfo in hint:
             if aspect_hint:
                 fail(("Conflicting AppleResourceHintInfo from aspect hints " +

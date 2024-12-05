@@ -21,12 +21,6 @@ build --nocheck_visibility
 # dependencies cause us to use a newer version
 build --check_direct_dependencies=off
 
-# This is needed for Bazel 6 compatibility.
-# It's enabled (and can't be disabled) in Bazel 7.
-# TODO: Remove this once we drop Bazel 6 support.
-# See also: https://github.com/bazelbuild/bazel/issues/14327
-build --experimental_enable_aspect_hints
-
 # Disable the worker, which has sandboxing disabled by default, which can hide
 # issues with non-hermetic bugs.
 build --spawn_strategy=sandboxed,local

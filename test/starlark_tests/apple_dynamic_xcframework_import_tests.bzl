@@ -134,7 +134,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers (offset 24)",
         ],
-        tags = [name, "skip_bazel6_ci"],
+        tags = [name],
     )
 
     # Verify the correct XCFramework library was bundled and sliced for the required architecture.
