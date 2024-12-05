@@ -752,7 +752,6 @@ Unnecssary and ignored, will be removed in the future.
         AppleFrameworkImportInfo,
         CcInfo,
         apple_common.AppleDynamicFramework,
-        apple_common.Objc,
     ],
     toolchains = use_cpp_toolchain(),
 )
