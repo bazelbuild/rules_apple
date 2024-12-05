@@ -256,13 +256,6 @@ def _apple_dynamic_framework_import_impl(ctx):
         ),
     ))
 
-    # Create apple_common.Objc provider.
-    transitive_objc_providers = [
-        dep[apple_common.Objc]
-        for dep in deps
-        if apple_common.Objc in dep
-    ]
-
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,

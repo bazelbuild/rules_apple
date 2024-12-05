@@ -27,7 +27,6 @@ load(
     "framework_import_support",
 )
 
-
 def _framework_provider_partial_impl(
         *,
         actions,
@@ -38,7 +37,6 @@ def _framework_provider_partial_impl(
         cc_features,
         cc_info,
         cc_toolchain,
-        objc_provider,
         rule_label):
     """Implementation for the framework provider partial."""
 
