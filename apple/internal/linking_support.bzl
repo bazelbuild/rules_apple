@@ -179,9 +179,9 @@ def _link_multi_arch_binary(
     if legacy_linking_function:
         return legacy_linking_function(
             ctx = ctx,
-            avoid_deps = all_avoid_deps,
-            extra_linkopts = linkopts,
-            extra_link_inputs = link_inputs,
+            avoid_deps = avoid_deps,
+            extra_linkopts = extra_linkopts,
+            extra_link_inputs = extra_link_inputs,
             stamp = stamp,
         )
 
