@@ -212,9 +212,9 @@ def _link_multi_arch_binary(
         if AppleDynamicFrameworkInfo in dep
     ]
     avoid_cc_infos.extend([
-        dep[apple_common.AppleExecutableBinary].cc_info
+        dep[AppleExecutableBinaryInfo].cc_info
         for dep in avoid_deps
-        if apple_common.AppleExecutableBinary in dep
+        if AppleExecutableBinaryInfo in dep
     ])
     avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
     avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
