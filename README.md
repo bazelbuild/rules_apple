@@ -74,7 +74,7 @@ Besides these constraints this repo follows
 |:-------------------:|:-------------------:|:-------------------------:|:-------------------------:|
 | 8.x (most recent rolling) | 2.* | current | `master` |
 | 7.x | 2.* | current | `master` |
-| 6.x | 2.* | current | `master` |
+| 6.x | 2.* | 3.13.0 | `master` |
 | 5.x | 0.33.0 | 1.* | `bazel/5.x` |
 | 4.x | 0.30.0 | 0.32.0 | N/A |
 | 3.x | 0.20.0 | 0.21.2 | N/A |
