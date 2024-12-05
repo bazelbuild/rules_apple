@@ -85,7 +85,7 @@ build_test(
 ios_ui_test(
     name = "HelloWorldSwiftUITests",
     minimum_os_version = "15.0",
-    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
     test_host = ":HelloWorldSwift",
     deps = [":UITests"],
 )
