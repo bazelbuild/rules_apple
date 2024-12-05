@@ -15,12 +15,12 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
+    "//apple/internal:macos_binary_support.bzl",
     "macos_binary_infoplist",
     "macos_command_line_launchdplist",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
+    "//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
@@ -35,15 +35,15 @@ load(
     _macos_xpc_service = "macos_xpc_service",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
+    "//apple/internal/testing:macos_rules.bzl",
     _macos_internal_ui_test_bundle = "macos_internal_ui_test_bundle",
     _macos_internal_unit_test_bundle = "macos_internal_unit_test_bundle",
     _macos_ui_test = "macos_ui_test",

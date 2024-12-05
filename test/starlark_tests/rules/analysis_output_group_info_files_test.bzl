@@ -15,11 +15,11 @@
 """Starlark test rule for OutputGroupInfo output group files."""
 
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
+    "//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:assertions.bzl",
+    "//test/starlark_tests/rules:assertions.bzl",
     "assertions",
 )
 

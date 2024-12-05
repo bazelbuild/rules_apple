@@ -15,7 +15,7 @@
 """Bazel rules for creating tvOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:tvos_rules.bzl",
+    "//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
     _tvos_dynamic_framework = "tvos_dynamic_framework",
     _tvos_extension = "tvos_extension",
@@ -23,15 +23,15 @@ load(
     _tvos_static_framework = "tvos_static_framework",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:tvos_rules.bzl",
+    "//apple/internal/testing:tvos_rules.bzl",
     _tvos_internal_ui_test_bundle = "tvos_internal_ui_test_bundle",
     _tvos_internal_unit_test_bundle = "tvos_internal_unit_test_bundle",
     _tvos_ui_test = "tvos_ui_test",

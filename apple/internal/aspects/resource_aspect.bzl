@@ -27,53 +27,53 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "//apple:providers.bzl",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "//apple/internal:swift_support.bzl",
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect_hint.bzl",
+    "//apple/internal/aspects:resource_aspect_hint.bzl",
     "AppleResourceHintInfo",
     "apple_resource_hint_action",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):

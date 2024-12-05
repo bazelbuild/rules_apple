@@ -23,46 +23,46 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "//apple/internal:rule_support.bzl",
     "rule_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
-)
-load(
-    "//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
 )
 
 def _apple_precompiled_resource_bundle_impl(ctx):
@@ -326,11 +326,11 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
             ),
             "_environment_plist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                default = "//apple/internal:environment_plist_ios",
             ),
             "_fallback_infoplist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal/resource_rules:Info.plist",
+                default = "//apple/internal/resource_rules:Info.plist",
             ),
         },
         rule_attrs.common_tool_attrs(),

@@ -31,19 +31,19 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
+    "//apple:utils.bzl",
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
+    "//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
 

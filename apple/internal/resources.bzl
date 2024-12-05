@@ -76,19 +76,19 @@ load(
     "types",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appleresourceinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "//apple/internal/partials/support:resources_support.bzl",
     "PROVIDER_TO_FIELD_ACTION",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
 

@@ -98,7 +98,7 @@ and processed like objc_library.
 cc_library(
     name = "somelib",
     data = ["mydata.txt"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:use_resources"],
+    aspect_hints = ["//apple:use_resources"],
 )
 ```
 
@@ -112,7 +112,7 @@ an objc_library by adding an aspect hint to `use_runfiles` instead of resources.
 objc_library(
     name = "somelib",
     data = ["mydata.txt"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:use_runfiles"],
+    aspect_hints = ["//apple:use_runfiles"],
 )
 ```
 
@@ -128,7 +128,7 @@ with a build file
 cc_library(
     name = "somelib",
     data = ["myFile1.txt", "some_folder/myFile2.txt"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:use_runfiles"],
+    aspect_hints = ["//apple:use_runfiles"],
 )
 ```
 then the resources will be in
@@ -150,7 +150,7 @@ any aspect hint applied.
 objc_library(
     name = "somelib",
     data = ["mydata.txt"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:suppress_resources"],
+    aspect_hints = ["//apple:suppress_resources"],
 )
 ```
 """,

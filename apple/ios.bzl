@@ -15,7 +15,7 @@
 """Bazel rules for creating iOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    "//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
     _ios_dynamic_framework = "ios_dynamic_framework",
@@ -27,15 +27,15 @@ load(
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
+    "//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
+    "//apple/internal/testing:build_test_rules.bzl",
     "apple_build_test_rule",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
+    "//apple/internal/testing:ios_rules.bzl",
     _ios_internal_ui_test_bundle = "ios_internal_ui_test_bundle",
     _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
     _ios_ui_test = "ios_ui_test",

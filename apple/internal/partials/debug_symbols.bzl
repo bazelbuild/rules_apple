@@ -28,28 +28,28 @@ load(
 )
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleVersionInfo",
     "AppleDsymBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "//apple/internal/utils:defines.bzl",
     "defines",
 )
 

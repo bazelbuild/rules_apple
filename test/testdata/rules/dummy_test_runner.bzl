@@ -15,7 +15,7 @@
 """Dummy test runner rule. Does not actually run tests."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "apple_provider",
 )
 
@@ -39,7 +39,7 @@ dummy_test_runner = rule(
     _dummy_test_runner_impl,
     attrs = {
         "_test_template": attr.label(
-            default = Label("@build_bazel_rules_apple//test/testdata/rules:dummy_test_runner.template"),
+            default = Label("//test/testdata/rules:dummy_test_runner.template"),
             allow_single_file = True,
         ),
     },
