@@ -25,8 +25,7 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    # FIXME: Use last_green once we cherry-pick https://github.com/bazelbuild/rules_apple/commit/46535afcec837dcdaf216a3e94dff72e1f14c7a7
-    bazel: b59004dd17366b09b0758b833f98294fd0e89345
+    bazel: last_green
     <<: *common
 
   doc_tests:
