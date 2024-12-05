@@ -119,7 +119,6 @@ Resolved Xcode is version {xcode_version}.
             linking_support.new_executable_binary_provider(
                 binary = binary_artifact,
                 cc_info = link_result.cc_info,
-                objc = link_result.objc,
             ),
         )
 

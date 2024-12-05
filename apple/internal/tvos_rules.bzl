@@ -461,7 +461,6 @@ def _tvos_application_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -1303,7 +1302,6 @@ def _tvos_extension_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         new_tvosextensionbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
