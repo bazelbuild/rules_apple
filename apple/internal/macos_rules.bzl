@@ -146,9 +146,6 @@ load(
     "SwiftInfo",
 )
 
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
-
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -459,7 +456,6 @@ def _macos_application_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -974,7 +970,6 @@ def _macos_extension_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         new_macosextensionbundleinfo(),
         OutputGroupInfo(
@@ -2100,7 +2095,6 @@ def _macos_command_line_application_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -2939,7 +2933,6 @@ def _macos_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -3216,7 +3209,6 @@ def _macos_dynamic_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -3300,12 +3292,6 @@ def _macos_dynamic_framework_impl(ctx):
                     ),
                 ),
             )
-            if _OBJC_PROVIDER_LINKING:
-                additional_providers.append(
-                    apple_common.new_objc_provider(
-                        dynamic_framework_file = provider.framework_files,
-                    ),
-                )
     providers.extend(additional_providers)
 
     return [

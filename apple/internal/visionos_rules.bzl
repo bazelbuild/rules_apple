@@ -465,7 +465,6 @@ Resolved Xcode is version {xcode_version}.
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -667,7 +666,6 @@ def _visionos_dynamic_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -957,7 +955,6 @@ def _visionos_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -1304,7 +1301,6 @@ def _visionos_extension_impl(ctx):
         linking_support.new_executable_binary_provider(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
-            objc = link_result.objc,
         ),
         new_visionosextensionbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.

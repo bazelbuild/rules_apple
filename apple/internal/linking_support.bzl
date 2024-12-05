@@ -24,9 +24,6 @@ load(
     "entitlements_support",
 )
 
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
-
 def _debug_outputs_by_architecture(link_outputs):
     """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
 
@@ -54,25 +51,17 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _new_executable_binary_provider(*, binary, cc_info, objc):
+def _new_executable_binary_provider(*, binary, cc_info):
     """Wrap the apple_common API of the same name to better support multiple Bazel versions.
 
     Args:
         binary: The `File` representing the binary.
         cc_info: The `CcInfo` provider for the binary.
-        objc: The `apple_common.Objc` provider for the binary.
     """
-    if _OBJC_PROVIDER_LINKING:
-        return apple_common.new_executable_binary_provider(
-            binary = binary,
-            cc_info = cc_info,
-            objc = objc,
-        )
-    else:
-        return apple_common.new_executable_binary_provider(
-            binary = binary,
-            cc_info = cc_info,
-        )
+    return apple_common.new_executable_binary_provider(
+        binary = binary,
+        cc_info = cc_info,
+    )
 
 def _sectcreate_objc_provider(label, segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
@@ -110,12 +99,7 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
                 ]),
             ),
         ),
-    ] + ([
-        apple_common.new_objc_provider(
-            linkopt = depset(linkopts, order = "topological"),
-            link_inputs = depset([file]),
-        ),
-    ] if _OBJC_PROVIDER_LINKING else [])
+    ]
 
 def _register_binary_linking_action(
         ctx,
