@@ -23,6 +23,11 @@ tasks:
     bazel: latest
     <<: *common
 
+  macos_last_rc:
+    name: "Last RC Bazel"
+    bazel: last_rc
+    <<: *common
+
   macos_last_green:
     name: "Last Green Bazel"
     bazel: last_green
