@@ -7,6 +7,8 @@
 ## apple_dynamic_framework_import
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_dynamic_framework_import")
+
 apple_dynamic_framework_import(<a href="#apple_dynamic_framework_import-name">name</a>, <a href="#apple_dynamic_framework_import-deps">deps</a>, <a href="#apple_dynamic_framework_import-bundle_only">bundle_only</a>, <a href="#apple_dynamic_framework_import-dsym_imports">dsym_imports</a>, <a href="#apple_dynamic_framework_import-framework_imports">framework_imports</a>)
 </pre>
 
@@ -47,6 +49,8 @@ objc_library(
 ## apple_dynamic_xcframework_import
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_dynamic_xcframework_import")
+
 apple_dynamic_xcframework_import(<a href="#apple_dynamic_xcframework_import-name">name</a>, <a href="#apple_dynamic_xcframework_import-deps">deps</a>, <a href="#apple_dynamic_xcframework_import-bundle_only">bundle_only</a>, <a href="#apple_dynamic_xcframework_import-library_identifiers">library_identifiers</a>, <a href="#apple_dynamic_xcframework_import-xcframework_imports">xcframework_imports</a>)
 </pre>
 
@@ -88,6 +92,8 @@ objc_library(
 ## apple_static_framework_import
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_static_framework_import")
+
 apple_static_framework_import(<a href="#apple_static_framework_import-name">name</a>, <a href="#apple_static_framework_import-deps">deps</a>, <a href="#apple_static_framework_import-data">data</a>, <a href="#apple_static_framework_import-alwayslink">alwayslink</a>, <a href="#apple_static_framework_import-framework_imports">framework_imports</a>, <a href="#apple_static_framework_import-has_swift">has_swift</a>,
                               <a href="#apple_static_framework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_framework_import-sdk_frameworks">sdk_frameworks</a>, <a href="#apple_static_framework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>)
 </pre>
@@ -133,6 +139,8 @@ objc_library(
 ## apple_static_library
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_static_library")
+
 apple_static_library(<a href="#apple_static_library-name">name</a>, <a href="#apple_static_library-deps">deps</a>, <a href="#apple_static_library-data">data</a>, <a href="#apple_static_library-additional_linker_inputs">additional_linker_inputs</a>, <a href="#apple_static_library-avoid_deps">avoid_deps</a>, <a href="#apple_static_library-linkopts">linkopts</a>,
                      <a href="#apple_static_library-minimum_os_version">minimum_os_version</a>, <a href="#apple_static_library-platform_type">platform_type</a>, <a href="#apple_static_library-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_library-sdk_frameworks">sdk_frameworks</a>,
                      <a href="#apple_static_library-weak_sdk_frameworks">weak_sdk_frameworks</a>)
@@ -173,6 +181,8 @@ implementation of `apple_static_library` in Bazel core so that it can be removed
 ## apple_static_xcframework
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_static_xcframework")
+
 apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a href="#apple_static_xcframework-deps">deps</a>, <a href="#apple_static_xcframework-avoid_deps">avoid_deps</a>, <a href="#apple_static_xcframework-bundle_name">bundle_name</a>, <a href="#apple_static_xcframework-executable_name">executable_name</a>, <a href="#apple_static_xcframework-families_required">families_required</a>,
                          <a href="#apple_static_xcframework-ios">ios</a>, <a href="#apple_static_xcframework-macos">macos</a>, <a href="#apple_static_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>, <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>,
                          <a href="#apple_static_xcframework-umbrella_header">umbrella_header</a>)
@@ -204,6 +214,8 @@ Generates an XCFramework with static libraries for third-party distribution.
 ## apple_static_xcframework_import
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_static_xcframework_import")
+
 apple_static_xcframework_import(<a href="#apple_static_xcframework_import-name">name</a>, <a href="#apple_static_xcframework_import-deps">deps</a>, <a href="#apple_static_xcframework_import-data">data</a>, <a href="#apple_static_xcframework_import-alwayslink">alwayslink</a>, <a href="#apple_static_xcframework_import-has_swift">has_swift</a>, <a href="#apple_static_xcframework_import-includes">includes</a>,
                                 <a href="#apple_static_xcframework_import-library_identifiers">library_identifiers</a>, <a href="#apple_static_xcframework_import-linkopts">linkopts</a>, <a href="#apple_static_xcframework_import-sdk_dylibs">sdk_dylibs</a>, <a href="#apple_static_xcframework_import-sdk_frameworks">sdk_frameworks</a>,
                                 <a href="#apple_static_xcframework_import-weak_sdk_frameworks">weak_sdk_frameworks</a>, <a href="#apple_static_xcframework_import-xcframework_imports">xcframework_imports</a>)
@@ -253,6 +265,8 @@ objc_library(
 ## apple_universal_binary
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_universal_binary")
+
 apple_universal_binary(<a href="#apple_universal_binary-name">name</a>, <a href="#apple_universal_binary-binary">binary</a>, <a href="#apple_universal_binary-forced_cpus">forced_cpus</a>, <a href="#apple_universal_binary-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#apple_universal_binary-minimum_os_version">minimum_os_version</a>,
                        <a href="#apple_universal_binary-platform_type">platform_type</a>)
 </pre>
@@ -278,6 +292,8 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
 ## apple_xcframework
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "apple_xcframework")
+
 apple_xcframework(<a href="#apple_xcframework-name">name</a>, <a href="#apple_xcframework-deps">deps</a>, <a href="#apple_xcframework-data">data</a>, <a href="#apple_xcframework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#apple_xcframework-bundle_id">bundle_id</a>, <a href="#apple_xcframework-bundle_name">bundle_name</a>,
                   <a href="#apple_xcframework-codesign_inputs">codesign_inputs</a>, <a href="#apple_xcframework-codesignopts">codesignopts</a>, <a href="#apple_xcframework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#apple_xcframework-extension_safe">extension_safe</a>,
                   <a href="#apple_xcframework-families_required">families_required</a>, <a href="#apple_xcframework-infoplists">infoplists</a>, <a href="#apple_xcframework-ios">ios</a>, <a href="#apple_xcframework-linkopts">linkopts</a>, <a href="#apple_xcframework-macos">macos</a>, <a href="#apple_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>,
@@ -320,6 +336,8 @@ Builds and bundles an XCFramework for third-party distribution.
 ## local_provisioning_profile
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "local_provisioning_profile")
+
 local_provisioning_profile(<a href="#local_provisioning_profile-name">name</a>, <a href="#local_provisioning_profile-profile_name">profile_name</a>, <a href="#local_provisioning_profile-team_id">team_id</a>)
 </pre>
 
@@ -377,6 +395,8 @@ ios_application(
 ## experimental_mixed_language_library
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "experimental_mixed_language_library")
+
 experimental_mixed_language_library(<a href="#experimental_mixed_language_library-name">name</a>, <a href="#experimental_mixed_language_library-srcs">srcs</a>, <a href="#experimental_mixed_language_library-deps">deps</a>, <a href="#experimental_mixed_language_library-enable_modules">enable_modules</a>, <a href="#experimental_mixed_language_library-enable_header_map">enable_header_map</a>,
                                     <a href="#experimental_mixed_language_library-module_name">module_name</a>, <a href="#experimental_mixed_language_library-objc_copts">objc_copts</a>, <a href="#experimental_mixed_language_library-swift_copts">swift_copts</a>, <a href="#experimental_mixed_language_library-swiftc_inputs">swiftc_inputs</a>, <a href="#experimental_mixed_language_library-testonly">testonly</a>,
                                     <a href="#experimental_mixed_language_library-kwargs">kwargs</a>)
@@ -417,6 +437,8 @@ having to demix them first.
 ## provisioning_profile_repository
 
 <pre>
+load("@rules_apple//apple:apple.bzl", "provisioning_profile_repository")
+
 provisioning_profile_repository(<a href="#provisioning_profile_repository-name">name</a>, <a href="#provisioning_profile_repository-fallback_profiles">fallback_profiles</a>, <a href="#provisioning_profile_repository-repo_mapping">repo_mapping</a>)
 </pre>
 
@@ -482,6 +504,7 @@ ios_application(
 **ENVIRONMENT VARIABLES**
 
 This repository rule depends on the following environment variables:
+
 * `HOME`
 
 

@@ -7,6 +7,8 @@
 ## visionos_application
 
 <pre>
+load("@rules_apple//apple:visionos.bzl", "visionos_application")
+
 visionos_application(<a href="#visionos_application-name">name</a>, <a href="#visionos_application-deps">deps</a>, <a href="#visionos_application-resources">resources</a>, <a href="#visionos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_application-app_icons">app_icons</a>, <a href="#visionos_application-app_intents">app_intents</a>,
                      <a href="#visionos_application-bundle_id">bundle_id</a>, <a href="#visionos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_application-bundle_name">bundle_name</a>, <a href="#visionos_application-codesign_inputs">codesign_inputs</a>, <a href="#visionos_application-codesignopts">codesignopts</a>,
                      <a href="#visionos_application-entitlements">entitlements</a>, <a href="#visionos_application-entitlements_validation">entitlements_validation</a>, <a href="#visionos_application-executable_name">executable_name</a>, <a href="#visionos_application-exported_symbols_lists">exported_symbols_lists</a>,
@@ -62,6 +64,8 @@ Builds and bundles a visionOS Application.
 ## visionos_build_test
 
 <pre>
+load("@rules_apple//apple:visionos.bzl", "visionos_build_test")
+
 visionos_build_test(<a href="#visionos_build_test-name">name</a>, <a href="#visionos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_build_test-platform_type">platform_type</a>, <a href="#visionos_build_test-targets">targets</a>)
 </pre>
 
@@ -96,6 +100,8 @@ visionos_build_test(
 ## visionos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:visionos.bzl", "visionos_dynamic_framework")
+
 visionos_dynamic_framework(<a href="#visionos_dynamic_framework-name">name</a>, <a href="#visionos_dynamic_framework-deps">deps</a>, <a href="#visionos_dynamic_framework-resources">resources</a>, <a href="#visionos_dynamic_framework-hdrs">hdrs</a>, <a href="#visionos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                            <a href="#visionos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#visionos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#visionos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#visionos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                            <a href="#visionos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#visionos_dynamic_framework-executable_name">executable_name</a>, <a href="#visionos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -145,6 +151,8 @@ Builds and bundles a visionos dynamic framework that is consumable by Xcode.
 ## visionos_framework
 
 <pre>
+load("@rules_apple//apple:visionos.bzl", "visionos_framework")
+
 visionos_framework(<a href="#visionos_framework-name">name</a>, <a href="#visionos_framework-deps">deps</a>, <a href="#visionos_framework-resources">resources</a>, <a href="#visionos_framework-hdrs">hdrs</a>, <a href="#visionos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_framework-base_bundle_id">base_bundle_id</a>, <a href="#visionos_framework-bundle_id">bundle_id</a>,
                    <a href="#visionos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_framework-bundle_name">bundle_name</a>, <a href="#visionos_framework-bundle_only">bundle_only</a>, <a href="#visionos_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_framework-codesignopts">codesignopts</a>,
                    <a href="#visionos_framework-executable_name">executable_name</a>, <a href="#visionos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_framework-extension_safe">extension_safe</a>, <a href="#visionos_framework-families">families</a>, <a href="#visionos_framework-frameworks">frameworks</a>,
@@ -195,6 +203,8 @@ To use this framework for your app and extensions, list it in the frameworks att
 ## visionos_static_framework
 
 <pre>
+load("@rules_apple//apple:visionos.bzl", "visionos_static_framework")
+
 visionos_static_framework(<a href="#visionos_static_framework-name">name</a>, <a href="#visionos_static_framework-deps">deps</a>, <a href="#visionos_static_framework-resources">resources</a>, <a href="#visionos_static_framework-hdrs">hdrs</a>, <a href="#visionos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_static_framework-avoid_deps">avoid_deps</a>,
                           <a href="#visionos_static_framework-bundle_name">bundle_name</a>, <a href="#visionos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_static_framework-codesignopts">codesignopts</a>, <a href="#visionos_static_framework-exclude_resources">exclude_resources</a>,
                           <a href="#visionos_static_framework-executable_name">executable_name</a>, <a href="#visionos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_static_framework-families">families</a>, <a href="#visionos_static_framework-ipa_post_processor">ipa_post_processor</a>,
@@ -274,40 +284,20 @@ i.e. `--features=-swift.no_generated_header`).
 ## visionos_ui_test
 
 <pre>
-visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_ui_test-deps">deps</a>, <a href="#visionos_ui_test-data">data</a>, <a href="#visionos_ui_test-bundle_name">bundle_name</a>, <a href="#visionos_ui_test-env">env</a>, <a href="#visionos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>,
-                 <a href="#visionos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_ui_test-platform_type">platform_type</a>, <a href="#visionos_ui_test-runner">runner</a>, <a href="#visionos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_ui_test-test_filter">test_filter</a>,
-                 <a href="#visionos_ui_test-test_host">test_host</a>, <a href="#visionos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:visionos.bzl", "visionos_ui_test")
+
+visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_ui_test-kwargs">kwargs</a>)
 </pre>
 
-Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
-
-Note: visionOS UI tests are not currently supported in the default test runner.
-
-The following is a list of the `visionos_ui_test` specific attributes; for a list of
-the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
-
-**ATTRIBUTES**
 
 
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="visionos_ui_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="visionos_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
-| <a id="visionos_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="visionos_ui_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
-| <a id="visionos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
-| <a id="visionos_ui_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
-| <a id="visionos_ui_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
-| <a id="visionos_ui_test-platform_type"></a>platform_type |  -   | String | optional |  `"visionos"`  |
-| <a id="visionos_ui_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="visionos_ui_test-test_coverage_manifest"></a>test_coverage_manifest |  A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="visionos_ui_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional |  `""`  |
-| <a id="visionos_ui_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="visionos_ui_test-test_host_is_bundle_loader"></a>test_host_is_bundle_loader |  Whether the 'test_host' should be used as the -bundle_loader to allow testing the symbols from the test host app   | Boolean | optional |  `True`  |
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="visionos_ui_test-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="visionos_ui_test-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
 <a id="visionos_unit_test"></a>
@@ -315,47 +305,19 @@ the attributes inherited by all test rules, please check the
 ## visionos_unit_test
 
 <pre>
-visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#visionos_unit_test-deps">deps</a>, <a href="#visionos_unit_test-data">data</a>, <a href="#visionos_unit_test-bundle_name">bundle_name</a>, <a href="#visionos_unit_test-env">env</a>, <a href="#visionos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>,
-                   <a href="#visionos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_unit_test-platform_type">platform_type</a>, <a href="#visionos_unit_test-runner">runner</a>, <a href="#visionos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_unit_test-test_filter">test_filter</a>,
-                   <a href="#visionos_unit_test-test_host">test_host</a>, <a href="#visionos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:visionos.bzl", "visionos_unit_test")
+
+visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#visionos_unit_test-kwargs">kwargs</a>)
 </pre>
 
-Builds and bundles a visionOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
-
-Note: visionOS unit tests are not currently supported in the default test runner.
-
-`visionos_unit_test` targets can work in two modes: as app or library tests. If the
-`test_host` attribute is set to an `visionos_application` target, the tests will run
-within that application's context. If no `test_host` is provided, the tests will
-run outside the context of a visionOS application. Because of this, certain
-functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
-find more information about app and library testing for Apple platforms
-[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
-
-The following is a list of the `visionos_unit_test` specific attributes; for a list
-of the attributes inherited by all test rules, please check the
-[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
-
-**ATTRIBUTES**
 
 
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="visionos_unit_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="visionos_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
-| <a id="visionos_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="visionos_unit_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
-| <a id="visionos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
-| <a id="visionos_unit_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
-| <a id="visionos_unit_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
-| <a id="visionos_unit_test-platform_type"></a>platform_type |  -   | String | optional |  `"visionos"`  |
-| <a id="visionos_unit_test-runner"></a>runner |  The runner target that will provide the logic on how to run the tests. Needs to provide the AppleTestRunnerInfo provider.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="visionos_unit_test-test_coverage_manifest"></a>test_coverage_manifest |  A file that will be used in lcov export calls to limit the scope of files instrumented with coverage.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="visionos_unit_test-test_filter"></a>test_filter |  Test filter string that will be passed into the test runner to select which tests will run.   | String | optional |  `""`  |
-| <a id="visionos_unit_test-test_host"></a>test_host |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="visionos_unit_test-test_host_is_bundle_loader"></a>test_host_is_bundle_loader |  Whether the 'test_host' should be used as the -bundle_loader to allow testing the symbols from the test host app   | Boolean | optional |  `True`  |
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="visionos_unit_test-name"></a>name |  <p align="center"> - </p>   |  none |
+| <a id="visionos_unit_test-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

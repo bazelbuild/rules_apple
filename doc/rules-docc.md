@@ -7,6 +7,8 @@ Defines rules for building Apple DocC targets.
 ## docc_archive
 
 <pre>
+load("@rules_apple//apple:docc.bzl", "docc_archive")
+
 docc_archive(<a href="#docc_archive-name">name</a>, <a href="#docc_archive-default_code_listing_language">default_code_listing_language</a>, <a href="#docc_archive-dep">dep</a>, <a href="#docc_archive-diagnostic_level">diagnostic_level</a>,
              <a href="#docc_archive-emit_extension_block_symbols">emit_extension_block_symbols</a>, <a href="#docc_archive-enable_inherited_docs">enable_inherited_docs</a>, <a href="#docc_archive-fallback_bundle_identifier">fallback_bundle_identifier</a>,
              <a href="#docc_archive-fallback_bundle_version">fallback_bundle_version</a>, <a href="#docc_archive-fallback_display_name">fallback_display_name</a>, <a href="#docc_archive-hosting_base_path">hosting_base_path</a>, <a href="#docc_archive-kinds">kinds</a>,

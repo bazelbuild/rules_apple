@@ -127,16 +127,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "ios.doc",
-    srcs = ["ios.doc.bzl"],
-    deps = [
-        ":ios",
-        "//apple/testing/default_runner:ios_test_runner",
-        "//apple/testing/default_runner:ios_xctestrun_runner",
-    ],
-)
-
-bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [
@@ -148,12 +138,6 @@ bzl_library(
         "//apple/internal/testing:macos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
-)
-
-bzl_library(
-    name = "macos.doc",
-    srcs = ["macos.doc.bzl"],
-    deps = ["macos"],
 )
 
 bzl_library(
@@ -198,12 +182,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "tvos.doc",
-    srcs = ["tvos.doc.bzl"],
-    deps = ["tvos"],
-)
-
-bzl_library(
     name = "utils",
     srcs = ["utils.bzl"],
 )
@@ -231,12 +209,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "visionos.doc",
-    srcs = ["visionos.doc.bzl"],
-    deps = ["visionos"],
-)
-
-bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
@@ -246,12 +218,6 @@ bzl_library(
         "//apple/internal/testing:watchos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
-)
-
-bzl_library(
-    name = "watchos.doc",
-    srcs = ["watchos.doc.bzl"],
-    deps = ["watchos"],
 )
 
 bzl_library(

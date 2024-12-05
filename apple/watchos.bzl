@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating watchOS applications and bundles."""
+"""# Bazel rules for creating watchOS applications and bundles."""
 
 load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",

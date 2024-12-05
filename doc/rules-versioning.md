@@ -7,6 +7,8 @@
 ## apple_bundle_version
 
 <pre>
+load("@rules_apple//apple:versioning.bzl", "apple_bundle_version")
+
 apple_bundle_version(<a href="#apple_bundle_version-name">name</a>, <a href="#apple_bundle_version-build_label_pattern">build_label_pattern</a>, <a href="#apple_bundle_version-build_version">build_version</a>, <a href="#apple_bundle_version-capture_groups">capture_groups</a>, <a href="#apple_bundle_version-fallback_build_label">fallback_build_label</a>,
                      <a href="#apple_bundle_version-short_version_string">short_version_string</a>)
 </pre>

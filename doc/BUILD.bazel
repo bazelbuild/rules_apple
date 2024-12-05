@@ -11,13 +11,13 @@ _RULES_DOC_SRCS = [
     "docc",
     "dtrace",
     "header_map",
-    "ios.doc",
-    "macos.doc",
+    "ios",
+    "macos",
     "resources",
-    "tvos.doc",
+    "tvos",
     "versioning",
-    "visionos.doc",
-    "watchos.doc",
+    "visionos",
+    "watchos",
     "xcarchive",
 ]
 
