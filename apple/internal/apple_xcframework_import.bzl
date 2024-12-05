@@ -513,7 +513,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFrameworkInfo provider
-    apple_dynamic_framework_info = framework_import_support.new_dynamic_framework_provider(
+    apple_dynamic_framework_info = AppleDynamicFrameworkInfo(
         cc_info = cc_info,
     )
     providers.append(apple_dynamic_framework_info)
@@ -751,7 +751,7 @@ Unnecssary and ignored, will be removed in the future.
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
-        apple_common.AppleDynamicFramework,
+        AppleDynamicFrameworkInfo,
     ],
     toolchains = use_cpp_toolchain(),
 )

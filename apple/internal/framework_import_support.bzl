@@ -411,20 +411,6 @@ def _has_versioned_framework_files(framework_files):
             return True
     return False
 
-def _new_dynamic_framework_provider(**kwargs):
-    """A wrapper API for the Bazel API of the same name to better support multiple Bazel versions
-
-    Args:
-        **kwargs: Arguments to pass if supported.
-    """
-
-    # TODO: Remove once we drop bazel 7.x
-    _OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
-    if not _OBJC_PROVIDER_LINKING:
-        kwargs.pop("objc", None)
-
-    return apple_common.new_dynamic_framework_provider(**kwargs)
-
 def _swift_info_from_module_interface(
         *,
         actions,
@@ -497,7 +483,6 @@ framework_import_support = struct(
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     has_versioned_framework_files = _has_versioned_framework_files,
-    new_dynamic_framework_provider = _new_dynamic_framework_provider,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,
 )

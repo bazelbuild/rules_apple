@@ -356,18 +356,6 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _new_executable_binary_provider(*, binary, cc_info):
-    """Wrap the apple_common API of the same name to better support multiple Bazel versions.
-
-    Args:
-        binary: The `File` representing the binary.
-        cc_info: The `CcInfo` provider for the binary.
-    """
-    return apple_common.new_executable_binary_provider(
-        binary = binary,
-        cc_info = cc_info,
-    )
-
 def _sectcreate_objc_provider(label, segname, sectname, file):
     """Returns an objc provider that propagates a section in a linked binary.
 
@@ -428,7 +416,7 @@ def _register_binary_linking_action(
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
-            This target must propagate the `apple_common.AppleExecutableBinary` provider.
+            This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
             path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
@@ -524,7 +512,7 @@ def _register_binary_linking_action(
 
     all_avoid_deps = list(avoid_deps)
     if bundle_loader:
-        bundle_loader_file = bundle_loader[apple_common.AppleExecutableBinary].binary
+        bundle_loader_file = bundle_loader[AppleExecutableBinaryInfo].binary
         all_avoid_deps.append(bundle_loader)
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
@@ -758,7 +746,6 @@ linking_support = struct(
     legacy_link_multi_arch_binary = _legacy_link_multi_arch_binary,
     link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
-    new_executable_binary_provider = _new_executable_binary_provider,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_linking_action = _register_static_library_linking_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
