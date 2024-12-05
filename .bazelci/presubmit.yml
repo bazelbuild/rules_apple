@@ -23,6 +23,16 @@ tasks:
     bazel: latest
     <<: *common
 
+  macos_7.x_workspace:
+    name: "7.x WORKSPACE support"
+    bazel: latest
+    <<: *common
+    build_flags:
+      - --enable_bzlmod=false
+    test_flags:
+      - --test_tag_filters=-skipci
+      - --enable_bzlmod=false
+
   macos_last_green:
     name: "Last Green Bazel"
     # FIXME: Use last_green once we cherry-pick in changes needed by
