@@ -101,7 +101,6 @@ def framework_provider_partial(
         cc_features,
         cc_info,
         cc_toolchain,
-        objc_provider,
         rule_label):
     """Constructor for the framework provider partial.
 
@@ -120,8 +119,6 @@ def framework_provider_partial(
       cc_info: The CcInfo provider containing information about the
           targets linked into the dynamic framework.
       cc_toolchain: The C++ toolchain to use.
-      objc_provider: The `apple_common.Objc` provider containing information
-          about the targets linked into the dynamic framework.
       rule_label: The label of the target being analyzed.
 
     Returns:
@@ -139,6 +136,5 @@ def framework_provider_partial(
         cc_features = cc_features,
         cc_info = cc_info,
         cc_toolchain = cc_toolchain,
-        objc_provider = objc_provider,
         rule_label = rule_label,
     )
