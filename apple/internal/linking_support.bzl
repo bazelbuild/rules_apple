@@ -174,6 +174,17 @@ def _link_multi_arch_binary(
         *   `debug_outputs_provider`: An AppleDebugOutputs provider
     """
 
+    # TODO: Delete when we drop bazel 7.x
+    legacy_linking_function = getattr(apple_common, "link_multi_arch_binary", None)
+    if legacy_linking_function:
+        return legacy_linking_function(
+            ctx = ctx,
+            avoid_deps = all_avoid_deps,
+            extra_linkopts = linkopts,
+            extra_link_inputs = link_inputs,
+            stamp = stamp,
+        )
+
     split_target_triplets = get_split_target_triplet(ctx)
     split_build_configs = apple_common.get_split_build_configs(ctx)
     split_deps = ctx.split_attr.deps
