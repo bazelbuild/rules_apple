@@ -200,10 +200,10 @@ EOF
 
   mkdir -p app/fmwk.framework
   if [[ $framework_type == dynamic ]]; then
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin.dylib) \
+    cp $(rlocation rules_apple/test/testdata/binaries/empty_dylib_lipobin.dylib) \
         app/fmwk.framework/fmwk
   else
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/libdummy_lib.a) \
+    cp $(rlocation rules_apple/test/testdata/binaries/libdummy_lib.a) \
         app/fmwk.framework/fmwk
   fi
 
