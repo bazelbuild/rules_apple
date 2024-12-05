@@ -14,9 +14,6 @@ x_defaults:
     - "examples/..."
     test_flags:
     - --test_tag_filters=-skipci
-  bazel_6: &bazel_6
-    test_flags:
-    - --test_tag_filters=-skipci,-skip_bazel6_ci
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
@@ -25,12 +22,6 @@ tasks:
     name: "Current LTS"
     bazel: latest
     <<: *common
-
-  macos_6_lts:
-    name: "6.x LTS"
-    bazel: 6.x
-    <<: *common
-    <<: *bazel_6
 
   macos_last_green:
     name: "Last Green Bazel"

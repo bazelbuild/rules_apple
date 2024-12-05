@@ -148,23 +148,6 @@ def _common_linking_api_attrs(*, deps_cfg):
         ),
     })
 
-def _j2objc_binary_linking_attrs():
-    """Returns a dictionary of required attributes for J2ObjC processing code in native linking.
-    """
-    return {
-        # xcrunwrapper is no longer used by rules_apple, but the underlying implementation of
-        # apple_common.link_multi_arch_binary and j2objc_dead_code_pruner require this attribute.
-        # See CompilationSupport.java:
-        # - `registerJ2ObjcDeadCodeRemovalActions()`
-        # - `registerLinkActions()` --> `registerBinaryStripAction()`
-        # TODO(b/117932394): Remove this once Bazel 6 support is dropped.
-        "_xcrunwrapper": attr.label(
-            cfg = "exec",
-            executable = True,
-            default = Label("@bazel_tools//tools/objc:xcrunwrapper"),
-        ),
-    }
-
 def _static_library_linking_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
 
@@ -218,7 +201,6 @@ def _binary_linking_attrs(
     return dicts.add(
         extra_attrs,
         _common_linking_api_attrs(deps_cfg = deps_cfg),
-        _j2objc_binary_linking_attrs(),
         {
             "codesign_inputs": attr.label_list(
                 doc = """
