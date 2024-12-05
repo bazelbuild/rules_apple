@@ -28,6 +28,10 @@ load(
     "get_split_target_triplet",
     "subtract_linking_contexts",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+)
 
 ObjcInfo = apple_common.Objc
 
@@ -198,9 +202,9 @@ def _link_multi_arch_binary(
         ))
 
     avoid_cc_infos = [
-        dep[apple_common.AppleDynamicFramework].cc_info
+        dep[AppleDynamicFrameworkInfo].cc_info
         for dep in avoid_deps
-        if apple_common.AppleDynamicFramework in dep
+        if AppleDynamicFrameworkInfo in dep
     ]
     avoid_cc_infos.extend([
         dep[apple_common.AppleExecutableBinary].cc_info
