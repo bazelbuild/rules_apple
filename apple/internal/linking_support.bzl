@@ -603,7 +603,8 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
         # Symlink if there was only a single architecture created; it's faster.
         actions.symlink(target_file = inputs[0], output = output)
 
-def _link_multi_arch_binary(
+# TODO: Delete when we take https://github.com/bazelbuild/rules_apple/commit/29eb94cbc9b1a898582e1e238cc2551ddbeaa58b
+def _legacy_link_multi_arch_binary(
         *,
         actions,
         additional_inputs = [],
@@ -734,6 +735,7 @@ def _link_multi_arch_binary(
 
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
+    legacy_link_multi_arch_binary = _legacy_link_multi_arch_binary,
     link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     new_executable_binary_provider = _new_executable_binary_provider,
