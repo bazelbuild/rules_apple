@@ -49,6 +49,11 @@ def _link_multi_arch_static_library(ctx):
                 - environment: Linked static library environment (e.g. 'device', 'simulator').
     """
 
+    # TODO: Delete when we drop bazel 7.x
+    legacy_linking_function = getattr(apple_common, "link_multi_arch_static_library", None)
+    if legacy_linking_function:
+        return legacy_linking_function(ctx = ctx)
+
     split_target_triplets = get_split_target_triplet(ctx)
 
     split_deps = ctx.split_attr.deps
