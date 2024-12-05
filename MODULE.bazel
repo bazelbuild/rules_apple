@@ -1,3 +1,5 @@
+"""rules_apple"""
+
 module(
     name = "rules_apple",
     version = "0",
@@ -16,18 +18,7 @@ bazel_dep(
     repo_name = "build_bazel_rules_swift",
 )
 
-bazel_dep(
-    name = "stardoc",
-    version = "0.6.2",
-    dev_dependency = True,
-    repo_name = "io_bazel_stardoc",
-)
-bazel_dep(
-    name = "protobuf",
-    version = "21.7",
-    dev_dependency = True,
-    repo_name = "com_google_protobuf",
-)
+bazel_dep(name = "stardoc", version = "0.7.2", dev_dependency = True)
 
 non_module_deps = use_extension("//apple:extensions.bzl", "non_module_deps")
 use_repo(
@@ -40,20 +31,3 @@ use_repo(provisioning_profile_repository, "local_provisioning_profiles")
 
 apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
 use_repo(apple_cc_configure, "local_config_apple_cc")
-
-# TODO: Remove override when a protobuf release is available that supports
-# Bazel 8
-archive_override(
-    module_name = "protobuf",
-    integrity = "sha256-+dloYVexGlGsxKLTARuU4KXZ5ORo/BWPR6obFk73d+Q=",
-    strip_prefix = "protobuf-b93b8e5f64ed922d101759380d7c6a2bbe474e26",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/b93b8e5f64ed922d101759380d7c6a2bbe474e26.zip"],
-)
-
-# TODO: Remove override when a protobuf release that marks `stardoc` as a
-# dev_dependency is available, until then it's upgrading our stardoc version
-# so override it here.
-single_version_override(
-    module_name = "stardoc",
-    version = "0.6.2",
-)

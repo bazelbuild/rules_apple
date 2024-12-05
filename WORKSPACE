@@ -41,15 +41,15 @@ bazel_skylib_workspace()
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "io_bazel_stardoc",
-    sha256 = "62bd2e60216b7a6fec3ac79341aa201e0956477e7c8f6ccc286f279ad1d96432",
+    name = "stardoc",
+    sha256 = "0e1ed4a98f26e718776bd64d053d02bb34d98572ccd03d6ba355112a1205706b",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/0.6.2/stardoc-0.6.2.tar.gz",
-        "https://github.com/bazelbuild/stardoc/releases/download/0.6.2/stardoc-0.6.2.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/0.7.2/stardoc-0.7.2.tar.gz",
+        "https://github.com/bazelbuild/stardoc/releases/download/0.7.2/stardoc-0.7.2.tar.gz",
     ],
 )
 
-load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@stardoc//:setup.bzl", "stardoc_repositories")
 
 stardoc_repositories()
 
@@ -61,7 +61,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
-load("@io_bazel_stardoc//:deps.bzl", "stardoc_external_deps")
+load("@stardoc//:deps.bzl", "stardoc_external_deps")
 
 stardoc_external_deps()
 
