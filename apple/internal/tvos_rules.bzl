@@ -138,9 +138,6 @@ load(
     "SwiftInfo",
 )
 
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
-
 def _tvos_application_impl(ctx):
     """Experimental implementation of tvos_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -752,12 +749,6 @@ def _tvos_dynamic_framework_impl(ctx):
                     ),
                 ),
             )
-            if _OBJC_PROVIDER_LINKING:
-                additional_providers.append(
-                    apple_common.new_objc_provider(
-                        dynamic_framework_file = provider.framework_files,
-                    ),
-                )
     providers.extend(additional_providers)
 
     return [

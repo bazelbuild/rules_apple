@@ -27,8 +27,6 @@ load(
     "framework_import_support",
 )
 
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
 
 def _framework_provider_partial_impl(
         *,
@@ -63,16 +61,6 @@ def _framework_provider_partial_impl(
         framework_dir,
     )
 
-    # TODO(cparsons): These will no longer be necessary once apple_binary
-    # uses the values in the dynamic framework provider.
-    if _OBJC_PROVIDER_LINKING:
-        legacy_objc_provider = apple_common.new_objc_provider(
-            dynamic_framework_file = depset([] if bundle_only else [framework_file]),
-            providers = [objc_provider],
-        )
-    else:
-        legacy_objc_provider = None
-
     library_to_link = cc_common.create_library_to_link(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -99,7 +87,6 @@ def _framework_provider_partial_impl(
         cc_info = wrapper_cc_info,
         framework_dirs = depset([absolute_framework_dir]),
         framework_files = depset([framework_file]),
-        objc = legacy_objc_provider,
     )
 
     return struct(

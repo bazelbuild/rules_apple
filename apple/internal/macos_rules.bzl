@@ -146,8 +146,6 @@ load(
     "SwiftInfo",
 )
 
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
 
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
@@ -3300,12 +3298,6 @@ def _macos_dynamic_framework_impl(ctx):
                     ),
                 ),
             )
-            if _OBJC_PROVIDER_LINKING:
-                additional_providers.append(
-                    apple_common.new_objc_provider(
-                        dynamic_framework_file = provider.framework_files,
-                    ),
-                )
     providers.extend(additional_providers)
 
     return [
