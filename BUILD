@@ -2,13 +2,6 @@ licenses(["notice"])
 
 exports_files(["LICENSE"])
 
-exports_files(
-    ["platform_mappings"],
-    visibility = [
-        "//test:__subpackages__",
-    ],
-)
-
 # See the note in __init__.py for why this is needed.
 py_library(
     name = "py_init_shim",
