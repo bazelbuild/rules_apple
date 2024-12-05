@@ -229,12 +229,16 @@ dependencies of the given target if any were generated.
     init = _make_banned_init(provider_name = "AppleDsymBundleInfo"),
 )
 
-AppleExecutableBinaryInfo, new_appleexecutablebinaryinfo = provider(
+_AppleExecutableBinaryInfo = provider(
     doc = """
 Contains the executable binary output that was built using
 `link_multi_arch_binary` with the `executable` binary type.
 """,
     fields = {
+        # TODO: Remove when we drop 7.x
+        "objc": """\
+apple_common.Objc provider used for legacy linking behavior.
+""",
         "binary": """\
 The executable binary artifact output by `link_multi_arch_binary`.
 """,
@@ -243,8 +247,13 @@ A `CcInfo` which contains information about the transitive dependencies linked
 into the binary.
 """,
     },
-    init = _make_banned_init(provider_name = "AppleExecutableBinaryInfo"),
 )
+
+AppleExecutableBinaryInfo = getattr(apple_common, "AppleExecutableBinaryInfo", _AppleExecutableBinaryInfo)
+
+# TODO: Use common init pattern when we drop 7.x
+def new_appleexecutablebinaryinfo(**kwargs):
+    return AppleExecutableBinaryInfo(**kwargs)
 
 AppleExtraOutputsInfo, new_appleextraoutputsinfo = provider(
     doc = """
