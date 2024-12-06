@@ -212,6 +212,26 @@ Provides information for an Apple dSYM bundle.
 | <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
 
 
+<a id="AppleExecutableBinaryInfo"></a>
+
+## AppleExecutableBinaryInfo
+
+<pre>
+AppleExecutableBinaryInfo(<a href="#AppleExecutableBinaryInfo-binary">binary</a>, <a href="#AppleExecutableBinaryInfo-cc_info">cc_info</a>)
+</pre>
+
+Contains the executable binary output that was built using
+`link_multi_arch_binary` with the `executable` binary type.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleExecutableBinaryInfo-binary"></a>binary |  The executable binary artifact output by `link_multi_arch_binary`.    |
+| <a id="AppleExecutableBinaryInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
+
+
 <a id="AppleExtraOutputsInfo"></a>
 
 ## AppleExtraOutputsInfo
