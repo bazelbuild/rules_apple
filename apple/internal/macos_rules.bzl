@@ -2095,7 +2095,7 @@ def _macos_command_line_application_impl(ctx):
             )
         ),
         new_appleexecutablebinaryinfo(
-            binary = output_file,
+            binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
