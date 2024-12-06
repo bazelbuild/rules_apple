@@ -615,9 +615,6 @@ apple_xcframework(
     minimum_os_versions = {
         "xros": common.min_os_tvos.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
@@ -1054,9 +1051,6 @@ apple_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":SwiftFmwkWithGenHeader"],
 )
@@ -1129,9 +1123,6 @@ apple_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":Swift3PFmwkWithGenHeader"],
 )
@@ -1288,9 +1279,6 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk"],
 )
@@ -1315,9 +1303,6 @@ apple_static_xcframework(
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
     },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
     tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk"],
 )

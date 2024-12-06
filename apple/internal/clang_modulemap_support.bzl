@@ -133,7 +133,7 @@ def _exported_headers(
 def _process_headers(
         *,
         actions,
-        is_static_framework,
+        is_legacy_static_framework,
         label_name,
         module_name,
         output_discriminator,
@@ -142,10 +142,10 @@ def _process_headers(
 
     Args:
         actions: The `actions` module from a rule or aspect context.
-        is_static_framework: Indicates if the headers should be processed for a "static framework".
-            Static library XCFrameworks and "dynamic" frameworks prefer angled-bracket style imports
-            and will generate a warning in Xcode if they are using quotes instead. "Static
-            frameworks", as processed by some 3P dependency management tools, expect quotes.
+        is_legacy_static_framework: Indicates if the headers should be processed for a legacy
+            "static framework". Apple's supported XCFrameworks prefer angled-bracket style imports
+            and will generate a warning in Xcode if they are using quotes instead. Legacy "static
+            frameworks", as processed by Cocoapods, expect quotes.
         label_name: Name of the target being built.
         module_name: The name of the module to reference in an umbrella header, if one is generated.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -172,7 +172,7 @@ def _process_headers(
     )
     _create_umbrella_header(
         actions = actions,
-        module_name = module_name if not is_static_framework else None,
+        module_name = module_name if not is_legacy_static_framework else None,
         output = generated_umbrella_header_file,
         public_hdrs = public_hdrs,
     )
@@ -190,6 +190,7 @@ def _process_headers(
 def _modulemap_swift_contents(
         *,
         framework_modulemap,
+        generated_header,
         is_submodule,
         module_name):
     """Returns the contents for the modulemap file for a Swift framework.
@@ -197,6 +198,8 @@ def _modulemap_swift_contents(
     Args:
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module.
+        generated_header: File representing the Swift generated header for this Clang module map to
+            be based around.
         is_submodule: Boolean to indicate if the generated module map declaration should be in the
             form of a SwiftPM compatible submodule, which is of the form "{module_name}.Swift".
         module_name: The name of the Swift module.
@@ -205,16 +208,16 @@ def _modulemap_swift_contents(
         A string representing a generated modulemap.
     """
     declared_module_name = module_name + ".Swift" if is_submodule else module_name
-    generated_header_filename = module_name + "-Swift" if is_submodule else module_name
+
     return """\
 {module_with_qualifier} {declared_module_name} {{
-  header "{generated_header_filename}.h"
+  header "{generated_header_basename}"
   requires objc
 }}
 """.format(
         module_with_qualifier = "framework module" if framework_modulemap else "module",
         declared_module_name = declared_module_name,
-        generated_header_filename = generated_header_filename,
+        generated_header_basename = generated_header.basename,
     )
 
 clang_modulemap_support = struct(

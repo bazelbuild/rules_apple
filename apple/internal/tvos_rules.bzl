@@ -1045,10 +1045,9 @@ def _tvos_static_framework_impl(ctx):
         processor_partials.append(
             partials.swift_framework_partial(
                 actions = actions,
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 avoid_deps = avoid_deps,
                 bundle_name = bundle_name,
-                is_static_framework = True,
+                is_legacy_static_framework = True,
                 label_name = label.name,
                 swift_infos = swift_infos,
             ),
@@ -1059,7 +1058,7 @@ def _tvos_static_framework_impl(ctx):
                 actions = actions,
                 bundle_name = bundle_name,
                 hdrs = ctx.files.hdrs,
-                is_static_framework = True,
+                is_legacy_static_framework = True,
                 label_name = label.name,
                 sdk_dylibs = cc_info_support.get_sdk_dylibs(deps = deps),
                 sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = deps),

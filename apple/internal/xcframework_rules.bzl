@@ -771,10 +771,16 @@ bundle_id on the target.
         ]
 
         if link_output.framework_swift_infos:
+            if public_hdr_files:
+                # TODO(b/379118664): Update the error message to suggest a resolution via "hdrs" on
+                # the swift_library defining module, when the functionality is ready.
+                fail("""
+Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCFramework rule is \
+ignored.
+""")
             processor_partials.append(
                 partials.swift_framework_partial(
                     actions = actions,
-                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
                     label_name = rule_label.name,
@@ -1295,6 +1301,14 @@ def _create_static_library_outputs(
         framework_archive_files.append(depset([binary_artifact]))
 
         if link_output.framework_swift_infos:
+            if public_hdr_files:
+                # TODO(b/379118664): Update the error message to suggest a resolution via "hdrs" on
+                # the swift_library defining module, when the functionality is ready.
+                fail("""
+Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCFramework rule is \
+ignored.
+""")
+
             # Generated Swift interfaces have to be Files to be considered by the resources partial,
             # so we can collect them similarly to frameworks and other Apple bundle artifacts to
             # generate the list of Files to determine if any need to be excluded.
@@ -1308,7 +1322,6 @@ def _create_static_library_outputs(
             interface_artifacts = partial.call(
                 partials.swift_framework_partial(
                     actions = actions,
-                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
                     framework_modulemap = False,
