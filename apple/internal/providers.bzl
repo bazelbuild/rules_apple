@@ -249,10 +249,14 @@ into the binary.
     },
 )
 
-AppleExecutableBinaryInfo = getattr(apple_common, "AppleExecutableBinaryInfo", _AppleExecutableBinaryInfo)
+AppleExecutableBinaryInfo = getattr(apple_common, "AppleExecutableBinary", _AppleExecutableBinaryInfo)
 
 # TODO: Use common init pattern when we drop 7.x
 def new_appleexecutablebinaryinfo(**kwargs):
+    legacy_initializer = getattr(apple_common, "new_executable_binary_provider", None)
+    if legacy_initializer:
+        return legacy_initializer(**kwargs)
+
     return AppleExecutableBinaryInfo(**kwargs)
 
 AppleExtraOutputsInfo, new_appleextraoutputsinfo = provider(

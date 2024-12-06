@@ -191,6 +191,9 @@ def _link_multi_arch_binary(
             avoid_deps = avoid_deps,
             extra_linkopts = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
+            extra_requested_features = extra_requested_features,
+            extra_disabled_features = extra_disabled_features,
+            variables_extension = variables_extension,
             stamp = stamp,
         )
 
