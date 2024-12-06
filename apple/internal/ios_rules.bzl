@@ -84,6 +84,7 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
     "new_iosapplicationbundleinfo",
@@ -523,7 +524,7 @@ def _ios_application_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        linking_support.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
@@ -837,7 +838,7 @@ def _ios_app_clip_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        linking_support.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
@@ -1398,7 +1399,7 @@ def _ios_extension_impl(ctx):
         DefaultInfo(
             files = processor_result.output_files,
         ),
-        linking_support.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),

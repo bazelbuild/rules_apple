@@ -79,6 +79,7 @@ load(
     "ApplePlatformInfo",
     "VisionosExtensionBundleInfo",
     "VisionosFrameworkBundleInfo",
+    "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_visionosapplicationbundleinfo",
     "new_visionosextensionbundleinfo",
@@ -462,7 +463,7 @@ Resolved Xcode is version {xcode_version}.
             )
         ),
         new_visionosapplicationbundleinfo(),
-        linking_support.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),
@@ -1298,7 +1299,7 @@ def _visionos_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        linking_support.new_executable_binary_provider(
+        new_appleexecutablebinaryinfo(
             binary = binary_artifact,
             cc_info = link_result.cc_info,
         ),

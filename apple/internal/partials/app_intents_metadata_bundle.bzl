@@ -49,7 +49,7 @@ def _app_intents_metadata_bundle_partial_impl(
     #
     # TODO(b/295227222): Avoid this linker step for Xcode 15.0+ when rules_swift supports the new
     # swiftconstvalues-based manner of handling App Intents metadata.
-    link_result = linking_support.link_multi_arch_binary(
+    link_result = linking_support.legacy_link_multi_arch_binary(
         actions = actions,
         cc_toolchains = cc_toolchains,
         ctx = ctx,

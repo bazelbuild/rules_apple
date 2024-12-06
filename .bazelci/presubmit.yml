@@ -23,12 +23,14 @@ tasks:
     bazel: latest
     <<: *common
 
+  macos_last_rc:
+    name: "Last RC Bazel"
+    bazel: last_rc
+    <<: *common
+
   macos_last_green:
     name: "Last Green Bazel"
-    # FIXME: Use last_green once we cherry-pick in changes needed by
-    # https://github.com/bazelbuild/bazel/commit/b59004dd17366b09b0758b833f98294fd0e89345
-    # bazel: last_green
-    bazel: 21a12c72d84e9108142421d9a8526edf8dceb78c
+    bazel: last_green
     <<: *common
 
   doc_tests:

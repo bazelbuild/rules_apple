@@ -44,6 +44,11 @@ load(
     "SwiftUsageInfo",
 )
 load(
+    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+    "new_appledynamicframeworkinfo",
+)
+load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )
@@ -513,7 +518,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFrameworkInfo provider
-    apple_dynamic_framework_info = framework_import_support.new_dynamic_framework_provider(
+    apple_dynamic_framework_info = new_appledynamicframeworkinfo(
         cc_info = cc_info,
     )
     providers.append(apple_dynamic_framework_info)
@@ -751,7 +756,7 @@ Unnecssary and ignored, will be removed in the future.
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
-        apple_common.AppleDynamicFramework,
+        AppleDynamicFrameworkInfo,
     ],
     toolchains = use_cpp_toolchain(),
 )
