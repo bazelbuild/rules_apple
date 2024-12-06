@@ -24,17 +24,17 @@ load(
     "entitlements_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:multi_arch_binary_support.bzl",
+    "//apple/internal:multi_arch_binary_support.bzl",
     "get_split_target_triplet",
     "subtract_linking_contexts",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "AppleExecutableBinaryInfo",
     "new_appledebugoutputsinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
 )
 
