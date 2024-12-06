@@ -46,6 +46,7 @@ load(
 load(
     "//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
+    "new_appledynamicframeworkinfo",
 )
 load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
@@ -517,7 +518,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFrameworkInfo provider
-    apple_dynamic_framework_info = AppleDynamicFrameworkInfo(
+    apple_dynamic_framework_info = new_appledynamicframeworkinfo(
         cc_info = cc_info,
     )
     providers.append(apple_dynamic_framework_info)

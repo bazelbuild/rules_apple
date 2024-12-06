@@ -18,7 +18,7 @@ visibility([
     "//apple/internal/...",
 ])
 
-AppleDynamicFrameworkInfo = provider(
+_AppleDynamicFrameworkInfo = provider(
     doc = "Contains information about an Apple dynamic framework.",
     fields = {
         "framework_dirs": """\
@@ -36,3 +36,14 @@ into the binary.
 """,
     },
 )
+
+# TODO: Remove when we drop 7.x
+AppleDynamicFrameworkInfo = getattr(apple_common, "AppleDynamicFramework", _AppleDynamicFrameworkInfo)
+
+# TODO: Remove when we drop 7.x
+def new_appledynamicframeworkinfo(**kwargs):
+    legacy_initializer = getattr(apple_common, "new_dynamic_framework_provider", None)
+    if legacy_initializer:
+        return legacy_initializer(**kwargs)
+
+    return AppleDynamicFrameworkInfo(**kwargs)

@@ -71,7 +71,7 @@ load(
 )
 load(
     "//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "AppleDynamicFrameworkInfo",
+    "new_appledynamicframeworkinfo",
 )
 load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
@@ -285,7 +285,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     # Create AppleDynamicFramework provider.
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
-    providers.append(AppleDynamicFrameworkInfo(
+    providers.append(new_appledynamicframeworkinfo(
         cc_info = cc_info,
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),

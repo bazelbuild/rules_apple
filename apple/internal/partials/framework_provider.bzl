@@ -24,7 +24,7 @@ load(
 )
 load(
     "//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "AppleDynamicFrameworkInfo",
+    "new_appledynamicframeworkinfo",
 )
 
 def _framework_provider_partial_impl(
@@ -80,7 +80,7 @@ def _framework_provider_partial_impl(
         ],
     )
 
-    framework_provider = AppleDynamicFrameworkInfo(
+    framework_provider = new_appledynamicframeworkinfo(
         binary = binary_artifact,
         cc_info = wrapper_cc_info,
         framework_dirs = depset([absolute_framework_dir]),
