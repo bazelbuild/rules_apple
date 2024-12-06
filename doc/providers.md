@@ -149,6 +149,31 @@ Provides information around the use of a code signing dossier.
 | <a id="AppleCodesigningDossierInfo-dossier"></a>dossier |  A `File` reference to the code signing dossier zip that acts as a direct dependency of the given target if one was generated.    |
 
 
+<a id="AppleDebugOutputsInfo"></a>
+
+## AppleDebugOutputsInfo
+
+<pre>
+AppleDebugOutputsInfo(<a href="#AppleDebugOutputsInfo-outputs_map">outputs_map</a>)
+</pre>
+
+Holds debug outputs of an Apple binary rule.
+
+This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
+
+The only field is `output_map`, which is a dictionary of:
+  `{ arch: { "dsym_binary": File, "linkmap": File }`
+
+Where `arch` is any Apple architecture such as "arm64" or "armv7".
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDebugOutputsInfo-outputs_map"></a>outputs_map |  -    |
+
+
 <a id="AppleDeviceTestRunnerInfo"></a>
 
 ## AppleDeviceTestRunnerInfo
@@ -185,6 +210,27 @@ Provides information for an Apple dSYM bundle.
 | :------------- | :------------- |
 | <a id="AppleDsymBundleInfo-direct_dsyms"></a>direct_dsyms |  `List` containing `File` references to each of the dSYM bundles that act as direct dependencies of the given target if any were generated.    |
 | <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
+
+
+<a id="AppleExecutableBinaryInfo"></a>
+
+## AppleExecutableBinaryInfo
+
+<pre>
+AppleExecutableBinaryInfo(<a href="#AppleExecutableBinaryInfo-objc">objc</a>, <a href="#AppleExecutableBinaryInfo-binary">binary</a>, <a href="#AppleExecutableBinaryInfo-cc_info">cc_info</a>)
+</pre>
+
+Contains the executable binary output that was built using
+`link_multi_arch_binary` with the `executable` binary type.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleExecutableBinaryInfo-objc"></a>objc |  apple_common.Objc provider used for legacy linking behavior.    |
+| <a id="AppleExecutableBinaryInfo-binary"></a>binary |  The executable binary artifact output by `link_multi_arch_binary`.    |
+| <a id="AppleExecutableBinaryInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
 
 
 <a id="AppleExtraOutputsInfo"></a>
