@@ -23,7 +23,7 @@ load(
     "paths",
 )
 load(
-    "//apple/internal:framework_import_support.bzl",
+    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
 )
 
