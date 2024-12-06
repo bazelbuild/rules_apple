@@ -16,7 +16,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 

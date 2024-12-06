@@ -15,7 +15,7 @@
 """iOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
@@ -109,7 +109,7 @@ into the XCTest invocation.
         ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
+                "//apple/testing/default_runner:ios_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),
@@ -126,7 +126,7 @@ dependency is the test runner binary.
         ),
         "_simulator_creator": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+                "//apple/testing/default_runner:simulator_creator",
             ),
             executable = True,
             cfg = "exec",

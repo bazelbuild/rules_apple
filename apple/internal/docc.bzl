@@ -23,16 +23,16 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "DocCBundleInfo",
     "DocCSymbolGraphsInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebinaryinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:docc_archive_aspect.bzl",
+    "//apple/internal/aspects:docc_archive_aspect.bzl",
     "docc_bundle_info_aspect",
     "docc_symbol_graphs_aspect",
 )

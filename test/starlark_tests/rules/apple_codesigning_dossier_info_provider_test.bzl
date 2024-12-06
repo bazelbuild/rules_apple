@@ -24,11 +24,11 @@ load(
     "asserts",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleCodesigningDossierInfo",
 )
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
+    "//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
 

@@ -15,103 +15,103 @@
 """Proxy file for referencing processor partials."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:app_assets_validation.bzl",
+    "//apple/internal/partials:app_assets_validation.bzl",
     _app_assets_validation_partial = "app_assets_validation_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:app_intents_metadata_bundle.bzl",
+    "//apple/internal/partials:app_intents_metadata_bundle.bzl",
     _app_intents_metadata_bundle_partial = "app_intents_metadata_bundle_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:apple_bundle_info.bzl",
+    "//apple/internal/partials:apple_bundle_info.bzl",
     _apple_bundle_info_partial = "apple_bundle_info_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:apple_symbols_file.bzl",
+    "//apple/internal/partials:apple_symbols_file.bzl",
     _apple_symbols_file_partial = "apple_symbols_file_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:binary.bzl",
+    "//apple/internal/partials:binary.bzl",
     _binary_partial = "binary_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:cc_info_dylibs.bzl",
+    "//apple/internal/partials:cc_info_dylibs.bzl",
     _cc_info_dylibs_partial = "cc_info_dylibs_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:clang_rt_dylibs.bzl",
+    "//apple/internal/partials:clang_rt_dylibs.bzl",
     _clang_rt_dylibs_partial = "clang_rt_dylibs_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:codesigning_dossier.bzl",
+    "//apple/internal/partials:codesigning_dossier.bzl",
     _codesigning_dossier_partial = "codesigning_dossier_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:debug_symbols.bzl",
+    "//apple/internal/partials:debug_symbols.bzl",
     _debug_symbols_partial = "debug_symbols_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:embedded_bundles.bzl",
+    "//apple/internal/partials:embedded_bundles.bzl",
     _embedded_bundles_partial = "embedded_bundles_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:extension_safe_validation.bzl",
+    "//apple/internal/partials:extension_safe_validation.bzl",
     _extension_safe_validation_partial = "extension_safe_validation_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:framework_header_modulemap.bzl",
+    "//apple/internal/partials:framework_header_modulemap.bzl",
     _framework_header_modulemap_partial = "framework_header_modulemap_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:framework_headers.bzl",
+    "//apple/internal/partials:framework_headers.bzl",
     _framework_headers_partial = "framework_headers_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:framework_import.bzl",
+    "//apple/internal/partials:framework_import.bzl",
     _framework_import_partial = "framework_import_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:framework_provider.bzl",
+    "//apple/internal/partials:framework_provider.bzl",
     _framework_provider_partial = "framework_provider_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:macos_additional_contents.bzl",
+    "//apple/internal/partials:macos_additional_contents.bzl",
     _macos_additional_contents_partial = "macos_additional_contents_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:main_thread_checker_dylibs.bzl",
+    "//apple/internal/partials:main_thread_checker_dylibs.bzl",
     _main_thread_checker_dylibs_partial = "main_thread_checker_dylibs_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:messages_stub.bzl",
+    "//apple/internal/partials:messages_stub.bzl",
     _messages_stub_partial = "messages_stub_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:provisioning_profile.bzl",
+    "//apple/internal/partials:provisioning_profile.bzl",
     _provisioning_profile_partial = "provisioning_profile_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:resources.bzl",
+    "//apple/internal/partials:resources.bzl",
     _resources_partial = "resources_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:settings_bundle.bzl",
+    "//apple/internal/partials:settings_bundle.bzl",
     _settings_bundle_partial = "settings_bundle_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:swift_dylibs.bzl",
+    "//apple/internal/partials:swift_dylibs.bzl",
     _swift_dylibs_partial = "swift_dylibs_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:swift_dynamic_framework.bzl",
+    "//apple/internal/partials:swift_dynamic_framework.bzl",
     _swift_dynamic_framework_partial = "swift_dynamic_framework_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:swift_framework.bzl",
+    "//apple/internal/partials:swift_framework.bzl",
     _swift_framework_partial = "swift_framework_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:watchos_stub.bzl",
+    "//apple/internal/partials:watchos_stub.bzl",
     _watchos_stub_partial = "watchos_stub_partial",
 )
 

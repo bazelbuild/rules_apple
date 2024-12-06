@@ -69,7 +69,7 @@ function create_new_workspace() {
   mkdir -p "${new_workspace_dir}"
   cd "${new_workspace_dir}"
 
-  rules_apple_path=$(resolve_external_repository build_bazel_rules_apple)
+  rules_apple_path=$(resolve_external_repository rules_apple)
 
   touch MODULE.bazel
   cat > MODULE.bazel <<EOF
@@ -140,5 +140,5 @@ if [[ -z "$XCODE_QUERY" ]]; then
   printf "of Xcode.\n" >> "$TEST_log"
 fi
 
-source "$(rlocation build_bazel_rules_apple/test/apple_shell_testutils.sh)"
-source "$(rlocation build_bazel_rules_apple/test/${test_script})"
+source "$(rlocation rules_apple/test/apple_shell_testutils.sh)"
+source "$(rlocation rules_apple/test/${test_script})"

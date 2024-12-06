@@ -242,7 +242,7 @@ function verify_debugger_entitlements_with_params() {
 
   create_common_files
 
-  cp $(rlocation build_bazel_rules_apple/test/testdata/provisioning/integration_testing_ios.mobileprovision) \
+  cp $(rlocation rules_apple/test/testdata/provisioning/integration_testing_ios.mobileprovision) \
     app/profile.mobileprovision
   if [[ "${INCLUDE_DEBUGGER}" == "n" ]]; then
     sed -i'.original' -e '/get-task-allow/,+1 d' app/profile.mobileprovision

@@ -1299,7 +1299,7 @@ cc_library(
 cc_library(
     name = "cc_library_with_resource_a",
     srcs = ["main.cc"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:use_resources"],
+    aspect_hints = ["//apple:use_resources"],
     data = [
         # because of aspect-hint, this file should be placed in /Resources/nested.txt
         "//test/starlark_tests/resources:cc_lib_resources/resource_a.txt",
@@ -1310,7 +1310,7 @@ cc_library(
 cc_library(
     name = "cc_library_with_suppressed_resources",
     srcs = ["main.cc"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:suppress_resources"],
+    aspect_hints = ["//apple:suppress_resources"],
     data = [
         # because of aspect-hint, this file should not be included in the application
         "//test/starlark_tests/resources:cc_lib_resources/suppressed_resource.txt",

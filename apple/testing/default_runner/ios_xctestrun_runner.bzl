@@ -4,7 +4,7 @@ simulators. This rule currently doesn't support UI tests or running on device.
 """
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
@@ -164,14 +164,14 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         ),
         "_simulator_creator": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+                "//apple/testing/default_runner:simulator_creator",
             ),
             executable = True,
             cfg = "exec",
         ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.template.sh",
+                "//apple/testing/default_runner:ios_xctestrun_runner.template.sh",
             ),
             allow_single_file = True,
         ),
@@ -183,13 +183,13 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         ),
         "_xctestrun_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.template.xctestrun",
+                "//apple/testing/default_runner:ios_xctestrun_runner.template.xctestrun",
             ),
             allow_single_file = True,
         ),
         "_xctrunner_entitlements_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:xctrunner_entitlements.template.plist",
+                "//apple/testing/default_runner:xctrunner_entitlements.template.plist",
             ),
             allow_single_file = True,
         ),

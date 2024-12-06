@@ -3,7 +3,6 @@ module(
     version = "0",
     bazel_compatibility = [">=7.0.0"],
     compatibility_level = 1,
-    repo_name = "build_bazel_rules_apple",
 )
 
 bazel_dep(name = "apple_support", version = "1.15.1", repo_name = "build_bazel_apple_support")

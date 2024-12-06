@@ -23,7 +23,7 @@ load(
     "lipo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 

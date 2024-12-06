@@ -1549,8 +1549,8 @@ public struct SwiftLib {
 
 apple_metal_library(
     name = "SampleMetal",
-    srcs = ["@build_bazel_rules_apple//test/testdata/resources:metal_srcs"],
-    hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
+    srcs = ["//test/testdata/resources:metal_srcs"],
+    hdrs = ["//test/testdata/resources:metal_hdrs"],
     tags = common.fixture_tags,
 )
 
