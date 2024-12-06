@@ -167,8 +167,15 @@ issue with a reproducible error case.
             )
             modulemap_content += "\n"
         if swift_generated_header:
+            # When combined with headers, the generated Swift header is treated as a submodule as in
+            # SE-0403 per https://github.com/swiftlang/swift-evolution/blob/main/proposals/0403-swiftpm-mixed-language-targets.md#module-maps
+            #
+            # TODO(b/379118664): Investigate if we still want to declare a Swift module in a mixed
+            # language module map a "framework" module; earlier experimentation suggested that it
+            # should be declared as a "module" rather than a "framework module" when it's a
+            # submodule, though we need to double check that assumption.
             modulemap_content += clang_modulemap_support.modulemap_swift_contents(
-                framework_modulemap = not bool(public_hdrs),
+                framework_modulemap = framework_modulemap,
                 generated_header = swift_generated_header,
                 is_submodule = bool(public_hdrs),
                 module_name = expected_module_name,
