@@ -70,6 +70,10 @@ load(
     "SwiftUsageInfo",
 )
 load(
+    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
+    "AppleDynamicFrameworkInfo",
+)
+load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )

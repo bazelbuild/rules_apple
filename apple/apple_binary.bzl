@@ -19,9 +19,12 @@ load(
     "linking_support",
 )
 load(
-    "//apple/internal:rule_attrs.bzl",
+    "//apple/internal:providers.bzl",
     "AppleExecutableBinaryInfo",
     "new_appleexecutablebinaryinfo",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
