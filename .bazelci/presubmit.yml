@@ -23,6 +23,16 @@ tasks:
     bazel: latest
     <<: *common
 
+  macos_latest:
+    name: "7.x WORKSPACE"
+    bazel: latest
+    <<: *common
+    build_flags:
+    - --enable_bzlmod=false
+    test_flags:
+    - --test_tag_filters=-skipci
+    - --enable_bzlmod=false
+
   macos_last_rc:
     name: "Last RC Bazel"
     bazel: last_rc
