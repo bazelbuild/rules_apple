@@ -23,7 +23,7 @@ tasks:
     bazel: latest
     <<: *common
 
-  macos_latest:
+  macos_7_workspace:
     name: "7.x WORKSPACE"
     bazel: latest
     <<: *common
