@@ -25,7 +25,7 @@ tasks:
 
   macos_7_workspace:
     name: "7.x WORKSPACE"
-    bazel: latest
+    bazel: 7.x
     <<: *common
     build_flags:
     - --enable_bzlmod=false
