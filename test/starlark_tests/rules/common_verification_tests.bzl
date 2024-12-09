@@ -221,7 +221,7 @@ def archive_contents_test(
             "TEXT_FILE_NOT_CONTAINS": text_file_not_contains,
         },
         target_under_test = target_under_test,
-        verifier_script = "//test/starlark_tests:verifier_scripts/archive_contents_test.sh",
+        verifier_script = Label("//test/starlark_tests:verifier_scripts/archive_contents_test.sh"),
         **kwargs
     )
 
