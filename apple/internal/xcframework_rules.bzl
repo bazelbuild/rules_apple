@@ -97,8 +97,16 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_generated_header_aspect.bzl",
+    "swift_generated_header_aspect",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "swift_usage_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:swift_generated_header_info.bzl",
+    "SwiftGeneratedHeaderInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
@@ -108,6 +116,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
     "files",
 )
+load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -396,6 +405,7 @@ def _group_link_outputs_by_library_identifier(
         dsym_binaries = {}
         linkmaps = {}
         split_attr_keys = []
+        framework_swift_generated_headers = {}
         framework_swift_infos = {}
         uses_swift = False
         for link_output in link_outputs:
@@ -415,11 +425,14 @@ def _group_link_outputs_by_library_identifier(
 
             # Query each set of deps by the split transition key to figure out which need to have
             # Swift interfaces generated for them, if any at all.
-            swift_module_info = swift_support.module_supporting_swift_xcframework_interfaces(
+            swift_module = swift_support.target_supporting_swift_xcframework_interfaces(
                 deps[split_attr_key],
             )
-            if swift_module_info:
-                framework_swift_infos[link_output.architecture] = swift_module_info
+            if swift_module:
+                framework_swift_infos[link_output.architecture] = swift_module[SwiftInfo]
+                if SwiftGeneratedHeaderInfo in swift_module:
+                    header = swift_module[SwiftGeneratedHeaderInfo]
+                    framework_swift_generated_headers[link_output.architecture] = header
 
             # static library linking does not support dsym, and linkmaps yet.
             if linking_type == "binary":
@@ -445,6 +458,7 @@ def _group_link_outputs_by_library_identifier(
             linkmaps = linkmaps,
             platform = platform,
             split_attr_keys = split_attr_keys,
+            framework_swift_generated_headers = framework_swift_generated_headers,
             framework_swift_infos = framework_swift_infos,
             uses_swift = uses_swift,
         )
@@ -772,17 +786,17 @@ bundle_id on the target.
 
         if link_output.framework_swift_infos:
             if public_hdr_files:
-                # TODO(b/379118664): Update the error message to suggest a resolution via "hdrs" on
-                # the swift_library defining module, when the functionality is ready.
                 fail("""
 Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCFramework rule is \
-ignored.
+ignored. Use the "hdrs" attribute on the swift_library defining the module instead.
 """)
+
             processor_partials.append(
                 partials.swift_framework_partial(
                     actions = actions,
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
+                    generated_headers = link_output.framework_swift_generated_headers,
                     label_name = rule_label.name,
                     output_discriminator = library_identifier,
                     swift_infos = link_output.framework_swift_infos,
@@ -1209,7 +1223,10 @@ apple_xcframework = rule_factory.create_apple_rule(
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.xcframework_base_transition,
             deps_cfg = transition_support.xcframework_split_transition,
-            extra_deps_aspects = [apple_resource_aspect],
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                swift_generated_header_aspect,
+            ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = False,
         ),
@@ -1302,11 +1319,9 @@ def _create_static_library_outputs(
 
         if link_output.framework_swift_infos:
             if public_hdr_files:
-                # TODO(b/379118664): Update the error message to suggest a resolution via "hdrs" on
-                # the swift_library defining module, when the functionality is ready.
                 fail("""
 Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCFramework rule is \
-ignored.
+ignored. Use the "hdrs" attribute on the swift_library defining the module instead.
 """)
 
             # Generated Swift interfaces have to be Files to be considered by the resources partial,
@@ -1325,6 +1340,7 @@ ignored.
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
                     framework_modulemap = False,
+                    generated_headers = link_output.framework_swift_generated_headers,
                     label_name = rule_label.name,
                     output_discriminator = library_identifier,
                     swift_infos = link_output.framework_swift_infos,
@@ -1597,7 +1613,11 @@ static libraries. If this attribute is not set, then the name of the target will
 """,
             ),
             "deps": attr.label_list(
-                aspects = [apple_resource_aspect, swift_usage_aspect],
+                aspects = [
+                    apple_resource_aspect,
+                    swift_generated_header_aspect,
+                    swift_usage_aspect,
+                ],
                 allow_files = True,
                 cfg = transition_support.xcframework_split_transition,
                 mandatory = True,

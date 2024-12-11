@@ -118,6 +118,14 @@ load(
     "apple_resource_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_generated_header_aspect.bzl",
+    "swift_generated_header_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:swift_generated_header_info.bzl",
+    "SwiftGeneratedHeaderInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -1031,6 +1039,7 @@ def _tvos_static_framework_impl(ctx):
         ),
     ]
 
+    swift_generated_headers = {}
     swift_infos = {}
     if swift_support.uses_swift(deps):
         for split_attr_key, cc_toolchain in cc_toolchain_forwarder.items():
@@ -1038,6 +1047,9 @@ def _tvos_static_framework_impl(ctx):
             for dep in split_deps[split_attr_key]:
                 if SwiftInfo in dep:
                     swift_infos[apple_platform_info.target_arch] = dep[SwiftInfo]
+                if SwiftGeneratedHeaderInfo in dep:
+                    header = dep[SwiftGeneratedHeaderInfo]
+                    swift_generated_headers[apple_platform_info.target_arch] = header
 
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
     # framework.
@@ -1047,6 +1059,7 @@ def _tvos_static_framework_impl(ctx):
                 actions = actions,
                 avoid_deps = avoid_deps,
                 bundle_name = bundle_name,
+                generated_headers = swift_generated_headers,
                 is_legacy_static_framework = True,
                 label_name = label.name,
                 swift_infos = swift_infos,
@@ -1294,6 +1307,7 @@ tvos_static_framework = rule_factory.create_apple_rule(
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
+                swift_generated_header_aspect,
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,

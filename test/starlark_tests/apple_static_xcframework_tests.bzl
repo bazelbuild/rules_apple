@@ -227,7 +227,7 @@ def apple_static_xcframework_test_suite(name):
     )
 
     # Test that the Swift generated header is propagated to the Headers directory visible within
-    # this iOS statix XCFramework along with the Swift interfaces and modulemap files.
+    # this iOS static XCFramework along with the Swift interfaces and modulemap files.
     archive_contents_test(
         name = "{}_swift_generates_header_test".format(name),
         build_type = "device",
@@ -246,6 +246,62 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.a",
+        ],
+        tags = [name],
+    )
+
+    # Test that headers specified from a swift_library's hdrs are propagated to the Headers
+    # directory along with the Swift generated header within this iOS static library XCFramework
+    # along with the Swift interfaces and modulemap files.
+    archive_contents_test(
+        name = "{}_swift_generates_header_and_custom_headers_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_with_swift_generated_header_and_custom_headers",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.h",
+            "$BUNDLE_ROOT/ios-arm64/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.a",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_header_and_custom_headers.a",
+        ],
+        tags = [name],
+    )
+
+    # Test that headers specified from a swift_library's hdrs are propagated to the Headers
+    # directory along with the Swift generated header within this iOS static framework XCFramework
+    # along with the Swift interfaces and modulemap files.
+    archive_contents_test(
+        name = "{}_swift_framework_generates_header_and_custom_headers_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers-Swift.h",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Headers/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers-Swift.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/arm64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/x86_64.swiftdoc",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/Modules/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.swiftmodule/x86_64.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers.framework/ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
         ],
         tags = [name],
     )

@@ -59,8 +59,8 @@ additional swift_library dependency.
 
     return bool(module_names)
 
-def _module_supporting_swift_xcframework_interfaces(targets):
-    """Returns the SwiftInfo for a module capable of supporting Swift XCFramework interfaces.
+def _target_supporting_swift_xcframework_interfaces(targets):
+    """Returns a target with SwiftInfo capable of supporting Swift XCFramework interfaces.
 
     If there are issues with the dependencies found, they will be raised as failures during the
     build's analysis phase.
@@ -69,8 +69,8 @@ def _module_supporting_swift_xcframework_interfaces(targets):
         targets: A List of Targets representing `deps` for a given split on the XCFramework rule.
 
     Returns:
-        A `SwiftInfo` provider if a module capable of supporting Swift XCFramework interfaces was
-        found, `None` if not.
+        A target referencing a `SwiftInfo` provider if a module capable of supporting Swift
+        XCFramework interfaces was found, `None` if not.
     """
 
     direct_swift_module = None
@@ -79,7 +79,7 @@ def _module_supporting_swift_xcframework_interfaces(targets):
         if _has_only_one_non_system_swift_module(target = target):
             # Check that there's only one direct Swift module in an XCFramework rule's deps.
             if not direct_swift_module:
-                direct_swift_module = target[SwiftInfo]
+                direct_swift_module = target
             else:
                 fail("""
 Error: Found more than one non-system Swift module in the deps of this XCFramework rule. Check \
@@ -107,8 +107,7 @@ def _uses_swift(targets):
             return True
     return False
 
-# Define the loadable module that lists the exported symbols in this file.
 swift_support = struct(
-    module_supporting_swift_xcframework_interfaces = _module_supporting_swift_xcframework_interfaces,
+    target_supporting_swift_xcframework_interfaces = _target_supporting_swift_xcframework_interfaces,
     uses_swift = _uses_swift,
 )

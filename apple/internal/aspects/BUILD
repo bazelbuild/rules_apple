@@ -60,6 +60,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "swift_generated_header_aspect",
+    srcs = ["swift_generated_header_aspect.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/providers:swift_generated_header_info",
+    ],
+)
+
+bzl_library(
     name = "swift_usage_aspect",
     srcs = ["swift_usage_aspect.bzl"],
     visibility = [

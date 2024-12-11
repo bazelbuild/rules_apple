@@ -47,6 +47,7 @@ def _swift_framework_partial_impl(
         avoid_deps,
         bundle_name,
         framework_modulemap,
+        generated_headers,
         is_legacy_static_framework,
         label_name,
         output_discriminator,
@@ -62,15 +63,11 @@ issue with a reproducible error case.
     avoid_modules = swift_info_support.modules_from_avoid_deps(avoid_deps = avoid_deps)
     bundle_files = []
     expected_module_name = bundle_name
-    found_module_name = None
     found_generated_header = None
+    found_module_name = None
     modules_parent = paths.join("Modules", "{}.swiftmodule".format(expected_module_name))
 
-    # TODO(b/379118664): Fish out public headers from the swift_library target. This might require a
-    # new aspect especially if we want those headers to be defined by a target downstream of the
-    # swift_library target rather than the swift_library target itself, though swift_library "hdrs"
-    # seems like the safest approach.
-    public_hdrs = []
+    public_hdrs_found = []
 
     for arch, swiftinfo in swift_infos.items():
         swift_module = swift_info_support.swift_include_info(
@@ -79,14 +76,17 @@ issue with a reproducible error case.
             transitive_modules = swiftinfo.transitive_modules,
         )
 
-        # TODO(b/379118664): Rather than rely on this assumption, have an aspect to identify the
-        # generated header based on ctx.attr.generated_header_name or a header based on the
-        # swift_library target's label; `"{}-Swift.h".format(ctx.label.name)`.
-        #
-        # We can continue the existing behavior for legacy static frameworks.
-        if (not found_generated_header) and swift_module.clang:
-            if swift_module.clang.compilation_context.direct_headers:
-                found_generated_header = swift_module.clang.compilation_context.direct_headers[0]
+        generated_header_name = ""
+        if generated_headers.get(arch, default = None):
+            generated_header_name = generated_headers[arch].generated_header_name
+
+        if (not found_generated_header and not public_hdrs_found) and swift_module.clang:
+            if swift_module.clang.compilation_context.direct_public_headers:
+                for header in swift_module.clang.compilation_context.direct_public_headers:
+                    if header.basename == generated_header_name:
+                        found_generated_header = header
+                    else:
+                        public_hdrs_found.append(header)
 
         found_module_name = swift_module.name
 
@@ -107,6 +107,9 @@ issue with a reproducible error case.
             swiftdoc = swift_module.swift.swiftdoc,
         )
         bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
+
+    # Deduplicate the headers found via a depset that we create and then throw away.
+    public_hdrs = depset(public_hdrs_found).to_list()
 
     swift_info_support.verify_found_module_name(
         bundle_name = expected_module_name,
@@ -170,14 +173,15 @@ issue with a reproducible error case.
             # When combined with headers, the generated Swift header is treated as a submodule as in
             # SE-0403 per https://github.com/swiftlang/swift-evolution/blob/main/proposals/0403-swiftpm-mixed-language-targets.md#module-maps
             #
-            # TODO(b/379118664): Investigate if we still want to declare a Swift module in a mixed
-            # language module map a "framework" module; earlier experimentation suggested that it
-            # should be declared as a "module" rather than a "framework module" when it's a
-            # submodule, though we need to double check that assumption.
+            # Note that even if we're building for a framework, the submodule has to be declared as
+            # a "module" rather than a "framework module" per testing against Xcode 14.x-16.0.
+            # Otherwise, when referencing the mixed module framework in Objective-C, the compiler
+            # cannot find any of the interface declarations.
+            is_submodule = bool(public_hdrs)
             modulemap_content += clang_modulemap_support.modulemap_swift_contents(
-                framework_modulemap = framework_modulemap,
+                framework_modulemap = False if is_submodule else framework_modulemap,
                 generated_header = swift_generated_header,
-                is_submodule = bool(public_hdrs),
+                is_submodule = is_submodule,
                 module_name = expected_module_name,
             )
 
@@ -196,6 +200,7 @@ def swift_framework_partial(
         avoid_deps = [],
         bundle_name,
         framework_modulemap = True,
+        generated_headers = {},
         is_legacy_static_framework = False,
         label_name,
         output_discriminator = None,
@@ -211,6 +216,9 @@ def swift_framework_partial(
         bundle_name: The name of the output bundle.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module. Defaults to `True`.
+        generated_headers: A dictionary with architectures as keys and the SwiftGeneratedHeaderInfo
+            provider containing the required generated header artifacts for that architecture as
+            values.
         is_legacy_static_framework: Boolean to indicate if the target is a legacy static framework.
             Defaults to 'False'.
         label_name: Name of the target being built.
@@ -223,12 +231,14 @@ def swift_framework_partial(
         A partial that returns the bundle location of the supporting Swift artifacts needed in a
         Swift based sdk framework.
     """
+
     return partial.make(
         _swift_framework_partial_impl,
         actions = actions,
         avoid_deps = avoid_deps,
         bundle_name = bundle_name,
         framework_modulemap = framework_modulemap,
+        generated_headers = generated_headers,
         is_legacy_static_framework = is_legacy_static_framework,
         label_name = label_name,
         output_discriminator = output_discriminator,

@@ -83,6 +83,16 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "swift_generated_header_info",
+    srcs = ["swift_generated_header_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used both
+        # by the `swift_generated_header_aspect` and `swift_framework` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

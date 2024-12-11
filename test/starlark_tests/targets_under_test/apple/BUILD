@@ -288,6 +288,40 @@ swift_library(
 )
 
 swift_library(
+    name = "mixed_module_swift_lib_for_static_xcfmwk_with_headers_and_custom_headers",
+    srcs = [
+        "DummyFmwk.m",
+        "DummyFmwk.swift",
+    ],
+    hdrs = ["DummyFmwk.h"],
+    # Disabling module interface verification to allow this to build standalone for testing.
+    copts = ["-no-verify-emitted-module-interface"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "ios_static_xcfmwk_with_swift_generated_header_and_custom_headers",
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+swift_library(
+    name = "mixed_module_swift_lib_for_static_xcfmwk_framework_with_headers_and_custom_headers",
+    srcs = [
+        "DummyFmwk.m",
+        "DummyFmwk.swift",
+    ],
+    hdrs = ["DummyFmwk.h"],
+    # Disabling module interface verification to allow this to build standalone for testing.
+    copts = ["-no-verify-emitted-module-interface"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+swift_library(
     name = "swift_lib_for_static_xcfmwk_custom_bundle_name",
     srcs = ["DummyFmwk.swift"],
     generates_header = True,
@@ -1241,6 +1275,43 @@ apple_static_xcframework(
     },
     tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk_with_headers"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_with_swift_generated_header_and_custom_headers",
+    ios = {
+        "device": ["arm64"],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":mixed_module_swift_lib_for_static_xcfmwk_with_headers_and_custom_headers"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "device": ["arm64"],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":mixed_module_swift_lib_for_static_xcfmwk_framework_with_headers_and_custom_headers"],
 )
 
 apple_static_xcframework(
