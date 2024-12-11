@@ -30,12 +30,9 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "AppleDynamicFrameworkInfo",
     "AppleExecutableBinaryInfo",
     "new_appledebugoutputsinfo",
-)
-load(
-    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "AppleDynamicFrameworkInfo",
 )
 
 ObjcInfo = apple_common.Objc

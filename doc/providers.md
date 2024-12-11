@@ -212,6 +212,27 @@ Provides information for an Apple dSYM bundle.
 | <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
 
 
+<a id="AppleDynamicFrameworkInfo"></a>
+
+## AppleDynamicFrameworkInfo
+
+<pre>
+AppleDynamicFrameworkInfo(<a href="#AppleDynamicFrameworkInfo-framework_dirs">framework_dirs</a>, <a href="#AppleDynamicFrameworkInfo-framework_files">framework_files</a>, <a href="#AppleDynamicFrameworkInfo-binary">binary</a>, <a href="#AppleDynamicFrameworkInfo-cc_info">cc_info</a>)
+</pre>
+
+Contains information about an Apple dynamic framework.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDynamicFrameworkInfo-framework_dirs"></a>framework_dirs |  The framework path names used as link inputs in order to link against the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-framework_files"></a>framework_files |  The full set of artifacts that should be included as inputs to link against the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-binary"></a>binary |  The dylib binary artifact of the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
+
+
 <a id="AppleExecutableBinaryInfo"></a>
 
 ## AppleExecutableBinaryInfo

@@ -38,6 +38,7 @@ load(
     _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
     _AppleDebugOutputsInfo = "AppleDebugOutputsInfo",
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
+    _AppleDynamicFrameworkInfo = "AppleDynamicFrameworkInfo",
     _AppleExecutableBinaryInfo = "AppleExecutableBinaryInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
@@ -89,6 +90,7 @@ AppleBundleVersionInfo = _AppleBundleVersionInfo
 AppleCodesigningDossierInfo = _AppleCodesigningDossierInfo
 AppleDebugOutputsInfo = _AppleDebugOutputsInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
+AppleDynamicFrameworkInfo = _AppleDynamicFrameworkInfo
 AppleExecutableBinaryInfo = _AppleExecutableBinaryInfo
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo

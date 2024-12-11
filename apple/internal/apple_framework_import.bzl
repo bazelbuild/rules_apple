@@ -62,16 +62,16 @@ load(
     "framework_import_support",
 )
 load(
+    "//apple/internal:providers.bzl",
+    "new_appledynamicframeworkinfo",
+)
+load(
     "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
-)
-load(
-    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "new_appledynamicframeworkinfo",
 )
 load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
