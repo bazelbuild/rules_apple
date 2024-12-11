@@ -32,16 +32,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_dynamic_framework_info",
-    srcs = ["apple_dynamic_framework_info.bzl"],
-    visibility = [
-        # Visibility set to subpackages since this provider is used
-        # by a number of rules in `internal`.
-        "//apple/internal:__subpackages__",
-    ],
-)
-
-bzl_library(
     name = "embeddable_info",
     srcs = ["embeddable_info.bzl"],
     visibility = [

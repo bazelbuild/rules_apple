@@ -343,7 +343,6 @@ bzl_library(
         ":entitlements_support",
         ":providers",
         ":rule_support",
-        "//apple/internal/providers:apple_dynamic_framework_info",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:lipo",
     ],
@@ -426,6 +425,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:providers",
         "//apple/internal/partials:app_assets_validation",
         "//apple/internal/partials:app_intents_metadata_bundle",
         "//apple/internal/partials:apple_bundle_info",
@@ -451,7 +451,6 @@ bzl_library(
         "//apple/internal/partials:swift_dynamic_framework",
         "//apple/internal/partials:swift_framework",
         "//apple/internal/partials:watchos_stub",
-        "//apple/internal/providers:apple_dynamic_framework_info",
     ],
 )
 

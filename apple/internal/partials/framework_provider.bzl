@@ -22,10 +22,7 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
-load(
-    "//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "new_appledynamicframeworkinfo",
-)
+load("//apple/internal:providers.bzl", "new_appledynamicframeworkinfo")
 
 def _framework_provider_partial_impl(
         *,
