@@ -174,11 +174,14 @@ xcrun llvm-cov \
   2> "$export_error_file" \
   || llvm_cov_export_status=$?
 
+if [[ -s "$export_error_file" ]]; then
+  cat "$export_error_file" >&2
+fi
+
 # Error ourselves if lcov outputs warnings, such as if we misconfigure
 # something and the file path of one of the covered files doesn't exist
-if [[ -s "$export_error_file" || "$llvm_cov_export_status" -ne 0 ]]; then
+if [[ "$llvm_cov_export_status" -ne 0 ]]; then
   echo "error: while exporting coverage report" >&2
-  cat "$export_error_file" >&2
   exit 1
 fi
 
@@ -193,9 +196,13 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json"
     2> "$export_error_file" \
     || llvm_cov_json_export_status=$?
-  if [[ -s "$export_error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
-    echo "error: while exporting json coverage report" >&2
+
+  if [[ -s "$export_error_file" ]]; then
     cat "$export_error_file" >&2
+  fi
+
+  if [[ "$llvm_cov_json_export_status" -ne 0 ]]; then
+    echo "error: while exporting json coverage report" >&2
     exit 1
   fi
 fi
