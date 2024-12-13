@@ -224,6 +224,7 @@ def _binary_linking_attrs(
         # This attribute is required by the Clang runtime libraries processing partial.
         # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
         extra_attrs = dicts.add(extra_attrs, {
+            # TODO: b/384046533 - Remove this attribute entirely.
             "_cc_toolchain": attr.label(
                 default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
             ),

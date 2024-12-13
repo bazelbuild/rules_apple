@@ -51,10 +51,6 @@ cc_toolchain_forwarder = rule(
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         {
-            # Legacy style toolchain assignment.
-            "_cc_toolchain": attr.label(
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
-            ),
         },
     ),
     doc = """
