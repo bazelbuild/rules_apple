@@ -59,7 +59,7 @@ load("//test/testdata/rules:substitution.bzl", "substitution")
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -4233,7 +4233,7 @@ objc_library(
     ],
     tags = common.fixture_tags,
     deps = [":framework_dependent_lib_with_resource"],
-    alwayslink = 1,
+    alwayslink = True,
 )
 
 objc_library(

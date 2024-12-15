@@ -20,6 +20,10 @@ load(
     "apple_provider",
 )
 load(
+    "//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
+)
+load(
     "//apple/internal/providers:embeddable_info.bzl",
     "AppleEmbeddableInfo",
     "embeddable_info",
@@ -64,6 +68,8 @@ def _framework_provider_aspect_impl(target, ctx):
     providers = []
     if apple_framework_info.framework_imports:
         providers.append(apple_framework_info)
+    if apple_framework_info.dsym_imports:
+        providers.append(AppleDebugInfo(dsyms = apple_framework_info.dsym_imports, linkmaps = depset()))
     if apple_embeddable_info:
         providers.append(apple_embeddable_info)
 
