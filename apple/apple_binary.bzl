@@ -15,19 +15,24 @@
 """Starlark implementation of `apple_binary` to transition from native Bazel."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "//apple/internal:linking_support.bzl",
     "linking_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
+    "new_appleexecutablebinaryinfo",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 
@@ -116,10 +121,9 @@ Resolved Xcode is version {xcode_version}.
     # so that bundles can use it as their loader.
     if binary_type == "executable":
         providers.append(
-            linking_support.new_executable_binary_provider(
+            new_appleexecutablebinaryinfo(
                 binary = binary_artifact,
                 cc_info = link_result.cc_info,
-                objc = link_result.objc,
             ),
         )
 
@@ -171,7 +175,7 @@ The target representing the executable that will be loading this bundle.
 Undefined symbols from the bundle are checked against this executable during
 linking as if it were one of the dynamic libraries the bundle was linked with.
 """,
-                providers = [apple_common.AppleExecutableBinary],
+                providers = [AppleExecutableBinaryInfo],
             ),
             "data": attr.label_list(allow_files = True),
             "sdk_dylibs": attr.string_list(

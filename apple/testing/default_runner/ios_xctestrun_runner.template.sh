@@ -23,6 +23,7 @@ simulator_name=""
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
+destination_timeout="%(destination_timeout)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
@@ -80,6 +81,9 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
+# Delta update won't update the binary if it has the same timestamp
+touch "$test_bundle_binary"
+
 build_for_device=false
 test_execution_platform="iPhoneSimulator.platform"
 if [[ -n "$device_id" ]]; then
@@ -132,9 +136,9 @@ fi
 # to the test runner
 test_env="%(test_env)s"
 if [[ -n "$test_env" ]]; then
-  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR"
+  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 else
-  test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR"
+  test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 fi
 
 passthrough_env=()
@@ -468,9 +472,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   fi
 
   args=(
-    -destination-timeout 15 \
     -xctestrun "$xctestrun_file" \
   )
+
+  if [[ -n "$destination_timeout" ]]; then
+    args+=(-destination-timeout "$destination_timeout")
+  fi
 
   if [[ "$build_for_device" == true ]]; then
     args+=(-destination "platform=iOS,id=$device_id")

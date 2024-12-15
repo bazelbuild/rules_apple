@@ -23,11 +23,11 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 

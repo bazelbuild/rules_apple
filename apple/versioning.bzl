@@ -19,12 +19,12 @@ load(
     "dicts",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebundleversioninfo",
 )
 

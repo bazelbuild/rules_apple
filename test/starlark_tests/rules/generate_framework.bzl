@@ -16,11 +16,11 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:generation_support.bzl",
+    "//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 
 _SDK_TO_OS = {
     "iphonesimulator": "ios",
@@ -201,14 +201,14 @@ Minimum version of the OS corresponding to the SDK that this binary will support
         "src": attr.label(
             allow_single_file = True,
             default = Label(
-                "@build_bazel_rules_apple//test/starlark_tests/resources/frameworks:SharedClass.m",
+                "//test/starlark_tests/resources/frameworks:SharedClass.m",
             ),
             doc = "Source file for the generated framework.",
         ),
         "hdrs": attr.label(
             allow_files = True,
             default = Label(
-                "@build_bazel_rules_apple//test/starlark_tests/resources/frameworks:SharedClass.h",
+                "//test/starlark_tests/resources/frameworks:SharedClass.h",
             ),
             doc = "Header files for the generated framework.",
         ),

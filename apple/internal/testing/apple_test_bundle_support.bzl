@@ -19,83 +19,84 @@ load(
     "types",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleTestInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "//apple/internal:bundling_support.bzl",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "//apple/internal:linking_support.bzl",
     "linking_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
+    "//apple/internal:partials.bzl",
     "partials",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "//apple/internal:rule_support.bzl",
     "rule_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "//apple/internal:swift_support.bzl",
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:main_thread_checker_dylibs.bzl",
+    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given
@@ -343,7 +344,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     # is never passed as the bundle loader, because the host application is loaded out-of-process.)
     if (
         rule_descriptor.product_type == apple_product_type.unit_test_bundle and
-        test_host and apple_common.AppleExecutableBinary in test_host and
+        test_host and AppleExecutableBinaryInfo in test_host and
         ctx.attr.test_host_is_bundle_loader
     ):
         bundle_loader = test_host

@@ -19,11 +19,11 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 

@@ -23,38 +23,52 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
-    "rule_attrs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
+    "//apple:providers.bzl",
+    "AppleFrameworkBundleInfo",
+    "AppleResourceInfo",
 )
 load(
     "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
+)
+load(
+    "//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
 
 def _apple_precompiled_resource_bundle_impl(ctx):
     # Owner to attach to the resources as they're being bucketed.
-    owner = str(ctx.label)
+    label = ctx.label
+    owner = str(label)
     bucketize_args = {}
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -67,6 +81,8 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
 
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -84,23 +100,52 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or ctx.label.name)
-    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_".format(ctx.attr.bundle_name or ctx.label.name)
+    bundle_name = "{}.bundle".format(ctx.attr.bundle_name or label.name)
+    bundle_id = ctx.attr.bundle_id or "com.bazel.apple_precompiled_resource_bundle_{}".format(ctx.attr.bundle_name or label.name)
 
     apple_resource_infos = []
     process_args = {
-        "actions": ctx.actions,
-        "apple_mac_toolchain_info": ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo],
+        "actions": actions,
+        "apple_mac_toolchain_info": apple_mac_toolchain_info,
         "bundle_id": bundle_id,
         "product_type": rule_descriptor.product_type,
-        "rule_label": ctx.label,
+        "rule_label": label,
     }
+
+    if ctx.files.infoplists:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["infoplists"],
+        )
+    else:
+        infoplists = resources.collect(
+            attr = ctx.attr,
+            res_attrs = ["_fallback_infoplist"],
+        )
+
+    bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
+        bucket_type = "infoplists",
+        owner = owner,
+        parent_dir_param = bundle_name,
+        resources = infoplists,
+        **bucketize_args
+    )
+    apple_resource_infos.append(
+        resources.process_bucketized_data(
+            bucketized_owners = bucketized_owners,
+            buckets = buckets,
+            platform_prerequisites = platform_prerequisites,
+            processing_owner = owner,
+            resource_types_to_process = ["infoplists"],
+            unowned_resources = unowned_resources,
+            **process_args
+        ),
+    )
 
     resource_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
     )
-
     if resource_files:
         bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
             resources = resource_files,
@@ -114,6 +159,18 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                resource_types_to_process = [
+                    "asset_catalogs",
+                    "datamodels",
+                    "metals",
+                    "mlmodels",
+                    "plists",
+                    "pngs",
+                    "storyboards",
+                    "strings",
+                    "texture_atlases",
+                    "xibs",
+                ],
                 unowned_resources = unowned_resources,
                 **process_args
             ),
@@ -124,15 +181,15 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         res_attrs = ["structured_resources"],
     )
     if structured_files:
-        if bundle_name:
-            structured_parent_dir_param = partial.make(
-                resources.structured_resources_parent_dir,
-                parent_dir = bundle_name,
-            )
-        else:
-            structured_parent_dir_param = partial.make(
-                resources.structured_resources_parent_dir,
-            )
+        structured_parent_dir_param = partial.make(
+            resources.structured_resources_parent_dir,
+            parent_dir = bundle_name,
+            strip_prefixes = getattr(
+                ctx.attr,
+                "strip_structured_resources_prefixes",
+                [],
+            ),
+        )
 
         # Avoid processing PNG files that are referenced through the structured_resources
         # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
@@ -149,36 +206,36 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                resource_types_to_process = ["strings", "plists"],
                 unowned_resources = unowned_resources,
                 **process_args
             ),
         )
 
-    infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists", "_fallback_infoplist"],
-    )
-
-    if infoplists and apple_resource_infos:
-        bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
-            bucket_type = "infoplists",
-            owner = owner,
-            parent_dir_param = bundle_name,
-            resources = infoplists,
-            **bucketize_args
+    # Get the providers from dependencies
+    inherited_apple_resource_infos = [
+        x[AppleResourceInfo]
+        for x in ctx.attr.resources
+        if AppleResourceInfo in x and
+           # Filter Apple framework targets to avoid propagating and bundling
+           # framework resources to the top-level target (eg. ios_application)
+           AppleFrameworkBundleInfo not in x
+    ]
+    if inherited_apple_resource_infos:
+        # Nest the inherited resource providers within the bundle, if one is
+        # needed for this rule
+        merged_inherited_provider = resources.merge_providers(
+            default_owner = owner,
+            providers = inherited_apple_resource_infos,
         )
-        apple_resource_infos.append(
-            resources.process_bucketized_data(
-                bucketized_owners = bucketized_owners,
-                buckets = buckets,
-                platform_prerequisites = platform_prerequisites,
-                processing_owner = owner,
-                unowned_resources = unowned_resources,
-                **process_args
-            ),
-        )
+        apple_resource_infos.append(resources.nest_in_bundle(
+            provider_to_nest = merged_inherited_provider,
+            nesting_bundle_dir = bundle_name,
+        ))
 
-    providers = []
+    providers = [
+        new_appleresourcebundleinfo(),
+    ]
     if apple_resource_infos:
         # If any providers were collected, merge them.
         providers.append(
@@ -231,6 +288,7 @@ non-RFC1034-compliant characters with -.
             "resources": attr.label_list(
                 allow_empty = True,
                 allow_files = True,
+                aspects = [apple_resource_aspect],
                 doc = """
 Files to include in the resource bundle. Files that are processable resources, like .xib,
 .storyboard, .strings, .png, and others, will be processed by the Apple bundling rules that have
@@ -241,6 +299,19 @@ they will be placed in a directory of the same name in the app bundle.
 
 You can also add other `apple_precompiled_resource_bundle` and `apple_bundle_import` targets into `resources`,
 and the resource bundle structures will be propagated into the final bundle.
+""",
+            ),
+            "strip_structured_resources_prefixes": attr.string_list(
+                doc = """
+A list of prefixes to strip from the paths of structured resources. For each
+structured resource, if the path starts with one of these prefixes, the first
+matching prefix will be removed from the path when the resource is placed in
+the bundle root. This is useful for removing intermediate directories from the
+resource paths.
+
+For example, if `structured_resources` contains `["intermediate/res/foo.png"]`,
+and `strip_structured_resources_prefixes` contains `["intermediate"]`,
+`res/foo.png` will end up inside the bundle.
 """,
             ),
             "structured_resources": attr.label_list(
@@ -255,11 +326,11 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
             ),
             "_environment_plist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                default = "//apple/internal:environment_plist_ios",
             ),
             "_fallback_infoplist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal/resource_rules:Info.plist",
+                default = "//apple/internal/resource_rules:Info.plist",
             ),
         },
         rule_attrs.common_tool_attrs(),

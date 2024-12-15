@@ -199,6 +199,21 @@ target if one was generated.
     init = _make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
 )
 
+AppleDebugOutputsInfo, new_appledebugoutputsinfo = provider(
+    """
+Holds debug outputs of an Apple binary rule.
+
+This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
+
+The only field is `output_map`, which is a dictionary of:
+  `{ arch: { "dsym_binary": File, "linkmap": File }`
+
+Where `arch` is any Apple architecture such as "arm64" or "armv7".
+""",
+    fields = ["outputs_map"],
+    init = _make_banned_init(provider_name = "AppleDebugOutputsInfo"),
+)
+
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
@@ -213,6 +228,74 @@ dependencies of the given target if any were generated.
     },
     init = _make_banned_init(provider_name = "AppleDsymBundleInfo"),
 )
+
+_AppleDynamicFrameworkInfo = provider(
+    doc = "Contains information about an Apple dynamic framework.",
+    fields = {
+        "framework_dirs": """\
+The framework path names used as link inputs in order to link against the
+dynamic framework.
+""",
+        "framework_files": """\
+The full set of artifacts that should be included as inputs to link against the
+dynamic framework.
+""",
+        "binary": "The dylib binary artifact of the dynamic framework.",
+        "cc_info": """\
+A `CcInfo` which contains information about the transitive dependencies linked
+into the binary.
+""",
+    },
+)
+
+# TODO: Remove when we drop 7.x
+AppleDynamicFrameworkInfo = getattr(
+    apple_common,
+    "AppleDynamicFramework",
+    _AppleDynamicFrameworkInfo,
+)
+
+# TODO: Remove when we drop 7.x
+def new_appledynamicframeworkinfo(**kwargs):
+    legacy_initializer = getattr(
+        apple_common,
+        "new_dynamic_framework_provider",
+        None,
+    )
+    if legacy_initializer:
+        return legacy_initializer(**kwargs)
+
+    return AppleDynamicFrameworkInfo(**kwargs)
+
+_AppleExecutableBinaryInfo = provider(
+    doc = """
+Contains the executable binary output that was built using
+`link_multi_arch_binary` with the `executable` binary type.
+""",
+    fields = {
+        # TODO: Remove when we drop 7.x
+        "objc": """\
+apple_common.Objc provider used for legacy linking behavior.
+""",
+        "binary": """\
+The executable binary artifact output by `link_multi_arch_binary`.
+""",
+        "cc_info": """\
+A `CcInfo` which contains information about the transitive dependencies linked
+into the binary.
+""",
+    },
+)
+
+AppleExecutableBinaryInfo = getattr(apple_common, "AppleExecutableBinary", _AppleExecutableBinaryInfo)
+
+# TODO: Use common init pattern when we drop 7.x
+def new_appleexecutablebinaryinfo(**kwargs):
+    legacy_initializer = getattr(apple_common, "new_executable_binary_provider", None)
+    if legacy_initializer:
+        return legacy_initializer(**kwargs)
+
+    return AppleExecutableBinaryInfo(**kwargs)
 
 AppleExtraOutputsInfo, new_appleextraoutputsinfo = provider(
     doc = """

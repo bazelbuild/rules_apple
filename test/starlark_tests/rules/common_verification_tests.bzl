@@ -15,7 +15,7 @@
 """Macros for common verification test tests."""
 
 load(
-    "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 
@@ -221,7 +221,7 @@ def archive_contents_test(
             "TEXT_FILE_NOT_CONTAINS": text_file_not_contains,
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/archive_contents_test.sh",
+        verifier_script = Label("//test/starlark_tests:verifier_scripts/archive_contents_test.sh"),
         **kwargs
     )
 
@@ -316,7 +316,7 @@ def binary_contents_test(
             "PLIST_TEST_VALUES": _dict_to_space_separated_string_array(embedded_plist_test_values),
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/binary_contents_test.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/binary_contents_test.sh",
         **kwargs
     )
 
@@ -350,7 +350,7 @@ def apple_symbols_file_test(
         },
         target_under_test = target_under_test,
         apple_generate_dsym = True,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
         tags = tags,
     )
 
@@ -378,6 +378,6 @@ def entry_point_test(
             "ENTRY_POINT": [entry_point],
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
         tags = tags,
     )

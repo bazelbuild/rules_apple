@@ -27,15 +27,15 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 
@@ -341,19 +341,21 @@ def merge_root_infoplists(
     else:
         plist_key = "MinimumOSVersion"
 
-    input_files.append(environment_plist)
+    if environment_plist:
+        input_files.append(environment_plist)
+        forced_plists.append(environment_plist.path)
+
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-    forced_plists.extend([
-        environment_plist.path,
+    forced_plists.append(
         struct(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),
             DTSDKName = platform_with_version,
             **{plist_key: platform_prerequisites.minimum_deployment_os}
         ),
-    ])
+    )
 
     output_files = [output_plist]
     if output_pkginfo:

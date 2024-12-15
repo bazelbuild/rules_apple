@@ -23,21 +23,21 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
 
@@ -146,7 +146,6 @@ Label to a single `.intentdefinition` files from which to generate sources files
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 This rule supports the integration of Intents `.intentdefinition` files into Apple rules.

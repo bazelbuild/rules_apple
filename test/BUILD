@@ -113,7 +113,7 @@ apple_multi_shell_test(
 
 apple_multi_shell_test(
     name = "ios_application_swift_test",
-    size = "medium",
+    size = "large",
     src = "ios_application_swift_test.sh",
     configurations = IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS,
 )
@@ -260,3 +260,8 @@ apple_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
 )
+
+# apple_shell_test(
+#     name = "docc_archive_test",
+#     src = "docc_archive_test.sh",
+# )

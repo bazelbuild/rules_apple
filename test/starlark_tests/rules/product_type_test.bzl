@@ -20,7 +20,7 @@ load(
     "unittest",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleInfo",
 )
 

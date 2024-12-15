@@ -15,7 +15,8 @@
 """tvOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
+    "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
 
@@ -39,12 +40,15 @@ def _get_execution_environment(*, xcode_config):
 
 def _tvos_test_runner_impl(ctx):
     """Implementation for the tvos_test_runner rule."""
+    device_type = ctx.attr.device_type
+    os_version = ctx.attr.os_version
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
-            device_type = ctx.attr.device_type,
-            os_version = ctx.attr.os_version,
+            device_type = device_type,
+            os_version = os_version,
             testrunner = ctx.executable._testrunner.short_path,
         ),
     )
@@ -55,6 +59,10 @@ def _tvos_test_runner_impl(ctx):
             execution_environment = _get_execution_environment(
                 xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
             ),
+        ),
+        AppleDeviceTestRunnerInfo(
+            device_type = device_type,
+            os_version = os_version,
         ),
         DefaultInfo(
             runfiles = ctx.attr._testrunner[DefaultInfo].default_runfiles,
@@ -90,7 +98,7 @@ By default, it is the latest supported version of the device type.'
         ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:tvos_test_runner.template.sh",
+                "//apple/testing/default_runner:tvos_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),

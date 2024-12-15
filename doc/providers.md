@@ -149,6 +149,50 @@ Provides information around the use of a code signing dossier.
 | <a id="AppleCodesigningDossierInfo-dossier"></a>dossier |  A `File` reference to the code signing dossier zip that acts as a direct dependency of the given target if one was generated.    |
 
 
+<a id="AppleDebugOutputsInfo"></a>
+
+## AppleDebugOutputsInfo
+
+<pre>
+AppleDebugOutputsInfo(<a href="#AppleDebugOutputsInfo-outputs_map">outputs_map</a>)
+</pre>
+
+Holds debug outputs of an Apple binary rule.
+
+This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
+
+The only field is `output_map`, which is a dictionary of:
+  `{ arch: { "dsym_binary": File, "linkmap": File }`
+
+Where `arch` is any Apple architecture such as "arm64" or "armv7".
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDebugOutputsInfo-outputs_map"></a>outputs_map |  -    |
+
+
+<a id="AppleDeviceTestRunnerInfo"></a>
+
+## AppleDeviceTestRunnerInfo
+
+<pre>
+AppleDeviceTestRunnerInfo(<a href="#AppleDeviceTestRunnerInfo-device_type">device_type</a>, <a href="#AppleDeviceTestRunnerInfo-os_version">os_version</a>)
+</pre>
+
+Provider that device-based runner targets must propagate.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDeviceTestRunnerInfo-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.    |
+| <a id="AppleDeviceTestRunnerInfo-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5.    |
+
+
 <a id="AppleDsymBundleInfo"></a>
 
 ## AppleDsymBundleInfo
@@ -166,6 +210,47 @@ Provides information for an Apple dSYM bundle.
 | :------------- | :------------- |
 | <a id="AppleDsymBundleInfo-direct_dsyms"></a>direct_dsyms |  `List` containing `File` references to each of the dSYM bundles that act as direct dependencies of the given target if any were generated.    |
 | <a id="AppleDsymBundleInfo-transitive_dsyms"></a>transitive_dsyms |  `depset` containing `File` references to each of the dSYM bundles that act as transitive dependencies of the given target if any were generated.    |
+
+
+<a id="AppleDynamicFrameworkInfo"></a>
+
+## AppleDynamicFrameworkInfo
+
+<pre>
+AppleDynamicFrameworkInfo(<a href="#AppleDynamicFrameworkInfo-framework_dirs">framework_dirs</a>, <a href="#AppleDynamicFrameworkInfo-framework_files">framework_files</a>, <a href="#AppleDynamicFrameworkInfo-binary">binary</a>, <a href="#AppleDynamicFrameworkInfo-cc_info">cc_info</a>)
+</pre>
+
+Contains information about an Apple dynamic framework.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDynamicFrameworkInfo-framework_dirs"></a>framework_dirs |  The framework path names used as link inputs in order to link against the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-framework_files"></a>framework_files |  The full set of artifacts that should be included as inputs to link against the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-binary"></a>binary |  The dylib binary artifact of the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
+
+
+<a id="AppleExecutableBinaryInfo"></a>
+
+## AppleExecutableBinaryInfo
+
+<pre>
+AppleExecutableBinaryInfo(<a href="#AppleExecutableBinaryInfo-binary">binary</a>, <a href="#AppleExecutableBinaryInfo-cc_info">cc_info</a>)
+</pre>
+
+Contains the executable binary output that was built using
+`link_multi_arch_binary` with the `executable` binary type.
+
+**FIELDS**
+
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleExecutableBinaryInfo-binary"></a>binary |  The executable binary artifact output by `link_multi_arch_binary`.    |
+| <a id="AppleExecutableBinaryInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
 
 
 <a id="AppleExtraOutputsInfo"></a>
@@ -453,7 +538,7 @@ requirement.
 ## DocCBundleInfo
 
 <pre>
-DocCBundleInfo(<a href="#DocCBundleInfo-bundle">bundle</a>)
+DocCBundleInfo(<a href="#DocCBundleInfo-bundle">bundle</a>, <a href="#DocCBundleInfo-bundle_files">bundle_files</a>)
 </pre>
 
 Provides general information about a .docc bundle.
@@ -464,6 +549,7 @@ Provides general information about a .docc bundle.
 | Name  | Description |
 | :------------- | :------------- |
 | <a id="DocCBundleInfo-bundle"></a>bundle |  the path to the .docc bundle    |
+| <a id="DocCBundleInfo-bundle_files"></a>bundle_files |  the file targets contained within the .docc bundle    |
 
 
 <a id="DocCSymbolGraphsInfo"></a>
@@ -481,7 +567,7 @@ Provides the symbol graphs required to archive a .docc bundle.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="DocCSymbolGraphsInfo-symbol_graphs"></a>symbol_graphs |  the paths to the symbol graphs    |
+| <a id="DocCSymbolGraphsInfo-symbol_graphs"></a>symbol_graphs |  the depset of paths to the symbol graphs    |
 
 
 <a id="IosAppClipBundleInfo"></a>

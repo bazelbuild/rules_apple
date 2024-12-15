@@ -1,7 +1,7 @@
 """# Rules for using locally installed provisioning profiles"""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleProvisioningProfileInfo",
 )
 
@@ -186,7 +186,7 @@ local_provisioning_profile = rule(
         ),
         "_finder": attr.label(
             cfg = "exec",
-            default = "@build_bazel_rules_apple//tools/local_provisioning_profile_finder",
+            default = "//tools/local_provisioning_profile_finder",
             executable = True,
         ),
     },

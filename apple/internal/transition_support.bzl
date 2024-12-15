@@ -38,7 +38,7 @@ load(
     "CPU_TO_DEFAULT_PLATFORM_NAME",
 )
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 
@@ -680,8 +680,15 @@ def _xcframework_transition_impl(settings, attr):
 
     # TODO(b/288582842): Update for visionOS when we're ready to support it in XCFramework rules.
     for platform_type in ["ios", "tvos", "visionos", "watchos", "macos"]:
-        if not hasattr(attr, platform_type):
+        platform_attr = getattr(attr, platform_type, None)
+        if not platform_attr:
             continue
+
+        # On the macOS platform the platform attr is a list and not a dict as device is the only option.
+        # To make the transition logic consistent with the other platforms,
+        # we convert the attr to a dict here so that the rest of the logic can be the same.
+        platform_attr = {"device": platform_attr} if platform_type == "macos" else platform_attr
+
         target_environments = ["device"]
         if platform_type != "macos":
             target_environments.append("simulator")
@@ -689,7 +696,7 @@ def _xcframework_transition_impl(settings, attr):
         command_line_options = _command_line_options_for_xcframework_platform(
             attr = attr,
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
-            platform_attr = getattr(attr, platform_type),
+            platform_attr = platform_attr,
             platform_type = platform_type,
             settings = settings,
             target_environments = target_environments,

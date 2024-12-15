@@ -30,13 +30,16 @@ boundary with well-defined public APIs for broader usage.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleInfo = "AppleBundleInfo",
     _AppleBundleVersionInfo = "AppleBundleVersionInfo",
     _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
+    _AppleDebugOutputsInfo = "AppleDebugOutputsInfo",
     _AppleDsymBundleInfo = "AppleDsymBundleInfo",
+    _AppleDynamicFrameworkInfo = "AppleDynamicFrameworkInfo",
+    _AppleExecutableBinaryInfo = "AppleExecutableBinaryInfo",
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
     _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
@@ -85,7 +88,10 @@ AppleBundleInfo = _AppleBundleInfo
 AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
 AppleCodesigningDossierInfo = _AppleCodesigningDossierInfo
+AppleDebugOutputsInfo = _AppleDebugOutputsInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
+AppleDynamicFrameworkInfo = _AppleDynamicFrameworkInfo
+AppleExecutableBinaryInfo = _AppleExecutableBinaryInfo
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
@@ -140,6 +146,22 @@ target.
     fields = {
         "infoplist": """
 `File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
+""",
+    },
+)
+
+AppleDeviceTestRunnerInfo = provider(
+    doc = """
+Provider that device-based runner targets must propagate.
+""",
+    fields = {
+        "device_type": """
+The device type of the iOS simulator to run test. The supported types correspond
+to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
+""",
+        "os_version": """
+The os version of the iOS simulator to run test. The supported os versions
+correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5.
 """,
     },
 )
@@ -229,12 +251,13 @@ DocCBundleInfo = provider(
     doc = "Provides general information about a .docc bundle.",
     fields = {
         "bundle": "the path to the .docc bundle",
+        "bundle_files": "the file targets contained within the .docc bundle",
     },
 )
 
 DocCSymbolGraphsInfo = provider(
     doc = "Provides the symbol graphs required to archive a .docc bundle.",
     fields = {
-        "symbol_graphs": "the paths to the symbol graphs",
+        "symbol_graphs": "the depset of paths to the symbol graphs",
     },
 )

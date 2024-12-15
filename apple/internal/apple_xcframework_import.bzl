@@ -18,35 +18,40 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftToolchainInfo", "swift_clang_module_aspect", "swift_common")
+load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
+load("//apple/internal:intermediates.bzl", "intermediates")
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "//apple/internal:providers.bzl",
+    "AppleDynamicFrameworkInfo",
+    "new_appledynamicframeworkinfo",
+)
+load("//apple/internal:rule_attrs.bzl", "rule_attrs")
+load(
+    "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftToolchainInfo", "swift_clang_module_aspect", "swift_common")
-load("//apple:providers.bzl", "AppleFrameworkImportInfo")
-load("//apple/internal:intermediates.bzl", "intermediates")
-load("//apple/internal:rule_attrs.bzl", "rule_attrs")
 
 # Currently, XCFramework bundles can contain Apple frameworks or libraries.
 # This defines an _enum_ to identify an imported XCFramework bundle type.
@@ -494,17 +499,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     )
     providers.append(apple_framework_import_info)
 
-    # Create Objc provider
-    objc_provider = framework_import_support.objc_provider_with_dependencies(
-        additional_objc_providers = [
-            dep[apple_common.Objc]
-            for dep in deps
-            if apple_common.Objc in dep
-        ],
-        dynamic_framework_file = [] if ctx.attr.bundle_only else [xcframework_library.binary],
-    )
-    providers.append(objc_provider)
-
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
@@ -524,8 +518,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFrameworkInfo provider
-    apple_dynamic_framework_info = framework_import_support.new_dynamic_framework_provider(
-        objc = objc_provider,
+    apple_dynamic_framework_info = new_appledynamicframeworkinfo(
         cc_info = cc_info,
     )
     providers.append(apple_dynamic_framework_info)
@@ -626,15 +619,6 @@ def _apple_static_xcframework_import_impl(ctx):
         for dep in deps
         if apple_common.Objc in dep
     ])
-    objc_provider = framework_import_support.objc_provider_with_dependencies(
-        additional_objc_providers = additional_objc_providers,
-        alwayslink = alwayslink,
-        sdk_dylib = ctx.attr.sdk_dylibs,
-        sdk_framework = ctx.attr.sdk_frameworks,
-        weak_sdk_framework = ctx.attr.weak_sdk_frameworks,
-        static_framework_file = [xcframework_library.binary],
-    )
-    providers.append(objc_provider)
 
     sdk_linkopts = []
     for dylib in ctx.attr.sdk_dylibs:
@@ -772,8 +756,7 @@ Unnecssary and ignored, will be removed in the future.
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
-        apple_common.AppleDynamicFramework,
-        apple_common.Objc,
+        AppleDynamicFrameworkInfo,
     ],
     toolchains = use_cpp_toolchain(),
 )

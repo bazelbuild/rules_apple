@@ -23,15 +23,15 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:main_thread_checker_dylibs.bzl",
+    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
 )
 
@@ -56,10 +56,7 @@ def _run_main_thread_checker(
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = [
-            binary_artifact.path,
-            main_thread_checker_dylib.path,
-        ],
+        arguments = [main_thread_checker_dylib.path],
         executable = main_thread_checker_tool,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [binary_artifact] + dylibs,

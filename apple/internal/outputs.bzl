@@ -23,11 +23,11 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 

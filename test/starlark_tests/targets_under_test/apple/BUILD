@@ -1549,7 +1549,60 @@ public struct SwiftLib {
 
 apple_metal_library(
     name = "SampleMetal",
-    srcs = ["@build_bazel_rules_apple//test/testdata/resources:metal_srcs"],
-    hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
+    srcs = ["//test/testdata/resources:metal_srcs"],
+    hdrs = ["//test/testdata/resources:metal_hdrs"],
     tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for multiplatform xcframework tests.
+
+apple_xcframework(
+    name = "ios_and_macos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    extension_safe = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    macos = [
+        "arm64",
+        "x86_64",
+    ],
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+        "macos": common.min_os_macos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_and_macos_static_xcframework",
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    macos = [
+        "arm64",
+        "x86_64",
+    ],
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+        "macos": common.min_os_macos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
 )

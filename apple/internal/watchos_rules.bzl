@@ -20,7 +20,11 @@ load(
 )
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "//apple:providers.bzl",
     "AppleBundleInfo",
     "ApplePlatformInfo",
     "WatchosExtensionBundleInfo",
@@ -28,121 +32,114 @@ load(
     "WatchosStaticFrameworkBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
+    "//apple/internal:cc_info_support.bzl",
     "cc_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
+    "//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
+    "//apple/internal:framework_import_support.bzl",
     "libraries_to_link_for_dynamic_framework",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "//apple/internal:linking_support.bzl",
     "linking_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
+    "//apple/internal:partials.bzl",
     "partials",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appleframeworkbundleinfo",
     "new_watchosapplicationbundleinfo",
     "new_watchosextensionbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "//apple/internal:rule_support.bzl",
     "rule_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
+    "//apple/internal:stub_support.bzl",
     "stub_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "//apple/internal:swift_support.bzl",
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
+    "//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
+    "//apple/internal/aspects:swift_dynamic_framework_aspect.bzl",
     "SwiftDynamicFrameworkInfo",
     "swift_dynamic_framework_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
+    "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:main_thread_checker_dylibs.bzl",
+    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
     "main_thread_checker_dylibs",
 )
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
-)
-
-# TODO: Remove once we drop bazel 7.x
-_OBJC_PROVIDER_LINKING = hasattr(apple_common.new_objc_provider(), "linkopt")
 
 def _watchos_framework_impl(ctx):
     """Experimental implementation of watchos_framework."""
@@ -330,7 +327,6 @@ def _watchos_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -606,7 +602,6 @@ def _watchos_dynamic_framework_impl(ctx):
             cc_features = cc_features,
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
-            objc_provider = link_result.objc,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -690,12 +685,6 @@ def _watchos_dynamic_framework_impl(ctx):
                     ),
                 ),
             )
-            if _OBJC_PROVIDER_LINKING:
-                additional_providers.append(
-                    apple_common.new_objc_provider(
-                        dynamic_framework_file = provider.framework_files,
-                    ),
-                )
     providers.extend(additional_providers)
 
     return [

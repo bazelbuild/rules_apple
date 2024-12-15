@@ -20,7 +20,7 @@ load(
     "unittest",
 )
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 

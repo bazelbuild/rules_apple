@@ -1,10 +1,8 @@
 licenses(["notice"])
 
-py_binary(
+sh_binary(
     name = "main_thread_checker_tool",
-    srcs = ["main_thread_checker_tool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
+    srcs = ["main_thread_checker_tool.sh"],
     visibility = [
         "//apple/internal:__pkg__",
     ],

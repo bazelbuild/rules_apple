@@ -20,98 +20,98 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBundleVersionInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
+    "//apple/internal:cc_info_support.bzl",
     "cc_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
+    "//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "//apple/internal:intermediates.bzl",
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
+    "//apple/internal:linking_support.bzl",
     "linking_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
+    "//apple/internal:partials.bzl",
     "partials",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_applebundleinfo",
     "new_applestaticxcframeworkbundleinfo",
     "new_applexcframeworkbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
+    "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
+    "//apple/internal:rule_support.bzl",
     "rule_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "//apple/internal:swift_support.bzl",
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
+    "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
+    "//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
+    "//apple/internal/aspects:swift_usage_aspect.bzl",
     "swift_usage_aspect",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
+    "//apple/internal/utils:files.bzl",
     "files",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 
 def _group_link_outputs_by_library_identifier(
         *,
@@ -800,8 +800,8 @@ apple_xcframework = rule_factory.create_apple_rule(
         {
             "_environment_plist_files": attr.label_list(
                 default = [
-                    "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
-                    "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+                    "//apple/internal:environment_plist_ios",
+                    "//apple/internal:environment_plist_tvos",
                 ],
             ),
             "bundle_id": attr.string(
@@ -858,6 +858,11 @@ for what is supported.
 A dictionary of strings indicating which platform variants should be built for the iOS platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
 """,
             ),
             "tvos": attr.string_list_dict(
@@ -1152,7 +1157,7 @@ the target will be used instead.
             ),
             "_environment_plist_ios": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                default = "//apple/internal:environment_plist_ios",
             ),
             "avoid_deps": attr.label_list(
                 aspects = [apple_resource_aspect],
@@ -1193,6 +1198,11 @@ Currently, this only affects processing of `ios` resources.
 A dictionary of strings indicating which platform variants should be built for the `ios` platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "macos": attr.string_list(
+                doc = """
+A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
 """,
             ),
             "minimum_deployment_os_versions": attr.string_dict(

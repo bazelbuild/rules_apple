@@ -4,7 +4,8 @@ simulators. This rule currently doesn't support UI tests or running on device.
 """
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
+    "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
 
@@ -19,6 +20,7 @@ def _get_template_substitutions(
         command_line_args,
         xctestrun_template,
         attachment_lifetime,
+        destination_timeout,
         reuse_simulator,
         xctrunner_entitlements_template):
     substitutions = {
@@ -33,6 +35,7 @@ def _get_template_substitutions(
         "xctestrun_template": xctestrun_template,
         "attachment_lifetime": attachment_lifetime,
         "reuse_simulator": reuse_simulator,
+        "destination_timeout": destination_timeout,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
 
@@ -70,6 +73,7 @@ def _ios_xctestrun_runner_impl(ctx):
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             attachment_lifetime = ctx.attr.attachment_lifetime,
+            destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
@@ -80,6 +84,10 @@ def _ios_xctestrun_runner_impl(ctx):
             execution_environment = _get_execution_environment(ctx),
             execution_requirements = {"requires-darwin": ""},
             test_runner_template = ctx.outputs.test_runner_template,
+        ),
+        AppleDeviceTestRunnerInfo(
+            device_type = device_type,
+            os_version = os_version,
         ),
         DefaultInfo(
             runfiles = ctx.runfiles(
@@ -141,9 +149,12 @@ will always use `xcodebuild test-without-building` to run the test bundle.
             default = "keepNever",
             doc = """
 Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
-or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using 
+or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
 `xcodebuild` or an XCTestRun file but the value will be used in that case.
 """,
+        ),
+        "destination_timeout": attr.int(
+            doc = "Use the specified timeout when searching for a destination device. The default is 30 seconds.",
         ),
         "reuse_simulator": attr.bool(
             default = True,
@@ -153,14 +164,14 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         ),
         "_simulator_creator": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+                "//apple/testing/default_runner:simulator_creator",
             ),
             executable = True,
             cfg = "exec",
         ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.template.sh",
+                "//apple/testing/default_runner:ios_xctestrun_runner.template.sh",
             ),
             allow_single_file = True,
         ),
@@ -172,13 +183,13 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
         ),
         "_xctestrun_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.template.xctestrun",
+                "//apple/testing/default_runner:ios_xctestrun_runner.template.xctestrun",
             ),
             allow_single_file = True,
         ),
         "_xctrunner_entitlements_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:xctrunner_entitlements.template.plist",
+                "//apple/testing/default_runner:xctrunner_entitlements.template.plist",
             ),
             allow_single_file = True,
         ),

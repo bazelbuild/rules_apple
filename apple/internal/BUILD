@@ -330,7 +330,10 @@ bzl_library(
 
 bzl_library(
     name = "linking_support",
-    srcs = ["linking_support.bzl"],
+    srcs = [
+        "linking_support.bzl",
+        "multi_arch_binary_support.bzl",
+    ],
     visibility = [
         "//apple:__subpackages__",
     ],
@@ -338,6 +341,7 @@ bzl_library(
         ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":entitlements_support",
+        ":providers",
         ":rule_support",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:lipo",
@@ -421,6 +425,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:providers",
         "//apple/internal/partials:app_assets_validation",
         "//apple/internal/partials:app_intents_metadata_bundle",
         "//apple/internal/partials:apple_bundle_info",

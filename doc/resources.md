@@ -430,6 +430,10 @@ on your use case for the resources.
 *   `.xcdatamodel` and `.xcmappingmodel` files: These files are processed with
     `momc` and `mapc` respectively.
 *   `.atlas` files: These files are processed with `TextureAtlas`.
+*   `.mlpackage` and `.mlmodel` files: These files are processed with `coremlc`
+    aka `coremlcompiler`) into `.mlmodelc` bundles.
+*   `.metal`: These files are individually processed with `metal` into `.air`
+    files then linked into a `.metallib`.
 *   Any other file type: These files are not processed and are copied as is into
     the bundle.
 

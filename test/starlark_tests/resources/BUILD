@@ -555,21 +555,6 @@ filegroup(
 )
 
 filegroup(
-    name = "app_icons_ios",
-    srcs = glob(["app_icons_ios.xcassets/**"]),
-)
-
-filegroup(
-    name = "alternate_icons_ios",
-    srcs = glob(["alticons/**"]),
-)
-
-filegroup(
-    name = "app_icons_with_alts_ios",
-    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
-)
-
-filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )
@@ -794,6 +779,38 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_ios",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        "storyboard_ios.storyboard",
+        "view_ios.xib",
+        ":assets",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_storyboards_ios",
+        ":localized_strings",
+        ":localized_xibs_ios",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_macos",
     infoplists = [
@@ -832,6 +849,14 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "precompiled_bundle_library_ios_lib",
+    data = [
+        ":precompiled_bundle_library_ios",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_apple",
     infoplists = [
@@ -863,6 +888,41 @@ objc_library(
     name = "bundle_library_apple_lib",
     data = [
         ":bundle_library_apple",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_apple",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "precompiled_bundle_library_apple_lib",
+    data = [
+        ":precompiled_bundle_library_apple",
     ],
     tags = common.fixture_tags,
 )
@@ -1239,7 +1299,7 @@ cc_library(
 cc_library(
     name = "cc_library_with_resource_a",
     srcs = ["main.cc"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:use_resources"],
+    aspect_hints = ["//apple:use_resources"],
     data = [
         # because of aspect-hint, this file should be placed in /Resources/nested.txt
         "//test/starlark_tests/resources:cc_lib_resources/resource_a.txt",
@@ -1250,7 +1310,7 @@ cc_library(
 cc_library(
     name = "cc_library_with_suppressed_resources",
     srcs = ["main.cc"],
-    aspect_hints = ["@build_bazel_rules_apple//apple:suppress_resources"],
+    aspect_hints = ["//apple:suppress_resources"],
     data = [
         # because of aspect-hint, this file should not be included in the application
         "//test/starlark_tests/resources:cc_lib_resources/suppressed_resource.txt",

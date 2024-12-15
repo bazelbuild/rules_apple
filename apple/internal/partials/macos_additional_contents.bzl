@@ -23,16 +23,16 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
+    "//apple/internal:processor.bzl",
     "processor",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
 

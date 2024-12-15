@@ -15,7 +15,7 @@
 """Temporary file to centralize configuration of the experimental bundling logic."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
+    "//apple/internal/utils:defines.bzl",
     "defines",
 )
 

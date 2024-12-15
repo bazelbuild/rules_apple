@@ -27,53 +27,53 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
+load(
+    "//apple:providers.bzl",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
     "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "//apple/internal:features_support.bzl",
     "features_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "//apple/internal:resources.bzl",
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
+    "//apple/internal:swift_support.bzl",
     "swift_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect_hint.bzl",
+    "//apple/internal/aspects:resource_aspect_hint.bzl",
     "AppleResourceHintInfo",
     "apple_resource_hint_action",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
+    "//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:framework_import_bundle_info.bzl",
+    "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
 )
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
@@ -133,9 +133,8 @@ def _apple_resource_aspect_impl(target, ctx):
     hint_action = None
     default_action = None
 
-    # TODO: remove usage of `getattr` and use `aspect_ctx.rule.attr.aspect_hints` directly when we drop Bazel 6.
     aspect_hint = None
-    for hint in getattr(ctx.rule.attr, "aspect_hints", []):
+    for hint in ctx.rule.attr.aspect_hints:
         if AppleResourceHintInfo in hint:
             if aspect_hint:
                 fail(("Conflicting AppleResourceHintInfo from aspect hints " +
@@ -175,6 +174,13 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
 
     elif ctx.rule.kind == "swift_library":
+        default_action = apple_resource_hint_action.resources
+        module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
+        bucketize_args["swift_module"] = module_names[0] if module_names else None
+        collect_args["res_attrs"] = ["data"]
+        owner = str(ctx.label)
+
+    elif ctx.rule.kind == "mixed_language_library":
         default_action = apple_resource_hint_action.resources
         module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
@@ -286,15 +292,15 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_structured_args
         )
         if structured_files:
-            if bundle_name:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                    parent_dir = bundle_name,
-                )
-            else:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                )
+            structured_parent_dir_param = partial.make(
+                resources.structured_resources_parent_dir,
+                parent_dir = bundle_name,
+                strip_prefixes = getattr(
+                    ctx.rule.attr,
+                    "strip_structured_resources_prefixes",
+                    [],
+                ),
+            )
 
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
