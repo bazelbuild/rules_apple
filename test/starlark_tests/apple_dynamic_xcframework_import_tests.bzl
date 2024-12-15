@@ -24,6 +24,11 @@ load(
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+    "make_analysis_output_group_info_files_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
 )
@@ -36,6 +41,10 @@ load(
     "archive_contents_test",
     "binary_contents_test",
 )
+
+analysis_output_group_info_files_with_xcframework_processor_test = make_analysis_output_group_info_files_test({
+    build_settings_labels.parse_xcframework_info_plist: True,
+})
 
 def apple_dynamic_xcframework_import_test_suite(name):
     """Test suite for apple_dynamic_xcframework_import.
@@ -256,6 +265,29 @@ def apple_dynamic_xcframework_import_test_suite(name):
         name = "{}_imported_xcframework_framework_files_registers_action_with_xcframework_import_tool".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework",
         target_mnemonic = "ProcessXCFrameworkFiles",
+        tags = [name],
+    )
+
+    # Verify imported XCFrameworks with debug symbols provide them as outputs.
+    analysis_output_group_info_files_test(
+        name = "{}_imported_xcframework_dsyms_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_sim_arm64-fastbuild-ios-sim_arm64-min12.0-applebin_ios-ST-2c62dd0194d6/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
+            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_sim_arm64-fastbuild-ios-sim_arm64-min12.0-applebin_ios-ST-2c62dd0194d6/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
+            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_x86_64-fastbuild-ios-x86_64-min12.0-applebin_ios-ST-10be5745b269/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
+            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_x86_64-fastbuild-ios-x86_64-min12.0-applebin_ios-ST-10be5745b269/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_with_xcframework_processor_test(
+        name = "{}_imported_xcframework_dsyms_output_group_files_test_with_xcframework_import_tool".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_imported_dynamic_xcframework-intermediates/dsym_imports/generated_dynamic_xcframework_with_headers.framework.dSYM",
+        ],
         tags = [name],
     )
 

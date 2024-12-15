@@ -75,6 +75,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
     bundle_name = None
 
     framework_files = []
+    dsym_files = []
     xcframework_files = []
     for file in xcframework_imports:
         parent_dir_name = paths.basename(file.dirname)
@@ -87,6 +88,8 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
 
         if ".framework/" in file.short_path:
             framework_files.append(file)
+        elif ".framework.dSYM/" in file.short_path:
+            dsym_files.append(file)
         else:
             xcframework_files.append(file)
 
@@ -96,7 +99,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
         fail("Could not infer XCFramework bundle name from Info.plist file path")
 
     if framework_files:
-        files = framework_files
+        files = framework_files + dsym_files
         bundle_type = _BUNDLE_TYPE.frameworks
         files_by_category = framework_import_support.classify_framework_imports(config_vars, files)
     else:
@@ -197,10 +200,16 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         return [f for f in files if "/{}/".format(library_identifier) in f.short_path]
 
     files_by_category = xcframework.files_by_category
-    binaries = filter_by_library_identifier(files_by_category.binary_imports)
+    framework_binaries = filter_by_library_identifier(files_by_category.binary_imports)
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
     headers = filter_by_library_identifier(files_by_category.header_imports)
     module_maps = filter_by_library_identifier(files_by_category.module_map_imports)
+    dsyms = filter_by_library_identifier(files_by_category.dsym_imports)
+    dsym_binaries = framework_import_support.get_dsym_binaries(dsyms)
+    debug_info_binaries = framework_import_support.get_debug_info_binaries(
+        dsym_binaries = dsym_binaries,
+        framework_binaries = framework_binaries,
+    )
 
     swiftmodules = framework_import_support.get_swift_module_files_with_target_triplet(
         swift_module_files = filter_by_library_identifier(
@@ -221,17 +230,19 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     includes = []
     framework_includes = []
     if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
-        framework_includes = [paths.dirname(f.dirname) for f in binaries]
+        framework_includes = [paths.dirname(f.dirname) for f in framework_binaries]
     else:
         # For library XCFrameworks, in Xcode the contents of "Headers" are copied to an intermediate
         # directory for referencing artifacts to include in the build; to replicate this behavior,
         # make sure "includes" is set at the point where "Headers" is found, adjacent to any
         # binaries.
         if headers:
-            includes = [paths.join(f.dirname, "Headers") for f in binaries]
+            includes = [paths.join(f.dirname, "Headers") for f in framework_binaries]
 
     return struct(
-        binary = binaries[0],
+        binary = framework_binaries[0],
+        debug_info_binaries = debug_info_binaries,
+        dsyms = dsyms,
         framework_files = framework_files,
         framework_imports = framework_imports,
         framework_includes = framework_includes,
@@ -352,6 +363,21 @@ def _get_xcframework_library_with_xcframework_processor(
         )
         outputs.append(swiftinterface_file)
 
+    dsyms = []
+    if files_by_category.dsym_imports:
+        library_dsym_path = library_path + ".dSYM"
+        dsym_imports_dir = intermediates.directory(
+            dir_name = paths.join("dsym_imports", library_dsym_path),
+            **intermediates_common
+        )
+
+        args.add("--dsym_imports_dir", dsym_imports_dir.path)
+        args.add_all(files_by_category.dsym_imports, before_each = "--dsym")
+
+        outputs.append(dsym_imports_dir)
+
+        dsyms = [dsym_imports_dir]
+
     xcframework_processor_tool = apple_mac_toolchain_info.xcframework_processor_tool
 
     apple_support.run(
@@ -374,6 +400,9 @@ def _get_xcframework_library_with_xcframework_processor(
 
     return struct(
         binary = binary,
+        # TODO(asky)
+        debug_info_binaries = [],
+        dsyms = dsyms,
         framework_imports = [framework_imports_dir],
         framework_includes = framework_includes,
         headers = [headers_dir],
@@ -494,6 +523,8 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
         build_archs = [target_triplet.architecture],
         deps = deps,
+        debug_info_binaries = xcframework_library.debug_info_binaries,
+        dsyms = xcframework_library.dsyms,
         framework_imports = [xcframework_library.binary] +
                             xcframework_library.framework_imports,
     )

@@ -15,6 +15,7 @@
 """Rules to generate import-ready XCFrameworks for testing."""
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
@@ -68,6 +69,7 @@ def _create_xcframework(
         *,
         actions,
         apple_fragment,
+        dsyms = {},
         frameworks = {},
         headers = [],
         label,
@@ -80,6 +82,7 @@ def _create_xcframework(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
+        dsyms: A list of dSYM bundles.
         frameworks: Dictionary of framework paths and framework files.
         headers: A list of files referencing headers.
         label: Label of the target being built.
@@ -134,6 +137,32 @@ def _create_xcframework(
         ])
         args.extend(["-framework", framework_path])
 
+        if dsyms and framework_path in dsyms:
+            dsym_files = dsyms[framework_path]
+
+            inputs.extend(dsym_files)
+
+            dsym_bundles_set = sets.make()
+            bundle_suffix = ".framework.dSYM"
+
+            for file in dsym_files:
+                bundle_path = file.path.split(bundle_suffix)[0] + bundle_suffix
+                sets.insert(dsym_bundles_set, bundle_path)
+
+                outputs.append(actions.declare_file(
+                    paths.join(
+                        paths.dirname(bundle_path),
+                        "dSYMs",
+                        paths.basename(bundle_path),
+                        paths.relativize(file.path, bundle_path),
+                    ),
+                ))
+
+            dsym_bundles = sets.to_list(dsym_bundles_set)
+
+            for dsym_bundle in dsym_bundles:
+                args.extend(["-debug-symbols", dsym_bundle])
+
     for module_interface in module_interfaces:
         inputs.append(module_interface)
 
@@ -167,6 +196,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     """Implementation of generate_dynamic_xcframework."""
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
+    cpp_fragment = ctx.fragments.cpp
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -181,6 +211,7 @@ def _generate_dynamic_xcframework_impl(ctx):
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
 
     frameworks = {}
+    dsyms = {}
     for platform in platforms:
         sdk = _sdk_for_platform(platform)
         architectures = platforms[platform]
@@ -235,13 +266,26 @@ def _generate_dynamic_xcframework_impl(ctx):
             library_identifier,
             label.name + ".framework",
         )
+
         frameworks[framework_path] = framework_files
+
+        if cpp_fragment.apple_generate_dsym:
+            dsym_files = generation_support.create_dsym(
+                actions = ctx.actions,
+                apple_fragment = apple_fragment,
+                base_path = library_identifier,
+                framework_binary = binary,
+                label = label,
+                xcode_config = xcode_config,
+            )
+            dsyms[framework_path] = dsym_files
 
     # Create xcframework bundle
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
         frameworks = frameworks,
+        dsyms = dsyms,
         label = label,
         target_dir = target_dir,
         xcode_config = xcode_config,
@@ -563,7 +607,7 @@ Versions directory. This is only supported for macOS platform.
             ),
         },
     ),
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
 )
 
 generate_static_xcframework = rule(
