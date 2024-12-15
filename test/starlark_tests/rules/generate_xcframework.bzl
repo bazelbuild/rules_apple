@@ -19,6 +19,7 @@ load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
+load("//apple/internal/utils:bundle_paths.bzl", "bundle_paths")
 load(
     "//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",
@@ -143,10 +144,12 @@ def _create_xcframework(
             inputs.extend(dsym_files)
 
             dsym_bundles_set = sets.make()
-            bundle_suffix = ".framework.dSYM"
 
             for file in dsym_files:
-                bundle_path = file.path.split(bundle_suffix)[0] + bundle_suffix
+                bundle_path = bundle_paths.farthest_parent(
+                    file.short_path,
+                    "framework.dSYM",
+                )
                 sets.insert(dsym_bundles_set, bundle_path)
 
                 outputs.append(actions.declare_file(
@@ -154,7 +157,7 @@ def _create_xcframework(
                         paths.dirname(bundle_path),
                         "dSYMs",
                         paths.basename(bundle_path),
-                        paths.relativize(file.path, bundle_path),
+                        paths.relativize(file.short_path, bundle_path),
                     ),
                 ))
 

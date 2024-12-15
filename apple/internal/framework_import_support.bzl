@@ -429,6 +429,8 @@ def _get_debug_info_binaries(dsym_binaries, framework_binaries):
             all_binaries_dict[framework_basename] = file
 
     for file in framework_binaries:
+        if ".framework/" not in file.short_path:
+            continue
         framework_path = bundle_paths.farthest_parent(
             file.short_path,
             "framework",

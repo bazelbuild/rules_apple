@@ -274,10 +274,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         output_group_name = "dsyms",
         expected_outputs = [
-            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_sim_arm64-fastbuild-ios-sim_arm64-min12.0-applebin_ios-ST-2c62dd0194d6/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
-            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_sim_arm64-fastbuild-ios-sim_arm64-min12.0-applebin_ios-ST-2c62dd0194d6/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
-            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_x86_64-fastbuild-ios-x86_64-min12.0-applebin_ios-ST-10be5745b269/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
-            "test/starlark_tests/targets_under_test/ios/bazel-out/ios_x86_64-fastbuild-ios-x86_64-min12.0-applebin_ios-ST-10be5745b269/bin/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
+            "test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
+            "test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
         ],
         tags = [name],
     )
