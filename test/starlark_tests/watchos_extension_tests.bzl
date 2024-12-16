@@ -176,6 +176,15 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_widgetkit_extension_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/custom_extensions:sample_widgetkit_extension",
+        expected_values = {
+            "NSExtension:NSExtensionPointIdentifier": "com.apple.widgetkit-extension",
+        },
+        tags = [name],
+    )
+
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
     # is present.
     linkmap_test(
@@ -237,6 +246,17 @@ def watchos_extension_test_suite(name):
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_generic_ext",
+        tags = [name],
+    )
+
+    # Test that a WidgetKit extension maintains the correct entry point when referenced from a single
+    # target watchOS app.
+    entry_point_test(
+        name = "{}_widgetkit_extension_entry_point_test".format(name),
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/sample_widgetkit_extension.appex/sample_widgetkit_extension",
+        build_type = "simulator",
+        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/custom_extensions:single_target_app_with_widgetkit_extension",
         tags = [name],
     )
 
