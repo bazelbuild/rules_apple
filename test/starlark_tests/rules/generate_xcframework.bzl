@@ -71,6 +71,7 @@ def _create_xcframework(
         apple_fragment,
         dsyms = {},
         frameworks = {},
+        generate_xcframework_xcodebuild_tool,
         headers = [],
         label,
         libraries = [],
@@ -84,6 +85,7 @@ def _create_xcframework(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         dsyms: A list of dSYM bundles.
         frameworks: Dictionary of framework paths and framework files.
+        generate_xcframework_xcodebuild_tool: Tool to run the -create-xcframework command.
         headers: A list of files referencing headers.
         label: Label of the target being built.
         libraries: A list of files referencing static libraries.
@@ -104,20 +106,18 @@ def _create_xcframework(
     info_plist = actions.declare_file(paths.join(bundle_name, "Info.plist"))
     outputs = [info_plist]
 
-    args = []
+    args = actions.args()
     inputs = []
-    args.extend(["rm", "-rf", xcframework_directory, ";"])
-    args.extend(["/usr/bin/xcodebuild", "-create-xcframework"])
 
     if libraries:
         inputs.extend(libraries)
         for library in libraries:
             library_relative_path = paths.relativize(library.short_path, intermediates_directory)
             outputs.append(actions.declare_file(library_relative_path, sibling = info_plist))
-            args.extend(["-library", library.path])
+            args.add("--library", library.path)
 
             if headers:
-                args.extend(["-headers", paths.join(library.dirname, "Headers")])
+                args.add("--headers", paths.join(library.dirname, "Headers"))
 
     for header in headers:
         inputs.append(header)
@@ -135,7 +135,7 @@ def _create_xcframework(
             )
             for f in framework_files
         ])
-        args.extend(["-framework", framework_path])
+        args.add("--framework", framework_path)
 
         if dsyms and framework_path in dsyms:
             dsym_files = dsyms[framework_path]
@@ -145,25 +145,22 @@ def _create_xcframework(
             dsym_bundles_set = sets.make()
 
             for file in dsym_files:
-                bundle_extension = ".framework.dSYM"
-                prefix, ext, _ = file.short_path.partition(bundle_extension)
-                bundle_path = prefix + ext
-
-                sets.insert(dsym_bundles_set, bundle_path)
-
+                dsym_relative_path = paths.relativize(file.short_path, intermediates_directory)
+                target_slice, _, remainder = dsym_relative_path.partition("/")
                 outputs.append(actions.declare_file(
-                    paths.join(
-                        paths.dirname(bundle_path),
-                        "dSYMs",
-                        paths.basename(bundle_path),
-                        paths.relativize(file.short_path, bundle_path),
-                    ),
+                    paths.join(target_slice, "dSYMs", remainder),
+                    sibling = info_plist,
                 ))
+
+                prefix, ext, _ = file.path.partition(".framework.dSYM")
+                dsym_bundle_path = prefix + ext
+
+                sets.insert(dsym_bundles_set, dsym_bundle_path)
 
             dsym_bundles = sets.to_list(dsym_bundles_set)
 
             for dsym_bundle in dsym_bundles:
-                args.extend(["-debug-symbols", dsym_bundle])
+                args.add("--debug-symbols", dsym_bundle)
 
     for module_interface in module_interfaces:
         inputs.append(module_interface)
@@ -178,14 +175,15 @@ def _create_xcframework(
             sibling = info_plist,
         ))
 
-    args.extend(["-output", xcframework_directory])
+    args.add("--output", xcframework_directory)
 
-    apple_support.run_shell(
+    apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
-        command = " ".join(args),
-        inputs = depset(inputs),
+        arguments = [args],
+        executable = generate_xcframework_xcodebuild_tool,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = depset(inputs),
         mnemonic = "GenerateXCFrameworkXcodebuild",
         outputs = outputs,
         progress_message = "Generating XCFramework using xcodebuild",
@@ -287,6 +285,7 @@ def _generate_dynamic_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         frameworks = frameworks,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
         dsyms = dsyms,
         label = label,
         target_dir = target_dir,
@@ -450,6 +449,7 @@ def _generate_static_xcframework_impl(ctx):
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
         headers = headers + modulemaps,
         label = label,
         libraries = libraries,
@@ -538,6 +538,7 @@ def _generate_static_framework_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         frameworks = frameworks,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
         label = label,
         target_dir = target_dir,
         xcode_config = xcode_config,
@@ -548,6 +549,14 @@ def _generate_static_framework_xcframework_impl(ctx):
             files = depset(xcframework_files),
         ),
     ]
+
+_GENERATE_XCFRAMEWORK_TOOL_ATTRS = {
+    "_generate_xcframework_xcodebuild_tool": attr.label(
+        executable = True,
+        cfg = "exec",
+        default = Label("//test/starlark_tests/rules:generate_xcframework_xcodebuild_tool"),
+    ),
+}
 
 generate_dynamic_xcframework = rule(
     doc = "Generates XCFramework with dynamic frameworks using Xcode build utilities.",
@@ -607,7 +616,7 @@ Flag to indicate if the framework should include additional versions of the fram
 Versions directory. This is only supported for macOS platform.
                 """,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
     fragments = ["apple", "cpp"],
 )
@@ -682,7 +691,7 @@ Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` direct
 purposes.
 """,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
     fragments = ["apple"],
 )
@@ -733,7 +742,7 @@ represented as a dotted version number as values.
 """,
                 mandatory = True,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
     fragments = ["apple"],
 )

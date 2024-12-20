@@ -274,8 +274,10 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         output_group_name = "dsyms",
         expected_outputs = [
-            "test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
-            "test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers-intermediates/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
+            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_headers",
+            "generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_headers.framework.dSYM/Contents/Info.plist",
+            "app_with_imported_xcframework.app.dSYM/Contents/Resources/DWARF/app_with_imported_xcframework",
+            "app_with_imported_xcframework.app.dSYM/Contents/Info.plist",
         ],
         tags = [name],
     )
