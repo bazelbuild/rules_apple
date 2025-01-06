@@ -155,12 +155,12 @@ EOF
   cat > app/post_processor.sh <<EOF
 #!/bin/bash
 WORKDIR="\$1"
-echo "foo" > "\$WORKDIR/Payload/app.app/inserted_by_post_processor.txt"
+echo "\$FOO" >> "\$WORKDIR/Payload/app.app/inserted_by_post_processor.txt"
 EOF
   chmod +x app/post_processor.sh
 
-  do_build ios //app:app || fail "Should build"
-  assert_equals "foo" "$(unzip_single_file "test-bin/app/app.ipa" \
+  do_build ios --action_env=FOO=bar //app:app || fail "Should build"
+  assert_equals "bar" "$(unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/inserted_by_post_processor.txt")"
 }
 
