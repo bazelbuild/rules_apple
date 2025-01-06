@@ -11,6 +11,7 @@ py_library(
         "//tools/swift_stdlib_tool:__pkg__",
         "//tools/xcarchivetool:__pkg__",
         "//tools/xctoolrunner:__pkg__",
+        "//tools/xctrunnertool:__pkg__",
     ],
 )
 
