@@ -22,3 +22,9 @@ bzl_library(
         "@build_bazel_rules_swift//swift",
     ],
 )
+
+sh_binary(
+    name = "generate_xcframework_xcodebuild_tool",
+    srcs = ["generate_xcframework_xcodebuild_tool.sh"],
+    tags = ["requires-darwin"],
+)
