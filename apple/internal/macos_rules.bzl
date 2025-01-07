@@ -2050,7 +2050,6 @@ macos_application = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2127,7 +2126,6 @@ macos_bundle = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2192,7 +2190,6 @@ macos_extension = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2244,7 +2241,6 @@ macos_kernel_extension = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2291,7 +2287,6 @@ macos_spotlight_importer = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2338,7 +2333,6 @@ macos_xpc_service = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2385,7 +2379,6 @@ macos_command_line_application = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.platform_attrs(
@@ -2442,7 +2435,6 @@ macos_dylib = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.platform_attrs(

@@ -98,7 +98,6 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
                 apple_resource_aspect,
             ],
             is_test_supporting_rule = True,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,

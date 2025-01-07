@@ -991,10 +991,6 @@ List of files under a .xcframework directory which are provided to Apple based t
 on this target.
 """,
             ),
-            "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
-            ),
             # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
             "_use_auto_exec_groups": attr.bool(default = False),
         },
@@ -1074,10 +1070,6 @@ A list of strings representing extra flags that should be passed to the linker.
 List of files under an .xcframework directory which are provided to Apple based targets that depend
 on this target.
 """,
-            ),
-            "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
             ),
             # TODO(b/301253335): Enable AEGs and add `toolchain` param once this rule starts using toolchain resolution.
             "_use_auto_exec_groups": attr.bool(default = False),

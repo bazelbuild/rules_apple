@@ -1228,7 +1228,6 @@ apple_xcframework = rule_factory.create_apple_rule(
                 swift_generated_header_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = False,
         ),
         {
             "bundle_name": attr.string(

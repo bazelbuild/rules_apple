@@ -1138,7 +1138,6 @@ tvos_application = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1201,7 +1200,6 @@ tvos_extension = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1249,7 +1247,6 @@ tvos_framework = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -1310,7 +1307,6 @@ tvos_static_framework = rule_factory.create_apple_rule(
                 swift_generated_header_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.cc_toolchain_forwarder_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,

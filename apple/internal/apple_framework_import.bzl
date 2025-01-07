@@ -415,10 +415,6 @@ target.
                     [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
-            "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
-            ),
             # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
             "_use_auto_exec_groups": attr.bool(default = False),
         },
@@ -501,10 +497,6 @@ A boolean indicating if the target has Swift source code. This helps flag Apple 
 not include Swift interface files.
 """,
                 default = False,
-            ),
-            "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
             ),
             # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
             "_use_auto_exec_groups": attr.bool(default = False),
