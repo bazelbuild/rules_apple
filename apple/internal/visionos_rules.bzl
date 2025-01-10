@@ -143,6 +143,7 @@ Resolved Xcode is version {xcode_version}.
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = requested_features,
         unsupported_features = ctx.disabled_features,
@@ -195,6 +196,7 @@ Resolved Xcode is version {xcode_version}.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_requested_features = extra_requested_features,
@@ -391,9 +393,6 @@ visionos_application = rule_factory.create_apple_rule(
                 apple_resource_aspect,
             ],
             is_test_supporting_rule = False,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

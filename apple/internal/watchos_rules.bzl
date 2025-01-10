@@ -539,6 +539,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -814,6 +815,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [],
@@ -1009,9 +1011,6 @@ watchos_application = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -1086,9 +1085,6 @@ watchos_extension = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

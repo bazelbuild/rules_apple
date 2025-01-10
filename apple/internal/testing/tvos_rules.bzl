@@ -121,9 +121,6 @@ _tvos_internal_ui_test_bundle = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = True,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -185,9 +182,6 @@ _tvos_internal_unit_test_bundle = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = True,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

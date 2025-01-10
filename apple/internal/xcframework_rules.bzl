@@ -1041,6 +1041,7 @@ def _apple_xcframework_impl(ctx):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     archive = ctx.outputs.archive
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
     deps = ctx.split_attr.deps
@@ -1114,6 +1115,7 @@ def _apple_xcframework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1216,9 +1218,6 @@ apple_xcframework = rule_factory.create_apple_rule(
     attrs = [
         _xcframework_platform_attrs(),
         _xcframework_resource_attrs(),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.xcframework_split_transition,
-        ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
             base_cfg = transition_support.xcframework_base_transition,
@@ -1430,6 +1429,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_format = ctx.attr.bundle_format
     bundle_name = ctx.attr.bundle_name or ctx.label.name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
     deps = ctx.split_attr.deps
@@ -1462,13 +1462,16 @@ def _apple_static_xcframework_impl(ctx):
     features = ctx.features
     features.append("disable_legacy_signing")
 
-    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
+    archive_result = linking_support.register_static_library_archive_action(
+        ctx = ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+    )
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
         apple_fragment = apple_fragment,
         deps = deps,
         label_name = bundle_name,
-        link_result = link_result,
+        link_result = archive_result,
         xcode_config = xcode_version_config,
     )
 
@@ -1569,11 +1572,8 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     attrs = [
         _xcframework_platform_attrs(),
         _xcframework_resource_attrs(),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.xcframework_split_transition,
-        ),
         rule_attrs.common_tool_attrs(),
-        rule_attrs.static_library_linking_attrs(
+        rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.xcframework_split_transition,
         ),
         {

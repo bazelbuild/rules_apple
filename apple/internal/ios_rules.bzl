@@ -245,6 +245,7 @@ def _ios_application_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -552,6 +553,7 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -603,6 +605,7 @@ def _ios_app_clip_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -898,6 +901,7 @@ def _ios_framework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1114,6 +1118,7 @@ def _ios_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1173,6 +1178,7 @@ def _ios_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -1214,7 +1220,7 @@ def _ios_extension_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
             bundle_id = bundle_id,
-            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
+            cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
             label = label,
             mac_exec_group = mac_exec_group,
@@ -1420,8 +1426,11 @@ def _ios_static_framework_impl(ctx):
     )
     resource_deps = ctx.attr.deps + ctx.attr.resources
 
-    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
-    binary_artifact = link_result.library
+    archive_result = linking_support.register_static_library_archive_action(
+        ctx = ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+    )
+    binary_artifact = archive_result.library
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -1748,6 +1757,7 @@ def _ios_imessage_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1803,6 +1813,7 @@ def _ios_imessage_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -2005,9 +2016,6 @@ ios_application = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2125,9 +2133,6 @@ ios_app_clip = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2189,9 +2194,6 @@ ios_extension = rule_factory.create_apple_rule(
                 framework_provider_aspect,
             ],
             is_test_supporting_rule = False,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -2256,9 +2258,6 @@ ios_framework = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2319,9 +2318,6 @@ ios_static_framework = rule_factory.create_apple_rule(
             ],
             is_test_supporting_rule = False,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
-        ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2374,9 +2370,6 @@ ios_imessage_application = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),

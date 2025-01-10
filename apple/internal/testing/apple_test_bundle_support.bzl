@@ -344,6 +344,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -403,6 +404,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ctx,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
+        cc_toolchains = cc_toolchain_forwarder,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,

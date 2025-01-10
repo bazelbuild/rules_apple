@@ -63,9 +63,13 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
                 toolchain_key = toolchain_key,
             ))
 
-    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    archive_result = linking_support.register_static_library_archive_action(
+        ctx = ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+    )
 
-    files_to_build = [link_result.library]
+    files_to_build = [archive_result.library]
     runfiles = ctx.runfiles(
         files = files_to_build,
         collect_default = True,
@@ -75,9 +79,9 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
     return [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
         new_applebinaryinfo(
-            binary = link_result.library,
+            binary = archive_result.library,
         ),
-        link_result.output_groups,
+        archive_result.output_groups,
     ]
 
 apple_static_library = rule_factory.create_apple_rule(
@@ -101,10 +105,7 @@ implementation of `apple_static_library` in Bazel core so that it can be removed
     },
     attrs = [
         rule_attrs.common_tool_attrs(),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
-        rule_attrs.static_library_linking_attrs(
+        rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         {
