@@ -15,6 +15,10 @@
 """apple_static_library Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "make_analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_mismatched_platform_test.bzl",
     "analysis_incoming_ios_platform_mismatch_test",
     "analysis_incoming_watchos_platform_mismatch_test",
@@ -41,6 +45,8 @@ load(
     "common",
 )
 
+visibility("private")
+
 analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test(
     config_settings = {
         "//command_line_option:macos_cpus": "arm64,x86_64",
@@ -50,7 +56,9 @@ analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test
     },
 )
 
-visibility("private")
+analysis_failure_message_with_mismatched_fat_architectures_test = make_analysis_failure_message_test(
+    config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
+)
 
 def apple_static_library_test_suite(name):
     """Test suite for apple_static_library.
@@ -58,6 +66,23 @@ def apple_static_library_test_suite(name):
     Args:
       name: The base name to be used in things created by this macro.
     """
+
+    analysis_failure_message_with_mismatched_fat_architectures_test(
+        name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_baseline_supported_ios",
+        expected_error = """
+ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+(device or simulator) are not consistent:
+
+ios_arm64, ios_x86_64
+
+First mismatched environment was simulator from ios_x86_64.
+
+Expected all environments to be device.
+
+All requested architectures must be either device or simulator architectures.""",
+        tags = [name],
+    )
 
     # Test that the output library follows a given form of {target name}_lipo.a.
     analysis_target_outputs_test(

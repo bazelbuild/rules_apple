@@ -1128,6 +1128,8 @@ def _apple_xcframework_impl(ctx):
         # `extra_linkopts`; no rule_descriptor is needed to share with this linking action.
         rule_descriptor = None,
         stamp = ctx.attr.stamp,
+        # XCFrameworks have a custom transition to select the correct platforms from user input.
+        verify_platform_variants = False,
     )
 
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
@@ -1465,6 +1467,8 @@ def _apple_static_xcframework_impl(ctx):
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
         cc_toolchains = cc_toolchain_forwarder,
+        # XCFrameworks have a custom transition to select the correct platforms from user input.
+        verify_platform_variants = False,
     )
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,

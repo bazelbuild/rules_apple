@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -75,12 +76,34 @@ load(
 
 visibility("private")
 
+analysis_failure_message_with_mismatched_fat_architechtures_test = make_analysis_failure_message_test(
+    config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
+)
+
 def ios_application_test_suite(name):
     """Test suite for ios_application.
 
     Args:
       name: the base name to be used in things created by this macro
     """
+
+    analysis_failure_message_with_mismatched_fat_architechtures_test(
+        name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        expected_error = """
+ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+(device or simulator) are not consistent:
+
+ios_arm64, ios_x86_64
+
+First mismatched environment was simulator from ios_x86_64.
+
+Expected all environments to be device.
+
+All requested architectures must be either device or simulator architectures.""",
+        tags = [name],
+    )
+
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",

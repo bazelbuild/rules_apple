@@ -41,6 +41,8 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+_DENIED_VERIFY_PLATFORM_VARIANTS_USERS = []
+
 def _archive_multi_arch_static_library(
         *,
         ctx,
@@ -376,6 +378,36 @@ def _sectcreate_cc_info(segname, sectname, file):
         ),
     ]
 
+def _validate_platform_variants(*, cc_toolchains, label):
+    """Validates that all requested architectures are device or simulator."""
+    full_label_package = "//{}/".format(label.package)
+    for denied_user in _DENIED_VERIFY_PLATFORM_VARIANTS_USERS:
+        if full_label_package.startswith(denied_user):
+            return
+    expected_environment = None
+    for split_transition_key, child_toolchain in cc_toolchains.items():
+        actual_environment = child_toolchain[ApplePlatformInfo].target_environment
+        if expected_environment != actual_environment:
+            if expected_environment == None:
+                expected_environment = actual_environment
+            else:
+                fail("""
+ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+(device or simulator) are not consistent:
+
+{split_transition_keys}
+
+First mismatched environment was {actual_environment} from {split_transition_key}.
+
+Expected all environments to be {expected_environment}.
+
+All requested architectures must be either device or simulator architectures.""".format(
+                    actual_environment = actual_environment,
+                    expected_environment = expected_environment,
+                    split_transition_key = split_transition_key,
+                    split_transition_keys = ", ".join(cc_toolchains.keys()),
+                ))
+
 def _register_binary_linking_action(
         ctx,
         *,
@@ -390,7 +422,8 @@ def _register_binary_linking_action(
         extra_disabled_features = [],
         platform_prerequisites = None,
         rule_descriptor = None,
-        stamp = -1):
+        stamp = -1,
+        verify_platform_variants = True):
     """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -435,6 +468,8 @@ def _register_binary_linking_action(
             excluded. If -1, the default behavior is used, which may be overridden by the
             `--[no]stamp` flag. This should be set to 0 when generating the executable output
             for test rules.
+        verify_platform_variants: Whether to verify that all requested architectures are device or
+            simulator. True by default.
 
     Returns:
         A `struct` which contains the following fields:
@@ -451,6 +486,9 @@ def _register_binary_linking_action(
             `OutputGroupInfo` provider of the calling rule.
         *   `debug_outputs_provider`: An AppleDebugOutputs provider
     """
+    if verify_platform_variants:
+        _validate_platform_variants(cc_toolchains = cc_toolchains, label = ctx.label)
+
     linkopts = []
     link_inputs = []
 
@@ -522,10 +560,6 @@ def _register_binary_linking_action(
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
 
-    # TODO(b/382331215): Add an optional verification check to make sure all requested architectures
-    # are device or simulator. This means at constraints resolved by the cc toolchain forwarder,
-    # passed down as `cc_toolchains`.
-
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = [output.binary for output in linking_outputs.outputs],
@@ -545,13 +579,16 @@ def _register_binary_linking_action(
 def _register_static_library_archive_action(
         *,
         ctx,
-        cc_toolchains):
+        cc_toolchains,
+        verify_platform_variants = True):
     """Registers library archive actions using the Starlark Apple static library archive API.
 
     Args:
         ctx: The rule context.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
+        verify_platform_variants: Whether to verify that all requested architectures are device or
+            simulator. True by default.
 
     Returns:
         A `struct` which contains the following fields:
@@ -565,6 +602,9 @@ def _register_static_library_archive_action(
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
+    if verify_platform_variants:
+        _validate_platform_variants(cc_toolchains = cc_toolchains, label = ctx.label)
+
     archive_outputs = _archive_multi_arch_static_library(
         ctx = ctx,
         cc_toolchains = cc_toolchains,

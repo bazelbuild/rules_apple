@@ -24,6 +24,14 @@ objc_library(
 )
 
 apple_static_library(
+    name = "example_library_baseline_supported_ios",
+    minimum_os_version = common.min_os_ios.baseline,
+    platform_type = "ios",
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
+)
+
+apple_static_library(
     name = "example_library_oldest_supported_ios",
     minimum_os_version = common.min_os_ios.oldest_supported,
     platform_type = "ios",
