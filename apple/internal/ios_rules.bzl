@@ -555,7 +555,11 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    embeddable_targets = ctx.attr.frameworks
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    embeddable_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions
+    )
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -715,7 +719,7 @@ def _ios_app_clip_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + ctx.attr.frameworks,
+            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
@@ -723,6 +727,7 @@ def _ios_app_clip_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
             launch_storyboard = ctx.file.launch_storyboard,
@@ -2699,6 +2704,12 @@ The `.storyboard` or `.xib` file that should be used as the launch screen for th
 provided file will be compiled into the appropriate format (`.storyboardc` or `.nib`) and placed in
 the root of the final bundle. The generated file will also be registered in the bundle's
 Info.plist under the key `UILaunchStoryboardName`.
+""",
+            ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
+                doc = """
+A list of iOS application live activity extensions to include in the final app clip bundle.
 """,
             ),
         },
