@@ -328,7 +328,9 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
         ['test-an-entitlement'],
     ]
     self.assertListEqual(
-        actual_allowed_entitlements, expected_allowed_entitlements)
+        sorted(actual_allowed_entitlements),
+        sorted(expected_allowed_entitlements),
+    )
 
     # Make sure that the generated entitlements are passed to codesigning.
     actual_dest_paths = [
@@ -404,7 +406,9 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
           None,
           '-',
       )
-      self.assertSequenceEqual([
+      # Comparing sorted sequences because this test does not care about the
+      # order of the calls, it just cares that the calls and arguments match.
+      self.assertSequenceEqual(sorted([
           mock.call(
               '/tmp/fake.app/Watch/WatchApp.app',
               {
@@ -457,7 +461,7 @@ class DossierCodesigningReaderTest(parameterized.TestCase):
               },
               *default_args,
           ),
-      ], mock_sign_bundle.call_args_list)
+      ]), sorted(mock_sign_bundle.call_args_list))
 
   @mock.patch('shutil.copy')
   @mock.patch('os.path.exists')
