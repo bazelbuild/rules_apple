@@ -2246,16 +2246,6 @@ def _ios_imessage_extension_impl(ctx):
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.framework_import_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + ctx.attr.frameworks,
-        ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
