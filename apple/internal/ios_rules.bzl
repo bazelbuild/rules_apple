@@ -20,6 +20,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleFrameworkImportInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
     "IosExtensionBundleInfo",
@@ -84,6 +85,7 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "merge_apple_framework_import_info",
     "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
@@ -1212,6 +1214,13 @@ def _ios_extension_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
+    targets_with_framework_import_info = ctx.attr.deps + ctx.attr.frameworks
+    merged_apple_framework_import_info = merge_apple_framework_import_info([
+        x[AppleFrameworkImportInfo]
+        for x in targets_with_framework_import_info
+        if AppleFrameworkImportInfo in x
+    ])
+
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -1410,6 +1419,7 @@ def _ios_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        merged_apple_framework_import_info,
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
@@ -2148,6 +2158,13 @@ def _ios_imessage_extension_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
+    targets_with_framework_import_info = ctx.attr.deps + ctx.attr.frameworks
+    merged_apple_framework_import_info = merge_apple_framework_import_info([
+        x[AppleFrameworkImportInfo]
+        for x in targets_with_framework_import_info
+        if AppleFrameworkImportInfo in x
+    ])
+
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
         bundle_extension = bundle_extension,
@@ -2317,6 +2334,7 @@ def _ios_imessage_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
+        merged_apple_framework_import_info,
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
