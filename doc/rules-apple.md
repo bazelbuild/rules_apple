@@ -320,19 +320,23 @@ Builds and bundles an XCFramework for third-party distribution.
 ## local_provisioning_profile
 
 <pre>
-local_provisioning_profile(<a href="#local_provisioning_profile-name">name</a>, <a href="#local_provisioning_profile-profile_name">profile_name</a>, <a href="#local_provisioning_profile-team_id">team_id</a>)
+local_provisioning_profile(<a href="#local_provisioning_profile-name">name</a>, <a href="#local_provisioning_profile-profile_extension">profile_extension</a>, <a href="#local_provisioning_profile-profile_name">profile_name</a>, <a href="#local_provisioning_profile-team_id">team_id</a>)
 </pre>
 
 This rule declares a bazel target that you can pass to the
-'provisioning_profile' attribute of rules that require it. It discovers a
+`provisioning_profile` attribute of rules that support it. It discovers a
 provisioning profile for the given attributes either on the user's local
-machine, or with the optional 'fallback_profiles' passed to
-'provisioning_profile_repository'. This will automatically pick the newest
-profile if there are multiple profiles matching the given criteria. By default
-this rule will search for a profile with the same name as the rule itself, you
-can pass profile_name to use a different name, and you can pass team_id if
-you'd like to disambiguate between 2 Apple developer accounts that have the
-same profile name.
+machine, or with the optional `fallback_profiles` passed to
+`provisioning_profile_repository`.
+
+This rule will automatically pick the newest
+profile if there are multiple profiles matching the given criteria.
+
+By default this rule will search for a `.mobileprovision` file with the same name
+as the rule itself, you can pass `profile_name` to use a different name, you
+can pass `team_id` if you'd like to disambiguate between 2 Apple developer accounts
+that have the same profile name. You may also pass `.provisionprofile` to
+`profile_extension` to search for a macOS provisioning profile instead.
 
 ## Example
 
@@ -368,6 +372,7 @@ ios_application(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="local_provisioning_profile-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="local_provisioning_profile-profile_extension"></a>profile_extension |  The extension for the provisioning profile which may differ by platform.   | String | optional |  `".mobileprovision"`  |
 | <a id="local_provisioning_profile-profile_name"></a>profile_name |  Name of the profile to use, if it's not provided the name of the rule is used   | String | optional |  `""`  |
 | <a id="local_provisioning_profile-team_id"></a>team_id |  Team ID of the profile to find. This is useful for disambiguating between multiple profiles with the same name on different developer accounts.   | String | optional |  `""`  |
 
