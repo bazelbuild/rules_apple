@@ -400,7 +400,8 @@ def _get_xcframework_library_with_xcframework_processor(
 
     return struct(
         binary = binary,
-        # TODO(asky)
+        # `debug_info_binaries` cannot be set with the information available to us, given that dSYM paths
+        # with the processor tool are opaque during analysis.
         debug_info_binaries = [],
         dsyms = dsyms,
         framework_imports = [framework_imports_dir],
