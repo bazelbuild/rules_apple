@@ -3189,6 +3189,40 @@ ios_imessage_extension(
     ],
 )
 
+ios_application(
+    name = "app_with_imessage_ext_with_imported_dynamic_xcfmwk",
+    bundle_id = "com.google.example",
+    extensions = [":imessage_ext_imported_dynamic_xcfmwk"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_imessage_extension(
+    name = "imessage_ext_imported_dynamic_xcfmwk",
+    app_icons = ["//test/testdata/resources:message_ext_app_icon_ios"],
+    bundle_id = "com.google.example.MessagesExtension",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["//test/starlark_tests/resources:MessagesExtensionInfo.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:swift_lib_importing_imported_dynamic_xcfw"],
+)
+
 ios_sticker_pack_extension(
     name = "sticker_ext",
     bundle_id = "com.google.example.stickerext",
@@ -4505,6 +4539,42 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:swift_lib_importing_imported_dynamic_xcfw",
+    ],
+)
+
+ios_application(
+    name = "app_with_ext_with_imported_dynamic_xcfmwk",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_imported_dynamic_xcfmwk"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_imported_dynamic_xcfmwk",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib",
         "//test/starlark_tests/resources:swift_lib_importing_imported_dynamic_xcfw",
     ],
 )
