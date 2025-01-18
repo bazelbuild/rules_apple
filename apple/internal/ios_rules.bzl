@@ -2709,7 +2709,9 @@ Info.plist under the key `UILaunchStoryboardName`.
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
                 doc = """
-A list of iOS application live activity extensions to include in the final app clip bundle.
+A list of ios_extension live activity extensions to include in the final app clip bundle.
+It is only possible to embed live activity WidgetKit extensions.
+Visit Apple developer documentation page for more info https://developer.apple.com/documentation/appclip/offering-live-activities-with-your-app-clip.
 """,
             ),
         },
