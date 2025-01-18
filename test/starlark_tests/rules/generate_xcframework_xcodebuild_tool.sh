@@ -75,5 +75,6 @@ done
 
 create_xcframework_args+=("-output" "$output")
 
+# We must delete already anything at the output location (such as a previous output) otherwise xcodebuild refuses to produce anything and raises an error.
 rm -rf "$output"
 xcodebuild -create-xcframework "${create_xcframework_args[@]}"
