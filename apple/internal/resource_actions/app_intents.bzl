@@ -20,8 +20,8 @@ load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediate
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
-# Maps the strings passed in to the "families" attribute to the string represention used as an input
-# for the App Intents Metadata Processor tool.
+# Maps the strings passed in to the "families" attribute to the string representation used as an
+# input for the App Intents Metadata Processor tool.
 _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
     "ios": "iOS",
     "macos": "macOS",
@@ -131,8 +131,7 @@ def generate_app_intents_metadata_bundle(
     args.add("--source-file-list", source_file_list.path)
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
-    platform_type_string = str(platform_prerequisites.platform_type)
-    platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]
+    platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_prerequisites.platform_type]
     args.add("--platform-family", platform_family)
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")

@@ -106,10 +106,10 @@ def _actool_args_for_special_file_types(
                  "(.appiconset). Found the following: " +
                  formatted_dirs, "app_icons")
 
-    elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
+    elif platform_prerequisites.platform_type == "tvos":
         appicon_extension = "brandassets"
         icon_files = [f for f in asset_files if ".brandassets/" in f.path]
-    elif platform_prerequisites.platform_type == apple_common.platform_type.visionos:
+    elif platform_prerequisites.platform_type == "visionos":
         appicon_extension = "solidimagestack"
         icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
     else:
@@ -128,8 +128,7 @@ def _actool_args_for_special_file_types(
 
             # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
             # iOS-on-macOS (Catalyst)
-            if (platform_prerequisites.platform_type == apple_common.platform_type.watchos or
-                platform_prerequisites.platform_type == apple_common.platform_type.macos or
+            if (platform_prerequisites.platform_type in ("watchos", "macos") or
                 product_type != apple_product_type.application):
                 fail("The asset catalogs should contain exactly one directory named " +
                      "*.%s among its asset catalogs, " % appicon_extension +

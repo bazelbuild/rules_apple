@@ -151,11 +151,11 @@ def _platform_prerequisites(
       A struct representing the collected platform information.
     """
     platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
-    platform_type_attr = getattr(apple_common.platform_type, apple_platform_info.target_os)
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
+    target_os = apple_platform_info.target_os
 
     if not device_families:
-        device_families = platform_defaults.device_families(str(platform_type_attr))
+        device_families = platform_defaults.device_families(target_os)
 
     return struct(
         apple_fragment = apple_fragment,
@@ -165,7 +165,7 @@ def _platform_prerequisites(
         device_families = sorted(device_families, reverse = True),
         minimum_os = explicit_minimum_os,
         platform = platform,
-        platform_type = platform_type_attr,
+        platform_type = target_os,
         objc_fragment = objc_fragment,
         sdk_version = sdk_version,
         target_environment = apple_platform_info.target_environment,

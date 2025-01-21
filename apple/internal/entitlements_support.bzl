@@ -96,7 +96,7 @@ def _include_debug_entitlements(*, platform_prerequisites):
     Returns:
       True if the debug entitlements should be included, otherwise False.
     """
-    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+    if platform_prerequisites.platform_type == "macos":
         return False
     add_debugger_entitlement = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,

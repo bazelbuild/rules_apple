@@ -52,7 +52,7 @@ def _register_simulator_executable(
     sim_device = str(simulator_device or "")
     sim_os_version = str(simulator_version or "")
     minimum_os = str(platform_prerequisites.minimum_os)
-    platform_type = str(platform_prerequisites.platform_type)
+    platform_type = platform_prerequisites.platform_type
     archive = outputs.archive(
         actions = actions,
         bundle_name = bundle_name,

@@ -191,7 +191,7 @@ def _app_intents_metadata_bundle_partial_impl(
     # Mirroring Xcode 15+ behavior, the metadata tool only looks at the first split for a given arch
     # rather than every possible set of source files and inputs. Oddly, this only applies to the
     # swift source files and the swiftconstvalues files; the triples and other files do cover all
-    # available archs.
+    # available architectures.
     first_cc_toolchain_key = cc_toolchains.keys()[0]
 
     app_intents_infos = _find_app_intents_info(
@@ -245,7 +245,7 @@ def _app_intents_metadata_bundle_partial_impl(
     )
 
     bundle_location = processor.location.bundle
-    if str(platform_prerequisites.platform_type) == "macos":
+    if platform_prerequisites.platform_type == "macos":
         bundle_location = processor.location.resource
 
     providers = [AppIntentsBundleInfo(

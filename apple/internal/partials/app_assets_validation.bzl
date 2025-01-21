@@ -47,13 +47,13 @@ def _app_assets_validation_partial_impl(
                 files = app_icons,
                 message = message,
             )
-        elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
+        elif platform_prerequisites.platform_type == "tvos":
             bundling_support.ensure_single_xcassets_type(
                 attr = "app_icons",
                 extension = "brandassets",
                 files = app_icons,
             )
-        elif platform_prerequisites.platform_type == apple_common.platform_type.visionos:
+        elif platform_prerequisites.platform_type == "visionos":
             message = ("visionOS apps must use visionOS app icon layers grouped in " +
                        ".solidimagestack bundles, not traditional App Icon Sets")
             bundling_support.ensure_single_xcassets_type(

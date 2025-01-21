@@ -30,7 +30,7 @@ load(
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
 # Maps the apple_common platforms supported for rkassets schema generation to the string
-# represention used as an input for realitytool.
+# representation used as an input for realitytool.
 _PLATFORM_TO_TOOL_PLATFORM = {
     str(apple_common.platform.visionos_device): "xros",
     str(apple_common.platform.visionos_simulator): "xrsimulator",
@@ -136,7 +136,7 @@ def compile_rkassets(
         targets.
     """
 
-    if platform_prerequisites.platform_type != apple_common.platform_type.visionos:
+    if platform_prerequisites.platform_type != "visionos":
         fail("""
 rkassets processing is not yet supported outside of visionOS.
 

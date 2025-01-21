@@ -139,7 +139,7 @@ def _swift_dylibs_partial_impl(
     direct_binaries = []
     if binary_artifact and platform_prerequisites.uses_swift:
         target_min_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
-        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_prerequisites.platform_type)]
+        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[platform_prerequisites.platform_type]
 
         # Only check this binary for Swift dylibs if the minimum OS version is lower than the
         # minimum OS version under which Swift dylibs are already packaged with the OS.

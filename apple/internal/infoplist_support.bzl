@@ -42,8 +42,7 @@ def _launch_screen_values(
         merging operations.
     """
 
-    if (platform_prerequisites.platform_type != apple_common.platform_type.ios and
-        platform_prerequisites.platform_type != apple_common.platform_type.tvos):
+    if platform_prerequisites.platform_type not in ("ios", "tvos"):
         fail("""\
 Internal error: Attempted to define Info.plist values for a launch storyboard/screen on a platform
 where the feature isn't supported.
@@ -52,7 +51,7 @@ Please file an issue against the Apple BUILD rules.
 
 Found platform is: {platform_type}
 """.format(
-            platform_type = str(platform_prerequisites.platform_type),
+            platform_type = platform_prerequisites.platform_type,
         ))
 
     forced_plist = None

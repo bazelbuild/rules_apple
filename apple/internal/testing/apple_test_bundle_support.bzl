@@ -534,7 +534,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ),
     ]
 
-    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+    if platform_prerequisites.platform_type == "macos":
         processor_partials.append(
             partials.macos_additional_contents_partial(
                 additional_contents = ctx.attr.additional_contents,
