@@ -572,6 +572,105 @@ def _create_macos_framework_symlinks(
 
     return framework_symlinks
 
+def _dsym_info_plist_content(framework_name):
+    return """\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.apple.xcode.dsym.{}.framework.dSYM</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundlePackageType</key>
+    <string>dSYM</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+  </dict>
+</plist>
+""".format(framework_name)
+
+def _create_dsym(
+        *,
+        actions,
+        apple_fragment,
+        base_path = "",
+        bundle_name = "",
+        framework_binary,
+        label,
+        xcode_config):
+    """
+    Generates a dSYM bundle for a framework using dsymutil.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        base_path: Base path for the generated archive file (optional).
+        bundle_name: Name of the framework bundle (optional).
+        framework_binary: A `File` referring to the framework binary.
+        label: Label of the target being built.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+    """
+    bundle_name = bundle_name or label.name
+    bundle_directory = paths.join(base_path, bundle_name + ".framework.dSYM")
+
+    # Generate dSYM bundle's DWARF binary
+    dsym_binary_file = intermediates.file(
+        actions = actions,
+        file_name = paths.join(
+            bundle_directory,
+            "Contents",
+            "Resources",
+            "DWARF",
+            bundle_name,
+        ),
+        output_discriminator = None,
+        target_name = label.name,
+    )
+    dsym_info_plist = intermediates.file(
+        actions = actions,
+        file_name = paths.join(
+            bundle_directory,
+            "Contents",
+            "Info.plist",
+        ),
+        output_discriminator = None,
+        target_name = label.name,
+    )
+
+    args = actions.args()
+    args.add("dsymutil")
+    args.add("--flat")
+    args.add("--out", dsym_binary_file)
+    args.add(framework_binary)
+
+    apple_support.run(
+        actions = actions,
+        xcode_config = xcode_config,
+        apple_fragment = apple_fragment,
+        inputs = [framework_binary],
+        outputs = [dsym_binary_file],
+        executable = "/usr/bin/xcrun",
+        arguments = [args],
+        mnemonic = "GenerateImportedAppleFrameworkDsym",
+    )
+
+    # Write dSYM bundle's Info.plist
+    actions.write(
+        content = _dsym_info_plist_content(bundle_name),
+        output = dsym_info_plist,
+    )
+
+    dsym_files = [dsym_binary_file, dsym_info_plist]
+
+    return dsym_files
+
 def _copy_file(*, actions, base_path = "", file, label, target_filename = None):
     """Copies file to a target directory.
 
@@ -711,6 +810,7 @@ def _generate_module_map(
 generation_support = struct(
     compile_binary = _compile_binary,
     copy_file = _copy_file,
+    create_dsym = _create_dsym,
     create_dynamic_library = _create_dynamic_library,
     create_framework = _create_framework,
     create_static_library = _create_static_library,

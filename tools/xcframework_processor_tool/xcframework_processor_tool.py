@@ -33,6 +33,8 @@ following information:
   - HeadersPath:
       References (if available) a relative directory containing
       Objective-C(++)/Swift interface files.
+  - DebugSymbolsPath:
+      References (if available) a relative directory containing dSYM bundles.
   - BitcodeSymbolMapsPath:
       References (if available) a relative directory containing bitcode symbol
       map files.
@@ -75,6 +77,18 @@ def _create_args_parser() -> argparse.ArgumentParser:
         action="store",
         help=arg_help)
 
+
+  optional_value_args = {
+      "dsym_imports_dir":
+          "Bazel declared directory for imported dSYM bundle file.",
+  }
+  for arg_name, arg_help in optional_value_args.items():
+    parser.add_argument(
+        f"--{arg_name}",
+        type=str,
+        action="store",
+        help=arg_help)
+
   list_args = {
       "binary_file": "Imported XCFramework binary file path.",
       "header_file": "Imported XCFramework header file path.",
@@ -93,6 +107,7 @@ def _create_args_parser() -> argparse.ArgumentParser:
       "bundle_file": "Imported XCFramework bundle file path.",
       "modulemap_file": "Imported XCFramework modulemap file path.",
       "swiftinterface_file": "Imported XCFramework Swift module file path.",
+      "dsym": "Imported XCFramework dSYM bundle path.",
   }
   for arg_name, arg_help in optional_list_args.items():
     parser.add_argument(
@@ -278,6 +293,7 @@ def main() -> int:
   )
 
   library_identifier = xcframework_library.get("LibraryIdentifier")
+  assert library_identifier is not None, "XCFramework is missing a LibraryIdentifier field for the matched target triple."
 
   # Bundle files are copied to two different directories due the following:
   #
@@ -320,6 +336,11 @@ def main() -> int:
       library_identifier=library_identifier,
       output_directories=[swiftmodule_dir],
       xcframework_files=args.swiftinterface_files)
+  
+  _copy_xcframework_files(
+      library_identifier=library_identifier,
+      output_directories=[args.dsym_imports_dir],
+      xcframework_files=args.dsyms)
 
   return 0
 

@@ -77,10 +77,6 @@ load(
     "//apple/internal/providers:framework_import_bundle_info.bzl",
     "AppleFrameworkImportBundleInfo",
 )
-load(
-    "//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
 
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
@@ -105,14 +101,6 @@ def _all_framework_binaries(frameworks_groups):
             binaries.append(binary)
 
     return binaries
-
-def _all_dsym_binaries(dsym_imports):
-    """Returns a list of Files of all imported dSYM binaries."""
-    return [
-        file
-        for file in dsym_imports
-        if file.basename.lower() != "info.plist"
-    ]
 
 def _get_framework_binary_file(framework_dir, framework_imports):
     """Returns the File that is the framework's binary."""
@@ -180,32 +168,6 @@ def _framework_search_paths(header_imports):
     else:
         return []
 
-def _debug_info_binaries(
-        dsym_binaries,
-        framework_binaries):
-    """Return the list of files that provide debug info."""
-    all_binaries_dict = {}
-
-    for file in dsym_binaries:
-        dsym_bundle_path = bundle_paths.farthest_parent(
-            file.short_path,
-            "framework.dSYM",
-        )
-        dsym_bundle_basename = paths.basename(dsym_bundle_path)
-        framework_basename = dsym_bundle_basename.rstrip(".dSYM")
-        all_binaries_dict[framework_basename] = file
-
-    for file in framework_binaries:
-        framework_path = bundle_paths.farthest_parent(
-            file.short_path,
-            "framework",
-        )
-        framework_basename = paths.basename(framework_path)
-        if framework_basename not in all_binaries_dict:
-            all_binaries_dict[framework_basename] = file
-
-    return all_binaries_dict.values()
-
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
@@ -239,11 +201,11 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_imports,
     )
 
-    dsym_binaries = _all_dsym_binaries(ctx.files.dsym_imports)
+    dsym_binaries = framework_import_support.get_dsym_binaries(ctx.files.dsym_imports)
     dsym_imports = ctx.files.dsym_imports
     framework_groups = _grouped_framework_files(framework_imports)
     framework_binaries = _all_framework_binaries(framework_groups)
-    debug_info_binaries = _debug_info_binaries(
+    debug_info_binaries = framework_import_support.get_debug_info_binaries(
         dsym_binaries = dsym_binaries,
         framework_binaries = framework_binaries,
     )

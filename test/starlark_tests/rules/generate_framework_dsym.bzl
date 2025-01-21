@@ -24,30 +24,10 @@ load(
     "//apple:utils.bzl",
     "group_files_by_directory",
 )
-
-def _dsym_info_plist_content(framework_name):
-    return """\
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>CFBundleDevelopmentRegion</key>
-    <string>English</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.apple.xcode.dsym.{}.framework.dSYM</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundlePackageType</key>
-    <string>dSYM</string>
-    <key>CFBundleSignature</key>
-    <string>????</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-  </dict>
-</plist>
-""".format(framework_name)
+load(
+    ":generation_support.bzl",
+    "generation_support",
+)
 
 def _get_framework_binary_file(framework_imports, framework_binary_path):
     for framework_import in framework_imports:
@@ -76,49 +56,19 @@ def _generate_import_framework_dsym_impl(ctx):
         framework_imports,
         framework_binary_path,
     )
-    inputs = [framework_binary]
 
-    dsym_dir_name = framework_dir_name + ".dSYM"
-
-    # Generate dSYM bundle's DWARF binary
-    dsym_binary_file = ctx.actions.declare_file(
-        paths.join(
-            dsym_dir_name,
-            "Contents",
-            "Resources",
-            "DWARF",
-            framework_name,
-        ),
-    )
-    args = ctx.actions.args()
-    args.add("dsymutil")
-    args.add("--flat")
-    args.add("--out", dsym_binary_file)
-    args.add(framework_binary)
-    apple_support.run(
+    dsym_files = generation_support.create_dsym(
         actions = ctx.actions,
-        xcode_config = xcode_config,
         apple_fragment = apple_fragment,
-        inputs = inputs,
-        outputs = [dsym_binary_file],
-        executable = "/usr/bin/xcrun",
-        arguments = [args],
-        mnemonic = "GenerateImportedAppleFrameworkDsym",
+        framework_binary = framework_binary,
+        label = ctx.label,
+        xcode_config = xcode_config,
     )
-
-    # Write dSYM bundle's Info.plist
-    dsym_info_plist = ctx.actions.declare_file(
-        paths.join(dsym_dir_name, "Contents", "Info.plist"),
-    )
-    ctx.actions.write(
-        content = _dsym_info_plist_content(framework_name),
-        output = dsym_info_plist,
-    )
-
-    outputs = [dsym_binary_file, dsym_info_plist]
 
     return [
-        DefaultInfo(files = depset(outputs)),
+        DefaultInfo(
+            files = depset(dsym_files),
+        ),
     ]
 
 generate_import_framework_dsym = rule(

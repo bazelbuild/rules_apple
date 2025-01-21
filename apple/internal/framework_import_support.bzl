@@ -23,6 +23,7 @@ load(
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("//apple:utils.bzl", "group_files_by_directory")
 load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
+load("//apple/internal/utils:bundle_paths.bzl", "bundle_paths")
 load("//apple/internal/utils:defines.bzl", "defines")
 load("//apple/internal/utils:files.bzl", "files")
 
@@ -150,10 +151,12 @@ def _classify_file_imports(config_vars, import_files):
             - module_map_imports: Clang modulemap imports.
             - swift_module_imports: Swift module imports.
             - swift_interface_imports: Swift module interface imports.
+            - dsym_imports: dSYM imports.
             - bundling_imports: Unclassified imports.
     """
     bundling_imports = []
     binary_imports = []
+    dsym_imports = []
     header_imports = []
     module_map_imports = []
     swift_module_imports = []
@@ -193,6 +196,9 @@ def _classify_file_imports(config_vars, import_files):
         if file_extension == "a":
             binary_imports.append(file)
             continue
+        if ".framework.dSYM/" in file.short_path:
+            dsym_imports.append(file)
+            continue
 
         # Path matching
         framework_relative_path = file.short_path.split(".framework/")[-1]
@@ -209,6 +215,7 @@ def _classify_file_imports(config_vars, import_files):
 
     return struct(
         binary_imports = binary_imports,
+        dsym_imports = dsym_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
         swift_interface_imports = swift_interface_imports,
@@ -259,6 +266,7 @@ def _classify_framework_imports(config_vars, framework_imports):
         bundle_name = bundle_name,
         binary_imports = binary_imports,
         bundling_imports = bundling_imports,
+        dsym_imports = framework_imports_by_category.dsym_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
@@ -398,6 +406,41 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
 
     return filtered_files
 
+def _get_dsym_binaries(dsym_imports):
+    """Returns a list of Files of all imported dSYM binaries."""
+    return [
+        file
+        for file in dsym_imports
+        if file.basename.lower() != "info.plist"
+    ]
+
+def _get_debug_info_binaries(dsym_binaries, framework_binaries):
+    """Return the list of files that provide debug info."""
+    all_binaries_dict = {}
+
+    for file in dsym_binaries:
+        dsym_bundle_path = bundle_paths.farthest_parent(
+            file.short_path,
+            "framework.dSYM",
+        )
+        dsym_bundle_basename = paths.basename(dsym_bundle_path)
+        framework_basename = dsym_bundle_basename.rstrip(".dSYM")
+        if framework_basename not in all_binaries_dict:
+            all_binaries_dict[framework_basename] = file
+
+    for file in framework_binaries:
+        if ".framework/" not in file.short_path:
+            continue
+        framework_path = bundle_paths.farthest_parent(
+            file.short_path,
+            "framework",
+        )
+        framework_basename = paths.basename(framework_path)
+        if framework_basename not in all_binaries_dict:
+            all_binaries_dict[framework_basename] = file
+
+    return all_binaries_dict.values()
+
 def _has_versioned_framework_files(framework_files):
     """Returns True if there are any versioned framework files (i.e. under Versions/ directory).
 
@@ -482,6 +525,8 @@ framework_import_support = struct(
     classify_framework_imports = _classify_framework_imports,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
+    get_dsym_binaries = _get_dsym_binaries,
+    get_debug_info_binaries = _get_debug_info_binaries,
     has_versioned_framework_files = _has_versioned_framework_files,
     swift_info_from_module_interface = _swift_info_from_module_interface,
     swift_interop_info_with_dependencies = _swift_interop_info_with_dependencies,

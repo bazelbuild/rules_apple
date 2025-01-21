@@ -31,6 +31,7 @@ load(
     "//apple:providers.bzl",
     "AppleBundleVersionInfo",
     "AppleDsymBundleInfo",
+    "AppleFrameworkImportInfo",
 )
 load(
     "//apple/internal:intermediates.bzl",
@@ -382,6 +383,11 @@ def _debug_symbols_partial_impl(
         for x in debug_dependencies
         if AppleDebugInfo in x
     ]
+    deps_framework_import_infos = [
+        x[AppleFrameworkImportInfo]
+        for x in debug_dependencies
+        if AppleFrameworkImportInfo in x
+    ]
 
     debug_output_filename = bundle_name
     if debug_discriminator:
@@ -392,6 +398,7 @@ def _debug_symbols_partial_impl(
 
     direct_dsyms = []
     transitive_dsyms = [x.dsyms for x in deps_debug_info_providers]
+    transitive_dsyms.extend([x.dsym_imports for x in deps_framework_import_infos])
 
     direct_linkmaps = []
     transitive_linkmaps = [x.linkmaps for x in deps_debug_info_providers]

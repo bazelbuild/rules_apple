@@ -15,6 +15,7 @@
 """Rules to generate import-ready XCFrameworks for testing."""
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
@@ -68,7 +69,9 @@ def _create_xcframework(
         *,
         actions,
         apple_fragment,
+        dsyms = {},
         frameworks = {},
+        generate_xcframework_xcodebuild_tool,
         headers = [],
         label,
         libraries = [],
@@ -80,7 +83,9 @@ def _create_xcframework(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
+        dsyms: A list of dSYM bundles.
         frameworks: Dictionary of framework paths and framework files.
+        generate_xcframework_xcodebuild_tool: Tool to run the -create-xcframework command.
         headers: A list of files referencing headers.
         label: Label of the target being built.
         libraries: A list of files referencing static libraries.
@@ -101,20 +106,18 @@ def _create_xcframework(
     info_plist = actions.declare_file(paths.join(bundle_name, "Info.plist"))
     outputs = [info_plist]
 
-    args = []
+    args = actions.args()
     inputs = []
-    args.extend(["rm", "-rf", xcframework_directory, ";"])
-    args.extend(["/usr/bin/xcodebuild", "-create-xcframework"])
 
     if libraries:
         inputs.extend(libraries)
         for library in libraries:
             library_relative_path = paths.relativize(library.short_path, intermediates_directory)
             outputs.append(actions.declare_file(library_relative_path, sibling = info_plist))
-            args.extend(["-library", library.path])
+            args.add("--library", library.path)
 
             if headers:
-                args.extend(["-headers", paths.join(library.dirname, "Headers")])
+                args.add("--headers", paths.join(library.dirname, "Headers"))
 
     for header in headers:
         inputs.append(header)
@@ -132,7 +135,32 @@ def _create_xcframework(
             )
             for f in framework_files
         ])
-        args.extend(["-framework", framework_path])
+        args.add("--framework", framework_path)
+
+        if dsyms and framework_path in dsyms:
+            dsym_files = dsyms[framework_path]
+
+            inputs.extend(dsym_files)
+
+            dsym_bundles_set = sets.make()
+
+            for file in dsym_files:
+                dsym_relative_path = paths.relativize(file.short_path, intermediates_directory)
+                target_slice, _, remainder = dsym_relative_path.partition("/")
+                outputs.append(actions.declare_file(
+                    paths.join(target_slice, "dSYMs", remainder),
+                    sibling = info_plist,
+                ))
+
+                prefix, ext, _ = file.path.partition(".framework.dSYM")
+                dsym_bundle_path = prefix + ext
+
+                sets.insert(dsym_bundles_set, dsym_bundle_path)
+
+            dsym_bundles = sets.to_list(dsym_bundles_set)
+
+            for dsym_bundle in dsym_bundles:
+                args.add("--debug-symbols", dsym_bundle)
 
     for module_interface in module_interfaces:
         inputs.append(module_interface)
@@ -147,14 +175,15 @@ def _create_xcframework(
             sibling = info_plist,
         ))
 
-    args.extend(["-output", xcframework_directory])
+    args.add("--output", xcframework_directory)
 
-    apple_support.run_shell(
+    apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
-        command = " ".join(args),
-        inputs = depset(inputs),
+        arguments = [args],
+        executable = generate_xcframework_xcodebuild_tool,
         execution_requirements = {"no-sandbox": "1"},
+        inputs = depset(inputs),
         mnemonic = "GenerateXCFrameworkXcodebuild",
         outputs = outputs,
         progress_message = "Generating XCFramework using xcodebuild",
@@ -167,6 +196,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     """Implementation of generate_dynamic_xcframework."""
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
+    cpp_fragment = ctx.fragments.cpp
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -181,6 +211,7 @@ def _generate_dynamic_xcframework_impl(ctx):
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
 
     frameworks = {}
+    dsyms = {}
     for platform in platforms:
         sdk = _sdk_for_platform(platform)
         architectures = platforms[platform]
@@ -235,13 +266,27 @@ def _generate_dynamic_xcframework_impl(ctx):
             library_identifier,
             label.name + ".framework",
         )
+
         frameworks[framework_path] = framework_files
+
+        if cpp_fragment.apple_generate_dsym:
+            dsym_files = generation_support.create_dsym(
+                actions = ctx.actions,
+                apple_fragment = apple_fragment,
+                base_path = library_identifier,
+                framework_binary = binary,
+                label = label,
+                xcode_config = xcode_config,
+            )
+            dsyms[framework_path] = dsym_files
 
     # Create xcframework bundle
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
         frameworks = frameworks,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
+        dsyms = dsyms,
         label = label,
         target_dir = target_dir,
         xcode_config = xcode_config,
@@ -404,6 +449,7 @@ def _generate_static_xcframework_impl(ctx):
     xcframework_files = _create_xcframework(
         actions = actions,
         apple_fragment = apple_fragment,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
         headers = headers + modulemaps,
         label = label,
         libraries = libraries,
@@ -492,6 +538,7 @@ def _generate_static_framework_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         frameworks = frameworks,
+        generate_xcframework_xcodebuild_tool = ctx.executable._generate_xcframework_xcodebuild_tool,
         label = label,
         target_dir = target_dir,
         xcode_config = xcode_config,
@@ -502,6 +549,14 @@ def _generate_static_framework_xcframework_impl(ctx):
             files = depset(xcframework_files),
         ),
     ]
+
+_GENERATE_XCFRAMEWORK_TOOL_ATTRS = {
+    "_generate_xcframework_xcodebuild_tool": attr.label(
+        executable = True,
+        cfg = "exec",
+        default = Label("//test/starlark_tests/rules:generate_xcframework_xcodebuild_tool"),
+    ),
+}
 
 generate_dynamic_xcframework = rule(
     doc = "Generates XCFramework with dynamic frameworks using Xcode build utilities.",
@@ -561,9 +616,9 @@ Flag to indicate if the framework should include additional versions of the fram
 Versions directory. This is only supported for macOS platform.
                 """,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
 )
 
 generate_static_xcframework = rule(
@@ -636,7 +691,7 @@ Flag to indicate if the Swift module interface files (i.e. `.swiftmodule` direct
 purposes.
 """,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
     fragments = ["apple"],
 )
@@ -687,7 +742,7 @@ represented as a dotted version number as values.
 """,
                 mandatory = True,
             ),
-        },
+        } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),
     fragments = ["apple"],
 )
