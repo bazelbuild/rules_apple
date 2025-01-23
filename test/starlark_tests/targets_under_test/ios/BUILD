@@ -1517,6 +1517,22 @@ ios_extension(
 )
 
 ios_extension(
+    name = "swift_ios_app_clip_ext",
+    bundle_id = "com.google.example.clip.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_extension(
     name = "extensionkit_ext",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
@@ -4488,6 +4504,25 @@ ios_app_clip(
     name = "app_clip_with_fmwks_from_objc_swift_libraries_using_data",
     bundle_id = "com.google.example.clip",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_ios_framework",
+        ":swift_lib_with_ios_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_ext",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensions = [":swift_ios_app_clip_ext"],
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",

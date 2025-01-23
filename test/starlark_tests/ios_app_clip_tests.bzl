@@ -212,6 +212,17 @@ def ios_app_clip_test_suite(name):
         tags = [name],
     )
 
+    # Tests inclusion of extensions.
+    archive_contents_test(
+        name = "{}_contains_ios_extension".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip_with_ext",
+        contains = [
+            "$BUNDLE_ROOT/PlugIns/swift_ios_app_clip_ext.appex/swift_ios_app_clip_ext",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
