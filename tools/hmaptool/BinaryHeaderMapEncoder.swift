@@ -18,14 +18,14 @@ public enum BinaryHeaderMapEncoder {
     static let encoding: String.Encoding = .utf8
 
     public static func encode(_ headerMap: BinaryHeaderMap) throws -> Data {
-        let entries: [BinaryHeaderMap.Entry] = headerMap.entries.map { $0.value }
+        let entries: [BinaryHeaderMap.Entry] = headerMap.entries.map { $0.value }.sorted { $0.key < $1.key }
         return try makeHeaderMapBinaryData(withEntries: entries)
     }
 }
 
 private func makeHeaderMapBinaryData(withEntries unsafeEntries: [BinaryHeaderMap.Entry]) throws -> Data {
     let safeEntries = sanitize(headerEntries: unsafeEntries)
-    let allStrings = Set(safeEntries.flatMap { [$0.key, $0.prefix, $0.suffix] })
+    let allStrings = Set(safeEntries.flatMap { [$0.key, $0.prefix, $0.suffix] }).sorted()
     let stringSection = try makeStringSection(allStrings: allStrings)
     let bucketSection = try makeBucketSection(
         forEntries: safeEntries,
@@ -157,7 +157,7 @@ private struct StringSection {
     let offsets: [String: StringSectionOffset]
 }
 
-private func makeStringSection(allStrings: Set<String>) throws -> StringSection {
+private func makeStringSection(allStrings: [String]) throws -> StringSection {
 
     var buffer = Data()
     var offsets: [String: StringSectionOffset] = [:]
