@@ -86,9 +86,6 @@ AppleTestRunnerInfo provider.
     ),
 }
 
-# The name of the execution group used to run j2objc linking actions.
-_J2OBJC_LINKING_EXEC_GROUP = "j2objc"
-
 # The name of the execution group used for C++ toolchain linking actions, as
 # documented at
 # https://bazel.build/extending/exec-groups#exec-groups-for-native-rules.
@@ -127,8 +124,6 @@ def _create_apple_rule(
 
     exec_groups = {
         _CPP_LINK_EXEC_GROUP: exec_group(),
-        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-        _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
     }
 
     if not avoid_apple_exec_group_toolchain:
@@ -150,8 +145,6 @@ def _create_apple_rule(
             "apple",
             "cpp",
             "objc",
-            # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-            "j2objc",
         ],
         toolchains = toolchains,
         **extra_args
@@ -201,8 +194,6 @@ def _create_apple_test_rule(*, cfg = None, doc, implementation, platform_type):
         exec_groups = dicts.add(
             {
                 _CPP_LINK_EXEC_GROUP: exec_group(),
-                # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
-                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
             },
             apple_toolchain_utils.use_apple_exec_group_toolchain(),
         ),

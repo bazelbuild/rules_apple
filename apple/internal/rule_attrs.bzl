@@ -73,9 +73,6 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-# The name of the execution group used to run j2objc linking actions.
-_J2OBJC_LINKING_EXEC_GROUP = "j2objc"
-
 def _common_attrs():
     """Private attributes on all rules; these should be included in all rule attributes."""
     return dicts.add(
@@ -138,32 +135,6 @@ def _common_linking_api_attrs(*, deps_cfg):
         ),
     })
 
-def _j2objc_binary_linking_attrs(*, base_cfg):
-    """Returns a dictionary of required attributes for J2ObjC processing code in native linking.
-
-    Args:
-        base_cfg: The Bazel base transition used by the rule implementation. To satisfy native Bazel
-            linking prerequisites, `cfg` on the rule implementation and this `base_cfg` attribute
-            must use the same transition.
-    """
-    return {
-        # TODO(b/292086564): Remove once j2objc dead code pruner action is removed.
-        "_dummy_lib": attr.label(
-            cfg = base_cfg,
-            default = Label("@bazel_tools//tools/objc:dummy_lib"),
-        ),
-        # TODO(b/292086564): Remove once j2objc dead code pruner action is removed.
-        "_j2objc_dead_code_pruner": attr.label(
-            executable = True,
-            # Setting `allow_single_file=True` would be more correct. Unfortunately,
-            # doing so prevents using py_binary as the underlying target because py_binary
-            # produces at least _two_ output files (the executable plus any files in srcs)
-            allow_files = True,
-            cfg = config.exec(_J2OBJC_LINKING_EXEC_GROUP),
-            default = Label("@bazel_tools//tools/objc:j2objc_dead_code_pruner_binary"),
-        ),
-    }
-
 def _static_library_archive_attrs(*, deps_cfg):
     """Returns dict of required attributes for linking_support._archive_multi_arch_static_library.
 
@@ -209,7 +180,6 @@ def _binary_linking_attrs(
     return dicts.add(
         extra_attrs,
         _common_linking_api_attrs(deps_cfg = deps_cfg),
-        _j2objc_binary_linking_attrs(base_cfg = base_cfg),
         {
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
