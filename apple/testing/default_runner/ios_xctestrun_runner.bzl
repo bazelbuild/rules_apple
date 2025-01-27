@@ -53,7 +53,7 @@ def _ios_xctestrun_runner_impl(ctx):
                      ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
     # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
-    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 12"
+    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"
 
     if not os_version:
         fail("error: os_version must be set on ios_xctestrun_runner, or passed with --ios_simulator_version")
