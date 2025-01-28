@@ -261,6 +261,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "xctrunner",
+    srcs = ["xctrunner.bzl"],
+    deps = ["//apple/internal:xctrunner"],
+)
+
+bzl_library(
     name = "docc",
     srcs = ["docc.bzl"],
     deps = ["//apple/internal:docc"],
