@@ -187,7 +187,7 @@ def _classify_file_imports(config_vars, import_files):
         if file_extension == "swiftmodule":
             swift_module_imports.append(file)
             continue
-        if file_extension == "swiftinterface":
+        if file_extension == "swiftinterface" and ".framework.dSYM/" not in file.short_path:
             swift_interface_imports.append(file)
             continue
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
