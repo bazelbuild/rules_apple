@@ -12,7 +12,7 @@ bazel_dep(name = "platforms", version = "0.0.9")
 bazel_dep(name = "rules_cc", version = "0.0.10")
 bazel_dep(
     name = "rules_swift",
-    version = "2.1.1",
+    version = "2.4.0",
     repo_name = "build_bazel_rules_swift",
 )
 
