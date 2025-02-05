@@ -296,9 +296,7 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
             test_host_label_name = test_host.label.name,
         ))
     if platform_prerequisites.minimum_os != test_host_bundle_info.minimum_os_version:
-        # There is no other way to issue a warning, so print is the only way to message.
-        # buildifier: disable=print
-        print("\nWARNING: " + test_attribute_mismatch_message.format(
+        test_attribute_min_os_mismatch_message = test_attribute_mismatch_message.format(
             rule_attribute_name = "minimum_os_version",
             test_rule_attribute = platform_prerequisites.minimum_os,
             test_host_rule_attribute = test_host_bundle_info.minimum_os_version,
@@ -306,7 +304,15 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
             test_label_name = test_bundle_label_name_no_internal,
             test_host_label = str(test_host.label),
             test_host_label_name = test_host.label.name,
-        ))
+        )
+
+        # TODO(b/337080510): Apply this failure case to all Apple platforms.
+        if platform_prerequisites.platform_type == "tvos":
+            fail("\nERROR: " + test_attribute_min_os_mismatch_message)
+
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("\nWARNING: " + test_attribute_min_os_mismatch_message)
 
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
