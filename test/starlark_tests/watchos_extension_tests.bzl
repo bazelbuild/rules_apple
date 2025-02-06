@@ -65,14 +65,6 @@ def watchos_extension_test_suite(name):
     )
 
     apple_verification_test(
-        name = "{}_imported_fmwk_codesign_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_imported_fmwk",
-        verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name],
-    )
-
-    apple_verification_test(
         name = "{}_entitlements_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
@@ -114,10 +106,10 @@ def watchos_extension_test_suite(name):
         name = "{}_imported_fmwk_simulator_test".format(name),
         build_type = "simulator",
         contains = [
-            "$RESOURCE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
-            "$RESOURCE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/Info.plist",
+            "$BUNDLE_ROOT/PlugIns/ext_with_imported_fmwk.appex/Frameworks/generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
+            "$BUNDLE_ROOT/PlugIns/ext_with_imported_fmwk.appex/Frameworks/generated_watchos_dynamic_fmwk.framework/Info.plist",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_imported_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_imported_fmwk",
         tags = [name],
     )
 
@@ -292,6 +284,21 @@ def watchos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_watchos2_delegate_extensionkit_ext",
         expected_error = "Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not possible.",
         tags = [name],
+    )
+
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the
+    # extension bundle's Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:ext_with_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
     )
 
     native.test_suite(

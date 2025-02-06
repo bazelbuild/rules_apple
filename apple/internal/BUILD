@@ -683,6 +683,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:sets",
+        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

@@ -385,6 +385,7 @@ apple_dynamic_framework_import(
 generate_import_framework(
     name = "generated_watchos_dynamic_fmwk",
     archs = ["x86_64"],
+    include_resource_bundle = True,
     libtype = "dynamic",
     minimum_os_version = common.min_os_watchos.baseline,
     sdk = "watchsimulator",

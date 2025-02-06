@@ -3,7 +3,6 @@ licenses(["notice"])
 py_library(
     name = "execute",
     srcs = ["execute.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tools/codesigningtool:__pkg__",
         "//tools/swift_stdlib_tool:__pkg__",
@@ -14,7 +13,6 @@ py_library(
 py_test(
     name = "execute_test",
     srcs = ["execute_test.py"],
-    python_version = "PY3",
     deps = [
         ":execute",
     ],
@@ -23,7 +21,6 @@ py_test(
 py_library(
     name = "lipo",
     srcs = ["lipo.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tools:__subpackages__",
     ],

@@ -18,6 +18,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_extension = "watchos_extension",
+    _watchos_framework = "watchos_framework",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
@@ -39,6 +40,7 @@ visibility("public")
 
 watchos_application = _watchos_application
 watchos_extension = _watchos_extension
+watchos_framework = _watchos_framework
 
 def watchos_unit_test(name, **kwargs):
     apple_test_assembler.assemble(

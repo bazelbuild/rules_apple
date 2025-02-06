@@ -3,8 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "dossier_codesigningtool",
     srcs = ["dossier_codesigningtool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],
@@ -16,7 +14,6 @@ py_binary(
 py_library(
     name = "dossier_codesigningtool_lib",
     srcs = ["dossier_codesigningtool.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tools:__subpackages__",
     ],
@@ -28,7 +25,6 @@ py_library(
 py_test(
     name = "dossier_codesigningtool_lib_test",
     srcs = ["dossier_codesigningtool_lib_test.py"],
-    python_version = "PY3",
     deps = [
         ":dossier_codesigningtool_lib",
     ],
@@ -40,15 +36,12 @@ py_test(
 py_binary(
     name = "dossier_codesigning_reader",
     srcs = ["dossier_codesigning_reader.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [":dossier_codesigning_reader_lib"],
 )
 
 py_library(
     name = "dossier_codesigning_reader_lib",
     srcs = ["dossier_codesigning_reader.py"],
-    srcs_version = "PY3",
 )
 
 filegroup(
@@ -66,7 +59,6 @@ py_test(
         "//test/starlark_tests/targets_under_test/ios:app",
         "//test/starlark_tests/targets_under_test/watchos:app_companion",
     ],
-    python_version = "PY3",
     deps = [
         ":dossier_codesigning_reader_lib",
         "@absl_py//absl/testing:parameterized",

@@ -307,6 +307,13 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_test_watchos_single_target_application_required_for_watchos_framework_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:watchos_2_application_with_watchos_framework",
+        expected_error = "Error: The Apple BUILD rules do not support frameworks built from source for watchOS 2 extension-based applications.",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -894,16 +894,30 @@ requirement.
 
 WatchosExtensionBundleInfo, new_watchosextensionbundleinfo = provider(
     doc = """
-Denotes that a target is a watchOS application extension.
+Denotes that a target is a watchOS extension.
 
 This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically a watchOS application
-extension bundle (and not some other Apple bundle). Rule authors who wish to
-require that a dependency is a watchOS application extension should use this
-provider to describe that requirement.
+a "marker" to indicate that a target is specifically a watchOS extension bundle
+(and not some other Apple bundle). Rule authors who wish to require that a
+dependency is a watchOS extension should use this provider to describe that
+requirement.
 """,
     fields = {},
     init = make_banned_init(provider_name = "WatchosExtensionBundleInfo"),
+)
+
+WatchosFrameworkBundleInfo, new_watchosframeworkbundleinfo = provider(
+    doc = """
+Denotes that a target is a watchOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a watchOS framework bundle
+(and not some other Apple bundle). Rule authors who wish to
+require that a dependency is a watchOS framework should use this
+provider to describe that requirement.
+""",
+    fields = {},
+    init = make_banned_init(provider_name = "WatchosFrameworkBundleInfo"),
 )
 
 WatchosXcTestBundleInfo, new_watchosxctestbundleinfo = provider(

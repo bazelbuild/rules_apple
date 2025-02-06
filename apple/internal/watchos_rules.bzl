@@ -19,6 +19,10 @@ load(
     "sets",
 )
 load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -64,8 +68,11 @@ load(
     "AppleBundleInfo",
     "ApplePlatformInfo",
     "WatchosExtensionBundleInfo",
+    "WatchosFrameworkBundleInfo",
+    "new_appleframeworkbundleinfo",
     "new_watchosapplicationbundleinfo",
     "new_watchosextensionbundleinfo",
+    "new_watchosframeworkbundleinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -137,13 +144,13 @@ def _watchos_extension_based_application_impl(ctx):
         fail("""
 Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
 
-watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying on
-an app delegate via deps rather than a watchOS 2 extension.
+watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying \
+on an app delegate via deps rather than a watchOS 2 extension.
 
-Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.0 or
+Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.0 or \
 later will be met with a rejection.
 
-Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
+Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application \
 delegate is referenced in the single-target `watchos_application`'s `deps`.
 """)
 
@@ -152,12 +159,15 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 Error: No extension specified for a watchOS 2 extension-based application.
 
 If this is supposed to be a single-target watchOS application, please make sure that a valid \
-watchOS application delegate is referenced in this watchos_application's "deps".
+watchOS application delegate is referenced in this watchos_application's `deps`.
 """)
 
     if ctx.attr.extensions:
         fail("""
 Error: Multiple extensions specified for a watchOS 2 extension-based application.
+
+Found the following extension dependencies assigned to this app via `extensions`:
+{extensions}
 
 The Apple BUILD rules only support a single extension for a watchOS 2 extension-based application, \
 on account of regressions reported when migrating hosted extensions within watchOS 2 \
@@ -165,8 +175,21 @@ extension-based applications to single-target watchOS applications.
 
 Consider migrating to a single-target watchOS application by removing the assigned watchOS 2 app \
 extension and making sure a valid watchOS application delegate is referenced in this \
-watchos_application's "deps".
-""")
+watchos_application's `deps`.
+""".format(extensions = " \n".join([str(x.label) for x in ctx.attr.extensions])))
+
+    if ctx.attr.frameworks:
+        fail("""
+Error: The Apple BUILD rules do not support frameworks built from source for watchOS 2 \
+extension-based applications.
+
+Found the following framework dependencies assigned to this app via `frameworks`:
+{frameworks}
+
+Consider migrating to a single-target watchOS application by removing the assigned watchOS 2 app \
+extension and making sure a valid watchOS application delegate is referenced in this \
+watchos_application's `deps`.
+""".format(frameworks = " \n".join([str(x.label) for x in ctx.attr.frameworks])))
 
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -539,6 +562,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -587,16 +611,24 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = [],
+            embedded_bundles = ctx.attr.frameworks,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
         ),
         partials.binary_partial(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
-            label_name = ctx.label.name,
+            label_name = label.name,
+        ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -612,61 +644,59 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = xplat_exec_group,
-            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = bundle_location,
             bundle_name = bundle_name,
             embed_target_dossiers = True,
+            embedded_targets = ctx.attr.frameworks,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            platform_prerequisites = platform_prerequisites,
             mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
             plisttool = apple_mac_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
+            embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
-        partials.framework_import_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            features = features,
-            label_name = label.name,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps,
+        partials.extension_safe_validation_partial(
+            is_extension_safe = True,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             extensionkit_keys_required = ctx.attr.extensionkit_extension,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -675,11 +705,29 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
+
+    if rule_descriptor.product_type == apple_product_type.watch2_extension:
+        # Leave "imported" frameworks to the bundle with the main app delegate, as we do for other
+        # Apple platforms.
+        processor_partials.append(
+            partials.framework_import_partial(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                features = features,
+                label_name = label.name,
+                mac_exec_group = mac_exec_group,
+                platform_prerequisites = platform_prerequisites,
+                provisioning_profile = provisioning_profile,
+                rule_descriptor = rule_descriptor,
+                targets = ctx.attr.deps,
+            ),
+        )
 
     if platform_prerequisites.platform.is_device:
         processor_partials.append(
@@ -765,7 +813,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = ctx.attr.extensions
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -815,6 +863,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -851,10 +900,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             app_intents = [ctx.split_attr.deps],
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = [],
+            embedded_bundles = embeddable_targets,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
         ),
         partials.binary_partial(
             actions = actions,
@@ -871,6 +921,13 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+        ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
@@ -919,7 +976,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = embeddable_targets + ctx.attr.deps,
+            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
@@ -935,6 +992,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -991,6 +1049,254 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             )
         ),
         new_watchosapplicationbundleinfo(),
+    ] + processor_result.providers
+
+def _watchos_framework_impl(ctx):
+    """Implementation of the watchos_framework rule."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.framework,
+    )
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    bin_root_path = ctx.bin_dir.path
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    bundle_id = bundling_support.bundle_full_id(
+        base_bundle_id = ctx.attr.base_bundle_id,
+        bundle_id = ctx.attr.bundle_id,
+        bundle_id_suffix = ctx.attr.bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = ctx.attr._bundle_id_suffix_default,
+    )
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    cc_features = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = ctx.attr.families,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        objc_fragment = ctx.fragments.objc,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+    resource_deps = ctx.attr.deps + ctx.attr.resources
+    signed_frameworks = []
+    if provisioning_profile:
+        signed_frameworks = [
+            bundle_name + rule_descriptor.bundle_extension,
+        ]
+    top_level_infoplists = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["infoplists"],
+    )
+    top_level_resources = resources.collect(
+        attr = ctx.attr,
+        res_attrs = ["resources"],
+    )
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        avoid_deps = ctx.attr.frameworks,
+        cc_toolchains = cc_toolchain_forwarder,
+        # Frameworks do not have entitlements.
+        entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_linkopts = [
+            "-install_name",
+            "@rpath/{name}{extension}/{name}".format(
+                extension = bundle_extension,
+                name = bundle_name,
+            ),
+        ],
+        extra_requested_features = ["link_dylib"],
+        platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    archive_for_embedding = outputs.archive_for_embedding(
+        actions = actions,
+        bundle_name = bundle_name,
+        bundle_extension = bundle_extension,
+        label_name = label.name,
+        rule_descriptor = rule_descriptor,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+    )
+
+    processor_partials = [
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            app_intents = [ctx.split_attr.deps],
+            bundle_id = bundle_id,
+            cc_toolchains = cc_toolchain_forwarder,
+            embedded_bundles = ctx.attr.frameworks,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            targets_to_avoid = ctx.attr.frameworks,
+        ),
+        partials.apple_bundle_info_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            product_type = rule_descriptor.product_type,
+        ),
+        partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            label_name = label.name,
+        ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_location = processor.location.framework,
+            bundle_name = bundle_name,
+            embed_target_dossiers = False,
+            embedded_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        ),
+        partials.debug_symbols_partial(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+            linkmaps = debug_outputs.linkmaps,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            plisttool = apple_mac_toolchain_info.plisttool,
+            rule_label = label,
+            version = ctx.attr.version,
+        ),
+        partials.embedded_bundles_partial(
+            frameworks = [archive_for_embedding],
+            embeddable_targets = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            signed_frameworks = depset(signed_frameworks),
+        ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
+        partials.framework_provider_partial(
+            actions = actions,
+            bin_root_path = bin_root_path,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            cc_features = cc_features,
+            cc_info = link_result.cc_info,
+            cc_toolchain = cc_toolchain,
+            rule_label = label,
+        ),
+        partials.resources_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            resource_deps = resource_deps,
+            resource_locales = ctx.attr.resource_locales,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
+            top_level_infoplists = top_level_infoplists,
+            top_level_resources = top_level_resources,
+            version = ctx.attr.version,
+            version_keys_required = False,
+        ),
+        partials.swift_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
+            label_name = label.name,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+        ),
+    ]
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        features = features,
+        partials = processor_partials,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+
+    return [
+        DefaultInfo(files = processor_result.output_files),
+        new_appleframeworkbundleinfo(),
+        new_watchosframeworkbundleinfo(),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+            )
+        ),
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
@@ -1057,6 +1363,15 @@ It is considered an error if any extensions are assigned to a legacy watchOS 2 a
 constructed if the `watchos_application` target is not assigned `deps`.
 """,
             ),
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
             "storyboards": attr.label_list(
                 allow_files = [".storyboard"],
                 doc = """
@@ -1101,5 +1416,66 @@ watchos_extension = rule_factory.create_apple_rule(
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.watchos2_app_extension,
         ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
+)
+
+watchos_framework = rule_factory.create_apple_rule(
+    cfg = transition_support.apple_rule_transition,
+    doc = "Builds and bundles a watchOS Dynamic Framework.",
+    implementation = _watchos_framework_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        apple_support.platform_constraint_attrs(),
+        rule_attrs.binary_linking_attrs(
+            base_cfg = transition_support.apple_rule_transition,
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                app_intents_aspect,
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+        ),
+        rule_attrs.common_bundle_attrs(),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.watchos,
+        ),
+        rule_attrs.infoplist_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "watchos",
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+            supports_capabilities = False,
+        ),
+        {
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+that this target depends on.
+""",
+            ),
+        },
     ],
 )

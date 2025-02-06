@@ -3,8 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "versiontool",
     srcs = ["versiontool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],
@@ -14,13 +12,11 @@ py_binary(
 py_library(
     name = "versiontool_lib",
     srcs = ["versiontool.py"],
-    srcs_version = "PY3",
 )
 
 py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
-    python_version = "PY3",
     deps = [
         ":versiontool_lib",
     ],

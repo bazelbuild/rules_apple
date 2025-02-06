@@ -3,8 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "provisioning_profile_tool",
     srcs = ["provisioning_profile_tool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],

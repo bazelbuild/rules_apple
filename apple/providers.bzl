@@ -70,6 +70,7 @@ load(
     _VisionosXcTestBundleInfo = "VisionosXcTestBundleInfo",
     _WatchosApplicationBundleInfo = "WatchosApplicationBundleInfo",
     _WatchosExtensionBundleInfo = "WatchosExtensionBundleInfo",
+    _WatchosFrameworkBundleInfo = "WatchosFrameworkBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
     _make_apple_bundle_version_info = "make_apple_bundle_version_info",
     _make_apple_test_runner_info = "make_apple_test_runner_info",
@@ -127,6 +128,7 @@ VisionosApplicationBundleInfo = _VisionosApplicationBundleInfo
 VisionosXcTestBundleInfo = _VisionosXcTestBundleInfo
 WatchosApplicationBundleInfo = _WatchosApplicationBundleInfo
 WatchosExtensionBundleInfo = _WatchosExtensionBundleInfo
+WatchosFrameworkBundleInfo = _WatchosFrameworkBundleInfo
 WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
 
 def _merge_apple_resource_info(providers):

@@ -21,15 +21,12 @@ apple_universal_binary(
 py_binary(
     name = "codesigningtool_binary",
     srcs = ["codesigningtool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [":codesigningtool_lib"],
 )
 
 py_library(
     name = "codesigningtool_lib",
     srcs = ["codesigningtool.py"],
-    srcs_version = "PY3",
     visibility = [
         "//tools:__subpackages__",
     ],

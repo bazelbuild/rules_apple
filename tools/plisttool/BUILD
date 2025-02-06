@@ -3,8 +3,6 @@ licenses(["notice"])
 py_binary(
     name = "plisttool",
     srcs = ["plisttool.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],
@@ -16,13 +14,11 @@ py_library(
     srcs = [
         "plisttool.py",
     ],
-    srcs_version = "PY3",
 )
 
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
-    python_version = "PY3",
     deps = [
         ":plisttool_lib",
     ],

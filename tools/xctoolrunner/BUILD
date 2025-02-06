@@ -6,8 +6,6 @@ py_binary(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.py"],
     env = binary_env.common_python_utf8_env(),
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],
@@ -17,14 +15,12 @@ py_binary(
 py_library(
     name = "xctoolrunner_lib",
     srcs = ["xctoolrunner.py"],
-    srcs_version = "PY3",
     deps = ["//tools/wrapper_common:execute"],
 )
 
 py_test(
     name = "xctoolrunner_test",
     srcs = ["xctoolrunner_test.py"],
-    python_version = "PY3",
     deps = [
         ":xctoolrunner_lib",
         "//tools/wrapper_common:execute",
