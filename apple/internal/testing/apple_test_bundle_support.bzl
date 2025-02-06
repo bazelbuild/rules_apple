@@ -307,7 +307,7 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
         )
 
         # TODO(b/337080510): Apply this failure case to all Apple platforms.
-        if platform_prerequisites.platform_type == "tvos":
+        if platform_prerequisites.platform_type != "ios":
             fail("\nERROR: " + test_attribute_min_os_mismatch_message)
 
         # There is no other way to issue a warning, so print is the only way to message.
