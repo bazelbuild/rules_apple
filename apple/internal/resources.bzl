@@ -250,6 +250,8 @@ def _bucketize_data(
                 bucket_name = "framework"
             elif resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
                 bucket_name = "strings"
+            elif resource_short_path.endswith(".xcstrings"):
+                bucket_name = "xcstrings"
             elif resource_short_path.endswith(".storyboard"):
                 bucket_name = "storyboards"
                 resource_swift_module = swift_module

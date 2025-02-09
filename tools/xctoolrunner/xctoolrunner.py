@@ -32,6 +32,8 @@ Subcommands:
   mapc [<args>...]
 
   momc [<args>...]
+
+  xcstringstool [<args>...]
 """
 
 import argparse
@@ -422,6 +424,16 @@ def mapc(_, toolargs):
   return return_code
 
 
+def xcstringstool(_, toolargs):
+  xcrunargs = ["xcrun", "xcstringstool"]
+  _apply_realpath(toolargs)
+  xcrunargs += toolargs
+
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs, print_output=True)
+  return return_code
+
+
 def main(argv):
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers()
@@ -457,6 +469,9 @@ def main(argv):
   # MAPC Argument Parser
   mapc_parser = subparsers.add_parser("mapc")
   mapc_parser.set_defaults(func=mapc)
+
+  xcstringstool_parser = subparsers.add_parser("xcstringstool")
+  xcstringstool_parser.set_defaults(func=xcstringstool)
 
   # Parse the command line and execute subcommand
   args, toolargs = parser.parse_known_args(argv)
