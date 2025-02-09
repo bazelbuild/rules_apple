@@ -650,7 +650,7 @@ filegroup(
 
 filegroup(
     name = "localized_xcstrings",
-    srcs = glob(["*.lproj/*.xcstrings"]),
+    srcs = glob(["*.xcstrings"]),
 )
 
 filegroup(
