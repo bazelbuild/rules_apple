@@ -402,9 +402,9 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    strings = [
-        "//test/starlark_tests/resources:localized_strings",
-    ],
+    # strings = [
+    #     "//test/starlark_tests/resources:localized_strings",
+    # ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:ios_localized_assets_lib",
