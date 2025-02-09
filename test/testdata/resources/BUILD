@@ -17,6 +17,7 @@ exports_files([
     "launch_screen_ios.xib",
     "nonlocalized.plist",
     "nonlocalized.strings",
+    "nonlocalized.xcstrings",
     "nonlocalized_resource.txt",
     "sample.mlmodel",
     "sample.mlpackage",
@@ -80,12 +81,14 @@ filegroup(
         "Info-template.plist",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle_files",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
         ":mapping_model",
         ":structured",
         ":unversioned_datamodel",
@@ -143,6 +146,31 @@ genrule(
 )
 
 genrule(
+    name = "generate_xcstrings",
+    outs = ["generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+)
+
+genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
@@ -180,9 +208,10 @@ apple_resource_bundle(
         "nonlocalized.plist",
         ":localized_plists",
         "sample.png",
-        "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "generated.strings",
         ":localized_strings",
+        ":localized_xcstrings",
         "nonlocalized_resource.txt",
         ":localized_generic_resources",
         # TODO: storyboards
@@ -210,12 +239,14 @@ apple_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -234,12 +265,14 @@ apple_precompiled_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -275,6 +308,11 @@ filegroup(
 filegroup(
     name = "localized_strings",
     srcs = glob(["*.lproj/*.strings"]),
+)
+
+filegroup(
+    name = "localized_xcstrings",
+    srcs = glob(["*.xcstrings"]),
 )
 
 filegroup(

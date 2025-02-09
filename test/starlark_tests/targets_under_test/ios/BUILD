@@ -404,6 +404,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     strings = [
         "//test/starlark_tests/resources:localized_strings",
+        "//test/starlark_tests/resources:localized_xcstrings",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -3680,6 +3681,7 @@ objc_library(
     name = "app_lib",
     data = [
         "//test/starlark_tests/resources:empty.strings",
+        "//test/starlark_tests/resources:empty.xcstrings",
     ],
     tags = common.fixture_tags,
     deps = [":shared_lib"],
@@ -3689,6 +3691,7 @@ objc_library(
     name = "test_lib",
     data = [
         "//test/starlark_tests/resources:nonlocalized.strings",
+        "//test/starlark_tests/resources:nonlocalized.xcstrings",
     ],
     tags = common.fixture_tags,
     deps = [":app_lib"],
@@ -4327,6 +4330,7 @@ objc_library(
     data = [
         "//test/testdata/resources:assets",
         "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized.xcstrings",
         "//test/testdata/resources:storyboard_ios.storyboard",
         "//test/testdata/resources:unversioned_datamodel",
         "//test/testdata/resources:versioned_datamodel",
