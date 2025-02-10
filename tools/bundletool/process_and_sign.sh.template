@@ -17,9 +17,7 @@ readonly POST_PROCESSOR=%ipa_post_processor%
 readonly SHOULD_COMPRESS=%should_compress%
 # Indicates whether the final archive should be verified by unzipping (1) or not (0).
 readonly SHOULD_VERIFY=%should_verify%
-# The path to archive with the unprocessed and unsigned bundle.
-readonly UNPROCESSED_ARCHIVE_PATH=%unprocessed_archive_path%
-# The absolute path to the directory where the unprocessed archive will be
+# The absolute path to the directory where the archive will be
 # extracted for post-processing and signing.
 readonly WORK_DIR=%work_dir%
 
@@ -29,9 +27,6 @@ if [[ -d "$WORK_DIR" ]]; then
   rm -rf "$WORK_DIR"
 fi
 mkdir -p "$WORK_DIR"
-
-# Expand the unprocessed archive into the temporary directory.
-unzip -qq -d "$WORK_DIR" "$UNPROCESSED_ARCHIVE_PATH"
 
 # Execute the archive post-processor, if it was provided.
 if [[ -n "$POST_PROCESSOR" ]]; then

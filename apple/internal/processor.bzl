@@ -566,59 +566,6 @@ def _bundle_post_process_and_sign(
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
-        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
-        # provider, is used by Tulsi for custom processing logic. (b/120221708)
-        unprocessed_archive = intermediates.file(
-            actions = actions,
-            target_name = rule_label.name,
-            output_discriminator = output_discriminator,
-            file_name = "unprocessed_archive.zip",
-        )
-        _bundle_partial_outputs_files(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
-            ipa_post_processor = ipa_post_processor,
-            label_name = rule_label.name,
-            locales_to_include = locales_to_include,
-            output_discriminator = output_discriminator,
-            output_file = unprocessed_archive,
-            partial_outputs = partial_outputs,
-            platform_prerequisites = platform_prerequisites,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        )
-
-        archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
-        frameworks_path = archive_paths[_LOCATION_ENUM.framework]
-
-        output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
-
-        # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (ios_application).
-        codesigning_support.post_process_and_sign_archive_action(
-            actions = actions,
-            archive_codesigning_path = archive_codesigning_path,
-            codesign_inputs = codesign_inputs,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
-            codesignopts = codesignopts,
-            entitlements = entitlements,
-            features = features,
-            frameworks_path = frameworks_path,
-            input_archive = unprocessed_archive,
-            ipa_post_processor = ipa_post_processor,
-            label_name = rule_label.name,
-            output_archive = output_archive,
-            output_archive_root_path = output_archive_root_path,
-            output_discriminator = output_discriminator,
-            platform_prerequisites = platform_prerequisites,
-            process_and_sign_template = process_and_sign_template,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            signed_frameworks = transitive_signed_frameworks,
-        )
-
         has_different_embedding_archive = outputs.has_different_embedding_archive(
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,

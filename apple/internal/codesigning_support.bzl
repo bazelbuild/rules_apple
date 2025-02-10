@@ -698,7 +698,6 @@ def _post_process_and_sign_archive_action(
             "%should_compress%": "1" if should_compress else "",
             "%should_verify%": "1",  # always verify the crc
             "%signing_command_lines%": signing_command_lines,
-            "%unprocessed_archive_path%": input_archive.path,
             "%work_dir%": output_archive_root_path,
         },
     )
