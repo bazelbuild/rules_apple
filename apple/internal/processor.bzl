@@ -566,8 +566,7 @@ def _bundle_post_process_and_sign(
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
-        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
-        # provider, is used by Tulsi for custom processing logic. (b/120221708)
+        # This output, is an intermediate artifact used for post processing, signing, etc.
         unprocessed_archive = intermediates.file(
             actions = actions,
             target_name = rule_label.name,

@@ -165,9 +165,7 @@ tvos_internal_ui_test_bundle = _tvos_internal_ui_test_bundle
 tvos_ui_test = rule_factory.create_apple_test_rule(
     doc = """
 Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: tvOS UI tests are not currently supported in the default test runner.
 
@@ -238,9 +236,7 @@ tvos_internal_unit_test_bundle = _tvos_internal_unit_test_bundle
 tvos_unit_test = rule_factory.create_apple_test_rule(
     doc = """
 Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: tvOS unit tests are not currently supported in the default test runner.
 
