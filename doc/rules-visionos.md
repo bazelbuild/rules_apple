@@ -280,9 +280,7 @@ visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_u
 </pre>
 
 Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: visionOS UI tests are not currently supported in the default test runner.
 
@@ -321,9 +319,7 @@ visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#vision
 </pre>
 
 Builds and bundles a visionOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: visionOS unit tests are not currently supported in the default test runner.
 

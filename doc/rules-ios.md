@@ -571,9 +571,7 @@ ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">de
 iOS UI Test rule.
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 The `provisioning_profile` attribute needs to be set to run the test on a real device.
 
@@ -615,9 +613,7 @@ ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-de
 </pre>
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 `ios_unit_test` targets can work in two modes: as app or library
 tests. If the `test_host` attribute is set to an `ios_application` target, the
