@@ -166,6 +166,9 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
+        exec_compatible_with = [
+            "@platforms//os:macos",
+        ],
         test = True,
         toolchains = use_cpp_toolchain(),
     )
