@@ -2007,7 +2007,6 @@ ios_application = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 app_intents_aspect,
@@ -2125,7 +2124,6 @@ ios_app_clip = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2186,7 +2184,6 @@ ios_extension = rule_factory.create_apple_rule(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 app_intents_aspect,
@@ -2249,7 +2246,6 @@ ios_framework = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 app_intents_aspect,
@@ -2309,7 +2305,6 @@ ios_static_framework = rule_factory.create_apple_rule(
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_platforms_rule_base_transition,
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
             extra_deps_aspects = [
                 apple_resource_aspect,
@@ -2410,7 +2405,6 @@ ios_imessage_extension = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
         ),
         rule_attrs.binary_linking_attrs(
-            base_cfg = transition_support.apple_rule_transition,
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,

@@ -147,16 +147,12 @@ def _static_library_archive_attrs(*, deps_cfg):
 
 def _binary_linking_attrs(
         *,
-        base_cfg,
         deps_cfg,
         extra_deps_aspects = [],
         is_test_supporting_rule):
     """Returns dictionary of required attributes for linking_support._link_multi_arch_binary.
 
     Args:
-        base_cfg: The Bazel base transition used by the rule implementation. To satisfy native Bazel
-            linking prerequisites, `cfg` on the rule implementation and this `base_cfg` attribute
-            must use the same transition.
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
             To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
             use the same transition.
