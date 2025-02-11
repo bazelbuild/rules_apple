@@ -587,114 +587,114 @@ function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
 
-# function test_ios_unit_test_small_pass() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test //ios:SmallUnitTest || fail "should pass"
+function test_ios_unit_test_small_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:SmallUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'SmallUnitTest1' passed"
-#   expect_log "Test Suite 'SmallUnitTest2' passed"
-#   expect_log "Test Suite 'SmallUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# # Test bundle has tests with one test class with all tests filtered.
-# function test_ios_unit_test_small_empty_test_class_filter_pass() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test --test_filter="-SmallUnitTest1/testPass" //ios:SmallUnitTest || fail "should pass"
+# Test bundle has tests with one test class with all tests filtered.
+function test_ios_unit_test_small_empty_test_class_filter_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter="-SmallUnitTest1/testPass" //ios:SmallUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'SmallUnitTest1' passed"
-#   expect_log "Test Suite 'SmallUnitTest2' passed"
-#   expect_log "Test Suite 'SmallUnitTest.xctest' passed"
-#   expect_log "Executed 1 test, with 0 failures"
-# }
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
 
-# # Test bundle has tests but filter excludes all of them.
-# function test_ios_unit_test_small_empty_fail() {
-#   create_sim_runners
-#   create_ios_unit_tests
+# Test bundle has tests but filter excludes all of them.
+function test_ios_unit_test_small_empty_fail() {
+  create_sim_runners
+  create_ios_unit_tests
 
-#   ! do_ios_test --test_filter="BadFilter" //ios:SmallUnitTest || fail "should fail"
+  ! do_ios_test --test_filter="BadFilter" //ios:SmallUnitTest || fail "should fail"
 
-#   expect_log "Test Suite 'SmallUnitTest.xctest' passed"
-#   expect_log "Executed 0 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_pass() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test //ios:PassingUnitTest || fail "should pass"
+function test_ios_unit_test_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-#   expect_log "Executed 4 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_pass() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test //ios:PassingWithHost || fail "should pass"
+function test_ios_unit_test_with_host_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingWithHost || fail "should pass"
 
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-#   expect_log "Executed 4 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test //ios:PassingWithHostSimReuseDisabled || fail "should pass"
+function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingWithHostSimReuseDisabled || fail "should pass"
 
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHostSimReuseDisabled.xctest' passed"
-#   expect_log "Executed 4 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHostSimReuseDisabled.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
 
-# function test_ios_unit_swift_test_pass() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test //ios:PassingUnitSwiftTest || fail "should pass"
+function test_ios_unit_swift_test_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitSwiftTest || fail "should pass"
 
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
-#   expect_log "Executed 3 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
+  expect_log "Executed 3 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_fail() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   ! do_ios_test //ios:FailingUnitTest || fail "should fail"
+function test_ios_unit_test_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test //ios:FailingUnitTest || fail "should fail"
 
-#   expect_log "Test Suite 'FailingUnitTest' failed"
-#   expect_log "Test Suite 'FailingUnitTest.xctest' failed"
-#   expect_log "Executed 1 test, with 1 failure"
-# }
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Test Suite 'FailingUnitTest.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+}
 
-# function test_ios_unit_test_with_host_fail() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   ! do_ios_test //ios:FailingWithHost || fail "should fail"
+function test_ios_unit_test_with_host_fail() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  ! do_ios_test //ios:FailingWithHost || fail "should fail"
 
-#   expect_log "Test Suite 'FailingUnitTest' failed"
-#   expect_log "Test Suite 'FailingWithHost.xctest' failed"
-#   expect_log "Executed 1 test, with 1 failure"
-# }
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Test Suite 'FailingWithHost.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+}
 
-# function test_ios_unit_test_with_filter() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingUnitTest || fail "should pass"
+function test_ios_unit_test_with_filter() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingUnitTest || fail "should pass"
 
-#   expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-#   expect_log "Executed 1 test, with 0 failures"
-# }
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
 
 function test_ios_unit_test_with_filter_no_tests_ran_fail() {
   create_sim_runners
@@ -721,282 +721,282 @@ function test_ios_unit_test_with_filter_no_tests_ran_pass() {
   expect_log "Executed 0 tests, with 0 failures"
 }
 
-# function test_ios_unit_test_with_multi_filter() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=PassingUnitTest/testPass2,PassingUnitTest/testPass3 //ios:PassingUnitTest || fail "should pass"
+function test_ios_unit_test_with_multi_filter() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest/testPass2,PassingUnitTest/testPass3 //ios:PassingUnitTest || fail "should pass"
 
-#   expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_with_filter() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
+function test_ios_unit_test_with_host_with_filter() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
 
-#   expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-#   expect_log "Executed 1 test, with 0 failures"
-# }
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_and_skip_filter() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=-PassingUnitTest/testPass //ios:PassingWithHost || fail "should pass"
+function test_ios_unit_test_with_host_and_skip_filter() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=-PassingUnitTest/testPass //ios:PassingWithHost || fail "should pass"
 
-#   expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
-#   expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-#   expect_log "Executed 3 tests, with 0 failures"
-# }
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 3 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_and_multi_skip_filter() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=-PassingUnitTest/testPass,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
+function test_ios_unit_test_with_host_and_multi_skip_filter() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=-PassingUnitTest/testPass,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
 
-#   expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
-#   expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_host_and_skip_and_only_filters() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests
-#   do_ios_test --test_filter=PassingUnitTest,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
+function test_ios_unit_test_with_host_and_skip_and_only_filters() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --test_filter=PassingUnitTest,-PassingUnitTest/testPass2 //ios:PassingWithHost || fail "should pass"
 
-#   expect_log "Test Case '-\[PassingUnitTest testPass\]' passed"
-#   expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingWithHost.xctest' passed"
-#   expect_log "Executed 3 tests, with 0 failures"
-# }
+  expect_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 3 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_env() {
-#   create_sim_runners
-#   create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
-#   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUnitTest || fail "should pass"
+function test_ios_unit_test_with_env() {
+  create_sim_runners
+  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'EnvUnitTest' passed"
-# }
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
 
-# function test_ios_unit_test_with_host_with_env() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
-#   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
+function test_ios_unit_test_with_host_with_env() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
 
-#   expect_log "Test Suite 'EnvUnitTest' passed"
-# }
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
 
-# function test_ios_unit_test_with_make_var_empty() {
-#   create_sim_runners
-#   create_ios_unit_make_var_test ""
-#   do_ios_test //ios:MakeVarUnitTest || fail "should pass"
+function test_ios_unit_test_with_make_var_empty() {
+  create_sim_runners
+  create_ios_unit_make_var_test ""
+  do_ios_test //ios:MakeVarUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'MakeVarUnitTest' passed"
-# }
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
 
-# function test_ios_unit_test_with_make_var_set() {
-#   create_sim_runners
-#   create_ios_unit_make_var_test MAKE_VAR_VALUE1
-#   do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarUnitTest || fail "should pass"
+function test_ios_unit_test_with_make_var_set() {
+  create_sim_runners
+  create_ios_unit_make_var_test MAKE_VAR_VALUE1
+  do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'MakeVarUnitTest' passed"
-# }
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
 
-# function test_ios_unit_test_with_host_with_make_var_empty() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_make_var_test ""
-#   do_ios_test //ios:MakeVarWithHost || fail "should pass"
+function test_ios_unit_test_with_host_with_make_var_empty() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_make_var_test ""
+  do_ios_test //ios:MakeVarWithHost || fail "should pass"
 
-#   expect_log "Test Suite 'MakeVarUnitTest' passed"
-# }
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
 
-# function test_ios_unit_test_with_host_with_make_var_set() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_make_var_test MAKE_VAR_VALUE1
-#   do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarWithHost || fail "should pass"
+function test_ios_unit_test_with_host_with_make_var_set() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_make_var_test MAKE_VAR_VALUE1
+  do_ios_test --//ios:my_make_var=MAKE_VAR_VALUE1 //ios:MakeVarWithHost || fail "should pass"
 
-#   expect_log "Test Suite 'MakeVarUnitTest' passed"
-# }
+  expect_log "Test Suite 'MakeVarUnitTest' passed"
+}
 
-# function test_ios_unit_test_dot_separated_command_line_args() {
-#   create_sim_runners
-#   create_ios_unit_argtest arg1 arg2 arg3
-#   do_ios_test //ios:ArgUnitTest \
-#     --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
+function test_ios_unit_test_dot_separated_command_line_args() {
+  create_sim_runners
+  create_ios_unit_argtest arg1 arg2 arg3
+  do_ios_test //ios:ArgUnitTest \
+    --test_arg="--command_line_args=arg1,arg2,arg3" || fail "should pass"
 
-#   expect_log "Test Suite 'ArgUnitTest' passed"
-# }
+  expect_log "Test Suite 'ArgUnitTest' passed"
+}
 
-# function test_ios_unit_test_multiple_command_line_args() {
-#   create_sim_runners
-#   create_ios_unit_argtest arg1 arg2
-#   do_ios_test //ios:ArgUnitTest \
-#     --test_arg="--command_line_args=arg1" \
-#     --test_arg="--command_line_args=arg2" || fail "should pass"
+function test_ios_unit_test_multiple_command_line_args() {
+  create_sim_runners
+  create_ios_unit_argtest arg1 arg2
+  do_ios_test //ios:ArgUnitTest \
+    --test_arg="--command_line_args=arg1" \
+    --test_arg="--command_line_args=arg2" || fail "should pass"
 
-#   expect_log "Test Suite 'ArgUnitTest' passed"
-# }
+  expect_log "Test Suite 'ArgUnitTest' passed"
+}
 
-# function test_ios_unit_other_arg() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
+function test_ios_unit_other_arg() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
 
-#   expect_log "error: Unsupported argument 'invalid_arg'"
-# }
+  expect_log "error: Unsupported argument 'invalid_arg'"
+}
 
-# function test_ios_unit_test_with_multi_equal_env() {
-#   create_sim_runners
-#   create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
-#   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
+function test_ios_unit_test_with_multi_equal_env() {
+  create_sim_runners
+  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
+  do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'EnvUnitTest' passed"
-# }
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
 
-# function test_ios_unit_test_pass_asan() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test --features=asan //ios:PassingUnitTest || fail "should pass"
+function test_ios_unit_test_pass_asan() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --features=asan //ios:PassingUnitTest || fail "should pass"
 
-#   expect_log "Test Suite 'PassingUnitTest' passed"
-#   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
-#   expect_log "Executed 4 tests, with 0 failures"
-# }
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
 
-# function test_with_test_filter_build_attribute() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2
-#   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
+function test_with_test_filter_build_attribute() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2
+  do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 1 test, with 0 failures"
-# }
+  expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
 
-# function test_ios_unit_test_with_multi_test_filter_build_attribute() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2,TestFilterUnitTest/testPass3
-#   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
+function test_ios_unit_test_with_multi_test_filter_build_attribute() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2,TestFilterUnitTest/testPass3
+  do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_skip_test_filter_build_attribute() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass
-#   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
+function test_ios_unit_test_with_skip_test_filter_build_attribute() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass
+  do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_not_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_not_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_multi_skip_test_filter_build_attribute() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass,-TestFilterUnitTest/testPass2
-#   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
+function test_ios_unit_test_multi_skip_test_filter_build_attribute() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter -TestFilterUnitTest/testPass,-TestFilterUnitTest/testPass2
+  do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_not_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
-#   expect_not_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 1 test, with 0 failures"
-# }
+  expect_not_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
 
-# function test_ios_unit_test_with_skip_and_only_filters_build_attribute() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter TestFilterUnitTest,-TestFilterUnitTest/testPass2
-#   do_ios_test //ios:TestFilterUnitTest || fail "should pass"
+function test_ios_unit_test_with_skip_and_only_filters_build_attribute() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter TestFilterUnitTest,-TestFilterUnitTest/testPass2
+  do_ios_test //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
-#   expect_not_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_log "Test Case '-\[TestFilterUnitTest testPass\]' passed"
+  expect_not_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
-#   create_sim_runners
-#   create_test_host_app
-#   create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2
-#   do_ios_test --test_filter=TestFilterUnitTest/testPass3 //ios:TestFilterUnitTest || fail "should pass"
+function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests_test_filter TestFilterUnitTest/testPass2
+  do_ios_test --test_filter=TestFilterUnitTest/testPass3 //ios:TestFilterUnitTest || fail "should pass"
 
-#   expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
-#   expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest' passed"
-#   expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
-#   expect_log "Executed 2 tests, with 0 failures"
-# }
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[TestFilterUnitTest testPass3\]' passed"
+  expect_log "Test Suite 'TestFilterUnitTest' passed"
+  expect_log "Test Suite 'TestFilterUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
 
-# # Tests a test execution with parallel testing enabled is successful.
-# function test_ios_unit_test_parallel_testing_pass() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   do_ios_test \
-#     --test_arg=--xcodebuild_args=-parallel-testing-enabled \
-#     --test_arg=--xcodebuild_args=YES \
-#     --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
-#     --test_arg=--xcodebuild_args=1 \
-#     //ios:SmallUnitTest || fail "should pass"
+# Tests a test execution with parallel testing enabled is successful.
+function test_ios_unit_test_parallel_testing_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    //ios:SmallUnitTest || fail "should pass"
 
-#   expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
-#   expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
-#   expect_log "//ios:SmallUnitTest\s\+PASSED"
-#   expect_log "Executed 1 out of 1 test: 1 test passes."
-# }
+  expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
+  expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
+  expect_log "//ios:SmallUnitTest\s\+PASSED"
+  expect_log "Executed 1 out of 1 test: 1 test passes."
+}
 
-# # Tests a test execution with parallel testing enabled is failed when
-# # a test filter leads to no tests being run.
-# function test_ios_unit_test_parallel_testing_no_tests_fail() {
-#   create_sim_runners
-#   create_ios_unit_tests
-#   ! do_ios_test --test_arg=--xcodebuild_args=-parallel-testing-enabled \
-#     --test_arg=--xcodebuild_args=YES \
-#     --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
-#     --test_arg=--xcodebuild_args=1 \
-#     --test_filter="BadFilter" \
-#     //ios:SmallUnitTest || fail "should fail"
+# Tests a test execution with parallel testing enabled is failed when
+# a test filter leads to no tests being run.
+function test_ios_unit_test_parallel_testing_no_tests_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    --test_filter="BadFilter" \
+    //ios:SmallUnitTest || fail "should fail"
 
-#   expect_not_log "Test suite 'SmallUnitTest1' started"
-#   expect_not_log "Test suite 'SmallUnitTest2' started"
-#   expect_log "FAIL: //ios:SmallUnitTest"
-#   expect_log "Executed 1 out of 1 test: 1 fails locally."
-# }
+  expect_not_log "Test suite 'SmallUnitTest1' started"
+  expect_not_log "Test suite 'SmallUnitTest2' started"
+  expect_log "FAIL: //ios:SmallUnitTest"
+  expect_log "Executed 1 out of 1 test: 1 fails locally."
+}
 
 run_suite "ios_unit_test with iOS xctestrun runner bundling tests"
