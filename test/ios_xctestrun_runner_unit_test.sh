@@ -696,6 +696,31 @@ function test_ios_unit_test_with_filter() {
   expect_log "Executed 1 test, with 0 failures"
 }
 
+function test_ios_unit_test_with_filter_no_tests_ran_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_filter=PassingUnitTest/testInvalid //ios:PassingUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+  expect_log "error: no tests were executed, is the test bundle empty?"
+}
+
+function test_ios_unit_test_with_filter_no_tests_ran_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_env=ERROR_ON_NO_TESTS_RAN=0 \
+    --test_filter=PassingUnitTest/testInvalid \
+    //ios:PassingUnitTest \
+    || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+}
+
 function test_ios_unit_test_with_multi_filter() {
   create_sim_runners
   create_ios_unit_tests
