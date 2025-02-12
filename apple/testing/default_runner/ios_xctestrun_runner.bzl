@@ -183,14 +183,14 @@ Toggle simulator reuse. The default behavior is to reuse an existing device of t
             executable = True,
             cfg = "exec",
             doc = """
-A binary to run prior to test execution. Runs after simulator creation.
+A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
 """,
         ),
         "post_action": attr.label(
             executable = True,
             cfg = "exec",
             doc = """
-A binary to run following test execution. Runs after testing but before coverage processing.
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.
 """,
         ),
         "_simulator_creator": attr.label(
