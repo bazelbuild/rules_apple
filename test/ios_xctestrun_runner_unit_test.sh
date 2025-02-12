@@ -55,15 +55,13 @@ genrule(
   executable = True,
   outs = ["pre_action.bash"],
   cmd = """
-echo 'echo PRE-ACTION' > \$@
+echo 'echo "PRE-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
 """,
-  testonly = True,
 )
 
 sh_binary(
   name = "pre_action",
   srcs = [":pre_action_gen"],
-  testonly = True,
 )
 
 genrule(
@@ -71,15 +69,13 @@ genrule(
   executable = True,
   outs = ["post_action.bash"],
   cmd = """
-echo 'echo POST-ACTION' > \$@
+echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
 """,
-  testonly = True,
 )
 
 sh_binary(
   name = "post_action",
   srcs = [":post_action_gen"],
-  testonly = True,
 )
 
 ios_xctestrun_runner(
@@ -706,11 +702,11 @@ function test_ios_unit_test_with_hooks_pass() {
   create_ios_unit_tests
   do_ios_test //ios:PassingUnitTestWithHooks || fail "should pass"
 
-  expect_log "PRE-ACTION"
+  expect_log "PRE-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTestWithHooks.xctest' passed"
   expect_log "Executed 4 tests, with 0 failures"
-  expect_log "POST-ACTION"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
 }
 
 function test_ios_unit_swift_test_pass() {
