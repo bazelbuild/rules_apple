@@ -908,10 +908,12 @@ def _ios_framework_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     signed_frameworks = []
-    if provisioning_profile:
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -1504,10 +1506,12 @@ def _ios_dynamic_framework_impl(ctx):
     )
 
     signed_frameworks = []
-    if getattr(ctx.file, "provisioning_profile", None):
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = ctx.file.provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
 
     extra_linkopts = [
         "-dynamiclib",
