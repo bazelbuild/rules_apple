@@ -428,7 +428,12 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   should_use_xcodebuild=true
 fi
 
-%(pre_action_binary)s
+pre_action_binary=%(pre_action_binary)s
+if [[ -x "${pre_action_binary:-}" ]]; then
+  env \
+    SIMULATOR_UDID="$simulator_id" \
+    "$pre_action_binary"
+fi
 
 if [[ "$should_use_xcodebuild" == true ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
@@ -535,7 +540,13 @@ then
   rm -r "$result_bundle_path"
 fi
 
-%(post_action_binary)s
+post_action_binary=%(post_action_binary)s
+if [[ -x "${post_action_binary:-}" ]]; then
+  env \
+    TEST_EXIT_CODE=$test_exit_code \
+    SIMULATOR_UDID="$simulator_id" \
+    "$post_action_binary"
+fi
 
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
