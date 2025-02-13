@@ -1522,7 +1522,11 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
     deps = [
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1576,6 +1580,7 @@ ios_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:framework_resources_lib",
@@ -1744,6 +1749,7 @@ ios_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
 )
 
