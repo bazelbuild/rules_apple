@@ -34,6 +34,10 @@ load(
     "AppleExecutableBinaryInfo",
     "new_appledebugoutputsinfo",
 )
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 
 ObjcInfo = apple_common.Objc
 
@@ -276,7 +280,7 @@ def _link_multi_arch_binary(
             else:
                 suffix = "_bin.dwarf"
             dsym_binary = ctx.actions.declare_shareable_artifact(
-                ctx.label.package + "/" + ctx.label.name + suffix,
+                paths.join(ctx.label.package, ctx.label.name + suffix),
                 child_config.bin_dir,
             )
             extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
@@ -286,7 +290,7 @@ def _link_multi_arch_binary(
         linkmap = None
         if ctx.fragments.cpp.objc_generate_linkmap:
             linkmap = ctx.actions.declare_shareable_artifact(
-                ctx.label.package + "/" + ctx.label.name + ".linkmap",
+                paths.join(ctx.label.package, ctx.label.name + ".linkmap"),
                 child_config.bin_dir,
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
