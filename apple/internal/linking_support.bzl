@@ -14,6 +14,10 @@
 
 """Support for linking related actions."""
 
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
@@ -33,10 +37,6 @@ load(
     "AppleDynamicFrameworkInfo",
     "AppleExecutableBinaryInfo",
     "new_appledebugoutputsinfo",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 ObjcInfo = apple_common.Objc
