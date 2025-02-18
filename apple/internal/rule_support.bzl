@@ -599,7 +599,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # visionos_extension
         apple_product_type.app_extension: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
@@ -614,7 +614,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # visionos_framework
         apple_product_type.framework: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             bundle_extension = ".framework",
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
@@ -630,14 +630,14 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # visionos_static_framework
         apple_product_type.static_framework: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             bundle_extension = ".framework",
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.skip_signing,
             product_type = apple_product_type.static_framework,
         ),
         # visionos_ui_test
         apple_product_type.ui_test_bundle: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             product_type = apple_product_type.ui_test_bundle,
@@ -653,7 +653,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
         # visionos_unit_test
         apple_product_type.unit_test_bundle: _describe_rule_type(
-            allowed_device_families = ["reality"],
+            allowed_device_families = ["vision"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
             product_type = apple_product_type.unit_test_bundle,
