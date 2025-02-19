@@ -144,6 +144,10 @@ below.
         <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
         <td valign="top"><code><a href="rules-versioning.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
       </tr>
+      <tr>
+        <td valign="top"><code>@build_bazel_rules_apple//apple:xctrunner.bzl</code></td>
+        <td valign="top"><code><a href="rules-xctrunner.md#xctrunner">xctrunner</a></code></td>
+      </tr>
     </tr>
     <tr>
       <th align="left" valign="top" rowspan="1">Resources</th>
