@@ -576,6 +576,7 @@ def _post_process_and_sign_archive_action(
         codesigningtool,
         codesignopts,
         entitlements = None,
+        env = None,
         features,
         frameworks_path,
         input_archive,
@@ -598,6 +599,7 @@ def _post_process_and_sign_archive_action(
       codesigningtool: The files_to_run for the code signing tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: Optional file representing the entitlements to sign with.
+      env: Environment variables. Typically from `ctx.configuration.default_shell_env`.
       features: List of features enabled by the user. Typically from `ctx.features`.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
@@ -719,6 +721,7 @@ def _post_process_and_sign_archive_action(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = arguments,
+            env = env,
             executable = process_and_sign_expanded_template,
             execution_requirements = execution_requirements,
             inputs = input_files + codesign_inputs,
@@ -731,6 +734,7 @@ def _post_process_and_sign_archive_action(
     else:
         actions.run(
             arguments = arguments,
+            env = env,
             executable = process_and_sign_expanded_template,
             inputs = input_files,
             mnemonic = mnemonic,
