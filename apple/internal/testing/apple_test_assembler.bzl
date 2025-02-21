@@ -23,6 +23,7 @@ _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
+        "additional_linker_inputs",
         "deps",
         "base_bundle_id",
         "bundle_id",
