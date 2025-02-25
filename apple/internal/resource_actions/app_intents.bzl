@@ -114,10 +114,11 @@ def generate_app_intents_metadata_bundle(
     args = actions.args()
     args.add("appintentsmetadataprocessor")
 
-    # FB347041279: Though this is not required for --compile-time-extraction, which is the only
-    # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
-    # required by the appintentsmetadataprocessor.
-    args.add("--binary-file", "/bazel_rules_apple/fakepath")
+    if xcode_version_config.xcode_version() < apple_common.dotted_version("16.3"):
+        # FB347041279: Though this is not required for --compile-time-extraction, which is the only
+        # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
+        # required by the appintentsmetadataprocessor up until Xcode 16.3.
+        args.add("--binary-file", "/bazel_rules_apple/fakepath")
     args.add("--module-name", intents_module_name)
     args.add("--output", output.dirname)
     source_file_list = _generate_intermediate_file_list(
