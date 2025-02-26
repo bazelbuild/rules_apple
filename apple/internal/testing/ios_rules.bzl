@@ -85,9 +85,16 @@ def _ios_unit_test_bundle_impl(ctx):
 
 def _ios_ui_test_impl(ctx):
     """Implementation of ios_ui_test."""
+
+    # Requires Apple Silicon for simulator tests built for arm64.
+    test_bundle_info = ctx.attr.deps[0][AppleBundleInfo]
+    target_archs = test_bundle_info.archs
+    environment = test_bundle_info.target_environment
+    requires_apple_silicon = "arm64" in target_archs and environment == "simulator"
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
         requires_dossiers = False,
+        requires_apple_silicon = requires_apple_silicon,
         test_type = "xcuitest",
     ) + [
         new_iosxctestbundleinfo(),
@@ -95,9 +102,16 @@ def _ios_ui_test_impl(ctx):
 
 def _ios_unit_test_impl(ctx):
     """Implementation of ios_unit_test."""
+
+    # Requires Apple Silicon for simulator tests built for arm64.
+    test_bundle_info = ctx.attr.deps[0][AppleBundleInfo]
+    target_archs = test_bundle_info.archs
+    environment = test_bundle_info.target_environment
+    requires_apple_silicon = "arm64" in target_archs and environment == "simulator"
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
         requires_dossiers = False,
+        requires_apple_silicon = requires_apple_silicon,
         test_type = "xctest",
     ) + [
         new_iosxctestbundleinfo(),
