@@ -227,12 +227,11 @@ Holds debug outputs of an Apple binary rule.
 
 This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
 
-The only field is `output_map`, which is a dictionary of:
-  `{ arch: { "dsym_binary": File, "linkmap": File }`
-
-Where `arch` is any Apple architecture such as "arm64" or "armv7".
 """,
-    fields = ["outputs_map"],
+    fields = {"outputs_map": """
+A dictionary of: `{ [ARCH]: { "dsym_binary": File, "linkmap": File }`. Where `ARCH` is any Apple
+architecture such as "arm64" or "armv7".
+"""},
     init = make_banned_init(provider_name = "AppleDebugOutputsInfo"),
 )
 
