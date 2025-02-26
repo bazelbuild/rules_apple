@@ -41,13 +41,13 @@ def make_banned_init(*, preferred_public_factory = None, provider_name):
         recommend an alternative public interface.
     """
     if preferred_public_factory:
-        return lambda *kwargs: fail("""
+        return lambda: fail("""
 {provider} is a provider that must be initialized through apple_provider.{preferred_public_factory}
 """.format(
             provider = provider_name,
             preferred_public_factory = preferred_public_factory,
         ))
-    return lambda *kwargs: fail("""
+    return lambda: fail("""
 %s is not a provider that is intended to be publicly initialized.
 
 Please file an issue with the Apple BUILD rules if you would like a public API for this provider.
