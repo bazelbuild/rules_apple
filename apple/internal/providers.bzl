@@ -100,6 +100,10 @@ bundle was constructed (before archiving). Other rules **should not** depend on
 this field; it is intended to support IDEs that want to read that path from the
 provider to avoid performance issues from unzipping the output archive.
 """,
+        "archs": """
+`List` of `String`s. The architectures that the bundle supports (i.e. `arm64` for Apple Silicon
+simulators and device builds).
+""",
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) that was bundled. The
 physical file is identical to the one inside the bundle except that it is

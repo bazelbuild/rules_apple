@@ -218,6 +218,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,

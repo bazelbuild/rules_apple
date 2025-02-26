@@ -24,6 +24,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "ApplePlatformInfo",
     "new_applebundleinfo",
 )
 
@@ -35,6 +36,7 @@ def _apple_bundle_info_partial_impl(
         bundle_id,
         bundle_extension,
         bundle_name,
+        cc_toolchains,
         entitlements,
         label_name,
         output_discriminator,
@@ -73,6 +75,7 @@ def _apple_bundle_info_partial_impl(
             new_applebundleinfo(
                 archive = archive,
                 archive_root = archive_root,
+                archs = sorted([x[ApplePlatformInfo].target_arch for x in cc_toolchains.values()]),
                 binary = binary,
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
@@ -95,6 +98,7 @@ def apple_bundle_info_partial(
         bundle_id = None,
         bundle_extension,
         bundle_name,
+        cc_toolchains,
         entitlements = None,
         label_name,
         output_discriminator = None,
@@ -110,6 +114,8 @@ def apple_bundle_info_partial(
       bundle_id: The bundle ID to configure for this target.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
+      cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+          transition to relay target platform information for related deps.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -127,6 +133,7 @@ def apple_bundle_info_partial(
         bundle_id = bundle_id,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_toolchains = cc_toolchains,
         entitlements = entitlements,
         label_name = label_name,
         output_discriminator = output_discriminator,
