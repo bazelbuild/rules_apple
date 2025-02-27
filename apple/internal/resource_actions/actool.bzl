@@ -284,6 +284,8 @@ def compile_asset_catalog(
         "--minimum-deployment-target",
         platform_prerequisites.minimum_os,
         "--compress-pngs",
+        "--enable-on-demand-resources",
+        "YES",
     ]
 
     args.extend(_actool_args_for_special_file_types(
