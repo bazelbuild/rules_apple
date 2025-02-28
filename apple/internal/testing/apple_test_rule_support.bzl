@@ -249,6 +249,7 @@ def _apple_test_rule_impl(
     execution_requirements = getattr(runner_info, "execution_requirements", {})
 
     test_bundle_target = ctx.attr.deps[0]
+
     test_bundle = test_bundle_target[AppleTestInfo].test_bundle
 
     direct_runfiles = [test_bundle]

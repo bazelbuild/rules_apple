@@ -94,6 +94,7 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
