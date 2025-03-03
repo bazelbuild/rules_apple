@@ -135,6 +135,9 @@ def _create_apple_rule(
         ),
         cfg = cfg,
         doc = doc,
+        exec_compatible_with = [
+            "@platforms//os:macos",
+        ],
         executable = is_executable,
         fragments = ["apple", "cpp", "objc", "j2objc"],
         toolchains = toolchains,
