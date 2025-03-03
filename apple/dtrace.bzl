@@ -93,6 +93,9 @@ dtrace_compile = rule(
             doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
     fragments = ["apple"],
     doc = """
 Compiles
