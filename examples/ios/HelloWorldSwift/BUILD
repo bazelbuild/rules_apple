@@ -2,6 +2,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("//apple:docc.bzl", "docc_archive")
 load("//apple:ios.bzl", "ios_application", "ios_ui_test", "ios_unit_test")
+load("//apple:xctrunner.bzl", "xctrunner")
 
 licenses(["notice"])
 
@@ -102,4 +103,10 @@ docc_archive(
     fallback_bundle_version = "1.0.0",
     fallback_display_name = "HelloWorldSwift",
     minimum_access_level = "internal",
+)
+
+xctrunner(
+    name = "HelloWorldSwiftXCTRunner",
+    testonly = True,
+    tests = [":HelloWorldSwiftUITests"],
 )
