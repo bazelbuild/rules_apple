@@ -201,6 +201,13 @@ apple_shell_test(
 )
 
 apple_shell_test(
+    name = "macos_test_runner_unit_test",
+    size = "large",
+    src = "macos_test_runner_unit_test.sh",
+    tags = common.skip_ci_tags,
+)
+
+apple_shell_test(
     name = "ios_xctestrun_runner_unit_test",
     size = "large",
     src = "ios_xctestrun_runner_unit_test.sh",
