@@ -37,6 +37,10 @@ load(
     "xcarchive",
 )
 load(
+    "//apple:xctrunner.bzl",
+    "xctrunner",
+)
+load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
@@ -3363,6 +3367,21 @@ ios_ui_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+xctrunner(
+    name = "ui_test_xctrunner_app",
+    testonly = True,
+    tests = [":ui_test"],
+)
+
+xctrunner(
+    name = "ui_test_xctrunner_app_multiple_targets",
+    testonly = True,
+    tests = [
+        ":ui_test",
+        ":ui_test_with_fmwk",
     ],
 )
 
