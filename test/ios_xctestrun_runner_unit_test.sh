@@ -698,7 +698,6 @@ function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
 
 function test_ios_unit_test_with_hooks_pass() {
   create_sim_runners
-  create_test_host_app
   create_ios_unit_tests
   do_ios_test //ios:PassingUnitTestWithHooks || fail "should pass"
 

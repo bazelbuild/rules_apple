@@ -134,6 +134,13 @@ if [[ "$XML_OUTPUT_FILE" != /* ]]; then
   export XML_OUTPUT_FILE="$PWD/$XML_OUTPUT_FILE"
 fi
 
+pre_action_binary=%(pre_action_binary)s
+if [[ -x "${pre_action_binary:-}" ]]; then
+  env \
+    "$pre_action_binary"
+fi
+
+test_exit_code=0
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
@@ -141,7 +148,20 @@ rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
     -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult" \
-    -xctestrun "$XCTESTRUN"
+    -xctestrun "$XCTESTRUN" \
+    || test_exit_code=$?
+
+post_action_binary=%(post_action_binary)s
+if [[ -x "${post_action_binary:-}" ]]; then
+  env \
+    TEST_EXIT_CODE=$test_exit_code \
+    "$post_action_binary"
+fi
+
+if [[ "$test_exit_code" -ne 0 ]]; then
+  echo "error: tests exited with '$test_exit_code'" >&2
+  exit "$test_exit_code"
+fi
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage

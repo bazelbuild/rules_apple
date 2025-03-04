@@ -20,13 +20,22 @@ load(
     "apple_provider",
 )
 
-def _get_template_substitutions(*, device_type, os_version, simulator_creator, testrunner):
+def _get_template_substitutions(
+        *,
+        device_type,
+        os_version,
+        simulator_creator,
+        testrunner,
+        pre_action_binary,
+        post_action_binary):
     """Returns the template substitutions for this runner."""
     subs = {
         "device_type": device_type,
         "os_version": os_version,
         "simulator_creator": simulator_creator,
         "testrunner_binary": testrunner,
+        "pre_action_binary": pre_action_binary,
+        "post_action_binary": post_action_binary,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -45,6 +54,22 @@ def _ios_test_runner_impl(ctx):
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
+    runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+    runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
+
+    default_action_binary = "/usr/bin/true"
+
+    pre_action_binary = default_action_binary
+    post_action_binary = default_action_binary
+
+    if ctx.executable.pre_action:
+        pre_action_binary = ctx.executable.pre_action.short_path
+        runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
+
+    if ctx.executable.post_action:
+        post_action_binary = ctx.executable.post_action.short_path
+        runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
@@ -53,6 +78,8 @@ def _ios_test_runner_impl(ctx):
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
             testrunner = ctx.executable._testrunner.short_path,
+            pre_action_binary = pre_action_binary,
+            post_action_binary = post_action_binary,
         ),
     )
     return [
@@ -68,10 +95,7 @@ def _ios_test_runner_impl(ctx):
             device_type = device_type,
             os_version = os_version,
         ),
-        DefaultInfo(
-            runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
-                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
-        ),
+        DefaultInfo(runfiles = runfiles),
     ]
 
 ios_test_runner = rule(
@@ -105,6 +129,20 @@ By default, it is the latest supported version of the device type.'
             doc = """
 Optional dictionary with the environment variables that are to be propagated
 into the XCTest invocation.
+""",
+        ),
+        "pre_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.
+""",
+        ),
+        "post_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
 """,
         ),
         "_test_template": attr.label(

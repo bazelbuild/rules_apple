@@ -257,11 +257,30 @@ else
   )
 fi
 
+pre_action_binary=%(pre_action_binary)s
+if [[ -x "${pre_action_binary:-}" ]]; then
+  env \
+    "$pre_action_binary"
+fi
+
+test_exit_code=0
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   "${target_flags[@]}"
   "${custom_xctestrunner_args[@]}")
-"${cmd[@]}" 2>&1
+"${cmd[@]}" 2>&1 || test_exit_code=$?
+
+post_action_binary=%(post_action_binary)s
+if [[ -x "${post_action_binary:-}" ]]; then
+  env \
+    TEST_EXIT_CODE=$test_exit_code \
+    "$post_action_binary"
+fi
+
+if [[ "$test_exit_code" -ne 0 ]]; then
+  echo "error: tests exited with '$test_exit_code'" >&2
+  exit "$test_exit_code"
+fi
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
