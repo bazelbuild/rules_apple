@@ -544,6 +544,7 @@ post_action_binary=%(post_action_binary)s
 if [[ -x "${post_action_binary:-}" ]]; then
   env \
     TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
     SIMULATOR_UDID="$simulator_id" \
     "$post_action_binary"
 fi
