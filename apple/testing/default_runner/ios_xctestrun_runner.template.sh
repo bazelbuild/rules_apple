@@ -553,6 +553,15 @@ TEST_EXIT_CODE=$test_exit_code \
   SIMULATOR_UDID="$simulator_id" \
   "$post_action_binary"
 
+if [[
+  "$test_exit_code" -eq 0 &&
+  "$create_xcresult_bundle" == true &&
+  "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1"
+]]; then
+  # Reduce download size by removing the xcresult bundle if the test run was successful
+  rm -r "$result_bundle_path"
+fi
+
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
