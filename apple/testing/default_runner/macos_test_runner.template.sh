@@ -135,10 +135,7 @@ if [[ "$XML_OUTPUT_FILE" != /* ]]; then
 fi
 
 pre_action_binary=%(pre_action_binary)s
-if [[ -x "${pre_action_binary:-}" ]]; then
-  env \
-    "$pre_action_binary"
-fi
+"$pre_action_binary"
 
 test_exit_code=0
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
@@ -152,11 +149,8 @@ xcodebuild test-without-building \
     || test_exit_code=$?
 
 post_action_binary=%(post_action_binary)s
-if [[ -x "${post_action_binary:-}" ]]; then
-  env \
-    TEST_EXIT_CODE=$test_exit_code \
-    "$post_action_binary"
-fi
+TEST_EXIT_CODE=$test_exit_code \
+  "$post_action_binary"
 
 if [[ "$test_exit_code" -ne 0 ]]; then
   echo "error: tests exited with '$test_exit_code'" >&2
