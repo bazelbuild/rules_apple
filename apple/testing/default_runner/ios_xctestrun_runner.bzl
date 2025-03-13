@@ -22,7 +22,9 @@ def _get_template_substitutions(
         attachment_lifetime,
         destination_timeout,
         reuse_simulator,
-        xctrunner_entitlements_template):
+        xctrunner_entitlements_template,
+        pre_action_binary,
+        post_action_binary):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -37,6 +39,8 @@ def _get_template_substitutions(
         "reuse_simulator": reuse_simulator,
         "destination_timeout": destination_timeout,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
+        "pre_action_binary": pre_action_binary,
+        "post_action_binary": post_action_binary,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -60,6 +64,24 @@ def _ios_xctestrun_runner_impl(ctx):
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
+    runfiles = ctx.runfiles(files = [
+        ctx.file._xctestrun_template,
+        ctx.file._xctrunner_entitlements_template,
+    ]).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles)
+
+    default_action_binary = "/usr/bin/true"
+
+    pre_action_binary = default_action_binary
+    post_action_binary = default_action_binary
+
+    if ctx.executable.pre_action:
+        pre_action_binary = ctx.executable.pre_action.short_path
+        runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
+
+    if ctx.executable.post_action:
+        post_action_binary = ctx.executable.post_action.short_path
+        runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
@@ -76,6 +98,8 @@ def _ios_xctestrun_runner_impl(ctx):
             destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
+            pre_action_binary = pre_action_binary,
+            post_action_binary = post_action_binary,
         ),
     )
 
@@ -89,14 +113,7 @@ def _ios_xctestrun_runner_impl(ctx):
             device_type = device_type,
             os_version = os_version,
         ),
-        DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [
-                    ctx.file._xctestrun_template,
-                    ctx.file._xctrunner_entitlements_template,
-                ],
-            ).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles),
-        ),
+        DefaultInfo(runfiles = runfiles),
     ]
 
 ios_xctestrun_runner = rule(
@@ -160,6 +177,20 @@ or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult out
             default = True,
             doc = """
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
+""",
+        ),
+        "pre_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
+""",
+        ),
+        "post_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.
 """,
         ),
         "_simulator_creator": attr.label(

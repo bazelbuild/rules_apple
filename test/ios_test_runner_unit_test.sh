@@ -44,6 +44,41 @@ ios_test_runner(
     device_type = "iPhone Xs",
 )
 
+genrule(
+  name = "pre_action_gen",
+  executable = True,
+  outs = ["pre_action.bash"],
+  cmd = """
+echo 'echo "PRE-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+""",
+)
+
+sh_binary(
+  name = "pre_action",
+  srcs = [":pre_action_gen"],
+)
+
+genrule(
+  name = "post_action_gen",
+  executable = True,
+  outs = ["post_action.bash"],
+  cmd = """
+echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+""",
+)
+
+sh_binary(
+  name = "post_action",
+  srcs = [":post_action_gen"],
+)
+
+ios_test_runner(
+    name = "ios_x86_64_sim_runner_with_hooks",
+    device_type = "iPhone Xs",
+    pre_action = ":pre_action",
+    post_action = ":post_action",
+)
+
 EOF
 }
 
@@ -224,6 +259,16 @@ ios_unit_test(
     test_host = ":app",
     env = test_env,
     runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = "PassingUnitTestWithHooks",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner_with_hooks",
 )
 
 swift_library(
@@ -587,6 +632,18 @@ function test_ios_unit_test_with_host_pass() {
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
   expect_log "Executed 4 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_hooks_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTestWithHooks || fail "should pass"
+
+  expect_log "PRE-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTestWithHooks.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
 }
 
 function test_ios_unit_swift_test_pass() {
