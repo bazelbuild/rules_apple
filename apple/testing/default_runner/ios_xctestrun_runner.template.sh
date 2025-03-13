@@ -524,9 +524,27 @@ else
     || test_exit_code=$?
 fi
 
+if [[ "$test_exit_code" -eq 0 &&
+      "$create_xcresult_bundle" == true &&
+      "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1" ]]
+then
+  # Reduce download size by removing the xcresult bundle if the test run was successful
+  rm -r "$result_bundle_path"
+fi
+
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
+fi
+
+profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+if [[ "$should_use_xcodebuild" == false ]]; then
+  profdata="$test_tmp_dir/coverage.profdata"
+  xcrun llvm-profdata merge "$profraw" --output "$profdata"
+fi
+
+if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
+  cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
 if [[ "$test_exit_code" -ne 0 ]]; then
@@ -580,12 +598,6 @@ fi
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
-fi
-
-profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
-if [[ "$should_use_xcodebuild" == false ]]; then
-  profdata="$test_tmp_dir/coverage.profdata"
-  xcrun llvm-profdata merge "$profraw" --output "$profdata"
 fi
 
 lcov_args=(
