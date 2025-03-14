@@ -529,14 +529,6 @@ else
     || test_exit_code=$?
 fi
 
-if [[ "$test_exit_code" -eq 0 &&
-      "$create_xcresult_bundle" == true &&
-      "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1" ]]
-then
-  # Reduce download size by removing the xcresult bundle if the test run was successful
-  rm -r "$result_bundle_path"
-fi
-
 post_action_binary=%(post_action_binary)s
 TEST_EXIT_CODE=$test_exit_code \
   TEST_LOG_FILE="$testlog" \
@@ -551,7 +543,6 @@ fi
 profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
 if [[ "$should_use_xcodebuild" == false ]]; then
   profdata="$test_tmp_dir/coverage.profdata"
-  xcrun llvm-profdata merge "$profraw" --output "$profdata"
 fi
 
 if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
@@ -620,6 +611,10 @@ fi
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
+fi
+
+if [[ "$should_use_xcodebuild" == false ]]; then
+  xcrun llvm-profdata merge "$profraw" --output "$profdata"
 fi
 
 lcov_args=(
