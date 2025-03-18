@@ -136,6 +136,19 @@ def _get_template_substitutions(
         A new dictionary with substitutions suitable for ctx.actions.expand_template when applied to
         the rule's assigned test runner template.
     """
+    test_bundle_path = test_bundle.short_path
+    if not (test_bundle_path.endswith(".xctest") or test_bundle_path.endswith(".zip")):
+        fail("Test bundle must be .xctest or .zip (%s)" % test_bundle_path)
+    if test_bundle_dossier and not test_bundle_dossier.short_path.endswith(".zip"):
+        fail("Test bundle dossier must be .zip (%s)" % test_bundle_dossier.short_path)
+    if test_host_artifact and not (test_host_artifact.short_path.endswith(".app") or
+                                   test_host_artifact.short_path.endswith(".ipa") or
+                                   test_host_artifact.short_path.endswith(".zip")):
+        fail("Test host must be .app, .zip or .ipa (%s)" % test_host_artifact.short_path)
+    if test_host_dossier and not test_host_dossier.short_path.endswith(".zip"):
+        fail("Test host dossier must be .zip (%s)" % test_host_dossier.short_path)
+    if test_type not in ["xctest", "xcuitest"]:
+        fail("Test type must be xctest or xcuitest (%s)" % test_type)
     substitutions = {
         "test_bundle_path": test_bundle.short_path,
         "test_bundle_dossier_path": test_bundle_dossier.short_path if test_bundle_dossier else "",
