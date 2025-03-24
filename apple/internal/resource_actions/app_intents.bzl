@@ -42,7 +42,7 @@ def _generate_intermediate_file_list(
     Args:
         actions: The actions provider from `ctx.actions`.
         file_extension: The file extension to use for the generated file list.
-        input_paths: A list of paths to the files to include in the file list.
+        input_paths: A list of paths to the files or a list of Files to include in the file list.
         intents_module_name: A String with the module name corresponding to the module found which
             defines a set of compiled App Intents.
         label: Label for the current target (`ctx.label`).
@@ -124,7 +124,7 @@ def generate_app_intents_metadata_bundle(
     source_file_list = _generate_intermediate_file_list(
         actions = actions,
         file_extension = "SwiftFileList",
-        input_paths = [x.path for x in source_files],
+        input_paths = source_files,
         intents_module_name = intents_module_name,
         label = label,
     )
@@ -142,7 +142,7 @@ def generate_app_intents_metadata_bundle(
     swift_const_vals_file_list = _generate_intermediate_file_list(
         actions = actions,
         file_extension = "SwiftConstValuesFileList",
-        input_paths = [x.path for x in constvalues_files],
+        input_paths = constvalues_files,
         intents_module_name = intents_module_name,
         label = label,
     )
