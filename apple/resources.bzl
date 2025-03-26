@@ -202,6 +202,7 @@ def swift_intent_library(
         swift_version = None,
         testonly = False,
         **kwargs):
+    # buildifier: disable=function-docstring-args
     """
 This macro supports the integration of Intents `.intentdefinition` files into Apple rules.
 
