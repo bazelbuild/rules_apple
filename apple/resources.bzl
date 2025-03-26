@@ -226,7 +226,7 @@ Args:
     kwargs_data = kwargs.pop("data", [])
     srcs = [intent_name] + kwargs_src
     data = [src] + kwargs_data
-    
+
     _apple_intent_library(
         name = intent_name,
         src = src,
