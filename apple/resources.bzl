@@ -219,6 +219,13 @@ Args:
     testonly: Set to True to enforce that this library is only used from test code.
 """
     intent_name = "{}.Intent".format(name)
+
+    # Since we are accepting swift_library attrs, combine kwargs src and data
+    kwargs_src = kwargs.pop("srcs", [])
+    kwargs_data = kwargs.pop("data", [])
+    srcs = [intent_name] + kwargs_src
+    data = [src] + kwargs_data
+    
     _apple_intent_library(
         name = intent_name,
         src = src,
@@ -231,8 +238,8 @@ Args:
     )
     swift_library(
         name = name,
-        srcs = [intent_name],
-        data = [src],
+        srcs = srcs,
+        data = data,
         testonly = testonly,
         **kwargs
     )
