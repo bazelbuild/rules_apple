@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import OrderedPlistEncoder
 import tools_signaturetool_signature_info
 
 /// Converts a SignatureInfo data structure into an appropriate signatures XML plist file for an
@@ -30,7 +29,8 @@ public struct SignatureXMLPlist {
   }
 
   public init(signatureInfo: SignatureInfo) throws {
-    let plistEncoder = OrderedPlistEncoder(options: [.prettyPrinted, .sortedKeys])
+    let plistEncoder = PropertyListEncoder()
+    plistEncoder.outputFormat = .xml
 
     guard let plistFileData = try? plistEncoder.encode(signatureInfo) else {
       throw Error.plistEncodingFailed
