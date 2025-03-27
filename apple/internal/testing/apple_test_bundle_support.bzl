@@ -304,6 +304,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -376,6 +377,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
