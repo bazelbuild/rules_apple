@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_python//python:py_binary.bzl", "py_binary")
 load(
     "//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner",
