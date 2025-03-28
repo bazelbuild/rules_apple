@@ -549,12 +549,7 @@ def _swift_info_from_module_interface(
         swift_toolchain = swift_toolchain,
         target_name = ctx.label.name,
     )
-
-    # TODO: Remove once we don't support rules_swift <4.x
-    if hasattr(compile_result, "module_context"):
-        module_context = compile_result.module_context
-    else:
-        module_context = compile_result
+    module_context = compile_result.module_context
 
     return SwiftInfo(
         modules = [module_context],
