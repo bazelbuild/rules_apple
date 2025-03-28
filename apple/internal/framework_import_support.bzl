@@ -458,7 +458,7 @@ def _swift_info_from_module_interface(
         A SwiftInfo provider.
     """
     swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
-    module_context = swift_common.compile_module_interface(
+    compile_result = swift_common.compile_module_interface(
         actions = actions,
         compilation_contexts = [
             dep[CcInfo].compilation_context
@@ -475,7 +475,9 @@ def _swift_info_from_module_interface(
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,
         swift_toolchain = swift_toolchain,
+        target_name = ctx.label.name,
     )
+    module_context = compile_result.module_context
 
     return SwiftInfo(
         modules = [module_context],
