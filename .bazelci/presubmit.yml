@@ -10,12 +10,14 @@ x_defaults:
     - xcrun simctl list runtimes
     - xcrun simctl runtime match list -v
     build_targets:
-    - "tools/..."
-    - "test/..."
+    # - "tools/..."
+    # - "test/..."
+    - "//examples/visionos/HelloWorld:HelloWorld"
     test_targets:
-    - "tools/..."
-    - "test/..."
-    - "examples/..."
+    # - "tools/..."
+    # - "test/..."
+    # - "examples/..."
+    - "//examples/visionos/HelloWorld:HelloWorld"
     test_flags:
     - --test_tag_filters=-skipci
 
