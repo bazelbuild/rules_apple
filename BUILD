@@ -15,8 +15,8 @@ filegroup(
     name = "for_bazel_tests",
     testonly = True,
     srcs = [
-        "WORKSPACE",
         "BUILD",
+        "WORKSPACE",
         "//apple:for_bazel_tests",
         "//tools:for_bazel_tests",
     ],
