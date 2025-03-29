@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
 # Copyright 2022 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,18 +21,61 @@ import string
 import subprocess
 import sys
 import time
-from typing import List, Optional
+from typing import Any, Optional
 
 
-def _simctl(extra_args: List[str]) -> str:
-    return subprocess.check_output(["xcrun", "simctl"] + extra_args).decode()
+class SimulatorCreatorError(Exception):
+    pass
+
+
+def _simctl(*args: str, **kwargs: Any) -> str:
+    kwargs["text"] = True
+    return subprocess.check_output(("xcrun", "simctl", *args), **kwargs)
+
+
+def _get_matching_runtime(
+    os_version: Optional[str], sdk_build: Optional[str]
+) -> Optional[Any]:
+    runtimes = json.loads(_simctl("list", "runtimes", "-j"))["runtimes"]
+
+    if os_version:
+        return next(
+            (
+                runtime
+                for runtime in runtimes
+                if runtime["version"].startswith(os_version)
+            ),
+            None,
+        )
+
+    runtime_matches = json.loads(_simctl("runtime", "match", "list", "-j"))
+    runtime_match_for_sdk_build = runtime_matches.get(sdk_build)
+    if not runtime_match_for_sdk_build:
+        raise SimulatorCreatorError(f"no runtime mapping for SDK build {sdk_build}")
+    os_version = runtime_match_for_sdk_build["chosenRuntimeBuild"]
+    return next(
+        (runtime for runtime in runtimes if runtime["buildversion"] == os_version), None
+    )
+
+def _form_device_name(name: Optional[str], device_type: str, runtime_version: str) -> str:
+    return name or f"BAZEL_TEST_{device_type}_{runtime_version}"
+
+
+def _create_simulator(
+    device_name: str, device_type: str, runtime_identifier: str
+) -> str:
+    simulator_id = _simctl(
+        "create", device_name, device_type, runtime_identifier
+    ).strip()
+    print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
+    return simulator_id
 
 
 def _boot_simulator(simulator_id: str) -> None:
     # This private command boots the simulator if it isn't already, and waits
     # for the appropriate amount of time until we can actually run tests
     try:
-        output = _simctl(["bootstatus", simulator_id, "-b"])
+        output = _simctl("bootstatus", simulator_id, "-b")
         print(output, file=sys.stderr)
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
@@ -43,7 +87,7 @@ def _boot_simulator(simulator_id: str) -> None:
         # if we check and the simulator is in fact booted.
         if exit_code == 149:
             devices = json.loads(
-                _simctl(["list", "devices", "-j", simulator_id]),
+                _simctl("list", "devices", "-j", simulator_id),
             )["devices"]
             device = next(
                 (
@@ -52,7 +96,7 @@ def _boot_simulator(simulator_id: str) -> None:
                     for blob in devices_for_os
                     if blob["udid"] == simulator_id
                 ),
-                None
+                None,
             )
             if device and device["state"].lower() == "booted":
                 print(
@@ -81,22 +125,24 @@ def _boot_simulator(simulator_id: str) -> None:
     time.sleep(3)
 
 
-def _device_name(device_type: str, os_version: str) -> str:
-    return f"BAZEL_TEST_{device_type}_{os_version}"
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "os_version", help="The iOS version to run the tests on, ex: 12.1"
+        "--device-type",
+        required=True,
+        help="The iOS device to run the tests on, ex: iPhone X",
     )
     parser.add_argument(
-        "device_type", help="The iOS device to run the tests on, ex: iPhone X"
+        "--os-version",
+        help="The iOS simulator runtime version to run the tests on, ex: 12.1",
+    )
+    parser.add_argument(
+        "--sdk-build",
+        required=True,
+        help="The iOS SDK build used by the toolchain",
     )
     parser.add_argument(
         "--name",
-        required=False,
-        default=None,
         help="The name to use for the device; default is 'BAZEL_TEST_[device_type]_[os_version]'",
     )
     parser.add_argument(
@@ -108,42 +154,63 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(os_version: str, device_type: str, name: Optional[str], reuse_simulator: bool) -> None:
-    devices = json.loads(_simctl(["list", "devices", "-j"]))["devices"]
-    device_name = name or _device_name(device_type, os_version)
-    runtime_identifier = "com.apple.CoreSimulator.SimRuntime.iOS-{}".format(
-        os_version.replace(".", "-")
-    )
+def _main(
+    *,
+    device_type: str,
+    os_version: Optional[str],
+    sdk_build: str,
+    name: Optional[str],
+    reuse_simulator: bool,
+) -> None:
+    runtime = _get_matching_runtime(os_version, sdk_build)
 
-    existing_device=None
-
-    if reuse_simulator:
-        devices_for_os = devices.get(runtime_identifier) or []
-        existing_device = next(
-            (blob for blob in devices_for_os if blob["name"] == device_name), None
+    if not runtime:
+        raise SimulatorCreatorError(f"no runtime matching {os_version} could be found")
+    if not runtime["isAvailable"]:
+        raise SimulatorCreatorError(
+            f"matching runtime {runtime['buildversion']} is unavailable"
         )
 
-    if existing_device:
-        simulator_id = existing_device["udid"]
-        name = existing_device["name"]
-        # If the device is already booted assume that it was created with this
-        # script and bootstatus has already waited for it to be in a good state
-        # once
-        state = existing_device["state"].lower()
-        print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
-        if state != "booted":
+    runtime_version = runtime["version"]
+    runtime_identifier = runtime["identifier"]
+
+    device_name = _form_device_name(name, device_type, runtime_version)
+    devices = json.loads(_simctl("list", "devices", "-j"))["devices"]
+
+    if reuse_simulator:
+        existing_device = next(
+            (
+                device
+                for device in devices.get(runtime_identifier, [])
+                if device["name"] == device_name
+            ),
+            None,
+        )
+        if existing_device:
+            simulator_id: str = existing_device["udid"]
+            name = existing_device["name"]
+            # If the device is already booted assume that it was created with this
+            # script and bootstatus has already waited for it to be in a good state
+            # once
+            state = existing_device["state"].lower()
+            print(
+                f"Existing simulator '{name}' ({simulator_id}) state is: {state}",
+                file=sys.stderr,
+            )
+            if state != "booted":
+                _boot_simulator(simulator_id)
+        else:
+            simulator_id = _create_simulator(
+                device_name, device_type, runtime_identifier
+            )
             _boot_simulator(simulator_id)
     else:
-        if not reuse_simulator:
-            # Simulator reuse is based on device name, therefore we must generate a unique name to
-            # prevent unintended reuse.
-            device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-            device_name += f"_{device_name_suffix}"
-
-        simulator_id = _simctl(
-            ["create", device_name, device_type, runtime_identifier]
-        ).strip()
-        print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
+        device_name_suffix = "".join(
+            random.choices(string.ascii_letters + string.digits, k=8)
+        )
+        simulator_id = _create_simulator(
+            f"{device_name}_{device_name_suffix}", device_type, runtime_identifier
+        )
         _boot_simulator(simulator_id)
 
     print(simulator_id.strip())
@@ -151,4 +218,10 @@ def _main(os_version: str, device_type: str, name: Optional[str], reuse_simulato
 
 if __name__ == "__main__":
     args = _build_parser().parse_args()
-    _main(args.os_version, args.device_type, args.name, args.reuse_simulator)
+    _main(
+        device_type=args.device_type,
+        os_version=args.os_version,
+        sdk_build=args.sdk_build,
+        name=args.name,
+        reuse_simulator=args.reuse_simulator,
+    )

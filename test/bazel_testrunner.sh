@@ -76,8 +76,9 @@ function create_new_workspace() {
 module(name = "build_bazel_rules_apple_integration_tests", version = "0")
 
 # Specify oldest possible bzlmod versions and let rules_apple versions take precedence
-bazel_dep(name = "apple_support", version = "0.11.0", repo_name = "build_bazel_apple_support")
-bazel_dep(name = "rules_swift", version = "2.0.0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "apple_support", version = "1.15.1", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "bazel_skylib", version = "1.3.0")
+bazel_dep(name = "rules_swift", version = "2.4.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
 
 xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")

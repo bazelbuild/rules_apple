@@ -14,7 +14,7 @@ filegroup(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/testing/default_runner:for_bazel_tests",
     ],

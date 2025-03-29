@@ -867,7 +867,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/internal/aspects:for_bazel_tests",
         "//apple/internal/partials:for_bazel_tests",

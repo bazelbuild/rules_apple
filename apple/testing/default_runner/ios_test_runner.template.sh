@@ -227,17 +227,17 @@ if [[ -n "${REUSE_GLOBAL_SIMULATOR:-}" ]]; then
     exit 1
   fi
 
-  if [[ -z "%(os_version)s" ]]; then
-    echo "error: to create a re-useable simulator the OS version must always be set on the test runner or with '--ios_simulator_version'" >&2
-    exit 1
-  fi
-
   if [[ -z "%(device_type)s" ]]; then
     echo "error: to create a re-useable simulator the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
     exit 1
   fi
 
-  id="$("./%(simulator_creator)s" "%(os_version)s" "%(device_type)s")"
+  if [[ -z "%(sdk_build)s" ]]; then
+    echo "error: to create a re-useable simulator the sdk build version must always be set on the test runner using information from the Xcode toolchain" >&2
+    exit 1
+  fi
+
+  id="$("./%(simulator_creator)s" --device-type "%(device_type)s" --os-version "%(os_version)s" --sdk-build "%(sdk_build)s")"
   target_flags=(
     "test"
     "--platform=ios_simulator"
