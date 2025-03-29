@@ -7,6 +7,8 @@ x_defaults:
     xcode_version: "15.4"
     shell_commands:
     - xcrun simctl runtime list
+    - xcodebuild -downloadPlatform visionOS -buildVersion 2.2
+    - xcrun simctl runtime list
     build_targets:
     - "tools/..."
     - "test/..."
