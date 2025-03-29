@@ -4,11 +4,10 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
-    xcode_version: "15.4"
+    xcode_version: "16.2"
     shell_commands:
     - xcrun simctl runtime list
-    - xcodebuild -downloadPlatform visionOS -buildVersion 2.2
-    - xcrun simctl runtime list
+    - xcrun simctl list runtimes
     build_targets:
     - "tools/..."
     - "test/..."
