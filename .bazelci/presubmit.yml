@@ -8,6 +8,7 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcrun simctl list runtimes
+    - xcrun simctl runtime match list -v
     build_targets:
     - "tools/..."
     - "test/..."
