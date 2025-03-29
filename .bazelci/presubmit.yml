@@ -4,7 +4,7 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
-    xcode_version: "15.4"
+    xcode_version: "16.2"
     build_targets:
     - "tools/..."
     - "test/..."
@@ -46,4 +46,4 @@ tasks:
     # TODO: Remove this once stardoc is updated to 0.7.1+ (https://github.com/bazelbuild/stardoc/pull/238)
     - --noincompatible_disallow_empty_glob
 
-buildifier: 6.4.0
+buildifier: 7.3.1

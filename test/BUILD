@@ -35,7 +35,7 @@ exports_files(["apple_shell_testutils.sh"])
 # List of dependencies to be used in Starlark verifier tests.
 filegroup(
     name = "apple_verification_test_deps",
-    testonly = 1,
+    testonly = True,
     srcs = [
         "apple_shell_testutils.sh",
         "unittest.bash",
@@ -52,7 +52,7 @@ filegroup(
 
 # Tests that end up needing things like ibtool or actool run under the hood
 # are better off as a dedicated *_resources_test.sh that can then be marked
-# with `flaky = 1`. When building for some Apple platforms, the tools can end
+# with `flaky = True`. When building for some Apple platforms, the tools can end
 # up talking to other services running on the machine (CoreSimulator) during
 # the build and flake/fail. So by grouping them and marking them as flaky, it
 # allows bazel to auto retry them and help minimize the unreliability in those
@@ -108,7 +108,7 @@ apple_multi_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
-    flaky = 1,
+    flaky = True,
 )
 
 apple_multi_shell_test(
@@ -234,7 +234,7 @@ apple_shell_test(
     args = [
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
-    flaky = 1,
+    flaky = True,
     tags = common.skip_ci_tags,
 )
 

@@ -106,7 +106,6 @@ def apple_shell_test(
             "//test:apple_shell_testutils.sh",
             "//test/testdata/provisioning:integration_testing_profiles",
             "//test:unittest.bash",
-            "//:BUILD",
         ] + (data or []),
         deps = [
             "@bazel_tools//tools/bash/runfiles",
