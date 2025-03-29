@@ -5,6 +5,8 @@ x_defaults:
   common: &common
     platform: macos_arm64
     xcode_version: "15.4"
+    shell_commands:
+    - xcrun simctl runtime list
     build_targets:
     - "tools/..."
     - "test/..."
