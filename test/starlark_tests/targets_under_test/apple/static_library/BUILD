@@ -10,7 +10,7 @@ load(
 licenses(["notice"])
 
 package(
-    default_testonly = True,
+    default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 

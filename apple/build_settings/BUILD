@@ -40,7 +40,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = True,
+    testonly = 1,
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",

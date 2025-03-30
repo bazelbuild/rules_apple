@@ -5,7 +5,7 @@ exports_files(["LICENSE"])
 # See the note in __init__.py for why this is needed.
 py_library(
     name = "py_init_shim",
-    testonly = True,
+    testonly = 1,
     srcs = ["__init__.py"],
     visibility = ["//:__subpackages__"],
 )
@@ -13,9 +13,8 @@ py_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = True,
+    testonly = 1,
     srcs = [
-        "BUILD",
         "WORKSPACE",
         "//apple:for_bazel_tests",
         "//tools:for_bazel_tests",

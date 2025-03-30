@@ -285,7 +285,7 @@ cc_toolchain_forwarder(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = True,
+    testonly = 1,
     srcs = glob(["**"]) + [
         "//apple/build_settings:for_bazel_tests",
         "//apple/internal:for_bazel_tests",

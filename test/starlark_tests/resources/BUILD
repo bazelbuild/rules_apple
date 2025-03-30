@@ -157,7 +157,7 @@ objc_library(
         "shared.m",
     ],
     deps = [":objc_common_lib_with_structured_images"],
-    alwayslink = True,
+    alwayslink = 1,
 )
 
 objc_library(
