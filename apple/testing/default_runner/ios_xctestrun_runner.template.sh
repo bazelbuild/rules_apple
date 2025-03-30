@@ -381,7 +381,7 @@ fi
 
 simulator_id="unused"
 if [[ "$build_for_device" == false ]]; then
-  simulator_id="$("./%(simulator_creator.py)s" \
+  simulator_id="$("./%(simulator_creator_binary)s" \
     "${simulator_creator_args[@]}"
   )"
 fi

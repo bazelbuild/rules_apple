@@ -31,7 +31,7 @@ def _get_template_substitutions(
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
-        "simulator_creator.py": simulator_creator,
+        "simulator_creator_binary": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
