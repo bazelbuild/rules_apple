@@ -369,7 +369,6 @@ readonly profraw="$test_tmp_dir/coverage.profraw"
 simulator_creator_args=(
   --device-type "%(device_type)s" \
   --os-version "%(os_version)s" \
-  --sdk-build "%(sdk_build)s" \
   --name "$simulator_name"
 )
 

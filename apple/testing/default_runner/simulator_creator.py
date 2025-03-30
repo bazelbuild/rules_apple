@@ -33,31 +33,9 @@ def _simctl(*args: str, **kwargs: Any) -> str:
     return subprocess.check_output(("xcrun", "simctl", *args), **kwargs)
 
 
-def _get_matching_runtime(
-    os_version: Optional[str], sdk_build: Optional[str]
-) -> Optional[Any]:
-    runtimes = json.loads(_simctl("list", "runtimes", "-j"))["runtimes"]
-
-    if os_version:
-        return next(
-            (
-                runtime
-                for runtime in runtimes
-                if runtime["version"].startswith(os_version)
-            ),
-            None,
-        )
-
-    runtime_matches = json.loads(_simctl("runtime", "match", "list", "-j"))
-    runtime_match_for_sdk_build = runtime_matches.get(sdk_build)
-    if not runtime_match_for_sdk_build:
-        raise SimulatorCreatorError(f"no runtime mapping for SDK build {sdk_build}")
-    os_version = runtime_match_for_sdk_build["chosenRuntimeBuild"]
-    return next(
-        (runtime for runtime in runtimes if runtime["buildversion"] == os_version), None
-    )
-
-def _form_device_name(name: Optional[str], device_type: str, runtime_version: str) -> str:
+def _form_device_name(
+    name: Optional[str], device_type: str, runtime_version: str
+) -> str:
     return name or f"BAZEL_TEST_{device_type}_{runtime_version}"
 
 
@@ -134,12 +112,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--os-version",
-        help="The iOS simulator runtime version to run the tests on, ex: 12.1",
-    )
-    parser.add_argument(
-        "--sdk-build",
         required=True,
-        help="The iOS SDK build used by the toolchain",
+        help="The iOS simulator runtime version to run the tests on, ex: 12.1",
     )
     parser.add_argument(
         "--name",
@@ -157,12 +131,17 @@ def _build_parser() -> argparse.ArgumentParser:
 def _main(
     *,
     device_type: str,
-    os_version: Optional[str],
-    sdk_build: str,
+    os_version: str,
     name: Optional[str],
     reuse_simulator: bool,
 ) -> None:
-    runtime = _get_matching_runtime(os_version, sdk_build)
+    simctl_state = json.loads(_simctl("list", "-j"))
+    devices = simctl_state["devices"]
+    runtimes = simctl_state["runtimes"]
+    runtime = next(
+        (runtime for runtime in runtimes if runtime["version"].startswith(os_version)),
+        None,
+    )
 
     if not runtime:
         raise SimulatorCreatorError(f"no runtime matching {os_version} could be found")
@@ -171,11 +150,9 @@ def _main(
             f"matching runtime {runtime['buildversion']} is unavailable"
         )
 
-    runtime_version = runtime["version"]
     runtime_identifier = runtime["identifier"]
-
+    runtime_version = runtime["version"]
     device_name = _form_device_name(name, device_type, runtime_version)
-    devices = json.loads(_simctl("list", "devices", "-j"))["devices"]
 
     if reuse_simulator:
         existing_device = next(
@@ -221,7 +198,6 @@ if __name__ == "__main__":
     _main(
         device_type=args.device_type,
         os_version=args.os_version,
-        sdk_build=args.sdk_build,
         name=args.name,
         reuse_simulator=args.reuse_simulator,
     )

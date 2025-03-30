@@ -14,7 +14,6 @@ def _get_template_substitutions(
         create_xcresult_bundle,
         device_type,
         os_version,
-        sdk_build,
         simulator_creator,
         random,
         xcodebuild_args,
@@ -29,7 +28,6 @@ def _get_template_substitutions(
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
-        "sdk_build": sdk_build,
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
@@ -57,13 +55,12 @@ def _get_execution_environment(ctx):
 def _ios_xctestrun_runner_impl(ctx):
     # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"
-    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
-    sdk_build = "iphoneos{}".format(ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
+    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
-    if not sdk_build:
-        fail("error: could not determine default iOS SDK build in toolchain")
+    if not os_version:
+        fail("error: os_version must be set on ios_xctestrun_runner, or passed with --ios_simulator_version")
 
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,
@@ -90,7 +87,6 @@ def _ios_xctestrun_runner_impl(ctx):
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
-            sdk_build = sdk_build,
             simulator_creator = ctx.executable._simulator_creator.short_path,
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",

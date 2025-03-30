@@ -24,7 +24,6 @@ def _get_template_substitutions(
         *,
         device_type,
         os_version,
-        sdk_build,
         simulator_creator,
         testrunner,
         pre_action_binary,
@@ -33,7 +32,6 @@ def _get_template_substitutions(
     subs = {
         "device_type": device_type,
         "os_version": os_version,
-        "sdk_build": sdk_build,
         "simulator_creator": simulator_creator,
         "testrunner_binary": testrunner,
         "pre_action_binary": pre_action_binary,
@@ -55,7 +53,6 @@ def _ios_test_runner_impl(ctx):
 
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
-    sdk_build = "iphoneos{}".format(ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
     runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
@@ -79,7 +76,6 @@ def _ios_test_runner_impl(ctx):
         substitutions = _get_template_substitutions(
             device_type = device_type,
             os_version = os_version,
-            sdk_build = sdk_build,
             simulator_creator = ctx.executable._simulator_creator.short_path,
             testrunner = ctx.executable._testrunner.short_path,
             pre_action_binary = pre_action_binary,
