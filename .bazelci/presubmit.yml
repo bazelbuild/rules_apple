@@ -7,12 +7,13 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
+    - xcrun simctl runtime match set iphoneos18.2 22C150
     - xcrun simctl runtime match set xros2.2 22N895
     - xcrun simctl runtime match list
     post_shell_commands:
+    - xcrun simctl runtime match set iphoneos18.2 --default
     - xcrun simctl runtime match set xros2.2 --default
     - xcrun simctl runtime match list
-    xcode_version: "15.4"
     build_targets:
     - "tools/..."
     - "test/..."
