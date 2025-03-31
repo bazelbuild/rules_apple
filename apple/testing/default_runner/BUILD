@@ -100,9 +100,8 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
-alias(
+ios_test_runner(
     name = "ios_default_runner",
-    actual = ":ios_xctestrun_ordered_runner",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -118,14 +117,6 @@ ios_xctestrun_runner(
 ios_xctestrun_runner(
     name = "ios_xctestrun_ordered_runner",
     random = False,
-    visibility = ["//visibility:public"],
-)
-
-ios_test_runner(
-    name = "ios_legacy_runner",
-    # Used by the rule implementations, so it needs to be public; but
-    # should be considered an implementation detail of the rules and
-    # not used by other things.
     visibility = ["//visibility:public"],
 )
 
