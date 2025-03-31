@@ -4,6 +4,14 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
+    shell_commands:
+    - xcrun simctl runtime list
+    - xcrun simctl runtime match list
+    - xcrun simctl runtime match set xros2.2 22N895
+    - xcrun simctl runtime match list
+    post_shell_commands:
+    - xcrun simctl runtime match set xros2.2 --default
+    - xcrun simctl runtime match list
     xcode_version: "15.4"
     build_targets:
     - "tools/..."
