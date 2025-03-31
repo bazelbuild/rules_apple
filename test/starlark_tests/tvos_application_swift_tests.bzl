@@ -44,20 +44,6 @@ def tvos_application_swift_test_suite(name):
         tags = [name],
     )
 
-    # If an app is built with a min OS before ABI stability, targeting the
-    # device, the Swift runtime should be bundled in both the Frameworks
-    # directory and the IPA's root SwiftSupport directory.
-    archive_contents_test(
-        name = "{}_device_build_has_swift_libs_in_frameworks_and_support_dirs_test".format(name),
-        build_type = "device",
-        contains = [
-            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
-        tags = [name],
-    )
-
     # If an app is built with a min OS after ABI stability, the Swift runtime
     # should not be bundled at all.
     archive_contents_test(
