@@ -30,7 +30,7 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    bazel: 4c2d91e762ab6e492853b021408129dd93fb5904 # TODO: Switch back to last_green once get_cpu has been removed
     <<: *common
 
   doc_tests:
