@@ -9,8 +9,6 @@ x_defaults:
     - xcrun simctl runtime list
     - xcrun simctl list runtimes
     - xcrun simctl runtime match list -v
-    - xcrun simctl runtime match set xros2.2 --default
-    - xcrun simctl runtime match list -v
     - APPLE_SDK_PLATFORM=XRSimulator APPLE_SDK_VERSION_OVERRIDE=2.2 xcrun actool --compile 'doc' --platform xrsimulator --minimum-deployment-target 1.0 --compress-pngs --target-device vision 'examples/resources/VisionAppIcon.xcassets'
     build_targets:
     # - "tools/..."
