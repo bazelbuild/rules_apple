@@ -12,7 +12,12 @@ jobs:
   test:
     strategy:
       matrix:
-        bazel_version: ["7.x", "latest", "rolling", "last_green"]
+        bazel_version:
+          - "7.x"
+          - "latest"
+          - "4c2d91e762ab6e492853b021408129dd93fb5904" # TODO: Switch back to last_green once get_cpu has been removed
+          # - "rolling"
+          # - "last_green"
 
     runs-on: macos-latest
     steps:
