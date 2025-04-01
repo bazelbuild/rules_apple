@@ -66,7 +66,7 @@ def _test_bundle_info_aspect_impl(target, ctx):
             ],
         )
         platform_types = [
-            dep[AppleBundleInfo].platform_type
+            dep[_TestBundleInfo].platform_type
             for dep in deps
         ]
 
