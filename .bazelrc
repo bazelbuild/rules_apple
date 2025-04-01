@@ -36,3 +36,9 @@ build --enable_platform_specific_config
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
+
+build:ci --bes_backend=grpcs://remote.buildbuddy.io
+build:ci --bes_results_url=https://app.buildbuddy.io/invocation/
+build:ci --experimental_remote_cache_compression
+build:ci --remote_cache=grpcs://remote.buildbuddy.io
+build:ci --test_tag_filters=-skipci
