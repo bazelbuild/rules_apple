@@ -8,6 +8,10 @@ name: CI
     # Every day at 11:03 UTC.
     - cron: '3 11 * * *'
 
+concurrency: # Only allow a single build/test run at a time for a PR.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     strategy:
