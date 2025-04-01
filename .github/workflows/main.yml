@@ -1,9 +1,9 @@
 name: CI
 "on":
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
   schedule:
     # Every day at 11:03 UTC.
     - cron: '3 11 * * *'
