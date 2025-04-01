@@ -671,7 +671,7 @@ def _settings_bundle_attrs():
     return {
         "settings_bundle": attr.label(
             aspects = [apple_resource_aspect],
-            providers = [["objc"], [AppleResourceBundleInfo], [apple_common.Objc]],
+            providers = [[AppleResourceBundleInfo], [apple_common.Objc]],
             doc = """
 A resource bundle (e.g. `apple_bundle_import`) target that contains the files that make up the
 application's settings bundle. These files will be copied into the root of the final application
