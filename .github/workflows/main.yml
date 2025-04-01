@@ -11,6 +11,7 @@ name: CI
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         bazel_version:
           - "7.x"
