@@ -1,0 +1,28 @@
+name: CI
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Every day at 11:03 UTC.
+    - cron: '3 11 * * *'
+
+jobs:
+  macos_test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: USE_BAZEL_VERSION=7.x bazelisk test //tests/...
+      - run: bazelisk test //...
+      - run: USE_BAZEL_VERSION=rolling bazelisk test //...
+      - run: USE_BAZEL_VERSION=last_green bazelisk test //...
+
+  ubuntu_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: USE_BAZEL_VERSION=7.x bazelisk test //tests/...
+      - run: bazelisk test //...
+      - run: USE_BAZEL_VERSION=rolling bazelisk test //...
+      - run: USE_BAZEL_VERSION=last_green bazelisk test //...
