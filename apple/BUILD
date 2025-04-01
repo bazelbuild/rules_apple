@@ -7,28 +7,6 @@ package(
 
 licenses(["notice"])
 
-# Create a set of public config_settings that can be used in select()s.
-[
-    config_setting(
-        name = arch,
-        values = {"cpu": arch},
-    )
-    for arch in [
-        "darwin_x86_64",
-        "darwin_arm64",
-        "darwin_arm64e",
-        "ios_x86_64",
-        "ios_arm64",
-        "ios_sim_arm64",
-        "tvos_x86_64",
-        "tvos_arm64",
-        "watchos_arm64",
-        "watchos_arm64_32",
-        "watchos_armv7k",
-        "watchos_device_arm64",
-    ]
-]
-
 bzl_library(
     name = "apple",
     srcs = ["apple.bzl"],
