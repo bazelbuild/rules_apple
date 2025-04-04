@@ -58,6 +58,10 @@ load(
     "//apple/internal/resource_actions:texture_atlas.bzl",
     _compile_texture_atlas = "compile_texture_atlas",
 )
+load(
+    "//apple/internal/resource_actions:xcstrings.bzl",
+    _compile_xcstrings = "compile_xcstrings",
+)
 
 resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
@@ -68,6 +72,7 @@ resource_actions = struct(
     compile_plist = _compile_plist,
     compile_storyboard = _compile_storyboard,
     compile_texture_atlas = _compile_texture_atlas,
+    compile_xcstrings = _compile_xcstrings,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
     generate_datamodels = _generate_datamodels,
