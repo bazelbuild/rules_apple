@@ -365,6 +365,9 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     for data_dep in ctx.attr.data:
         transitive_runfiles.append(data_dep.files)
         transitive_runfile_objects.append(data_dep.default_runfiles)
+    for data_dep in ctx.attr.exec_data:
+        transitive_runfiles.append(data_dep.files)
+        transitive_runfile_objects.append(data_dep.default_runfiles)
 
     return [
         # Repropagate the AppleBundleInfo and AppleTestInfo providers from the test bundle so that
