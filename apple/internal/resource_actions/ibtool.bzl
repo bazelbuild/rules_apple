@@ -92,16 +92,12 @@ def compile_storyboard(
         xctoolrunner_support.prefixed_path(input_file.path),
     ])
 
-    execution_requirements = {
-        "no-sandbox": "1",
-    }
-
     apple_support.run(
         actions = actions,
         arguments = args,
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
-        execution_requirements = execution_requirements,
+        execution_requirements = {"no-sandbox": "1"},
         exec_group = mac_exec_group,
         inputs = [input_file],
         mnemonic = "StoryboardCompile",
