@@ -87,12 +87,6 @@
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "iPad App@1x.png",
-      "scale" : "1x"
-    },
-    {
-      "size" : "76x76",
-      "idiom" : "ipad",
       "filename" : "iPad App@2x.png",
       "scale" : "2x"
     },

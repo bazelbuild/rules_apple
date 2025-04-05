@@ -367,8 +367,8 @@ fi
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
 simulator_creator_args=(
-  "%(os_version)s" \
-  "%(device_type)s" \
+  --device-type "%(device_type)s" \
+  --os-version "%(os_version)s" \
   --name "$simulator_name"
 )
 
@@ -381,7 +381,7 @@ fi
 
 simulator_id="unused"
 if [[ "$build_for_device" == false ]]; then
-  simulator_id="$("./%(simulator_creator.py)s" \
+  simulator_id="$("./%(simulator_creator_binary)s" \
     "${simulator_creator_args[@]}"
   )"
 fi

@@ -31,7 +31,7 @@ def _get_template_substitutions(
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
-        "simulator_creator.py": simulator_creator,
+        "simulator_creator_binary": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
@@ -53,16 +53,14 @@ def _get_execution_environment(ctx):
     return {"XCODE_VERSION_OVERRIDE": xcode_version}
 
 def _ios_xctestrun_runner_impl(ctx):
-    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or
-                     ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
-
     # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"
+    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
-    if not os_version:
-        fail("error: os_version must be set on ios_xctestrun_runner, or passed with --ios_simulator_version")
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
+    if not os_version:
+        fail("error: os_version must be set on ios_xctestrun_runner, or passed with --ios_simulator_version")
 
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,

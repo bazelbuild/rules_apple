@@ -32,7 +32,7 @@ def _get_template_substitutions(
     subs = {
         "device_type": device_type,
         "os_version": os_version,
-        "simulator_creator": simulator_creator,
+        "simulator_creator_binary": simulator_creator,
         "testrunner_binary": testrunner,
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
@@ -51,8 +51,9 @@ def _get_execution_environment(*, xcode_config):
 def _ios_test_runner_impl(ctx):
     """Implementation for the ios_test_runner rule."""
 
-    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
-    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
+    # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
+    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"
+    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
 
     runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
