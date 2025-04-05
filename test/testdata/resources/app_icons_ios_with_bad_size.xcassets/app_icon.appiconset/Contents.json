@@ -61,12 +61,6 @@
             "size": "40x40"
         },
         {
-            "filename": "app_icon_76pt.png",
-            "idiom": "ipad",
-            "scale": "1x",
-            "size": "76x76"
-        },
-        {
             "filename": "app_icon_76pt_2x.png",
             "idiom": "ipad",
             "scale": "2x",
