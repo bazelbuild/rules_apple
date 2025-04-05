@@ -163,9 +163,9 @@ if [[ "${COVERAGE:-}" -ne 1 ]]; then
 fi
 
 llvm_coverage_manifest="$COVERAGE_MANIFEST"
-readonly provided_llvm_coverage_manifest="%(test_llvm_coverage_manifest)s"
-if [[ -s "${provided_llvm_coverage_manifest:-}" ]]; then
-  llvm_coverage_manifest="$provided_llvm_coverage_manifest"
+readonly provided_coverage_manifest="%(test_coverage_manifest)s"
+if [[ -s "${provided_coverage_manifest:-}" ]]; then
+  llvm_coverage_manifest="$provided_coverage_manifest"
 fi
 
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
