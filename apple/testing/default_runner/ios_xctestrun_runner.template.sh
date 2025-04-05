@@ -136,6 +136,17 @@ fi
 # to the test runner
 default_test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
+env_inherit=%(test_env_inherit)s
+for env_var in "${env_inherit[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      test_env="$test_env,$env_var=${!env_var}"
+    else
+      test_env="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$test_env" ]]; then
   test_env="$test_env,$default_test_env"
 else

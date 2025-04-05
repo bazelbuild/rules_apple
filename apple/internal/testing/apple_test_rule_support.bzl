@@ -19,6 +19,10 @@ load(
     "dicts",
 )
 load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
@@ -111,6 +115,7 @@ def _get_template_substitutions(
         test_bundle,
         test_bundle_dossier = None,
         test_coverage_manifest = None,
+        test_env_inherit,
         test_environment,
         test_host_artifact = None,
         test_host_bundle_name = "",
@@ -125,6 +130,7 @@ def _get_template_substitutions(
             bundle, if one exists.
         test_coverage_manifest: Optional. File representing the coverage manifest that is with
             this rule.
+        test_env_inherit: List of environment variables to inherit from the external environment.
         test_environment: Dictionary representing the test environment for the current process
             running in the simulator.
         test_filter: Optional. The test filter received from the test rule implementation.
@@ -140,6 +146,7 @@ def _get_template_substitutions(
         the rule's assigned test runner template.
     """
     substitutions = {
+        "test_env_inherit": shell.array_literal(test_env_inherit),
         "test_bundle_path": test_bundle.short_path,
         "test_bundle_dossier_path": test_bundle_dossier.short_path if test_bundle_dossier else "",
         "test_coverage_manifest": test_coverage_manifest.short_path if test_coverage_manifest else "",
@@ -345,6 +352,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             test_bundle = test_bundle,
             test_bundle_dossier = test_bundle_dossier,
             test_coverage_manifest = ctx.file.test_coverage_manifest,
+            test_env_inherit = ctx.attr.env_inherit,
             test_environment = test_environment,
             test_filter = ctx.attr.test_filter,
             test_host_artifact = test_host_artifact,
@@ -378,7 +386,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             dependency_attributes = ["deps"],
         ),
         testing.ExecutionInfo(execution_requirements),
-        testing.TestEnvironment(execution_environment),
+        testing.TestEnvironment(execution_environment, ctx.attr.env_inherit),
         DefaultInfo(
             executable = executable,
             files = depset(
