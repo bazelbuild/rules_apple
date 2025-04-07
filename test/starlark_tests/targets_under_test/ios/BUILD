@@ -822,7 +822,11 @@ ios_application(
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
