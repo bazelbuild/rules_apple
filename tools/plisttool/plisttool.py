@@ -228,8 +228,8 @@ UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
 )
 
 UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG = (
-    'This can mean the rule failed to set the "provisioning_profile" '
-    + 'attribute so the prefix could be extracted.'
+    'This can mean the rule failed to set the "provisioning_profile" attribute'
+    ' so the prefix could be extracted.'
 )
 
 UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG = (
@@ -275,23 +275,27 @@ ENTITLEMENTS_APP_ID_PROFILE_MISMATCH = (
 )
 
 ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
-    'Target "%s" uses entitlements with a "%s" key, but the profile does not '
-    'support use of this key.'
+    'Target "%s" uses entitlements with a "%s" key, but the profile does not'
+    ' support use of this key. Either remove the attempted use from the'
+    ' entitlements file or update the profile to support it.'
 )
 
 ENTITLEMENTS_MISSING = (
-    'Target "%s" uses entitlements with the '
-    '"%s" key, but the profile does not have this key'
+    'Target "%s" uses entitlements with the "%s" key, but the profile does not'
+    ' have this key. Either remove the use from the entitlements file or update'
+    ' the profile to support it.'
 )
 
 ENTITLEMENTS_VALUE_MISMATCH = (
-    'In target "%s"; the entitlement value for "%s" ("%s") '
-    'did not match the value in the provisioning profile ("%s").'
+    'In target "%s"; the entitlement value for "%s" ("%s") did not match the'
+    ' value in the provisioning profile ("%s"). Either update the entitlements'
+    ' file to use a value from the profile or update the profile to this value.'
 )
 
 ENTITLEMENTS_VALUE_NOT_IN_LIST = (
-    'In target "%s"; the entitlement value for "%s" ("%s") '
-    'is not in the provisioning profiles potential values ("%s").'
+    'In target "%s"; the entitlement value for "%s" ("%s") is not in the'
+    ' provisioning profiles potential values ("%s"). Either use a value from'
+    ' the list in the profile or update the profile to support this value.'
 )
 
 _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
@@ -307,18 +311,22 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
 )
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
-    'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
-    'match the value in the provisioning profile ("%s").'
+    'In target "%s"; the entitlements "beta-reports-active" ("%s") did not'
+    ' match the value in the provisioning profile ("%s"). Either update the'
+    ' entitlements file to remove it or update the profile to support it.'
 )
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE = (
-    'In target "%s"; the entitlements file has "beta-reports-active" ("%s") '
-    'but it does not exist in the profile.'
+    'In target "%s"; the entitlements file has "beta-reports-active" ("%s") but'
+    ' it does not exist in the profile. Either update the entitlements file to'
+    ' remove it or update the profile to support it.'
 )
 
 ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT = (
-    'Target "%s" uses entitlements "%s" value of "%s", but the profile does '
-    'not support it (["%s"]).'
+    'Target "%s" uses entitlements "%s" value of "%s", but the profile does not'
+    ' support it (["%s"]). Either update the entitlements file to use one of'
+    ' the supported values or update the profile include support for this'
+    ' value.'
 )
 
 ENTITLEMENTS_VALUE_HAS_WILDCARD = (
