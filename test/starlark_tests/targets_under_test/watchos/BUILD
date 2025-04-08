@@ -127,6 +127,22 @@ watchos_extension(
     ],
 )
 
+ios_application(
+    name = "ios_app_with_watchos_app_with_generic_ext",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    watch_application = ":single_target_app_with_generic_ext",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 watchos_application(
     name = "single_target_app_with_generic_ext",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
