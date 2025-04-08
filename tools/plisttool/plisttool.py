@@ -115,7 +115,6 @@ satisfied, an error will be raised:
     used when the build target may still work (iOS Simulator), but
     errors are used where the build result is known not to work (iOS
     devices).
-
 """
 
 # NOTE: Ideally the final plist will always be byte for byte the same, not
@@ -190,13 +189,9 @@ REQUIRED_CHILD_KEYPATH_NOT_MATCHING = (
     'has the wrong value for "%s"; expected %r, but found %r.'
 )
 
-MISSING_KEY_MSG = (
-    'Target "%s" is missing %s.'
-)
+MISSING_KEY_MSG = 'Target "%s" is missing %s.'
 
-UNEXPECTED_KEY_MSG = (
-    'Unexpectedly found key "%s" in target "%s".'
-)
+UNEXPECTED_KEY_MSG = 'Unexpectedly found key "%s" in target "%s".'
 
 INVALID_VERSION_KEY_VALUE_MSG = (
     'Target "%s" has a %s that doesn\'t meet Apple\'s guidelines: "%s". See '
@@ -233,13 +228,12 @@ UNKNOWN_SUBSTITUTATION_REFERENCE_MSG = (
 )
 
 UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG = (
-    'This can mean the rule failed to set the "provisioning_profile" ' +
-    'attribute so the prefix could be extracted.'
+    'This can mean the rule failed to set the "provisioning_profile" '
+    + 'attribute so the prefix could be extracted.'
 )
 
 UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG = (
-    'In target "%s"; variable reference "%s" found in key "%s" merging '
-    'plists.'
+    'In target "%s"; variable reference "%s" found in key "%s" merging plists.'
 )
 
 INVALID_SUBSTITUTION_VARIABLE_NAME = (
@@ -267,8 +261,7 @@ ENTITLEMENTS_BUNDLE_ID_MISMATCH = (
 )
 
 ENTITLEMENTS_PROFILE_HAS_EXPIRED = (
-    'On target "%s", provisioning profile ExpirationDate ("%s") is in the '
-    'past.'
+    'On target "%s", provisioning profile ExpirationDate ("%s") is in the past.'
 )
 
 ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH = (
@@ -335,20 +328,33 @@ ENTITLEMENTS_VALUE_HAS_WILDCARD = (
 
 # All valid keys in the a control structure.
 _CONTROL_KEYS = frozenset([
-    'binary', 'forced_plists', 'entitlements_options', 'info_plist_options',
-    'overridable_forced_plists', 'output', 'plists', 'raw_substitutions',
-    'target', 'variable_substitutions',
+    'binary',
+    'forced_plists',
+    'entitlements_options',
+    'info_plist_options',
+    'overridable_forced_plists',
+    'output',
+    'plists',
+    'raw_substitutions',
+    'target',
+    'variable_substitutions',
 ])
 
 # All valid keys in the info_plist_options control structure.
 _INFO_PLIST_OPTIONS_KEYS = frozenset([
-    'child_plists', 'child_plist_required_values', 'pkginfo', 'version_file',
-    'version_keys_required', 'extensionkit_keys_required'
+    'child_plists',
+    'child_plist_required_values',
+    'pkginfo',
+    'version_file',
+    'version_keys_required',
+    'extensionkit_keys_required',
 ])
 
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
-    'bundle_id', 'profile_metadata_file', 'validation_mode',
+    'bundle_id',
+    'profile_metadata_file',
+    'validation_mode',
 ])
 
 # Two regexes for variable matching/validation.
@@ -417,9 +423,7 @@ BUNDLE_VERSION_VALUE_MAX_LENGTH = 18
 #   - NOTE: While the docs all say 3 segments, enterprise builds (and
 #     TestFlight?) are perfectly happy with 4 segment, so 4 is allowed.
 # - TechNote also lists an 18 characters max
-CF_BUNDLE_SHORT_VERSION_RE = re.compile(
-    r'^[0-9]+(\.[0-9]+){0,3}$'
-)
+CF_BUNDLE_SHORT_VERSION_RE = re.compile(r'^[0-9]+(\.[0-9]+){0,3}$')
 
 
 def plist_from_bytes(byte_content):
@@ -436,6 +440,7 @@ def extract_variable_from_match(re_match_obj):
 
   Args:
     re_match_obj: a re.MatchObject
+
   Returns:
     The variable name (with qualifier attached) or None if the match wasn't
     completely valid.
@@ -453,6 +458,7 @@ def is_valid_version_string(s):
 
   Args:
     s: The string to check.
+
   Returns:
     True/False based on if the string meets Apple's rules.
   """
@@ -480,6 +486,7 @@ def is_valid_short_version_string(s):
 
   Args:
     s: The string to check.
+
   Returns:
     True/False based on if the string meets Apple's rules.
   """
@@ -497,6 +504,7 @@ def get_with_key_path(a_dict, key_path):
   Args:
     a_dict: The dictionary to walk into.
     key_path: A list of keys to walk into the dictionary.
+
   Returns:
     The object or None if the keypath can't be walked.
   """
@@ -521,6 +529,7 @@ def _convert_to_rfc1034(string):
 
   Args:
     string: The string to convert.
+
   Returns:
     The converted string.
   """
@@ -532,7 +541,8 @@ def _load_json(string_or_file):
 
   Args:
     string_or_file: If a string, load the JSON from the path. Otherwise assume
-        it is a file like object and load from it.
+      it is a file like object and load from it.
+
   Returns:
     The object graph loaded.
   """
@@ -562,18 +572,17 @@ class PlistToolError(ValueError):
 class SubstitutionEngine(object):
   """Helper that can apply substitutions while copying values."""
 
-  def __init__(self,
-               target,
-               variable_substitutions=None,
-               raw_substitutions=None):
+  def __init__(
+      self, target, variable_substitutions=None, raw_substitutions=None
+  ):
     """Initialize a SubstitutionEngine.
 
     Args:
       target: Name of the target being built, used in messages/errors.
-      variable_substitutions: A dictionary of variable names to the values
-          to use for substitutions.
+      variable_substitutions: A dictionary of variable names to the values to
+        use for substitutions.
       raw_substitutions: A dictionary of raw names to the values to use for
-          substitutions.
+        substitutions.
 
     Raises:
       PlistToolError: if there are any errors with variable/raw subtitutions.
@@ -585,11 +594,11 @@ class SubstitutionEngine(object):
     for key, value in subs.items():
       m = VARIABLE_NAME_RE.match(key)
       if not m:
-        raise PlistToolError(INVALID_SUBSTITUTION_VARIABLE_NAME % (
-            target, key))
+        raise PlistToolError(INVALID_SUBSTITUTION_VARIABLE_NAME % (target, key))
       if m.group(2):
-        raise PlistToolError(SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (
-            target, key))
+        raise PlistToolError(
+            SUBSTITUTION_VARIABLE_CANT_HAVE_QUALIFIER % (target, key)
+        )
       value_rfc = _convert_to_rfc1034(value)
       for fmt in ('${%s}', '$(%s)'):
         self._substitutions[fmt % key] = value
@@ -602,7 +611,8 @@ class SubstitutionEngine(object):
         if (key in existing_key) or (existing_key in key):
           ordered = sorted([key, existing_key])
           raise PlistToolError(
-              OVERLAP_IN_SUBSTITUTION_KEYS % (target, ordered[0], ordered[1]))
+              OVERLAP_IN_SUBSTITUTION_KEYS % (target, ordered[0], ordered[1])
+          )
       self._substitutions[key] = value
 
     # A raw key can't overlap any value.
@@ -611,7 +621,8 @@ class SubstitutionEngine(object):
       for raw_key in raw_keys:
         if raw_key in v:
           raise PlistToolError(
-              RAW_SUBSTITUTION_KEY_IN_VALUE % (target, raw_key, v, k))
+              RAW_SUBSTITUTION_KEY_IN_VALUE % (target, raw_key, v, k)
+          )
 
     # Make _substitutions_re.
     if self._substitutions:
@@ -628,6 +639,7 @@ class SubstitutionEngine(object):
 
     Args:
       value: The value with possible variable references to substitute.
+
     Returns:
       The value with any variable references substituted with their new
       values.
@@ -642,6 +654,7 @@ class SubstitutionEngine(object):
 
       def sub_helper(match_obj):
         return self._substitutions[match_obj.group(0)]
+
       return self._substitutions_re.sub(sub_helper, value)
 
     if isinstance(value, dict):
@@ -653,11 +666,9 @@ class SubstitutionEngine(object):
     return value
 
   @classmethod
-  def validate_no_variable_references(cls,
-                                      target,
-                                      key_name,
-                                      value,
-                                      msg_additions=None):
+  def validate_no_variable_references(
+      cls, target, key_name, value, msg_additions=None
+  ):
     """Ensures there are no variable references left in value (recursively).
 
     Args:
@@ -666,6 +677,7 @@ class SubstitutionEngine(object):
       value: The value to check.
       msg_additions: Dictionary of variable names to custom strings to add to
         the error messages.
+
     Raises:
       PlistToolError: If there is a variable substitution that wasn't resolved.
     """
@@ -682,10 +694,16 @@ class SubstitutionEngine(object):
           variable_name = extract_variable_from_match(m)
           if not variable_name:
             # Reference wasn't property formed, raise that issue.
-            raise PlistToolError(INVALID_SUBSTITUTATION_REFERENCE_MSG % (
-                target, m.group(0), key_name, value))
+            raise PlistToolError(
+                INVALID_SUBSTITUTATION_REFERENCE_MSG
+                % (target, m.group(0), key_name, value)
+            )
           err_msg = UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
-              target, m.group(0), key_name, value)
+              target,
+              m.group(0),
+              key_name,
+              value,
+          )
           msg_addition = additions.get(variable_name)
           if msg_addition:
             err_msg = err_msg + ' ' + msg_addition
@@ -699,8 +717,9 @@ class SubstitutionEngine(object):
           m = VARIABLE_REFERENCE_RE.search(k)
           if m:
             raise PlistToolError(
-                UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG % (
-                    target, m.group(0), key_prefix + k))
+                UNSUPPORTED_SUBSTITUTATION_REFERENCE_IN_KEY_MSG
+                % (target, m.group(0), key_prefix + k)
+            )
         return
 
       if isinstance(value, list):
@@ -732,6 +751,7 @@ class PlistIO(object):
     Args:
       p: The object to interpret as a plist.
       target: The name of the target for which the plist is being built.
+
     Returns:
       A dictionary containing the values from the plist.
     """
@@ -756,6 +776,7 @@ class PlistIO(object):
       plist_file: The file-like object containing the plist data.
       name: Name to report the file-like object as if it fails xml conversion.
       target: The name of the target for which the plist is being built.
+
     Returns:
       The contents of the plist file as a dictionary.
 
@@ -773,12 +794,14 @@ class PlistIO(object):
       plutil_process = subprocess.Popen(
           ['plutil', '-convert', 'xml1', '-o', '-', '--', '-'],
           stdout=subprocess.PIPE,
-          stdin=subprocess.PIPE
+          stdin=subprocess.PIPE,
       )
       plist_contents, _ = plutil_process.communicate(plist_contents)
       if plutil_process.returncode:
-        raise PlistToolError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
-            target, plutil_process.returncode, name))
+        raise PlistToolError(
+            PLUTIL_CONVERSION_TO_XML_FAILED_MSG
+            % (target, plutil_process.returncode, name)
+        )
 
     return plist_from_bytes(plist_contents)
 
@@ -791,10 +814,10 @@ class PlistIO(object):
 
     Args:
       plist: The plist to write to the output path in the control struct.
-      path_or_file: The name of file to write or or a file like object to
-          write into.
-      binary: If True and path_or_file was a file name, reformat the file
-          in binary form.
+      path_or_file: The name of file to write or or a file like object to write
+        into.
+      binary: If True and path_or_file was a file name, reformat the file in
+        binary form.
     """
     if isinstance(path_or_file, str):
       with open(path_or_file, 'wb') as fp:
@@ -855,7 +878,7 @@ class PlistToolTask(object):
 
     Args:
       out_plist: The dictionary representing the merged plist so far. This
-          dictionary will may be modified as the task desires.
+        dictionary will may be modified as the task desires.
       subs_engine: A SubstitutionEngine instance to use if needed.
     """
     pass  # Default to nothing for subclasses
@@ -864,9 +887,9 @@ class PlistToolTask(object):
     """Do any final checks on the resulting plist.
 
     Args:
-      plist: The dictionary representing final plist, no changes may be
-        made to the plist. If there are any issues a PlistToolError should
-        be raised with the problems.
+      plist: The dictionary representing final plist, no changes may be made to
+        the plist. If there are any issues a PlistToolError should be raised
+        with the problems.
     """
     pass  # Default to nothing for subclasses
 
@@ -959,10 +982,11 @@ class InfoPlistTask(PlistToolTask):
     Args:
       plist: The final plist of the target being built.
       child_plists: The plists of child targets that the target being built
-          depends on.
-      child_required_values: Mapping of any key/value pairs to validate in
-          the children.
+        depends on.
+      child_required_values: Mapping of any key/value pairs to validate in the
+        children.
       target: The name of the target being processed.
+
     Raises:
       PlistToolError: if there was an inconsistency between a child target's
           plist and the current target's plist, with a message describing what
@@ -980,8 +1004,9 @@ class InfoPlistTask(PlistToolTask):
 
       child_id = child_plist['CFBundleIdentifier']
       if not child_id.startswith(prefix):
-        raise PlistToolError(CHILD_BUNDLE_ID_MISMATCH_MSG % (
-            target, label, prefix, child_id))
+        raise PlistToolError(
+            CHILD_BUNDLE_ID_MISMATCH_MSG % (target, label, prefix, child_id)
+        )
 
       # - TN2420 calls out CFBundleVersion and CFBundleShortVersionString
       #   has having to match for watchOS targets.
@@ -995,14 +1020,23 @@ class InfoPlistTask(PlistToolTask):
 
       child_version = child_plist.get('CFBundleVersion')
       if version != child_version:
-        raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
-            target, 'CFBundleVersion', label, version, child_version))
+        raise PlistToolError(
+            CHILD_BUNDLE_VERSION_MISMATCH_MSG
+            % (target, 'CFBundleVersion', label, version, child_version)
+        )
 
       child_version = child_plist.get('CFBundleShortVersionString')
       if short_version != child_version:
-        raise PlistToolError(CHILD_BUNDLE_VERSION_MISMATCH_MSG % (
-            target, 'CFBundleShortVersionString', label, short_version,
-            child_version))
+        raise PlistToolError(
+            CHILD_BUNDLE_VERSION_MISMATCH_MSG
+            % (
+                target,
+                'CFBundleShortVersionString',
+                label,
+                short_version,
+                child_version,
+            )
+        )
 
       required_info = child_required_values.get(label, [])
       for pair in required_info:
@@ -1013,13 +1047,17 @@ class InfoPlistTask(PlistToolTask):
         value = get_with_key_path(child_plist, key_path)
         if value is None:
           key_path_str = ':'.join([str(x) for x in key_path])
-          raise PlistToolError(REQUIRED_CHILD_KEYPATH_NOT_FOUND % (
-              target, label, key_path_str, expected))
+          raise PlistToolError(
+              REQUIRED_CHILD_KEYPATH_NOT_FOUND
+              % (target, label, key_path_str, expected)
+          )
 
         if value != expected:
           key_path_str = ':'.join([str(x) for x in key_path])
-          raise PlistToolError(REQUIRED_CHILD_KEYPATH_NOT_MATCHING % (
-              target, label, key_path_str, expected, value))
+          raise PlistToolError(
+              REQUIRED_CHILD_KEYPATH_NOT_MATCHING
+              % (target, label, key_path_str, expected, value)
+          )
 
     # Make sure there wasn't anything listed in required that wasn't listed
     # as a child.
@@ -1033,14 +1071,14 @@ class InfoPlistTask(PlistToolTask):
 
     Args:
       pkginfo: A writable file-like object into which the PkgInfo data will be
-          written.
+        written.
       plist: The plist containing the bundle package type and signature that
-          will be written into the PkgInfo.
+        will be written into the PkgInfo.
     """
     package_type = cls._four_byte_pkginfo_string(
-        plist.get('CFBundlePackageType'))
-    signature = cls._four_byte_pkginfo_string(
-        plist.get('CFBundleSignature'))
+        plist.get('CFBundlePackageType')
+    )
+    signature = cls._four_byte_pkginfo_string(plist.get('CFBundleSignature'))
 
     pkginfo.write(package_type)
     pkginfo.write(signature)
@@ -1051,6 +1089,7 @@ class InfoPlistTask(PlistToolTask):
 
     Args:
       value: The value that is a candidate for the PkgInfo file.
+
     Returns:
       If the value is a string that is exactly four bytes long, it is returned;
       otherwise, '????' is returned instead.
@@ -1094,15 +1133,21 @@ class EntitlementsTask(PlistToolTask):
       ver = self._profile_metadata.get('Version')
       if ver != 1:
         # Just log the message incase something else goes wrong.
-        print(('WARNING: On target "%s", got a provisioning profile with a ' +
-               '"Version" other than "1" (%s).') % (self.target, ver))
+        print(
+            (
+                'WARNING: On target "%s", got a provisioning profile with a '
+                + '"Version" other than "1" (%s).'
+            )
+            % (self.target, ver)
+        )
 
     if self._profile_metadata:
       # Even though the provisioning profile had a TeamIdentifier, the previous
       # entitlements code used ApplicationIdentifierPrefix:0, so use that to
       # maintain behavior in case it was important.
       team_prefix_list = self._profile_metadata.get(
-          'ApplicationIdentifierPrefix')
+          'ApplicationIdentifierPrefix'
+      )
       team_prefix = team_prefix_list[0] if team_prefix_list else None
 
       if team_prefix:
@@ -1117,14 +1162,17 @@ class EntitlementsTask(PlistToolTask):
         bundle_id = self.options.get('bundle_id')
         if bundle_id:
           self._extra_raw_subs['%s.*' % team_prefix] = '%s.%s' % (
-              team_prefix, bundle_id)
+              team_prefix,
+              bundle_id,
+          )
         # - "$(AppIdentifierPrefix)" -> "PREFIX."
         self._extra_var_subs['AppIdentifierPrefix'] = '%s.' % team_prefix
 
     else:
       self._unknown_var_msg_addtions.update({
-          'AppIdentifierPrefix':
-              UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG,
+          'AppIdentifierPrefix': (
+              UNKNOWN_SUBSTITUTION_ADDITION_APPIDENTIFIERPREFIX_MSG
+          ),
       })
 
   @classmethod
@@ -1184,6 +1232,7 @@ class EntitlementsTask(PlistToolTask):
     Args:
       bundle_id: The bundle id to check.
       entitlements: The entitlements.
+
     Raises:
       PlistToolError: If the bundle_id isn't covered by the entitlements.
     """
@@ -1198,10 +1247,13 @@ class EntitlementsTask(PlistToolTask):
     # The app id has the team prefix as the first component, so drop that.
     provisioned_id = app_id.split('.', 1)[1]
 
-    if not self._does_id_match(bundle_id, provisioned_id,
-                               allowed_supports_wildcards=True):
-      raise PlistToolError(ENTITLEMENTS_BUNDLE_ID_MISMATCH % (
-          self.target, bundle_id, provisioned_id))
+    if not self._does_id_match(
+        bundle_id, provisioned_id, allowed_supports_wildcards=True
+    ):
+      raise PlistToolError(
+          ENTITLEMENTS_BUNDLE_ID_MISMATCH
+          % (self.target, bundle_id, provisioned_id)
+      )
 
   def _sanity_check_profile(self):
     """Some basic checks of the profile info to ensure signing will work.
@@ -1215,8 +1267,9 @@ class EntitlementsTask(PlistToolTask):
     # integer), but just checking "ExpirationDate" seems better.
     expire = self._profile_metadata.get('ExpirationDate')
     if expire and expire < datetime.datetime.now():
-      raise PlistToolError(ENTITLEMENTS_PROFILE_HAS_EXPIRED % (
-          self.target, expire.isoformat()))
+      raise PlistToolError(
+          ENTITLEMENTS_PROFILE_HAS_EXPIRED % (self.target, expire.isoformat())
+      )
 
     # There is a "Platform" key (contains an array), but looking at at some
     # profiles used by working watchOS targets, they still say "iOS", so it
@@ -1232,6 +1285,7 @@ class EntitlementsTask(PlistToolTask):
 
     Args:
       entitlements: The entitlements.
+
     Raises:
       PlistToolError: For any issues found.
     """
@@ -1245,8 +1299,9 @@ class EntitlementsTask(PlistToolTask):
       from_profile = self._profile_metadata.get(key, [])
       if src_team_id not in from_profile:
         self._report(
-            ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH % (
-                self.target, src_team_id, key, from_profile))
+            ENTITLEMENTS_TEAM_ID_PROFILE_MISMATCH
+            % (self.target, src_team_id, key, from_profile)
+        )
 
     profile_entitlements = self._profile_metadata.get('Entitlements')
 
@@ -1255,17 +1310,22 @@ class EntitlementsTask(PlistToolTask):
     if src_app_id and profile_entitlements:
       profile_app_id = profile_entitlements.get('application-identifier')
       if profile_app_id and not self._does_id_match(
-          src_app_id, profile_app_id, allowed_supports_wildcards=True,
-          id_supports_wildcards=True):
+          src_app_id,
+          profile_app_id,
+          allowed_supports_wildcards=True,
+          id_supports_wildcards=True,
+      ):
         self._report(
-            ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
-                self.target, src_app_id, profile_app_id))
+            ENTITLEMENTS_APP_ID_PROFILE_MISMATCH
+            % (self.target, src_app_id, profile_app_id)
+        )
 
     for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
       self._check_entitlement_matches_profile_value(
           entitlement=entitlement,
           entitlements=entitlements,
-          profile_entitlements=profile_entitlements)
+          profile_entitlements=profile_entitlements,
+      )
 
     # If beta-reports-active is in either the profile or the entitlements file
     # it must be in both or the upload will get rejected by Apple
@@ -1273,44 +1333,57 @@ class EntitlementsTask(PlistToolTask):
     profile_key = (profile_entitlements or {}).get('beta-reports-active')
     if beta_reports_active is not None and profile_key != beta_reports_active:
       error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH % (
-          self.target, beta_reports_active, profile_key)
+          self.target,
+          beta_reports_active,
+          profile_key,
+      )
       if profile_key is None:
         error_msg = ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISSING_PROFILE % (
-            self.target, beta_reports_active)
+            self.target,
+            beta_reports_active,
+        )
       self._report(error_msg)
 
     # keychain-access-groups
     self._check_entitlements_array(
-        entitlements, profile_entitlements,
-        'keychain-access-groups', self.target,
-        supports_wildcards=True)
+        entitlements,
+        profile_entitlements,
+        'keychain-access-groups',
+        self.target,
+        supports_wildcards=True,
+    )
 
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
     if self._profile_metadata.get('Platform', []) != ['OSX']:
       self._check_entitlements_array(
-          entitlements, profile_entitlements,
-          'com.apple.security.application-groups', self.target)
+          entitlements,
+          profile_entitlements,
+          'com.apple.security.application-groups',
+          self.target,
+      )
 
     # com.apple.developer.associated-domains
     self._check_entitlements_array(
-        entitlements, profile_entitlements,
-        'com.apple.developer.associated-domains', self.target,
+        entitlements,
+        profile_entitlements,
+        'com.apple.developer.associated-domains',
+        self.target,
         supports_wildcards=True,
-        allow_wildcards_in_entitlements=True)
+        allow_wildcards_in_entitlements=True,
+    )
 
     # com.apple.developer.nfc.readersession.formats
     self._check_entitlements_array(
         entitlements,
         profile_entitlements,
         'com.apple.developer.nfc.readersession.formats',
-        self.target)
+        self.target,
+    )
 
   def _check_entitlement_matches_profile_value(
-      self,
-      entitlement,
-      entitlements,
-      profile_entitlements):
+      self, entitlement, entitlements, profile_entitlements
+  ):
     """Checks if an entitlement value matches against profile entitlement.
 
     If provisioning profile entitlement is defined as a list, this will
@@ -1331,41 +1404,46 @@ class EntitlementsTask(PlistToolTask):
       self._report(ENTITLEMENTS_MISSING % (self.target, entitlement))
 
     elif isinstance(profile_value, list):
-      if (isinstance(entitlements_value, str) and
-          entitlements_value not in profile_value):
+      if (
+          isinstance(entitlements_value, str)
+          and entitlements_value not in profile_value
+      ):
         # provisioning profile does not have entitlement in list.
         self._report(
-            ENTITLEMENTS_VALUE_NOT_IN_LIST %
-            (self.target, entitlement, entitlements_value, profile_value))
+            ENTITLEMENTS_VALUE_NOT_IN_LIST
+            % (self.target, entitlement, entitlements_value, profile_value)
+        )
 
       if isinstance(entitlements_value, list):
         self._check_entitlements_array(
-            entitlements,
-            profile_entitlements,
-            entitlement,
-            self.target)
+            entitlements, profile_entitlements, entitlement, self.target
+        )
 
     elif isinstance(profile_value, (str, bool)):
       if entitlements_value != profile_value:
         # provisioning profile entitlement does not match value.
         self._report(
-            ENTITLEMENTS_VALUE_MISMATCH % (
-                self.target, entitlement, entitlements_value, profile_value))
+            ENTITLEMENTS_VALUE_MISMATCH
+            % (self.target, entitlement, entitlements_value, profile_value)
+        )
 
-  def _does_id_match(self,
-                     entitlement_id,
-                     allowed,
-                     allowed_supports_wildcards=False,
-                     id_supports_wildcards=False):
+  def _does_id_match(
+      self,
+      entitlement_id,
+      allowed,
+      allowed_supports_wildcards=False,
+      id_supports_wildcards=False,
+  ):
     """Check is an id matches the given allowed id (include wildcards).
 
     Args:
       entitlement_id: The identifier to check.
       allowed: The allowed identifier which can end in a wildcard.
-      allowed_supports_wildcards: True/False for if wildcards should
-          be supported in the `allowed` value.
+      allowed_supports_wildcards: True/False for if wildcards should be
+        supported in the `allowed` value.
       id_supports_wildcards: True/False for if a wildcard should be
-          allowed/supported in the input id. This is very rare.
+        allowed/supported in the input id. This is very rare.
+
     Returns:
       True/False if the identifier is covered.
     """
@@ -1391,17 +1469,17 @@ class EntitlementsTask(PlistToolTask):
 
     return False
 
-  def _does_id_match_list(self,
-                          entitlement_id,
-                          allowed_list,
-                          allowed_supports_wildcards=False):
+  def _does_id_match_list(
+      self, entitlement_id, allowed_list, allowed_supports_wildcards=False
+  ):
     """Check is an id matches the given allowed id list (include wildcards).
 
     Args:
       entitlement_id: The identifier to check.
       allowed_list: The allowed identifiers which can end in a wildcard.
-      allowed_supports_wildcards: True/False for if wildcards should
-          be supported in the `allowed_list` values.
+      allowed_supports_wildcards: True/False for if wildcards should be
+        supported in the `allowed_list` values.
+
     Returns:
       True/False if the identifier is covered.
     """
@@ -1409,30 +1487,34 @@ class EntitlementsTask(PlistToolTask):
       if self._does_id_match(
           entitlement_id,
           allowed,
-          allowed_supports_wildcards=allowed_supports_wildcards):
+          allowed_supports_wildcards=allowed_supports_wildcards,
+      ):
         return True
 
     return False
 
-  def _check_entitlements_array(self,
-                                entitlements,
-                                profile_entitlements,
-                                key_name,
-                                target,
-                                supports_wildcards=False,
-                                allow_wildcards_in_entitlements=False):
+  def _check_entitlements_array(
+      self,
+      entitlements,
+      profile_entitlements,
+      key_name,
+      target,
+      supports_wildcards=False,
+      allow_wildcards_in_entitlements=False,
+  ):
     """Checks if the requested entitlements against the profile for a key.
 
     Args:
       entitlements: The entitlements.
       profile_entitlements: The provisioning profiles entitlements (from the
-          profile metadata).
+        profile metadata).
       key_name: The key to check.
       target: The target to include in errors.
-      supports_wildcards: True/False for if wildcards should be supported
-          value from the profile_entitlements. This also means the entries
-          are reverse DNS style.
+      supports_wildcards: True/False for if wildcards should be supported value
+        from the profile_entitlements. This also means the entries are reverse
+        DNS style.
       allow_wildcards_in_entitlements: True/False if wildcards are allowed.
+
     Raises:
       PlistToolError: For any issues found.
     """
@@ -1445,26 +1527,29 @@ class EntitlementsTask(PlistToolTask):
 
     profile_grps = profile_entitlements.get(key_name)
     if not profile_grps:
-      self._report(
-          ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name))
+      self._report(ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (target, key_name))
       return
 
     for src_grp in src_grps:
       if '*' in src_grp and not allow_wildcards_in_entitlements:
         self._report(
-            ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp))
+            ENTITLEMENTS_VALUE_HAS_WILDCARD % (target, key_name, src_grp)
+        )
 
       if not self._does_id_match_list(
-          src_grp, profile_grps, allowed_supports_wildcards=supports_wildcards):
+          src_grp, profile_grps, allowed_supports_wildcards=supports_wildcards
+      ):
         self._report(
-            ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT % (
-                target, key_name, src_grp, '", "'.join(profile_grps)))
+            ENTITLEMENTS_HAS_GROUP_ENTRY_PROFILE_DOES_NOT
+            % (target, key_name, src_grp, '", "'.join(profile_grps))
+        )
 
   def _report(self, msg):
     """Helper for reporting things.
 
     Args:
       msg: Message to report.
+
     Raises:
       PlistToolError: if 'validation_mode' flag was set to 'error'.
     """
@@ -1482,7 +1567,7 @@ class PlistTool(object):
 
     Args:
       control: The dictionary of options used to control the tool. Please see
-          the moduledoc for a description of the format of this dictionary.
+        the moduledoc for a description of the format of this dictionary.
     """
     self._control = control
 
@@ -1506,11 +1591,15 @@ class PlistTool(object):
       unknown_keys = set(keys) - expected
       if unknown_keys:
         if options_name:
-          raise PlistToolError(UNKNOWN_TASK_OPTIONS_KEYS_MSG % (
-              target, options_name, ', '.join(sorted(unknown_keys))))
+          raise PlistToolError(
+              UNKNOWN_TASK_OPTIONS_KEYS_MSG
+              % (target, options_name, ', '.join(sorted(unknown_keys)))
+          )
         else:
-          raise PlistToolError(UNKNOWN_CONTROL_KEYS_MSG % (
-              target, ', '.join(sorted(unknown_keys))))
+          raise PlistToolError(
+              UNKNOWN_CONTROL_KEYS_MSG
+              % (target, ', '.join(sorted(unknown_keys)))
+          )
 
     # Check for unknown keys in the control structure.
     validate_keys(list(self._control.keys()), _CONTROL_KEYS)
@@ -1528,13 +1617,17 @@ class PlistTool(object):
       options_name = task_type.control_structure_options_name()
       options = self._control.get(options_name)
       if options is not None:
-        validate_keys(list(options.keys()), task_type.options_keys(),
-                      options_name=options_name)
+        validate_keys(
+            list(options.keys()),
+            task_type.options_keys(),
+            options_name=options_name,
+        )
         task = task_type(target, options)
         var_subs.update(task.extra_variable_substitutions())
         raw_subs.update(task.extra_raw_substitutions())
         unknown_var_msg_additions.update(
-            task.unknown_variable_message_additions())
+            task.unknown_variable_message_additions()
+        )
         tasks.append(task)
 
     subs_engine = SubstitutionEngine(target, var_subs, raw_subs)
@@ -1544,26 +1637,30 @@ class PlistTool(object):
       self._merge_dictionaries(plist, out_plist, target, subs_engine)
 
     overridable_forced_plists = self._control.get(
-        'overridable_forced_plists', [])
+        'overridable_forced_plists', []
+    )
     for p in overridable_forced_plists:
       plist = PlistIO.get_dict(p, target)
       # The order is flipped between incoming/outgoing info plist so that the
       # merged plist above has priority, unlike normal `forced_plists` below.
-      self._merge_dictionaries(out_plist, plist, target, subs_engine,
-                               override_collisions=True)
+      self._merge_dictionaries(
+          out_plist, plist, target, subs_engine, override_collisions=True
+      )
       out_plist = plist
 
     forced_plists = self._control.get('forced_plists', [])
     for p in forced_plists:
       plist = PlistIO.get_dict(p, target)
-      self._merge_dictionaries(plist, out_plist, target, subs_engine,
-                               override_collisions=True)
+      self._merge_dictionaries(
+          plist, out_plist, target, subs_engine, override_collisions=True
+      )
 
     for t in tasks:
       t.update_plist(out_plist, subs_engine)
 
     SubstitutionEngine.validate_no_variable_references(
-        target, '', out_plist, msg_additions=unknown_var_msg_additions)
+        target, '', out_plist, msg_additions=unknown_var_msg_additions
+    )
 
     if tasks:
       saved_copy = copy.deepcopy(out_plist)
@@ -1575,8 +1672,9 @@ class PlistTool(object):
     PlistIO.write(out_plist, output, binary=self._control.get('binary'))
 
   @staticmethod
-  def _merge_dictionaries(src, dest, target, subs_engine,
-                          override_collisions=False):
+  def _merge_dictionaries(
+      src, dest, target, subs_engine, override_collisions=False
+  ):
     """Merge the top-level keys from src into dest.
 
     This method is publicly visible for testing.
@@ -1586,9 +1684,10 @@ class PlistTool(object):
       dest: The dictionary into which the values will be merged.
       target: The name of the target for which the plist is being built.
       subs_engine: The SubstitutionEngine to use during the merge.
-      override_collisions: If True, collisions will be resolved by replacing
-          the previous value with the new value. If False, an error will be
-          raised if old and new values do not match.
+      override_collisions: If True, collisions will be resolved by replacing the
+        previous value with the new value. If False, an error will be raised if
+        old and new values do not match.
+
     Raises:
       PlistToolError: If the two dictionaries had different values for the
           same key.
@@ -1600,8 +1699,9 @@ class PlistTool(object):
         dest_value = dest[key]
 
         if not override_collisions and src_value != dest_value:
-          raise PlistToolError(CONFLICTING_KEYS_MSG % (
-              target, key, src_value, dest_value))
+          raise PlistToolError(
+              CONFLICTING_KEYS_MSG % (target, key, src_value, dest_value)
+          )
 
       dest[key] = src_value
 
