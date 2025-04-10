@@ -213,7 +213,6 @@ if [[ -n "$test_host_path" ]]; then
     mkdir -p "$runner_app_frameworks_destination"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
-    cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
     cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
@@ -227,6 +226,16 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$testing_framework_path" ]]; then
       cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
+
+    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
+    # On Xcode 16.3 and later, XCUIAutomation is not private anymore
+    if [[ -d "$xcuiautomation_path" ]]; then
+      cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+    else 
+      xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
+      cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+    fi
+
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
