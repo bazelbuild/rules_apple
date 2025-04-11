@@ -227,14 +227,12 @@ if [[ -n "$test_host_path" ]]; then
       cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
 
-    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
     # On Xcode 16.3 and later, XCUIAutomation is not private anymore
-    if [[ -d "$xcuiautomation_path" ]]; then
-      cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
-    else 
-      xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
-      cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
+    if [[ ! -d "$xcuiautomation_path" ]]; then
+        xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
     fi
+    cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
 
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
