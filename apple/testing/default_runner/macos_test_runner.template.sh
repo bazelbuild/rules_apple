@@ -41,7 +41,7 @@ BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
 
 # Create a temporary folder that will contain the test bundle and potentially
 # the test host bundle as well.
-TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
+TEST_TMP_DIR="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
