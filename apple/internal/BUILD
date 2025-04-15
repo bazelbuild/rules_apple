@@ -331,6 +331,7 @@ bzl_library(
         ":apple_toolchains",
         ":cc_toolchain_info_support",
         ":entitlements_support",
+        ":intermediates",
         ":providers",
         ":rule_support",
         "@bazel_skylib//lib:collections",
