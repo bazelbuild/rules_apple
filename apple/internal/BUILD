@@ -293,6 +293,7 @@ bzl_library(
     ],
     deps = [
         ":entitlements_support",
+        ":intermediates",
         ":providers",
         "//apple/internal/providers:apple_dynamic_framework_info",
         "@build_bazel_apple_support//lib:lipo",

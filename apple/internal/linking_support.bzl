@@ -20,6 +20,10 @@ load(
     "entitlements_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:multi_arch_binary_support.bzl",
     "subtract_linking_contexts",
 )
@@ -264,9 +268,11 @@ def _link_multi_arch_binary(
                 suffix = "_bin_unstripped.dwarf"
             else:
                 suffix = "_bin.dwarf"
-            dsym_binary = ctx.actions.declare_shareable_artifact(
-                ctx.label.package + "/" + ctx.label.name + suffix,
-                child_config.bin_dir,
+            dsym_binary = intermediates.file(
+                actions = ctx.actions,
+                target_name = ctx.label.name,
+                output_discriminator = split_transition_key,
+                file_name = ctx.label.name + suffix,
             )
             extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
             additional_outputs.append(dsym_binary)
@@ -274,9 +280,11 @@ def _link_multi_arch_binary(
 
         linkmap = None
         if ctx.fragments.cpp.objc_generate_linkmap:
-            linkmap = ctx.actions.declare_shareable_artifact(
-                ctx.label.package + "/" + ctx.label.name + ".linkmap",
-                child_config.bin_dir,
+            linkmap = intermediates.file(
+                actions = ctx.actions,
+                target_name = ctx.label.name,
+                output_discriminator = split_transition_key,
+                file_name = ctx.label.name + ".linkmap",
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
             additional_outputs.append(linkmap)
