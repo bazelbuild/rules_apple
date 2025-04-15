@@ -51,6 +51,16 @@ Dictionary of environment variables that should be set during the test execution
 the dictionary are subject to "Make" variable expansion.
 """,
     ),
+    "exec_data": attr.label_list(
+        allow_files = True,
+        cfg = "exec",
+        default = [],
+        doc = """
+Files to be made available to the test during its execution, on the machine
+running the test. The most common use case for this are executables run as
+part of UI tests.
+""",
+    ),
     "runner": attr.label(
         doc = """
 The runner target that will provide the logic on how to run the tests. Needs to provide the
