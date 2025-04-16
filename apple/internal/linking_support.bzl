@@ -26,6 +26,10 @@ load(
     "cc_toolchain_info_support",
 )
 load(
+    "//apple/internal:compilation_support.bzl",
+    "compilation_support",
+)
+load(
     "//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -44,8 +48,6 @@ load(
     "ApplePlatformInfo",
     "new_appledebugoutputsinfo",
 )
-
-ObjcInfo = apple_common.Objc
 
 def _archive_multi_arch_static_library(
         *,
@@ -106,8 +108,8 @@ def _archive_multi_arch_static_library(
 
         if len(split_avoid_deps.keys()):
             for dep in split_avoid_deps[split_transition_key]:
-                if ObjcInfo in dep:
-                    avoid_objc_providers.append(dep[ObjcInfo])
+                if apple_common.Objc in dep:
+                    avoid_objc_providers.append(dep[apple_common.Objc])
                 if CcInfo in dep:
                     avoid_cc_providers.append(dep[CcInfo])
                     avoid_cc_linking_contexts.append(dep[CcInfo].linking_context)
@@ -119,7 +121,7 @@ def _archive_multi_arch_static_library(
             linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
-        linking_outputs = apple_common.compilation_support.register_fully_link_action(
+        linking_outputs = compilation_support.register_fully_link_action(
             name = name,
             common_variables = common_variables,
             cc_linking_context = cc_linking_context,
@@ -332,7 +334,7 @@ def _link_multi_arch_binary(
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
         name = ctx.label.name + "_bin"
-        executable = apple_common.compilation_support.register_configuration_specific_link_actions(
+        executable = compilation_support.register_configuration_specific_link_actions(
             name = name,
             common_variables = common_variables,
             cc_linking_context = cc_linking_context,
@@ -341,9 +343,10 @@ def _link_multi_arch_binary(
             stamp = stamp,
             user_variable_extensions = variables_extension | extensions,
             additional_outputs = additional_outputs,
-            deps = deps,
             extra_link_inputs = extra_link_inputs,
             attr_linkopts = attr_linkopts,
+            # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
+            split_transition_key = split_transition_key,
         )
 
         output = {
