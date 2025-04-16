@@ -91,6 +91,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:run_support.bzl",
+    "run_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
     "stub_support",
 )
@@ -430,9 +434,28 @@ reproducible error case.".format(
         rule_label = label,
     )
 
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+
+    run_support.register_simulator_executable(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        output = executable,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        runner_template = ctx.file._runner_template,
+    )
+
     return [
         DefaultInfo(
+            executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = [archive],
+            ),
         ),
         OutputGroupInfo(**processor_result.output_groups),
         new_watchosapplicationbundleinfo(),
@@ -1041,9 +1064,28 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         rule_label = label,
     )
 
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+
+    run_support.register_simulator_executable(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        output = executable,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        runner_template = ctx.file._runner_template,
+    )
+
     return [
         DefaultInfo(
+            executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = [archive],
+            ),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
@@ -1309,6 +1351,7 @@ watchos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a watchOS Application.",
     implementation = _watchos_application_impl,
+    is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
@@ -1336,6 +1379,7 @@ watchos_application = rule_factory.create_apple_rule(
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.watchos_app,
         ),
+        rule_attrs.simulator_runner_template_attr(),
         {
             # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr.
             "extension": attr.label(
