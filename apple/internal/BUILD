@@ -151,6 +151,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "compilation_support",
+    srcs = ["compilation_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":intermediates",
+        ":platform_support",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
     name = "entitlements_support",
     srcs = ["entitlements_support.bzl"],
     visibility = [
@@ -292,6 +305,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":compilation_support",
         ":entitlements_support",
         ":intermediates",
         ":providers",

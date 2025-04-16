@@ -77,7 +77,7 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
         return family_ids
     return None
 
-def _get_apple_common_platform(*, apple_platform_info):
+def _apple_common_platform_from_platform_info(*, apple_platform_info):
     """Returns an apple_common.platform given the contents of an ApplePlatformInfo provider"""
     if apple_platform_info.target_os == "ios":
         if apple_platform_info.target_environment == "device":
@@ -150,7 +150,7 @@ def _platform_prerequisites(
     Returns:
       A struct representing the collected platform information.
     """
-    platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
+    platform = _apple_common_platform_from_platform_info(apple_platform_info = apple_platform_info)
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
     target_os = apple_platform_info.target_os
 
@@ -175,6 +175,7 @@ def _platform_prerequisites(
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
+    apple_common_platform_from_platform_info = _apple_common_platform_from_platform_info,
     apple_platform_info_from_rule_ctx = _apple_platform_info_from_rule_ctx,
     platform_prerequisites = _platform_prerequisites,
     ui_device_family_plist_value = _ui_device_family_plist_value,
