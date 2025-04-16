@@ -14,21 +14,19 @@
 
 """Support utility for creating multi-arch Apple binaries."""
 
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
-
 visibility([
     "//apple/...",
 ])
 
 def _build_avoid_library_set(avoid_dep_linking_contexts):
-    avoid_library_set = sets.make()
+    avoid_library_set = dict()
 
     for linking_context in avoid_dep_linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
             for library_to_link in linker_input.libraries:
                 library_artifact = apple_common.compilation_support.get_static_library_for_linking(library_to_link)
                 if library_artifact:
-                    sets.insert(avoid_library_set, library_artifact.short_path)
+                    avoid_library_set[library_artifact.short_path] = True
 
     return avoid_library_set
 
@@ -46,21 +44,20 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
     libraries = []
     user_link_flags = []
     additional_inputs = []
+    non_library_inputs = []
     linkstamps = []
-    linker_inputs_seen = sets.make()
     avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
 
     for linking_context in linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
-            if sets.contains(linker_inputs_seen, linker_input):
+            if not linker_input.libraries:
+                non_library_inputs.append(linker_input)
                 continue
-
-            sets.insert(linker_inputs_seen, linker_input)
 
             for library_to_link in linker_input.libraries:
                 library_artifact = apple_common.compilation_support.get_library_for_linking(library_to_link)
 
-                if not sets.contains(avoid_library_set, library_artifact.short_path):
+                if library_artifact.short_path not in avoid_library_set:
                     libraries.append(library_to_link)
 
             user_link_flags.extend(linker_input.user_link_flags)
@@ -68,14 +65,17 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
             linkstamps.extend(linker_input.linkstamps)
 
     return cc_common.create_linking_context(
-        linker_inputs = depset([
-            cc_common.create_linker_input(
-                owner = owner,
-                libraries = depset(libraries, order = "topological"),
-                user_link_flags = user_link_flags,
-                additional_inputs = depset(additional_inputs),
-                linkstamps = depset(linkstamps),
-            ),
-        ]),
+        linker_inputs = depset(
+            [
+                cc_common.create_linker_input(
+                    owner = owner,
+                    libraries = depset(libraries, order = "topological"),
+                    user_link_flags = user_link_flags,
+                    additional_inputs = depset(additional_inputs),
+                    linkstamps = depset(linkstamps),
+                ),
+            ],
+            transitive = [depset(non_library_inputs)],
+        ),
         owner = owner,
     )
