@@ -26,6 +26,7 @@ bzl_library(
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
