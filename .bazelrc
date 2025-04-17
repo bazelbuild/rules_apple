@@ -4,9 +4,6 @@
 # https://github.com/bazelbuild/stardoc/issues/112
 common --incompatible_allow_tags_propagation
 
-# Force the simulator version installed on CI
-build --ios_simulator_version=18.3
-
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 build --test_env=PATH
@@ -36,9 +33,3 @@ build --enable_platform_specific_config
 build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --crosstool_top=@local_config_apple_cc//:toolchain
 build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain
-
-build:ci --bes_backend=grpcs://remote.buildbuddy.io
-build:ci --bes_results_url=https://app.buildbuddy.io/invocation/
-build:ci --experimental_remote_cache_compression
-build:ci --remote_cache=grpcs://remote.buildbuddy.io
-build:ci --test_tag_filters=-skipci
