@@ -5,6 +5,8 @@ x_defaults:
   common: &common
     platform: macos_arm64
     shell_commands:
+    - system_profiler SPHardwareDataType
+    - sudo xcodebuild -runFirstLaunch
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     - xcrun simctl runtime match set iphoneos18.2 22D8075
