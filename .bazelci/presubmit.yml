@@ -18,13 +18,13 @@ x_defaults:
     - "tools/..."
     - "test/..."
     build_flags:
-    - -j3
+    - --jobs=3
     test_targets:
     - "tools/..."
     - "test/..."
     - "examples/..."
     test_flags:
-    - -j3
+    - --jobs=3
     - --test_tag_filters=-skipci
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
