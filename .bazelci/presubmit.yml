@@ -6,7 +6,9 @@ x_defaults:
     platform: macos_arm64
     shell_commands:
     - system_profiler SPHardwareDataType
-    - echo "CPU: $(ps -A -o %cpu | awk '{s+=$1} END {print s"%"}')" && echo "Mem: $(vm_stat | awk '/Pages active/ {active=$3} /Pages wired down/ {wired=$4} /Pages speculative/ {spec=$3} /Pages purgeable/ {purge=$3} /Pages occupied by compressor/ {comp=$5} END {total=active+wired+spec+purge+comp; print int(total*4096/1024/1024)"MB"}')" && echo "Top 5 processes by CPU:" && (ps -arcwwwxo pid,command,%cpu,%mem | head -n 1 && ps -arcwwwxo pid,command,%cpu,%mem | tail -n +2 | sort -k3 -nr | head -n 5)
+    - echo "CPU: $(ps -A -o %cpu | awk '{s+=$1} END {print s"%"}')"
+    - echo "Mem: $(vm_stat | awk '/Pages active/ {active=$3} /Pages wired down/ {wired=$4} /Pages speculative/ {spec=$3} /Pages purgeable/ {purge=$3} /Pages occupied by compressor/ {comp=$5} END {total=active+wired+spec+purge+comp; print int(total*4096/1024/1024)"MB"}')"
+    - echo "Top 5 processes by CPU: $(ps -arcwwwxo pid,command,%cpu,%mem | head -n 1 && ps -arcwwwxo pid,command,%cpu,%mem | tail -n +2 | sort -k3 -nr | head -n 5)"
     - sudo xcodebuild -runFirstLaunch
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
