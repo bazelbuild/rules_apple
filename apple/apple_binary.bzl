@@ -15,6 +15,10 @@
 """Starlark implementation of `apple_binary` to transition from native Bazel."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -147,6 +151,7 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
