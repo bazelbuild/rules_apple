@@ -191,7 +191,7 @@ def _create_deduped_linkopts_list(linker_inputs):
 
     return final_linkopts
 
-def _linkstamp_map(ctx, linkstamps, output, split_transition_key):
+def _linkstamp_map(ctx, linkstamps, output, build_config):
     # create linkstamps_map - mapping from linkstamps to object files
     linkstamps_map = {}
 
@@ -202,11 +202,9 @@ def _linkstamp_map(ctx, linkstamps, output, split_transition_key):
             stamp_output_dir,
             linkstamp_file.short_path[:-len(linkstamp_file.extension)].rstrip(".") + ".o",
         )
-        stamp_output_file = intermediates.file(
-            actions = ctx.actions,
-            target_name = ctx.label.name,
-            output_discriminator = split_transition_key,
-            file_name = stamp_output_path,
+        stamp_output_file = ctx.actions.declare_shareable_artifact(
+            stamp_output_path,
+            build_config.bin_dir,
         )
         linkstamps_map[linkstamp_file] = stamp_output_file
     return linkstamps_map
@@ -487,7 +485,7 @@ def _register_configuration_specific_link_actions_with_objc_variables(
         ctx,
         cc_linking_context.linkstamps(),
         binary,
-        split_transition_key,
+        build_config,
     )
     input_file_list = _register_obj_filelist_action(
         ctx,
