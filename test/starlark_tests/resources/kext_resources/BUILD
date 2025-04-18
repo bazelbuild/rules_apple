@@ -30,5 +30,5 @@ cc_library(
         "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/Headers",
     ],
     tags = common.fixture_tags,
-    alwayslink = 1,
+    alwayslink = True,
 )

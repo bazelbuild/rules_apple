@@ -180,7 +180,7 @@ function create_dump_plist() {
 genrule(
     name = "dump_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = [
 EOF
 
@@ -252,7 +252,7 @@ function create_whole_dump_plist() {
 genrule(
     name = "dump_whole_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
@@ -294,7 +294,7 @@ function create_dump_codesign() {
 genrule(
     name = "dump_codesign",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["codesign_output"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +

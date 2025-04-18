@@ -3,7 +3,7 @@ licenses(["notice"])
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//tools/alticonstool:for_bazel_tests",
         "//tools/bitcode_strip:for_bazel_tests",
