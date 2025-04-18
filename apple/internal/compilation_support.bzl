@@ -19,10 +19,6 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -105,26 +101,6 @@ def _register_fully_link_action(name, common_variables, cc_linking_context):
         variables_extension = extensions,
     )
 
-def _register_obj_filelist_action(ctx, obj_files, split_transition_key):
-    """
-    Returns a File containing the given set of object files.
-
-    This File is suitable to signal symbols to archive in a libtool archiving invocation.
-    """
-    obj_list = intermediates.file(
-        actions = ctx.actions,
-        target_name = ctx.label.name,
-        output_discriminator = split_transition_key,
-        file_name = ctx.label.name + "-linker.objlist",
-    )
-
-    args = ctx.actions.args()
-    args.add_all(obj_files)
-    args.set_param_file_format("multiline")
-    ctx.actions.write(obj_list, args)
-
-    return obj_list
-
 def _register_binary_strip_action(
         ctx,
         name,
@@ -179,52 +155,6 @@ def _register_binary_strip_action(
     )
     return stripped_binary
 
-def _create_deduped_linkopts_list(linker_inputs):
-    seen_flags = {}
-    final_linkopts = []
-    for linker_input in linker_inputs.to_list():
-        (_, new_flags, seen_flags) = _dedup_link_flags(
-            linker_input.user_link_flags,
-            seen_flags,
-        )
-        final_linkopts.extend(new_flags)
-
-    return final_linkopts
-
-def _linkstamp_map(ctx, linkstamps, output, build_config):
-    # create linkstamps_map - mapping from linkstamps to object files
-    linkstamps_map = {}
-
-    stamp_output_dir = paths.join(ctx.label.package, "_objs", output.basename)
-    for linkstamp in linkstamps.to_list():
-        linkstamp_file = linkstamp.file()
-        stamp_output_path = paths.join(
-            stamp_output_dir,
-            linkstamp_file.short_path[:-len(linkstamp_file.extension)].rstrip(".") + ".o",
-        )
-        stamp_output_file = ctx.actions.declare_shareable_artifact(
-            stamp_output_path,
-            build_config.bin_dir,
-        )
-        linkstamps_map[linkstamp_file] = stamp_output_file
-    return linkstamps_map
-
-def _classify_libraries(libraries_to_link):
-    always_link_libraries = {
-        lib: None
-        for lib in _get_libraries_for_linking(
-            [lib for lib in libraries_to_link if lib.alwayslink],
-        )
-    }
-    as_needed_libraries = {
-        lib: None
-        for lib in _get_libraries_for_linking(
-            [lib for lib in libraries_to_link if not lib.alwayslink],
-        )
-        if lib not in always_link_libraries
-    }
-    return always_link_libraries.keys(), as_needed_libraries.keys()
-
 def _emit_builtin_objc_strip_action(ctx):
     return (
         ctx.fragments.objc.builtin_objc_strip_action and
@@ -241,10 +171,8 @@ def _register_configuration_specific_link_actions(
         stamp,
         user_variable_extensions,
         additional_outputs,
-        deps,
         extra_link_inputs,
-        attr_linkopts,
-        split_transition_key):
+        attr_linkopts):
     """
     Registers actions to link a single-platform/architecture Apple binary in a specific config.
 
@@ -275,42 +203,20 @@ def _register_configuration_specific_link_actions(
             build_config.bin_dir,
         )
 
-    if cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "use_cpp_variables_for_objc_executable",
-    ):
-        return _register_configuration_specific_link_actions_with_cpp_variables(
-            name,
-            binary,
-            common_variables,
-            feature_configuration,
-            cc_linking_context,
-            build_config,
-            extra_link_args,
-            stamp,
-            user_variable_extensions,
-            additional_outputs,
-            deps,
-            extra_link_inputs,
-            attr_linkopts,
-        )
-    else:
-        return _register_configuration_specific_link_actions_with_objc_variables(
-            name,
-            binary,
-            common_variables,
-            feature_configuration,
-            cc_linking_context,
-            build_config,
-            extra_link_args,
-            stamp,
-            user_variable_extensions,
-            additional_outputs,
-            deps,
-            extra_link_inputs,
-            attr_linkopts,
-            split_transition_key,
-        )
+    return _register_configuration_specific_link_actions_with_cpp_variables(
+        name,
+        binary,
+        common_variables,
+        feature_configuration,
+        cc_linking_context,
+        build_config,
+        extra_link_args,
+        stamp,
+        user_variable_extensions,
+        additional_outputs,
+        extra_link_inputs,
+        attr_linkopts,
+    )
 
 def _register_configuration_specific_link_actions_with_cpp_variables(
         name,
@@ -323,7 +229,6 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
         stamp,
         user_variable_extensions,
         additional_outputs,
-        deps,
         extra_link_inputs,
         attr_linkopts):
     ctx = common_variables.ctx
@@ -444,110 +349,6 @@ def _create_deduped_linkopts_linking_context(owner, cc_linking_context, seen_fla
         ),
         seen_flags,
     )
-
-def _register_configuration_specific_link_actions_with_objc_variables(
-        name,
-        binary,
-        common_variables,
-        feature_configuration,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
-        additional_outputs,
-        deps,
-        extra_link_inputs,
-        attr_linkopts,
-        split_transition_key):
-    ctx = common_variables.ctx
-
-    # We need to split input libraries into those that require -force_load and those that don't.
-    # Clang loads archives specified in filelists and also specified as -force_load twice,
-    # resulting in duplicate symbol errors unless they are deduped.
-    libraries_to_link = _libraries_from_linking_context(cc_linking_context).to_list()
-    always_link_libraries, as_needed_libraries = _classify_libraries(libraries_to_link)
-
-    static_runtimes = common_variables.toolchain.static_runtime_lib(
-        feature_configuration = feature_configuration,
-    )
-
-    # Passing large numbers of inputs on the command line triggers a bug in Apple's Clang
-    # (b/29094356), so we'll create an input list manually and pass -filelist path/to/input/list.
-
-    # Populate the input file list with both the compiled object files and any linkstamp object
-    # files.
-    # There's some weirdness: cc_common.link compiles linkstamps and does the linking (without ever
-    # returning linkstamp objects)
-    # We replicate the linkstamp objects names (guess them) and generate input_file_list
-    # which is input to linking action.
-    linkstamp_map = _linkstamp_map(
-        ctx,
-        cc_linking_context.linkstamps(),
-        binary,
-        build_config,
-    )
-    input_file_list = _register_obj_filelist_action(
-        ctx,
-        as_needed_libraries + static_runtimes.to_list() + linkstamp_map.values(),
-        split_transition_key,
-    )
-
-    extensions = user_variable_extensions | {
-        "framework_paths": [],
-        "framework_names": [],
-        "weak_framework_names": [],
-        "library_names": [],
-        "filelist": input_file_list.path,
-        "linked_binary": binary.path,
-        # artifacts to be passed to the linker with `-force_load`
-        "force_load_exec_paths": [lib.path for lib in always_link_libraries],
-        # linkopts from dependency
-        "dep_linkopts": _create_deduped_linkopts_list(cc_linking_context.linker_inputs),
-        "attr_linkopts": attr_linkopts,  # linkopts arising from rule attributes
-    }
-    additional_inputs = [
-        input
-        for linker_input in cc_linking_context.linker_inputs.to_list()
-        for input in linker_input.additional_inputs
-    ]
-    cc_common.link(
-        name = name,
-        actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = common_variables.toolchain,
-        language = "objc",
-        additional_inputs = (
-            as_needed_libraries + always_link_libraries + [input_file_list] + extra_link_inputs +
-            additional_inputs +
-            getattr(ctx.files, "additional_linker_inputs", [])
-        ),
-        linking_contexts = [cc_common.create_linking_context(linker_inputs = depset(
-            [cc_common.create_linker_input(
-                owner = ctx.label,
-                linkstamps = cc_linking_context.linkstamps(),
-            )],
-        ))],
-        output_type = "executable",
-        build_config = build_config,
-        user_link_flags = extra_link_args,
-        stamp = stamp,
-        variables_extension = extensions,
-        additional_outputs = additional_outputs,
-        main_output = binary,
-    )
-
-    if _emit_builtin_objc_strip_action(ctx):
-        return _register_binary_strip_action(
-            ctx,
-            name,
-            binary,
-            feature_configuration,
-            build_config,
-            extra_link_args,
-        )
-    else:
-        return binary
 
 compilation_support = struct(
     # TODO(b/331163513): Move apple_common.compliation_support.build_common_variables here, too.

@@ -302,10 +302,8 @@ def _link_multi_arch_binary(
             stamp = stamp,
             user_variable_extensions = variables_extension | extensions,
             additional_outputs = additional_outputs,
-            deps = deps,
             extra_link_inputs = extra_link_inputs,
             attr_linkopts = attr_linkopts,
-            split_transition_key = split_transition_key,
         )
 
         output = {
