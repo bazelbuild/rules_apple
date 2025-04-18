@@ -1,3 +1,5 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+
 licenses(["notice"])
 
 py_library(
