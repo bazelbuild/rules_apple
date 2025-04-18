@@ -58,7 +58,7 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
-test_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
+test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 if [[ -z "${NO_CLEAN:-}" ]]; then
   trap 'rm -rf "${test_tmp_dir}"' EXIT
 else

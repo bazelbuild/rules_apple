@@ -16,8 +16,8 @@
 
 set -euo pipefail
 
-TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
-TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
+TEMP_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
+TEMP_DER_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_der_output.XXXXXX")"
 
 # This key comes from the
 # third_party/bazel_rules/rules_apple/test/starlark_tests/resources/entitlements.plist

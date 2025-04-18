@@ -48,7 +48,7 @@ done
 # Enable verbose output in test runner.
 runner_flags=("-v")
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_runner_work_dir.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 

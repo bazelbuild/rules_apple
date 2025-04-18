@@ -226,7 +226,7 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   fi
 
   if [[ -n "${CODESIGN_INFO_CONTAINS-}" || -n "${CODESIGN_INFO_NOT_CONTAINS-}" ]]; then
-    codesign_output="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+    codesign_output="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
     if ! codesign --display --verbose=4 "$path" &> "$codesign_output"; then
       fail "Expected codesign --display to pass$newline$(cat $codesign_output)"
     fi
