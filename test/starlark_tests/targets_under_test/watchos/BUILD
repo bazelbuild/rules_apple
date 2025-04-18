@@ -821,7 +821,7 @@ objc_library(
 
 apple_static_xcframework_import(
     name = "watchos_imported_static_xcframework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_watchos_xcframework"],
 )

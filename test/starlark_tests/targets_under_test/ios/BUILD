@@ -672,7 +672,7 @@ ios_application(
 
 apple_static_framework_import(
     name = "iOSImportedStaticFramework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     framework_imports = [":iOSStaticFramework"],
     tags = common.fixture_tags,
 )
@@ -1915,7 +1915,7 @@ ios_application(
 
 apple_dynamic_framework_import(
     name = "iOSImportedDynamicFramework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     framework_imports = [":iOSDynamicFramework"],
     tags = common.fixture_tags,
 )
@@ -2096,14 +2096,14 @@ func swift_static_fmwk_depending_swift_lib_function() {
 
 apple_static_framework_import(
     name = "iOSImportedSwiftStaticFramework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     framework_imports = [":iOSSwiftStaticFramework"],
     tags = common.fixture_tags,
 )
 
 apple_static_framework_import(
     name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     framework_imports = [":iOSSwiftStaticFrameworkWithoutModuleInterfaces"],
     has_swift = True,
     tags = common.fixture_tags,
@@ -2218,7 +2218,7 @@ func swift_with_framework_function() {
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     codesigned_xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
 )
@@ -2362,7 +2362,7 @@ func swift_with_dynamic_swift_framework_function() {
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
@@ -2611,7 +2611,7 @@ func static_xcframework_depending_swift_lib_function_function() {
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     codesigned_xcframework_imports = [":generated_static_xcframework_with_headers"],
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_xcframework_with_headers"],
 )
@@ -2674,7 +2674,7 @@ func static_swift_xcframework_depending_swift_lib_function() {
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
-    features = ["-swift.layering_check"],
+    features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_swift_static_xcframework"],
 )
