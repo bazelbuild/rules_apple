@@ -65,6 +65,7 @@ Resolved Xcode is version {xcode_version}.
 
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
     extra_linkopts = []
 
@@ -91,6 +92,7 @@ Resolved Xcode is version {xcode_version}.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         bundle_loader = bundle_loader,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
