@@ -48,7 +48,7 @@ load(
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -381,7 +381,7 @@ apple_static_xcframework(
 # Generate importable dynamic XCFramework files
 genrule(
     name = "generated_ios_dynamic_xcframework",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_dynamic_xcframework.xcframework.zip"],
     outs = ["ios_dynamic_xcframework.xcframework/Info.plist"] + [
         "{0}/{1}/{2}/{3}".format(
@@ -410,7 +410,7 @@ unzip -oqq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
 # Generate importable static XCFramework files with static archives
 genrule(
     name = "generated_ios_static_xcframework",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}".format(
@@ -461,7 +461,7 @@ done
 # map
 genrule(
     name = "generated_ios_static_xcframework_with_module_map",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework_with_module_map.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}".format(
@@ -507,7 +507,7 @@ done
 # now. We manually generate one for testing.
 genrule(
     name = "generated_ios_xcframework_bundling_static_fmwks",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_xcframework_bundling_static_fmwks.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}/{3}".format(
@@ -970,7 +970,7 @@ apple_static_xcframework(
 
 genrule(
     name = "generated_ios_static_xcframework_with_resources",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework_with_resources.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}/{3}".format(

@@ -175,7 +175,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",

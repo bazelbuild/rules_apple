@@ -880,7 +880,7 @@ ios_framework(
     name = "fmwk_min_os_baseline",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     families = [
         "iphone",
         "ipad",
@@ -1971,7 +1971,7 @@ ios_framework(
 ios_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     families = [
         "iphone",
         "ipad",
