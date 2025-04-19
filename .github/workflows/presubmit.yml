@@ -34,6 +34,7 @@ jobs:
           disk-cache: ${{ github.workflow }}
           repository-cache: true
           bazelrc: |
+            common --sandbox_debug
             test --test_tag_filters=-skipci
       - name: Bazel Info
         run: |
