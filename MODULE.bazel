@@ -28,6 +28,11 @@ bazel_dep(
     dev_dependency = True,
     repo_name = "com_google_protobuf",
 )
+bazel_dep(
+    name = "buildifier_prebuilt",
+    version = "7.1.2",
+    dev_dependency = True,
+)
 
 non_module_deps = use_extension("//apple:extensions.bzl", "non_module_deps")
 use_repo(

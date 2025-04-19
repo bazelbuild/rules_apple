@@ -1,0 +1,56 @@
+on:
+  push: ~
+  pull_request: ~
+  workflow_dispatch: ~
+
+# NOTE: To avoid listing the same things for build_flags/test_flags for each
+# of these tasks, they are listed in the .bazelrc instead.
+jobs:
+  macos:
+    runs-on: macos-15
+    strategy:
+      matrix:
+        bazel:
+          - latest
+          - last_rc
+          - last_green
+    env:
+      USE_BAZEL_VERSION: ${{ matrix.bazel }}
+    steps:
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          bazelrc: |
+            test --test_tag_filters=-skipci
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+      - uses: actions/checkout@v4
+      - run: bazel build //tools/... //test/...
+      - run: bazel test //tools/... //test/... //examples/...
+  doc_tests:
+    runs-on: ubuntu-latest
+    env:
+      # FIXME: Use last_green once we cherry-pick in changes needed by
+      # https://github.com/bazelbuild/bazel/commit/b59004dd17366b09b0758b833f98294fd0e89345
+      # USE_BAZEL_VERSION: last_green
+      USE_BAZEL_VERSION: 21a12c72d84e9108142421d9a8526edf8dceb78c
+    steps:
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          # TODO: Remove this once stardoc is updated to 0.7.1+ (https://github.com/bazelbuild/stardoc/pull/238)
+          bazelrc: |
+            test --noincompatible_disallow_empty_glob
+      - uses: actions/checkout@v4
+      - run: bazel test //doc/...
+  buildifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: buildifier
+        run: bazel run --enable_bzlmod //.github/workflows:buildifier.check
