@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ButtonsShared
+import ButtonsShared2
 import UIKit
 
 class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
-  func beginRequest(with context: NSExtensionContext) { }
+  func beginRequest(with context: NSExtensionContext) {
+    saySomethingShared()
+    saySomethingElseShared()
+  }
 }
