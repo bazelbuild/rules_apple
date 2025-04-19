@@ -1336,7 +1336,11 @@ genrule(
     name = "ccinfo_dylibs_mylib-shared-with-rpath",
     srcs = [":ccinfo_dylibs_mylib-shared"],
     outs = ["libmylib_with_rpath.dylib"],
-    cmd = "install_name_tool -id @rpath/libmylib_with_rpath.dylib $(location :ccinfo_dylibs_mylib-shared) && cp $(location :ccinfo_dylibs_mylib-shared) $@",
+    cmd = """
+stat $(location :ccinfo_dylibs_mylib-shared)
+install_name_tool -id @rpath/libmylib_with_rpath.dylib $(location :ccinfo_dylibs_mylib-shared)
+cp $(location :ccinfo_dylibs_mylib-shared) $@
+""",
 )
 
 # Import our dynamically linked library.
