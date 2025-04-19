@@ -1,8 +1,15 @@
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
+
 licenses(["notice"])
 
 py_binary(
     name = "versiontool",
-    srcs = ["versiontool.py"],
+    srcs = [
+        "__init__.py",
+        "versiontool.py",
+    ],
     python_version = "PY3",
     srcs_version = "PY3",
     visibility = [
@@ -21,10 +28,7 @@ py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
     python_version = "PY3",
-    deps = [
-        ":versiontool_lib",
-        "//:py_init_shim",
-    ],
+    deps = [":versiontool_lib"],
 )
 
 # Consumed by bazel tests.
