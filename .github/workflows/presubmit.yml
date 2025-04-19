@@ -1,7 +1,9 @@
 on:
-  push: ~
-  pull_request: ~
-  workflow_dispatch: ~
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
