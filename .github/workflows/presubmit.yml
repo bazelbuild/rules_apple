@@ -16,10 +16,18 @@ jobs:
           - latest
           - last_rc
           - last_green
+        xcode:
+          - 16.2
       fail-fast: false
+    permissions:
+      contents: write
     env:
       USE_BAZEL_VERSION: ${{ matrix.bazel }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode }}
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           bazelisk-cache: true
@@ -27,12 +35,12 @@ jobs:
           repository-cache: true
           bazelrc: |
             test --test_tag_filters=-skipci
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.2'
-      - uses: actions/checkout@v4
-      - run: bazel build //tools/... //test/...
-      - run: bazel test //tools/... //test/... //examples/...
+      - name: Bazel Info
+        run: |
+          bazel version
+          bazel info
+      - run: bazel build tools/... test/...
+      - run: bazel test tools/... test/... examples/...
   doc_tests:
     runs-on: ubuntu-latest
     env:
@@ -41,6 +49,7 @@ jobs:
       # USE_BAZEL_VERSION: last_green
       USE_BAZEL_VERSION: 21a12c72d84e9108142421d9a8526edf8dceb78c
     steps:
+      - uses: actions/checkout@v4
       - uses: bazel-contrib/setup-bazel@0.14.0
         with:
           bazelisk-cache: true
@@ -49,8 +58,11 @@ jobs:
           # TODO: Remove this once stardoc is updated to 0.7.1+ (https://github.com/bazelbuild/stardoc/pull/238)
           bazelrc: |
             test --noincompatible_disallow_empty_glob
-      - uses: actions/checkout@v4
-      - run: bazel test //doc/...
+      - name: Bazel Info
+        run: |
+          bazel version
+          bazel info
+      - run: bazel test doc/...
   buildifier:
     runs-on: ubuntu-latest
     steps:
