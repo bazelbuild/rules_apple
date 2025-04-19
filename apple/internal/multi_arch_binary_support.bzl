@@ -44,15 +44,16 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
     libraries = []
     user_link_flags = []
     additional_inputs = []
-    non_library_inputs = []
     linkstamps = []
     avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
+    linker_inputs_seen = dict()
 
     for linking_context in linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
-            if not linker_input.libraries:
-                non_library_inputs.append(linker_input)
+            if linker_input in linker_inputs_seen:
                 continue
+
+            linker_inputs_seen[linker_input] = True
 
             for library_to_link in linker_input.libraries:
                 library_artifact = apple_common.compilation_support.get_library_for_linking(library_to_link)
@@ -65,17 +66,14 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
             linkstamps.extend(linker_input.linkstamps)
 
     return cc_common.create_linking_context(
-        linker_inputs = depset(
-            [
-                cc_common.create_linker_input(
-                    owner = owner,
-                    libraries = depset(libraries, order = "topological"),
-                    user_link_flags = user_link_flags,
-                    additional_inputs = depset(additional_inputs),
-                    linkstamps = depset(linkstamps),
-                ),
-            ],
-            transitive = [depset(non_library_inputs)],
-        ),
+        linker_inputs = depset([
+            cc_common.create_linker_input(
+                owner = owner,
+                libraries = depset(libraries, order = "topological"),
+                user_link_flags = user_link_flags,
+                additional_inputs = depset(additional_inputs),
+                linkstamps = depset(linkstamps),
+            ),
+        ]),
         owner = owner,
     )
