@@ -13,7 +13,6 @@ x_defaults:
     - xcrun simctl runtime match set xros2.2 22N895
     - xcrun simctl runtime match list
     post_shell_commands:
-    # - xcrun simctl runtime match set iphoneos18.2 --default
     - xcrun simctl runtime match set xros2.2 --default
     - xcrun simctl runtime match list
     build_targets:
