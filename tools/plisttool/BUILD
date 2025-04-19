@@ -18,8 +18,8 @@ py_binary(
 py_library(
     name = "plisttool_lib",
     srcs = [
-        "plisttool.py",
         "__init__.py",
+        "plisttool.py",
     ],
     srcs_version = "PY3",
 )
