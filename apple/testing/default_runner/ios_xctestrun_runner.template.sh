@@ -384,7 +384,6 @@ fi
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
-set -x
 simulator_creator_args=(
   "%(os_version)s" \
   "%(device_type)s" \
