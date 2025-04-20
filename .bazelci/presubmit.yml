@@ -6,8 +6,8 @@ x_defaults:
     platform: macos_arm64
     shell_commands:
     - xcrun simctl runtime list
-    - xcrun simctl runtime delete 22D8075
-    - xcrun simctl runtime delete 21F79
+    - xcrun simctl runtime delete 22D8075 || true
+    - xcrun simctl runtime delete 21F79 || true
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     - xcrun simctl runtime match set xros2.2 22N895
