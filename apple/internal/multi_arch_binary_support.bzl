@@ -18,15 +18,6 @@ visibility([
     "//apple/...",
 ])
 
-TargetTripletInfo = provider(
-    "Contains the target triplet (architecture, platform, environment) for a given configuration.",
-    fields = {
-        "architecture": "string, the CPU as returned by AppleConfiguration.getSingleArchitecture()",
-        "platform": "apple_platform.PLATFORM_TYPE string as returned by apple_platform.get_target_platform()",
-        "environment": "string ('device', 'simulator' or 'macabi) as returned by apple_platform.get_target_environment",
-    },
-)
-
 def _build_avoid_library_set(avoid_dep_linking_contexts):
     avoid_library_set = dict()
     for linking_context in avoid_dep_linking_contexts:
@@ -73,32 +64,3 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
         linker_inputs = depset([linker_input]),
         owner = owner,
     )
-
-def _get_target_triplet(config):
-    """Returns the target triplet (architecture, platform, environment) for a given configuration."""
-    cpu_platform = apple_common.apple_platform.for_target_cpu(apple_common.get_cpu(config))
-    apple_config = apple_common.get_apple_config(config)
-
-    return TargetTripletInfo(
-        architecture = apple_config.single_arch_cpu,
-        platform = apple_common.apple_platform.get_target_platform(cpu_platform),
-        environment = apple_common.apple_platform.get_target_environment(cpu_platform),
-    )
-
-def get_split_target_triplet(ctx):
-    """Transforms a rule context's ctads to a Starlark Dict mapping transitions to target triplets.
-
-    Args:
-      ctx: The Starlark rule context.
-
-    Returns:
-      A Starlark Dict<String, StructImpl> keyed by split transition keys with
-      their target triplet (architecture, platform, environment) as value.
-    """
-    result = dict()
-    ctads = apple_common.get_split_prerequisites(ctx)
-    for split_transition_key, config in ctads.items():
-        if split_transition_key == None:
-            fail("unexpected empty key in split transition")
-        result[split_transition_key] = _get_target_triplet(config)
-    return result
