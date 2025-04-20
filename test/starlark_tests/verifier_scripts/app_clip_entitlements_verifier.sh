@@ -16,8 +16,8 @@
 
 set -euo pipefail
 
-TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
-TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
+TEMP_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
+TEMP_DER_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_der_output.XXXXXX")"
 
 # This key marks the application as an app clip.
 TEST_APP_CLIP_ENTITLEMENT_KEY="com.apple.developer.on-demand-install-capable"
