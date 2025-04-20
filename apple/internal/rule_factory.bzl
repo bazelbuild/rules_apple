@@ -51,6 +51,11 @@ Dictionary of environment variables that should be set during the test execution
 the dictionary are subject to "Make" variable expansion.
 """,
     ),
+    "env_inherit": attr.string_list(
+        doc = """
+List of environment variables to inherit from the external environment.
+""",
+    ),
     "runner": attr.label(
         doc = """
 The runner target that will provide the logic on how to run the tests. Needs to provide the

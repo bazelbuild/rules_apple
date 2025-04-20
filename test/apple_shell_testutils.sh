@@ -473,6 +473,7 @@ function do_action() {
       "--crosstool_top=@local_config_apple_cc//:toolchain"
       "--host_crosstool_top=@local_config_apple_cc//:toolchain"
       "--enable_bzlmod"
+      "--ios_simulator_device=iPhone 16"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
