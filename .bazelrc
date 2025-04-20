@@ -28,8 +28,3 @@ build --worker_sandboxing=true
 
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap
-
-build --enable_platform_specific_config
-build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain

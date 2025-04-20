@@ -6,8 +6,8 @@ x_defaults:
     platform: macos_arm64
     shell_commands:
     - xcrun simctl runtime list
-    - xcrun simctl runtime delete 22D8075
-    - xcrun simctl runtime delete 21F79
+    - xcrun simctl runtime delete 22D8075 || true
+    - xcrun simctl runtime delete 21F79 || true
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     - xcrun simctl runtime match set xros2.2 22N895
@@ -50,7 +50,7 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: 4c2d91e762ab6e492853b021408129dd93fb5904 # TODO: Switch back to last_green once get_cpu has been removed
+    bazel: last_green
     <<: *common
 
   doc_tests:
