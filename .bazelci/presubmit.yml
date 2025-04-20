@@ -4,16 +4,36 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
-    xcode_version: "15.4"
+    shell_commands:
+    - xcrun simctl runtime list
+    - xcrun simctl runtime delete 22D8075
+    - xcrun simctl runtime delete 21F79
+    - xcrun simctl runtime list
+    - xcrun simctl runtime match list
+    - xcrun simctl runtime match set xros2.2 22N895
+    - xcrun simctl runtime match list
+    post_shell_commands:
+    - xcrun simctl runtime match set xros2.2 --default
+    - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
     - "test/..."
+    build_flags:
+    - --jobs=3
+    - --modify_execution_info=AssetCatalogCompile=+exclusive
+    - --local_cpu_resources=4
+    - --local_ram_resources=4000
     test_targets:
     - "tools/..."
     - "test/..."
     - "examples/..."
     test_flags:
+    - --jobs=3
+    - --modify_execution_info=AssetCatalogCompile=+exclusive
+    - --local_cpu_resources=4
+    - --local_ram_resources=4000
     - --test_tag_filters=-skipci
+    - --ios_simulator_device=iPhone 16
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
@@ -30,7 +50,7 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    bazel: 4c2d91e762ab6e492853b021408129dd93fb5904 # TODO: Switch back to last_green once get_cpu has been removed
     <<: *common
 
   doc_tests:

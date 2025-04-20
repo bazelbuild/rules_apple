@@ -99,11 +99,23 @@ if [[ -n "${TEST_TYPE}" ]]; then
   runner_flags+=("--test_type=${TEST_TYPE}")
 fi
 
+DEFAULT_ENV="TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 TEST_ENV="%(test_env)s"
+ENV_INHERIT=%(test_env_inherit)s
+for env_var in "${ENV_INHERIT[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      TEST_ENV="$test_env,$env_var=${!env_var}"
+    else
+      TEST_ENV="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$TEST_ENV" ]]; then
-  TEST_ENV="$TEST_ENV,TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  TEST_ENV="$TEST_ENV,$DEFAULT_ENV"
 else
-  TEST_ENV="TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  TEST_ENV="$DEFAULT_ENV"
 fi
 
 sanitizer_dyld_env=""
