@@ -8,9 +8,9 @@ licenses(["notice"])
 
 # Create a set of public config_settings that can be used in select()s.
 [
-    config_setting(
+    alias(
         name = arch,
-        values = {"cpu": arch},
+        actual = "@build_bazel_apple_support//configs:{}".format(arch),
     )
     for arch in [
         "darwin_x86_64",

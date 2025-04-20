@@ -136,6 +136,17 @@ fi
 # to the test runner
 default_test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
+env_inherit=%(test_env_inherit)s
+for env_var in "${env_inherit[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      test_env="$test_env,$env_var=${!env_var}"
+    else
+      test_env="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$test_env" ]]; then
   test_env="$test_env,$default_test_env"
 else
@@ -213,7 +224,6 @@ if [[ -n "$test_host_path" ]]; then
     mkdir -p "$runner_app_frameworks_destination"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
-    cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
     cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
@@ -227,6 +237,14 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$testing_framework_path" ]]; then
       cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
+
+    # On Xcode 16.3 and later, XCUIAutomation is not private anymore
+    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
+    if [[ ! -d "$xcuiautomation_path" ]]; then
+        xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
+    fi
+    cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
