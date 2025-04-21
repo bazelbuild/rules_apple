@@ -362,7 +362,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         "-bundle",
     ]
 
-    if platform_prerequisites.uses_swift:
+    if any([_is_swift_target(dep) for dep in ctx.attr.deps]):
         extra_linkopts.extend([
             "-Xlinker",
             "-needed-lXCTestSwiftSupport",
