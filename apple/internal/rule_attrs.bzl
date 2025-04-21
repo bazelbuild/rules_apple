@@ -124,15 +124,6 @@ def _common_linking_api_attrs(*, deps_cfg):
             default =
                 "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
         ),
-        # TODO(b/251837356): Eliminate this attr when the Bazel Starlark API
-        # `apple_common.get_split_build_configs(...)`` doesn't require that this attr be called
-        # `_child_configuration_dummy` in Apple multiarch APIs.
-        "_child_configuration_dummy": attr.label(
-            cfg = deps_cfg,
-            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-            default =
-                "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
-        ),
     })
 
 def _static_library_archive_attrs(*, deps_cfg):

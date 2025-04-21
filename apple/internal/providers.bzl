@@ -366,14 +366,17 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
 ApplePlatformInfo, new_appleplatforminfo = provider(
     doc = "Provides information for the currently selected Apple platforms.",
     fields = {
-        "target_os": """
-`String` representing the selected Apple OS.
-""",
         "target_arch": """
 `String` representing the selected target architecture or cpu type.
 """,
+        "target_build_config": """
+'configuration' representing the selected target's build configuration.
+""",
         "target_environment": """
 `String` representing the selected target environment (e.g. "device", "simulator").
+""",
+        "target_os": """
+`String` representing the selected Apple OS.
 """,
     },
     init = make_banned_init(provider_name = "ApplePlatformInfo"),

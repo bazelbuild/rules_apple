@@ -116,6 +116,7 @@ def _apple_platform_info_from_rule_ctx(ctx):
     """Returns an ApplePlatformInfo provider from a rule context, needed to resolve constraints."""
     return new_appleplatforminfo(
         target_arch = apple_support.target_arch_from_rule_ctx(ctx),
+        target_build_config = ctx.configuration,
         target_environment = apple_support.target_environment_from_rule_ctx(ctx),
         target_os = apple_support.target_os_from_rule_ctx(ctx),
     )
