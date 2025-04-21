@@ -413,9 +413,10 @@ Provides information for the currently selected Apple platforms.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="ApplePlatformInfo-target_os"></a>target_os |  `String` representing the selected Apple OS.    |
 | <a id="ApplePlatformInfo-target_arch"></a>target_arch |  `String` representing the selected target architecture or cpu type.    |
+| <a id="ApplePlatformInfo-target_build_config"></a>target_build_config |  'configuration' representing the selected target's build configuration.    |
 | <a id="ApplePlatformInfo-target_environment"></a>target_environment |  `String` representing the selected target environment (e.g. "device", "simulator").    |
+| <a id="ApplePlatformInfo-target_os"></a>target_os |  `String` representing the selected Apple OS.    |
 
 
 <a id="AppleProvisioningProfileInfo"></a>
