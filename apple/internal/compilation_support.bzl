@@ -47,7 +47,7 @@ def _build_feature_configuration(common_variables):
         unsupported_features = disabled_features,
     )
 
-def _build_fully_linked_variable_extensions(archive, libs):
+def _build_fully_linked_variable_extensions(*, archive, libs):
     extensions = {}
     extensions["fully_linked_archive_path"] = archive.path
     extensions["objc_library_exec_paths"] = [lib.path for lib in libs]
@@ -77,7 +77,7 @@ def _get_libraries_for_linking(libraries_to_link):
         libraries.append(_get_library_for_linking(library_to_link))
     return libraries
 
-def _register_fully_link_action(name, common_variables, cc_linking_context):
+def _register_fully_link_action(*, cc_linking_context, common_variables, name):
     ctx = common_variables.ctx
     feature_configuration = _build_feature_configuration(common_variables)
 
@@ -86,28 +86,29 @@ def _register_fully_link_action(name, common_variables, cc_linking_context):
 
     output_archive = ctx.actions.declare_file(name + ".a")
     extensions = _build_fully_linked_variable_extensions(
-        output_archive,
-        libraries,
+        archive = output_archive,
+        libs = libraries,
     )
 
     return cc_common.link(
-        name = name,
         actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = common_variables.toolchain,
-        language = "objc",
         additional_inputs = libraries,
+        cc_toolchain = common_variables.toolchain,
+        feature_configuration = feature_configuration,
+        language = "objc",
+        name = name,
         output_type = "archive",
         variables_extension = extensions,
     )
 
 def _register_binary_strip_action(
+        *,
         ctx,
-        name,
+        apple_platform_info,
         binary,
+        extra_link_args,
         feature_configuration,
-        build_config,
-        extra_link_args):
+        name):
     """
     Registers an action that uses the 'strip' tool to perform binary stripping on the given binary.
     """
@@ -130,7 +131,7 @@ def _register_binary_strip_action(
     # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
     stripped_binary = ctx.actions.declare_shareable_artifact(
         paths.join(ctx.label.package, name),
-        build_config.bin_dir,
+        apple_platform_info.target_build_config.bin_dir,
     )
     args = ctx.actions.args()
     args.add("strip")
@@ -140,18 +141,18 @@ def _register_binary_strip_action(
     args.add(binary)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     apple_common_platform = platform_support.apple_common_platform_from_platform_info(
-        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
+        apple_platform_info = apple_platform_info,
     )
 
     ctx.actions.run(
-        mnemonic = "ObjcBinarySymbolStrip",
-        executable = "/usr/bin/xcrun",
         arguments = [args],
-        inputs = [binary],
-        outputs = [stripped_binary],
-        execution_requirements = xcode_config.execution_info(),
         env = apple_common.apple_host_system_env(xcode_config) |
               apple_common.target_apple_env(xcode_config, apple_common_platform),
+        executable = "/usr/bin/xcrun",
+        execution_requirements = xcode_config.execution_info(),
+        inputs = [binary],
+        mnemonic = "ObjcBinarySymbolStrip",
+        outputs = [stripped_binary],
     )
     return stripped_binary
 
@@ -163,16 +164,17 @@ def _emit_builtin_objc_strip_action(ctx):
     )
 
 def _register_configuration_specific_link_actions(
-        name,
+        *,
+        additional_outputs,
+        apple_platform_info,
+        attr_linkopts,
         common_variables,
         cc_linking_context,
-        build_config,
         extra_link_args,
-        stamp,
-        user_variable_extensions,
-        additional_outputs,
         extra_link_inputs,
-        attr_linkopts):
+        name,
+        stamp,
+        user_variable_extensions):
     """
     Registers actions to link a single-platform/architecture Apple binary in a specific config.
 
@@ -194,44 +196,14 @@ def _register_configuration_specific_link_actions(
         # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
         binary = ctx.actions.declare_shareable_artifact(
             paths.join(ctx.label.package, name + "_unstripped"),
-            build_config.bin_dir,
+            apple_platform_info.target_build_config.bin_dir,
         )
     else:
         # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
         binary = ctx.actions.declare_shareable_artifact(
             paths.join(ctx.label.package, name),
-            build_config.bin_dir,
+            apple_platform_info.target_build_config.bin_dir,
         )
-
-    return _register_configuration_specific_link_actions_with_cpp_variables(
-        name,
-        binary,
-        common_variables,
-        feature_configuration,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
-        additional_outputs,
-        extra_link_inputs,
-        attr_linkopts,
-    )
-
-def _register_configuration_specific_link_actions_with_cpp_variables(
-        name,
-        binary,
-        common_variables,
-        feature_configuration,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
-        additional_outputs,
-        extra_link_inputs,
-        attr_linkopts):
-    ctx = common_variables.ctx
 
     prefixed_attr_linkopts = [
         "-Wl,%s" % linkopt
@@ -240,29 +212,29 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
 
     seen_flags = {}
     (_, user_link_flags, seen_flags) = _dedup_link_flags(
-        extra_link_args + prefixed_attr_linkopts,
-        seen_flags,
+        flags = extra_link_args + prefixed_attr_linkopts,
+        seen_flags = seen_flags,
     )
-    (cc_linking_context, _) = _create_deduped_linkopts_linking_context(
-        ctx.label,
-        cc_linking_context,
-        seen_flags,
+    cc_linking_context = _create_deduped_linkopts_linking_context(
+        cc_linking_context = cc_linking_context,
+        owner = ctx.label,
+        seen_flags = seen_flags,
     )
 
     cc_common.link(
-        name = name,
         actions = ctx.actions,
         additional_inputs = (
             extra_link_inputs +
             getattr(ctx.files, "additional_linker_inputs", [])
         ),
         additional_outputs = additional_outputs,
-        build_config = build_config,
+        build_config = apple_platform_info.target_build_config,
         cc_toolchain = common_variables.toolchain,
         feature_configuration = feature_configuration,
         language = "objc",
         linking_contexts = [cc_linking_context],
         main_output = binary,
+        name = name,
         output_type = "executable",
         stamp = stamp,
         user_link_flags = user_link_flags,
@@ -271,17 +243,17 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
 
     if _emit_builtin_objc_strip_action(ctx):
         return _register_binary_strip_action(
-            ctx,
-            name,
-            binary,
-            feature_configuration,
-            build_config,
-            extra_link_args,
+            ctx = ctx,
+            apple_platform_info = apple_platform_info,
+            binary = binary,
+            extra_link_args = extra_link_args,
+            feature_configuration = feature_configuration,
+            name = name,
         )
     else:
         return binary
 
-def _dedup_link_flags(flags, seen_flags = {}):
+def _dedup_link_flags(*, flags, seen_flags = {}):
     new_flags = []
     previous_arg = None
     for arg in flags:
@@ -320,35 +292,30 @@ def _dedup_link_flags(flags, seen_flags = {}):
 
     return (same, new_flags, seen_flags)
 
-def _create_deduped_linkopts_linking_context(owner, cc_linking_context, seen_flags):
+def _create_deduped_linkopts_linking_context(*, cc_linking_context, owner, seen_flags):
     linker_inputs = []
     for linker_input in cc_linking_context.linker_inputs.to_list():
         (same, new_flags, seen_flags) = _dedup_link_flags(
-            linker_input.user_link_flags,
-            seen_flags,
+            flags = linker_input.user_link_flags,
+            seen_flags = seen_flags,
         )
         if same:
             linker_inputs.append(linker_input)
         else:
             linker_inputs.append(cc_common.create_linker_input(
-                owner = linker_input.owner,
-                libraries = depset(linker_input.libraries),
-                user_link_flags = new_flags,
                 additional_inputs = depset(linker_input.additional_inputs),
+                libraries = depset(linker_input.libraries),
+                owner = linker_input.owner,
+                user_link_flags = new_flags,
             ))
 
     # Why does linker_input not expose linkstamp?  This needs to be fixed.
     linker_inputs.append(cc_common.create_linker_input(
-        owner = owner,
         linkstamps = cc_linking_context.linkstamps(),
+        owner = owner,
     ))
 
-    return (
-        cc_common.create_linking_context(
-            linker_inputs = depset(linker_inputs),
-        ),
-        seen_flags,
-    )
+    return cc_common.create_linking_context(linker_inputs = depset(linker_inputs))
 
 compilation_support = struct(
     # TODO(b/331163513): Move apple_common.compliation_support.build_common_variables here, too.
