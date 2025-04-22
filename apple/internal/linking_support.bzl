@@ -122,9 +122,9 @@ def _archive_multi_arch_static_library(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
         linking_outputs = compilation_support.register_fully_link_action(
-            name = name,
-            common_variables = common_variables,
             cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            name = name,
         )
 
         output = {
@@ -300,8 +300,6 @@ def _link_multi_arch_binary(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
 
-        child_config = child_toolchain[ApplePlatformInfo].target_build_config
-
         additional_outputs = []
         extensions = {}
 
@@ -335,18 +333,18 @@ def _link_multi_arch_binary(
 
         name = ctx.label.name + "_bin"
         executable = compilation_support.register_configuration_specific_link_actions(
-            name = name,
-            common_variables = common_variables,
-            cc_linking_context = cc_linking_context,
-            build_config = child_config,
-            extra_link_args = extra_linkopts,
-            stamp = stamp,
-            user_variable_extensions = variables_extension | extensions,
             additional_outputs = additional_outputs,
-            extra_link_inputs = extra_link_inputs,
+            apple_platform_info = platform_info,
             attr_linkopts = attr_linkopts,
+            cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            extra_link_args = extra_linkopts,
+            extra_link_inputs = extra_link_inputs,
+            name = name,
             # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
             split_transition_key = split_transition_key,
+            stamp = stamp,
+            user_variable_extensions = variables_extension | extensions,
         )
 
         output = {
