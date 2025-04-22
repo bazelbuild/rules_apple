@@ -20,6 +20,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleBundleVersionInfo",
     "AppleFrameworkImportInfo",
     "ApplePlatformInfo",
     "IosAppClipBundleInfo",
@@ -86,6 +87,7 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "merge_apple_framework_import_info",
+    "new_applebinaryinfo",
     "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
     "new_iosappclipbundleinfo",
@@ -1434,6 +1436,125 @@ def _ios_extension_impl(ctx):
             )
         ),
         merged_apple_framework_import_info,
+        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
+        link_result.debug_outputs_provider,
+    ] + processor_result.providers
+
+def _ios_dylib_impl(ctx):
+    """Implementation of the ios_dylib rule."""
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.dylib,
+    )
+
+    actions = ctx.actions
+    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = None,  # ios_dylib doesn't support this override.
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    label = ctx.label
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+    predeclared_outputs = ctx.outputs
+    provisioning_profile = ctx.file.provisioning_profile
+
+    link_result = linking_support.register_binary_linking_action(
+        ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+        # dylibs do not have entitlements.
+        entitlements = None,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_linkopts = ["-dynamiclib"],
+        platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
+        stamp = ctx.attr.stamp,
+    )
+    binary_artifact = link_result.binary
+    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    debug_outputs_partial = partials.debug_symbols_partial(
+        actions = actions,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        dsym_binaries = debug_outputs.dsym_binaries,
+        dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
+        label_name = label.name,
+        linkmaps = debug_outputs.linkmaps,
+        platform_prerequisites = platform_prerequisites,
+        plisttool = apple_mac_toolchain_info.plisttool,
+        rule_label = label,
+        version = ctx.attr.version,
+    )
+
+    processor_result = processor.process(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
+        bundle_post_process_and_sign = False,
+        codesign_inputs = ctx.files.codesign_inputs,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        features = features,
+        ipa_post_processor = None,
+        partials = [debug_outputs_partial],
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+    )
+    output_file = actions.declare_file(label.name + ".dylib")
+    codesigning_support.sign_binary_action(
+        actions = actions,
+        codesign_inputs = ctx.files.codesign_inputs,
+        codesigningtool = apple_mac_toolchain_info.codesigningtool,
+        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+        input_binary = binary_artifact,
+        output_binary = output_file,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    )
+
+    return [
+        new_applebinaryinfo(
+            binary = output_file,
+            product_type = rule_descriptor.product_type,
+        ),
+        DefaultInfo(files = depset(transitive = [
+            depset([output_file]),
+            processor_result.output_files,
+        ])),
+        OutputGroupInfo(
+            **outputs.merge_output_groups(
+                link_result.output_groups,
+                processor_result.output_groups,
+                {"dylib": depset(direct = [output_file])},
+            )
+        ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
     ] + processor_result.providers
@@ -2876,6 +2997,44 @@ use only extension-safe APIs.
             # are migrated to apple_xcframework.
             "hdrs": attr.label_list(
                 allow_files = [".h"],
+            ),
+        },
+    ],
+)
+
+ios_dylib = rule_factory.create_apple_rule(
+    doc = "Builds a iOS Dylib binary.",
+    implementation = _ios_dylib_impl,
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.ios,
+        ),
+        rule_attrs.custom_transition_allowlist_attr(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "ios",
+        ),
+        rule_attrs.signing_attrs(
+            supports_capabilities = False,
+            profile_extension = ".provisionprofile",
+        ),
+        {
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+""",
             ),
         },
     ],

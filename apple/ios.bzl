@@ -18,6 +18,7 @@ load(
     "//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_dylib = "ios_dylib",
     _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
@@ -47,6 +48,7 @@ ios_application = _ios_application
 ios_app_clip = _ios_app_clip
 ios_dynamic_framework = _ios_dynamic_framework
 ios_extension = _ios_extension
+ios_dylib = _ios_dylib
 ios_framework = _ios_framework
 ios_imessage_application = _ios_imessage_application
 ios_sticker_pack_extension = _ios_sticker_pack_extension

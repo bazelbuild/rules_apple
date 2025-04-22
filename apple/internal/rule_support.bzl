@@ -176,6 +176,12 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/Frameworks",
             ],
         ),
+        apple_product_type.dylib: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            bundle_extension = "",
+            product_type = apple_product_type.dylib,
+            requires_signing_for_device = True,
+        ),
         # ios_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],

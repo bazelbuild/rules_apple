@@ -21,6 +21,7 @@ load(
     "//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
+    _ios_dylib = "ios_dylib",
     _ios_dynamic_framework = "ios_dynamic_framework",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
@@ -52,6 +53,7 @@ load(
 ios_app_clip = _ios_app_clip
 ios_application = _ios_application
 ios_build_test = _ios_build_test
+ios_dylib = _ios_dylib
 ios_dynamic_framework = _ios_dynamic_framework
 ios_extension = _ios_extension
 ios_framework = _ios_framework
