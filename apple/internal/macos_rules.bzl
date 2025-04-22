@@ -1769,7 +1769,9 @@ def _macos_command_line_application_impl(ctx):
             product_type = rule_descriptor.product_type,
             provisioning_profile = provisioning_profile,
             rule_label = label,
-            validation_mode = entitlements_validation_mode.skip,
+            # Since there is no entitlements file, the only potential issue is a bundle ID mismatch,
+            # which should be fatal.
+            validation_mode = entitlements_validation_mode.error,
         )
 
     link_result = linking_support.register_binary_linking_action(
@@ -1969,7 +1971,9 @@ def _macos_dylib_impl(ctx):
             product_type = rule_descriptor.product_type,
             provisioning_profile = provisioning_profile,
             rule_label = label,
-            validation_mode = entitlements_validation_mode.skip,
+            # Since there is no entitlements file, the only potential issue is a bundle ID mismatch,
+            # which should be fatal.
+            validation_mode = entitlements_validation_mode.error,
         )
 
     link_result = linking_support.register_binary_linking_action(
