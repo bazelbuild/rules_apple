@@ -69,21 +69,30 @@ These require extra options to be set, and must be embedded within a watchOS 2 a
     ),
 }
 
-_all_build_settings = dicts.add(build_settings, build_flags)
+_local_build_settings_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build_settings.keys()}
+_local_build_flags_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build_flags.keys()}
+_extra_build_config_packages_by_name = {
+}
+
+_all_starlark_build_config_packages_by_name = dicts.add(
+    _local_build_settings_packages_by_name,
+    _local_build_flags_packages_by_name,
+    _extra_build_config_packages_by_name,
+)
 
 build_settings_labels = struct(
     all_labels = [
         "{package}:{target_name}".format(
-            package = _BUILD_SETTINGS_PACKAGE,
-            target_name = build_setting_name,
+            package = package,
+            target_name = target_name,
         )
-        for build_setting_name in _all_build_settings
+        for target_name, package in _all_starlark_build_config_packages_by_name.items()
     ],
     **{
-        build_setting_name: "{package}:{target_name}".format(
-            package = _BUILD_SETTINGS_PACKAGE,
-            target_name = build_setting_name,
+        target_name: "{package}:{target_name}".format(
+            package = package,
+            target_name = target_name,
         )
-        for build_setting_name in _all_build_settings
+        for target_name, package in _all_starlark_build_config_packages_by_name.items()
     }
 )
