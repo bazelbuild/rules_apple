@@ -66,5 +66,6 @@ analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure
 analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
     config_settings = {
         build_settings_labels.enable_wip_features: True,
+        "//command_line_option:macos_cpus": "arm64",
     },
 )

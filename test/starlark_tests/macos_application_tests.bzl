@@ -345,7 +345,7 @@ def macos_application_test_suite(name):
         name = "{}_runfiles_dsym_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Resources/DWARF/app_x86_64",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Resources/DWARF/app_arm64",
             "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Info.plist",
         ],
         tags = [name],

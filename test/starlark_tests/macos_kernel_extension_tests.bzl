@@ -89,7 +89,7 @@ def macos_kernel_extension_test_suite(name):
         expected_argv = [
             "/wrapped_clang",
             " -kext",
-            " -target x86_64-apple-macosx10.13",
+            " -target arm64e-apple-macosx10.13",
         ],
         tags = [name],
     )

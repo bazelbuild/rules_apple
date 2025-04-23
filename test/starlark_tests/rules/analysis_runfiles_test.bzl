@@ -67,4 +67,5 @@ analysis_runfiles_test = make_analysis_runfiles_test_rule()
 # An analysis_runfiles_test that generates dsyms.
 analysis_runfiles_dsym_test = make_analysis_runfiles_test_rule(config_settings = {
     "//command_line_option:apple_generate_dsym": "true",
+    "//command_line_option:macos_cpus": "arm64",
 })

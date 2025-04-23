@@ -188,7 +188,7 @@ def macos_command_line_application_test_suite(name):
         name = "{}_runfiles_dsym_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_x86_64",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_arm64",
             "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
         ],
         tags = [name],

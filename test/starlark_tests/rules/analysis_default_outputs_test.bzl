@@ -46,7 +46,7 @@ analysis_default_outputs_simulator_test = make_provider_test_rule(
         ),
     },
     config_settings = {
-        # macOS is undefined; there is no "simulator" for macOS.
+        "//command_line_option:macos_cpus": "arm64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
         "//command_line_option:visionos_cpus": "sim_arm64",
