@@ -34,6 +34,9 @@ x_defaults:
     - --local_ram_resources=4000
     - --test_tag_filters=-skipci
     - --ios_simulator_device=iPhone 16
+    include_json_profile:
+      - build
+      - test
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
