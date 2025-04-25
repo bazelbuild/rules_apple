@@ -19,21 +19,19 @@ x_defaults:
     - "tools/..."
     - "test/..."
     build_flags:
-    - --jobs=3
     - --modify_execution_info=AssetCatalogCompile=+exclusive
-    - --local_cpu_resources=4
-    - --local_ram_resources=4000
     test_targets:
     - "tools/..."
     - "test/..."
     - "examples/..."
     test_flags:
-    - --jobs=3
+    - --local_test_jobs=2
     - --modify_execution_info=AssetCatalogCompile=+exclusive
-    - --local_cpu_resources=4
-    - --local_ram_resources=4000
     - --test_tag_filters=-skipci
     - --ios_simulator_device=iPhone 16
+    include_json_profile:
+      - build
+      - test
 
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
