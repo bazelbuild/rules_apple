@@ -31,6 +31,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -230,7 +234,7 @@ def _process_entitlements(
 
     Args:
         actions: The object used to register actions.
-        apple_mac_toolchain_info: The `struct` of tools from the shared Apple
+        apple_mac_toolchain_info: `AppleMacToolsToolchainInfo` from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
@@ -250,6 +254,20 @@ def _process_entitlements(
         no entitlements being used in the build.
     """
     bundling_support.validate_bundle_id(bundle_id)
+
+    # Support allowlist rescritions for all but the most strict entitlements validation modes.
+    # The default for most rules in `loose`, so odds are no one would want to allowlist that, but
+    # support it anyway for completeness.
+    if validation_mode != entitlements_validation_mode.error:
+        # Entitlements validation doesn't rule level `features` to the mode, be that infrastructure
+        # is reused to to allowlist some of the modes.
+        validation_as_feature = "entitlements_validation:{mode}".format(mode = validation_mode)
+        features_support.validate_feature_usage(
+            label = rule_label,
+            toolchain = apple_mac_toolchain_info,
+            requested_features = [validation_as_feature],
+            unsupported_features = [],
+        )
 
     signing_info = _extract_signing_info(
         actions = actions,

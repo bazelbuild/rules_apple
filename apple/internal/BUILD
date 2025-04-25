@@ -173,6 +173,7 @@ bzl_library(
     deps = [
         ":apple_product_type",
         ":bundling_support",
+        ":features_support",
         ":resource_actions",
         "//apple:common",
         "//apple/internal/utils:defines",
