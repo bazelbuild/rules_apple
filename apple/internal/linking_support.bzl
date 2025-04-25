@@ -139,6 +139,7 @@ def _link_multi_arch_binary(
         *,
         ctx,
         avoid_deps = [],
+        build_settings,
         cc_toolchains,
         extra_linkopts = [],
         extra_link_inputs = [],
@@ -162,6 +163,7 @@ def _link_multi_arch_binary(
             dependencies that will be found at runtime in another image, such as the
             bundle loader or any dynamic libraries/frameworks that will be loaded by
             this binary.
+        build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
@@ -261,21 +263,42 @@ def _link_multi_arch_binary(
         additional_outputs = []
         extensions = {}
 
-        dsym_binary = None
+        dsym_output = None
         if ctx.fragments.cpp.apple_generate_dsym:
-            if ctx.fragments.cpp.objc_should_strip_binary:
-                suffix = "_bin_unstripped.dwarf"
+            dsym_variants = build_settings.dsym_variant_flag
+            if dsym_variants == "bundle":
+                # TODO(b/391401130): Remove this once dsymutil generated bundle dSYM output is
+                # supported.
+                fail("dsymutil bundle dSYM output is not yet supported by the Apple BUILD Rules.")
+            elif dsym_variants != "flat":
+                fail("""
+Internal Error: Found unsupported dsym_variant_flag: {dsym_variants}.
+
+Please report this as a bug to the Apple BUILD Rules team.
+                """.format(
+                    dsym_variants = dsym_variants,
+                ))
             else:
-                suffix = "_bin.dwarf"
-            dsym_binary = intermediates.file(
-                actions = ctx.actions,
-                target_name = ctx.label.name,
-                output_discriminator = split_transition_key,
-                file_name = ctx.label.name + suffix,
-            )
-            extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
-            additional_outputs.append(dsym_binary)
-            legacy_debug_outputs.setdefault(platform_info.target_arch, {})["dsym_binary"] = dsym_binary
+                if ctx.fragments.cpp.objc_should_strip_binary:
+                    suffix = "_bin_unstripped"
+                else:
+                    suffix = "_bin"
+                dsym_output = intermediates.file(
+                    actions = ctx.actions,
+                    target_name = ctx.label.name,
+                    output_discriminator = split_transition_key,
+                    file_name = "{}.dwarf".format(ctx.label.name + suffix),
+                )
+
+                # TODO(b/391401130): Remove this once all users are migrated to the downstream
+                # provider AppleDsymBundleInfo.
+                legacy_debug_outputs.setdefault(
+                    platform_info.target_arch,
+                    {},
+                )["dsym_binary"] = dsym_output
+
+            extensions["dsym_path"] = dsym_output.path  # dsym symbol file
+            additional_outputs.append(dsym_output)
 
         linkmap = None
         if ctx.fragments.cpp.objc_generate_linkmap:
@@ -308,7 +331,7 @@ def _link_multi_arch_binary(
             "platform": platform_info.target_os,
             "architecture": platform_info.target_arch,
             "environment": platform_info.target_environment,
-            "dsym_binary": dsym_binary,
+            "dsym_binary": dsym_output,
             "linkmap": linkmap,
         }
 
@@ -418,6 +441,7 @@ def _register_binary_linking_action(
         ctx,
         *,
         avoid_deps = [],
+        build_settings,
         bundle_loader = None,
         cc_toolchains,
         entitlements = None,
@@ -439,6 +463,7 @@ def _register_binary_linking_action(
         ctx: The rule context.
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
+        build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
             This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
@@ -554,6 +579,7 @@ def _register_binary_linking_action(
     linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
+        build_settings = build_settings,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,

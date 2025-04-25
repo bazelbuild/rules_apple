@@ -196,6 +196,7 @@ Resolved Xcode is version {xcode_version}.
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,

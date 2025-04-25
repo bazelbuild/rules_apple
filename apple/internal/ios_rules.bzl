@@ -245,6 +245,7 @@ def _ios_application_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -606,6 +607,7 @@ def _ios_app_clip_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -903,6 +905,7 @@ def _ios_framework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -1181,6 +1184,7 @@ def _ios_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1819,6 +1823,7 @@ def _ios_imessage_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,

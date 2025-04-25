@@ -220,6 +220,7 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -508,6 +509,7 @@ def _macos_bundle_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = ctx.attr.bundle_loader,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
@@ -750,6 +752,7 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1015,6 +1018,7 @@ def _macos_kernel_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1246,6 +1250,7 @@ def _macos_spotlight_importer_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1474,6 +1479,7 @@ def _macos_xpc_service_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1776,6 +1782,7 @@ def _macos_command_line_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1978,6 +1985,7 @@ def _macos_dylib_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,

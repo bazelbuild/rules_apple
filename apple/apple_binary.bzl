@@ -39,6 +39,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
 
 visibility("public")
 
@@ -95,8 +99,11 @@ Resolved Xcode is version {xcode_version}.
         for framework in ctx.attr.weak_sdk_frameworks
     ])
 
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         cc_toolchains = cc_toolchain_forwarder,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
