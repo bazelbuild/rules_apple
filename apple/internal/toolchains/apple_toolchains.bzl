@@ -237,10 +237,11 @@ triplet.
     implementation = _apple_mac_tools_toolchain_impl,
 )
 
-APPLE_XPLAT_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal/toolchains:apple_xplat_toolchain_type"
-APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
 APPLE_MAC_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal/toolchains:mac_tools_toolchain_type"
+APPLE_XPLAT_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal/toolchains:apple_xplat_toolchain_type"
+
 APPLE_MAC_EXEC_GROUP = "_mac_tool_group"
+APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
 
 def _apple_xplat_tools_toolchain_impl(ctx):
     xplat_info = AppleXPlatToolsToolchainInfo(
