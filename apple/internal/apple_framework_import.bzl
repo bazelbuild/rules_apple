@@ -203,12 +203,9 @@ There should only be one valid framework binary, given a name that matches its f
 
     # Create AppleDynamicFramework provider.
     framework_groups = _grouped_framework_files(framework_imports)
-    framework_dirs_set = depset(framework_groups.keys())
 
     providers.append(AppleDynamicFrameworkInfo(
         cc_info = cc_info,
-        framework_dirs = framework_dirs_set,
-        framework_files = depset(framework_imports),
     ))
 
     if framework.swift_interface_imports:

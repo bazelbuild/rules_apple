@@ -846,7 +846,6 @@ def _ios_framework_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -861,13 +860,6 @@ def _ios_framework_impl(ctx):
     )
     cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    cc_features = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        language = "objc",
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1016,12 +1008,13 @@ def _ios_framework_impl(ctx):
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
-            cc_features = cc_features,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
