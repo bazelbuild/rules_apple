@@ -32,6 +32,10 @@ load(
     "subtract_linking_contexts",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleExecutableBinaryInfo",
     "ApplePlatformInfo",
@@ -215,7 +219,7 @@ def _link_multi_arch_binary(
     avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
     avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
 
-    outputs = []
+    linker_outputs = []
     cc_infos = []
     legacy_debug_outputs = {}
 
@@ -279,15 +283,16 @@ Please report this as a bug to the Apple BUILD Rules team.
                     dsym_variants = dsym_variants,
                 ))
             else:
-                if ctx.fragments.cpp.objc_should_strip_binary:
-                    suffix = "_bin_unstripped"
-                else:
-                    suffix = "_bin"
+                main_binary_unstripped_basename = outputs.main_binary_basename(
+                    cpp_fragment = ctx.fragments.cpp,
+                    label_name = ctx.label.name,
+                    unstripped = True,
+                )
                 dsym_output = intermediates.file(
                     actions = ctx.actions,
                     target_name = ctx.label.name,
                     output_discriminator = split_transition_key,
-                    file_name = "{}.dwarf".format(ctx.label.name + suffix),
+                    file_name = "{}.dwarf".format(main_binary_unstripped_basename),
                 )
 
                 # TODO(b/391401130): Remove this once all users are migrated to the downstream
@@ -312,7 +317,12 @@ Please report this as a bug to the Apple BUILD Rules team.
             additional_outputs.append(linkmap)
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
-        name = ctx.label.name + "_bin"
+        main_binary_basename = outputs.main_binary_basename(
+            cpp_fragment = ctx.fragments.cpp,
+            label_name = ctx.label.name,
+            unstripped = False,
+        )
+
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,
             apple_platform_info = platform_info,
@@ -321,7 +331,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             cc_linking_context = cc_linking_context,
             extra_link_args = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
-            name = name,
+            name = main_binary_basename,
             stamp = stamp,
             user_variable_extensions = variables_extension | extensions,
         )
@@ -335,7 +345,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             "linkmap": linkmap,
         }
 
-        outputs.append(struct(**output))
+        linker_outputs.append(struct(**output))
 
     header_tokens = []
     for _, deps in split_deps.items():
@@ -348,7 +358,7 @@ Please report this as a bug to the Apple BUILD Rules team.
     return struct(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
-        outputs = outputs,
+        outputs = linker_outputs,
         debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
