@@ -58,6 +58,14 @@ physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),
+    "dsym_variant_flag": struct(
+        doc = """
+Controls the output format for dSYM debug symbols. Valid values are:
+- "flat": Outputs individual dSYM files as additional outputs from the target.
+- "bundle": Outputs dSYM bundles as directories.
+""",
+        default = "flat",
+    ),
 }
 
 # List of all registered build settings without command line flags at
