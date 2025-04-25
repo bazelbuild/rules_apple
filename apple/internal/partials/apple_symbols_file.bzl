@@ -46,7 +46,7 @@ def _apple_symbols_file_partial_impl(
         actions,
         binary_artifact,
         dependency_targets,
-        dsym_binaries,
+        dsym_outputs,
         label_name,
         output_discriminator,
         include_symbols_in_bundle,
@@ -54,10 +54,15 @@ def _apple_symbols_file_partial_impl(
     """Implementation for the Apple .symbols file processing partial."""
     outputs = []
     if (platform_prerequisites.cpp_fragment.apple_generate_dsym and
-        binary_artifact and dsym_binaries):
+        binary_artifact and dsym_outputs):
         inputs = [binary_artifact]
-        for dsym_binary in dsym_binaries.values():
-            inputs.append(dsym_binary)
+
+        # The xcrun symbols tool can handle both dSYM bundles and "flat file" dSYM binaries as
+        # inputs; therefore, we handle them as inputs in the same way without "guessing" paths to
+        # the dSYM binaries in a dSYM bundle.
+        for dsym_output in dsym_outputs.values():
+            inputs.append(dsym_output)
+
         output = intermediates.directory(
             actions = actions,
             target_name = label_name,
@@ -105,7 +110,7 @@ def apple_symbols_file_partial(
         actions,
         binary_artifact,
         dependency_targets = [],
-        dsym_binaries,
+        dsym_outputs,
         label_name,
         output_discriminator = None,
         include_symbols_in_bundle,
@@ -117,7 +122,7 @@ def apple_symbols_file_partial(
       binary_artifact: The main binary artifact for this target.
       dependency_targets: List of targets that should be checked for files that need to be
         bundled.
-      dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
+      dsym_outputs: A mapping of architectures to Files representing dsym outputs for each
         architecture.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -134,7 +139,7 @@ def apple_symbols_file_partial(
         actions = actions,
         binary_artifact = binary_artifact,
         dependency_targets = dependency_targets,
-        dsym_binaries = dsym_binaries,
+        dsym_outputs = dsym_outputs,
         include_symbols_in_bundle = include_symbols_in_bundle,
         label_name = label_name,
         output_discriminator = output_discriminator,

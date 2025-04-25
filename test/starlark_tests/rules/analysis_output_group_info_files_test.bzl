@@ -59,6 +59,39 @@ analysis_output_group_info_files_test = make_provider_test_rule(
         ),
     },
     config_settings = {
+        "//third_party/apple_crosstool:dsym_variant_flag": "flat",
+        "//command_line_option:objc_generate_linkmap": "true",  # output_group: linkmaps
+        "//command_line_option:apple_generate_dsym": "true",  # output_group: dsyms
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:visionos_cpus": "sim_arm64",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
+    },
+)
+
+analysis_output_group_info_dsymutil_bundle_files_test = make_provider_test_rule(
+    provider = OutputGroupInfo,
+    provider_fn = _get_output_group_files,
+    assertion_fn = (
+        lambda ctx, env, output_group_files: assertions.contains_files(
+            env = env,
+            expected_files = ctx.attr.expected_outputs,
+            actual_files = output_group_files,
+        )
+    ),
+    attrs = {
+        "output_group_name": attr.string(
+            mandatory = True,
+            doc = "Name of the output group to source files from.",
+        ),
+        "expected_outputs": attr.string_list(
+            mandatory = True,
+            doc = "List of relative output file paths expected as outputs of the output group.",
+        ),
+    },
+    config_settings = {
+        "//third_party/apple_crosstool:dsym_variant_flag": "bundle",
         "//command_line_option:objc_generate_linkmap": "true",  # output_group: linkmaps
         "//command_line_option:apple_generate_dsym": "true",  # output_group: dsyms
         "//command_line_option:macos_cpus": "arm64,x86_64",

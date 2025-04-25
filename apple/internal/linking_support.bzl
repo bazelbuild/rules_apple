@@ -149,6 +149,7 @@ def _link_multi_arch_binary(
         extra_link_inputs = [],
         extra_requested_features = [],
         extra_disabled_features = [],
+        rule_descriptor,
         stamp = -1,
         variables_extension = {}):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
@@ -176,6 +177,9 @@ def _link_multi_arch_binary(
             to the linker action.
         extra_disabled_features: A list of strings: Extra disabled features to be passed
             to the linker action.
+        rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
+            will define additional parameters required for linking, such as the dSYM bundle name. If
+            `None`, these additional parameters will not be set on the linked binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, build information is always excluded.
             If -1 (the default), then the behavior is determined by the --[no]stamp
@@ -271,9 +275,18 @@ def _link_multi_arch_binary(
         if ctx.fragments.cpp.apple_generate_dsym:
             dsym_variants = build_settings.dsym_variant_flag
             if dsym_variants == "bundle":
-                # TODO(b/391401130): Remove this once dsymutil generated bundle dSYM output is
-                # supported.
-                fail("dsymutil bundle dSYM output is not yet supported by the Apple BUILD Rules.")
+                if rule_descriptor:
+                    dsym_bundle_name = ctx.label.name + rule_descriptor.bundle_extension
+                else:
+                    dsym_bundle_name = ctx.label.name
+
+                # Avoiding "intermediates" as this will be the canonical dSYM in a single arch build
+                dsym_output = ctx.actions.declare_directory(
+                    "{split_transition_key}/{dsym_bundle_name}.dSYM".format(
+                        split_transition_key = split_transition_key,
+                        dsym_bundle_name = dsym_bundle_name,
+                    ),
+                )
             elif dsym_variants != "flat":
                 fail("""
 Internal Error: Found unsupported dsym_variant_flag: {dsym_variants}.
@@ -341,7 +354,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             "platform": platform_info.target_os,
             "architecture": platform_info.target_arch,
             "environment": platform_info.target_environment,
-            "dsym_binary": dsym_output,
+            "dsym_output": dsym_output,
             "linkmap": linkmap,
         }
 
@@ -372,20 +385,20 @@ def _debug_outputs_by_architecture(link_outputs):
     Returns:
         A `struct` containing three fields:
 
-        *   `dsym_binaries`: A mapping of architectures to Files representing dSYM binary outputs
-            for each architecture.
+        *   `dsym_outputs`: A mapping of architectures to Files representing dSYM outputs for each
+            architecture.
         *   `linkmaps`: A mapping of architectures to Files representing linkmaps for each
             architecture.
     """
-    dsym_binaries = {}
+    dsym_outputs = {}
     linkmaps = {}
 
     for link_output in link_outputs:
-        dsym_binaries[link_output.architecture] = link_output.dsym_binary
+        dsym_outputs[link_output.architecture] = link_output.dsym_output
         linkmaps[link_output.architecture] = link_output.linkmap
 
     return struct(
-        dsym_binaries = dsym_binaries,
+        dsym_outputs = dsym_outputs,
         linkmaps = linkmaps,
     )
 
@@ -597,6 +610,7 @@ def _register_binary_linking_action(
         # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
         # being routed to the wrong exec platform.
         extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
+        rule_descriptor = rule_descriptor,
         stamp = stamp,
     )
 
