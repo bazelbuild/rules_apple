@@ -44,7 +44,6 @@ def plisttool_action(
         actions,
         control_file,
         inputs,
-        mac_exec_group = None,
         mnemonic = None,
         outputs,
         platform_prerequisites,
@@ -59,7 +58,6 @@ def plisttool_action(
       actions: The actions provider from `ctx.actions`.
       control_file: The `File` containing the control struct to be passed to plisttool.
       inputs: Any `File`s that should be treated as inputs to the underlying action.
-      mac_exec_group: The exec_group associated with plisttool.
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -71,7 +69,6 @@ def plisttool_action(
         arguments = [control_file.path],
         executable = plisttool,
         inputs = inputs + [control_file],
-        exec_group = mac_exec_group,
         mnemonic = mnemonic,
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
