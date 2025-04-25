@@ -202,6 +202,8 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":fragment_support",
+        ":outputs",
         ":platform_support",
         "@bazel_skylib//lib:paths",
     ],
@@ -257,6 +259,14 @@ bzl_library(
     ],
     deps = [
         "@bazel_skylib//lib:new_sets",
+    ],
+)
+
+bzl_library(
+    name = "fragment_support",
+    srcs = ["fragment_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
     ],
 )
 
@@ -345,6 +355,7 @@ bzl_library(
         ":compilation_support",
         ":entitlements_support",
         ":intermediates",
+        ":outputs",
         ":providers",
         ":rule_support",
         "@bazel_skylib//lib:collections",
@@ -431,6 +442,7 @@ bzl_library(
     ],
     deps = [
         ":experimental",
+        ":fragment_support",
         ":intermediates",
         "@bazel_skylib//lib:paths",
     ],
