@@ -44,6 +44,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_feature_allowlist_info",
+    srcs = ["apple_feature_allowlist_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used
+        # by a number of rules in `internal`.
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "apple_resource_hint_info",
     srcs = ["apple_resource_hint_info.bzl"],
     visibility = [

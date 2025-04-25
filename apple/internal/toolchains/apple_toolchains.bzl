@@ -15,6 +15,10 @@
 """Shared toolchain required for processing Apple bundling rules."""
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_feature_allowlist_info.bzl",
+    "AppleFeatureAllowlistInfo",
+)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -56,6 +60,10 @@ The files_to_run for a tool to generate codesigning dossiers.
 """,
         "environment_plist_tool": """\
 The files_to_run for a tool for collecting dev environment values.
+""",
+        "feature_allowlists": """\
+A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
+from requesting or disabling features.
 """,
         "imported_dynamic_framework_processor": """\
 The files_to_run for a tool to process an imported dynamic framework
@@ -110,6 +118,10 @@ e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 A tool to create an Apple bundle by taking a list of
 files/ZIPs and destinations paths to build the directory structure for those files.
 """,
+        "feature_allowlists": """\
+A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
+from requesting or disabling features.
+""",
         "versiontool": """\
 A tool that acts as a wrapper for xcrun actions.
 """,
@@ -125,6 +137,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
         dossier_codesigningtool = ctx.attr.dossier_codesigningtool.files_to_run,
         clangrttool = ctx.attr.clangrttool.files_to_run,
         environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
+        feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
         plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
@@ -175,6 +188,13 @@ post-processing, and signing steps into a single action that eliminates the arch
 A `File` referencing a tool to collect data from the development environment to be record into
 final bundles.
 """,
+        ),
+        "feature_allowlists": attr.label_list(
+            doc = """\
+A list of `apple_feature_allowlist` targets that allow or prohibit packages from
+requesting or disabling features.
+""",
+            providers = [[AppleFeatureAllowlistInfo]],
         ),
         "imported_dynamic_framework_processor": attr.label(
             cfg = "exec",
@@ -252,6 +272,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
             }
         ),
         bundletool = ctx.attr.bundletool,
+        feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         versiontool = ctx.attr.versiontool,
     )
 
@@ -276,6 +297,13 @@ List of `Label`s referencing custom build settings for all Apple rules.
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
 paths to build the directory structure for those files.
 """,
+        ),
+        "feature_allowlists": attr.label_list(
+            doc = """\
+A list of `apple_feature_allowlist` targets that allow or prohibit packages from
+requesting or disabling features.
+""",
+            providers = [[AppleFeatureAllowlistInfo]],
         ),
         "versiontool": attr.label(
             cfg = "exec",

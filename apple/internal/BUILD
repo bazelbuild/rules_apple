@@ -211,6 +211,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal/utils:package_specs",
         "@bazel_skylib//lib:new_sets",
     ],
 )

@@ -35,6 +35,11 @@ bzl_library(
 )
 
 bzl_library(
+    name = "package_specs",
+    srcs = ["package_specs.bzl"],
+)
+
+bzl_library(
     name = "platform_defaults",
     srcs = ["platform_defaults.bzl"],
 )

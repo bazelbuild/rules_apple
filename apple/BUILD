@@ -32,6 +32,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_feature_allowlist",
+    srcs = ["apple_feature_allowlist.bzl"],
+    deps = [
+        "//apple/internal/providers:apple_feature_allowlist_info",
+        "//apple/internal/utils:package_specs",
+    ],
+)
+
+bzl_library(
     name = "apple_static_library",
     srcs = ["apple_static_library.bzl"],
     deps = [
