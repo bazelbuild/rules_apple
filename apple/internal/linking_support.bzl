@@ -14,10 +14,6 @@
 
 """Support for linking related actions."""
 
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -40,6 +36,10 @@ load(
 load(
     "//apple/internal:multi_arch_binary_support.bzl",
     "subtract_linking_contexts",
+)
+load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "//apple/internal:providers.bzl",
@@ -234,7 +234,7 @@ def _link_multi_arch_binary(
     avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
     avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
 
-    outputs = []
+    linker_outputs = []
     cc_infos = []
     legacy_debug_outputs = {}
 
@@ -298,15 +298,16 @@ Please report this as a bug to the Apple BUILD Rules team.
                     dsym_variants = dsym_variants,
                 ))
             else:
-                if ctx.fragments.cpp.objc_should_strip_binary:
-                    suffix = "_bin_unstripped"
-                else:
-                    suffix = "_bin"
+                main_binary_unstripped_basename = outputs.main_binary_basename(
+                    cpp_fragment = ctx.fragments.cpp,
+                    label_name = ctx.label.name,
+                    unstripped = True,
+                )
                 dsym_output = intermediates.file(
                     actions = ctx.actions,
                     target_name = ctx.label.name,
                     output_discriminator = split_transition_key,
-                    file_name = "{}.dwarf".format(ctx.label.name + suffix),
+                    file_name = "{}.dwarf".format(main_binary_unstripped_basename),
                 )
 
                 # TODO(b/391401130): Remove this once all users are migrated to the downstream
@@ -331,7 +332,12 @@ Please report this as a bug to the Apple BUILD Rules team.
             additional_outputs.append(linkmap)
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
-        name = ctx.label.name + "_bin"
+        main_binary_basename = outputs.main_binary_basename(
+            cpp_fragment = ctx.fragments.cpp,
+            label_name = ctx.label.name,
+            unstripped = False,
+        )
+
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,
             apple_platform_info = platform_info,
@@ -340,7 +346,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             common_variables = common_variables,
             extra_link_args = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
-            name = name,
+            name = main_binary_basename,
             # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
             split_transition_key = split_transition_key,
             stamp = stamp,
@@ -356,7 +362,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             "linkmap": linkmap,
         }
 
-        outputs.append(struct(**output))
+        linker_outputs.append(struct(**output))
 
     header_tokens = []
     for _, deps in split_deps.items():
@@ -369,7 +375,7 @@ Please report this as a bug to the Apple BUILD Rules team.
     return struct(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
-        outputs = outputs,
+        outputs = linker_outputs,
         debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
