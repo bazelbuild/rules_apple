@@ -41,7 +41,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBinaryInfo",
-    "AppleDsymBundleInfo",
+    "AppleBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
@@ -80,6 +80,7 @@ exit 0
 # a plan `build_test` should be used.
 _BLOCKED_PROVIDERS = [
     AppleBinaryInfo,
+    AppleBundleInfo,
 ]
 
 def _apple_build_test_rule_impl(ctx):
@@ -93,21 +94,6 @@ def _apple_build_test_rule_impl(ctx):
     for target in targets:
         for p in _BLOCKED_PROVIDERS:
             if p in target:
-                fail((
-                    "'{target_label}' builds a bundle and should just be " +
-                    " wrapped with a 'build_test' and not '{rule_kind}'."
-                ).format(
-                    target_label = target.label,
-                    rule_kind = ctx.attr._platform_type + "_build_test",
-                ))
-
-        # Rules like `ios_framework` can go in a `data` attribute to be loaded on demand, as a
-        # result, the resource aspect will collect AppleDsymBundleInfo providers and bubble them
-        # up the graph. We have to explicitly check for when a target directly provides a dSYM as
-        # something that should be a plain `build_test`.
-        if AppleDsymBundleInfo in target:
-            dsym_info = target[AppleDsymBundleInfo]
-            if dsym_info.direct_dsyms:
                 fail((
                     "'{target_label}' builds a bundle and should just be " +
                     " wrapped with a 'build_test' and not '{rule_kind}'."
