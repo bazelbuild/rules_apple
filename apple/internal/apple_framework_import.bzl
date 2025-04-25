@@ -245,12 +245,8 @@ def _apple_dynamic_framework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFramework provider.
-    framework_groups = _grouped_framework_files(framework_imports)
-    framework_dirs_set = depset(framework_groups.keys())
     providers.append(new_appledynamicframeworkinfo(
         cc_info = cc_info,
-        framework_dirs = framework_dirs_set,
-        framework_files = depset(framework_imports),
     ))
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
