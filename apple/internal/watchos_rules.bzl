@@ -157,7 +157,6 @@ def _watchos_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -167,13 +166,6 @@ def _watchos_framework_impl(ctx):
     executable_name = ctx.attr.executable_name
     cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    cc_features = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        language = "objc",
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -331,13 +323,13 @@ def _watchos_framework_impl(ctx):
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -432,7 +424,6 @@ def _watchos_dynamic_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -611,13 +602,13 @@ def _watchos_dynamic_framework_impl(ctx):
         ),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(

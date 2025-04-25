@@ -232,15 +232,6 @@ dependencies of the given target if any were generated.
 _AppleDynamicFrameworkInfo = provider(
     doc = "Contains information about an Apple dynamic framework.",
     fields = {
-        "framework_dirs": """\
-The framework path names used as link inputs in order to link against the
-dynamic framework.
-""",
-        "framework_files": """\
-The full set of artifacts that should be included as inputs to link against the
-dynamic framework.
-""",
-        "binary": "The dylib binary artifact of the dynamic framework.",
         "cc_info": """\
 A `CcInfo` which contains information about the transitive dependencies linked
 into the binary.

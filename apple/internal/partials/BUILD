@@ -236,7 +236,6 @@ bzl_library(
         "//apple/internal:framework_import_support",
         "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
-        "@bazel_skylib//lib:paths",
     ],
 )
 
