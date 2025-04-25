@@ -18,10 +18,6 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple/internal:providers.bzl", "new_appledynamicframeworkinfo")
@@ -29,39 +25,26 @@ load("//apple/internal:providers.bzl", "new_appledynamicframeworkinfo")
 def _framework_provider_partial_impl(
         *,
         actions,
-        bin_root_path,
         binary_artifact,
-        bundle_name,
         bundle_only,
-        cc_features,
+        cc_configured_features_init,
         cc_info,
         cc_toolchain,
+        disabled_features,
+        features,
         rule_label):
     """Implementation for the framework provider partial."""
 
-    # Create a directory structure that the linker can use to reference this
-    # framework. It follows the pattern of
-    # any_path/MyFramework.framework/MyFramework. The absolute path and files are
-    # propagated using the AppleDynamicFrameworkInfo provider.
-    framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
-    framework_file = actions.declare_file(
-        paths.join(framework_dir, bundle_name),
+    feature_configuration = cc_configured_features_init(
+        cc_toolchain = cc_toolchain,
+        language = "objc",
+        requested_features = features,
+        unsupported_features = disabled_features,
     )
-    actions.symlink(
-        target_file = binary_artifact,
-        output = framework_file,
-    )
-
-    absolute_framework_dir = paths.join(
-        bin_root_path,
-        rule_label.package,
-        framework_dir,
-    )
-
     library_to_link = cc_common.create_library_to_link(
         actions = actions,
         cc_toolchain = cc_toolchain,
-        feature_configuration = cc_features,
+        feature_configuration = feature_configuration,
         dynamic_library = binary_artifact,
     )
     linker_input = cc_common.create_linker_input(
@@ -80,10 +63,7 @@ def _framework_provider_partial_impl(
     )
 
     framework_provider = new_appledynamicframeworkinfo(
-        binary = binary_artifact,
         cc_info = wrapper_cc_info,
-        framework_dirs = depset([absolute_framework_dir]),
-        framework_files = depset([framework_file]),
     )
 
     return struct(
@@ -93,13 +73,13 @@ def _framework_provider_partial_impl(
 def framework_provider_partial(
         *,
         actions,
-        bin_root_path,
         binary_artifact,
-        bundle_name,
         bundle_only,
-        cc_features,
+        cc_configured_features_init,
         cc_info,
         cc_toolchain,
+        disabled_features,
+        features,
         rule_label):
     """Constructor for the framework provider partial.
 
@@ -110,14 +90,15 @@ def framework_provider_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      bin_root_path: The path to the root `-bin` directory.
       binary_artifact: The linked dynamic framework binary.
-      bundle_name: The name of the output bundle.
       bundle_only: Only include the bundle but do not link the framework
-      cc_features: List of enabled C++ features.
+      cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+          without the need for a `ctx`.
       cc_info: The CcInfo provider containing information about the
           targets linked into the dynamic framework.
       cc_toolchain: The C++ toolchain to use.
+      disabled_features: List of features to be disabled for C++ actions.
+      features: List of features to be enabled for C++ actions.
       rule_label: The label of the target being analyzed.
 
     Returns:
@@ -128,12 +109,12 @@ def framework_provider_partial(
     return partial.make(
         _framework_provider_partial_impl,
         actions = actions,
-        bin_root_path = bin_root_path,
         binary_artifact = binary_artifact,
-        bundle_name = bundle_name,
         bundle_only = bundle_only,
-        cc_features = cc_features,
+        cc_configured_features_init = cc_configured_features_init,
         cc_info = cc_info,
         cc_toolchain = cc_toolchain,
+        disabled_features = disabled_features,
+        features = features,
         rule_label = rule_label,
     )
