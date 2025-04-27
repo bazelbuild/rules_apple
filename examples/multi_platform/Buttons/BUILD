@@ -156,9 +156,9 @@ ios_extension(
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
-    bundle_name = "Buttons",
+    bundle_name = "ButtonsShared",
     minimum_os_version = "9.0",
-    deps = [":ButtonsLib"],
+    deps = [":ButtonsSharedLib"],
 )
 
 ## Tests
