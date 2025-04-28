@@ -55,6 +55,10 @@ macos_application(
         "//test/starlark_tests/resources:resource_bundle",
     ],
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
     deps = [
         "//test/starlark_tests/resources:apple_localized_assets_lib",
         "//test/starlark_tests/resources:apple_non_localized_assets_lib",
