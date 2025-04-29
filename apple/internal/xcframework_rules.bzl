@@ -842,15 +842,19 @@ def _apple_xcframework_impl(ctx):
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
 
-            # Save the dSYMs.
-            if getattr(provider, "dsyms", None):
-                framework_output_files.append(depset(transitive = [provider.dsyms]))
-                framework_output_groups.append({"dsyms": provider.dsyms})
-
             # Save the linkmaps.
             if getattr(provider, "linkmaps", None):
                 framework_output_files.append(depset(transitive = [provider.linkmaps]))
                 framework_output_groups.append({"linkmaps": provider.linkmaps})
+
+            dsyms = outputs.dsyms(
+                platform_prerequisites = platform_prerequisites,
+                processor_result = processor_result,
+            )
+            if dsyms:
+                # Save the dSYMs.
+                framework_output_files.append(depset(transitive = [dsyms]))
+                framework_output_groups.append({"dsyms": dsyms})
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
