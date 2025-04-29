@@ -874,15 +874,20 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 framework_archive_files.append(depset([provider.archive]))
 
             if library_type == _LIBRARY_TYPE.dynamic:
-                # Save the dSYMs.
-                if getattr(provider, "dsyms", None):
-                    framework_output_files.append(depset(transitive = [provider.dsyms]))
-                    framework_output_groups.append({"dsyms": provider.dsyms})
-
                 # Save the linkmaps.
                 if getattr(provider, "linkmaps", None):
                     framework_output_files.append(depset(transitive = [provider.linkmaps]))
                     framework_output_groups.append({"linkmaps": provider.linkmaps})
+
+        if library_type == _LIBRARY_TYPE.dynamic:
+            dsyms = outputs.dsyms(
+                platform_prerequisites = platform_prerequisites,
+                processor_result = processor_result,
+            )
+            if dsyms:
+                # Save the dSYMs.
+                framework_output_files.append(depset(transitive = [dsyms]))
+                framework_output_groups.append({"dsyms": dsyms})
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(

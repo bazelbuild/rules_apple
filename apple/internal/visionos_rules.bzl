@@ -352,7 +352,10 @@ Resolved Xcode is version {xcode_version}.
         predeclared_outputs = predeclared_outputs,
     )
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     return [
         DefaultInfo(

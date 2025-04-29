@@ -19,6 +19,10 @@ load(
     "AppleDsymBundleInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
@@ -67,7 +71,7 @@ apple_dsym_bundle_info_test = make_provider_test_rule(
     assertion_fn = _assert_contains_expected_direct_and_transitive_dsyms,
     attrs = _SHARED_ATTRS,
     config_settings = {
-        "//third_party/apple_crosstool:dsym_variant_flag": "flat",
+        build_settings_labels.dsym_variant_flag: "flat",
         "//command_line_option:apple_generate_dsym": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
@@ -82,7 +86,7 @@ apple_dsym_bundle_info_dsymutil_bundle_test = make_provider_test_rule(
     assertion_fn = _assert_contains_expected_direct_and_transitive_dsyms,
     attrs = _SHARED_ATTRS,
     config_settings = {
-        "//third_party/apple_crosstool:dsym_variant_flag": "bundle",
+        build_settings_labels.dsym_variant_flag: "bundle",
         "//command_line_option:apple_generate_dsym": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",

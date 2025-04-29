@@ -575,7 +575,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         predeclared_outputs = predeclared_outputs,
     )
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
