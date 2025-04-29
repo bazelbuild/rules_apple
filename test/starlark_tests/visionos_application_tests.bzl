@@ -16,6 +16,7 @@
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -32,6 +33,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -179,6 +181,17 @@ def visionos_application_test_suite(name):
             name,
         ],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "visionos_sim_arm64/app.app.dSYM",
+        ],
+        tags = [
+            name,
+        ],
+    )
 
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
@@ -188,6 +201,19 @@ def visionos_application_test_suite(name):
         ],
         expected_transitive_dsyms = [
             "dSYMs/app.app.dSYM",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        expected_direct_dsyms = [
+            "visionos_sim_arm64/app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "visionos_sim_arm64/app.app.dSYM",
         ],
         tags = [
             name,
