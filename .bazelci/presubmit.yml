@@ -4,6 +4,8 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
+    shell_commands:
+    - xcrun simctl runtime list
     build_targets:
     - "tools/..."
     - "test/..."
