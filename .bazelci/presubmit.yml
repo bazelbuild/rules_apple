@@ -10,6 +10,7 @@ x_defaults:
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles'"
