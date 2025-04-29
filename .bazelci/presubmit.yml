@@ -7,18 +7,7 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform'"
-    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform'"
-    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Library'"
-    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles'"
-    # - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles/DeviceTypes'"
-    - exit 1
+    - "ls '/Library/Developer/CoreSimulator/Profiles/DeviceTypes'"
     build_targets:
     - "tools/..."
     - "test/..."
