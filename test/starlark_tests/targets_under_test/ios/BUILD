@@ -37,10 +37,6 @@ load(
     "xcarchive",
 )
 load(
-    "//apple:xctrunner.bzl",
-    "xctrunner",
-)
-load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
