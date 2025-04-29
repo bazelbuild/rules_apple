@@ -15,6 +15,7 @@ x_defaults:
     - "test/..."
     build_flags:
     - --modify_execution_info=AssetCatalogCompile=+exclusive
+    - --experimental_sandbox_async_tree_delete_idle_threads=auto
     test_targets:
     - "tools/..."
     - "test/..."
