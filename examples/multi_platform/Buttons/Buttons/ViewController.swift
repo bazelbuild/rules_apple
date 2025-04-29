@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ButtonsShared
+import ButtonsShared2
 import UIKit
 
 class ViewController: UIViewController {
-
   @IBOutlet weak var label: UILabel?
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    saySomethingShared()
+    saySomethingElseShared()
   }
 
   @IBAction func pressedButton(sender: UIButton) {
@@ -30,6 +33,4 @@ class ViewController: UIViewController {
     let number = Int((label.text)!)
     label.text = String(number! + 1)
   }
-
 }
-

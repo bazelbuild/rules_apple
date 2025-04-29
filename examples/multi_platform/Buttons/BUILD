@@ -7,6 +7,7 @@ load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_extension",
+    "ios_framework",
     "ios_static_framework",
     "ios_ui_test",
     "ios_unit_test",
@@ -44,8 +45,13 @@ swift_library(
         "Buttons/AppDelegate.swift",
         "Buttons/ViewController.swift",
     ],
+    data = ["Buttons/Base.lproj/Main.storyboard"],
     module_name = "Buttons",
     tags = ["manual"],
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
 )
 
 swift_library(
@@ -54,6 +60,28 @@ swift_library(
         "ButtonsExtension/ActionRequestHandler.swift",
     ],
     module_name = "ButtonsExtension",
+    tags = ["manual"],
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
+)
+
+swift_library(
+    name = "ButtonsSharedLib",
+    srcs = [
+        "ButtonsShared/SomethingShared.swift",
+    ],
+    module_name = "ButtonsShared",
+    tags = ["manual"],
+)
+
+swift_library(
+    name = "ButtonsShared2Lib",
+    srcs = [
+        "ButtonsShared2/SomethingElseShared.swift",
+    ],
+    module_name = "ButtonsShared2",
     tags = ["manual"],
 )
 
@@ -80,14 +108,23 @@ swift_library(
     tags = ["manual"],
 )
 
-## Resources
-
-objc_library(
-    name = "ButtonsResources",
-    data = ["Buttons/Base.lproj/Main.storyboard"],
-)
-
 ## Packaging
+
+ios_framework(
+    name = "ButtonsSharedFramework",
+    bundle_id = "com.google.ButtonsSharedFramework",
+    extension_safe = True,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["ButtonsSharedFramework/Info.plist"],
+    minimum_os_version = "11.0",
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
+)
 
 ios_application(
     name = "Buttons",
@@ -97,13 +134,11 @@ ios_application(
         "iphone",
         "ipad",
     ],
+    frameworks = [":ButtonsSharedFramework"],
     infoplists = ["Buttons/Info.plist"],
     minimum_os_version = "11.0",
     watch_application = ":ButtonsWatch",
-    deps = [
-        ":ButtonsLib",
-        ":ButtonsResources",
-    ],
+    deps = [":ButtonsLib"],
 )
 
 ios_extension(
@@ -113,6 +148,7 @@ ios_extension(
         "iphone",
         "ipad",
     ],
+    frameworks = [":ButtonsSharedFramework"],
     infoplists = ["ButtonsExtension/Info.plist"],
     minimum_os_version = "11.0",
     deps = [":ButtonsExtensionLib"],
@@ -120,9 +156,9 @@ ios_extension(
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
-    bundle_name = "Buttons",
+    bundle_name = "ButtonsShared",
     minimum_os_version = "9.0",
-    deps = [":ButtonsLib"],
+    deps = [":ButtonsSharedLib"],
 )
 
 ## Tests
