@@ -7,7 +7,7 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 16.simdevicetype/Contents/Resources'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes'"
     - exit 1
     build_targets:
     - "tools/..."
