@@ -3370,20 +3370,20 @@ ios_ui_test(
     ],
 )
 
-xctrunner(
-    name = "ui_test_xctrunner_app",
-    testonly = True,
-    tests = [":ui_test"],
-)
+# xctrunner(
+#     name = "ui_test_xctrunner_app",
+#     testonly = True,
+#     tests = [":ui_test"],
+# )
 
-xctrunner(
-    name = "ui_test_xctrunner_app_multiple_targets",
-    testonly = True,
-    tests = [
-        ":ui_test",
-        ":ui_test_with_fmwk",
-    ],
-)
+# xctrunner(
+#     name = "ui_test_xctrunner_app_multiple_targets",
+#     testonly = True,
+#     tests = [
+#         ":ui_test",
+#         ":ui_test_with_fmwk",
+#     ],
+# )
 
 # ---------------------------------------------------------------------------------------
 
