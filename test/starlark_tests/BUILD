@@ -59,7 +59,6 @@ load(":watchos_static_framework_tests.bzl", "watchos_static_framework_test_suite
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 load(":xcarchive_tests.bzl", "xcarchive_test_suite")
-load(":xctrunner_tests.bzl", "xctrunner_test_suite")
 
 licenses(["notice"])
 
