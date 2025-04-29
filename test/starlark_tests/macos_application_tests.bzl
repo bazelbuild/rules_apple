@@ -20,11 +20,13 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_dsym_test",
+    "analysis_runfiles_dsymutil_bundle_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -32,6 +34,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -275,6 +278,15 @@ def macos_application_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
@@ -286,6 +298,17 @@ def macos_application_test_suite(name):
         ],
         tags = [name],
     )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_direct_dsyms = [
+            "app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app.app.dSYM",
+        ],
+        tags = [name],
+    )
 
     analysis_runfiles_dsym_test(
         name = "{}_runfiles_dsym_test".format(name),
@@ -293,6 +316,15 @@ def macos_application_test_suite(name):
         expected_runfiles = [
             "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Resources/DWARF/app",
             "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsymutil_bundle_test(
+        name = "{}_runfiles_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/darwin_arm64/app.app.dSYM",
         ],
         tags = [name],
     )

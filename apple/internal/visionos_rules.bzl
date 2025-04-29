@@ -453,7 +453,10 @@ Resolved Xcode is version {xcode_version}.
         rule_descriptor = rule_descriptor,
     )
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     return [
         DefaultInfo(

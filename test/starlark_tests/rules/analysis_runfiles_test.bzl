@@ -19,6 +19,10 @@ load(
     "analysistest",
     "unittest",
 )
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 def _analysis_runfiles_test_impl(ctx):
     "Test that runfiles of the given target under test is properly set."
@@ -62,7 +66,15 @@ def make_analysis_runfiles_test_rule(
 # A generic analysis_runfiles_test with no custom settings.
 analysis_runfiles_test = make_analysis_runfiles_test_rule()
 
-# An analysis_runfiles_test that generates dsyms.
+# An analysis_runfiles_test that generates "flat file" dSYMs.
 analysis_runfiles_dsym_test = make_analysis_runfiles_test_rule(config_settings = {
+    build_settings_labels.dsym_variant_flag: "flat",
+    "//command_line_option:apple_generate_dsym": "true",
+    "//command_line_option:macos_cpus": "arm64",
+})
+
+# An analysis_runfiles_test that generates dSYMs bundles using dsymutil.
+analysis_runfiles_dsymutil_bundle_test = make_analysis_runfiles_test_rule(config_settings = {
+    build_settings_labels.dsym_variant_flag: "bundle",
     "//command_line_option:apple_generate_dsym": "true",
 })
