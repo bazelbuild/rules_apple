@@ -9,6 +9,8 @@ x_defaults:
     - xcrun simctl runtime match list
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Library'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library'"
