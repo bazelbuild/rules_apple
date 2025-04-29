@@ -7,7 +7,9 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - "ls '/Library/Developer/CoreSimulator/Profiles/DeviceTypes'"
+    - echo "df -h"
+    - df -h
+    # - "ls '/Library/Developer/CoreSimulator/Profiles/DeviceTypes'"
     build_targets:
     - "tools/..."
     - "test/..."
