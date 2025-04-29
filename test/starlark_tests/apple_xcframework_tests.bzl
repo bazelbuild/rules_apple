@@ -24,6 +24,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -343,6 +344,16 @@ def apple_xcframework_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_arm64_device/ios_dynamic_xcframework.dSYM",
+            "ios_x86_64_simulator/ios_dynamic_xcframework.dSYM",
+        ],
+        tags = [name],
+    )
     analysis_output_group_info_files_test(
         name = "{}_fat_frameworks_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
@@ -352,6 +363,16 @@ def apple_xcframework_test_suite(name):
             "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_device",
             "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
             "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_fat_frameworks_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM",
+            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM",
         ],
         tags = [name],
     )
