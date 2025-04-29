@@ -8,6 +8,11 @@ x_defaults:
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator'"
+    - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles'"
     - "ls '/Applications/Xcode16.3.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes'"
     - exit 1
     build_targets:
