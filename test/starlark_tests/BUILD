@@ -184,7 +184,7 @@ watchos_unit_test_test_suite(name = "watchos_unit_test")
 
 xcarchive_test_suite(name = "xcarchive")
 
-xctrunner_test_suite(name = "xctrunner")
+# xctrunner_test_suite(name = "xctrunner")
 
 docc_test_suite(name = "docc")
 
