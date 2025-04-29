@@ -109,13 +109,26 @@ def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return actions.declare_file(label_name)
 
-def _dsyms(*, processor_result):
+def _dsyms(*, platform_prerequisites, processor_result):
     """Returns a depset of all of the dsyms from the result."""
-    dsyms = []
-    for provider in processor_result.providers:
-        if getattr(provider, "dsyms", None):
-            dsyms.append(provider.dsyms)
-    return depset(transitive = dsyms)
+    direct_dsyms = []
+    transitive_dsyms = []
+    dsym_variant_flag = platform_prerequisites.build_settings.dsym_variant_flag
+    if dsym_variant_flag == "bundle":
+        for provider in processor_result.providers:
+            # Sourcing fields from the public AppleDsymBundleInfo provider.
+            if getattr(provider, "direct_dsyms", None):
+                direct_dsyms.extend(provider.direct_dsyms)
+            if getattr(provider, "transitive_dsyms", None):
+                transitive_dsyms.append(provider.transitive_dsyms)
+    elif dsym_variant_flag == "flat":
+        for provider in processor_result.providers:
+            # Sourcing fields from the AppleDebugInfo provider, only visible to the rules.
+            if getattr(provider, "dsyms", None):
+                transitive_dsyms.append(provider.dsyms)
+    else:
+        fail("Internal Error: Unsupported dsym_variant_flag: {}".format(dsym_variant_flag))
+    return depset(direct_dsyms, transitive = transitive_dsyms)
 
 def _infoplist(*, actions, label_name, output_discriminator):
     """Returns a file reference for this target's Info.plist file."""

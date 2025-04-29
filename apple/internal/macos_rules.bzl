@@ -436,7 +436,10 @@ def _macos_application_impl(ctx):
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
     )
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     run_support.register_macos_executable(
         actions = actions,
@@ -2092,7 +2095,10 @@ def _macos_command_line_application_impl(ctx):
     if clang_rt_dylibs.should_package_clang_runtime(features = features):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     return [
         new_applebinaryinfo(
