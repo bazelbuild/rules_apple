@@ -38,10 +38,6 @@ load(
     "intermediates",
 )
 load(
-    "//apple/internal:multi_arch_binary_support.bzl",
-    "subtract_linking_contexts",
-)
-load(
     "//apple/internal:providers.bzl",
     "AppleDynamicFrameworkInfo",
     "AppleExecutableBinaryInfo",
@@ -102,21 +98,16 @@ def _archive_multi_arch_static_library(
                 deps = split_deps[split_transition_key],
             )
 
-        avoid_objc_providers = []
-        avoid_cc_providers = []
         avoid_cc_linking_contexts = []
 
         if len(split_avoid_deps.keys()):
             for dep in split_avoid_deps[split_transition_key]:
-                if apple_common.Objc in dep:
-                    avoid_objc_providers.append(dep[apple_common.Objc])
                 if CcInfo in dep:
-                    avoid_cc_providers.append(dep[CcInfo])
                     avoid_cc_linking_contexts.append(dep[CcInfo].linking_context)
 
         name = ctx.label.name + "-" + cc_toolchain.target_gnu_system_name + "-fl"
 
-        cc_linking_context = subtract_linking_contexts(
+        cc_linking_context = compilation_support.subtract_linking_contexts(
             owner = ctx.label,
             linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
@@ -247,7 +238,13 @@ def _link_multi_arch_binary(
     cc_infos = []
     legacy_debug_outputs = {}
 
+    # TODO(b/220185798): Refocus this on cc_linking_context providers, and merge those instead of
+    # CcInfo providers. Refactor the AppleExecutableBinaryInfo and AppleDynamicFrameworkInfo
+    # providers to provide cc_linking_contexts instead of cc_infos as well.
+    cc_infos = []
     cc_infos.extend(avoid_cc_infos)
+
+    legacy_debug_outputs = {}
 
     # $(location...) is only used in one test, and tokenize only affects linkopts in one target
     additional_linker_inputs = getattr(ctx.attr, "additional_linker_inputs", [])
@@ -284,16 +281,12 @@ def _link_multi_arch_binary(
             )
 
         cc_infos.append(CcInfo(
-            compilation_context = cc_common.merge_compilation_contexts(
-                compilation_contexts =
-                    common_variables.objc_compilation_context.cc_compilation_contexts,
-            ),
             linking_context = cc_common.merge_linking_contexts(
                 linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
             ),
         ))
 
-        cc_linking_context = subtract_linking_contexts(
+        cc_linking_context = compilation_support.subtract_linking_contexts(
             owner = ctx.label,
             linking_contexts = common_variables.objc_linking_context.cc_linking_contexts +
                                avoid_cc_linking_contexts,

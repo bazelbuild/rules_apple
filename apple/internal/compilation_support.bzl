@@ -77,6 +77,52 @@ def _get_library_for_linking(library_to_link):
     else:
         return library_to_link.dynamic_library
 
+def _build_avoid_library_set(avoid_dep_linking_contexts):
+    avoid_library_set = dict()
+    for linking_context in avoid_dep_linking_contexts:
+        for linker_input in linking_context.linker_inputs.to_list():
+            for library_to_link in linker_input.libraries:
+                library_artifact = _get_static_library_for_linking(library_to_link)
+                if library_artifact:
+                    avoid_library_set[library_artifact.short_path] = True
+    return avoid_library_set
+
+def _subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_contexts):
+    """Subtracts the libraries in avoid_dep_linking_contexts from linking_contexts.
+
+    Args:
+      owner: The label of the target currently being analyzed.
+      linking_contexts: An iterable of CcLinkingContext objects.
+      avoid_dep_linking_contexts: An iterable of CcLinkingContext objects.
+
+    Returns:
+      A CcLinkingContext object.
+    """
+    libraries = []
+    user_link_flags = []
+    additional_inputs = []
+    linkstamps = []
+    avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
+    for linking_context in linking_contexts:
+        for linker_input in linking_context.linker_inputs.to_list():
+            for library_to_link in linker_input.libraries:
+                library_artifact = _get_library_for_linking(library_to_link)
+                if library_artifact.short_path not in avoid_library_set:
+                    libraries.append(library_to_link)
+            user_link_flags.extend(linker_input.user_link_flags)
+            additional_inputs.extend(linker_input.additional_inputs)
+            linkstamps.extend(linker_input.linkstamps)
+    linker_input = cc_common.create_linker_input(
+        owner = owner,
+        libraries = depset(libraries, order = "topological"),
+        user_link_flags = user_link_flags,
+        additional_inputs = depset(additional_inputs),
+        linkstamps = depset(linkstamps),
+    )
+    return cc_common.create_linking_context(
+        linker_inputs = depset([linker_input]),
+    )
+
 def _libraries_from_linking_context(linking_context):
     libraries = []
     for linker_input in linking_context.linker_inputs.to_list():
@@ -571,4 +617,5 @@ compilation_support = struct(
     get_static_library_for_linking = _get_static_library_for_linking,
     register_fully_link_action = _register_fully_link_action,
     register_configuration_specific_link_actions = _register_configuration_specific_link_actions,
+    subtract_linking_contexts = _subtract_linking_contexts,
 )
