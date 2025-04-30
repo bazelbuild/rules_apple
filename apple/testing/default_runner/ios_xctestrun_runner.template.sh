@@ -134,7 +134,7 @@ fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
-default_test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+default_test_env="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
 env_inherit=%(test_env_inherit)s
 for env_var in "${env_inherit[@]:-}"; do
