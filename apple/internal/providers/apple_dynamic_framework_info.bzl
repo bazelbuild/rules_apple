@@ -21,9 +21,9 @@ visibility([
 AppleDynamicFrameworkInfo = provider(
     doc = "Contains information about an Apple dynamic framework for linking.",
     fields = {
-        "cc_info": """\
-A `CcInfo` which contains information about the direct and transitive dependencies linked into the
-framework's binary.
+        "framework_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the framework's binary.
 """,
     },
 )

@@ -145,13 +145,6 @@ def _link_multi_arch_binary(
         variables_extension = {}):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
 
-    This method comprises a bulk of the logic of the Starlark `apple_binary`
-    rule in the rules_apple domain and exists to aid in the migration of its
-    linking logic to Starlark in rules_apple.
-
-    This API is **highly experimental** and subject to change at any time. Do
-    not depend on the stability of this function at this time.
-
     Args:
         ctx: The Starlark rule context.
         avoid_deps: A list of `Target`s representing dependencies of the binary but
@@ -181,15 +174,13 @@ def _link_multi_arch_binary(
 
     Returns:
         A `struct` which contains the following fields:
-        *   `cc_info`: The CcInfo provider containing information about the targets that were
-            linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
         *   `output_groups`: A `dict` with the single key `_validation` and as valuea depset
             containing the validation artifacts from the compilation contexts of the CcInfo
             providers of the targets that were linked.
-        *   `debug_outputs_provider`: An AppleDebugOutputs provider
+        *   `debug_outputs_provider`: A deprecated AppleDebugOutputs provider
     """
 
     split_deps = ctx.split_attr.deps
@@ -201,27 +192,21 @@ def _link_multi_arch_binary(
             cc_toolchains.keys(),
         ))
 
-    avoid_cc_infos = [
-        dep[AppleDynamicFrameworkInfo].cc_info
+    avoid_cc_linking_contexts = [
+        dep[AppleDynamicFrameworkInfo].framework_linking_context
         for dep in avoid_deps
         if AppleDynamicFrameworkInfo in dep
     ]
-    avoid_cc_infos.extend([
-        dep[AppleExecutableBinaryInfo].cc_info
+    avoid_cc_linking_contexts.extend([
+        dep[AppleExecutableBinaryInfo].binary_linking_context
         for dep in avoid_deps
         if AppleExecutableBinaryInfo in dep
     ])
-    avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
-    avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
+    avoid_cc_linking_contexts.extend(
+        [dep[CcInfo].linking_context for dep in avoid_deps if CcInfo in dep],
+    )
 
     linker_outputs = []
-
-    # TODO(b/220185798): Refocus this on cc_linking_context providers, and merge those instead of
-    # CcInfo providers. Refactor the AppleExecutableBinaryInfo and AppleDynamicFrameworkInfo
-    # providers to provide cc_linking_contexts instead of cc_infos as well.
-    cc_infos = []
-    cc_infos.extend(avoid_cc_infos)
-
     legacy_debug_outputs = {}
 
     # $(location...) is only used in one test, and tokenize only affects linkopts in one target
@@ -246,16 +231,16 @@ def _link_multi_arch_binary(
             attr_linkopts = attr_linkopts,
         )
 
-        cc_infos.append(CcInfo(
-            linking_context = cc_common.merge_linking_contexts(
-                linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
-            ),
-        ))
+        split_linking_contexts = common_variables.objc_linking_context.cc_linking_contexts
+        split_linking_contexts.extend(avoid_cc_linking_contexts)
 
-        cc_linking_context = compilation_support.subtract_linking_contexts(
+        merged_cc_linking_context = cc_common.merge_linking_contexts(
+            linking_contexts = split_linking_contexts,
+        )
+
+        subtracted_cc_linking_context = compilation_support.subtract_linking_contexts(
             owner = ctx.label,
-            linking_contexts = common_variables.objc_linking_context.cc_linking_contexts +
-                               avoid_cc_linking_contexts,
+            linking_contexts = split_linking_contexts,
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
 
@@ -332,7 +317,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             apple_platform_info = platform_info,
             attr_linkopts = attr_linkopts,
             common_variables = common_variables,
-            cc_linking_context = cc_linking_context,
+            cc_linking_context = subtracted_cc_linking_context,
             extra_link_args = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
             name = main_binary_basename,
@@ -346,6 +331,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             "architecture": platform_info.target_arch,
             "environment": platform_info.target_environment,
             "dsym_output": dsym_output,
+            "linking_context": merged_cc_linking_context,
             "linkmap": linkmap,
         }
 
@@ -360,7 +346,6 @@ Please report this as a bug to the Apple BUILD Rules team.
     output_groups = {"_validation": depset(transitive = header_tokens)}
 
     return struct(
-        cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
         outputs = linker_outputs,
         debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
@@ -617,7 +602,6 @@ def _register_binary_linking_action(
 
     return struct(
         binary = fat_binary,
-        cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,

@@ -114,6 +114,7 @@ Resolved Xcode is version {xcode_version}.
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     providers = [
         DefaultInfo(
@@ -137,8 +138,10 @@ Resolved Xcode is version {xcode_version}.
     if binary_type == "executable":
         providers.append(
             new_appleexecutablebinaryinfo(
-                cc_info = link_result.cc_info,
                 binary = binary_artifact,
+                binary_linking_context = cc_common.merge_linking_contexts(
+                    linking_contexts = linking_contexts,
+                ),
             ),
         )
 

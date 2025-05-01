@@ -207,6 +207,7 @@ Resolved Xcode is version {xcode_version}.
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -375,7 +376,9 @@ Resolved Xcode is version {xcode_version}.
         new_visionosapplicationbundleinfo(),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
     ] + processor_result.providers
 
