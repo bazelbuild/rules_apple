@@ -15,10 +15,6 @@
 """Implementation of framework import rules."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -119,18 +115,6 @@ def _grouped_framework_files(framework_imports):
         ["framework"],
         attr = "framework_imports",
     )
-
-    # Only check for unique basenames of these keys, since it's possible to
-    # have targets that glob files from different locations but with the same
-    # `.framework` name, causing them to be merged into the same framework
-    # during bundling.
-    unique_frameworks = collections.uniq(
-        [paths.basename(path) for path in framework_groups.keys()],
-    )
-    if len(unique_frameworks) > 1:
-        fail("A framework import target may only include files for a " +
-             "single '.framework' bundle.", attr = "framework_imports")
-
     return framework_groups
 
 def _is_debugging(compilation_mode):
@@ -248,9 +232,9 @@ def _apple_dynamic_framework_import_impl(ctx):
     framework_groups = _grouped_framework_files(framework_imports)
     framework_dirs_set = depset(framework_groups.keys())
     providers.append(new_appledynamicframeworkinfo(
-        cc_info = cc_info,
         framework_dirs = framework_dirs_set,
         framework_files = depset(framework_imports),
+        framework_linking_context = cc_info.linking_context,
     ))
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:

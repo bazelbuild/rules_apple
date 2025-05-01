@@ -236,6 +236,7 @@ def _watchos_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -335,7 +336,7 @@ def _watchos_framework_impl(ctx):
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
             cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             rule_label = label,
         ),
@@ -516,6 +517,7 @@ def _watchos_dynamic_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -614,7 +616,7 @@ def _watchos_dynamic_framework_impl(ctx):
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
             cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             rule_label = label,
         ),

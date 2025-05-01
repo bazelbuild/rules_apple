@@ -34,7 +34,7 @@ def _framework_provider_partial_impl(
         bundle_name,
         bundle_only,
         cc_features,
-        cc_info,
+        cc_linking_contexts,
         cc_toolchain,
         rule_label):
     """Implementation for the framework provider partial."""
@@ -68,22 +68,19 @@ def _framework_provider_partial_impl(
         owner = rule_label,
         libraries = depset([] if bundle_only else [library_to_link]),
     )
-    wrapper_cc_info = cc_common.merge_cc_infos(
-        cc_infos = [
-            CcInfo(
-                linking_context = cc_common.create_linking_context(
-                    linker_inputs = depset(direct = [linker_input]),
-                ),
+    wrapper_cc_linking_context = cc_common.merge_linking_contexts(
+        linking_contexts = [
+            cc_common.create_linking_context(
+                linker_inputs = depset(direct = [linker_input]),
             ),
-            cc_info,
-        ],
+        ] + cc_linking_contexts,
     )
 
     framework_provider = new_appledynamicframeworkinfo(
         binary = binary_artifact,
-        cc_info = wrapper_cc_info,
         framework_dirs = depset([absolute_framework_dir]),
         framework_files = depset([framework_file]),
+        framework_linking_context = wrapper_cc_linking_context,
     )
 
     return struct(
@@ -98,7 +95,7 @@ def framework_provider_partial(
         bundle_name,
         bundle_only,
         cc_features,
-        cc_info,
+        cc_linking_contexts,
         cc_toolchain,
         rule_label):
     """Constructor for the framework provider partial.
@@ -115,8 +112,7 @@ def framework_provider_partial(
       bundle_name: The name of the output bundle.
       bundle_only: Only include the bundle but do not link the framework
       cc_features: List of enabled C++ features.
-      cc_info: The CcInfo provider containing information about the
-          targets linked into the dynamic framework.
+      cc_linking_contexts: A list of CcLinkingContext providers containing information about the
       cc_toolchain: The C++ toolchain to use.
       rule_label: The label of the target being analyzed.
 
@@ -133,7 +129,7 @@ def framework_provider_partial(
         bundle_name = bundle_name,
         bundle_only = bundle_only,
         cc_features = cc_features,
-        cc_info = cc_info,
+        cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
         rule_label = rule_label,
     )

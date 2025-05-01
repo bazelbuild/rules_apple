@@ -240,11 +240,11 @@ dynamic framework.
 The full set of artifacts that should be included as inputs to link against the
 dynamic framework.
 """,
-        "binary": "The dylib binary artifact of the dynamic framework.",
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "framework_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the framework's binary.
 """,
+        "binary": "The dylib binary artifact of the dynamic framework.",
     },
 )
 
@@ -269,8 +269,9 @@ def new_appledynamicframeworkinfo(**kwargs):
 
 _AppleExecutableBinaryInfo = provider(
     doc = """
-Contains the executable binary output that was built using
-`link_multi_arch_binary` with the `executable` binary type.
+Contains an executable binary output from `link_multi_arch_binary` for the sole purposes of
+indicating that the target supports "bundle loader" functionality for macos_bundle and test bundles
+across all Apple platform unit tests.
 """,
     fields = {
         # TODO: Remove when we drop 7.x
@@ -280,9 +281,9 @@ apple_common.Objc provider used for legacy linking behavior.
         "binary": """\
 The executable binary artifact output by `link_multi_arch_binary`.
 """,
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "binary_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the binary.
 """,
     },
 )

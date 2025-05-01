@@ -241,6 +241,7 @@ Resolved Xcode is version {xcode_version}.
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -470,7 +471,9 @@ Resolved Xcode is version {xcode_version}.
         new_visionosapplicationbundleinfo(),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -578,6 +581,7 @@ def _visionos_dynamic_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive = outputs.archive(
         actions = actions,
@@ -674,7 +678,7 @@ def _visionos_dynamic_framework_impl(ctx):
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
             cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             rule_label = label,
         ),
@@ -866,6 +870,7 @@ def _visionos_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive = outputs.archive(
         actions = actions,
@@ -967,7 +972,7 @@ def _visionos_framework_impl(ctx):
             bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
             cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             rule_label = label,
         ),
@@ -1135,6 +1140,7 @@ def _visionos_extension_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive = outputs.archive(
         actions = actions,
@@ -1316,7 +1322,9 @@ def _visionos_extension_impl(ctx):
         ),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
         new_visionosextensionbundleinfo(),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
