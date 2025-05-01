@@ -307,6 +307,13 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     # Environment variables for the Bazel test action itself.
     execution_environment = dict(getattr(runner_info, "execution_environment", {}))
 
+    # Include the test rule env in the execution environment, to match
+    # `--test_env` behavior
+    execution_environment = dicts.add(
+        execution_environment,
+        rule_test_env,
+    )
+
     # Bundle name of the app under test (test host) if given
     test_host_bundle_name = ""
     test_host_dossier = None
