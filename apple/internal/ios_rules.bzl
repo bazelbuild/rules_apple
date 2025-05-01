@@ -258,6 +258,7 @@ def _ios_application_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     if ctx.attr.watch_application:
         watch_app = ctx.attr.watch_application
@@ -542,7 +543,9 @@ def _ios_application_impl(ctx):
         ),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -639,6 +642,7 @@ def _ios_app_clip_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -862,7 +866,9 @@ def _ios_app_clip_impl(ctx):
         ),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
@@ -956,6 +962,7 @@ def _ios_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1054,7 +1061,7 @@ def _ios_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_only = ctx.attr.bundle_only,
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             features = features,
             disabled_features = ctx.disabled_features,
@@ -1550,6 +1557,7 @@ def _ios_dynamic_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
@@ -1645,7 +1653,7 @@ def _ios_dynamic_framework_impl(ctx):
             binary_artifact = binary_artifact,
             bundle_only = False,
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-            cc_info = link_result.cc_info,
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
             features = features,
             disabled_features = ctx.disabled_features,

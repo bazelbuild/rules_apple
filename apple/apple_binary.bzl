@@ -18,6 +18,7 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load(
     "//apple/internal:apple_toolchains.bzl",
     "AppleXPlatToolsToolchainInfo",
@@ -112,6 +113,7 @@ Resolved Xcode is version {xcode_version}.
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     providers = [
         DefaultInfo(
@@ -136,7 +138,9 @@ Resolved Xcode is version {xcode_version}.
         providers.append(
             new_appleexecutablebinaryinfo(
                 binary = binary_artifact,
-                cc_info = link_result.cc_info,
+                binary_linking_context = cc_common.merge_linking_contexts(
+                    linking_contexts = linking_contexts,
+                ),
             ),
         )
 
