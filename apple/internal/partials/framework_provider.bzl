@@ -28,7 +28,7 @@ def _framework_provider_partial_impl(
         binary_artifact,
         bundle_only,
         cc_configured_features_init,
-        cc_info,
+        cc_linking_contexts,
         cc_toolchain,
         disabled_features,
         features,
@@ -51,19 +51,16 @@ def _framework_provider_partial_impl(
         owner = rule_label,
         libraries = depset([] if bundle_only else [library_to_link]),
     )
-    wrapper_cc_info = cc_common.merge_cc_infos(
-        cc_infos = [
-            CcInfo(
-                linking_context = cc_common.create_linking_context(
-                    linker_inputs = depset(direct = [linker_input]),
-                ),
+    wrapper_cc_linking_context = cc_common.merge_linking_contexts(
+        linking_contexts = [
+            cc_common.create_linking_context(
+                linker_inputs = depset(direct = [linker_input]),
             ),
-            cc_info,
-        ],
+        ] + cc_linking_contexts,
     )
 
     framework_provider = new_appledynamicframeworkinfo(
-        cc_info = wrapper_cc_info,
+        framework_linking_context = wrapper_cc_linking_context,
     )
 
     return struct(
@@ -76,7 +73,7 @@ def framework_provider_partial(
         binary_artifact,
         bundle_only,
         cc_configured_features_init,
-        cc_info,
+        cc_linking_contexts,
         cc_toolchain,
         disabled_features,
         features,
@@ -94,7 +91,7 @@ def framework_provider_partial(
       bundle_only: Only include the bundle but do not link the framework
       cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
           without the need for a `ctx`.
-      cc_info: The CcInfo provider containing information about the
+      cc_linking_contexts: A list of CcLinkingContext providers containing information about the
           targets linked into the dynamic framework.
       cc_toolchain: The C++ toolchain to use.
       disabled_features: List of features to be disabled for C++ actions.
@@ -112,7 +109,7 @@ def framework_provider_partial(
         binary_artifact = binary_artifact,
         bundle_only = bundle_only,
         cc_configured_features_init = cc_configured_features_init,
-        cc_info = cc_info,
+        cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
         disabled_features = disabled_features,
         features = features,

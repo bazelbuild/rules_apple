@@ -232,9 +232,9 @@ dependencies of the given target if any were generated.
 AppleDynamicFrameworkInfo, new_appledynamicframeworkinfo = provider(
     doc = "Contains information about an Apple dynamic framework.",
     fields = {
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "framework_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the framework's binary.
 """,
     },
     init = _make_banned_init(provider_name = "AppleDynamicFrameworkInfo"),
@@ -242,16 +242,17 @@ into the binary.
 
 AppleExecutableBinaryInfo, new_appleexecutablebinaryinfo = provider(
     doc = """
-Contains the executable binary output that was built using
-`link_multi_arch_binary` with the `executable` binary type.
+Contains an executable binary output from `link_multi_arch_binary` for the sole purposes of
+indicating that the target supports "bundle loader" functionality for macos_bundle and test bundles
+across all Apple platform unit tests.
 """,
     fields = {
         "binary": """\
 The executable binary artifact output by `link_multi_arch_binary`.
 """,
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "binary_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the binary.
 """,
     },
     init = _make_banned_init(provider_name = "AppleExecutableBinaryInfo"),
