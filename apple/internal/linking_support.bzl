@@ -217,6 +217,8 @@ def _link_multi_arch_binary(
     ]
     attr_linkopts = [token for opt in attr_linkopts for token in ctx.tokenize(opt)]
 
+    multi_arch_build = len(cc_toolchains) > 1
+
     for split_transition_key, child_toolchain in cc_toolchains.items():
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
         deps = split_deps.get(split_transition_key, [])
@@ -256,13 +258,20 @@ def _link_multi_arch_binary(
                 else:
                     dsym_bundle_name = ctx.label.name
 
-                # Avoiding "intermediates" as this will be the canonical dSYM in a single arch build
-                dsym_output = ctx.actions.declare_directory(
-                    "{split_transition_key}/{dsym_bundle_name}.dSYM".format(
-                        split_transition_key = split_transition_key,
-                        dsym_bundle_name = dsym_bundle_name,
-                    ),
-                )
+                if multi_arch_build:
+                    dsym_output = intermediates.directory(
+                        actions = ctx.actions,
+                        target_name = ctx.label.name,
+                        output_discriminator = cc_toolchain.target_gnu_system_name,
+                        dir_name = dsym_bundle_name,
+                    )
+                else:
+                    # Avoiding "intermediates" as this will be the only dSYM in a single arch build.
+                    dsym_output = ctx.actions.declare_directory(
+                        "{dsym_bundle_name}.dSYM".format(
+                            dsym_bundle_name = dsym_bundle_name,
+                        ),
+                    )
             elif dsym_variants != "flat":
                 fail("""
 Internal Error: Found unsupported dsym_variant_flag: {dsym_variants}.
@@ -280,7 +289,7 @@ Please report this as a bug to the Apple BUILD Rules team.
                 dsym_output = intermediates.file(
                     actions = ctx.actions,
                     target_name = ctx.label.name,
-                    output_discriminator = split_transition_key,
+                    output_discriminator = cc_toolchain.target_gnu_system_name,
                     file_name = "{}.dwarf".format(main_binary_unstripped_basename),
                 )
 
@@ -299,7 +308,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             linkmap = intermediates.file(
                 actions = ctx.actions,
                 target_name = ctx.label.name,
-                output_discriminator = split_transition_key,
+                output_discriminator = cc_toolchain.target_gnu_system_name,
                 file_name = ctx.label.name + ".linkmap",
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
