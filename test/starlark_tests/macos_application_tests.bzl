@@ -324,7 +324,7 @@ def macos_application_test_suite(name):
         name = "{}_runfiles_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/darwin_arm64/app.app.dSYM",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app.app.dSYM",
         ],
         tags = [name],
     )
