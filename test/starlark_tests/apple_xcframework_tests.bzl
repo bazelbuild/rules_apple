@@ -349,8 +349,8 @@ def apple_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ios_arm64_device/ios_dynamic_xcframework.dSYM",
-            "ios_x86_64_simulator/ios_dynamic_xcframework.dSYM",
+            "ios_dynamic_xcframework_ios_device.framework.dSYM",
+            "ios_dynamic_xcframework_ios_simulator.framework.dSYM",
         ],
         tags = [name],
     )
