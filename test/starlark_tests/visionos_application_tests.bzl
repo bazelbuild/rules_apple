@@ -186,7 +186,7 @@ def visionos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         output_group_name = "dsyms",
         expected_outputs = [
-            "visionos_sim_arm64/app.app.dSYM",
+            "app.app.dSYM",
         ],
         tags = [
             name,
@@ -210,10 +210,10 @@ def visionos_application_test_suite(name):
         name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
         expected_direct_dsyms = [
-            "visionos_sim_arm64/app.app.dSYM",
+            "app.app.dSYM",
         ],
         expected_transitive_dsyms = [
-            "visionos_sim_arm64/app.app.dSYM",
+            "app.app.dSYM",
         ],
         tags = [
             name,

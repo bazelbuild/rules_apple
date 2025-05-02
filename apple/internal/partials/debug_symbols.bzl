@@ -396,9 +396,9 @@ def _bundle_dsym_files(
     dsym_variants = platform_prerequisites.build_settings.dsym_variant_flag
 
     if dsym_variants == "bundle":
-        if len(dsym_inputs) == 1:
-            # If we only have one dSYM binary, we can just use it as-is, no need to merge + lipo its
-            # contents.
+        if len(dsym_inputs) == 1 and not output_discriminator:
+            # If we only have one dSYM bundle and we don't need to rename the dSYM bundle, we can
+            # just use it as-is, no need to merge + lipo its contents.
             return [], dsym_inputs.values()[0]
 
         # 1. Lipo the binaries (Resources/DWARF/{main_binary_basename}).

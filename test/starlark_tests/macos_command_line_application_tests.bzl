@@ -226,7 +226,7 @@ def macos_command_line_application_test_suite(name):
         name = "{}_runfiles_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/darwin_arm64/cmd_app_basic.dSYM",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM",
         ],
         tags = [name],
     )
