@@ -635,7 +635,7 @@ then
   exit 1
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi

@@ -288,7 +288,7 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi

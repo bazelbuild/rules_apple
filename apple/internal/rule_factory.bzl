@@ -40,6 +40,12 @@ load(
 # Returns the common set of rule attributes to support Apple test rules.
 # TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
 _COMMON_TEST_ATTRS = {
+    "collect_code_coverage": attr.bool(
+        doc = """
+Whether to collect code coverage for this test if `--collect_code_coverage=yes`.
+""",
+        default = True,
+    ),
     "data": attr.label_list(
         allow_files = True,
         default = [],
