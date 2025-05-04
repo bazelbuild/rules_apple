@@ -174,9 +174,7 @@ macos_internal_ui_test_bundle = _macos_internal_ui_test_bundle
 
 macos_ui_test = rule_factory.create_apple_test_rule(
     doc = """Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: macOS UI tests are not currently supported in the default test runner.""",
     implementation = _macos_ui_test_impl,
@@ -255,9 +253,7 @@ macos_internal_unit_test_bundle = _macos_internal_unit_test_bundle
 
 macos_unit_test = rule_factory.create_apple_test_rule(
     doc = """Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 `macos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `macos_application` target, the tests will

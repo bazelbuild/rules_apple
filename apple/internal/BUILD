@@ -817,6 +817,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "xctrunner",
+    srcs = ["xctrunner.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal/providers:apple_debug_info",
+    ],
+)
+
+bzl_library(
     name = "docc",
     srcs = ["docc.bzl"],
     visibility = [
@@ -855,7 +867,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/internal/aspects:for_bazel_tests",
         "//apple/internal/partials:for_bazel_tests",

@@ -377,6 +377,33 @@ function test_ios_ui_test_with_filter() {
   expect_log "Executed 1 test, with 0 failures"
 }
 
+function test_ios_ui_test_with_filter_no_tests_ran_fail() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  ! do_ios_test --test_filter=PassingUITest/testInvalid //ios:PassingUITest|| fail "should fail"
+
+  expect_log "Test Suite 'PassingUITest.xctest' passed"
+  expect_log "Test Suite 'Selected tests' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+  expect_log "error: no tests were executed, is the test bundle empty?"
+}
+
+function test_ios_ui_test_with_filter_no_tests_ran_pass() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test \
+    --test_env=ERROR_ON_NO_TESTS_RAN=0 \
+    --test_filter=PassingUITest/testInvalid \
+    //ios:PassingUITest \
+    || fail "should pass"
+
+  expect_log "Test Suite 'PassingUITest.xctest' passed"
+  expect_log "Test Suite 'Selected tests' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+}
+
 function test_ios_ui_test_underscore_with_filter() {
   create_sim_runners
   create_ios_app

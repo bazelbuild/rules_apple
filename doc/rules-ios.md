@@ -9,10 +9,10 @@
 <pre>
 ios_app_clip(<a href="#ios_app_clip-name">name</a>, <a href="#ios_app_clip-deps">deps</a>, <a href="#ios_app_clip-resources">resources</a>, <a href="#ios_app_clip-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_app_clip-app_icons">app_icons</a>, <a href="#ios_app_clip-bundle_id">bundle_id</a>,
              <a href="#ios_app_clip-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_app_clip-bundle_name">bundle_name</a>, <a href="#ios_app_clip-codesign_inputs">codesign_inputs</a>, <a href="#ios_app_clip-codesignopts">codesignopts</a>, <a href="#ios_app_clip-entitlements">entitlements</a>,
-             <a href="#ios_app_clip-entitlements_validation">entitlements_validation</a>, <a href="#ios_app_clip-executable_name">executable_name</a>, <a href="#ios_app_clip-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_app_clip-families">families</a>, <a href="#ios_app_clip-frameworks">frameworks</a>,
-             <a href="#ios_app_clip-infoplists">infoplists</a>, <a href="#ios_app_clip-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_app_clip-launch_storyboard">launch_storyboard</a>, <a href="#ios_app_clip-linkopts">linkopts</a>, <a href="#ios_app_clip-locales_to_include">locales_to_include</a>,
-             <a href="#ios_app_clip-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_app_clip-minimum_os_version">minimum_os_version</a>, <a href="#ios_app_clip-platform_type">platform_type</a>, <a href="#ios_app_clip-provisioning_profile">provisioning_profile</a>,
-             <a href="#ios_app_clip-shared_capabilities">shared_capabilities</a>, <a href="#ios_app_clip-stamp">stamp</a>, <a href="#ios_app_clip-strings">strings</a>, <a href="#ios_app_clip-version">version</a>)
+             <a href="#ios_app_clip-entitlements_validation">entitlements_validation</a>, <a href="#ios_app_clip-executable_name">executable_name</a>, <a href="#ios_app_clip-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_app_clip-extensions">extensions</a>, <a href="#ios_app_clip-families">families</a>,
+             <a href="#ios_app_clip-frameworks">frameworks</a>, <a href="#ios_app_clip-infoplists">infoplists</a>, <a href="#ios_app_clip-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_app_clip-launch_storyboard">launch_storyboard</a>, <a href="#ios_app_clip-linkopts">linkopts</a>,
+             <a href="#ios_app_clip-locales_to_include">locales_to_include</a>, <a href="#ios_app_clip-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_app_clip-minimum_os_version">minimum_os_version</a>, <a href="#ios_app_clip-platform_type">platform_type</a>,
+             <a href="#ios_app_clip-provisioning_profile">provisioning_profile</a>, <a href="#ios_app_clip-shared_capabilities">shared_capabilities</a>, <a href="#ios_app_clip-stamp">stamp</a>, <a href="#ios_app_clip-strings">strings</a>, <a href="#ios_app_clip-version">version</a>)
 </pre>
 
 Builds and bundles an iOS App Clip.
@@ -36,6 +36,7 @@ Builds and bundles an iOS App Clip.
 | <a id="ios_app_clip-entitlements_validation"></a>entitlements_validation |  An `entitlements_validation_mode` to control the validation of the requested entitlements against the provisioning profile to ensure they are supported.   | String | optional |  `"loose"`  |
 | <a id="ios_app_clip-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional |  `""`  |
 | <a id="ios_app_clip-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as `__private_extern__` (aka `visibility=hidden`) and will not be global in the output file.<br><br>See the man page documentation for `ld(1)` on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_app_clip-extensions"></a>extensions |  A list of ios_extension live activity extensions to include in the final app clip bundle. It is only possible to embed live activity WidgetKit extensions. Visit Apple developer documentation page for more info https://developer.apple.com/documentation/appclip/offering-live-activities-with-your-app-clip.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_app_clip-families"></a>families |  A list of device families supported by this rule. At least one must be specified.   | List of strings | required |  |
 | <a id="ios_app_clip-frameworks"></a>frameworks |  A list of framework targets (see [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework)) that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_app_clip-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
@@ -528,7 +529,8 @@ Builds and bundles an iOS Sticker Pack Extension.
 ## ios_test_runner
 
 <pre>
-ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
+ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>, <a href="#ios_test_runner-pre_action">pre_action</a>,
+                <a href="#ios_test_runner-test_environment">test_environment</a>)
 </pre>
 
 Rule to identify an iOS runner that runs tests for iOS.
@@ -554,6 +556,8 @@ Outputs:
 | <a id="ios_test_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. By default, it is the latest supported iPhone type.'   | String | optional |  `""`  |
 | <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{"requires-darwin": ""}`  |
 | <a id="ios_test_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. By default, it is the latest supported version of the device type.'   | String | optional |  `""`  |
+| <a id="ios_test_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_test_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_test_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 
 
@@ -562,17 +566,15 @@ Outputs:
 ## ios_ui_test
 
 <pre>
-ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-bundle_name">bundle_name</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_ui_test-minimum_os_version">minimum_os_version</a>,
-            <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>, <a href="#ios_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>,
-            <a href="#ios_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-bundle_name">bundle_name</a>, <a href="#ios_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-env_inherit">env_inherit</a>,
+            <a href="#ios_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>,
+            <a href="#ios_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>, <a href="#ios_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 iOS UI Test rule.
 
 Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 The `provisioning_profile` attribute needs to be set to run the test on a real device.
 
@@ -592,7 +594,9 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="ios_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_ui_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="ios_ui_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="ios_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="ios_ui_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="ios_ui_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="ios_ui_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_ui_test-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
@@ -608,15 +612,13 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test
 
 <pre>
-ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-bundle_name">bundle_name</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_unit_test-minimum_os_version">minimum_os_version</a>,
-              <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>, <a href="#ios_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>,
-              <a href="#ios_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-bundle_name">bundle_name</a>, <a href="#ios_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-env_inherit">env_inherit</a>,
+              <a href="#ios_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>,
+              <a href="#ios_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>, <a href="#ios_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 `ios_unit_test` targets can work in two modes: as app or library
 tests. If the `test_host` attribute is set to an `ios_application` target, the
@@ -644,7 +646,9 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="ios_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_unit_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="ios_unit_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="ios_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="ios_unit_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="ios_unit_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="ios_unit_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_unit_test-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
@@ -661,8 +665,8 @@ of the attributes inherited by all test rules, please check the
 
 <pre>
 ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-attachment_lifetime">attachment_lifetime</a>, <a href="#ios_xctestrun_runner-command_line_args">command_line_args</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>,
-                     <a href="#ios_xctestrun_runner-destination_timeout">destination_timeout</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
-                     <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
+                     <a href="#ios_xctestrun_runner-destination_timeout">destination_timeout</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-post_action">post_action</a>, <a href="#ios_xctestrun_runner-pre_action">pre_action</a>, <a href="#ios_xctestrun_runner-random">random</a>,
+                     <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>, <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
 </pre>
 
 This rule creates a test runner for iOS tests that uses xctestrun files to run
@@ -714,6 +718,8 @@ in Xcode.
 | <a id="ios_xctestrun_runner-destination_timeout"></a>destination_timeout |  Use the specified timeout when searching for a destination device. The default is 30 seconds.   | Integer | optional |  `0`  |
 | <a id="ios_xctestrun_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air. By default, it reads from --ios_simulator_device or falls back to some device.   | String | optional |  `""`  |
 | <a id="ios_xctestrun_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5. By default, it reads --ios_simulator_version and then falls back to the latest supported version.   | String | optional |  `""`  |
+| <a id="ios_xctestrun_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_xctestrun_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional |  `False`  |
 | <a id="ios_xctestrun_runner-reuse_simulator"></a>reuse_simulator |  Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.   | Boolean | optional |  `True`  |
 | <a id="ios_xctestrun_runner-xcodebuild_args"></a>xcodebuild_args |  Arguments to pass to `xcodebuild` when running the test bundle. This means it will always use `xcodebuild test-without-building` to run the test bundle.   | List of strings | optional |  `[]`  |

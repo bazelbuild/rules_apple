@@ -1,5 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
-#
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Rule for creating a XCTRunner.app with one or more .xctest bundles. Retains same 
+platform and architectures as the given `tests` bundles.
+"""
 
-# py_test under bazel doesn't appear to auto create the __init__.py files in the
-# .runfiles/build_bazel_rules_apple directory; however py_binary does create it.
-# The __init__.py files in all the subdirectories along the way are created by
-# py_test just fine; but be have to manually create one (and depend on it) so it
-# is provided for the py_tests.
+load(
+    "//apple/internal:xctrunner.bzl",
+    _xctrunner = "xctrunner",
+)
+
+xctrunner = _xctrunner

@@ -23,6 +23,7 @@ _BUNDLE_ATTRS = {
     x: None
     for x in [
         "additional_contents",
+        "additional_linker_inputs",
         "deps",
         "base_bundle_id",
         "bundle_id",
@@ -105,11 +106,17 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     # `bundle_name` is either provided or the default is `name`.
     bundle_name = bundle_attrs.pop("bundle_name", name)
 
+    # `//...` shouldn't try to build the bundle rule directly.
+    bundle_tags = bundle_attrs.pop("tags", [])
+    if "manual" not in bundle_tags:
+        bundle_tags = bundle_tags + ["manual"]
+
     # Ideally this target should be private, but the outputs should not be private, so we're
     # explicitly using the same visibility as the test (or None if none was set).
     bundle_rule(
         name = test_bundle_name,
         bundle_name = bundle_name,
+        tags = bundle_tags,
         test_bundle_output = "{}.zip".format(bundle_name),
         testonly = True,
         **bundle_attrs

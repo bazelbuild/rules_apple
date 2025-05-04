@@ -107,30 +107,11 @@ def _app_intents_attrs(*, deps_cfg):
         ),
     }
 
-def _cc_toolchain_forwarder_attrs(*, deps_cfg):
-    """Returns dictionary with the cc_toolchain_forwarder attribute for toolchain and platform info.
-
-    Args:
-        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
-            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
-            use the same transition.
-    """
-
-    return {
-        "_cc_toolchain_forwarder": attr.label(
-            cfg = deps_cfg,
-            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-            default =
-                "//apple:default_cc_toolchain_forwarder",
-        ),
-    }
-
 def _common_linking_api_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for Bazel Apple linking APIs.
 
-    These rule attributes are required by both Bazel Apple linking APIs under apple_common module:
-      - apple_common.link_multi_arch_binary
-      - apple_common.link_multi_arch_static_library
+    These rule attributes are required by _link_multi_arch_binary and
+    _archive_multi_arch_static_library in rules_apple/apple/internal/linking_support.bzl.
 
     Args:
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
@@ -138,17 +119,22 @@ def _common_linking_api_attrs(*, deps_cfg):
             use the same transition.
     """
     return dicts.add(_common_attrs(), {
-        # TODO(b/251837356): Replace with the _cc_toolchain_forwarder attr when native code doesn't
-        # require that this attr be called `_child_configuration_dummy` in Bazel linking APIs.
+        "_cc_toolchain_forwarder": attr.label(
+            cfg = deps_cfg,
+            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
+            default = "//apple:default_cc_toolchain_forwarder",
+        ),
+        # TODO(b/251837356): Eliminate this attr when the Bazel Starlark API
+        # `apple_common.get_split_build_configs(...)`` doesn't require that this attr be called
+        # `_child_configuration_dummy` in Apple multiarch APIs.
         "_child_configuration_dummy": attr.label(
             cfg = deps_cfg,
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-            default =
-                "//apple:default_cc_toolchain_forwarder",
+            default = "//apple:default_cc_toolchain_forwarder",
         ),
     })
 
-def _static_library_linking_attrs(*, deps_cfg):
+def _static_library_archive_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for apple_common.link_multi_arch_static_library.
 
     Args:
@@ -671,7 +657,7 @@ def _settings_bundle_attrs():
     return {
         "settings_bundle": attr.label(
             aspects = [apple_resource_aspect],
-            providers = [["objc"], [AppleResourceBundleInfo], [apple_common.Objc]],
+            providers = [[AppleResourceBundleInfo], [apple_common.Objc]],
             doc = """
 A resource bundle (e.g. `apple_bundle_import`) target that contains the files that make up the
 application's settings bundle. These files will be copied into the root of the final application
@@ -727,7 +713,6 @@ rule_attrs = struct(
     app_intents_attrs = _app_intents_attrs,
     aspects = struct(test_host_aspects = _TEST_HOST_ASPECTS),
     binary_linking_attrs = _binary_linking_attrs,
-    cc_toolchain_forwarder_attrs = _cc_toolchain_forwarder_attrs,
     common_attrs = _common_attrs,
     common_bundle_attrs = _common_bundle_attrs,
     common_tool_attrs = _common_tool_attrs,
@@ -743,7 +728,7 @@ rule_attrs = struct(
     settings_bundle_attrs = _settings_bundle_attrs,
     signing_attrs = _signing_attrs,
     simulator_runner_template_attr = _simulator_runner_template_attr,
-    static_library_linking_attrs = _static_library_linking_attrs,
+    static_library_archive_attrs = _static_library_archive_attrs,
     test_bundle_attrs = _test_bundle_attrs,
     test_host_attrs = _test_host_attrs,
     defaults = struct(

@@ -1,3 +1,5 @@
+load("@rules_python//python:py_library.bzl", "py_library")
+
 licenses(["notice"])
 
 py_library(
@@ -14,7 +16,7 @@ py_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//tools:__pkg__",

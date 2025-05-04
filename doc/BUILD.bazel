@@ -19,6 +19,7 @@ _RULES_DOC_SRCS = [
     "visionos.doc",
     "watchos.doc",
     "xcarchive",
+    "xctrunner",
 ]
 
 _DOC_SRCS = _PLAIN_DOC_SRCS + _RULES_DOC_SRCS

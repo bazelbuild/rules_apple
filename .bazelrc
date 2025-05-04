@@ -13,10 +13,6 @@ build --test_env=PATH
 # platform specific).
 test --build_tests_only
 
-# TODO(https://github.com/bazelbuild/bazel/issues/7130): Remove this flag when
-# visibility and symbol import issues are resolved.
-build --nocheck_visibility
-
 # We don't need to bump some of our dependencies, just becuse our dev
 # dependencies cause us to use a newer version
 build --check_direct_dependencies=off
@@ -28,8 +24,3 @@ build --worker_sandboxing=true
 
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap
-
-build --enable_platform_specific_config
-build:macos --apple_crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --crosstool_top=@local_config_apple_cc//:toolchain
-build:macos --host_crosstool_top=@local_config_apple_cc//:toolchain

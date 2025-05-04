@@ -19,6 +19,10 @@ load(
     "dicts",
 )
 load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
@@ -111,6 +115,7 @@ def _get_template_substitutions(
         test_bundle,
         test_bundle_dossier = None,
         test_coverage_manifest = None,
+        test_env_inherit,
         test_environment,
         test_host_artifact = None,
         test_host_bundle_name = "",
@@ -125,6 +130,7 @@ def _get_template_substitutions(
             bundle, if one exists.
         test_coverage_manifest: Optional. File representing the coverage manifest that is with
             this rule.
+        test_env_inherit: List of environment variables to inherit from the external environment.
         test_environment: Dictionary representing the test environment for the current process
             running in the simulator.
         test_filter: Optional. The test filter received from the test rule implementation.
@@ -140,6 +146,7 @@ def _get_template_substitutions(
         the rule's assigned test runner template.
     """
     substitutions = {
+        "test_env_inherit": shell.array_literal(test_env_inherit),
         "test_bundle_path": test_bundle.short_path,
         "test_bundle_dossier_path": test_bundle_dossier.short_path if test_bundle_dossier else "",
         "test_coverage_manifest": test_coverage_manifest.short_path if test_coverage_manifest else "",
@@ -300,6 +307,13 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     # Environment variables for the Bazel test action itself.
     execution_environment = dict(getattr(runner_info, "execution_environment", {}))
 
+    # Include the test rule env in the execution environment, to match
+    # `--test_env` behavior
+    execution_environment = dicts.add(
+        execution_environment,
+        rule_test_env,
+    )
+
     # Bundle name of the app under test (test host) if given
     test_host_bundle_name = ""
     test_host_dossier = None
@@ -313,14 +327,16 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             if test_host_dossier:
                 direct_runfiles.append(test_host_dossier)
 
-    if ctx.file.test_coverage_manifest:
-        direct_runfiles.append(ctx.file.test_coverage_manifest)
-
     test_host_artifact = test_bundle_target[AppleTestInfo].test_host
     if test_host_artifact:
         direct_runfiles.append(test_host_artifact)
 
-    if ctx.configuration.coverage_enabled:
+    test_coverage_manifest = None
+    if ctx.configuration.coverage_enabled and ctx.attr.collect_code_coverage:
+        test_coverage_manifest = ctx.file.test_coverage_manifest
+        if test_coverage_manifest:
+            direct_runfiles.append(test_coverage_manifest)
+
         apple_coverage_support_files = ctx.attr._apple_coverage_support.files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
 
@@ -344,7 +360,8 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         substitutions = _get_template_substitutions(
             test_bundle = test_bundle,
             test_bundle_dossier = test_bundle_dossier,
-            test_coverage_manifest = ctx.file.test_coverage_manifest,
+            test_coverage_manifest = test_coverage_manifest,
+            test_env_inherit = ctx.attr.env_inherit,
             test_environment = test_environment,
             test_filter = ctx.attr.test_filter,
             test_host_artifact = test_host_artifact,
@@ -378,7 +395,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             dependency_attributes = ["deps"],
         ),
         testing.ExecutionInfo(execution_requirements),
-        testing.TestEnvironment(execution_environment),
+        testing.TestEnvironment(execution_environment, ctx.attr.env_inherit),
         DefaultInfo(
             executable = executable,
             files = depset(

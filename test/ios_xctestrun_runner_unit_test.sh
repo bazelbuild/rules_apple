@@ -50,6 +50,40 @@ ios_xctestrun_runner(
     reuse_simulator = False,
 )
 
+genrule(
+  name = "pre_action_gen",
+  executable = True,
+  outs = ["pre_action.bash"],
+  cmd = """
+echo 'echo "PRE-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+""",
+)
+
+sh_binary(
+  name = "pre_action",
+  srcs = [":pre_action_gen"],
+)
+
+genrule(
+  name = "post_action_gen",
+  executable = True,
+  outs = ["post_action.bash"],
+  cmd = """
+echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+""",
+)
+
+sh_binary(
+  name = "post_action",
+  srcs = [":post_action_gen"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_hooks",
+    device_type = "iPhone Xs",
+    pre_action = ":pre_action",
+    post_action = ":post_action",
+)
 EOF
 }
 
@@ -299,6 +333,15 @@ ios_unit_test(
     runner = ":ios_x86_64_sim_reuse_disabled_runner",
 )
 
+ios_unit_test(
+    name = "PassingUnitTestWithHooks",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner_with_hooks",
+)
+
 swift_library(
     name = "pass_unit_swift_test_lib",
     testonly = True,
@@ -338,7 +381,7 @@ ios_unit_test(
 EOF
 }
 
-function create_ios_unit_envtest() {
+function create_ios_unit_env_test() {
   if [[ ! -f ios/BUILD ]]; then
     fail "create_sim_runners must be called first."
   fi
@@ -389,6 +432,66 @@ ios_unit_test(
     name = 'EnvWithHost',
     infoplists = ["EnvUnitTest-Info.plist"],
     deps = [":env_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+EOF
+}
+
+function create_ios_unit_env_inherit_test() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/env_inherit_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+#include <assert.h>
+#include <stdlib.h>
+
+@interface EnvInheritUnitTest : XCTestCase
+
+@end
+
+@implementation EnvInheritUnitTest
+
+- (void)testEnv {
+  NSString *var_value = [[[NSProcessInfo processInfo] environment] objectForKey:@"$1"];
+  XCTAssertEqualObjects(var_value, @"$2", @"env $1 should be %@, instead is %@", @"$2", var_value);
+}
+
+@end
+EOF
+
+  cat >ios/EnvInheritUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>EnvInheritUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+objc_library(
+    name = "env_inherit_unit_test_lib",
+    srcs = ["env_inherit_unit_test.m"],
+)
+
+ios_unit_test(
+    name = 'EnvInheritUnitTest',
+    infoplists = ["EnvInheritUnitTest-Info.plist"],
+    deps = [":env_inherit_unit_test_lib"],
+    env_inherit = ["$1"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = 'EnvInheritWithHost',
+    infoplists = ["EnvInheritUnitTest-Info.plist"],
+    deps = [":env_inherit_unit_test_lib"],
+    env_inherit = ["$1"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
@@ -653,6 +756,18 @@ function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
   expect_log "Executed 4 tests, with 0 failures"
 }
 
+function test_ios_unit_test_with_hooks_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTestWithHooks || fail "should pass"
+
+  expect_log "PRE-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTestWithHooks.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
+}
+
 function test_ios_unit_swift_test_pass() {
   create_sim_runners
   create_test_host_app
@@ -694,6 +809,31 @@ function test_ios_unit_test_with_filter() {
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_with_filter_no_tests_ran_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_filter=PassingUnitTest/testInvalid //ios:PassingUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+  expect_log "error: no tests were executed, is the test bundle empty?"
+}
+
+function test_ios_unit_test_with_filter_no_tests_ran_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_env=ERROR_ON_NO_TESTS_RAN=0 \
+    --test_filter=PassingUnitTest/testInvalid \
+    //ios:PassingUnitTest \
+    || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
 }
 
 function test_ios_unit_test_with_multi_filter() {
@@ -764,7 +904,7 @@ function test_ios_unit_test_with_host_and_skip_and_only_filters() {
 
 function test_ios_unit_test_with_env() {
   create_sim_runners
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
@@ -773,10 +913,27 @@ function test_ios_unit_test_with_env() {
 function test_ios_unit_test_with_host_with_env() {
   create_sim_runners
   create_test_host_app
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_env_inherit() {
+  create_sim_runners
+  create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
+  ENV_INHERIT_KEY1=ENV_INHERIT_VALUE2 do_ios_test //ios:EnvInheritUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'EnvInheritUnitTest' passed"
+}
+
+function test_ios_unit_test_with_host_with_env_inherit() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
+  ENV_INHERIT_KEY1=ENV_INHERIT_VALUE2 do_ios_test //ios:EnvInheritWithHost || fail "should pass"
+
+  expect_log "Test Suite 'EnvInheritUnitTest' passed"
 }
 
 function test_ios_unit_test_with_make_var_empty() {
@@ -842,7 +999,7 @@ function test_ios_unit_other_arg() {
 
 function test_ios_unit_test_with_multi_equal_env() {
   create_sim_runners
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2=ENV_VALUE3
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"

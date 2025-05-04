@@ -326,7 +326,8 @@ def _should_sign_bundles(*, provisioning_profile, rule_descriptor, features):
           rule_support.codesigning_exceptions.sign_with_provisioning_profile):
         # If the rule doesn't have a provisioning profile, do not sign the binary or its
         # frameworks.
-        if not provisioning_profile:
+        if (not provisioning_profile and
+            "apple.codesign_frameworks_without_provisioning_profile" not in features):
             should_sign_bundles = False
     elif codesigning_exceptions == rule_support.codesigning_exceptions.skip_signing:
         should_sign_bundles = False
@@ -825,5 +826,6 @@ codesigning_support = struct(
     embedded_codesigning_dossier = _embedded_codesigning_dossier,
     generate_codesigning_dossier_action = _generate_codesigning_dossier_action,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
+    should_sign_bundles = _should_sign_bundles,
     sign_binary_action = _sign_binary_action,
 )

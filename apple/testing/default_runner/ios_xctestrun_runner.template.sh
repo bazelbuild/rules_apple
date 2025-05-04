@@ -58,7 +58,7 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
-test_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
+test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 if [[ -z "${NO_CLEAN:-}" ]]; then
   trap 'rm -rf "${test_tmp_dir}"' EXIT
 else
@@ -134,11 +134,23 @@ fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
+default_test_env="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
+env_inherit=%(test_env_inherit)s
+for env_var in "${env_inherit[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      test_env="$test_env,$env_var=${!env_var}"
+    else
+      test_env="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$test_env" ]]; then
-  test_env="$test_env,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  test_env="$test_env,$default_test_env"
 else
-  test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  test_env="$default_test_env"
 fi
 
 passthrough_env=()
@@ -212,7 +224,6 @@ if [[ -n "$test_host_path" ]]; then
     mkdir -p "$runner_app_frameworks_destination"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
-    cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
     cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
@@ -226,6 +237,14 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$testing_framework_path" ]]; then
       cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
+
+    # On Xcode 16.3 and later, XCUIAutomation is not private anymore
+    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
+    if [[ ! -d "$xcuiautomation_path" ]]; then
+        xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
+    fi
+    cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
@@ -427,6 +446,10 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   should_use_xcodebuild=true
 fi
 
+pre_action_binary=%(pre_action_binary)s
+SIMULATOR_UDID="$simulator_id" \
+  "$pre_action_binary"
+
 if [[ "$should_use_xcodebuild" == true ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
     echo "error: running x86_64 tests on arm64 macs using 'xcodebuild' requires a test host" >&2
@@ -524,9 +547,33 @@ else
     || test_exit_code=$?
 fi
 
+post_action_binary=%(post_action_binary)s
+TEST_EXIT_CODE=$test_exit_code \
+  TEST_LOG_FILE="$testlog" \
+  SIMULATOR_UDID="$simulator_id" \
+  "$post_action_binary"
+
+if [[
+  "$test_exit_code" -eq 0 &&
+  "$create_xcresult_bundle" == true &&
+  "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1"
+]]; then
+  # Reduce download size by removing the xcresult bundle if the test run was successful
+  rm -r "$result_bundle_path"
+fi
+
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
+fi
+
+profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+if [[ "$should_use_xcodebuild" == false ]]; then
+  profdata="$test_tmp_dir/coverage.profdata"
+fi
+
+if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
+  cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
 if [[ "$test_exit_code" -ne 0 ]]; then
@@ -534,32 +581,45 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
-parallel_testing_enabled=false
-if grep -q "-parallel-testing-enabled YES" "$testlog"; then
-  parallel_testing_enabled=true
-fi
-
-# Fail when bundle executes nothing
-no_tests_ran=false
-if [[ $parallel_testing_enabled == true ]]; then
-  # When executing tests in parallel, test start markers are absent when no
-  # tests are run.
-  test_execution_count=$(grep -c -e "Test suite '.*' started*" "$testlog")
-  if [[ "$test_execution_count" == "0" ]]; then
-    no_tests_ran=true
+if [[ "${ERROR_ON_NO_TESTS_RAN:-1}" == "1" ]]; then
+  parallel_testing_enabled=false
+  if grep -q "-parallel-testing-enabled YES" "$testlog"; then
+    parallel_testing_enabled=true
   fi
-else
-  # Assume the final 'Executed N tests' or 'Executed 1 test' is the
-  # total execution count for the test bundle.
-  test_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} tests*," "$testlog" | tail -n1)
-  if echo "$test_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
-    no_tests_ran=true
-  fi
-fi
 
-if [[ $no_tests_ran == true ]]; then
-  echo "error: no tests were executed, is the test bundle empty?" >&2
-  exit 1
+  # Fail when bundle executes nothing
+  no_tests_ran=false
+  if [[ $parallel_testing_enabled == true ]]; then
+    echo "Parallel testing is enabled" >&2
+    # When executing tests in parallel, test start markers are absent when no
+    # tests are run.
+    test_execution_count=$(grep -c -e "Test suite '.*' started.*" "$testlog")
+    if [[ "$test_execution_count" == "0" ]]; then
+      no_tests_ran=true
+    fi
+  else
+    echo "Testing is serialized" >&2
+    # Assume the final 'Executed N tests' or 'Executed 1 test' is the
+    # total execution count for the test bundle.
+    xctest_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} test.*," "$testlog" | tail -n1)
+    swift_testing_target_execution_count=$(grep -e "Test run with [[:digit:]]\{1,\} test.*" "$testlog" | tail -n1 || true)
+    if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+      [ -z "$swift_testing_target_execution_count" ] ; then
+      echo "No tests ran -> no count lines found" >&2
+      no_tests_ran=true
+    fi
+
+    if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+      echo "$swift_testing_target_execution_count" | grep -q -e "Test run with 0 tests" ; then
+      echo "No tests ran -> count line was 0" >&2
+      no_tests_ran=true
+    fi
+  fi
+
+  if [[ $no_tests_ran == true ]]; then
+    echo "error: no tests were executed, is the test bundle empty?" >&2
+    exit 1
+  fi
 fi
 
 # When tests crash after they have reportedly completed, XCTest marks them as
@@ -575,14 +635,12 @@ then
   exit 1
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi
 
-profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
 if [[ "$should_use_xcodebuild" == false ]]; then
-  profdata="$test_tmp_dir/coverage.profdata"
   xcrun llvm-profdata merge "$profraw" --output "$profdata"
 fi
 

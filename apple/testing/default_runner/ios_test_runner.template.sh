@@ -48,7 +48,7 @@ done
 # Enable verbose output in test runner.
 runner_flags=("-v")
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_runner_work_dir.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_runner_work_dir.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' ERR EXIT
 runner_flags+=("--work_dir=${TMP_DIR}")
 
@@ -99,11 +99,23 @@ if [[ -n "${TEST_TYPE}" ]]; then
   runner_flags+=("--test_type=${TEST_TYPE}")
 fi
 
+DEFAULT_ENV="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 TEST_ENV="%(test_env)s"
+ENV_INHERIT=%(test_env_inherit)s
+for env_var in "${ENV_INHERIT[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      TEST_ENV="$test_env,$env_var=${!env_var}"
+    else
+      TEST_ENV="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$TEST_ENV" ]]; then
-  TEST_ENV="$TEST_ENV,TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  TEST_ENV="$TEST_ENV,$DEFAULT_ENV"
 else
-  TEST_ENV="TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+  TEST_ENV="$DEFAULT_ENV"
 fi
 
 sanitizer_dyld_env=""
@@ -257,13 +269,26 @@ else
   )
 fi
 
+pre_action_binary=%(pre_action_binary)s
+"$pre_action_binary"
+
+test_exit_code=0
 cmd=("%(testrunner_binary)s"
   "${runner_flags[@]}"
   "${target_flags[@]}"
   "${custom_xctestrunner_args[@]}")
-"${cmd[@]}" 2>&1
+"${cmd[@]}" 2>&1 || test_exit_code=$?
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+post_action_binary=%(post_action_binary)s
+TEST_EXIT_CODE=$test_exit_code \
+  "$post_action_binary"
+
+if [[ "$test_exit_code" -ne 0 ]]; then
+  echo "error: tests exited with '$test_exit_code'" >&2
+  exit "$test_exit_code"
+fi
+
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi

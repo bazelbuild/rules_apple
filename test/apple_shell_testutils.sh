@@ -180,7 +180,7 @@ function create_dump_plist() {
 genrule(
     name = "dump_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = [
 EOF
 
@@ -252,7 +252,7 @@ function create_whole_dump_plist() {
 genrule(
     name = "dump_whole_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
@@ -294,7 +294,7 @@ function create_dump_codesign() {
 genrule(
     name = "dump_codesign",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["codesign_output"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
@@ -315,7 +315,7 @@ EOF
 # Asserts that the given bundle path is properly codesigned.
 function assert_is_codesigned() {
   local bundle="$1"
-  CODESIGN_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+  CODESIGN_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
 
   codesign -vvvv "$bundle" &> "$CODESIGN_OUTPUT" || echo "Should not fail"
 
@@ -343,7 +343,7 @@ function assert_frameworks_not_resigned_given_output() {
   fi
 
   if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
-    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
+    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_fmwks_output.XXXXXX")"
 
     for fmwk in \
         $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
@@ -469,10 +469,8 @@ function do_action() {
       # Used so that if there's a single configuration transition, its output
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
-      "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
-      "--crosstool_top=@local_config_apple_cc//:toolchain"
-      "--host_crosstool_top=@local_config_apple_cc//:toolchain"
       "--enable_bzlmod"
+      "--ios_simulator_device=iPhone 16"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then

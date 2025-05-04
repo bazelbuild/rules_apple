@@ -8,9 +8,9 @@ licenses(["notice"])
 
 # Create a set of public config_settings that can be used in select()s.
 [
-    config_setting(
+    alias(
         name = arch,
-        values = {"cpu": arch},
+        actual = "@build_bazel_apple_support//configs:{}".format(arch),
     )
     for arch in [
         "darwin_x86_64",
@@ -261,6 +261,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "xctrunner",
+    srcs = ["xctrunner.bzl"],
+    deps = ["//apple/internal:xctrunner"],
+)
+
+bzl_library(
     name = "docc",
     srcs = ["docc.bzl"],
     deps = ["//apple/internal:docc"],
@@ -279,7 +285,7 @@ cc_toolchain_forwarder(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/build_settings:for_bazel_tests",
         "//apple/internal:for_bazel_tests",

@@ -240,6 +240,7 @@ def _ios_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -557,7 +558,12 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    embeddable_targets = ctx.attr.frameworks
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    embeddable_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions
+    )
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -609,6 +615,7 @@ def _ios_app_clip_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -717,7 +724,7 @@ def _ios_app_clip_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + ctx.attr.frameworks,
+            targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
         partials.resources_partial(
             actions = actions,
@@ -725,6 +732,7 @@ def _ios_app_clip_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
             executable_name = executable_name,
             launch_storyboard = ctx.file.launch_storyboard,
@@ -872,6 +880,7 @@ def _ios_framework_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
     cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     cc_features = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -903,10 +912,12 @@ def _ios_framework_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     signed_frameworks = []
-    if provisioning_profile:
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -928,6 +939,7 @@ def _ios_framework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -1142,6 +1154,7 @@ def _ios_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -1203,6 +1216,7 @@ def _ios_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1454,6 +1468,7 @@ def _ios_dynamic_framework_impl(ctx):
     )
     executable_name = ctx.attr.executable_name
     cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     cc_features = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -1499,10 +1514,12 @@ def _ios_dynamic_framework_impl(ctx):
     )
 
     signed_frameworks = []
-    if getattr(ctx.file, "provisioning_profile", None):
-        signed_frameworks = [
-            bundle_name + rule_descriptor.bundle_extension,
-        ]
+    if codesigning_support.should_sign_bundles(
+        provisioning_profile = ctx.file.provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        features = features,
+    ):
+        signed_frameworks = [bundle_name + bundle_extension]
 
     extra_linkopts = [
         "-dynamiclib",
@@ -1516,6 +1533,7 @@ def _ios_dynamic_framework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -1765,8 +1783,11 @@ def _ios_static_framework_impl(ctx):
     )
     resource_deps = ctx.attr.deps + ctx.attr.resources
 
-    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
-    binary_artifact = link_result.library
+    archive_result = linking_support.register_static_library_archive_action(
+        ctx = ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+    )
+    binary_artifact = archive_result.library
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -2092,6 +2113,7 @@ def _ios_imessage_extension_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     executable_name = ctx.attr.executable_name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -2147,6 +2169,7 @@ def _ios_imessage_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -2556,9 +2579,6 @@ ios_application = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
         ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2709,6 +2729,14 @@ the root of the final bundle. The generated file will also be registered in the 
 Info.plist under the key `UILaunchStoryboardName`.
 """,
             ),
+            "extensions": attr.label_list(
+                providers = [[AppleBundleInfo, IosExtensionBundleInfo]],
+                doc = """
+A list of ios_extension live activity extensions to include in the final app clip bundle.
+It is only possible to embed live activity WidgetKit extensions.
+Visit Apple developer documentation page for more info https://developer.apple.com/documentation/appclip/offering-live-activities-with-your-app-clip.
+""",
+            ),
         },
     ],
 )
@@ -2738,9 +2766,6 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_bundle_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -2971,9 +2996,6 @@ i.e. `--features=-swift.no_generated_header`).""",
             ],
             is_test_supporting_rule = False,
             requires_legacy_cc_toolchain = True,
-        ),
-        rule_attrs.cc_toolchain_forwarder_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
         ),
         rule_attrs.common_bundle_attrs(
             deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
