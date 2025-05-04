@@ -99,7 +99,7 @@ if [[ -n "${TEST_TYPE}" ]]; then
   runner_flags+=("--test_type=${TEST_TYPE}")
 fi
 
-DEFAULT_ENV="TEST_SRCDIR=$TEST_SRCDIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+DEFAULT_ENV="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 TEST_ENV="%(test_env)s"
 ENV_INHERIT=%(test_env_inherit)s
 for env_var in "${ENV_INHERIT[@]:-}"; do
@@ -288,7 +288,7 @@ if [[ "$test_exit_code" -ne 0 ]]; then
   exit "$test_exit_code"
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi

@@ -20,12 +20,14 @@ visibility([
 
 def _build_avoid_library_set(avoid_dep_linking_contexts):
     avoid_library_set = dict()
+
     for linking_context in avoid_dep_linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
             for library_to_link in linker_input.libraries:
                 library_artifact = apple_common.compilation_support.get_static_library_for_linking(library_to_link)
                 if library_artifact:
                     avoid_library_set[library_artifact.short_path] = True
+
     return avoid_library_set
 
 def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_contexts):
@@ -44,23 +46,34 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
     additional_inputs = []
     linkstamps = []
     avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
+    linker_inputs_seen = dict()
+
     for linking_context in linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
+            if linker_input in linker_inputs_seen:
+                continue
+
+            linker_inputs_seen[linker_input] = True
+
             for library_to_link in linker_input.libraries:
                 library_artifact = apple_common.compilation_support.get_library_for_linking(library_to_link)
+
                 if library_artifact.short_path not in avoid_library_set:
                     libraries.append(library_to_link)
+
             user_link_flags.extend(linker_input.user_link_flags)
             additional_inputs.extend(linker_input.additional_inputs)
             linkstamps.extend(linker_input.linkstamps)
-    linker_input = cc_common.create_linker_input(
-        owner = owner,
-        libraries = depset(libraries, order = "topological"),
-        user_link_flags = user_link_flags,
-        additional_inputs = depset(additional_inputs),
-        linkstamps = depset(linkstamps),
-    )
+
     return cc_common.create_linking_context(
-        linker_inputs = depset([linker_input]),
+        linker_inputs = depset([
+            cc_common.create_linker_input(
+                owner = owner,
+                libraries = depset(libraries, order = "topological"),
+                user_link_flags = user_link_flags,
+                additional_inputs = depset(additional_inputs),
+                linkstamps = depset(linkstamps),
+            ),
+        ]),
         owner = owner,
     )

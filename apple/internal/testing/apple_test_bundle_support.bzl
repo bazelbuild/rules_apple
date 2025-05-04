@@ -353,10 +353,22 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         bundle_loader = None
 
     extra_linkopts = [
+        "-Xlinker",
+        "-needed_framework",
+        "-Xlinker",
+        "XCTest",
         "-framework",
         "XCTest",
         "-bundle",
     ]
+
+    if any([_is_swift_target(dep) for dep in ctx.attr.deps]):
+        extra_linkopts.extend([
+            "-Xlinker",
+            "-needed-lXCTestSwiftSupport",
+            "-lXCTestSwiftSupport",
+        ])
+
     extra_link_inputs = []
 
     if "apple.swizzle_absolute_xcttestsourcelocation" in features:

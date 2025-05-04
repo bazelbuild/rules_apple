@@ -134,7 +134,7 @@ fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
-default_test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+default_test_env="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
 env_inherit=%(test_env_inherit)s
 for env_var in "${env_inherit[@]:-}"; do
@@ -553,6 +553,15 @@ TEST_EXIT_CODE=$test_exit_code \
   SIMULATOR_UDID="$simulator_id" \
   "$post_action_binary"
 
+if [[
+  "$test_exit_code" -eq 0 &&
+  "$create_xcresult_bundle" == true &&
+  "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1"
+]]; then
+  # Reduce download size by removing the xcresult bundle if the test run was successful
+  rm -r "$result_bundle_path"
+fi
+
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
@@ -626,7 +635,7 @@ then
   exit 1
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
   exit 0
 fi
