@@ -135,6 +135,18 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcstrings",
+    srcs = ["xcstrings.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/utils:xctoolrunner",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
