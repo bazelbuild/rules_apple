@@ -18,6 +18,7 @@ load(
     "//apple:ios.bzl",
     "ios_app_clip",
     "ios_application",
+    "ios_dylib",
     "ios_dynamic_framework",
     "ios_extension",
     "ios_framework",
@@ -3716,6 +3717,44 @@ ios_unit_test(
     test_host = ":dedupe_test_app",
     deps = [
         ":test_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for iOS dylib tests.
+
+ios_dylib(
+    name = "dylib",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_dylib(
+    name = "dylib_dead_stripped",
+    bundle_id = "com.google.example",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_dylib(
+    name = "dylib_with_base_bundle_id_derived_bundle_id",
+    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
+    bundle_id_suffix = "dylib-with-base-bundle-id-derived-bundle-id",
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
