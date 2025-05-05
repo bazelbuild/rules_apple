@@ -125,5 +125,5 @@ number (for example, `"9.0"`).
         ],
         implementation = _apple_build_test_rule_impl,
         test = True,
-        cfg = transition_support.apple_rule_transition,
+        cfg = transition_support.apple_platforms_rule_base_transition,
     )
