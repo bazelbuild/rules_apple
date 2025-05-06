@@ -43,9 +43,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
-    "//apple/internal:intermediates.bzl",
-    "intermediates",
+    "//apple/internal:features_support.bzl",
+    "features_support",
 )
+load("//apple/internal:intermediates.bzl", "intermediates")
 load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
@@ -105,6 +106,10 @@ load(
 load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "swift_usage_aspect",
+)
+load(
+    "//apple/internal/providers:xcframework_deps_info.bzl",
+    "XCFrameworkDepsInfo",
 )
 load(
     "//apple/internal/utils:files.bzl",
@@ -265,6 +270,18 @@ _PLATFORM_TYPE_TO_XCFRAMEWORK_PLATFORM_NAME = {
     "visionos": "xros",
 }
 
+def _framework_key(*, platform_type, environment):
+    """Returns a dictionary key to retrieve linker outputs by platform_type/os and environment.
+
+    This is used in intermediate dictionaries used to represent the expected final contents of
+    potentially lipoed/merged frameworks, such as frameworks_by_platform_and_environment in
+    XCFrameworkDepsInfo.
+    """
+    return "{platform_type}_{environment}".format(
+        platform_type = platform_type,
+        environment = environment,
+    )
+
 def _validate_resource_attrs(
         *,
         all_attrs,
@@ -399,7 +416,10 @@ def _group_link_outputs_by_library_identifier(
     # Iterate through the outputs of the registered linking action, match archs to platform and
     # environment combinations.
     for link_output in link_result.outputs:
-        framework_key = link_output.platform + "_" + link_output.environment
+        framework_key = _framework_key(
+            platform_type = link_output.platform,
+            environment = link_output.environment,
+        )
         if link_outputs_by_framework.get(framework_key):
             link_outputs_by_framework[framework_key].append(link_output)
         else:
@@ -428,6 +448,7 @@ def _group_link_outputs_by_library_identifier(
         architectures = []
         dsym_outputs = {}
         linkmaps = {}
+        linking_contexts = {}
         split_attr_keys = []
         framework_swift_generated_headers = {}
         framework_swift_infos = {}
@@ -459,6 +480,7 @@ def _group_link_outputs_by_library_identifier(
             if linking_type == "binary":
                 dsym_outputs[link_output.architecture] = link_output.dsym_output
                 linkmaps[link_output.architecture] = link_output.linkmap
+                linking_contexts[link_output.architecture] = link_output.linking_context
 
         # Keep the architectures sorted.
         sorted_architectures = sorted(architectures)
@@ -477,6 +499,7 @@ def _group_link_outputs_by_library_identifier(
             dsym_outputs = dsym_outputs,
             environment = environment,
             linkmaps = linkmaps,
+            linking_contexts = linking_contexts,
             platform = platform,
             split_attr_keys = split_attr_keys,
             framework_swift_generated_headers = framework_swift_generated_headers,
@@ -585,9 +608,11 @@ def _create_framework_outputs(
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_name,
+        cc_configured_features_init = None,
         cc_toolchain_forwarder,
         config_vars,
         cpp_fragment,
+        disabled_features,
         environment_plist_files,
         executable_name,
         families_required,
@@ -614,10 +639,14 @@ def _create_framework_outputs(
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_name: The name of the XCFramework bundle.
+        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
+            without the need for a `ctx`.
         cc_toolchain_forwarder: The instance of cc_toolchain_forwarder to retrieve CcToolchainInfo
             providers from through the split_attrs interface.
         config_vars: A reference to configuration variables, typically from `ctx.var`.
         cpp_fragment: A cpp fragment (ctx.fragments.cpp), if it is present. Optional.
+        disabled_features: A list of features disabled by the user. Typically from
+            `ctx.disabled_features`.
         environment_plist_files: A list of Files referencing all supported platform-specific plists
             with predefined supporting variables.
         executable_name: The name of the executable for the nested framework.
@@ -693,6 +722,7 @@ bundle_id on the target.
     framework_archive_merge_zips = []
     framework_output_files = []
     framework_output_groups = []
+    frameworks_by_platform_and_environment = {}
 
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
@@ -840,7 +870,10 @@ bundle_id on the target.
                     actions = actions,
                     bundle_extension = nested_bundle_extension,
                     bundle_name = bundle_name,
-                    debug_discriminator = link_output.platform + "_" + link_output.environment,
+                    debug_discriminator = _framework_key(
+                        platform_type = link_output.platform,
+                        environment = link_output.environment,
+                    ),
                     dsym_outputs = link_output.dsym_outputs,
                     dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                     label_name = rule_label.name,
@@ -850,6 +883,17 @@ bundle_id on the target.
                     plisttool = apple_mac_toolchain_info.plisttool,
                     rule_label = rule_label,
                     version = version,
+                ),
+                partials.framework_provider_partial(
+                    actions = actions,
+                    binary_artifact = binary_artifact,
+                    bundle_only = False,
+                    cc_configured_features_init = cc_configured_features_init,
+                    cc_linking_contexts = link_output.linking_contexts.values(),
+                    cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],
+                    disabled_features = disabled_features,
+                    features = features,
+                    rule_label = rule_label,
                 ),
                 partials.swift_dylibs_partial(
                     actions = actions,
@@ -878,6 +922,12 @@ bundle_id on the target.
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
         )
+
+        # The inputs of XCFrameworkDepsInfo for dynamic XCFrameworks are both mandatory; each
+        # dynamic framework must have a AppleDynamicFrameworkInfo provider, and an AppleResourceInfo
+        # provider to cover the required Info.plist and optional extra bundle resources.
+        direct_dynamic_framework_info = None
+        direct_resource_info = None
 
         for provider in processor_result.providers:
             # Save the framework archive.
@@ -911,15 +961,38 @@ bundle_id on the target.
                     framework_output_files.append(depset(transitive = [provider.linkmaps]))
                     framework_output_groups.append({"linkmaps": provider.linkmaps})
 
+                # Save the AppleDynamicFrameworkInfo, identified via the presence of the
+                # "framework_linking_context" field.
+                if getattr(provider, "framework_linking_context", None):
+                    direct_dynamic_framework_info = provider
+
+                # Save the AppleResourceInfo, identified via the presence of the "owners" field.
+                if getattr(provider, "owners", None):
+                    direct_resource_info = provider
+
         if library_type == _LIBRARY_TYPE.dynamic:
+            # Save the dSYMs.
             dsyms = outputs.dsyms(
                 platform_prerequisites = platform_prerequisites,
                 processor_result = processor_result,
             )
             if dsyms:
-                # Save the dSYMs.
                 framework_output_files.append(depset(transitive = [dsyms]))
                 framework_output_groups.append({"dsyms": dsyms})
+
+            # Save the XCFrameworkDepsInfo inputs for this particular framework.
+            #
+            # TODO(b/220185798): Append transitive providers from the partials as well as direct
+            # providers from this particular framework, once we have targets to reference with
+            # supported providers via an attribute such as `avoid_frameworks`.
+            frameworks_by_platform_and_environment[_framework_key(
+                platform_type = link_output.platform,
+                environment = link_output.environment,
+            )] = struct(
+                apple_dynamic_framework_info = [direct_dynamic_framework_info],
+                apple_resource_info = [direct_resource_info],
+                architectures = link_output.architectures,
+            )
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
@@ -938,6 +1011,7 @@ bundle_id on the target.
         framework_archive_merge_zips = framework_archive_merge_zips,
         framework_output_files = framework_output_files,
         framework_output_groups = framework_output_groups,
+        frameworks_by_platform_and_environment = frameworks_by_platform_and_environment,
     )
 
 def _create_xcframework_root_infoplist(
@@ -1138,6 +1212,7 @@ def _apple_xcframework_impl(ctx):
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
     features = ctx.features
     features.append("disable_legacy_signing")
+    disabled_features = ctx.disabled_features
 
     _validate_resource_attrs(
         all_attrs = ctx.attr,
@@ -1218,9 +1293,11 @@ def _apple_xcframework_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
+        disabled_features = disabled_features,
         environment_plist_files = environment_plist_files,
         executable_name = executable_name,
         families_required = families_required,
@@ -1276,6 +1353,11 @@ def _apple_xcframework_impl(ctx):
             platform_type = None,
         ),
         new_applexcframeworkbundleinfo(),
+        XCFrameworkDepsInfo(
+            frameworks_by_platform_and_environment = (
+                bundled_artifacts.frameworks_by_platform_and_environment,
+            ),
+        ),
         DefaultInfo(
             files = depset(
                 [outputs_archive],
@@ -1545,6 +1627,7 @@ def _apple_static_xcframework_impl(ctx):
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
     features = ctx.features
     features.append("disable_legacy_signing")
+    disabled_features = ctx.disabled_features
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
@@ -1582,6 +1665,7 @@ def _apple_static_xcframework_impl(ctx):
             cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
             config_vars = config_vars,
             cpp_fragment = cpp_fragment,
+            disabled_features = disabled_features,
             environment_plist_files = environment_plist_files,
             executable_name = executable_name,
             families_required = families_required,
