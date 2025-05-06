@@ -103,6 +103,14 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcframework_deps_info",
+    srcs = ["xcframework_deps_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
