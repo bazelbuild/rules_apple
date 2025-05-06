@@ -245,6 +245,11 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
+        cpu_value = settings["//command_line_option:cpu"]
+        if cpu_value.startswith("tvos_"):
+            return cpu_value
+        if cpu_value == "darwin_arm64":
+            return "tvos_sim_arm64"
         return "tvos_x86_64"
     if platform_type == "watchos":
         if environment_arch:
@@ -252,6 +257,11 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
+        cpu_value = settings["//command_line_option:cpu"]
+        if cpu_value.startswith("watchos_"):
+            return cpu_value
+        if cpu_value == "darwin_arm64":
+            return "watchos_arm64"
         return "watchos_x86_64"
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
