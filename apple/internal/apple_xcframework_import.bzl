@@ -780,7 +780,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -789,7 +789,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = xcframework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = xcframework_library.swift_module_interface,
             ),
         )
@@ -895,7 +895,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     additional_cc_infos = []
     if xcframework.files_by_category.swift_interface_imports or has_swift:
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -903,7 +903,7 @@ def _apple_static_xcframework_import_impl(ctx):
         # rare case that a binary has a Swift framework import dependency but
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
-        additional_cc_infos.extend(swift_toolchain.implicit_deps_providers.cc_infos)
+        additional_cc_infos.extend(swift_toolchains.swift.implicit_deps_providers.cc_infos)
 
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
@@ -927,7 +927,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -936,7 +936,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = xcframework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = xcframework_library.swift_module_interface,
             ),
         )
@@ -990,25 +990,16 @@ List of files under a .xcframework directory which are provided to Apple based t
 on this target.
 """,
             ),
-            # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
-            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
         AppleDynamicFrameworkInfo,
     ],
-    toolchains = use_cpp_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
 
 apple_static_xcframework_import = rule(
@@ -1070,18 +1061,9 @@ List of files under an .xcframework directory which are provided to Apple based 
 on this target.
 """,
             ),
-            # TODO(b/301253335): Enable AEGs and add `toolchain` param once this rule starts using toolchain resolution.
-            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )

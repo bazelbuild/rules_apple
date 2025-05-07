@@ -454,7 +454,7 @@ def _swift_info_from_module_interface(
         disabled_features,
         features,
         module_name,
-        swift_toolchain,
+        swift_toolchains,
         swiftinterface_file):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
 
@@ -466,7 +466,7 @@ def _swift_info_from_module_interface(
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
         module_name: Swift module name.
-        swift_toolchain: SwiftToolchainInfo provider for current target.
+        swift_toolchains: A struct containing the SwiftToolchainInfo and CcToolchainInfo provider for current target.
         swiftinterface_file: `.swiftinterface` File to compile.
     Returns:
         A SwiftInfo provider.
@@ -481,14 +481,14 @@ def _swift_info_from_module_interface(
         ],
         feature_configuration = swift_common.configure_features(
             ctx = ctx,
-            swift_toolchain = swift_toolchain,
+            toolchains = swift_toolchains,
             requested_features = features,
             unsupported_features = disabled_features,
         ),
         module_name = module_name,
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,
-        swift_toolchain = swift_toolchain,
+        toolchains = swift_toolchains,
         target_name = ctx.label.name,
     )
     module_context = compile_result.module_context

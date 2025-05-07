@@ -85,10 +85,6 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-# The name of the execution group that houses the Swift toolchain and is used to
-# run Swift actions.
-_SWIFT_EXEC_GROUP = "swift"
-
 def _grouped_framework_files(framework_imports):
     """Returns a dictionary of each framework's imports, grouped by path to the .framework root."""
     framework_groups = group_files_by_directory(
@@ -192,7 +188,7 @@ There should only be one valid framework binary, given a name that matches its f
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -205,7 +201,7 @@ There should only be one valid framework binary, given a name that matches its f
                 disabled_features = disabled_features,
                 features = features,
                 module_name = framework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
             ),
         )
@@ -274,7 +270,7 @@ There should only be one valid framework binary, given a name that matches its f
     # Collect transitive Objc/CcInfo providers from Swift toolchain
     additional_cc_infos = []
     if framework.swift_interface_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -282,7 +278,7 @@ There should only be one valid framework binary, given a name that matches its f
         # rare case that a binary has a Swift framework import dependency but
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
-        additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
+        additional_cc_infos.extend(toolchains.swift.implicit_deps_providers.cc_infos)
 
     # Create CcInfo provider
     linkopts = []
@@ -323,7 +319,7 @@ There should only be one valid framework binary, given a name that matches its f
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -336,7 +332,7 @@ There should only be one valid framework binary, given a name that matches its f
                 disabled_features = disabled_features,
                 features = features,
                 module_name = framework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
             ),
         )
@@ -394,8 +390,6 @@ target.
                     [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
-            # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
-            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
     doc = """
@@ -403,15 +397,8 @@ This rule encapsulates an already-built dynamic framework. It is defined by a li
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
 targets through the `deps` attribute.
 """,
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
-    toolchains = use_cpp_toolchain(),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -477,8 +464,6 @@ not include Swift interface files.
 """,
                 default = False,
             ),
-            # TODO(b/301253335): Enable AEGs and switch from `swift` exec_group to swift `toolchain` param.
-            "_use_auto_exec_groups": attr.bool(default = False),
         },
     ),
     doc = """
@@ -486,13 +471,6 @@ This rule encapsulates an already-built static framework. It is defined by a lis
 .framework directory. apple_static_framework_import targets need to be added to library targets
 through the `deps` attribute.
 """,
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
-    toolchains = use_cpp_toolchain(),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
