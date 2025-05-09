@@ -537,12 +537,22 @@ def extracted_app(
     # fail with `Unhandled error domain NSPOSIXErrorDomain, code 13`.
     dst_dir = os.path.join(tempfile.gettempdir(), "bazel_temp_" + app_name)
     os.makedirs(dst_dir, exist_ok=True)
+    file_mode = "u+w"
+    # Mitigate any previous runs of openrsync that synced the application
+    # into dst_dir without applying the correct permissions.
+    dst_dir_application = os.path.join(
+      dst_dir, os.path.basename(application_output_path)
+    )
+    if (os.path.exists(dst_dir_application)
+        and not os.access(dst_dir_application, os.W_OK)):
+        fix_permissions(dst_dir, file_mode)
     rsync_command = [
         "/usr/bin/rsync",
         "--archive",
         "--delete",
         "--checksum",
-        "--chmod=u+w",
+        "--perms",
+        f"--chmod={file_mode}",
         "--verbose",
         # The output path might itself be a symlink; resolve to the
         # real path so rsync doesn't just copy the symlink.
@@ -562,6 +572,7 @@ def extracted_app(
         text=True,
     )
     logger.debug("rsync output: %s", result.stdout)
+    fix_permissions(dst_dir, file_mode)
     yield os.path.join(dst_dir, app_name + ".app")
   else:
     # Create a new temporary directory for each run, deleting it
@@ -687,6 +698,27 @@ def run_app_in_simulator(
     # Append optional launch arguments.
     args.extend(sys.argv[1:])
     subprocess.run(args, env=simctl_launch_environ(), check=False)
+
+
+def fix_permissions(
+    directory: str,
+    mode: str
+):
+    # Fix permissions on macOS 15.4+ until openrsync correctly applies the file permissions
+    # passed via --chmod.
+    version = platform.platform(terse=True).removeprefix("macOS-")
+    version_components = version.split(".")
+    major = int(version_components[0])
+    minor = int(version_components[1])
+    if major < 15:
+        return
+    if minor < 4:
+        return
+    logger.debug("Fix permissions")
+    result = subprocess.run(
+        ["/usr/bin/find", directory, "-exec", "chmod", mode, "{}", ";"],
+        check=True,
+    )
 
 
 def main(
