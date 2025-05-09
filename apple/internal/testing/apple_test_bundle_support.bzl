@@ -97,6 +97,11 @@ _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
 # visible error messaging.
 _TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
 
+# The lowest minimum OS version that can be used for the test mismatch warning. Higher versions will
+# be "fail"ed instead of issuing a warning to help enforce the minimum OS version to be the same
+# between the test bundle and test host, to avoid debugging issues and redundant build activity.
+_LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "17.4"
+
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
     transitive_files = []
@@ -296,9 +301,10 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
             test_host_label_name = test_host.label.name,
         ))
     if platform_prerequisites.minimum_os != test_host_bundle_info.minimum_os_version:
+        test_min_os = platform_prerequisites.minimum_os
         test_attribute_min_os_mismatch_message = test_attribute_mismatch_message.format(
             rule_attribute_name = "minimum_os_version",
-            test_rule_attribute = platform_prerequisites.minimum_os,
+            test_rule_attribute = test_min_os,
             test_host_rule_attribute = test_host_bundle_info.minimum_os_version,
             test_label = test_bundle_label_no_internal,
             test_label_name = test_bundle_label_name_no_internal,
@@ -307,7 +313,11 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
         )
 
         # TODO(b/337080510): Apply this failure case to all Apple platforms.
-        if platform_prerequisites.platform_type != "ios":
+        if platform_prerequisites.platform_type != "ios" or (
+            apple_common.dotted_version(test_min_os) > apple_common.dotted_version(
+                _LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING,
+            )
+        ):
             fail("\nERROR: " + test_attribute_min_os_mismatch_message)
 
         # There is no other way to issue a warning, so print is the only way to message.

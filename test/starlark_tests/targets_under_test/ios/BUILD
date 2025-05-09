@@ -3027,6 +3027,23 @@ ios_ui_test(
     ],
 )
 
+ios_ui_test(
+    name = "ui_test_different_min_os",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.test_mismatch_high_threshold,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_unit_test(
@@ -3247,6 +3264,23 @@ ios_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_swift_depending_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_different_min_os",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.test_mismatch_high_threshold,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
 
