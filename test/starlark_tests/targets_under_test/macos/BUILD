@@ -3039,3 +3039,57 @@ apple_static_xcframework(
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
+
+# ---------------------------------------------------------------------------------------
+# Tests for the `building_apple_bundle` build setting.
+
+config_setting(
+    name = "is_building_apple_bundle",
+    flag_values = {
+        "//apple/build_settings:building_apple_bundle": "True",
+    },
+)
+
+genrule(
+    name = "is_building_apple_bundle_src",
+    outs = ["IsBuildingAppleBundle.m"],
+    cmd = """
+cat > $@ <<'EOF'
+__attribute__((used)) void IS_BUILDING_APPLE_BUNDLE_SYMBOL() {}
+int main() { return 0; }
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "is_building_apple_bundle_lib",
+    srcs = ["IsBuildingAppleBundle.m"],
+    copts = select({
+        ":is_building_apple_bundle": ["-DIS_BUILDING_APPLE_BUNDLE_SYMBOL=IsBuildingAppleBundle"],
+        "//conditions:default": ["-DIS_BUILDING_APPLE_BUNDLE_SYMBOL=IsNotBuildingAppleBundle"],
+    }),
+    tags = common.fixture_tags,
+)
+
+macos_command_line_application(
+    name = "cmd_app_to_test_building_apple_bundle",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":is_building_apple_bundle_lib",
+    ],
+)
+
+macos_application(
+    name = "bundled_app_to_test_building_apple_bundle",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":is_building_apple_bundle_lib",
+    ],
+)

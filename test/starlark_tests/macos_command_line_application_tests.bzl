@@ -294,6 +294,17 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
+    binary_contents_test(
+        name = "{}_is_building_apple_bundle_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_to_test_building_apple_bundle",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_IsNotBuildingAppleBundle"],
+        binary_not_contains_symbols = ["_IsBuildingAppleBundle"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

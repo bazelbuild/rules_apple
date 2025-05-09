@@ -304,6 +304,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 def _command_line_options(
         *,
         apple_platforms = [],
+        building_apple_bundle = False,
         environment_arch = None,
         force_bundle_outputs = False,
         minimum_os_version,
@@ -318,6 +319,8 @@ def _command_line_options(
             first element will be applied to `platforms` as that will be what is resolved by the
             underlying rule. Defaults to an empty list, which will signal to Bazel that platform
             mapping can take place as a fallback measure.
+        building_apple_bundle: Indicates if the rule is building a bundle (rather than a
+            standalone executable or library).
         environment_arch: A valid Apple environment when applicable with its architecture as a
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
@@ -343,6 +346,7 @@ def _command_line_options(
 
     default_platforms = [settings[_CPU_TO_DEFAULT_PLATFORM_FLAG[cpu]]] if _is_bazel_7 else []
     return {
+        build_settings_labels.building_apple_bundle: building_apple_bundle,
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple_platform_type": platform_type,
         "//command_line_option:apple_platforms": apple_platforms,
@@ -411,6 +415,7 @@ def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
 
 def _command_line_options_for_xcframework_platform(
         *,
+        building_apple_bundle,
         minimum_os_version,
         platform_attr,
         platform_type,
@@ -419,6 +424,8 @@ def _command_line_options_for_xcframework_platform(
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
 
     Args:
+        building_apple_bundle: Indicates if the rule is building a bundle (rather than a
+            standalone executable or library).
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_attr: The attribute for the apple platform specifying in dictionary form which
@@ -453,6 +460,7 @@ def _command_line_options_for_xcframework_platform(
                     environment = target_environment,
                     platform_type = platform_type,
                 ): _command_line_options(
+                    building_apple_bundle = building_apple_bundle,
                     environment_arch = resolved_environment_arch,
                     minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
@@ -467,7 +475,9 @@ def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
     return _command_line_options(
+        building_apple_bundle = building_apple_bundle,
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
@@ -496,6 +506,7 @@ _apple_platform_transition_inputs = _apple_platforms_rule_base_transition_inputs
     "//command_line_option:platforms",
 ]
 _apple_rule_base_transition_outputs = [
+    build_settings_labels.building_apple_bundle,
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_platform_type",
     "//command_line_option:apple_platforms",
@@ -528,12 +539,14 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms and the Starlark split transition."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
+        building_apple_bundle = building_apple_bundle,
         environment_arch = environment_arch,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
@@ -550,6 +563,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms which force bundle outputs."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
@@ -560,6 +574,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
         )
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
+        building_apple_bundle = building_apple_bundle,
         environment_arch = environment_arch[0],
         force_bundle_outputs = True,
         minimum_os_version = minimum_os_version,
@@ -656,6 +671,7 @@ def _apple_platform_split_transition_impl(settings, attr):
             if str(platform) not in output_dictionary:
                 output_dictionary[str(platform)] = _command_line_options(
                     apple_platforms = apple_platforms,
+                    building_apple_bundle = getattr(attr, "_building_apple_bundle", False),
                     minimum_os_version = attr.minimum_os_version,
                     platform_type = attr.platform_type,
                     settings = settings,
@@ -664,6 +680,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     else:
         minimum_os_version = attr.minimum_os_version
         platform_type = attr.platform_type
+        building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
         for environment_arch in _environment_archs(platform_type, minimum_os_version, settings):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
@@ -704,6 +721,7 @@ def _apple_platform_split_transition_impl(settings, attr):
                 continue
 
             output_dictionary[found_cpu] = _command_line_options(
+                building_apple_bundle = building_apple_bundle,
                 environment_arch = environment_arch,
                 minimum_os_version = minimum_os_version,
                 platform_type = platform_type,
@@ -772,6 +790,7 @@ def _xcframework_split_transition_impl(settings, attr):
             target_environments.append("simulator")
 
         command_line_options = _command_line_options_for_xcframework_platform(
+            building_apple_bundle = getattr(attr, "_building_apple_bundle", False),
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             platform_attr = platform_attr,
             platform_type = platform_type,
