@@ -19,14 +19,8 @@ load(
     "types",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
-)
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load(
-    "//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleTestInfo",
 )
 load(
     "//apple/internal:apple_product_type.bzl",
@@ -40,10 +34,6 @@ load(
 load(
     "//apple/internal:bundling_support.bzl",
     "bundling_support",
-)
-load(
-    "//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
 )
 load(
     "//apple/internal:experimental.bzl",
@@ -75,7 +65,9 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "AppleBundleInfo",
     "AppleExecutableBinaryInfo",
+    "AppleTestInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
 )
@@ -95,14 +87,21 @@ load(
     "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
-load(
-    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
-    "main_thread_checker_dylibs",
-)
+
+visibility("//apple/...")
 
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
+
+# Suffix given by the test assembler to identify test bundles; these should be stripped from user-
+# visible error messaging.
+_TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
+
+# The lowest minimum OS version that can be used for the test mismatch warning. Higher versions will
+# be "fail"ed instead of issuing a warning to help enforce the minimum OS version to be the same
+# between the test bundle and test host, to avoid debugging issues and redundant build activity.
+_LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "17.4"
 
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
@@ -272,6 +271,60 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
+def _validate_test_host_shared_attributes(*, label, platform_prerequisites, test_host):
+    """Validates attributes between the test host and test bundle that should be the same."""
+    if not test_host:
+        return
+
+    test_attribute_mismatch_message = """The test at {test_label} does not support the exact same \
+{rule_attribute_name} as its test host at {test_host_label}. These must match for correctness.
+
+- {test_label_name} declares "{rule_attribute_name}" of {test_rule_attribute}
+
+- {test_host_label_name} declares "{rule_attribute_name}" of {test_host_rule_attribute}
+
+Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on the BUILD target \
+{test_label_name} to match the test host {test_host_label_name}.
+"""
+
+    test_host_bundle_info = test_host[AppleBundleInfo]
+    test_bundle_label_no_internal = str(label).rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+    test_bundle_label_name_no_internal = label.name.rsplit(_TEST_BUNDLE_NAME_SUFFIX)[0]
+
+    if platform_prerequisites.device_families != test_host_bundle_info.device_families:
+        fail("\nERROR: " + test_attribute_mismatch_message.format(
+            rule_attribute_name = "families",
+            test_rule_attribute = platform_prerequisites.device_families,
+            test_host_rule_attribute = test_host_bundle_info.device_families,
+            test_label = test_bundle_label_no_internal,
+            test_label_name = test_bundle_label_name_no_internal,
+            test_host_label = str(test_host.label),
+            test_host_label_name = test_host.label.name,
+        ))
+    if platform_prerequisites.minimum_os != test_host_bundle_info.minimum_os_version:
+        test_min_os = platform_prerequisites.minimum_os
+        test_attribute_min_os_mismatch_message = test_attribute_mismatch_message.format(
+            rule_attribute_name = "minimum_os_version",
+            test_rule_attribute = test_min_os,
+            test_host_rule_attribute = test_host_bundle_info.minimum_os_version,
+            test_label = test_bundle_label_no_internal,
+            test_label_name = test_bundle_label_name_no_internal,
+            test_host_label = str(test_host.label),
+            test_host_label_name = test_host.label.name,
+        )
+
+        # TODO(b/337080510): Apply this failure case to all Apple platforms.
+        if platform_prerequisites.platform_type != "ios" or (
+            apple_common.dotted_version(test_min_os) > apple_common.dotted_version(
+                _LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING,
+            )
+        ):
+            fail("\nERROR: " + test_attribute_min_os_mismatch_message)
+
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("\nWARNING: " + test_attribute_min_os_mismatch_message)
+
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
     test_host = ctx.attr.test_host
@@ -328,6 +381,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
+
+    _validate_test_host_shared_attributes(
+        label = label,
+        platform_prerequisites = platform_prerequisites,
+        test_host = test_host,
+    )
+
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
@@ -346,59 +406,28 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     # is never passed as the bundle loader, because the host application is loaded out-of-process.)
     if (
         rule_descriptor.product_type == apple_product_type.unit_test_bundle and
-        test_host and AppleExecutableBinaryInfo in test_host and
-        ctx.attr.test_host_is_bundle_loader
+        test_host and AppleExecutableBinaryInfo in test_host
     ):
         bundle_loader = test_host
     else:
         bundle_loader = None
 
     extra_linkopts = [
-        "-Xlinker",
-        "-needed_framework",
-        "-Xlinker",
-        "XCTest",
         "-framework",
         "XCTest",
-        "-bundle",
     ]
-
-    if any([_is_swift_target(dep) for dep in ctx.attr.deps]):
-        extra_linkopts.extend([
-            "-Xlinker",
-            "-needed-lXCTestSwiftSupport",
-            "-lXCTestSwiftSupport",
-        ])
-
-    extra_link_inputs = []
-
-    if "apple.swizzle_absolute_xcttestsourcelocation" in features:
-        # `linking_support.register_binary_linking_action` uses
-        # `apple_common.link_multi_arch_binary`, which doesn't allow specifying
-        # dependencies (it reads them from `ctx.attr.deps`). So we have to
-        # manually link the `_swizzle_absolute_xcttestsourcelocation` library.
-        swizzle_lib = ctx.attr._swizzle_absolute_xcttestsourcelocation
-        for linker_input in swizzle_lib[CcInfo].linking_context.linker_inputs.to_list():
-            for library in linker_input.libraries:
-                static_library = library.static_library
-                extra_link_inputs.append(static_library)
-                extra_linkopts.append(
-                    "-Wl,-force_load,{}".format(static_library.path),
-                )
-            extra_link_inputs.extend(linker_input.additional_inputs)
-            extra_linkopts.extend(linker_input.user_link_flags)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
+        cc_toolchains = cc_toolchain_forwarder,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
+        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -414,16 +443,11 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
-        frameworks = list(ctx.attr.frameworks)
-        targets_to_avoid = frameworks
-        debug_dependencies.extend(frameworks)
+        targets_to_avoid = list(ctx.attr.frameworks)
     else:
         targets_to_avoid = []
-
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
-
-    embeddable_targets = ctx.attr.deps + getattr(ctx.attr, "frameworks", [])
 
     processor_partials = [
         partials.apple_bundle_info_partial(
@@ -467,15 +491,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
-        partials.main_thread_checker_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
-        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -483,7 +498,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             debug_dependencies = debug_dependencies,
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -493,7 +507,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = embeddable_targets,
+            embeddable_targets = getattr(ctx.attr, "frameworks", []),
             platform_prerequisites = platform_prerequisites,
         ),
         partials.framework_import_partial(
@@ -536,7 +550,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ),
     ]
 
-    if platform_prerequisites.platform_type == apple_common.platform_type.macos:
+    if platform_prerequisites.platform_type == "macos":
         processor_partials.append(
             partials.macos_additional_contents_partial(
                 additional_contents = ctx.attr.additional_contents,
@@ -549,10 +563,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        codesign_inputs = ctx.files.codesign_inputs,
-        codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
         features = features,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
