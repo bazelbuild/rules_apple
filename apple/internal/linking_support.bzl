@@ -142,7 +142,8 @@ def _link_multi_arch_binary(
         extra_disabled_features = [],
         rule_descriptor,
         stamp = -1,
-        variables_extension = {}):
+        variables_extension = {},
+        xcframework_deps = []):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
 
     Args:
@@ -171,6 +172,9 @@ def _link_multi_arch_binary(
             test rules.
         variables_extension: A dictionary of user-defined variables to be added to the
             toolchain configuration when create link command line.
+        xcframework_deps: A list of `XCFrameworkDepsInfo` providers from the XCFramework's
+            dependencies, which will be used to determine binary dependencies that should be avoided
+            by the final linked binaries.
 
     Returns:
         A `struct` which contains the following fields:
@@ -233,8 +237,16 @@ def _link_multi_arch_binary(
             attr_linkopts = attr_linkopts,
         )
 
+        avoid_split_cc_linking_contexts = [
+            xcframework_dep.apple_dynamic_framework_info.framework_linking_context
+            for xcframework_dep in xcframework_deps
+            if platform_info.target_os == xcframework_dep.target_os and
+               platform_info.target_environment == xcframework_dep.target_environment
+        ]
+
         split_linking_contexts = common_variables.objc_linking_context.cc_linking_contexts
         split_linking_contexts.extend(avoid_cc_linking_contexts)
+        split_linking_contexts.extend(avoid_split_cc_linking_contexts)
 
         merged_cc_linking_context = cc_common.merge_linking_contexts(
             linking_contexts = split_linking_contexts,
@@ -243,7 +255,8 @@ def _link_multi_arch_binary(
         subtracted_cc_linking_context = compilation_support.subtract_linking_contexts(
             owner = ctx.label,
             linking_contexts = split_linking_contexts,
-            avoid_dep_linking_contexts = avoid_cc_linking_contexts,
+            avoid_dep_linking_contexts = avoid_cc_linking_contexts +
+                                         avoid_split_cc_linking_contexts,
         )
 
         additional_outputs = []
@@ -461,7 +474,8 @@ def _register_binary_linking_action(
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1,
-        verify_platform_variants = True):
+        verify_platform_variants = True,
+        xcframework_deps = []):
     """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -509,6 +523,9 @@ def _register_binary_linking_action(
             for test rules.
         verify_platform_variants: Whether to verify that all requested architectures are device or
             simulator. True by default.
+        xcframework_deps: A list of `XCFrameworkDepsInfo` providers from the XCFramework's
+            dependencies, which will be used to determine binary dependencies that should be avoided
+            by the final linked binaries.
 
     Returns:
         A `struct` which contains the following fields:
@@ -597,6 +614,7 @@ def _register_binary_linking_action(
         extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
         rule_descriptor = rule_descriptor,
         stamp = stamp,
+        xcframework_deps = xcframework_deps,
     )
 
     fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))

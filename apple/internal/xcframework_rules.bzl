@@ -66,6 +66,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "new_applebundleinfo",
@@ -245,9 +246,10 @@ _PLATFORM_TYPE_TO_XCFRAMEWORK_PLATFORM_NAME = {
 def _framework_key(*, platform_type, environment):
     """Returns a dictionary key to retrieve linker outputs by platform_type/os and environment.
 
-    This is used in intermediate dictionaries used to represent the expected final contents of
-    potentially lipoed/merged frameworks, such as frameworks_by_platform_and_environment in
-    XCFrameworkDepsInfo.
+    This is used internally to represent the expected potentially lipoed/merged frameworks without
+    needing to express the architectures within. This is used for the final debug outputs such as
+    .dSYM and .linkmap files, as well as for intermediate dictionaries composed from the linker
+    outputs.
     """
     return "{platform_type}_{environment}".format(
         platform_type = platform_type,
@@ -610,6 +612,7 @@ def _create_framework_outputs(
         targets_to_avoid_attr_name = None,
         targets_to_avoid_must_be_owned = True,
         version,
+        xcframework_deps = [],
         xcode_version_config,
         xplat_exec_group):
     """Creates a structure defining framework bundling artifacts for an XCFramework bundle.
@@ -653,6 +656,9 @@ def _create_framework_outputs(
             resource processing. If this is `False`, unowned targets will be assigned an `owner`
             that is fully distinct from any target in the workspace. `True` by default.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
+        xcframework_deps: A list of `XCFrameworkDepsInfo` providers from the XCFramework's
+            dependencies, which will be used to determine binary and resource dependencies that
+            should be avoided in the frameworks within the bundle.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current
             context.
         xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
@@ -703,7 +709,7 @@ bundle_id on the target.
     framework_archive_merge_zips = []
     framework_output_files = []
     framework_output_groups = []
-    frameworks_by_platform_and_environment = {}
+    framework_deps = []
 
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
@@ -766,6 +772,15 @@ bundle_id on the target.
                 split_attr_keys = link_output.split_attr_keys,
             )
 
+        resource_providers_to_avoid = []
+        if xcframework_deps:
+            resource_providers_to_avoid = [
+                xcframework_dep.apple_resource_info
+                for xcframework_dep in xcframework_deps
+                if apple_platform_info.target_os == xcframework_dep.target_os and
+                   apple_platform_info.target_environment == xcframework_dep.target_environment
+            ]
+
         environment_plist = files.get_file_with_name(
             name = "environment_plist_{platform}".format(
                 platform = link_output.platform,
@@ -805,8 +820,8 @@ bundle_id on the target.
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 resource_deps = resource_deps,
-                # TODO(b/349899208): Implement support for xcframeworks
-                resource_locales = None,
+                resource_locales = None,  # TODO(b/349899208): Implement support for xcframeworks.
+                resource_providers_to_avoid = resource_providers_to_avoid,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 targets_to_avoid = split_avoid_deps,
@@ -953,17 +968,16 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
 
             # Save the XCFrameworkDepsInfo inputs for this particular framework.
             #
-            # TODO(b/220185798): Append transitive providers from the partials as well as direct
-            # providers from this particular framework, once we have targets to reference with
-            # supported providers via an attribute such as `avoid_frameworks`.
-            frameworks_by_platform_and_environment[_framework_key(
-                platform_type = link_output.platform,
-                environment = link_output.environment,
-            )] = struct(
-                apple_dynamic_framework_info = [direct_dynamic_framework_info],
-                apple_resource_info = [direct_resource_info],
+            # TODO(b/220185798): Append transitive providers from the partials referenced by this
+            # particular framework, this only accounts for the direct dependencies of this
+            # framework.
+            framework_deps.append(struct(
+                apple_dynamic_framework_info = direct_dynamic_framework_info,
+                apple_resource_info = direct_resource_info,
                 architectures = link_output.architectures,
-            )
+                target_environment = link_output.environment,
+                target_os = link_output.platform,
+            ))
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
@@ -982,7 +996,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         framework_archive_merge_zips = framework_archive_merge_zips,
         framework_output_files = framework_output_files,
         framework_output_groups = framework_output_groups,
-        frameworks_by_platform_and_environment = frameworks_by_platform_and_environment,
+        framework_deps = framework_deps,
     )
 
 def _create_xcframework_root_infoplist(
@@ -1197,6 +1211,12 @@ def _apple_xcframework_impl(ctx):
         ),
     ])
 
+    xcframework_deps = [
+        direct_framework_dep
+        for avoid_framework in ctx.attr.avoid_frameworks
+        for direct_framework_dep in avoid_framework[XCFrameworkDepsInfo].direct_framework_deps
+    ] if apple_xplat_toolchain_info.build_settings.enable_wip_features else []
+
     link_result = linking_support.register_binary_linking_action(
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
@@ -1215,6 +1235,7 @@ def _apple_xcframework_impl(ctx):
         stamp = ctx.attr.stamp,
         # XCFrameworks have a custom transition to select the correct platforms from user input.
         verify_platform_variants = False,
+        xcframework_deps = xcframework_deps,
     )
 
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
@@ -1250,6 +1271,7 @@ def _apple_xcframework_impl(ctx):
         objc_fragment = objc_fragment,
         public_hdr_files = public_hdr_files,
         version = version,
+        xcframework_deps = xcframework_deps,
         xcode_version_config = xcode_version_config,
         xplat_exec_group = xplat_exec_group,
     )
@@ -1289,9 +1311,7 @@ def _apple_xcframework_impl(ctx):
         ),
         new_applexcframeworkbundleinfo(),
         XCFrameworkDepsInfo(
-            frameworks_by_platform_and_environment = (
-                bundled_artifacts.frameworks_by_platform_and_environment,
-            ),
+            direct_framework_deps = bundled_artifacts.framework_deps,
         ),
         DefaultInfo(
             files = depset([archive], transitive = bundled_artifacts.framework_output_files),
@@ -1322,6 +1342,16 @@ apple_xcframework = rule_factory.create_apple_rule(
             is_test_supporting_rule = False,
         ),
         {
+            "avoid_frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, XCFrameworkDepsInfo]],
+                mandatory = False,
+                doc = """
+A list of `apple_xcframework` targets that are expected to be direct dependencies of the compiled
+frameworks in this target. Any resources provided by these frameworks will be excluded
+from the resources of this target. Any source-level dependencies provided by these frameworks
+will be excluded from the sources of this target.
+""",
+            ),
             "bundle_name": attr.string(
                 mandatory = False,
                 doc = """

@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
@@ -792,6 +796,28 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
         name = "{}_framework_does_not_define_valid_minimum_os_versions_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_without_valid_minimum_os_versions",
         expected_error = "received a minimum OS version for xros, but this is not supported by the XCFramework rules.",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_avoid_deps_binary_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_doStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent"],
         tags = [name],
     )
 

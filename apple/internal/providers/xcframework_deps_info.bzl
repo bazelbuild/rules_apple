@@ -18,12 +18,12 @@ visibility([
     "@build_bazel_rules_apple//apple/internal/...",
 ])
 
+# TODO(b/220185798): Extend this to allow for transitive dependencies of the same types of structs.
 XCFrameworkDepsInfo = provider(
     doc = "Contains information about the framework contents of a dynamic framework XCFramework.",
     fields = {
-        "frameworks_by_platform_and_environment": """\
-A Dictionary of platform and environment keys simulating the key-bsaed interface of a split
-transition, referencing Lists of structs with these fields:
+        "direct_framework_deps": """\
+A List of structs with these fields:
 
 *   `apple_dynamic_framework_info`: An AppleDynamicFrameworkInfo provider representing one
     framework's linking information.
@@ -32,6 +32,11 @@ transition, referencing Lists of structs with these fields:
     contents of a given framework.
 
 *   `architectures`: A list of architectures that the framework supports for validation.
+
+*   `target_environment`: A `String` representing the selected target environment (e.g. "device",
+        "simulator").
+
+#   `target_os`: A `String` representing the selected Apple OS.
 """,
     },
 )

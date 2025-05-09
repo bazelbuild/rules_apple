@@ -1161,6 +1161,47 @@ apple_xcframework(
     deps = [":Swift3PFmwkWithGenHeader"],
 )
 
+apple_xcframework(
+    name = "ios_xcframework_to_avoid",
+    bundle_id = "com.google.lowerexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":StaticFmwkLowerLib"],
+)
+
+apple_xcframework(
+    name = "ios_xcframework_with_avoid_frameworks",
+    avoid_frameworks = [":ios_xcframework_to_avoid"],
+    bundle_id = "com.google.upperexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [":StaticFmwkUpperLib"],
+)
+
 apple_static_xcframework(
     name = "ios_static_xcframework_oldest_supported",
     ios = {

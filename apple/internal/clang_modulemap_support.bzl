@@ -47,6 +47,8 @@ def _get_link_declarations(dylibs = [], frameworks = []):
 
     return link_lines
 
+# TODO(b/220185798): Extend this to allow for adding declarations for "use" frameworks, for
+# referencing XCFramework dependencies.
 def _modulemap_header_interface_contents(
         framework_modulemap,
         module_name,

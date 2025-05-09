@@ -307,6 +307,7 @@ def _resources_partial_impl(
         primary_icon_name,
         resource_deps,
         resource_locales,
+        resource_providers_to_avoid,
         rule_descriptor,
         rule_label,
         top_level_infoplists,
@@ -355,6 +356,8 @@ def _resources_partial_impl(
         for x in targets_to_avoid
         if AppleResourceInfo in x
     ]
+    if resource_providers_to_avoid:
+        avoid_providers.extend(resource_providers_to_avoid)
 
     avoid_provider = None
     if avoid_providers:
@@ -560,6 +563,7 @@ def resources_partial(
         primary_icon_name = None,
         resource_deps,
         resource_locales,
+        resource_providers_to_avoid = [],
         rule_descriptor,
         rule_label,
         targets_to_avoid = [],
@@ -606,6 +610,8 @@ def resources_partial(
             alternate app icons have been provided for the app.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         resource_locales: An allow list of locales to be included in the bundle.
+        resource_providers_to_avoid: List of AppleResourceInfo providers containing resources that
+            should be deduplicated from the target being processed.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
@@ -643,6 +649,7 @@ def resources_partial(
         primary_icon_name = primary_icon_name,
         resource_deps = resource_deps,
         resource_locales = resource_locales,
+        resource_providers_to_avoid = resource_providers_to_avoid,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         targets_to_avoid = targets_to_avoid,
