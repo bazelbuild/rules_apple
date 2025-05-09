@@ -49,6 +49,17 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 # List of all registered build settings without command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_settings = {
+    "building_apple_bundle": struct(
+        doc = """
+This is set to True if the target configuration is building a bundled Apple
+binary. For example, an `ios_application`, `watchos_extension`, or
+`macos_unit_test`, but *not* a `macos_command_line_application`.
+
+This can be tested by clients to provide conditional behavior depending on
+whether or not a library is being built as a dependency of a bundled executable.
+""",
+        default = False,
+    ),
     "enable_wip_features": struct(
         doc = """
 Enables functionality that is still a work in progress, with interfaces and output that can change

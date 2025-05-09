@@ -495,6 +495,13 @@ An `apple_bundle_version` target that represents the version for this target. Se
 [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
         ),
+        "_building_apple_bundle": attr.bool(
+            default = True,
+            doc = """
+Internal attribute read by Apple rule transitions to set the
+`building_apple_bundle` build setting.
+""",
+        ),
     }
 
 def _device_family_attrs(*, allowed_families, is_mandatory = False):

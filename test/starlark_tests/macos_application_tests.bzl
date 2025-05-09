@@ -486,6 +486,17 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_is_building_apple_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundled_app_to_test_building_apple_bundle",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundled_app_to_test_building_apple_bundle",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_IsBuildingAppleBundle"],
+        binary_not_contains_symbols = ["_IsNotBuildingAppleBundle"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
