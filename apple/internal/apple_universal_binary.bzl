@@ -107,6 +107,13 @@ This is primarily useful to force macOS tools to be built as universal binaries 
 invoking Bazel.
 """,
             ),
+            "_building_apple_bundle": attr.bool(
+                default = False,
+                doc = """
+Internal attribute read by Apple rule transitions to set the
+`building_apple_bundle` build setting.
+""",
+            ),
         },
     ],
 )
