@@ -299,7 +299,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 def _command_line_options(
         *,
         apple_platforms = [],
-        building_apple_bundle = False,
+        building_apple_bundle,
         environment_arch = None,
         force_bundle_outputs = False,
         minimum_os_version,
@@ -467,7 +467,7 @@ def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
-    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
     return _command_line_options(
         building_apple_bundle = building_apple_bundle,
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
@@ -533,7 +533,7 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
-    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
@@ -557,7 +557,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms which force bundle outputs."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
-    building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
+    building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
     environment_arch = None
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
@@ -673,7 +673,7 @@ def _apple_platform_split_transition_impl(settings, attr):
             if str(platform) not in output_dictionary:
                 output_dictionary[str(platform)] = _command_line_options(
                     apple_platforms = apple_platforms,
-                    building_apple_bundle = getattr(attr, "_building_apple_bundle", False),
+                    building_apple_bundle = getattr(attr, "_building_apple_bundle", True),
                     minimum_os_version = attr.minimum_os_version,
                     platform_type = attr.platform_type,
                     settings = settings,
@@ -682,7 +682,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     else:
         minimum_os_version = attr.minimum_os_version
         platform_type = attr.platform_type
-        building_apple_bundle = getattr(attr, "_building_apple_bundle", False)
+        building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
         for environment_arch in _environment_archs(platform_type, minimum_os_version, settings):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
@@ -773,6 +773,7 @@ def _xcframework_base_transition_impl(settings, _):
     # incoming settings meant for other platforms overriding the settings for the xcframework rule's
     # underlying actions, and allow for toolchain resolution in the future.
     return _command_line_options(
+        building_apple_bundle = False,
         environment_arch = _DEFAULT_ARCH,
         minimum_os_version = None,
         platform_type = "macos",
@@ -797,7 +798,7 @@ def _xcframework_split_transition_impl(settings, attr):
             target_environments.append("simulator")
 
         command_line_options = _command_line_options_for_xcframework_platform(
-            building_apple_bundle = getattr(attr, "_building_apple_bundle", False),
+            building_apple_bundle = getattr(attr, "_building_apple_bundle", True),
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             platform_attr = getattr(attr, platform_type),
             platform_type = platform_type,
