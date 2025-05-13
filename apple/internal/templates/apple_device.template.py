@@ -39,6 +39,7 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -300,8 +301,15 @@ def extracted_app(
     # fail with `Unhandled error domain NSPOSIXErrorDomain, code 13`.
     dst_dir = os.path.join(tempfile.gettempdir(), "bazel_temp_" + app_name)
     os.makedirs(dst_dir, exist_ok=True)
+
+    # NOTE: use `which` to find the path to `rsync`.
+    # In macOS 15.4, the system `rsync` is using `openrsync` which contains some permission issues.
+    # This allows users to workaround the issue by overriding the system `rsync` with a working version.
+    # Remove this once we no longer support macOS versions with broken `rsync`.
+    rsync_path = shutil.which("rsync")
+
     rsync_command = [
-        "/usr/bin/rsync",
+        rsync_path,
         "--archive",
         "--delete",
         "--checksum",
