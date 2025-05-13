@@ -799,23 +799,85 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
         tags = [name],
     )
 
+    # Test that the XCFramework rule correctly avoids framework binary dependencies and resources,
+    # across all supported platforms.
     archive_contents_test(
-        name = "{}_ios_avoid_deps_binary_test".format(name),
+        name = "{}_ios_avoid_frameworks_test".format(name),
         build_settings = {
             build_settings_labels.enable_wip_features: "True",
         },
         build_type = "device",
         compilation_mode = "opt",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
         contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/Info.plist",
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/Info.plist",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/ios-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
             "$BUNDLE_ROOT/Info.plist",
         ],
-        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/ios_xcframework_with_avoid_frameworks",
-        binary_test_architecture = "x86_64",
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_avoid_frameworks_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/tvos-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/tvos-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/tvos-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_visionos_avoid_frameworks_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/xros-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/xros-arm64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/xros-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/xros-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/xros-arm64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_doStuff"],
         binary_not_contains_symbols = ["_frameworkDependent"],
         tags = [name],

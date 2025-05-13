@@ -472,6 +472,24 @@ apple_resource_group(
     tags = common.fixture_tags,
 )
 
+apple_resource_group(
+    name = "resource_group_referencing_resource_deps",
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_resource_group_referencing_resource_deps",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [
+        ":resource_group_referencing_resource_deps",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "objc_lib_with_resources",
     srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],

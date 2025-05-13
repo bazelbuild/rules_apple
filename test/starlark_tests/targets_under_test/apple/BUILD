@@ -1162,7 +1162,7 @@ apple_xcframework(
 )
 
 apple_xcframework(
-    name = "ios_xcframework_to_avoid",
+    name = "multiplatform_xcframework_to_avoid",
     bundle_id = "com.google.lowerexample",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1176,14 +1176,41 @@ apple_xcframework(
     },
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
+        "tvos": common.min_os_tvos.baseline,
+        "visionos": common.min_os_visionos.baseline,
     },
     tags = common.fixture_tags,
-    deps = [":StaticFmwkLowerLib"],
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [
+        ":StaticFmwkLowerLib",
+        # We need either an objc_library or a swift_library here to get resources that can be
+        # "avoided" by the other framework. This is because the logic to avoid framework resources
+        # is bound to this internal concept of "owners", an attribute which is only automatically
+        # set by objc_library in specific configurations (contains srcs, non_arc_srcs or deps) and
+        # swift_library to indicate that the library "owns" those resources, and that downstream
+        # resource processing will avoid bundling them if they're already bundled by an upstream
+        # Apple bundle target.
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
 )
 
 apple_xcframework(
-    name = "ios_xcframework_with_avoid_frameworks",
-    avoid_frameworks = [":ios_xcframework_to_avoid"],
+    name = "multiplatform_xcframework_with_avoid_frameworks",
+    avoid_frameworks = [":multiplatform_xcframework_to_avoid"],
     bundle_id = "com.google.upperexample",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1197,9 +1224,29 @@ apple_xcframework(
     },
     minimum_os_versions = {
         "ios": common.min_os_ios.baseline,
+        "tvos": common.min_os_tvos.baseline,
+        "visionos": common.min_os_visionos.baseline,
     },
     tags = common.fixture_tags,
-    deps = [":StaticFmwkUpperLib"],
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [
+        ":StaticFmwkUpperLib",
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
 )
 
 apple_static_xcframework(
