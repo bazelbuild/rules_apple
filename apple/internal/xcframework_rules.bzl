@@ -967,14 +967,11 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 framework_output_groups.append({"dsyms": dsyms})
 
             # Save the XCFrameworkDepsInfo inputs for this particular framework.
-            #
-            # TODO(b/220185798): Append transitive providers from the partials referenced by this
-            # particular framework, this only accounts for the direct dependencies of this
-            # framework.
             framework_deps.append(struct(
                 apple_dynamic_framework_info = direct_dynamic_framework_info,
                 apple_resource_info = direct_resource_info,
                 architectures = link_output.architectures,
+                label = rule_label,
                 target_environment = link_output.environment,
                 target_os = link_output.platform,
             ))
@@ -1201,9 +1198,7 @@ def _apple_xcframework_impl(ctx):
         # Application.app/PlugIns/Extension.appex/Frameworks
         #
         # While different, these resolve to the same paths relative to their respective
-        # executables. Only macOS (which is not yet supported) is an outlier; this will require
-        # changes to native Bazel linking logic for Apple binary targets or clever use of CcInfo
-        # providers through a split transition.
+        # executables. Only macOS (which is not yet supported) is an outlier.
         "-Wl,-rpath,@executable_path/Frameworks",
         "-install_name",
         "@rpath/{name}.framework/{name}".format(
@@ -1211,11 +1206,16 @@ def _apple_xcframework_impl(ctx):
         ),
     ])
 
-    xcframework_deps = [
-        direct_framework_dep
+    xcframework_transitive_deps = [
+        avoid_framework[XCFrameworkDepsInfo].transitive_framework_deps
         for avoid_framework in ctx.attr.avoid_frameworks
-        for direct_framework_dep in avoid_framework[XCFrameworkDepsInfo].direct_framework_deps
     ] if apple_xplat_toolchain_info.build_settings.enable_wip_features else []
+
+    xcframework_deps = [
+        transitive_framework_dep
+        for transitive_framework_deps in xcframework_transitive_deps
+        for transitive_framework_dep in transitive_framework_deps.to_list()
+    ]
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -1312,6 +1312,10 @@ def _apple_xcframework_impl(ctx):
         new_applexcframeworkbundleinfo(),
         XCFrameworkDepsInfo(
             direct_framework_deps = bundled_artifacts.framework_deps,
+            transitive_framework_deps = depset(
+                bundled_artifacts.framework_deps,
+                transitive = xcframework_transitive_deps,
+            ),
         ),
         DefaultInfo(
             files = depset([archive], transitive = bundled_artifacts.framework_output_files),

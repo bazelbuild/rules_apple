@@ -130,6 +130,68 @@ def _archive_multi_arch_static_library(
         output_groups = OutputGroupInfo(**output_groups),
     )
 
+def _find_xcframework_deps_for_current_platform(
+        *,
+        label,
+        platform_info,
+        xcframework_deps):
+    """Returns the XCFrameworkDepsInfo providers for the current platform.
+
+    This function checks the incoming list of providers and validates that they are compatible with
+    the current platform. If no compatible providers are found, this will fail with user-actionable
+    error messaging.
+
+    Args:
+        label: The label of the rule that is requesting the XCFrameworkDepsInfo.
+        platform_info: The ApplePlatformInfo provider of the current platform.
+        xcframework_deps: A list of `XCFrameworkDepsInfo` providers from the XCFramework's
+            dependencies, which will be used to determine binary dependencies that should be avoided
+            by the final linked binaries.
+
+    Returns:
+        A list of `XCFrameworkDepsInfo` providers for the current platform.
+    """
+    xcframework_deps_for_current_platform = [
+        xcframework_dep
+        for xcframework_dep in xcframework_deps
+        if platform_info.target_os == xcframework_dep.target_os and
+           platform_info.target_environment == xcframework_dep.target_environment
+    ]
+
+    if xcframework_deps and not xcframework_deps_for_current_platform:
+        fail("""
+The referenced XCFrameworks to avoid at {rule_label} do not contain a framework for the current \
+target environment {target_environment} and OS {target_os}.
+
+Check the rule definition for each of the dependencies to ensure that they have the same or a \
+superset of matching target environments ("simulator" or "device") and OSes ("ios", "tvos", etc.).
+""".format(
+            rule_label = label,
+            target_environment = platform_info.target_environment,
+            target_os = platform_info.target_os,
+        ))
+
+    for xcframework_dep in xcframework_deps_for_current_platform:
+        if platform_info.target_arch not in xcframework_dep.architectures:
+            fail("""
+Trying to build a framework binary with architecture {architecture}, but the target it \
+depends on at {xcframework_dep_label} only supports these architectures for the target environment \
+{target_environment} and OS {target_os}:
+
+{xcframework_architectures}
+
+Check the rule definition for this dependency to ensure that it supports this given architecture for
+the given target environment {target_environment} and OS {target_os}.
+""".format(
+                architecture = platform_info.target_arch,
+                xcframework_dep_label = xcframework_dep.label,
+                xcframework_architectures = xcframework_dep.architectures,
+                target_environment = platform_info.target_environment,
+                target_os = platform_info.target_os,
+            ))
+
+    return xcframework_deps_for_current_platform
+
 def _link_multi_arch_binary(
         *,
         ctx,
@@ -237,11 +299,15 @@ def _link_multi_arch_binary(
             attr_linkopts = attr_linkopts,
         )
 
+        xcframework_deps_for_current_platform = _find_xcframework_deps_for_current_platform(
+            label = ctx.label,
+            platform_info = platform_info,
+            xcframework_deps = xcframework_deps,
+        )
+
         avoid_split_cc_linking_contexts = [
             xcframework_dep.apple_dynamic_framework_info.framework_linking_context
-            for xcframework_dep in xcframework_deps
-            if platform_info.target_os == xcframework_dep.target_os and
-               platform_info.target_environment == xcframework_dep.target_environment
+            for xcframework_dep in xcframework_deps_for_current_platform
         ]
 
         split_linking_contexts = common_variables.objc_linking_context.cc_linking_contexts

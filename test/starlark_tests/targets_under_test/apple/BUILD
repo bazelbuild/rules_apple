@@ -1249,6 +1249,101 @@ apple_xcframework(
     ],
 )
 
+apple_xcframework(
+    name = "upper_multiplatform_xcframework_with_avoid_frameworks",
+    avoid_frameworks = [":multiplatform_xcframework_with_avoid_frameworks"],
+    bundle_id = "com.google.topmostexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+        "tvos": common.min_os_tvos.baseline,
+        "visionos": common.min_os_visionos.baseline,
+    },
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [
+        ":FmwkUppermostLib",
+        "//test/starlark_tests/resources:apple_non_localized_assets_lib",
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
+)
+
+apple_xcframework(
+    name = "reduced_architecture_ios_xcframework_to_avoid",
+    bundle_id = "com.google.lowerexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticFmwkLowerLib",
+        # We need either an objc_library or a swift_library here to get resources that can be
+        # "avoided" by the other framework. This is because the logic to avoid framework resources
+        # is bound to this internal concept of "owners", an attribute which is only automatically
+        # set by objc_library in specific configurations (contains srcs, non_arc_srcs or deps) and
+        # swift_library to indicate that the library "owns" those resources, and that downstream
+        # resource processing will avoid bundling them if they're already bundled by an upstream
+        # Apple bundle target.
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
+)
+
+apple_xcframework(
+    name = "ios_xcframework_with_avoid_frameworks_referencing_insufficient_architectures",
+    avoid_frameworks = [":reduced_architecture_ios_xcframework_to_avoid"],
+    bundle_id = "com.google.upperexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticFmwkUpperLib",
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
+)
+
 apple_static_xcframework(
     name = "ios_static_xcframework_oldest_supported",
     ios = {
@@ -1653,6 +1748,20 @@ apple_static_xcframework(
 )
 
 genrule(
+    name = "dummy_fmwk_topmost_objc_hdr",
+    outs = ["DummyUpperFmwk.h"],
+    cmd = "echo '#ifndef SDK_UPPER_FRAMEWORK_H_\n#define SDK_UPPER_FRAMEWORK_H_\n void doUpperStuff(); \n#endif\n// SDK_UPPER_FRAMEWORK_H_' > $@",
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "dummy_fmwk_topmost_objc_src",
+    outs = ["DummyUpperFmwk.m"],
+    cmd = "echo '#import <Foundation/Foundation.h>\n#import \"DummyFmwk.h\"\nvoid doUpperStuff() { doStuff(); }' > $@",
+    tags = common.fixture_tags,
+)
+
+genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],
     cmd = "echo '#ifndef SDK_FRAMEWORK_H_\n#define SDK_FRAMEWORK_H_\n void doStuff(); \n#endif\n// SDK_FRAMEWORK_H_' > $@",
@@ -1702,10 +1811,21 @@ genrule(
 )
 
 objc_library(
-    name = "StaticFmwkUpperLib",
+    name = "StaticFmwkLib",
     srcs = [
         "DummyFmwk.h",
         "DummyFmwk.m",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "StaticFmwkUpperLib",
+    srcs = [
+        "DummyFmwk.m",
+    ],
+    hdrs = [
+        "DummyFmwk.h",
     ],
     tags = common.fixture_tags,
     deps = [":StaticFmwkLowerLib"],
@@ -1731,6 +1851,18 @@ cc_library(
     name = "StaticFmwkCcLowerLib",
     srcs = ["DummyFmwkDependent.c"],
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "FmwkUppermostLib",
+    srcs = [
+        "DummyUpperFmwk.m",
+    ],
+    hdrs = [
+        "DummyUpperFmwk.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":StaticFmwkUpperLib"],
 )
 
 swift_library(

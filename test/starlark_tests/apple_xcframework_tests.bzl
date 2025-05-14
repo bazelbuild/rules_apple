@@ -22,6 +22,7 @@ load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
+    "analysis_failure_message_with_wip_features_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -817,10 +818,10 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
             "$BUNDLE_ROOT/Info.plist",
         ],
         not_contains = [
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/Another.plist",
-            "$BUNDLE_ROOT/ios-arm64/ios_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/Another.plist",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
         ],
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
         binary_test_architecture = "arm64",
@@ -880,6 +881,133 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
         binary_test_architecture = "arm64",
         binary_contains_symbols = ["_doStuff"],
         binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
+
+    # Test for transitive XCFramework dependencies honored by avoid_frameworks, for the linked
+    # binaries and resources.
+    archive_contents_test(
+        name = "{}_ios_transitive_avoid_frameworks_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doUpperStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent", "_doStuff"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_transitive_avoid_frameworks_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/tvos-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doUpperStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent", "_doStuff"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_visionos_transitive_avoid_frameworks_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/xros-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doUpperStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent", "_doStuff"],
+        tags = [name],
+    )
+
+    # Test for missing architectures in "avoid"ed XCFrameworks.
+    analysis_failure_message_with_wip_features_test(
+        name = "{}_has_an_avoided_framework_with_missing_architecture_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_architectures",
+        expected_error = """Trying to build a framework binary with architecture arm64, but the target it depends on at //test/starlark_tests/targets_under_test/apple:reduced_architecture_ios_xcframework_to_avoid only supports these architectures for the target environment simulator and OS ios:
+
+["x86_64"]
+
+Check the rule definition for this dependency to ensure that it supports this given architecture for
+the given target environment simulator and OS ios.""",
         tags = [name],
     )
 
