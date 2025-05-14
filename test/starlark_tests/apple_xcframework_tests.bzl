@@ -1002,12 +1002,22 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     analysis_failure_message_with_wip_features_test(
         name = "{}_has_an_avoided_framework_with_missing_architecture_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_architectures",
-        expected_error = """Trying to build a framework binary with architecture arm64, but the target it depends on at //test/starlark_tests/targets_under_test/apple:reduced_architecture_ios_xcframework_to_avoid only supports these architectures for the target environment simulator and OS ios:
+        expected_error = """Trying to build a framework binary with architecture arm64, but the target it depends on at //test/starlark_tests/targets_under_test/apple:reduced_architecture_ios_xcframework_to_avoid only supports these architectures for the target environment "simulator" and OS "ios":
 
 ["x86_64"]
 
 Check the rule definition for this dependency to ensure that it supports this given architecture for
 the given target environment simulator and OS ios.""",
+        tags = [name],
+    )
+
+    # Test for missing environments in "avoid"ed XCFrameworks.
+    analysis_failure_message_with_wip_features_test(
+        name = "{}_has_an_avoided_framework_with_missing_environment_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_environments",
+        expected_error = """The referenced XCFrameworks to avoid at //test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_environments do not contain a framework for the current target environment "device" and OS "ios".
+
+Check the rule definition for each of the dependencies to ensure that they have the same or a superset of matching target environments ("simulator" or "device") and OSes ("ios", "tvos", etc.).""",
         tags = [name],
     )
 

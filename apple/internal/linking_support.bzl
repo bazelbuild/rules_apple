@@ -161,7 +161,7 @@ def _find_xcframework_deps_for_current_platform(
     if xcframework_deps and not xcframework_deps_for_current_platform:
         fail("""
 The referenced XCFrameworks to avoid at {rule_label} do not contain a framework for the current \
-target environment {target_environment} and OS {target_os}.
+target environment "{target_environment}" and OS "{target_os}".
 
 Check the rule definition for each of the dependencies to ensure that they have the same or a \
 superset of matching target environments ("simulator" or "device") and OSes ("ios", "tvos", etc.).
@@ -176,7 +176,7 @@ superset of matching target environments ("simulator" or "device") and OSes ("io
             fail("""
 Trying to build a framework binary with architecture {architecture}, but the target it \
 depends on at {xcframework_dep_label} only supports these architectures for the target environment \
-{target_environment} and OS {target_os}:
+"{target_environment}" and OS "{target_os}":
 
 {xcframework_architectures}
 
