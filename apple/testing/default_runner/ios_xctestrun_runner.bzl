@@ -190,7 +190,7 @@ A binary to run prior to test execution. Runs after simulator creation. Sets the
             executable = True,
             cfg = "exec",
             doc = """
-A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.
 """,
         ),
         "_simulator_creator": attr.label(

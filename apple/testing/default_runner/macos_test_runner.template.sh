@@ -134,22 +134,32 @@ if [[ "$XML_OUTPUT_FILE" != /* ]]; then
   export XML_OUTPUT_FILE="$PWD/$XML_OUTPUT_FILE"
 fi
 
+
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 "$pre_action_binary"
 
+readonly result_bundle_path="$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
+  # TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
+rm -rf "$result_bundle_path"
+
 test_exit_code=0
+readonly testlog="$TEST_TMP_DIR/test.log"
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
-rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
-    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult" \
+    -resultBundlePath "$result_bundle_path" \
     -xctestrun "$XCTESTRUN" \
+    2>&1 | tee -i "$testlog" \
     || test_exit_code=$?
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
 TEST_EXIT_CODE=$test_exit_code \
+  TEST_LOG_FILE="$testlog" \
+  TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
   "$post_action_binary"
 
 if [[ "$test_exit_code" -ne 0 ]]; then

@@ -138,7 +138,7 @@ A binary to run prior to test execution. Sets any environment variables availabl
             executable = True,
             cfg = "exec",
             doc = """
-A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$TEST_XCRESULT_BUNDLE_PATH` environment variables, in addition to any other variables available to the test runner.
 """,
         ),
         "_test_template": attr.label(
