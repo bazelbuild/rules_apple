@@ -269,6 +269,7 @@ else
   )
 fi
 
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 "$pre_action_binary"
 
@@ -279,6 +280,7 @@ cmd=("%(testrunner_binary)s"
   "${custom_xctestrunner_args[@]}")
 "${cmd[@]}" 2>&1 || test_exit_code=$?
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
 TEST_EXIT_CODE=$test_exit_code \
   "$post_action_binary"

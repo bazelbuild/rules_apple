@@ -446,6 +446,7 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   should_use_xcodebuild=true
 fi
 
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 SIMULATOR_UDID="$simulator_id" \
   "$pre_action_binary"
@@ -547,11 +548,20 @@ else
     || test_exit_code=$?
 fi
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
-TEST_EXIT_CODE=$test_exit_code \
-  TEST_LOG_FILE="$testlog" \
-  SIMULATOR_UDID="$simulator_id" \
-  "$post_action_binary"
+if [[ -n "${result_bundle_path:-}" ]]; then
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+    "$post_action_binary"
+else
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    "$post_action_binary"
+fi
 
 if [[
   "$test_exit_code" -eq 0 &&
