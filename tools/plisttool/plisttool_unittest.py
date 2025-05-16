@@ -1174,6 +1174,22 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_unexpected_app_extension_attributes(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.EXTENSIONKIT_KEY_MSG % (
+            _testing_target, 'EXAppExtensionAttributes'))):
+      plist = {
+          'NSExtension': {},
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.generic-extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {},
+      })
+
   def test_missing_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
