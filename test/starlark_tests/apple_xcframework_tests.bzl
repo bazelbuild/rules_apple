@@ -15,14 +15,9 @@
 """xcframework Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
-    "analysis_failure_message_with_wip_features_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -804,9 +799,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     # across all supported platforms.
     archive_contents_test(
         name = "{}_ios_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
@@ -831,9 +823,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     )
     archive_contents_test(
         name = "{}_tvos_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
@@ -858,9 +847,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     )
     archive_contents_test(
         name = "{}_visionos_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
@@ -888,9 +874,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     # binaries and resources.
     archive_contents_test(
         name = "{}_ios_transitive_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
@@ -925,9 +908,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     )
     archive_contents_test(
         name = "{}_tvos_transitive_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
@@ -962,9 +942,6 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     )
     archive_contents_test(
         name = "{}_visionos_transitive_avoid_frameworks_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         compilation_mode = "opt",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
@@ -999,7 +976,7 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
     )
 
     # Test for missing architectures in "avoid"ed XCFrameworks.
-    analysis_failure_message_with_wip_features_test(
+    analysis_failure_message_test(
         name = "{}_has_an_avoided_framework_with_missing_architecture_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_architectures",
         expected_error = """Trying to build a framework binary with architecture arm64, but the target it depends on at //test/starlark_tests/targets_under_test/apple:reduced_architecture_ios_xcframework_to_avoid only supports these architectures for the target environment "simulator" and OS "ios":
@@ -1012,12 +989,43 @@ the given target environment simulator and OS ios.""",
     )
 
     # Test for missing environments in "avoid"ed XCFrameworks.
-    analysis_failure_message_with_wip_features_test(
+    analysis_failure_message_test(
         name = "{}_has_an_avoided_framework_with_missing_environment_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_environments",
         expected_error = """The referenced XCFrameworks to avoid at //test/starlark_tests/targets_under_test/apple:ios_xcframework_with_avoid_frameworks_referencing_insufficient_environments do not contain a framework for the current target environment "device" and OS "ios".
 
 Check the rule definition for each of the dependencies to ensure that they have the same or a superset of matching target environments ("simulator" or "device") and OSes ("ios", "tvos", etc.).""",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_transitive_avoid_frameworks_generated_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module upper_multiplatform_xcframework_with_avoid_frameworks {",
+            "export *",
+            "use \"multiplatform_xcframework_to_avoid\"",
+            "use \"multiplatform_xcframework_with_avoid_frameworks\"",
+            "}",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ios_transitive_avoid_frameworks_generated_swift_modulemap_file_content_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_ios_swift_xcframework_with_avoid_frameworks",
+        text_test_file = "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithObjcDepsAndGenHeader.framework/Modules/module.modulemap",
+        text_test_values = [
+            "framework module SwiftFmwkWithObjcDepsAndGenHeader {",
+            "header \"SwiftFmwkWithObjcDepsAndGenHeader.h\"",
+            "use \"multiplatform_xcframework_to_avoid\"",
+            "use \"multiplatform_xcframework_with_avoid_frameworks\"",
+            "requires objc",
+            "}",
+        ],
         tags = [name],
     )
 

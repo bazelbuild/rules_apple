@@ -833,6 +833,13 @@ bundle_id on the target.
             ),
         ]
 
+        # Make sure we filter out duplicated framework names; there will surely be some on account
+        # of the various combinations of os/environment/architecture that must be set on the rule.
+        framework_deps_names = set([
+            xcframework_dep.bundle_name
+            for xcframework_dep in xcframework_deps
+        ])
+
         if link_output.framework_swift_infos:
             if public_hdr_files:
                 fail("""
@@ -845,6 +852,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                     actions = actions,
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
+                    framework_deps_names = framework_deps_names,
                     generated_headers = link_output.framework_swift_generated_headers,
                     label_name = rule_label.name,
                     output_discriminator = library_identifier,
@@ -856,6 +864,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 partials.framework_header_modulemap_partial(
                     actions = actions,
                     bundle_name = bundle_name,
+                    framework_deps_names = framework_deps_names,
                     hdrs = public_hdr_files,
                     label_name = rule_label.name,
                     output_discriminator = library_identifier,
@@ -971,6 +980,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 apple_dynamic_framework_info = direct_dynamic_framework_info,
                 apple_resource_info = direct_resource_info,
                 architectures = link_output.architectures,
+                bundle_name = bundle_name,
                 label = rule_label,
                 target_environment = link_output.environment,
                 target_os = link_output.platform,
@@ -1209,7 +1219,7 @@ def _apple_xcframework_impl(ctx):
     xcframework_transitive_deps = [
         avoid_framework[XCFrameworkDepsInfo].transitive_framework_deps
         for avoid_framework in ctx.attr.avoid_frameworks
-    ] if apple_xplat_toolchain_info.build_settings.enable_wip_features else []
+    ]
 
     xcframework_deps = [
         transitive_framework_dep

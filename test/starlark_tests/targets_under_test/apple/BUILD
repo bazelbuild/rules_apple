@@ -1292,6 +1292,30 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "upper_ios_swift_xcframework_with_avoid_frameworks",
+    avoid_frameworks = [":multiplatform_xcframework_with_avoid_frameworks"],
+    bundle_id = "com.google.upperexample",
+    bundle_name = "SwiftFmwkWithObjcDepsAndGenHeader",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":SwiftFmwkWithObjcDepsAndGenHeader",
+    ],
+)
+
+apple_xcframework(
     name = "reduced_architecture_ios_xcframework_to_avoid",
     bundle_id = "com.google.lowerexample",
     infoplists = [
@@ -1925,6 +1949,18 @@ swift_library(
     library_evolution = True,
     module_name = "SwiftFmwkWithGenHeader",
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "SwiftFmwkWithObjcDepsAndGenHeader",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "SwiftFmwkWithObjcDepsAndGenHeader",
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticFmwkUpperLib",
+    ],
 )
 
 swift_library(

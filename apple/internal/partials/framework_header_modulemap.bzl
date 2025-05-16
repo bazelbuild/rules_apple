@@ -37,6 +37,7 @@ def _framework_header_modulemap_partial_impl(
         *,
         actions,
         bundle_name,
+        framework_deps_names,
         framework_modulemap,
         hdrs,
         is_legacy_static_framework,
@@ -62,7 +63,7 @@ def _framework_header_modulemap_partial_impl(
 
     # Create a module map if there is a need for one (that is, if there are headers or if there are
     # dylibs/frameworks that the target depends on).
-    if any([sdk_dylibs, sdk_frameworks, umbrella_header_filename]):
+    if any([framework_deps_names, sdk_dylibs, sdk_frameworks, umbrella_header_filename]):
         modulemap_file = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -70,6 +71,7 @@ def _framework_header_modulemap_partial_impl(
             file_name = "module.modulemap",
         )
         modulemap_content = clang_modulemap_support.modulemap_header_interface_contents(
+            framework_deps_names = framework_deps_names,
             framework_modulemap = framework_modulemap,
             module_name = bundle_name,
             sdk_dylibs = sorted(sdk_dylibs.to_list() if sdk_dylibs else []),
@@ -91,6 +93,7 @@ def framework_header_modulemap_partial(
         *,
         actions,
         bundle_name,
+        framework_deps_names = [],
         framework_modulemap = True,
         is_legacy_static_framework = False,
         hdrs,
@@ -105,6 +108,8 @@ def framework_header_modulemap_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       bundle_name: The name of the output bundle.
+      framework_deps_names: A sequence of strings representing framework names that are expected to
+          be declared as dependencies of the framework, if any.
       framework_modulemap: Boolean to indicate if the generated modulemap should be for a
           framework instead of a library or a generic module. Defaults to `True`.
       hdrs: The list of headers to bundle.
@@ -124,6 +129,7 @@ def framework_header_modulemap_partial(
         _framework_header_modulemap_partial_impl,
         actions = actions,
         bundle_name = bundle_name,
+        framework_deps_names = framework_deps_names,
         framework_modulemap = framework_modulemap,
         is_legacy_static_framework = is_legacy_static_framework,
         hdrs = hdrs,

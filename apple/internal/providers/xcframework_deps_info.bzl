@@ -32,7 +32,9 @@ A List of structs to indicate direct XCFramework dependencies with these fields:
 
 *   `architectures`: A list of architectures that the framework supports for validation.
 
-*   `label`: The label of the XCFramework that these dependencies are associated with.
+*   `bundle_name`: The name of the framework bundle.
+
+*   `label`: The label of the XCFramework rule that these dependencies are associated with.
 
 *   `target_environment`: A `String` representing the selected target environment (e.g. "device",
         "simulator").

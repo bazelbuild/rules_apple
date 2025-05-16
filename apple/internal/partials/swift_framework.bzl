@@ -46,6 +46,7 @@ def _swift_framework_partial_impl(
         actions,
         avoid_deps,
         bundle_name,
+        framework_deps_names,
         framework_modulemap,
         generated_headers,
         is_legacy_static_framework,
@@ -162,6 +163,7 @@ issue with a reproducible error case.
         modulemap_content = ""
         if public_hdrs:
             modulemap_content += clang_modulemap_support.modulemap_header_interface_contents(
+                framework_deps_names = framework_deps_names,
                 framework_modulemap = framework_modulemap,
                 module_name = expected_module_name,
                 sdk_dylibs = [],
@@ -179,6 +181,7 @@ issue with a reproducible error case.
             # cannot find any of the interface declarations.
             is_submodule = bool(public_hdrs)
             modulemap_content += clang_modulemap_support.modulemap_swift_contents(
+                framework_deps_names = framework_deps_names,
                 framework_modulemap = False if is_submodule else framework_modulemap,
                 generated_header = swift_generated_header,
                 is_submodule = is_submodule,
@@ -199,6 +202,7 @@ def swift_framework_partial(
         actions,
         avoid_deps = [],
         bundle_name,
+        framework_deps_names = [],
         framework_modulemap = True,
         generated_headers = {},
         is_legacy_static_framework = False,
@@ -214,6 +218,8 @@ def swift_framework_partial(
         actions: The actions provider from `ctx.actions`.
         avoid_deps: A list of library targets with modules to avoid, if specified. Optional.
         bundle_name: The name of the output bundle.
+        framework_deps_names: A sequence of strings representing framework names that are expected
+            to be declared as dependencies of the framework, if any.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module. Defaults to `True`.
         generated_headers: A dictionary with architectures as keys and the SwiftGeneratedHeaderInfo
@@ -237,6 +243,7 @@ def swift_framework_partial(
         actions = actions,
         avoid_deps = avoid_deps,
         bundle_name = bundle_name,
+        framework_deps_names = framework_deps_names,
         framework_modulemap = framework_modulemap,
         generated_headers = generated_headers,
         is_legacy_static_framework = is_legacy_static_framework,

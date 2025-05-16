@@ -24,6 +24,18 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+def _get_use_declarations(module_names = []):
+    """Returns the module map lines that declare "use" of the given modules, including frameworks.
+
+    Args:
+        module_names: A sequence of module names that will be referenced as dependencies in the
+            final module map. These can be framework names or library names.
+
+    Returns:
+        A list of "use" lines that declare use of the given modules.
+    """
+    return ['use "%s"' % module_name for module_name in module_names]
+
 def _get_link_declarations(dylibs = [], frameworks = []):
     """Returns the module map lines that link to the given dylibs and frameworks.
 
@@ -47,9 +59,8 @@ def _get_link_declarations(dylibs = [], frameworks = []):
 
     return link_lines
 
-# TODO(b/220185798): Extend this to allow for adding declarations for "use" frameworks, for
-# referencing XCFramework dependencies.
 def _modulemap_header_interface_contents(
+        framework_deps_names,
         framework_modulemap,
         module_name,
         sdk_dylibs,
@@ -58,6 +69,8 @@ def _modulemap_header_interface_contents(
     """Returns the contents of a header file interface within a Clang modulemap for a framework.
 
     Args:
+        framework_deps_names: A sequence of Strings representing framework names that are expected
+            to be declared as dependencies of the framework.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module. Defaults to `True`.
         module_name: The name of the module to declare in the module map file.
@@ -79,6 +92,7 @@ def _modulemap_header_interface_contents(
             "export *",
         ]
     declarations.extend(_get_link_declarations(sdk_dylibs, sdk_frameworks))
+    declarations.extend(_get_use_declarations(framework_deps_names))
 
     return (
         "{module_with_qualifier} {module_name} {{\n".format(
@@ -191,6 +205,7 @@ def _process_headers(
 
 def _modulemap_swift_contents(
         *,
+        framework_deps_names,
         framework_modulemap,
         generated_header,
         is_submodule,
@@ -198,6 +213,8 @@ def _modulemap_swift_contents(
     """Returns the contents for the modulemap file for a Swift framework.
 
     Args:
+        framework_deps_names: A sequence of strings representing framework names that are expected
+            to be declared as dependencies of the framework.
         framework_modulemap: Boolean to indicate if the generated modulemap should be for a
             framework instead of a library or a generic module.
         generated_header: File representing the Swift generated header for this Clang module map to
@@ -214,12 +231,14 @@ def _modulemap_swift_contents(
     return """\
 {module_with_qualifier} {declared_module_name} {{
   header "{generated_header_basename}"
+  {use_declarations}
   requires objc
 }}
 """.format(
         module_with_qualifier = "framework module" if framework_modulemap else "module",
         declared_module_name = declared_module_name,
         generated_header_basename = generated_header.basename,
+        use_declarations = "\n  ".join(_get_use_declarations(framework_deps_names)),
     )
 
 clang_modulemap_support = struct(
