@@ -551,7 +551,7 @@ post_action_binary=%(post_action_binary)s
 TEST_EXIT_CODE=$test_exit_code \
   TEST_LOG_FILE="$testlog" \
   SIMULATOR_UDID="$simulator_id" \
-  "$post_action_binary"
+  "$post_action_binary" || post_action_exit_code=$?
 
 if [[
   "$test_exit_code" -eq 0 &&
@@ -577,6 +577,10 @@ if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
 fi
 
 if [[ "$test_exit_code" -ne 0 ]]; then
+  if [[ "${POST_ACTION_DETERMINES_EXIT_CODE:-0}" == "1" ]]; then
+    exit $post_action_exit_code
+  fi
+
   echo "error: tests exited with '$test_exit_code'" >&2
   exit "$test_exit_code"
 fi
