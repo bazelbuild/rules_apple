@@ -75,6 +75,25 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "watchos": apple_common.dotted_version("8.0"),
 }
 
+# swift-stdlib-tool currently bundles an unnecessary copy of the Swift runtime
+# whenever it bundles the back-deploy version of the Swift concurrency
+# runtime. This is because the back-deploy version of the Swift concurrency
+# runtime contains an `@rpath`-relative reference to the Swift runtime due to
+# being built with a deployment target that predates the Swift runtime being
+# shipped with operating system.
+#
+# The Swift runtime only needs to be bundled if the binary's deployment target
+# is old enough that it may run on OS versions that lack the Swift runtime,
+# so we detect this scenario and remove the Swift runtime from the output
+# path.
+_MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING = {
+    "ios": apple_common.dotted_version("12.2"),
+    "macos": apple_common.dotted_version("10.14.4"),
+    "tvos": apple_common.dotted_version("12.2"),
+    "visionos": apple_common.dotted_version("1.0"),
+    "watchos": apple_common.dotted_version("5.2"),
+}
+
 def _swift_dylib_action(
         *,
         actions,
@@ -99,6 +118,10 @@ def _swift_dylib_action(
 
     if platform_prerequisites.build_settings.disable_swift_stdlib_binary_thinning:
         swift_stdlib_tool_args.add("--disable_binary_thinning")
+
+    minimum_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
+    if minimum_os < _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING[platform_prerequisites.platform_type]:
+        swift_stdlib_tool_args.append("--requires_bundled_swift_runtime")
 
     apple_support.run(
         actions = actions,
