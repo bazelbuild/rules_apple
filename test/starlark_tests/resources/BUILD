@@ -205,6 +205,12 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_concurrency_main_lib",
+    srcs = ["concurrency_main.swift"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
     tags = common.fixture_tags,

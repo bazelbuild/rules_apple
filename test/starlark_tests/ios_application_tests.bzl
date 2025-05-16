@@ -192,6 +192,38 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    # Verify that Swift concurrency dylibs are packaged with the application, while the runtime is
+    # not when the application is built for a target that supports the stable Swift ABI but lacks
+    # OS support for the concurrency dylibs.
+    archive_contents_test(
+        name = "{}_device_swift_concurrency_dylibs_present".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+    apple_bundle_archive_support_info_device_test(
+        name = "{}_bundle_archive_support_contains_stub_executable_for_swift_concurrency_device_test".format(name),
+        expected_archive_bundle_files = ["SwiftSupport/iphoneos/swiftlibs"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_concurrency_dylibs_present".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
+        contains = ["$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",

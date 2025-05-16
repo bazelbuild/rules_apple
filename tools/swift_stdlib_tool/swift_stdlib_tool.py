@@ -24,73 +24,13 @@ import tempfile
 from build_bazel_rules_apple.tools.wrapper_common import execute
 from build_bazel_rules_apple.tools.wrapper_common import lipo
 
-_OTOOL_MINIMUM_OS_VERSION_RE = re.compile(
-    r"""
-(
-    cmd\ LC_VERSION_MIN_(?P<lc_version_min_platform>[^\n]+)\n
-    .*?
-    version\ (?P<lc_version_min_version>\d+\.\d+)
-  |
-    cmd\ LC_BUILD_VERSION
-    .*?
-    platform\ (?P<lc_build_version_platform>[^\n]+)\n
-    .*?
-    minos\ (?P<lc_build_version_minos>\d+\.\d+)
-)
-""", re.VERBOSE | re.MULTILINE | re.DOTALL)
 
-# Minimum OS versions after which the Swift runtime is packaged with the OS. If
-# the deployment target of a binary is greater than or equal to the versions
-# defined here it does not need to bundle the Swift runtime.
-_MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": (12, 2),
-    "iphoneos": (12, 2),
-    "macos": (10, 14, 4),
-    "macosx": (10, 14, 4),
-    "tvos": (12, 2),
-    "watchos": (5, 2),
-}
-
-
-def _deployment_target_requires_bundled_swift_runtime(platform, version):
-  """Returns true if the given deployment target requires a bundled copy of the Swift runtime."""
-
-  platform = platform.lower().replace("simulator", "")
-  version = tuple(int(component) for component in version.split("."))
-
-  return version < _MIN_OS_PLATFORM_SWIFT_PRESENCE.get(platform, (0, 0))
-
-
-def _binary_requires_bundled_swift_runtime(binary):
-  """Returns true if the deployment target of the given binary requires a bundled copy of the Swift runtime."""
-
-  cmd = ["otool", "-lV", "-arch", "all", binary]
-  _, stdout, stderr = execute.execute_and_filter_output(
-      cmd, raise_on_failure=True)
-  if stderr:
-    print(stderr)
-
-  # Loop to ensure we process all architectures within the binary. Different
-  # architectures may have different deployment targets.
-  while True:
-    match = _OTOOL_MINIMUM_OS_VERSION_RE.search(stdout)
-    if not match:
-      return False
-
-    groups = match.groupdict()
-    # Only one of each alternative of platform and version can be set.
-    platform = groups["lc_version_min_platform"] or groups[
-        "lc_build_version_platform"]
-    version = groups["lc_version_min_version"] or groups[
-        "lc_build_version_minos"]
-
-    if _deployment_target_requires_bundled_swift_runtime(platform, version):
-      return True
-
-    stdout = stdout[match.endpos:]
-
-
-def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
+def _copy_swift_stdlibs(
+    *,
+    binaries_to_scan,
+    sdk_platform,
+    destination_path,
+    requires_bundled_swift_runtime):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
@@ -129,9 +69,7 @@ def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   # is old enough that it may run on OS versions that lack the Swift runtime,
   # so we detect this scenario and remove the Swift runtime from the output
   # path.
-  if not any(
-      _binary_requires_bundled_swift_runtime(binary)
-      for binary in binaries_to_scan):
+  if not requires_bundled_swift_runtime:
     libswiftcore_path = os.path.join(destination_path, "libswiftCore.dylib")
     if os.path.exists(libswiftcore_path):
       os.remove(libswiftcore_path)
@@ -179,13 +117,25 @@ def main():
       "--output_path", type=str, required=True, help="path to save the Swift "
       "support libraries to"
   )
+  parser.add_argument(
+      "--requires_bundled_swift_runtime", action="store_true", default=False,
+      help="""
+      if true, indicates that the Swift runtime needs to be bundled with the
+      binary
+      """
+  )
   args = parser.parse_args()
 
   # Create a temporary location for the unstripped Swift stdlibs.
   temp_path = tempfile.mkdtemp(prefix="swift_stdlib_tool.XXXXXX")
 
   # Use the binaries to copy only the Swift stdlibs we need for this app.
-  _copy_swift_stdlibs(args.binary, args.platform, temp_path)
+  _copy_swift_stdlibs(
+      binaries_to_scan=args.binary,
+      sdk_platform=args.platform,
+      destination_path=temp_path,
+      requires_bundled_swift_runtime=args.requires_bundled_swift_runtime,
+  )
 
   # Determine the binary slices we need to strip with lipo.
   target_archs, _ = lipo.find_archs_for_binaries(args.binary)
