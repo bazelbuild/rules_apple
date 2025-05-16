@@ -191,6 +191,7 @@ A binary to run prior to test execution. Runs after simulator creation. Sets the
             cfg = "exec",
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.
+Add `POST_ACTION_DETERMINES_EXIT_CODE=1` to the test `env` to allow the post action to set the exit code of the test run. This is useful for tools that need to fail the test run based on their own criteria.
 """,
         ),
         "_simulator_creator": attr.label(
