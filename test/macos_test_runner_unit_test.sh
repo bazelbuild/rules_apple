@@ -37,6 +37,7 @@ load(
     "@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.bzl",
     "macos_test_runner"
 )
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 macos_test_runner(
     name = "macos_runner",
