@@ -16,8 +16,8 @@ bazel_dep(
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(name = "rules_python", version = "1.3.0")
+bazel_dep(name = "rules_shell", version = "0.3.0")
 
-bazel_dep(name = "rules_shell", version = "0.3.0", dev_dependency = True)
 bazel_dep(
     name = "stardoc",
     version = "0.6.2",
