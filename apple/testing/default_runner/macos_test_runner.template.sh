@@ -140,7 +140,7 @@ pre_action_binary=%(pre_action_binary)s
 "$pre_action_binary"
 
 readonly result_bundle_path="$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
-  # TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
+# TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
 rm -rf "$result_bundle_path"
 
 test_exit_code=0
