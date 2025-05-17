@@ -20,8 +20,8 @@ bazel_dep(name = "rules_shell", version = "0.3.0")
 
 git_override(
     module_name = "rules_swift",
-    remote = "https://github.com/bazelbuild/rules_swift.git",
     commit = "c9c9d561281fcc5a79c5d07ea99f65e609a34510",
+    remote = "https://github.com/bazelbuild/rules_swift.git",
 )
 
 bazel_dep(
