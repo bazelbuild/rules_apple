@@ -316,7 +316,6 @@ def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
 
 def _command_line_options_for_xcframework_platform(
         *,
-        attr,
         minimum_os_version,
         platform_attr,
         platform_type,
@@ -325,7 +324,6 @@ def _command_line_options_for_xcframework_platform(
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
 
     Args:
-        attr: The attributes passed to the transition function.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_attr: The attribute for the apple platform specifying in dictionary form which
@@ -658,7 +656,6 @@ def _xcframework_transition_impl(settings, attr):
             target_environments.append("simulator")
 
         command_line_options = _command_line_options_for_xcframework_platform(
-            attr = attr,
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             platform_attr = platform_attr,
             platform_type = platform_type,
