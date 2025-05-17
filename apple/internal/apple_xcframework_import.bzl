@@ -650,8 +650,9 @@ def _apple_static_xcframework_import_impl(ctx):
         # rare case that a binary has a Swift framework import dependency but
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
+        if hasattr(swift_toolchain.implicit_deps_providers, "objc_infos"):
+            additional_objc_providers.extend(swift_toolchain.implicit_deps_providers.objc_infos)
         additional_cc_infos.extend(swift_toolchain.implicit_deps_providers.cc_infos)
-        additional_objc_providers.extend(swift_toolchain.implicit_deps_providers.objc_infos)
 
     # Create Objc provider
     additional_objc_providers.extend([
