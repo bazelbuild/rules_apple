@@ -14,7 +14,7 @@
 
 """Rule for creating header_maps."""
 
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_common")
+load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 
 HeaderMapInfo = provider(
     doc = "Provides information about created `.hmap` (header map) files",
@@ -83,7 +83,7 @@ def _header_map_impl(ctx):
 
     return [
         apple_common.new_objc_provider(),
-        swift_common.create_swift_info(),
+        SwiftInfo(),
         CcInfo(
             compilation_context = cc_common.create_compilation_context(
                 headers = depset([ctx.outputs.header_map]),
