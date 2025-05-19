@@ -529,8 +529,8 @@ Builds and bundles an iOS Sticker Pack Extension.
 ## ios_test_runner
 
 <pre>
-ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>, <a href="#ios_test_runner-pre_action">pre_action</a>,
-                <a href="#ios_test_runner-test_environment">test_environment</a>)
+ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>,
+                <a href="#ios_test_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#ios_test_runner-pre_action">pre_action</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
 </pre>
 
 Rule to identify an iOS runner that runs tests for iOS.
@@ -557,6 +557,7 @@ Outputs:
 | <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{"requires-darwin": ""}`  |
 | <a id="ios_test_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. By default, it is the latest supported version of the device type.'   | String | optional |  `""`  |
 | <a id="ios_test_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_test_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.   | Boolean | optional |  `False`  |
 | <a id="ios_test_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_test_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 
