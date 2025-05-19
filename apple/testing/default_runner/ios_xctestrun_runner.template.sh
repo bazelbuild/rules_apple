@@ -550,17 +550,26 @@ fi
 
 # Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
+post_action_determines_exit_code="%(post_action_determines_exit_code)s"
+post_action_exit_code=0
 if [[ -n "${result_bundle_path:-}" ]]; then
   TEST_EXIT_CODE=$test_exit_code \
     TEST_LOG_FILE="$testlog" \
     SIMULATOR_UDID="$simulator_id" \
     TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
-    "$post_action_binary"
+    "$post_action_binary" || post_action_exit_code=$?
 else
   TEST_EXIT_CODE=$test_exit_code \
     TEST_LOG_FILE="$testlog" \
     SIMULATOR_UDID="$simulator_id" \
-    "$post_action_binary"
+    "$post_action_binary" || post_action_exit_code=$?
+fi
+
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
 fi
 
 if [[
@@ -586,9 +595,16 @@ if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
   cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
-if [[ "$test_exit_code" -ne 0 ]]; then
-  echo "error: tests exited with '$test_exit_code'" >&2
-  exit "$test_exit_code"
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+else
+  if [[ "$test_exit_code" -ne 0 ]]; then
+    echo "error: tests exited with '$test_exit_code'" >&2
+    exit "$test_exit_code"
+  fi
 fi
 
 if [[ "${ERROR_ON_NO_TESTS_RAN:-1}" == "1" ]]; then
