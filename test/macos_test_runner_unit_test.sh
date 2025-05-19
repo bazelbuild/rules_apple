@@ -76,6 +76,27 @@ macos_test_runner(
     pre_action = ":pre_action",
     post_action = ":post_action",
 )
+
+
+genrule(
+  name = "post_action_soft_fail_gen",
+  executable = True,
+  outs = ["post_action_soft_fail.bash"],
+  cmd = """
+echo 'echo "POST-ACTION: Soft failing." && exit 0' > \$@
+""",
+)
+
+sh_binary(
+  name = "post_action_soft_fail",
+  srcs = [":post_action_soft_fail_gen"],
+)
+
+macos_test_runner(
+    name = "macos_runner_with_soft_fail",
+    post_action = ":post_action_soft_fail",
+    post_action_determines_exit_code = True,
+)
 EOF
 }
 
@@ -280,6 +301,14 @@ macos_unit_test(
     deps = [":fail_unit_test_lib"],
     minimum_os_version = "${MIN_OS_MACOS}",
     runner = ":macos_runner",
+)
+
+macos_unit_test(
+    name = 'SoftFailingUnitTest',
+    infoplists = ["FailUnitTest-Info.plist"],
+    deps = [":fail_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    runner = ":macos_runner_with_soft_fail",
 )
 EOF
 }
@@ -516,6 +545,17 @@ function test_macos_unit_test_fail() {
   expect_log "Test Suite 'FailingUnitTest' failed"
   expect_log "Test Suite 'FailingUnitTest.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
+}
+
+function test_macos_unit_test_soft_fail() {
+  create_runners
+  create_macos_unit_tests
+  do_macos_test //macos:SoftFailingUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Test Suite 'SoftFailingUnitTest.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+  expect_log "POST-ACTION: Soft failing."
 }
 
 function test_macos_unit_test_with_filter() {
