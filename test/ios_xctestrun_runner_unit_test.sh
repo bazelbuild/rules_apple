@@ -79,6 +79,27 @@ sh_binary(
   srcs = [":post_action_gen"],
 )
 
+genrule(
+  name = "post_action_soft_fail_gen",
+  executable = True,
+  outs = ["post_action_soft_fail.bash"],
+  cmd = """
+echo 'echo "POST-ACTION: Soft failing." && exit 0' > \$@
+""",
+)
+
+sh_binary(
+  name = "post_action_soft_fail",
+  srcs = [":post_action_soft_fail_gen"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_soft_fail",
+    device_type = "iPhone Xs",
+    post_action = ":post_action_soft_fail",
+    post_action_determines_exit_code = True,
+)
+
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner_with_hooks",
     device_type = "iPhone Xs",
@@ -369,6 +390,14 @@ ios_unit_test(
     deps = [":fail_unit_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = 'SoftFailingUnitTest',
+    infoplists = ["FailUnitTest-Info.plist"],
+    deps = [":fail_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner_with_soft_fail",
 )
 
 ios_unit_test(
@@ -788,6 +817,17 @@ function test_ios_unit_test_fail() {
   expect_log "Test Suite 'FailingUnitTest' failed"
   expect_log "Test Suite 'FailingUnitTest.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
+}
+
+function test_ios_unit_test_soft_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:SoftFailingUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Test Suite 'SoftFailingUnitTest.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+  expect_log "POST-ACTION: Soft failing."
 }
 
 function test_ios_unit_test_with_host_fail() {
