@@ -106,6 +106,7 @@ number (for example, `"9.0"`).
 """,
             ),
             "targets": attr.label_list(
+                allow_empty = False,
                 cfg = transition_support.apple_platform_split_transition,
                 doc = "The targets to check for successful build.",
             ),
