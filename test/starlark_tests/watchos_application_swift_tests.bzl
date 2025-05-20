@@ -119,7 +119,7 @@ def watchos_application_swift_test_suite(name):
             "bundle/Payload/companion.app/Watch/app.app/app",
             "bundle/Payload/companion.app/Watch/app.app/PlugIns/ext.appex/Info.plist",
             "bundle/Payload/companion.app/Watch/app.app/PlugIns/ext.appex/ext",
-            "bundle/SwiftSupport/iphoneos/libswiftCore.dylib",
+            "bundle/SwiftSupport/watchos/libswiftCore.dylib",
             "bundle/WatchKitSupport2/WK",
             "dossier/manifest.json",
         ],
