@@ -138,6 +138,8 @@ class Bundler(object):
       self._add_files(f['src'], f['dest'], f.get('executable', False),
                       output_path)
 
+    os.chmod(output_path, 0o755)
+
     post_processor = self._control.get('post_processor')
     if post_processor:
       self._post_process_bundle(output_path, post_processor)
