@@ -697,6 +697,32 @@ Please remove one of the two from your rule definition.
         tags = [name],
     )
 
+    # Tests that if frameworks and applications have different minimum versions that a user
+    # actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk",
+        expected_error = """
+ERROR: minimum_os_version {framework_version} on the framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version of {app_version}
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/ios:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version.
+""".format(app_version = common.min_os_ios.baseline, framework_version = common.min_os_ios.nplus1),
+        tags = [name],
+    )
+
+    # Tests that if data-loaded frameworks and applications have different minimum versions that a
+    # user actionable error is raised.
+    analysis_failure_message_test(
+        name = "{}_app_with_baseline_min_os_and_nplus1_transitive_data_fmwk_produces_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data",
+        expected_error = """
+ERROR: minimum_os_version {framework_version} on the framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version of {app_version}
+
+Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/ios:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/ios:app_with_nplus1_framework_objc_lib_using_data's minimum_os_version.
+""".format(app_version = common.min_os_ios.baseline, framework_version = common.min_os_ios.nplus1),
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
