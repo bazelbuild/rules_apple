@@ -103,6 +103,8 @@ _TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
 # between the test bundle and test host, to avoid debugging issues and redundant build activity.
 _LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "17.4"
 
+_ERROR_ON_IOS_TEST_BUNDLE_MISMATCH_PACKAGE_PREFIXES = []
+
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
     transitive_files = []
@@ -313,11 +315,16 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
             test_host_label_name = test_host.label.name,
         )
 
+        test_label_package_name = label.package
+
         # TODO(b/337080510): Apply this failure case to all Apple platforms.
         if platform_prerequisites.platform_type != "ios" or (
             apple_common.dotted_version(test_min_os) > apple_common.dotted_version(
                 _LOWEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING,
-            )
+            ) or any([
+                test_label_package_name.startswith(package_prefix)
+                for package_prefix in _ERROR_ON_IOS_TEST_BUNDLE_MISMATCH_PACKAGE_PREFIXES
+            ])
         ):
             fail("\nERROR: " + test_attribute_min_os_mismatch_message)
 
