@@ -30,14 +30,12 @@ if [[ "$BUILD_TYPE" == "simulator" ]]; then
 
   assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
 
-  if [[ "$XCODE_VERSION_MAJOR" -ge "14" ]]; then
-    # Then check the new DER encoded section.
-    xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
-        sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-        -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
+  # Then check the DER encoded section.
+  xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
+      sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
+      -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
 
-    assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
-  fi
+  assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
 
 elif [[ "$BUILD_TYPE" == "device" ]]; then
   # First check the legacy xml plist section.
@@ -46,7 +44,7 @@ elif [[ "$BUILD_TYPE" == "device" ]]; then
 
   assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
 
-  # Then check the new DER encoded section.
+  # Then check the DER encoded section.
   codesign --display --der --entitlements "$TEMP_DER_OUTPUT" "$BUNDLE_ROOT"
 
   assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
