@@ -415,6 +415,8 @@ def _register_binary_linking_action(
         exported_symbols_lists,
         extra_linkopts = [],
         extra_link_inputs = [],
+        extra_requested_features = [],
+        extra_disabled_features = [],
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1):
@@ -446,6 +448,10 @@ def _register_binary_linking_action(
             to control symbol resolution.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
+        extra_requested_features: Extra features as Strings requested of the underlying linker
+            action.
+        extra_disabled_features: Extra features as Strings requeted to be disabled from the
+            underlying linker action.
         platform_prerequisites: The platform prerequisites if one exists for the given rule. This
             will define additional linking sections for entitlements. If `None`, entitlements
             sections are not included.
@@ -537,6 +543,10 @@ def _register_binary_linking_action(
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
+        extra_requested_features = extra_requested_features,
+        # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
+        # being routed to the wrong exec platform.
+        extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
         stamp = stamp,
     )
 
