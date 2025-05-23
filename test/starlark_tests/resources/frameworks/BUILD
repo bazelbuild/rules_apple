@@ -15,7 +15,6 @@ swift_library(
     name = "swift_library",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
     features = [
-        "swift.emit_swiftinterface",
         "swift.enable_library_evolution",
     ],
     generates_header = True,
@@ -27,7 +26,6 @@ swift_library(
     name = "swift_lib_for_static_xcframework",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
     features = [
-        "swift.emit_swiftinterface",
         "swift.enable_library_evolution",
     ],
     generates_header = True,
