@@ -33,9 +33,9 @@ _min_os_ios = struct(
     app_intents_support = "16.0",
     appclip_support = "14.0",
     arm_sim_support = "14.0",
-    baseline = "12.0",
-    oldest_supported = "11.0",
-    nplus1 = "13.0",
+    baseline = "13.0",
+    oldest_supported = "12.0",
+    nplus1 = "14.0",
     stable_swift_abi = "12.2",
     widget_configuration_intents_support = "16.0",
 )
@@ -51,9 +51,9 @@ _min_os_macos = struct(
 _min_os_tvos = struct(
     app_intents_support = "16.0",
     arm_sim_support = "14.0",
-    baseline = "12.0",
-    nplus1 = "13.0",
-    oldest_supported = "11.0",
+    baseline = "13.0",
+    oldest_supported = "12.0",
+    nplus1 = "14.0",
     stable_swift_abi = "12.2",
 )
 
