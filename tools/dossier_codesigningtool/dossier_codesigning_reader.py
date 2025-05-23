@@ -330,11 +330,6 @@ keychain file specified. This is equivalent to the --keychain argument on
       nargs='*',
       help='Optional timestamp arg to pass to codesign calls.',
   )
-  sign_parser.add_argument(
-      '--force_serialization',
-      action='store_true',
-      help='Forces the codesigning tasks to be executed serially.',
-  )
   sign_parser.set_defaults(func=_sign_bundle)
 
   return parser
@@ -1065,12 +1060,7 @@ def _sign_bundle(parsed_args: argparse.Namespace) -> None:
       timestamp = parsed_args.timestamp[0]
     else:
       timestamp = ''
-  executor_kwargs = {}
-  if parsed_args.force_serialization:
-    executor_kwargs['max_workers'] = 1
-  with concurrent.futures.ThreadPoolExecutor(
-      **executor_kwargs
-  ) as signing_executor:
+  with concurrent.futures.ThreadPoolExecutor() as signing_executor:
     codesign_params = CodesignStaticParamsArgs(
         codesign_path=parsed_args.codesign,
         executor=signing_executor,
