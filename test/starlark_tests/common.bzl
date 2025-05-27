@@ -20,6 +20,7 @@ visibility("//test/starlark_tests/...")
 # their actions executed) when running `bazel test` to do analysis testing.
 _fixture_tags = [
     "manual",
+    "nobuilder",
     "notap",
 ]
 
@@ -41,7 +42,9 @@ _min_os_ios = struct(
 _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
+    concurrency_sleep_support = "10.15",
     baseline = "10.13",
+    requires_concurrency_stdlib = "10.14",
     arm64_support_plus1 = "12.0",
 )
 
