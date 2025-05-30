@@ -20,6 +20,10 @@
 # https://github.com/bazelbuild/rules_apple/blob/master/apple/testing/apple_test_rules.bzl
 # for more info.
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 if [[ "%(test_type)s" = "XCUITEST" ]]; then
   echo "This runner only works with macos_unit_test (b/63707899)."
   exit 1
@@ -231,4 +235,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$export_error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi

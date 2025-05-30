@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   echo "error: Missing \$DEVELOPER_DIR" >&2
   exit 1
@@ -487,7 +491,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
-
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo
     echo "xctestrun contents:"
@@ -663,6 +666,10 @@ fi
 
 if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
@@ -732,4 +739,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi
