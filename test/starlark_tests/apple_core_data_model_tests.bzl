@@ -61,6 +61,17 @@ def apple_core_data_model_test_suite(name):
         tags = [name],
     )
 
+    # Test outputs a list of files rather than directories
+    analysis_target_outputs_test(
+        name = "{}_outputs_explicit_swift_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:explicit_outs_data_model",
+        expected_outputs = [
+            "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
+            "swift_datamodel.explicit_outs_data_model.coredata.sources/swift_datamodel+CoreDataModel.swift",
+        ],
+        tags = [name],
+    )
+
     # Test registered actions and mnemonics for Obj-C and Swift data models.
     analysis_target_actions_test(
         name = "{}_actions_swift_test".format(name),

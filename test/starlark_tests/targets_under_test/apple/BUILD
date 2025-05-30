@@ -254,6 +254,18 @@ apple_core_data_model(
     tags = common.fixture_tags,
 )
 
+apple_core_data_model(
+    name = "explicit_outs_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:swift_datamodel",
+    ],
+    outs = [
+        "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
+        "swift_datamodel.explicit_outs_data_model.coredata.sources/swift_datamodel+CoreDataModel.swift",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "fmwk_lib",
     srcs = [

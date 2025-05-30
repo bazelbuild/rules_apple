@@ -85,8 +85,13 @@ def _apple_core_data_model_impl(ctx):
         ["xcdatamodeld"],
         attr = "datamodels",
     )
+    output_file_groups = group_files_by_directory(
+        ctx.outputs.outs,
+        ["coredata.sources"],
+        attr = "sources",
+    )
 
-    output_files = []
+    output_files = list(ctx.outputs.outs)
     for datamodel_path, files in datamodel_groups.items():
         datamodel_name = paths.replace_extension(
             paths.basename(datamodel_path),
@@ -97,19 +102,23 @@ def _apple_core_data_model_impl(ctx):
             datamodel_name.lower(),
             ctx.label.name,
         )
-        output_dir = actions.declare_directory(dir_name)
+        output_dir_path = "{}/{}/{}".format(ctx.genfiles_dir.path, ctx.label.package, dir_name)
+        data_model_outputs = output_file_groups.get(output_dir_path, depset()).to_list()
+        if len(data_model_outputs) == 0:
+            output_dir = actions.declare_directory(dir_name)
+            data_model_outputs.append(output_dir)
+            output_files.append(output_dir)
 
         resource_actions.generate_datamodels(
             actions = actions,
             datamodel_path = datamodel_path,
             input_files = files.to_list(),
-            output_dir = output_dir,
+            output_dir = output_dir_path,
+            outputs = data_model_outputs,
             platform_prerequisites = platform_prerequisites,
             swift_version = swift_version,
             xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
-
-        output_files.append(output_dir)
 
     return [DefaultInfo(files = depset(output_files))]
 
@@ -127,6 +136,12 @@ apple_core_data_model = rule(
             "swift_version": attr.string(
                 doc = "Target Swift version for generated classes.",
             ),
+            "outs": attr.output_list(
+                doc = """
+An optional list of expected output files. If not empty, the rule will
+return these files individually rather than returning a directory.
+"""
+            )
         },
     ),
     fragments = ["apple"],
