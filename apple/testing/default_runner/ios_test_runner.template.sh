@@ -16,7 +16,7 @@
 
 set -e
 
-if [[ -n "$TEST_PREMATURE_EXIT_FILE" ]]; then
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
   touch "$TEST_PREMATURE_EXIT_FILE"
 fi
 
@@ -305,7 +305,7 @@ fi
 
 if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
-  if [[ -f "$TEST_PREMATURE_EXIT_FILE" ]]; then
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
     rm -f "$TEST_PREMATURE_EXIT_FILE"
   fi
 
@@ -379,6 +379,6 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
   fi
 fi
 
-if [[ -f "$TEST_PREMATURE_EXIT_FILE" ]]; then
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
   rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi
