@@ -524,8 +524,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   fi
 
   xcodebuild test-without-building "${args[@]}" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
   platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
@@ -547,8 +546,7 @@ else
     "$xctest_binary" \
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
 # Run a post-action binary, if provided.
