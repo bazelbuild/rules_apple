@@ -140,8 +140,8 @@ apple_core_data_model = rule(
                 doc = """
 An optional list of expected output files. If not empty, the rule will
 return these files individually rather than returning a directory.
-"""
-            )
+""",
+            ),
         },
     ),
     fragments = ["apple"],
