@@ -312,10 +312,15 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "swift_fmwk_lib",
     srcs = [
         "DummyFmwk.swift",
+    ],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
     ],
     module_name = "ios_dynamic_lipoed_swift_xcframework",
     tags = common.fixture_tags,
@@ -1304,9 +1309,14 @@ swift_library(
 
 # Reserved as an input for import_dynamic_(xc)framework rules; referenced by an apple_xcframework
 # rule treated as a List of Files that properly declares a bundle_name matching this module_name.
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "Swift3PFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
     generates_header = True,
     module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,
