@@ -53,15 +53,9 @@ tasks:
 
   doc_tests:
     name: "Doc tests"
-    # FIXME: Use last_green once we cherry-pick in changes needed by
-    # https://github.com/bazelbuild/bazel/commit/b59004dd17366b09b0758b833f98294fd0e89345
-    # bazel: last_green
-    bazel: 21a12c72d84e9108142421d9a8526edf8dceb78c
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."
-    test_flags:
-    # TODO: Remove this once stardoc is updated to 0.7.1+ (https://github.com/bazelbuild/stardoc/pull/238)
-    - --noincompatible_disallow_empty_glob
 
 buildifier: 6.4.0
