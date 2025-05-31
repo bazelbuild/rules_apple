@@ -1,5 +1,6 @@
 """# Rules for using locally installed provisioning profiles"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load(
     "//apple:providers.bzl",
     "AppleProvisioningProfileInfo",
@@ -130,6 +131,14 @@ def _provisioning_profile_repository_extension(module_ctx):
     provisioning_profile_repository(
         name = "local_provisioning_profiles",
         **kwargs
+    )
+
+    metadata_kwargs = {}
+    if bazel_features.external_deps.extension_metadata_has_reproducible:
+        metadata_kwargs["reproducible"] = True
+
+    return module_ctx.extension_metadata(
+        **metadata_kwargs
     )
 
 provisioning_profile_repository_extension = module_extension(

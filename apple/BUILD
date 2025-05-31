@@ -43,6 +43,7 @@ bzl_library(
         "//apple/internal:experimental_mixed_language_library",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
+        "@bazel_features//:features",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
     ],
