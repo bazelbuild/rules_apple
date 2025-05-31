@@ -6,6 +6,7 @@ load(
     "SwiftInfo",
     "swift_library",
 )
+load("@build_bazel_rules_swift//swift:swift_interop_hint.bzl", "swift_interop_hint")
 load("//apple/internal:header_map_support.bzl", "header_map_support")
 
 _CPP_FILE_TYPES = [".cc", ".cpp", ".mm", ".cxx", ".C"]
@@ -358,9 +359,19 @@ target only contains Objective-C files.""")
     )
     objc_deps.append(umbrella_module_map_label)
 
+    swift_interop_hint_name = name + ".internal.swift_interop_hint"
+    swift_interop_hint_label = ":" + swift_interop_hint_name
+    swift_interop_hint(
+        name = swift_interop_hint_name,
+        module_map = umbrella_module_map_label,
+        module_name = module_name,
+        testonly = testonly,
+    )
+
     native.objc_library(
         name = name,
         copts = objc_copts,
+        aspect_hints = [swift_interop_hint_label],
         deps = objc_deps,
         hdrs = hdrs + [
             # These aren't headers but here is the only place to declare these
@@ -368,7 +379,6 @@ target only contains Objective-C files.""")
             # attribute to declare custom inputs.
             umbrella_module_map_label,
         ],
-        module_map = umbrella_module_map_label,
         srcs = objc_srcs,
         testonly = testonly,
         includes = includes,

@@ -758,7 +758,7 @@ docc_archive(
 )
 
 ios_static_framework(
-    name = "swift_static_framework",
+    name = "swift_static_framework_with_swiftinterface",
     bundle_name = "swift_framework_lib",
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,

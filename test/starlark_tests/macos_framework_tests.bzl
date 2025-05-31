@@ -333,6 +333,7 @@ def macos_framework_test_suite(name):
         tags = [name],
     )
 
+    # Tests that framework contains swiftinterface when swift_library uses `features = ["swift.emit_swiftinterface"]`.
     archive_contents_test(
         name = "{}_static_framework_contains_swiftinterface".format(name),
         build_type = "simulator",
