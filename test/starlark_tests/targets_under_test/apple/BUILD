@@ -303,6 +303,7 @@ swift_library(
     srcs = [
         "DummyFmwk.swift",
     ],
+    features = ["swift.emit_swiftinterface"],
     module_name = "ios_dynamic_lipoed_swift_xcframework",
     tags = common.fixture_tags,
 )
@@ -1293,6 +1294,7 @@ swift_library(
 swift_library(
     name = "Swift3PFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
+    features = ["swift.emit_swiftinterface"],
     generates_header = True,
     module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,

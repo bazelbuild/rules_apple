@@ -317,6 +317,15 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_framework_lib_with_swiftinterface",
+    srcs = ["//test/testdata/sources:main.swift"],
+    features = ["swift.emit_swiftinterface"],
+    generates_header = True,
+    module_name = "swift_framework_lib",
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
     tags = common.fixture_tags,
