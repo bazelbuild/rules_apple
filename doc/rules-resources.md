@@ -30,7 +30,7 @@ targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
 ## apple_core_data_model
 
 <pre>
-apple_core_data_model(<a href="#apple_core_data_model-name">name</a>, <a href="#apple_core_data_model-srcs">srcs</a>, <a href="#apple_core_data_model-swift_version">swift_version</a>)
+apple_core_data_model(<a href="#apple_core_data_model-name">name</a>, <a href="#apple_core_data_model-srcs">srcs</a>, <a href="#apple_core_data_model-outs">outs</a>, <a href="#apple_core_data_model-swift_version">swift_version</a>)
 </pre>
 
 This rule takes a Core Data model definition from a .xcdatamodeld bundle
@@ -44,6 +44,7 @@ dependency to a swift_library target.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_core_data_model-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_core_data_model-srcs"></a>srcs |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
+| <a id="apple_core_data_model-outs"></a>outs |  An optional list of expected output files. If not empty, the rule will return these files individually rather than returning a directory.   | List of labels | optional |  `[]`  |
 | <a id="apple_core_data_model-swift_version"></a>swift_version |  Target Swift version for generated classes.   | String | optional |  `""`  |
 
 
