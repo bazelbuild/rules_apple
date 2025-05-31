@@ -76,19 +76,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "experimental_mixed_language_library",
-    srcs = ["experimental_mixed_language_library.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "//apple/internal:header_map_support",
-        "@bazel_skylib//lib:paths",
-        "@build_bazel_rules_swift//swift",
-    ],
-)
-
-bzl_library(
     name = "apple_universal_binary",
     srcs = ["apple_universal_binary.bzl"],
     visibility = [
