@@ -33,10 +33,6 @@ load(
     _apple_static_xcframework_import = "apple_static_xcframework_import",
 )
 load(
-    "//apple/internal:experimental_mixed_language_library.bzl",
-    _experimental_mixed_language_library = "experimental_mixed_language_library",
-)
-load(
     "//apple/internal:local_provisioning_profiles.bzl",
     _local_provisioning_profile = "local_provisioning_profile",
     _provisioning_profile_repository = "provisioning_profile_repository",
@@ -56,7 +52,6 @@ apple_static_xcframework = _apple_static_xcframework
 apple_static_xcframework_import = _apple_static_xcframework_import
 apple_universal_binary = _apple_universal_binary
 apple_xcframework = _apple_xcframework
-experimental_mixed_language_library = _experimental_mixed_language_library
 local_provisioning_profile = _local_provisioning_profile
 provisioning_profile_repository = _provisioning_profile_repository
 provisioning_profile_repository_extension = _provisioning_profile_repository_extension
