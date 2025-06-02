@@ -16,6 +16,10 @@
 
 set -e
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 basename_without_extension() {
   local full_path="$1"
   local filename
@@ -301,6 +305,10 @@ fi
 
 if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
@@ -369,4 +377,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi
