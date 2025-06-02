@@ -66,8 +66,8 @@ def apple_core_data_model_test_suite(name):
         name = "{}_outputs_explicit_swift_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:explicit_outs_data_model",
         expected_outputs = [
-            "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
             "swift_datamodel.explicit_outs_data_model.coredata.sources/swift_datamodel+CoreDataModel.swift",
+            "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
         ],
         tags = [name],
     )

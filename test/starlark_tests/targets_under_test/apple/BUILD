@@ -259,10 +259,12 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:swift_datamodel",
     ],
-    outs = [
-        "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
-        "swift_datamodel.explicit_outs_data_model.coredata.sources/swift_datamodel+CoreDataModel.swift",
-    ],
+    outs = {
+        "swift_datamodel": [
+            "swift_datamodel+CoreDataModel.swift",
+            "Item+CoreDataProperties.swift",
+        ],
+    },
     tags = common.fixture_tags,
 )
 
