@@ -153,7 +153,6 @@ outs = {
     ],
 },
 ```
-This dictionary may be incomplete or the attribute may be omitted entirely.
 If one or more files are provided for a data model, the rule will return these
 files individually as outputs. Otherwise, the rule will return the directory
 containing the sources for the data model.
