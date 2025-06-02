@@ -33,9 +33,9 @@ targets (i.e. `apple_resource_bundle` and `apple_resource_group`) through the
 apple_core_data_model(<a href="#apple_core_data_model-name">name</a>, <a href="#apple_core_data_model-srcs">srcs</a>, <a href="#apple_core_data_model-outs">outs</a>, <a href="#apple_core_data_model-swift_version">swift_version</a>)
 </pre>
 
-This rule takes a Core Data model definition from a .xcdatamodeld bundle
-and generates Swift or Objective-C source files that can be added as a
-dependency to a swift_library target.
+This rule takes one or more Core Data model definitions from .xcdatamodeld
+bundles and generates Swift or Objective-C source files that can be added
+as srcs of a swift_library target.
 
 **ATTRIBUTES**
 
@@ -44,7 +44,7 @@ dependency to a swift_library target.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_core_data_model-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_core_data_model-srcs"></a>srcs |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
-| <a id="apple_core_data_model-outs"></a>outs |  An optional list of expected output files. If not empty, the rule will return these files individually rather than returning a directory.   | List of labels | optional |  `[]`  |
+| <a id="apple_core_data_model-outs"></a>outs |  A dictionary where the key is the name of a data model and the value is a list of source files expected to be generated from that data model. For example, if srcs contains one data model called "Taxonomy.xcdatamodeld" with a single entity called "Animal," you might provide this value: <pre><code>outs = {&#10;    "Taxonomy": [&#10;        "taxonomy+CoreDataModel.swift",&#10;        "Animal+CoreDataProperties.swift",&#10;    ],&#10;},</code></pre> This dictionary may be incomplete or the attribute may be omitted entirely. If one or more files are provided for a data model, the rule will return these files individually as outputs. Otherwise, the rule will return the directory containing the sources for the data model.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="apple_core_data_model-swift_version"></a>swift_version |  Target Swift version for generated classes.   | String | optional |  `""`  |
 
 
