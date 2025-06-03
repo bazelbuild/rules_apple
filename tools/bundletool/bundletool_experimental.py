@@ -50,6 +50,7 @@ import errno
 import filecmp
 import json
 import os
+import shlex
 import shutil
 import sys
 import zipfile
@@ -300,9 +301,11 @@ class Bundler(object):
     Args:
       bundle_root: The path to the bundle.
       command_lines: A newline-separated list of command lines that should be
-          executed in the bundle to sign it.
+        executed in the bundle to sign it.
     """
-    exit_code = os.system('WORK_DIR="%s"\n%s' % (bundle_root, command_lines))
+    exit_code = os.system(
+        'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
+    )
     if exit_code:
       raise CodeSignError(exit_code)
 

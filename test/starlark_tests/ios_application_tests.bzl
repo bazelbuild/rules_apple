@@ -1035,6 +1035,91 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
+    # bundle's Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
+    # bundle's Metadata.appintents bundle even when there is an extension that also references the
+    # same framework-defined App Intents bundle.
+    archive_contents_test(
+        name = "{}_metadata_app_intents_packagedata_bundle_contents_has_extension_and_framework_defined_intents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_framework_app_intents",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        text_test_values = [
+            ".*FrameworkDefinedHelloWorldIntents.*",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_with_spaces_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app minimal has several spaces",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app minimal has several spaces",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_tree_artifact_with_spaces_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app minimal has several spaces",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app minimal has several spaces",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_name_with_spaces_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_bundle_name_with_spaces",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app minimal bundle name has several spaces",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_tree_artifact_bundle_name_with_spaces_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_bundle_name_with_spaces",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app minimal bundle name has several spaces",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
