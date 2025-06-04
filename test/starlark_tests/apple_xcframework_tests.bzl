@@ -457,7 +457,8 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Tests that generated swift interfaces work for XCFrameworks when a swift_library is included.
+    # Tests that generated swift interfaces work for XCFrameworks when a swift_library is included that
+    # enable swift interface/library evolution.
     archive_contents_test(
         name = "{}_swift_interface_generation_test".format(name),
         build_type = "device",
@@ -489,13 +490,10 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
         ],
         tags = [name],
     )
