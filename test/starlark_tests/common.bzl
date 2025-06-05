@@ -35,7 +35,7 @@ _min_os_ios = struct(
     oldest_supported = "12.0",
     nplus1 = "14.0",
     stable_swift_abi = "12.2",
-    test_mismatch_high_threshold = "18.0",
+    test_mismatch_high_threshold = "17.0",
     widget_configuration_intents_support = "16.0",
 )
 
