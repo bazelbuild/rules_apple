@@ -12,6 +12,16 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 bzl_library(
+    name = "apple_symbols_file_info",
+    srcs = ["apple_symbols_file_info.bzl"],
+    visibility = [
+        # Visibility set to pkg since this provider is used only
+        # by the `apple_symbols_file` partial.
+        "//apple/internal/partials:__pkg__",
+    ],
+)
+
+bzl_library(
     name = "app_intents_info",
     srcs = ["app_intents_info.bzl"],
     visibility = [
