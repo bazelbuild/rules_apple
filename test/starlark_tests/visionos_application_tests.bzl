@@ -407,7 +407,9 @@ def visionos_application_test_suite(name):
         contains = [
             "manifest.json",
         ],
-        tags = [name],
+        tags = [
+            name,
+        ],
     )
 
     native.test_suite(
