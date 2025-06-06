@@ -36,7 +36,7 @@ apple_mac_tools_toolchain(
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
     signature_tool = "//tools:prebuilt_signature_tool_osx",
-    swift_stdlib_tool = "//tools/swift_stdlib_tool",
+    swift_stdlib_tool = "//tools:prebuilt_swift_stdlib_tool_osx",
     xcframework_processor_tool = "//tools:prebuilt_xcframework_processor_tool_osx",
     xctoolrunner = "//tools/xctoolrunner",
 )

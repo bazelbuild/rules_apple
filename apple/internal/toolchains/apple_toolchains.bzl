@@ -233,7 +233,7 @@ A `File` referencing a tool that extracts signatures XML from an artifact.
 """,
         ),
         "swift_stdlib_tool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that copies and lipos Swift stdlibs required for the target to run.

@@ -4,7 +4,6 @@ py_library(
     name = "execute",
     srcs = ["execute.py"],
     visibility = [
-        "//tools/swift_stdlib_tool:__pkg__",
         "//tools/xctoolrunner:__pkg__",
     ],
 )
