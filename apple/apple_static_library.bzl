@@ -81,6 +81,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
     providers = [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
         new_applebinaryinfo(
+            # Since the rule is deprecated, we only set what's needed for legacy users.
             binary = archive_result.library,
             infoplist = None,
         ),
