@@ -2106,9 +2106,15 @@ def _macos_command_line_application_impl(ctx):
 
     return [
         new_applebinaryinfo(
+            archs = sorted([
+                x[ApplePlatformInfo].target_arch
+                for x in cc_toolchain_forwarder.values()
+            ]),
             binary = output_file,
             infoplist = infoplist,
+            platform_type = platform_prerequisites.platform_type,
             product_type = rule_descriptor.product_type,
+            target_environment = platform_prerequisites.target_environment,
         ),
         DefaultInfo(
             executable = output_file,
@@ -2247,9 +2253,15 @@ def _macos_dylib_impl(ctx):
 
     return [
         new_applebinaryinfo(
+            archs = sorted([
+                x[ApplePlatformInfo].target_arch
+                for x in cc_toolchain_forwarder.values()
+            ]),
             binary = output_file,
             infoplist = infoplist,
+            platform_type = platform_prerequisites.platform_type,
             product_type = rule_descriptor.product_type,
+            target_environment = platform_prerequisites.target_environment,
         ),
         DefaultInfo(files = depset(transitive = [
             depset([output_file]),
