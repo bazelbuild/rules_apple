@@ -71,6 +71,10 @@ This provider propagates general information about an Apple binary that is not
 specific to any particular binary type.
 """,
     fields = {
+        "archs": """
+`List` of `String`s. The architectures that the binary supports (i.e. `arm64` for Apple Silicon
+simulators and device builds).
+""",
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) file that the target represents.
 """,
@@ -78,9 +82,16 @@ specific to any particular binary type.
 `String`. The bundle identifier of the binary as reflected in its embedded Info.plist, which will be
 applied if one was declared with the `bundle_id` attribute.
 """,
+        "platform_type": """
+`String`. The platform type for the binary (i.e. `ios` for iOS binaries).
+""",
         "product_type": """
 `String`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).
+""",
+        "target_environment": """
+`String`. The environment that the binary was built for, (i.e. `device` for iOS device builds,
+`simulator` for iOS simulator builds).
 """,
     },
     init = make_banned_init(provider_name = "AppleBinaryInfo"),

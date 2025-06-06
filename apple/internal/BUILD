@@ -40,6 +40,7 @@ bzl_library(
         ":rule_attrs",
         ":rule_factory",
         ":transition_support",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
