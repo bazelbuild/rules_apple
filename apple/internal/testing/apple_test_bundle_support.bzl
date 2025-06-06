@@ -100,7 +100,7 @@ _TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
 # The highest minimum OS version that can be used for the test mismatch warning. Higher versions
 # will be "fail"ed instead of issuing a warning to help enforce the minimum OS version to be the
 # same between the test bundle and test host to avoid debugging issues and redundant build activity.
-_HIGHEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "16.9"
+_HIGHEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "16.4"
 
 _ERROR_ON_IOS_TEST_BUNDLE_MISMATCH_PACKAGE_PREFIXES = []
 
