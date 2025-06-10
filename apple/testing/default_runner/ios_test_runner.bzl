@@ -27,7 +27,8 @@ def _get_template_substitutions(
         simulator_creator,
         testrunner,
         pre_action_binary,
-        post_action_binary):
+        post_action_binary,
+        post_action_determines_exit_code):
     """Returns the template substitutions for this runner."""
     subs = {
         "device_type": device_type,
@@ -36,6 +37,7 @@ def _get_template_substitutions(
         "testrunner_binary": testrunner,
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
+        "post_action_determines_exit_code": post_action_determines_exit_code,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -66,8 +68,10 @@ def _ios_test_runner_impl(ctx):
         pre_action_binary = ctx.executable.pre_action.short_path
         runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
 
+    post_action_determines_exit_code = False
     if ctx.executable.post_action:
         post_action_binary = ctx.executable.post_action.short_path
+        post_action_determines_exit_code = ctx.attr.post_action_determines_exit_code
         runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
 
     ctx.actions.expand_template(
@@ -80,6 +84,7 @@ def _ios_test_runner_impl(ctx):
             testrunner = ctx.executable._testrunner.short_path,
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
+            post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
         ),
     )
     return [
@@ -143,6 +148,12 @@ A binary to run prior to test execution. Runs after simulator creation. Sets any
             cfg = "exec",
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
+""",
+        ),
+        "post_action_determines_exit_code": attr.bool(
+            default = False,
+            doc = """
+When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
 """,
         ),
         "_test_template": attr.label(

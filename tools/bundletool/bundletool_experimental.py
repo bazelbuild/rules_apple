@@ -50,6 +50,7 @@ import errno
 import filecmp
 import json
 import os
+import shlex
 import shutil
 import sys
 import zipfile
@@ -137,6 +138,8 @@ class Bundler(object):
     for f in bundle_merge_files:
       self._add_files(f['src'], f['dest'], f.get('executable', False),
                       output_path)
+
+    os.chmod(output_path, 0o755)
 
     post_processor = self._control.get('post_processor')
     if post_processor:
@@ -298,9 +301,11 @@ class Bundler(object):
     Args:
       bundle_root: The path to the bundle.
       command_lines: A newline-separated list of command lines that should be
-          executed in the bundle to sign it.
+        executed in the bundle to sign it.
     """
-    exit_code = os.system('WORK_DIR="%s"\n%s' % (bundle_root, command_lines))
+    exit_code = os.system(
+        'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
+    )
     if exit_code:
       raise CodeSignError(exit_code)
 

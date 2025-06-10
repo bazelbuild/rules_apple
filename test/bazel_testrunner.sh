@@ -79,6 +79,7 @@ module(name = "build_bazel_rules_apple_integration_tests", version = "0")
 bazel_dep(name = "apple_support", version = "0.11.0", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_swift", version = "2.0.0", repo_name = "build_bazel_rules_swift")
 bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "rules_shell", version = "0.3.0")
 
 xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
 use_repo(xcode_configure, "local_config_xcode")

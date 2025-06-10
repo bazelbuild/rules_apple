@@ -3,6 +3,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
@@ -250,6 +251,20 @@ apple_core_data_model(
     srcs = [
         "//test/starlark_tests/resources:no_code_generation_datamodel",
     ],
+    tags = common.fixture_tags,
+)
+
+apple_core_data_model(
+    name = "explicit_outs_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:swift_datamodel",
+    ],
+    outs = {
+        "swift_datamodel": [
+            "swift_datamodel+CoreDataModel.swift",
+            "Item+CoreDataProperties.swift",
+        ],
+    },
     tags = common.fixture_tags,
 )
 
@@ -1168,7 +1183,6 @@ apple_static_xcframework(
         ],
         "device": [
             "arm64",
-            "x86_64",
         ],
     },
     minimum_os_versions = {
@@ -1179,6 +1193,31 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_swift_static_xcframework_with_broad_avoid_deps",
+    avoid_deps = [":swift_lib_for_static_xcfmwk"],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":swift_lib_for_static_xcfmwk"],
 )
 
 genrule(

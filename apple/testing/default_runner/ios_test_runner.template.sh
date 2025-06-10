@@ -16,6 +16,10 @@
 
 set -e
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 basename_without_extension() {
   local full_path="$1"
   local filename
@@ -269,6 +273,7 @@ else
   )
 fi
 
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 "$pre_action_binary"
 
@@ -279,17 +284,31 @@ cmd=("%(testrunner_binary)s"
   "${custom_xctestrunner_args[@]}")
 "${cmd[@]}" 2>&1 || test_exit_code=$?
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
+post_action_determines_exit_code="%(post_action_determines_exit_code)s"
+post_action_exit_code=0
 TEST_EXIT_CODE=$test_exit_code \
-  "$post_action_binary"
+  "$post_action_binary" || post_action_exit_code=$?
 
-if [[ "$test_exit_code" -ne 0 ]]; then
-  echo "error: tests exited with '$test_exit_code'" >&2
-  exit "$test_exit_code"
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+else
+  if [[ "$test_exit_code" -ne 0 ]]; then
+    echo "error: tests exited with '$test_exit_code'" >&2
+    exit "$test_exit_code"
+  fi
 fi
 
 if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
@@ -358,4 +377,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi

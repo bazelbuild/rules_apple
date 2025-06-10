@@ -24,7 +24,8 @@ def _get_template_substitutions(
         reuse_simulator,
         xctrunner_entitlements_template,
         pre_action_binary,
-        post_action_binary):
+        post_action_binary,
+        post_action_determines_exit_code):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -41,6 +42,7 @@ def _get_template_substitutions(
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
+        "post_action_determines_exit_code": post_action_determines_exit_code,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -78,8 +80,10 @@ def _ios_xctestrun_runner_impl(ctx):
         pre_action_binary = ctx.executable.pre_action.short_path
         runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
 
+    post_action_determines_exit_code = False
     if ctx.executable.post_action:
         post_action_binary = ctx.executable.post_action.short_path
+        post_action_determines_exit_code = ctx.attr.post_action_determines_exit_code
         runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
 
     ctx.actions.expand_template(
@@ -100,6 +104,7 @@ def _ios_xctestrun_runner_impl(ctx):
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
+            post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
         ),
     )
 
@@ -190,7 +195,13 @@ A binary to run prior to test execution. Runs after simulator creation. Sets the
             executable = True,
             cfg = "exec",
             doc = """
-A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.
+""",
+        ),
+        "post_action_determines_exit_code": attr.bool(
+            default = False,
+            doc = """
+When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
 """,
         ),
         "_simulator_creator": attr.label(

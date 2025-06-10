@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   echo "error: Missing \$DEVELOPER_DIR" >&2
   exit 1
@@ -446,6 +450,7 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   should_use_xcodebuild=true
 fi
 
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 SIMULATOR_UDID="$simulator_id" \
   "$pre_action_binary"
@@ -486,7 +491,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
-
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo
     echo "xctestrun contents:"
@@ -520,8 +524,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   fi
 
   xcodebuild test-without-building "${args[@]}" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
   platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
@@ -543,15 +546,32 @@ else
     "$xctest_binary" \
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
-TEST_EXIT_CODE=$test_exit_code \
-  TEST_LOG_FILE="$testlog" \
-  SIMULATOR_UDID="$simulator_id" \
-  "$post_action_binary"
+post_action_determines_exit_code="%(post_action_determines_exit_code)s"
+post_action_exit_code=0
+if [[ -n "${result_bundle_path:-}" ]]; then
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+    "$post_action_binary" || post_action_exit_code=$?
+else
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    "$post_action_binary" || post_action_exit_code=$?
+fi
+
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+fi
 
 if [[
   "$test_exit_code" -eq 0 &&
@@ -576,9 +596,16 @@ if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
   cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
-if [[ "$test_exit_code" -ne 0 ]]; then
-  echo "error: tests exited with '$test_exit_code'" >&2
-  exit "$test_exit_code"
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+else
+  if [[ "$test_exit_code" -ne 0 ]]; then
+    echo "error: tests exited with '$test_exit_code'" >&2
+    exit "$test_exit_code"
+  fi
 fi
 
 if [[ "${ERROR_ON_NO_TESTS_RAN:-1}" == "1" ]]; then
@@ -637,6 +664,10 @@ fi
 
 if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
@@ -706,4 +737,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi
