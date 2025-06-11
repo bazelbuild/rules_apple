@@ -2068,7 +2068,7 @@ macos_static_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:swift_framework_lib",
+        "//test/starlark_tests/resources:swift_framework_lib_with_swiftinterface",
     ],
 )
 

@@ -410,7 +410,7 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_static_framework_contains_swiftinterface".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_framework_with_swiftinterface",
         contains = [
             "$BUNDLE_ROOT/Headers/swift_framework_lib.h",
             "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftdoc",
