@@ -382,7 +382,7 @@ All requested architectures must be either device or simulator architectures."""
     # Test that the output binary is identified as visionOS devive (PLATFORM_XROS) via
     # the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
     binary_contents_test(
-        name = "{}_visionos_binary_contents_arm_device_platform_test".format(name),
+        name = "{}_visionos_binary_contents_arm_device_platform_pre_xcode26_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_vision_library",
         cpus = {
@@ -391,13 +391,15 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROS"],
-        tags = [name],
+        tags = [
+            name,
+        ],
     )
 
     # Test that the output binary is identified as visionOS simulator (PLATFORM_XROSSIMULATOR) via
     # the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
     binary_contents_test(
-        name = "{}_visionos_binary_contents_arm_simulator_platform_test".format(name),
+        name = "{}_visionos_binary_contents_arm_simulator_platform_pre_xcode26_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_vision_library",
         cpus = {
@@ -406,7 +408,43 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
-        tags = [name],
+        tags = [
+            name,
+        ],
+    )
+
+    # Test that the output binary is identified as visionOS devive (PLATFORM_VISIONOS) via
+    # the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
+    binary_contents_test(
+        name = "{}_visionos_binary_contents_arm_device_platform_post_xcode26_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_vision_library",
+        cpus = {
+            "visionos_cpus": ["arm64"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform VISIONOS"],
+        tags = [
+            name,
+        ],
+    )
+
+    # Test that the output binary is identified as visionOS simulator (PLATFORM_VISIONOSSIMULATOR)
+    # via the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
+    binary_contents_test(
+        name = "{}_visionos_binary_contents_arm_simulator_platform_post_xcode26_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_vision_library",
+        cpus = {
+            "visionos_cpus": ["sim_arm64"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform VISIONOSSIMULATOR"],
+        tags = [
+            name,
+        ],
     )
 
     native.test_suite(
