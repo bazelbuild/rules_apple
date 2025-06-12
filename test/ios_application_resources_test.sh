@@ -423,7 +423,7 @@ objc_library(
     name = "lib",
     srcs = ["main.m"],
     data = [
-        # "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
         "@build_bazel_rules_apple//test/testdata/resources:localized_xcstrings",
     ],
 )
@@ -459,7 +459,7 @@ objc_library(
     name = "lib",
     srcs = ["main.m"],
     data = [
-        # "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
         "@build_bazel_rules_apple//test/testdata/resources:localized_xcstrings",
     ],
 )

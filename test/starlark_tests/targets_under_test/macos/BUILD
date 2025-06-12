@@ -66,7 +66,7 @@ objc_library(
 objc_library(
     name = "app_lib",
     data = [
-        # "//test/starlark_tests/resources:empty.strings",
+        "//test/starlark_tests/resources:empty.strings",
         "//test/starlark_tests/resources:empty.xcstrings",
     ],
     tags = common.fixture_tags,
@@ -76,7 +76,7 @@ objc_library(
 objc_library(
     name = "test_lib",
     data = [
-        # "//test/starlark_tests/resources:nonlocalized.strings",
+        "//test/starlark_tests/resources:nonlocalized.strings",
         "//test/starlark_tests/resources:nonlocalized.xcstrings",
     ],
     tags = common.fixture_tags,
@@ -652,7 +652,7 @@ objc_library(
     ],
     data = [
         "//test/testdata/resources:assets",
-        # "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized.strings",
         "//test/testdata/resources:nonlocalized.xcstrings",
         "//test/testdata/resources:storyboard_macos.storyboard",
         "//test/testdata/resources:unversioned_datamodel",
