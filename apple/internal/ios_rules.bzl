@@ -2563,8 +2563,6 @@ ios_application = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
         rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
             supports_alternate_icons = True,
         ),
         rule_attrs.app_intents_attrs(
@@ -2679,10 +2677,7 @@ ios_app_clip = rule_factory.create_apple_rule(
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
-        ),
+        rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2751,10 +2746,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
     implementation = _ios_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
-        ),
+        rule_attrs.app_icon_attrs(),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
         ),
@@ -3059,10 +3051,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.""",
     implementation = _ios_imessage_application_impl,
     predeclared_outputs = {"archive": "%{name}.ipa"},
     attrs = [
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
-        ),
+        rule_attrs.app_icon_attrs(),
         rule_attrs.common_bundle_attrs(deps_cfg = transition_support.apple_platform_split_transition),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -3098,10 +3087,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
     implementation = _ios_imessage_extension_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
-        ),
+        rule_attrs.app_icon_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

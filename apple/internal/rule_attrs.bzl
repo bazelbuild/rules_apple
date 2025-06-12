@@ -605,7 +605,8 @@ def _app_icon_attrs(
         *,
         icon_extension = ".appiconset",
         icon_parent_extension = ".xcassets",
-        supports_alternate_icons = False):
+        supports_alternate_icons = False,
+        supports_icon_composer_icons = True):
     """Returns the attribute required to define app icons for the given target.
 
     Args:
@@ -615,14 +616,20 @@ def _app_icon_attrs(
             of the directory containing the app icon assets. Optional. Defaults to `.xcassets`.
         supports_alternate_icons: Bool representing if the rule supports alternate icons. False by
             default.
+        supports_icon_composer_icons: Bool representing if the rule supports Icon Composer icons, which were
+            introduced in Xcode 26. True by default.
     """
+    icon_composer_doc = ""
+    if supports_icon_composer_icons:
+        icon_composer_doc = "either be contained within an Icon Composer `*.icon` package, or "
     app_icon_attrs = {
         "app_icons": attr.label_list(
             allow_files = True,
             doc = """
-Files that comprise the app icons for the application. Each file must have a containing directory
-named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be only one such
-`.{app_icon_extension}` directory in the list.""".format(
+Files that comprise the app icons for the application. Each file must {icon_composer_doc}have a containing directory named 
+`*.{app_icon_parent_extension}/*.{app_icon_extension}`. When using a `*.{app_icon_extension}`,
+only one such directory is allowed to be in the list.""".format(
+                icon_composer_doc = icon_composer_doc,
                 app_icon_extension = icon_extension,
                 app_icon_parent_extension = icon_parent_extension,
             ),
