@@ -219,7 +219,7 @@ conversion of plist files to binary format.
             doc = "A `File` referencing a template for a shell script to process and sign.",
         ),
         "provisioning_profile_tool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool that extracts entitlements from a provisioning profile.

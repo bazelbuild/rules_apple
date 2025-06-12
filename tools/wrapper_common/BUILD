@@ -16,15 +16,6 @@ py_test(
     ],
 )
 
-py_library(
-    name = "lipo",
-    srcs = ["lipo.py"],
-    visibility = [
-        "//tools:__subpackages__",
-    ],
-    deps = [":execute"],
-)
-
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
