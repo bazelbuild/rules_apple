@@ -182,6 +182,10 @@ fi
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
