@@ -566,13 +566,13 @@ function assert_binary_contains() {
   local symbol_regexp="$4"
 
   mkdir -p tempdir
-  local fat_path="tempdir/fat_binary"
+  local universal_path="tempdir/universal_binary"
   local thin_path="tempdir/thin_binary"
 
-  unzip_single_file "$archive" "$path" > $fat_path
+  unzip_single_file "$archive" "$path" > $universal_path
   local -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    assert_objdump_contains "$arch" "$fat_path" "$symbol_regexp"
+    assert_objdump_contains "$arch" "$universal_path" "$symbol_regexp"
   done
   rm -rf tempdir
 }
@@ -589,13 +589,13 @@ function assert_binary_not_contains() {
   local symbol_regexp="$4"
 
   mkdir -p tempdir
-  local fat_path="tempdir/fat_binary"
+  local universal_path="tempdir/universal_binary"
   local thin_path="tempdir/thin_binary"
 
-  unzip_single_file "$archive" "$path" > $fat_path
+  unzip_single_file "$archive" "$path" > $universal_path
   local -a archs=( $(current_archs "$platform") )
   for arch in "${archs[@]}"; do
-    assert_objdump_not_contains "$arch" "$fat_path" "$symbol_regexp"
+    assert_objdump_not_contains "$arch" "$universal_path" "$symbol_regexp"
   done
   rm -rf tempdir
 }

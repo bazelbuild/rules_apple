@@ -63,7 +63,7 @@ def macos_command_line_application_test_suite(name):
     )
 
     apple_verification_test(
-        name = "{}_info_plist_fat_binary_codesign_test".format(name),
+        name = "{}_info_plist_universal_binary_codesign_test".format(name),
         build_type = "device",
         cpus = {
             "macos_cpus": ["x86_64", "arm64"],

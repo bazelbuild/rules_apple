@@ -161,7 +161,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
     binary_contents_test(
-        name = "{}_xcframework_binary_file_info_test_fat".format(name),
+        name = "{}_xcframework_binary_file_info_test_universal".format(name),
         build_type = "simulator",
         cpus = {
             "ios_multi_cpus": [
@@ -179,7 +179,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
     binary_contents_test(
-        name = "{}_xcframework_swift_binary_file_info_test_fat".format(name),
+        name = "{}_xcframework_swift_binary_file_info_test_universal".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
