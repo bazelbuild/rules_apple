@@ -77,7 +77,11 @@ def _actool_args_for_special_file_types(
     """
     args = []
 
-    if product_type in (
+    icon_composer_icons = [f for f in asset_files if ".icon/" in f.path]
+    if icon_composer_icons:
+        appicon_extension = "icon"
+        icon_files = icon_composer_icons
+    elif product_type in (
         apple_product_type.messages_extension,
         apple_product_type.messages_sticker_pack_extension,
     ):
@@ -139,12 +143,12 @@ def _actool_args_for_special_file_types(
             if (platform_prerequisites.platform_type == apple_common.platform_type.watchos or
                 platform_prerequisites.platform_type == apple_common.platform_type.macos or
                 product_type != apple_product_type.application):
-                fail("The asset catalogs should contain exactly one directory named " +
-                     "*.%s among its asset catalogs, " % appicon_extension +
+                fail("The assets should contain exactly one directory named " +
+                     "*.%s among its asset catalogs or Icon Composer icons, " % appicon_extension +
                      "but found the following: " + formatted_dirs, "app_icons")
             else:
                 fail("""
-Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
+Found multiple app icons among the assets with no primary_app_icon assigned.
 
 If you intend to assign multiple app icons to this target, please declare which of these is intended
 to be the primary app icon with the primary_app_icon attribute on the rule itself.
@@ -279,6 +283,12 @@ def compile_asset_catalog(
         "actool",
         "--compile",
         xctoolrunner_support.prefixed_path(output_dir.path),
+        "--output-format",
+        "human-readable-text",
+        "--notices",
+        "--warnings",
+        "--lightweight-asset-runtime-mode",
+        "enabled",
         "--platform",
         actool_platform,
         "--minimum-deployment-target",
@@ -321,7 +331,7 @@ def compile_asset_catalog(
 
     xcassets = group_files_by_directory(
         asset_files,
-        ["xcassets", "xcstickers"],
+        ["xcassets", "xcstickers", "icon"],
         attr = "asset_catalogs",
     ).keys()
 
