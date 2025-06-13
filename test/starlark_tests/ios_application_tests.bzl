@@ -78,7 +78,7 @@ load(
 
 visibility("private")
 
-analysis_failure_message_with_mismatched_fat_architechtures_test = make_analysis_failure_message_test(
+analysis_failure_message_with_mismatched_universal_architechtures_test = make_analysis_failure_message_test(
     config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
 )
 
@@ -89,7 +89,7 @@ def ios_application_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    analysis_failure_message_with_mismatched_fat_architechtures_test(
+    analysis_failure_message_with_mismatched_universal_architechtures_test(
         name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         expected_error = """
@@ -835,7 +835,7 @@ App Intents bundles were defined by the following framework-referenced targets:
 
     # Test app with App Intents generates and bundles Metadata.appintents bundle for universal binaries.
     archive_contents_test(
-        name = "{}_fat_build_contains_app_intents_metadata_bundle_test".format(name),
+        name = "{}_universal_build_contains_app_intents_metadata_bundle_test".format(name),
         build_type = "simulator",
         cpus = {
             "ios_multi_cpus": ["x86_64", "sim_arm64"],

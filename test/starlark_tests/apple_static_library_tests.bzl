@@ -56,7 +56,7 @@ analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test
     },
 )
 
-analysis_failure_message_with_mismatched_fat_architectures_test = make_analysis_failure_message_test(
+analysis_failure_message_with_mismatched_universal_architectures_test = make_analysis_failure_message_test(
     config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
 )
 
@@ -67,7 +67,7 @@ def apple_static_library_test_suite(name):
       name: The base name to be used in things created by this macro.
     """
 
-    analysis_failure_message_with_mismatched_fat_architectures_test(
+    analysis_failure_message_with_mismatched_universal_architectures_test(
         name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_baseline_supported_ios",
         expected_error = """
