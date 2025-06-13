@@ -683,18 +683,18 @@ def _register_binary_linking_action(
         xcframework_deps = xcframework_deps,
     )
 
-    fat_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
+    universal_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
 
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = [output.binary for output in linking_outputs.outputs],
-        output = fat_binary,
+        output = universal_binary,
         apple_fragment = ctx.fragments.apple,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     return struct(
-        binary = fat_binary,
+        binary = universal_binary,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
@@ -734,18 +734,18 @@ def _register_static_library_archive_action(
         cc_toolchains = cc_toolchains,
     )
 
-    fat_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
+    universal_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
 
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = [output.library for output in archive_outputs.outputs],
-        output = fat_library,
+        output = universal_library,
         apple_fragment = ctx.fragments.apple,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     return struct(
-        library = fat_library,
+        library = universal_library,
         outputs = archive_outputs.outputs,
         output_groups = archive_outputs.output_groups,
     )

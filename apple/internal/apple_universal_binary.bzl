@@ -54,12 +54,12 @@ def _apple_universal_binary_impl(ctx):
         fail("Target (%s) `binary` label ('%s') does not provide any " +
              "file for universal binary" % (ctx.attr.name, ctx.attr.binary))
 
-    fat_binary = ctx.actions.declare_file(ctx.label.name)
+    universal_binary = ctx.actions.declare_file(ctx.label.name)
 
     linking_support.lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = inputs,
-        output = fat_binary,
+        output = universal_binary,
         apple_fragment = ctx.fragments.apple,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -76,13 +76,13 @@ def _apple_universal_binary_impl(ctx):
     return [
         new_applebinaryinfo(
             archs = sorted(ctx.attr.forced_cpus),
-            binary = fat_binary,
+            binary = universal_binary,
             platform_type = apple_support.target_os_from_rule_ctx(ctx),
             target_environment = apple_support.target_environment_from_rule_ctx(ctx),
         ),
         DefaultInfo(
-            executable = fat_binary,
-            files = depset([fat_binary]),
+            executable = universal_binary,
+            files = depset([universal_binary]),
             runfiles = runfiles,
         ),
     ]

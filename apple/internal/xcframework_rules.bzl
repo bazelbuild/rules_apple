@@ -417,11 +417,11 @@ def _group_link_outputs_by_library_identifier(
         extension = inputs[0].extension
         if extension != "":
             filename = "{}.{}".format(filename, extension)
-        fat_binary = actions.declare_file(filename)
+        universal_binary = actions.declare_file(filename)
         linking_support.lipo_or_symlink_inputs(
             actions = actions,
             inputs = inputs,
-            output = fat_binary,
+            output = universal_binary,
             apple_fragment = apple_fragment,
             xcode_config = xcode_config,
         )
@@ -479,7 +479,7 @@ def _group_link_outputs_by_library_identifier(
 
         link_outputs_by_library_identifier[library_identifier] = struct(
             architectures = sorted_architectures,
-            binary = fat_binary,
+            binary = universal_binary,
             dsym_outputs = dsym_outputs,
             environment = environment,
             linkmaps = linkmaps,
