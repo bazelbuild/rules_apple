@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-A rule for handling the cc_toolchains and their constraints for a potential "fat" Mach-O binary.
+A rule for handling the cc_toolchains and their constraints for a potential universal Mach-O binary.
 """
 
 load(
@@ -57,7 +57,8 @@ cc_toolchain_forwarder = rule(
 Shared rule that returns CcToolchainInfo, plus a rules_apple defined provider based on querying
 ctx.target_platform_has_constraint(...) that covers all Apple cpu, platform, environment constraints
 for the purposes of understanding what constraints the results of each Apple split transition
-resolve to from the perspective of any bundling and binary rules that generate "fat" Apple binaries.
+resolve to from the perspective of any bundling and binary rules that generate universal Apple
+binaries.
 """,
     provides = [cc_common.CcToolchainInfo, ApplePlatformInfo],
     # Anticipated "new" toolchain assignment.

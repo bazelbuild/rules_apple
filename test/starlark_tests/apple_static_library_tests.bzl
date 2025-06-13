@@ -71,7 +71,7 @@ def apple_static_library_test_suite(name):
         name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_baseline_supported_ios",
         expected_error = """
-ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+ERROR: Attempted to build a universal binary with the following platforms, but their environments \
 (device or simulator) are not consistent:
 
 ios_arm64, ios_x86_64

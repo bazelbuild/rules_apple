@@ -91,8 +91,9 @@ apple_universal_binary = rule_factory.create_apple_rule(
     avoid_apple_exec_group_toolchain = True,
     cfg = transition_support.apple_universal_binary_rule_transition,
     doc = """
-This rule produces a multi-architecture ("fat") binary targeting Apple platforms.
-The `lipo` tool is used to combine built binaries of multiple architectures.
+This rule produces a multi-architecture (universal) binary targeting Apple
+platforms. The `lipo` tool is used to combine built binaries of multiple
+architectures.
 """,
     implementation = _apple_universal_binary_impl,
     is_executable = True,
@@ -104,7 +105,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
             "binary": attr.label(
                 mandatory = True,
                 cfg = transition_support.apple_platform_split_transition,
-                doc = "Target to generate a 'fat' binary from.",
+                doc = "Target to generate a universal binary from.",
             ),
             "forced_cpus": attr.string_list(
                 mandatory = False,

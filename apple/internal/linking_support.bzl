@@ -508,7 +508,7 @@ def _validate_platform_variants(*, cc_toolchains, label):
                 expected_environment = actual_environment
             else:
                 fail("""
-ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+ERROR: Attempted to build a universal binary with the following platforms, but their environments \
 (device or simulator) are not consistent:
 
 {split_transition_keys}
@@ -598,7 +598,7 @@ def _register_binary_linking_action(
 
         *   `binary`: The final binary `File` that was linked. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
-            is a new universal (fat) binary obtained by invoking `lipo`.
+            is a new universal binary obtained by invoking `lipo`.
         *   `cc_info`: The CcInfo provider containing information about the targets that were
             linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
@@ -719,7 +719,7 @@ def _register_static_library_archive_action(
 
         *   `library`: The final library `File` that was archived. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
-            is a new universal (fat) library archive obtained by invoking `lipo`.
+            is a new universal library archive obtained by invoking `lipo`.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
@@ -751,7 +751,7 @@ def _register_static_library_archive_action(
     )
 
 def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
-    """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
+    """Creates a universal binary with `lipo` if inputs > 1, symlinks otherwise.
 
     Args:
       actions: The rule context actions.

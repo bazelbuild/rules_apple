@@ -150,8 +150,8 @@ Resolved Xcode is version {xcode_version}.
 apple_binary = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,
     doc = """
-This rule produces single- or multi-architecture ("fat") binaries targeting
-Apple platforms.
+This rule produces single- or multi-architecture ("universal") binaries
+targeting Apple platforms.
 
 The `lipo` tool is used to combine files of multiple architectures. One of
 several flags may control which architectures are included in the output,

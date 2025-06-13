@@ -88,8 +88,8 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
 apple_static_library = rule_factory.create_apple_rule(
     cfg = None,
     doc = """
-This rule produces single- or multi-architecture ("fat") static libraries targeting
-Apple platforms.
+This rule produces single- or multi-architecture ("universal") static libraries
+targeting Apple platforms.
 
 The `lipo` tool is used to combine files of multiple architectures. One of
 several flags may control which architectures are included in the output,

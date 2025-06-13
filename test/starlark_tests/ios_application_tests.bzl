@@ -93,7 +93,7 @@ def ios_application_test_suite(name):
         name = "{}_fails_when_building_device_and_sim_architectures_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         expected_error = """
-ERROR: Attempted to build a fat binary with the following platforms, but their environments \
+ERROR: Attempted to build a universal binary with the following platforms, but their environments \
 (device or simulator) are not consistent:
 
 ios_arm64, ios_x86_64
@@ -833,7 +833,7 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [name],
     )
 
-    # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
+    # Test app with App Intents generates and bundles Metadata.appintents bundle for universal binaries.
     archive_contents_test(
         name = "{}_fat_build_contains_app_intents_metadata_bundle_test".format(name),
         build_type = "simulator",
