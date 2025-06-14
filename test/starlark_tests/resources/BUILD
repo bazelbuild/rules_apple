@@ -388,6 +388,32 @@ genrule(
 )
 
 genrule(
+    name = "generate_xcstrings",
+    outs = ["generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
@@ -433,6 +459,8 @@ apple_resource_bundle(
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
+        "files.xcstrings",
+        "greetings.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -444,6 +472,8 @@ apple_precompiled_resource_bundle(
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
+        "files.xcstrings",
+        "greetings.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -454,6 +484,8 @@ apple_precompiled_resource_bundle(
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
+        "files.xcstrings",
+        "greetings.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -463,6 +495,8 @@ apple_resource_bundle(
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
+        "files.xcstrings",
+        "greetings.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -472,6 +506,8 @@ apple_precompiled_resource_bundle(
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
+        "files.xcstrings",
+        "greetings.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -612,6 +648,11 @@ filegroup(
 )
 
 filegroup(
+    name = "localized_xcstrings",
+    srcs = glob(["*.xcstrings"]),
+)
+
+filegroup(
     name = "localized_xibs_ios",
     srcs = glob(["*.lproj/*.xib"]),
 )
@@ -691,6 +732,7 @@ objc_library(
         ":mapping_model",
         ":nonlocalized.plist",
         ":nonlocalized.strings",
+        ":nonlocalized.xcstrings",
         ":sample.png",
         ":storyboard_ios.storyboard",
         ":unversioned_datamodel",
@@ -708,6 +750,7 @@ objc_library(
         ":mapping_model",
         ":nonlocalized.plist",
         ":nonlocalized.strings",
+        ":nonlocalized.xcstrings",
         ":sample.png",
         ":storyboard_macos.storyboard",
         ":unversioned_datamodel",
@@ -724,6 +767,7 @@ objc_library(
         ":localized_plists",
         ":localized_storyboards_ios",
         ":localized_strings",
+        ":localized_xcstrings",
         ":localized_xibs_ios",
     ],
     tags = common.fixture_tags,
@@ -735,6 +779,7 @@ objc_library(
         ":mapping_model",
         ":nonlocalized.plist",
         ":nonlocalized.strings",
+        ":nonlocalized.xcstrings",
         ":sample.png",
         ":unversioned_datamodel",
         ":versioned_datamodel",
@@ -748,6 +793,7 @@ objc_library(
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -756,6 +802,7 @@ objc_library(
     name = "empty_strings_file_lib",
     data = [
         "empty.strings",
+        "empty.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -769,6 +816,7 @@ apple_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         "storyboard_ios.storyboard",
@@ -779,6 +827,7 @@ apple_resource_bundle(
         ":localized_plists",
         ":localized_storyboards_ios",
         ":localized_strings",
+        ":localized_xcstrings",
         ":localized_xibs_ios",
         ":mapping_model",
         ":unversioned_datamodel",
@@ -801,6 +850,7 @@ apple_precompiled_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         "storyboard_ios.storyboard",
@@ -811,6 +861,7 @@ apple_precompiled_resource_bundle(
         ":localized_plists",
         ":localized_storyboards_ios",
         ":localized_strings",
+        ":localized_xcstrings",
         ":localized_xibs_ios",
         ":mapping_model",
         ":unversioned_datamodel",
@@ -833,6 +884,7 @@ apple_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         "storyboard_macos.storyboard",
@@ -842,6 +894,7 @@ apple_resource_bundle(
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
         ":mapping_model",
         ":unversioned_datamodel",
         ":versioned_datamodel",
@@ -879,12 +932,14 @@ apple_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
         ":mapping_model",
         ":unversioned_datamodel",
         ":versioned_datamodel",
@@ -914,12 +969,14 @@ apple_precompiled_resource_bundle(
         "generated.strings",
         "nonlocalized.plist",
         "nonlocalized.strings",
+        "nonlocalized.xcstrings",
         "nonlocalized_resource.txt",
         "sample.png",
         ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
         ":localized_strings",
+        ":localized_xcstrings",
         ":mapping_model",
         ":unversioned_datamodel",
         ":versioned_datamodel",
@@ -957,8 +1014,10 @@ swift_library(
         "//test/testdata/resources:localized_generic_resources",
         "//test/testdata/resources:localized_storyboards_ios",
         "//test/testdata/resources:localized_strings",
+        "//test/testdata/resources:localized_xcstrings",
         "//test/testdata/resources:localized_xibs_ios",
         "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized.xcstrings",
         "//test/testdata/resources:nonlocalized_resource.txt",
         "//test/testdata/resources:storyboard_ios.storyboard",
         "//test/testdata/resources:unversioned_datamodel",
@@ -978,8 +1037,10 @@ swift_library(
         "//test/testdata/resources:localized_generic_resources",
         "//test/testdata/resources:localized_storyboards_macos",
         "//test/testdata/resources:localized_strings",
+        "//test/testdata/resources:localized_xcstrings",
         # "//test/testdata/resources:localized_xibs_macos",
         "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized.xcstrings",
         "//test/testdata/resources:nonlocalized_resource.txt",
         "//test/testdata/resources:storyboard_macos.storyboard",
         "//test/testdata/resources:unversioned_datamodel",
@@ -997,7 +1058,9 @@ swift_library(
         ":swift_structured_resources",
         "//test/testdata/resources:localized_generic_resources",
         "//test/testdata/resources:localized_strings",
+        "//test/testdata/resources:localized_xcstrings",
         "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized.xcstrings",
         "//test/testdata/resources:nonlocalized_resource.txt",
         "//test/testdata/resources:unversioned_datamodel",
         "//test/testdata/resources:versioned_datamodel",
