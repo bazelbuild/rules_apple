@@ -37,6 +37,8 @@ visionos_application(
 
 build_test(
     name = "HelloWorldBuildTest",
+    tags = [
+    ],
     targets = [
         ":HelloWorld",
     ],

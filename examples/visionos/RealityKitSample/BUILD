@@ -57,6 +57,8 @@ visionos_application(
 
 build_test(
     name = "RealityKitSampleBuildTest",
+    tags = [
+    ],
     targets = [
         ":RealityKitSample",
     ],
