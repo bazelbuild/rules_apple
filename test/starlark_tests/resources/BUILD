@@ -375,7 +375,7 @@ apple_resource_bundle(
 
 objc_library(
     name = "ios_device_dependent_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = select({
         "@platforms//os:ios": [":ios_device_dependent_text_file"],
         "//conditions:default": [],
@@ -393,7 +393,7 @@ apple_resource_bundle(
 
 objc_library(
     name = "tvos_device_dependent_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = select({
         "@platforms//os:tvos": [":tvos_device_dependent_text_file"],
         "//conditions:default": [],
@@ -411,7 +411,7 @@ apple_resource_bundle(
 
 objc_library(
     name = "visionos_device_dependent_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = select({
         "@platforms//os:visionos": [":visionos_device_dependent_text_file"],
         "//conditions:default": [],
@@ -489,7 +489,7 @@ apple_resource_group(
 
 objc_library(
     name = "objc_lib_with_resource_group_referencing_resource_deps",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = [
         ":resource_group_referencing_resource_deps",
     ],
@@ -498,7 +498,7 @@ objc_library(
 
 objc_library(
     name = "objc_lib_with_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = [
         ":structured_resources",
     ],
@@ -611,7 +611,7 @@ apple_bundle_import(
 
 objc_library(
     name = "basic_bundle_lib",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = [
         ":basic_bundle",
     ],
@@ -620,7 +620,7 @@ objc_library(
 
 objc_library(
     name = "another_basic_bundle_lib",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["dummy.m"],
     data = [
         ":basic_bundle",
     ],

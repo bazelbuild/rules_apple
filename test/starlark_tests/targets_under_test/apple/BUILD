@@ -2025,7 +2025,7 @@ apple_dynamic_xcframework_import(
 
 generate_static_xcframework(
     name = "generated_static_xcframework",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["//test/starlark_tests/resources:dummy.m"],
     minimum_os_versions = {
         "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
@@ -2051,7 +2051,7 @@ apple_static_xcframework_import(
 
 generate_static_xcframework(
     name = "generated_static_framework_xcframework_without_root_infoplist",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    srcs = ["//test/starlark_tests/resources:dummy.m"],
     bundle_format = "framework",
     include_framework_root_infoplists = False,
     include_resource_bundles = True,
