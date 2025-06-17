@@ -93,6 +93,9 @@ library for a target triplet.
         "xctoolrunner": """\
 The files_to_run for a tool that acts as a wrapper for xcrun actions.
 """,
+        "xctoolrunner_alternative": """\
+The files_to_run for an alternative tool that acts as a wrapper for xcrun actions.
+""",
     },
 )
 
@@ -145,6 +148,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
         swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
         xcframework_processor_tool = ctx.attr.xcframework_processor_tool.files_to_run,
         xctoolrunner = ctx.attr.xctoolrunner.files_to_run,
+        xctoolrunner_alternative = ctx.attr.xctoolrunner_alternative.files_to_run,
     )
     return [
         platform_common.ToolchainInfo(mac_tools_info = apple_mac_tools_info),
@@ -251,6 +255,13 @@ triplet.
             cfg = "target",
             executable = True,
             doc = "A `File` referencing a tool that acts as a wrapper for xcrun actions.",
+        ),
+        "xctoolrunner_alternative": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing an alternative tool that acts as a wrapper for xcrun actions.
+""",
         ),
     },
     doc = """Represents an Apple support toolchain for tools that must run on a Mac""",

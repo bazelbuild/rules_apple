@@ -25,4 +25,5 @@ apple_mac_tools_toolchain(
     swift_stdlib_tool = "//tools/swift_stdlib_tool:swift_stdlib_tool_osx",
     xcframework_processor_tool = "//tools/xcframework_processor_tool:xcframework_processor_tool_osx",
     xctoolrunner = "//tools/xctoolrunner",
+    xctoolrunner_alternative = "//tools/xctoolrunner:xctoolrunner_osx",
 )
