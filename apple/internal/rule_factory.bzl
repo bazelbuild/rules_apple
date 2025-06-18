@@ -184,7 +184,6 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             "@platforms//os:macos",
         ],
         test = True,
-        toolchains = use_cpp_toolchain(),
     )
 
 rule_factory = struct(
