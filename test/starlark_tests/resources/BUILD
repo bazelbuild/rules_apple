@@ -6,6 +6,7 @@ load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",

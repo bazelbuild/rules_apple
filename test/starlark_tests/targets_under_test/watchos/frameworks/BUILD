@@ -1,3 +1,4 @@
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple.bzl",
     "apple_static_framework_import",
