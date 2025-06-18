@@ -51,20 +51,22 @@ def compile_datamodels(
     platform_name = platform.name_in_plist.lower()
     deployment_target_option = "--%s-deployment-target" % platform_name
 
-    args = [
-        "momc",
-        deployment_target_option,
-        platform_prerequisites.minimum_os,
-        "--module",
-        module_name,
-        xctoolrunner_support.prefixed_path(datamodel_path),
-        xctoolrunner_support.prefixed_path(output_file.path),
-    ]
+    args = actions.args()
+    args.add("momc")
+
+    # Custom xctoolrunner options.
+    args.add("--xctoolrunner_assert_nonempty_dir", output_file.dirname)
+
+    # Standard momc options.
+    args.add(deployment_target_option, platform_prerequisites.minimum_os)
+    args.add("--module", module_name)
+    args.add(xctoolrunner_support.prefixed_path(datamodel_path))
+    args.add(xctoolrunner_support.prefixed_path(output_file.path))
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = [args],
         executable = xctoolrunner,
         exec_group = mac_exec_group,
         inputs = input_files,
@@ -139,6 +141,11 @@ def generate_datamodels(
 
     args = actions.args()
     args.add("momc")
+
+    # Custom xctoolrunner options.
+    args.add("--xctoolrunner_assert_nonempty_dir", output_dir.path)
+
+    # Standard momc options.
     args.add("--action", "generate")
     args.add(deployment_target_option, platform_prerequisites.minimum_os)
 
@@ -147,8 +154,6 @@ def generate_datamodels(
 
     args.add(xctoolrunner_support.prefixed_path(datamodel_path))
     args.add(xctoolrunner_support.prefixed_path(output_dir.path))
-
-    args.add("--xctoolrunner_assert_nonempty_dir", output_dir.path)
 
     apple_support.run(
         actions = actions,

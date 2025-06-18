@@ -81,7 +81,8 @@ def apple_core_data_model_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:swift_data_model",
         target_mnemonic = "MomGenerate",
         expected_argv = [
-            "momc --action generate",
+            "momc --xctoolrunner_assert_nonempty_dir",
+            "bin/third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/swift_datamodel.swift_data_model.coredata.sources --action generate",
             "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
         ],
         tags = [name],
@@ -91,7 +92,8 @@ def apple_core_data_model_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:objc_data_model",
         target_mnemonic = "MomGenerate",
         expected_argv = [
-            "momc --action generate",
+            "momc --xctoolrunner_assert_nonempty_dir",
+            "bin/third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/objc_datamodel.objc_data_model.coredata.sources --action generate",
             "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
         ],
         tags = [name],
@@ -101,7 +103,8 @@ def apple_core_data_model_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
         target_mnemonic = "MomGenerate",
         expected_argv = [
-            "momc --action generate",
+            "momc --xctoolrunner_assert_nonempty_dir",
+            "bin/third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/objc_datamodel.combined_swift_objc_data_model.coredata.sources --action generate",
             "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/objc_datamodel.xcdatamodeld",
         ],
         tags = [name],
@@ -111,7 +114,8 @@ def apple_core_data_model_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:combined_swift_objc_data_model",
         target_mnemonic = "MomGenerate",
         expected_argv = [
-            "momc --action generate",
+            "momc --xctoolrunner_assert_nonempty_dir",
+            "bin/third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/objc_datamodel.combined_swift_objc_data_model.coredata.sources --action generate",
             "[ABSOLUTE]third_party/bazel_rules/rules_apple/test/starlark_tests/resources/core_data_models/swift_datamodel.xcdatamodeld",
         ],
         tags = [name],

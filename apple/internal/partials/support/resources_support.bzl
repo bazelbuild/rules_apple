@@ -271,7 +271,7 @@ def _datamodels(
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
         swift_module = swift_module,
     )
     processed_origins.update(compiled_data_outputs.processed_origins)
@@ -284,7 +284,7 @@ def _datamodels(
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
     )
     processed_origins.update(compiled_mapping_outputs.processed_origins)
 
@@ -391,11 +391,11 @@ def _mlmodels(
         resource_actions.compile_mlmodel(
             actions = actions,
             input_file = file,
+            mac_exec_group = mac_exec_group,
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
-            mac_exec_group = mac_exec_group,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
         )
 
         mlmodel_bundles.append(
