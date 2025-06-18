@@ -142,6 +142,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
         "//apple/internal/resource_rules:apple_resource_locales",
+        "@rules_cc//cc:core_rules",
     ],
 )
 

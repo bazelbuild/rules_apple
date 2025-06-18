@@ -39,6 +39,7 @@ load(
     _apple_locale_from_unicode_locale = "apple_locale_from_unicode_locale",
     _apple_resource_locales = "apple_resource_locales",
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 visibility("public")
 
@@ -84,7 +85,7 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         **core_ml_args
     )
 
-    native.objc_library(
+    objc_library(
         name = name,
         srcs = [":{}.m".format(core_ml_name)],
         hdrs = [":{}".format(core_ml_name)],
