@@ -73,17 +73,6 @@ AppleTestRunnerInfo provider.
         cfg = "exec",
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
-    # gcov and mcov are binary files required to calculate test coverage.
-    "_gcov": attr.label(
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/objc:gcov"),
-        allow_single_file = True,
-    ),
-    "_mcov": attr.label(
-        cfg = "exec",
-        default = Label("@bazel_tools//tools/objc:mcov"),
-        allow_single_file = True,
-    ),
 }
 
 # The name of the execution group used for C++ toolchain linking actions, as
