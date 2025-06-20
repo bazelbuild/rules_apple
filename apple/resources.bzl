@@ -19,10 +19,6 @@ load(
     _apple_bundle_import = "apple_bundle_import",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
-    _apple_core_data_model = "apple_core_data_model",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_ml_library.bzl",
     _apple_core_ml_library = "apple_core_ml_library",
 )
@@ -48,7 +44,6 @@ apple_locale_from_unicode_locale = _apple_locale_from_unicode_locale
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_resource_locales = _apple_resource_locales
-apple_core_data_model = _apple_core_data_model
 
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
 def apple_core_ml_library(name, mlmodel, **kwargs):

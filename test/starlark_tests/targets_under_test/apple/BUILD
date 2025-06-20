@@ -22,7 +22,6 @@ load(
 )
 load(
     "//apple:resources.bzl",
-    "apple_core_data_model",
     "apple_core_ml_library",
 )
 load(
@@ -215,39 +214,6 @@ sh_binary(
         "ipa_post_processor_verify_codesigning.sh",
     ],
     tags = ["requires-darwin"],
-)
-
-apple_core_data_model(
-    name = "swift_data_model",
-    srcs = [
-        "//test/starlark_tests/resources:swift_datamodel",
-    ],
-    tags = common.fixture_tags,
-)
-
-apple_core_data_model(
-    name = "objc_data_model",
-    srcs = [
-        "//test/starlark_tests/resources:objc_datamodel",
-    ],
-    tags = common.fixture_tags,
-)
-
-apple_core_data_model(
-    name = "combined_swift_objc_data_model",
-    srcs = [
-        "//test/starlark_tests/resources:objc_datamodel",
-        "//test/starlark_tests/resources:swift_datamodel",
-    ],
-    tags = common.fixture_tags,
-)
-
-apple_core_data_model(
-    name = "no_code_generation_data_model",
-    srcs = [
-        "//test/starlark_tests/resources:no_code_generation_datamodel",
-    ],
-    tags = common.fixture_tags,
 )
 
 objc_library(
