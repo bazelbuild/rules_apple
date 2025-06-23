@@ -488,8 +488,11 @@ def _sectcreate_cc_info(segname, sectname, file):
     return [
         CcInfo(
             linking_context = cc_common.create_linking_context(
-                user_link_flags = linkopts,
-                additional_inputs = [file],
+                linker_inputs = depset([cc_common.create_linker_input(
+                    owner = file.owner,
+                    user_link_flags = linkopts,
+                    additional_inputs = depset([file]),
+                )]),
             ),
         ),
     ]

@@ -23,8 +23,12 @@ def _provider_contents_test_impl(ctx):
 
     target_under_test = analysistest.target_under_test(env)
     target_linking_context = target_under_test[CcInfo].linking_context
-    asserts.true(env, target_linking_context.additional_inputs.to_list()[0])
-    asserts.true(env, target_linking_context.user_link_flags[0].startswith("-Wl,-order_file,"))
+    linker_inputs = target_linking_context.linker_inputs.to_list()
+    additional_inputs = [file for linker_input in linker_inputs for file in linker_input.additional_inputs]
+    user_link_flags = [flag for linker_input in linker_inputs for flag in linker_input.user_link_flags]
+
+    asserts.true(env, additional_inputs[0])
+    asserts.true(env, user_link_flags[0].startswith("-Wl,-order_file,"))
 
     return analysistest.end(env)
 
@@ -46,7 +50,10 @@ opt_transition = transition(
 
 def _file_contents_test_impl(ctx):
     target_under_test = ctx.attr.target_under_test
-    actual = target_under_test[CcInfo].linking_context.additional_inputs.to_list()[0]
+    linker_inputs = target_under_test[CcInfo].linking_context.linker_inputs.to_list()
+    additional_inputs = [file for linker_input in linker_inputs for file in linker_input.additional_inputs]
+
+    actual = additional_inputs[0]
 
     body = """
 echo Testing that {file} matches {expected}
