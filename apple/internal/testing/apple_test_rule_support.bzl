@@ -337,7 +337,6 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         if test_coverage_manifest:
             direct_runfiles.append(test_coverage_manifest)
 
-        apple_coverage_support_files = ctx.attr._apple_coverage_support.files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
 
         execution_environment = dicts.add(
@@ -348,7 +347,6 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         )
 
         transitive_runfiles.extend([
-            apple_coverage_support_files,
             covered_binaries,
             test_bundle_target[_CoverageFilesInfo].coverage_files,
         ])
