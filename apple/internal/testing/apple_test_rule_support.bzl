@@ -301,7 +301,6 @@ def _apple_test_rule_impl(
         direct_runfiles.append(test_host_artifact)
 
     if ctx.configuration.coverage_enabled:
-        apple_coverage_support_files = ctx.attr._apple_coverage_support[DefaultInfo].files
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
 
         execution_environment = dicts.add(
@@ -312,7 +311,6 @@ def _apple_test_rule_impl(
         )
 
         transitive_runfiles.extend([
-            apple_coverage_support_files,
             covered_binaries,
             test_bundle_target[_CoverageFilesInfo].coverage_files,
         ])

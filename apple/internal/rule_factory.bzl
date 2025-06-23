@@ -69,10 +69,6 @@ AppleTestRunnerInfo provider.
         aspects = [coverage_files_aspect],
         providers = [AppleBundleInfo],
     ),
-    "_apple_coverage_support": attr.label(
-        cfg = "exec",
-        default = Label("@build_bazel_apple_support//tools:coverage_support"),
-    ),
 }
 
 # The name of the execution group used for C++ toolchain linking actions, as
