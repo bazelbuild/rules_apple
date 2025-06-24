@@ -35,6 +35,7 @@ _BUNDLE_ATTRS = {
         "linkopts",
         "provisioning_profile",
         "resources",
+        "resource_locales",
         "stamp",
     ]
 }

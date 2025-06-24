@@ -246,6 +246,19 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_opt_compilation_mode_on_apple_resource_locales_filter_test".format(name),
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/it.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$RESOURCE_ROOT/en.lproj/localized.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_locale_it",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_base_bundle_id_derived_bundle_id",
