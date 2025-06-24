@@ -758,7 +758,6 @@ def _ios_app_clip_impl(ctx):
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
-            package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
     ]

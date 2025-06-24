@@ -726,6 +726,7 @@ apple_static_framework_import(
 
 generate_import_framework(
     name = "iOSStaticFramework",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     include_resource_bundle = True,
     libtype = "static",
@@ -854,6 +855,38 @@ ios_app_clip(
     ],
 )
 
+ios_application(
+    name = "app_with_app_clip_with_swift_support",
+    app_clips = [":app_clip_with_swift_support"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_swift_support",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_main_lib",
+    ],
+)
 # ---------------------------------------------------------------------------------------
 
 ios_application(
@@ -1969,6 +2002,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "iOSDynamicFramework",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     include_resource_bundle = True,
     libtype = "dynamic",
@@ -2158,6 +2192,7 @@ apple_static_framework_import(
 
 generate_import_framework(
     name = "iOSSwiftStaticFramework",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     libtype = "static",
     minimum_os_version = common.min_os_ios.oldest_supported,
@@ -2168,6 +2203,7 @@ generate_import_framework(
 
 generate_import_framework(
     name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     include_module_interface_files = False,
     libtype = "static",
@@ -2285,6 +2321,7 @@ apple_xcframework(
     ],
     ios = {
         "simulator": [
+            # buildifier: disable=platform-specific-binaries
             "x86_64",
             "arm64",
         ],
@@ -2615,6 +2652,7 @@ apple_static_xcframework_import(
 generate_static_xcframework(
     name = "generated_swift_static_xcframework_without_swiftmodule",
     include_module_interface_files = False,
+    # buildifier: disable=platform-specific-binaries
     platforms = {"ios_simulator": ["x86_64"]},
     swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
     tags = common.fixture_tags,
@@ -2673,6 +2711,7 @@ generate_static_xcframework(
     },
     platforms = {
         "ios_simulator": [
+            # buildifier: disable=platform-specific-binaries
             "x86_64",
             "arm64",
         ],
@@ -2731,6 +2770,7 @@ apple_static_xcframework(
     bundle_name = "generated_swift_static_xcframework",
     ios = {
         "simulator": [
+            # buildifier: disable=platform-specific-binaries
             "x86_64",
         ],
     },
@@ -2769,6 +2809,7 @@ generate_static_xcframework(
     },
     platforms = {
         "ios_simulator": [
+            # buildifier: disable=platform-specific-binaries
             "x86_64",
             "arm64",
         ],
