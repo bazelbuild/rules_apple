@@ -158,6 +158,7 @@ def _copy_dsyms_into_declared_bundle(
             inputs = [dsym_binary],
             outputs = [output_binary],
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
+            mnemonic = "CopyDWARFIntoDSYM",
             command = "cp -p '%s' '%s'" % (dsym_binary.path, output_binary.path),
         )
 
