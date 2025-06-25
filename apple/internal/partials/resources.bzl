@@ -531,6 +531,7 @@ with dependencies where applicable. Please add a bundle ID to your target defini
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 plisttool = apple_mac_toolchain_info.plisttool,
+                resource_locales = resource_locales,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,

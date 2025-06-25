@@ -73,7 +73,7 @@ def _infoplist_contents_test_impl(ctx):
             "  echo \"ERROR: Expected '{}' to be contained in the plist.\"".format(key),
             "  EXIT_CODE=1",
             "elif [[ \"$VALUE\" != {} ]]; then".format(value),
-            "  echo \"ERROR: Expected '\"$VALUE\"' to match '{0}'\" for key '{1}'".format(
+            "  echo \"ERROR: Expected '\"$VALUE\"' to match '{0}' for key '{1}'\"".format(
                 value,
                 key,
             ),

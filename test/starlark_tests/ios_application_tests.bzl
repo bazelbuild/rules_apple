@@ -576,6 +576,18 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_apple_resource_locales_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_locale_it",
+        build_type = "device",
+        expected_values = {
+            "CFBundleLocalizations": """\"Array {
+    it
+}\"""",
+        },
+        tags = [name],
+    )
+
     # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
     # is enabled.
     apple_symbols_file_test(

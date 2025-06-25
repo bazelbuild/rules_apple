@@ -37,6 +37,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleVersionInfo",
+    "AppleResourceLocalesInfo",
 )
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
@@ -199,6 +200,7 @@ def merge_root_infoplists(
         output_pkginfo,
         platform_prerequisites,
         plisttool,
+        resource_locales,
         rule_descriptor,
         rule_label,
         version,
@@ -240,6 +242,7 @@ def merge_root_infoplists(
       output_plist: The file reference for the merged output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
       plisttool: A files_to_run for the plist tool.
+      resource_locales: The locales to include in the `CFBundleLocalizations` in the Info.plist.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
@@ -283,6 +286,12 @@ def merge_root_infoplists(
     if include_executable_name:
         substitutions["EXECUTABLE_NAME"] = product_name
         forced_plists.append(struct(CFBundleExecutable = product_name))
+
+    overridable_forced_plists = list(additional_overridable_values)
+    if resource_locales:
+        # Add CFBundleLocalizations to our info.plist in case apps are doing custom localization
+        # logic. If they are using the default lproj logic, this will be slightly redundant.
+        overridable_forced_plists.append(struct(CFBundleLocalizations = resource_locales[AppleResourceLocalesInfo].locales_to_include))
 
     if bundle_id:
         substitutions["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id
@@ -361,7 +370,7 @@ def merge_root_infoplists(
         forced_plists = forced_plists,
         info_plist_options = struct(**info_plist_options),
         output = output_plist.path,
-        overridable_forced_plists = additional_overridable_values,
+        overridable_forced_plists = overridable_forced_plists,
         plists = plists,
         target = str(rule_label),
         variable_substitutions = struct(**substitutions),

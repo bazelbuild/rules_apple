@@ -4376,3 +4376,22 @@ ios_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+ios_unit_test(
+    name = "ios_unit_test_locale_it",
+    bundle_id = "com.google.exampletest",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    resource_locales = "//test/starlark_tests/resources:locales_it",
+    resources = [
+        "//test/starlark_tests/resources:localized_strings",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
