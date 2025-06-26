@@ -569,6 +569,11 @@ filegroup(
 )
 
 filegroup(
+    name = "icon_bundle_assets",
+    srcs = glob(["app_icon.icon/**"]),
+)
+
+filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )

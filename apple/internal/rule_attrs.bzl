@@ -622,7 +622,9 @@ def _app_icon_attrs(
             doc = """
 Files that comprise the app icons for the application. Each file must have a containing directory
 named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be only one such
-`.{app_icon_extension}` directory in the list.""".format(
+`.{app_icon_extension}` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon`
+bundle can be provided along with the `*.{app_icon_parent_extension}` bundle to support 26 and
+pre-26 Apple OS rendering.""".format(
                 app_icon_extension = icon_extension,
                 app_icon_parent_extension = icon_parent_extension,
             ),
@@ -633,8 +635,12 @@ named `*.{app_icon_parent_extension}/*.{app_icon_extension}` and there may be on
             "primary_app_icon": attr.string(
                 doc = """
 An optional String to identify the name of the primary app icon when alternate app icons have been
-provided for the app.
-""",
+provided for the app. This should match both the `*.icon` bundle in iOS/macOS/watchOS 26+ and the
+`*.{app_icon_parent_extension}/.appiconset` bundle's AppIcon resource in previous versions of
+iOS/macOS/watchOS.
+""".format(
+                    app_icon_parent_extension = icon_parent_extension,
+                ),
             ),
         })
     return app_icon_attrs
