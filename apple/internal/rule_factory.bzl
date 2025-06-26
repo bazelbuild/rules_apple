@@ -188,7 +188,6 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             ),
         },
         test = True,
-        toolchains = use_cpp_toolchain(),
     )
 
 rule_factory = struct(

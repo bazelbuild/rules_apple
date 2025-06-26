@@ -15,6 +15,7 @@
 """# Rules related to Apple resources and resource bundles."""
 
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple/internal:resources.bzl",
     _resources_common = "resources",
@@ -51,6 +52,8 @@ load(
     "//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
+
+visibility("public")
 
 apple_bundle_import = _apple_bundle_import
 apple_intent_library = _apple_intent_library
@@ -99,7 +102,8 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         visibility = ["//visibility:private"],
         **core_ml_args
     )
-    native.objc_library(
+
+    objc_library(
         name = name,
         srcs = [objc_source],
         hdrs = [objc_header],
