@@ -73,6 +73,12 @@ def _actool_args_for_special_file_types(
     """
     args = []
 
+    is_xcode_26_or_later = (
+        platform_prerequisites.xcode_version_config.xcode_version() >=
+        apple_common.dotted_version("26.0")
+    )
+    icon_bundle_files = []
+
     if product_type == apple_product_type.messages_extension:
         appicon_extension = "stickersiconset"
         icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
@@ -113,26 +119,67 @@ def _actool_args_for_special_file_types(
         appicon_extension = "solidimagestack"
         icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
     else:
+        if is_xcode_26_or_later:
+            icon_bundle_files = [f for f in asset_files if ".icon/" in f.path]
         appicon_extension = "appiconset"
         icon_files = [f for f in asset_files if ".appiconset/" in f.path]
 
     # Add arguments for app icons, if there are any.
-    if icon_files:
+    if icon_files or icon_bundle_files:
         icon_dirs = group_files_by_directory(
             icon_files,
             [appicon_extension],
             attr = "app_icons",
         ).keys()
-        if len(icon_dirs) != 1 and not primary_icon_name:
+        has_exactly_one_icon_dir = False
+
+        if is_xcode_26_or_later:
+            icon_bundle_dirs = group_files_by_directory(
+                icon_bundle_files,
+                ["icon"],
+                attr = "app_icons",
+            ).keys()
+
+            if len(icon_dirs + icon_bundle_dirs) == 1:
+                has_exactly_one_icon_dir = True
+            elif len(icon_dirs) == 1 and len(icon_bundle_dirs) == 1:
+                # Carve out; the AppIcon and Icon bundles can be used together to support Apple OSes
+                # prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS as long as
+                # their names match perfectly.
+                icon_paths_to_compare = [icon_dirs[0], icon_bundle_dirs[0]]
+                unique_icon_names = set()
+                for icon_path in icon_paths_to_compare:
+                    unique_icon_names.add(paths.split_extension(paths.basename(icon_path))[0])
+                if len(unique_icon_names) == 1:
+                    has_exactly_one_icon_dir = True
+            icon_dirs.extend(icon_bundle_dirs)
+
+        elif len(icon_dirs) == 1:
+            has_exactly_one_icon_dir = True
+
+        if not has_exactly_one_icon_dir and not primary_icon_name:
             formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
 
             # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
             # iOS-on-macOS (Catalyst)
             if (platform_prerequisites.platform_type in ("watchos", "macos") or
                 product_type != apple_product_type.application):
-                fail("The asset catalogs should contain exactly one directory named " +
-                     "*.%s among its asset catalogs, " % appicon_extension +
-                     "but found the following: " + formatted_dirs, "app_icons")
+                xcode_26_workaround_message = ""
+                if is_xcode_26_or_later:
+                    xcode_26_workaround_message = (
+                        "which can be accompanied by exactly one Icon Composer .icon bundle of " +
+                        "the same name, "
+                    )
+                fail("""
+The asset catalogs should contain exactly one directory named *.{appicon_extension} among its \
+asset catalogs, \
+{xcode_26_workaround_message}\
+but found the following: \
+{formatted_dirs}""".format(
+                    appicon_extension = appicon_extension,
+                    formatted_dirs = formatted_dirs,
+                    xcode_26_workaround_message = xcode_26_workaround_message,
+                ), "app_icons")
             else:
                 fail("""
 Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
@@ -266,7 +313,7 @@ def compile_asset_catalog(
 
     xcassets = group_files_by_directory(
         asset_files,
-        ["xcassets"],
+        ["icon", "xcassets"],
         attr = "asset_catalogs",
     ).keys()
 

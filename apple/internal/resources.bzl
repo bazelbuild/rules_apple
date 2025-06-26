@@ -261,7 +261,9 @@ def _bucketize_data(
             elif resource_short_path.endswith(".xib"):
                 bucket_name = "xibs"
                 resource_swift_module = swift_module
-            elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
+            elif (".icon/" in resource_short_path or
+                  ".xcassets/" in resource_short_path or
+                  ".xcstickers/" in resource_short_path):
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"

@@ -184,6 +184,44 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    # Tests the new icon composer bundles for Xcode 26.
+    archive_contents_test(
+        name = "{}_icon_composer_app_icons_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle",
+        contains = [
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
+    archive_contents_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_and_xcassets_app_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
+        },
+        tags = [
+            name,
+        ],
+    )
+
     # Tests that the launch storyboard is bundled with the application and that
     # the bundler inserts the correct key/value into Info.plist.
     archive_contents_test(
