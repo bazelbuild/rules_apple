@@ -121,13 +121,6 @@ number (for example, `"9.0"`).
             ),
         },
         doc = doc,
-        exec_groups = {
-            "test": exec_group(
-                exec_compatible_with = [
-                    "@platforms//os:macos",
-                ],
-            ),
-        },
         implementation = _apple_build_test_rule_impl,
         test = True,
         cfg = transition_support.apple_rule_transition,
