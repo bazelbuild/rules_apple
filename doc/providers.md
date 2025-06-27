@@ -389,7 +389,7 @@ requirement.
 <pre>
 AppleResourceInfo(<a href="#AppleResourceInfo-alternate_icons">alternate_icons</a>, <a href="#AppleResourceInfo-asset_catalogs">asset_catalogs</a>, <a href="#AppleResourceInfo-datamodels">datamodels</a>, <a href="#AppleResourceInfo-framework">framework</a>, <a href="#AppleResourceInfo-infoplists">infoplists</a>, <a href="#AppleResourceInfo-metals">metals</a>,
                   <a href="#AppleResourceInfo-mlmodels">mlmodels</a>, <a href="#AppleResourceInfo-plists">plists</a>, <a href="#AppleResourceInfo-pngs">pngs</a>, <a href="#AppleResourceInfo-processed">processed</a>, <a href="#AppleResourceInfo-storyboards">storyboards</a>, <a href="#AppleResourceInfo-strings">strings</a>, <a href="#AppleResourceInfo-texture_atlases">texture_atlases</a>,
-                  <a href="#AppleResourceInfo-unprocessed">unprocessed</a>, <a href="#AppleResourceInfo-xibs">xibs</a>, <a href="#AppleResourceInfo-owners">owners</a>, <a href="#AppleResourceInfo-processed_origins">processed_origins</a>, <a href="#AppleResourceInfo-unowned_resources">unowned_resources</a>)
+                  <a href="#AppleResourceInfo-unprocessed">unprocessed</a>, <a href="#AppleResourceInfo-xcstrings">xcstrings</a>, <a href="#AppleResourceInfo-xibs">xibs</a>, <a href="#AppleResourceInfo-owners">owners</a>, <a href="#AppleResourceInfo-processed_origins">processed_origins</a>, <a href="#AppleResourceInfo-unowned_resources">unowned_resources</a>)
 </pre>
 
 Provider that propagates buckets of resources that are differentiated by type.
@@ -413,6 +413,7 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-strings"></a>strings |  Localization strings files.    |
 | <a id="AppleResourceInfo-texture_atlases"></a>texture_atlases |  Texture atlas files.    |
 | <a id="AppleResourceInfo-unprocessed"></a>unprocessed |  Generic resources not mapped to the other types.    |
+| <a id="AppleResourceInfo-xcstrings"></a>xcstrings |  String catalog files.    |
 | <a id="AppleResourceInfo-xibs"></a>xibs |  XIB Interface files.    |
 | <a id="AppleResourceInfo-owners"></a>owners |  `depset` of (resource, owner) pairs.    |
 | <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  `depset` of (processed resource, resource list) pairs.    |
