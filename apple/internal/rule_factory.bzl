@@ -77,7 +77,7 @@ AppleTestRunnerInfo provider.
         providers = [AppleBundleInfo],
     ),
     "_apple_coverage_support": attr.label(
-        cfg = "exec",
+        cfg = config.exec(exec_group = "test"),
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
     "_lcov_merger": attr.label(
@@ -85,7 +85,7 @@ AppleTestRunnerInfo provider.
             fragment = "coverage",
             name = "output_generator",
         ),
-        cfg = "exec",
+        cfg = config.exec(exec_group = "test"),
     ),
     "test_filter": attr.string(
         doc = """
@@ -180,9 +180,13 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
-        exec_compatible_with = [
-            "@platforms//os:macos",
-        ],
+        exec_groups = {
+            "test": exec_group(
+                exec_compatible_with = [
+                    "@platforms//os:macos",
+                ],
+            ),
+        },
         test = True,
     )
 
