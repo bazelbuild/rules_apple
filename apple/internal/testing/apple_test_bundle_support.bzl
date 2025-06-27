@@ -412,9 +412,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
-        targets_to_avoid = list(ctx.attr.frameworks)
+        frameworks = list(ctx.attr.frameworks)
+        targets_to_avoid = frameworks
+        debug_dependencies.extend(frameworks)
     else:
         targets_to_avoid = []
+
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 
