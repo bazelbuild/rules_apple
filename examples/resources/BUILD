@@ -32,3 +32,8 @@ filegroup(
     name = "WatchAppIcon.xcassets",
     srcs = glob(["WatchAppIcon.xcassets/**"]),
 )
+
+filegroup(
+    name = "SharedAppIcon.icon",
+    srcs = glob(["SharedAppIcon.icon/**"]),
+)
