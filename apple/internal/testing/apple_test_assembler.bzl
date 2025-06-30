@@ -67,7 +67,14 @@ _SHARED_SUITE_TEST_ATTRS = {
     ]
 }
 
-def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwargs):
+def _assemble(
+        name,
+        bundle_rule,
+        test_rule,
+        generate_tests_func = None,
+        runner = None,
+        runners = None,
+        **kwargs):
     """Assembles the test bundle and test targets.
 
     This method expects that either `runner` or `runners` is populated, but never both. If `runner`
@@ -82,6 +89,8 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         name: The name of the test target or test suite to create.
         bundle_rule: The bundling rule to instantiate.
         test_rule: The test rule to instantiate.
+        generate_tests_func: A function that is passed the attributes for a test rule and returns a
+            list of attributes to use to create N test targets. Mutually exclusive with `runners`.
         runner: A single runner target to use for the test target. Mutually exclusive with
             `runners`.
         runners: A list of runner targets to use for the test targets. Mutually exclusive with
@@ -90,8 +99,22 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
     """
     if runner != None and runners != None:
         fail("Can't specify both runner and runners.")
-    elif not runner and not runners:
-        fail("Must specify one of runner or runners.")
+    elif not runner and not runners and not generate_tests_func:
+        fail("Must specify one of runner, runners, or generate_tests_func.")
+
+    if runner:
+        if generate_tests_func:
+            fail("Can't specify both runner and generate_tests_func.")
+    elif runners:
+        if generate_tests_func:
+            fail("Can't specify both runners and generate_tests_func.")
+
+        generate_tests_func = lambda **attrs: [
+            attrs | {
+                "name": "{}_{}".format(name, runner.rsplit(":", 1)[-1]),
+                "runner": runner
+            } for runner in runners
+        ]
 
     test_bundle_name = name + ".__internal__.__test_bundle"
 
@@ -129,17 +152,22 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             deps = [":{}".format(test_bundle_name)],
             **test_attrs
         )
-    elif runners:
+    elif generate_tests_func:
+        all_test_attrs = generate_tests_func(
+            name = name,
+            deps = [":{}".format(test_bundle_name)],
+            **test_attrs
+        )
+
         tests = []
-        for runner in runners:
-            test_name = "{}_{}".format(name, runner.rsplit(":", 1)[-1])
+        for single_test_attrs in all_test_attrs:
+            test_name = single_test_attrs.pop("name")
             tests.append(":{}".format(test_name))
             test_rule(
                 name = test_name,
-                runner = runner,
-                deps = [":{}".format(test_bundle_name)],
-                **test_attrs
+                **single_test_attrs
             )
+
         shared_test_suite_attrs = {k: v for (k, v) in test_attrs.items() if k in _SHARED_SUITE_TEST_ATTRS}
         native.test_suite(
             name = name,

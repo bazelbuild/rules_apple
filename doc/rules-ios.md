@@ -733,12 +733,13 @@ in Xcode.
 ## ios_ui_test_suite
 
 <pre>
-ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">kwargs</a>)
+ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-generate_tests_func">generate_tests_func</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">kwargs</a>)
 </pre>
 
-Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
+Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners` or results of `generate_tests_func`.
 
-`ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by `runners`.
+`ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by
+`generate_tests_func` and `runners`.
 
 [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
 [ios_ui_test]: #ios_ui_test
@@ -749,8 +750,9 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="ios_ui_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="ios_ui_test_suite-runners"></a>runners |  a list of runner targets   |  `None` |
+| <a id="ios_ui_test_suite-name"></a>name |  The name of the test suite to create.   |  none |
+| <a id="ios_ui_test_suite-generate_tests_func"></a>generate_tests_func |  A function that is passed the attributes for a test rule and returns a list of attribute dictionaries to use to create N test targets. Mutually exclusive with `runners`.   |  `None` |
+| <a id="ios_ui_test_suite-runners"></a>runners |  A `list` of runner targets. Mutually exclusive with `generate_tests_func`.   |  `None` |
 | <a id="ios_ui_test_suite-kwargs"></a>kwargs |  passed to the [ios_ui_test]   |  none |
 
 
@@ -759,12 +761,13 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 ## ios_unit_test_suite
 
 <pre>
-ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">kwargs</a>)
+ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-generate_tests_func">generate_tests_func</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">kwargs</a>)
 </pre>
 
-Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.
+Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners` or results of `generate_tests_func`.
 
-`ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is replaced by `runners`.
+`ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is
+replaced by `generate_tests_func` and `runners`.
 
 [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
 [ios_unit_test]: #ios_unit_test
@@ -775,8 +778,9 @@ Generates a [test_suite] containing an [ios_unit_test] for each of the given `ru
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="ios_unit_test_suite-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="ios_unit_test_suite-runners"></a>runners |  a list of runner targets   |  `None` |
+| <a id="ios_unit_test_suite-name"></a>name |  The name of the test suite to create.   |  none |
+| <a id="ios_unit_test_suite-generate_tests_func"></a>generate_tests_func |  A function that is passed the attributes for a test rule and returns a list of attribute dictionaries to use to create N test targets. Mutually exclusive with `runners`.   |  `None` |
+| <a id="ios_unit_test_suite-runners"></a>runners |  A `list` of runner targets.   |  `None` |
 | <a id="ios_unit_test_suite-kwargs"></a>kwargs |  passed to the [ios_unit_test]   |  none |
 
 
