@@ -75,41 +75,55 @@ def ios_ui_test(name, **kwargs):
         **kwargs
     )
 
-def ios_unit_test_suite(name, runners = None, **kwargs):
-    """Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.
+def ios_unit_test_suite(name, generate_tests_func = None, runners = None, **kwargs):
+    """Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners` or \
+results of `generate_tests_func`.
 
-`ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is replaced by `runners`.
+    `ios_unit_test_suite` takes the same parameters as [ios_unit_test], except `runner` is
+    replaced by `generate_tests_func` and `runners`.
 
-[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
-[ios_unit_test]: #ios_unit_test
+    [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+    [ios_unit_test]: #ios_unit_test
 
-Args:
-    runners: a list of runner targets
-    **kwargs: passed to the [ios_unit_test]
-"""
+    Args:
+        name: The name of the test suite to create.
+        generate_tests_func: A function that is passed the attributes for a test rule and returns a
+            list of attribute dictionaries to use to create N test targets. Mutually exclusive with
+            `runners`.
+        runners: A `list` of runner targets.
+        **kwargs: passed to the [ios_unit_test]
+    """
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_unit_test_bundle,
+        generate_tests_func = generate_tests_func,
         test_rule = _ios_unit_test,
         runners = runners,
         **kwargs
     )
 
-def ios_ui_test_suite(name, runners = None, **kwargs):
-    """Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
+def ios_ui_test_suite(name, generate_tests_func = None, runners = None, **kwargs):
+    """Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners` or \
+results of `generate_tests_func`.
 
-`ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by `runners`.
+    `ios_ui_test_suite` takes the same parameters as [ios_ui_test], except `runner` is replaced by
+    `generate_tests_func` and `runners`.
 
-[test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
-[ios_ui_test]: #ios_ui_test
+    [test_suite]: https://docs.bazel.build/versions/master/be/general.html#test_suite
+    [ios_ui_test]: #ios_ui_test
 
-Args:
-    runners: a list of runner targets
-    **kwargs: passed to the [ios_ui_test]
-"""
+    Args:
+        name: The name of the test suite to create.
+        generate_tests_func: A function that is passed the attributes for a test rule and returns a
+            list of attribute dictionaries to use to create N test targets. Mutually exclusive with
+            `runners`.
+        runners: A `list` of runner targets. Mutually exclusive with `generate_tests_func`.
+        **kwargs: passed to the [ios_ui_test]
+    """
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _ios_internal_ui_test_bundle,
+        generate_tests_func = generate_tests_func,
         test_rule = _ios_ui_test,
         runners = runners,
         **kwargs
