@@ -137,6 +137,33 @@ def ios_ui_test_test_suite(name):
         tags = [name],
     )
 
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_with_fmwk_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
+            "ui_test_with_fmwk.xctest.dSYM/Contents/Info.plist",
+            "ui_test_with_fmwk.xctest.dSYM/Contents/Resources/DWARF/ui_test_with_fmwk",
+            "fmwk.framework.dSYM/Contents/Info.plist",
+            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk",
+        ],
+        tags = [name],
+    )
+
+    apple_dsym_bundle_info_test(
+        name = "{}_apple_dsym_bundle_info_with_fmwk_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk",
+        expected_direct_dsyms = ["dSYMs/ui_test_with_fmwk.xctest.dSYM"],
+        expected_transitive_dsyms = [
+            "dSYMs/app.app.dSYM",
+            "dSYMs/ui_test_with_fmwk.xctest.dSYM",
+            "dSYMs/fmwk.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_base_bundle_id_derived_bundle_id",
