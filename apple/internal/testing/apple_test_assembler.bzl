@@ -109,14 +109,12 @@ def _assemble(
         if generate_tests_func:
             fail("Can't specify both runners and generate_tests_func.")
 
-        def generate_test(attrs):
-            return [
-                attrs | {
-                    "name": "{}_{}".format(name, runner.rsplit(":", 1)[-1]),
-                    "runner": runner
-                } for runner in runners
-            ]
-        generate_tests_func = generate_test
+        generate_tests_func = lambda **attrs: [
+            attrs | {
+                "name": "{}_{}".format(name, runner.rsplit(":", 1)[-1]),
+                "runner": runner
+            } for runner in runners
+        ]
 
     test_bundle_name = name + ".__internal__.__test_bundle"
 
