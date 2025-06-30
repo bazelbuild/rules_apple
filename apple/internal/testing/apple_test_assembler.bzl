@@ -102,7 +102,10 @@ def _assemble(
     elif not runner and not runners and not generate_tests_func:
         fail("Must specify one of runner, runners, or generate_tests_func.")
 
-    if runners:
+    if runner:
+        if generate_tests_func:
+            fail("Can't specify both runner and generate_tests_func.")
+    elif runners:
         if generate_tests_func:
             fail("Can't specify both runners and generate_tests_func.")
 
