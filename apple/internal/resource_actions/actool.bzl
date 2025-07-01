@@ -155,9 +155,9 @@ def _actool_args_for_special_file_types(
                 # prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS as long as
                 # their names match perfectly.
                 icon_paths_to_compare = [icon_dirs[0], icon_bundle_dirs[0]]
-                unique_icon_names = set()
+                unique_icon_names = dict()
                 for icon_path in icon_paths_to_compare:
-                    unique_icon_names.add(paths.split_extension(paths.basename(icon_path))[0])
+                    unique_icon_names[paths.split_extension(paths.basename(icon_path))[0]] = True
                 if len(unique_icon_names) == 1:
                     has_exactly_one_icon_dir = True
             icon_dirs.extend(icon_bundle_dirs)
