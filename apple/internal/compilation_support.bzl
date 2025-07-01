@@ -121,7 +121,6 @@ def _subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_contex
     )
     return cc_common.create_linking_context(
         linker_inputs = depset([linker_input]),
-        owner = owner,
     )
 
 def _libraries_from_linking_context(linking_context):
