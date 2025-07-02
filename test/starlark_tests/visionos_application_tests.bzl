@@ -57,7 +57,9 @@ load(
     "common",
 )
 
-visibility("private")
+visibility([
+    "//test/starlark_tests/...",
+])
 
 def visionos_application_test_suite(name):
     """Test suite for visionos_application.

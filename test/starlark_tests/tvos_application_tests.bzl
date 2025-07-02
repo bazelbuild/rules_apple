@@ -53,7 +53,9 @@ load(
     "common",
 )
 
-visibility("private")
+visibility([
+    "//test/starlark_tests/...",
+])
 
 def tvos_application_test_suite(name):
     """Test suite for tvos_application.

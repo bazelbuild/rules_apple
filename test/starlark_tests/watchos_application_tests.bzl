@@ -43,7 +43,9 @@ load(
     "common",
 )
 
-visibility("private")
+visibility([
+    "//test/starlark_tests/...",
+])
 
 def watchos_application_test_suite(name):
     """Test suite for watchos_application.
