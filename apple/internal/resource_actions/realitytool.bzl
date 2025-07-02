@@ -148,13 +148,17 @@ support if you have a project that desires this feature.
 
     args = actions.args()
     args.add("realitytool")
-    args.add("compile")
 
+    # Custom xctoolrunner options.
+    #
     # This is a custom arg to signal to xctool runner that this is the *actual* input bundle.
     # Unfortunately, realitytool writes directly to the rkassets bundle it is given when the
     # --schema-file option is supplied, requiring an intermediate temp bundle path to be given to
     # the tool itself.
-    args.add("--bazel_input_path", input_path)
+    args.add("--bazel-input-path", input_path)
+
+    # Standard realitytool options.
+    args.add("compile")
 
     args.add("--platform", _PLATFORM_TO_TOOL_PLATFORM[str(platform_prerequisites.platform)])
     args.add("--deployment-target", platform_prerequisites.minimum_os)

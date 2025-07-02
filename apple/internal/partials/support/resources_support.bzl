@@ -597,7 +597,7 @@ def _rkassets(
             mac_exec_group = mac_exec_group,
             output_file = reality_file,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
             schema_file = schema_file,
         )
 
