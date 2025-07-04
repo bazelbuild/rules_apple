@@ -46,6 +46,20 @@ The desired name of the bundle (without the `.bundle` extension). If this attrib
 then the `name` of the target will be used instead.
 """,
         ),
+        "bundle_extension": attr.string(
+            default = ".bundle",
+            doc = """
+The file extension for the resource bundle.
+
+This attribute allows customization of the bundle's file extension. While `.bundle` is the default and most common extension for generic resource bundles, other extensions are used for specific purposes within Apple development.
+
+For example:
+*   `.framework`: Used for frameworks, which are bundles containing both code and resources. In Xcode, this corresponds to a "Framework" target.
+*   `.xctest`: Used for test bundles, which contain compiled test code and any associated resources. In Xcode, this corresponds to a "Unit Testing Bundle" or "UI Testing Bundle" target.
+
+Using the correct extension ensures that the bundle is recognized and handled appropriately by Xcode and the Apple ecosystem.
+""",
+        ),
         "infoplists": attr.label_list(
             allow_empty = True,
             allow_files = True,
