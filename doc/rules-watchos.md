@@ -7,6 +7,8 @@
 ## watchos_application
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_application")
+
 watchos_application(<a href="#watchos_application-name">name</a>, <a href="#watchos_application-deps">deps</a>, <a href="#watchos_application-resources">resources</a>, <a href="#watchos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_application-app_icons">app_icons</a>, <a href="#watchos_application-app_intents">app_intents</a>,
                     <a href="#watchos_application-bundle_id">bundle_id</a>, <a href="#watchos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#watchos_application-bundle_name">bundle_name</a>, <a href="#watchos_application-codesign_inputs">codesign_inputs</a>, <a href="#watchos_application-codesignopts">codesignopts</a>,
                     <a href="#watchos_application-entitlements">entitlements</a>, <a href="#watchos_application-entitlements_validation">entitlements_validation</a>, <a href="#watchos_application-executable_name">executable_name</a>, <a href="#watchos_application-exported_symbols_lists">exported_symbols_lists</a>,
@@ -62,6 +64,8 @@ Builds and bundles a watchOS Application.
 ## watchos_build_test
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_build_test")
+
 watchos_build_test(<a href="#watchos_build_test-name">name</a>, <a href="#watchos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_build_test-platform_type">platform_type</a>, <a href="#watchos_build_test-targets">targets</a>)
 </pre>
 
@@ -96,6 +100,8 @@ watchos_build_test(
 ## watchos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_dynamic_framework")
+
 watchos_dynamic_framework(<a href="#watchos_dynamic_framework-name">name</a>, <a href="#watchos_dynamic_framework-deps">deps</a>, <a href="#watchos_dynamic_framework-resources">resources</a>, <a href="#watchos_dynamic_framework-hdrs">hdrs</a>, <a href="#watchos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                           <a href="#watchos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#watchos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#watchos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#watchos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#watchos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                           <a href="#watchos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#watchos_dynamic_framework-executable_name">executable_name</a>, <a href="#watchos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -145,6 +151,8 @@ Builds and bundles a watchOS dynamic framework that is consumable by Xcode.
 ## watchos_extension
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_extension")
+
 watchos_extension(<a href="#watchos_extension-name">name</a>, <a href="#watchos_extension-deps">deps</a>, <a href="#watchos_extension-resources">resources</a>, <a href="#watchos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_extension-app_intents">app_intents</a>,
                   <a href="#watchos_extension-application_extension">application_extension</a>, <a href="#watchos_extension-bundle_id">bundle_id</a>, <a href="#watchos_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#watchos_extension-bundle_name">bundle_name</a>, <a href="#watchos_extension-codesign_inputs">codesign_inputs</a>,
                   <a href="#watchos_extension-codesignopts">codesignopts</a>, <a href="#watchos_extension-entitlements">entitlements</a>, <a href="#watchos_extension-entitlements_validation">entitlements_validation</a>, <a href="#watchos_extension-executable_name">executable_name</a>,
@@ -198,6 +206,8 @@ Builds and bundles a watchOS Extension.
 ## watchos_framework
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_framework")
+
 watchos_framework(<a href="#watchos_framework-name">name</a>, <a href="#watchos_framework-deps">deps</a>, <a href="#watchos_framework-resources">resources</a>, <a href="#watchos_framework-hdrs">hdrs</a>, <a href="#watchos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_framework-base_bundle_id">base_bundle_id</a>, <a href="#watchos_framework-bundle_id">bundle_id</a>,
                   <a href="#watchos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#watchos_framework-bundle_name">bundle_name</a>, <a href="#watchos_framework-bundle_only">bundle_only</a>, <a href="#watchos_framework-codesign_inputs">codesign_inputs</a>, <a href="#watchos_framework-codesignopts">codesignopts</a>,
                   <a href="#watchos_framework-executable_name">executable_name</a>, <a href="#watchos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_framework-extension_safe">extension_safe</a>, <a href="#watchos_framework-families">families</a>, <a href="#watchos_framework-frameworks">frameworks</a>,
@@ -249,6 +259,8 @@ those `watchos_extension` rules.
 ## watchos_static_framework
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_static_framework")
+
 watchos_static_framework(<a href="#watchos_static_framework-name">name</a>, <a href="#watchos_static_framework-deps">deps</a>, <a href="#watchos_static_framework-resources">resources</a>, <a href="#watchos_static_framework-hdrs">hdrs</a>, <a href="#watchos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#watchos_static_framework-avoid_deps">avoid_deps</a>,
                          <a href="#watchos_static_framework-bundle_name">bundle_name</a>, <a href="#watchos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#watchos_static_framework-codesignopts">codesignopts</a>, <a href="#watchos_static_framework-exclude_resources">exclude_resources</a>,
                          <a href="#watchos_static_framework-executable_name">executable_name</a>, <a href="#watchos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#watchos_static_framework-families">families</a>, <a href="#watchos_static_framework-ipa_post_processor">ipa_post_processor</a>,
@@ -292,6 +304,8 @@ Builds and bundles a watchOS Static Framework.
 ## watchos_ui_test
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_ui_test")
+
 watchos_ui_test(<a href="#watchos_ui_test-name">name</a>, <a href="#watchos_ui_test-deps">deps</a>, <a href="#watchos_ui_test-data">data</a>, <a href="#watchos_ui_test-bundle_name">bundle_name</a>, <a href="#watchos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#watchos_ui_test-env">env</a>, <a href="#watchos_ui_test-env_inherit">env_inherit</a>,
                 <a href="#watchos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_ui_test-platform_type">platform_type</a>, <a href="#watchos_ui_test-runner">runner</a>,
                 <a href="#watchos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#watchos_ui_test-test_filter">test_filter</a>, <a href="#watchos_ui_test-test_host">test_host</a>, <a href="#watchos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -326,6 +340,8 @@ watchOS UI Test rule.
 ## watchos_unit_test
 
 <pre>
+load("@rules_apple//apple:watchos.doc.bzl", "watchos_unit_test")
+
 watchos_unit_test(<a href="#watchos_unit_test-name">name</a>, <a href="#watchos_unit_test-deps">deps</a>, <a href="#watchos_unit_test-data">data</a>, <a href="#watchos_unit_test-bundle_name">bundle_name</a>, <a href="#watchos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#watchos_unit_test-env">env</a>, <a href="#watchos_unit_test-env_inherit">env_inherit</a>,
                   <a href="#watchos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_unit_test-platform_type">platform_type</a>, <a href="#watchos_unit_test-runner">runner</a>,
                   <a href="#watchos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#watchos_unit_test-test_filter">test_filter</a>, <a href="#watchos_unit_test-test_host">test_host</a>, <a href="#watchos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)

@@ -7,6 +7,8 @@
 ## visionos_application
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_application")
+
 visionos_application(<a href="#visionos_application-name">name</a>, <a href="#visionos_application-deps">deps</a>, <a href="#visionos_application-resources">resources</a>, <a href="#visionos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_application-app_icons">app_icons</a>, <a href="#visionos_application-app_intents">app_intents</a>,
                      <a href="#visionos_application-bundle_id">bundle_id</a>, <a href="#visionos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_application-bundle_name">bundle_name</a>, <a href="#visionos_application-codesign_inputs">codesign_inputs</a>, <a href="#visionos_application-codesignopts">codesignopts</a>,
                      <a href="#visionos_application-entitlements">entitlements</a>, <a href="#visionos_application-entitlements_validation">entitlements_validation</a>, <a href="#visionos_application-executable_name">executable_name</a>, <a href="#visionos_application-exported_symbols_lists">exported_symbols_lists</a>,
@@ -62,6 +64,8 @@ Builds and bundles a visionOS Application.
 ## visionos_build_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_build_test")
+
 visionos_build_test(<a href="#visionos_build_test-name">name</a>, <a href="#visionos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_build_test-platform_type">platform_type</a>, <a href="#visionos_build_test-targets">targets</a>)
 </pre>
 
@@ -96,6 +100,8 @@ visionos_build_test(
 ## visionos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_dynamic_framework")
+
 visionos_dynamic_framework(<a href="#visionos_dynamic_framework-name">name</a>, <a href="#visionos_dynamic_framework-deps">deps</a>, <a href="#visionos_dynamic_framework-resources">resources</a>, <a href="#visionos_dynamic_framework-hdrs">hdrs</a>, <a href="#visionos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                            <a href="#visionos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#visionos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#visionos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#visionos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                            <a href="#visionos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#visionos_dynamic_framework-executable_name">executable_name</a>, <a href="#visionos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -145,6 +151,8 @@ Builds and bundles a visionos dynamic framework that is consumable by Xcode.
 ## visionos_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_framework")
+
 visionos_framework(<a href="#visionos_framework-name">name</a>, <a href="#visionos_framework-deps">deps</a>, <a href="#visionos_framework-resources">resources</a>, <a href="#visionos_framework-hdrs">hdrs</a>, <a href="#visionos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_framework-base_bundle_id">base_bundle_id</a>, <a href="#visionos_framework-bundle_id">bundle_id</a>,
                    <a href="#visionos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_framework-bundle_name">bundle_name</a>, <a href="#visionos_framework-bundle_only">bundle_only</a>, <a href="#visionos_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_framework-codesignopts">codesignopts</a>,
                    <a href="#visionos_framework-executable_name">executable_name</a>, <a href="#visionos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_framework-extension_safe">extension_safe</a>, <a href="#visionos_framework-families">families</a>, <a href="#visionos_framework-frameworks">frameworks</a>,
@@ -195,6 +203,8 @@ To use this framework for your app and extensions, list it in the frameworks att
 ## visionos_static_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_static_framework")
+
 visionos_static_framework(<a href="#visionos_static_framework-name">name</a>, <a href="#visionos_static_framework-deps">deps</a>, <a href="#visionos_static_framework-resources">resources</a>, <a href="#visionos_static_framework-hdrs">hdrs</a>, <a href="#visionos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_static_framework-avoid_deps">avoid_deps</a>,
                           <a href="#visionos_static_framework-bundle_name">bundle_name</a>, <a href="#visionos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_static_framework-codesignopts">codesignopts</a>, <a href="#visionos_static_framework-exclude_resources">exclude_resources</a>,
                           <a href="#visionos_static_framework-executable_name">executable_name</a>, <a href="#visionos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_static_framework-families">families</a>, <a href="#visionos_static_framework-ipa_post_processor">ipa_post_processor</a>,
@@ -274,6 +284,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## visionos_ui_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_ui_test")
+
 visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_ui_test-deps">deps</a>, <a href="#visionos_ui_test-data">data</a>, <a href="#visionos_ui_test-bundle_name">bundle_name</a>, <a href="#visionos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#visionos_ui_test-env">env</a>, <a href="#visionos_ui_test-env_inherit">env_inherit</a>,
                  <a href="#visionos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#visionos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_ui_test-platform_type">platform_type</a>, <a href="#visionos_ui_test-runner">runner</a>,
                  <a href="#visionos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_ui_test-test_filter">test_filter</a>, <a href="#visionos_ui_test-test_host">test_host</a>, <a href="#visionos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -315,6 +327,8 @@ the attributes inherited by all test rules, please check the
 ## visionos_unit_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_unit_test")
+
 visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#visionos_unit_test-deps">deps</a>, <a href="#visionos_unit_test-data">data</a>, <a href="#visionos_unit_test-bundle_name">bundle_name</a>, <a href="#visionos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#visionos_unit_test-env">env</a>, <a href="#visionos_unit_test-env_inherit">env_inherit</a>,
                    <a href="#visionos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#visionos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_unit_test-platform_type">platform_type</a>, <a href="#visionos_unit_test-runner">runner</a>,
                    <a href="#visionos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_unit_test-test_filter">test_filter</a>, <a href="#visionos_unit_test-test_host">test_host</a>, <a href="#visionos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
