@@ -141,10 +141,7 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
-  xcrunargs = [
-      "xcrun", "ibtool", "--errors", "--warnings", "--notices",
-      "--auto-activate-custom-fonts", "--output-format", "human-readable-text"
-  ]
+  xcrunargs = ["xcrun", "ibtool"]
 
   _apply_realpath(toolargs)
 
@@ -305,10 +302,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
-  xcrunargs = [
-      "xcrun", "actool", "--errors", "--warnings", "--notices",
-      "--output-format", "human-readable-text"
-  ]
+  xcrunargs = ["xcrun", "actool"]
 
   _apply_realpath(toolargs)
 
