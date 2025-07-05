@@ -296,6 +296,15 @@ def compile_asset_catalog(
         "--compress-pngs",
     ]
 
+    xcode_config = platform_prerequisites.xcode_version_config
+
+    if platform_prerequisites.platform_type == "macos" and (
+        xcode_config.xcode_version() >= apple_common.dotted_version("26.0")
+    ):
+        # Required for the Icon Composer .icon bundles to work as inputs, even though it's not
+        # documented. Xcode 26 currently relies on this flag to be set.
+        args.extend(["--lightweight-asset-runtime-mode", "enabled"])
+
     args.extend(_actool_args_for_special_file_types(
         asset_files = asset_files,
         bundle_id = bundle_id,
@@ -338,5 +347,5 @@ def compile_asset_catalog(
         inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
         outputs = outputs,
-        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_config = xcode_config,
     )
