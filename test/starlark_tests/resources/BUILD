@@ -421,6 +421,32 @@ genrule(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "generate_structured_xcstrings",
+    outs = ["structured/generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_structured_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles too!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
 dummy_apple_resource_info(
     name = "custom_apple_resource_info",
     tags = common.fixture_tags,
@@ -640,7 +666,10 @@ filegroup(
 
 filegroup(
     name = "localized_xcstrings",
-    srcs = glob(["*.xcstrings"]),
+    srcs = [
+        "files.xcstrings",
+        "greetings.xcstrings",
+    ],
 )
 
 filegroup(
@@ -733,6 +762,14 @@ objc_library(
 )
 
 objc_library(
+    name = "ios_non_localized_xcstrings_lib",
+    data = [
+        "nonlocalized.xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "macos_non_localized_assets_lib",
     srcs = ["main.m"],
     data = [
@@ -757,6 +794,14 @@ objc_library(
         ":localized_storyboards_ios",
         ":localized_strings",
         ":localized_xibs_ios",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ios_localized_xcstrings_lib",
+    data = [
+        ":localized_xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -792,6 +837,14 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "empty_xcstrings_lib",
+    data = [
+        "empty.xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_ios",
     infoplists = [
@@ -819,6 +872,19 @@ apple_resource_bundle(
     ],
     structured_resources = [
         ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "bundle_library_xcstrings",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = ["generated.xcstrings"],
+    structured_resources = [
+        ":generate_structured_xcstrings",
         ":structured",
     ],
     tags = common.fixture_tags,

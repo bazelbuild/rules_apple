@@ -174,6 +174,31 @@ genrule(
 )
 
 genrule(
+    name = "generate_structured_xcstrings",
+    outs = ["structured/generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_structured_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles too!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+)
+
+genrule(
     name = "generate_storyboard_copy",
     srcs = ["storyboard_ios.storyboard"],
     outs = ["storyboard_ios_copy.storyboard"],
