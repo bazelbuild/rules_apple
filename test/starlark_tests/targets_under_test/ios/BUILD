@@ -341,6 +341,24 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_xcstrings",
+    app_icons = ["//test/testdata/resources:app_icons_ios"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = ["//test/starlark_tests/resources:bundle_library_xcstrings"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:empty_xcstrings_lib",
+        "//test/starlark_tests/resources:ios_localized_xcstrings_lib",
+        "//test/starlark_tests/resources:ios_non_localized_xcstrings_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_launch_images",
     app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",

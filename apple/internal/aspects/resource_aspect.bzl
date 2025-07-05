@@ -305,7 +305,7 @@ def _apple_resource_aspect_impl(target, ctx):
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
             bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
-                allowed_buckets = ["strings", "plists"],
+                allowed_buckets = ["strings", "plists", "xcstrings"],
                 owner = owner,
                 parent_dir_param = structured_parent_dir_param,
                 resources = structured_files,

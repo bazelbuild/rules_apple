@@ -92,6 +92,18 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_empty_xcstrings_files_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        # xcstringstool produces no strings for empty catalogs
+        not_contains = [
+            "$BUNDLE_ROOT/empty.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
     # Tests bundling a Resources folder as top level should fail with a nice message.
     analysis_failure_message_test(
         name = "{}_invalid_top_level_directory_fail_test".format(name),
@@ -147,6 +159,19 @@ def ios_application_resources_test_suite(name):
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localized_resources_with_xcstrings_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+            "$BUNDLE_ROOT/fr.lproj/greetings.strings",
+            "$BUNDLE_ROOT/it.lproj/greetings.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
         tags = [name],
     )
 
@@ -419,6 +444,17 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_generated_xcstrings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_xcstrings.bundle/structured/en.lproj/generated.strings",
+        plist_test_values = {
+            "generated_structured_string": "I like turtles too!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
     # Tests that structured processed generated strings have correct values.
     archive_contents_test(
         name = "{}_precompiled_resource_bundle_generated_strings_test".format(name),
@@ -458,6 +494,17 @@ app_icons was assigned the following: [
             "generated_string": "I like turtles!",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_deduplicate_generated_xcstrings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_xcstrings.bundle/en.lproj/generated.strings",
+        plist_test_values = {
+            "generated_string": "I like turtles!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
         tags = [name],
     )
 
