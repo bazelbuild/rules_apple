@@ -48,6 +48,9 @@ _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 # TODO: b/425967223 - Rework the validation to better account for Xcode 26, and make it a bit more
 # readable via helper functions as we add more conditions.
 
+# TODO: b/425967223 - Rework the validation to better account for Xcode 26, and make it a bit more
+# readable via helper functions as we add more conditions.
+
 def _actool_args_for_special_file_types(
         *,
         asset_files,
@@ -132,9 +135,10 @@ def _actool_args_for_special_file_types(
         icon_files = [f for f in asset_files if ".appiconset/" in f.path]
 
     if not is_xcode_26_or_later and len(icon_bundle_files):
-        fail("""\
-Found Icon Composer .icon bundles among the assigned app_icons. These are only supported \
-on Xcode 26 or later.""")
+        fail("""
+        Found Icon Composer .icon bundles among the assigned app_icons. These are only supported \
+        on Xcode 26 or later.
+        """)
 
     # Add arguments for app icons, if there are any.
     if icon_files or icon_bundle_files:
