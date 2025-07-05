@@ -49,6 +49,9 @@ load(
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 
+# TODO: b/425967223 - Rework the validation to better account for Xcode 26, and make it a bit more
+# readable via helper functions as we add more conditions.
+
 def _actool_args_for_special_file_types(
         *,
         asset_files,
@@ -81,6 +84,7 @@ def _actool_args_for_special_file_types(
         platform_prerequisites.xcode_version_config.xcode_version() >=
         apple_common.dotted_version("26.0")
     )
+    icon_files = []
     icon_bundle_files = []
 
     if product_type in (
@@ -127,10 +131,15 @@ def _actool_args_for_special_file_types(
         appicon_extension = "solidimagestack"
         icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
     else:
-        if is_xcode_26_or_later:
-            icon_bundle_files = [f for f in asset_files if ".icon/" in f.path]
+        icon_bundle_files = [f for f in asset_files if ".icon/" in f.path]
         appicon_extension = "appiconset"
         icon_files = [f for f in asset_files if ".appiconset/" in f.path]
+
+    if not is_xcode_26_or_later and len(icon_bundle_files):
+        fail("""
+        Found Icon Composer .icon bundles among the assigned app_icons. These are only supported \
+        on Xcode 26 or later.
+        """)
 
     # Add arguments for app icons, if there are any.
     if icon_files or icon_bundle_files:
