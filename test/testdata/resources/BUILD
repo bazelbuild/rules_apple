@@ -230,6 +230,7 @@ apple_resource_bundle(
         "nonlocalized.plist",
         ":localized_plists",
         "sample.png",
+        "nonlocalized.strings",
         "generated.strings",
         ":localized_strings",
         "nonlocalized_resource.txt",
