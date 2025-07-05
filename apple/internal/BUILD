@@ -812,6 +812,7 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal/providers:apple_debug_info",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

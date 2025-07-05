@@ -75,5 +75,4 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
                 linkstamps = depset(linkstamps),
             ),
         ]),
-        owner = owner,
     )
