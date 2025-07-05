@@ -22,6 +22,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    ":common.bzl",
+    "common",
+)
 
 def macos_application_resources_test_suite(name):
     """Test suite for macos_application resources.
@@ -44,9 +48,8 @@ def macos_application_resources_test_suite(name):
             "CFBundleIconName": "app_icon",
             "CFBundleIconFile": "app_icon",
         },
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
@@ -63,9 +66,8 @@ def macos_application_resources_test_suite(name):
             "CFBundleIconName": "app_icon",
             "CFBundleIconFile": "app_icon",
         },
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests that various nonlocalized resource types are bundled correctly with

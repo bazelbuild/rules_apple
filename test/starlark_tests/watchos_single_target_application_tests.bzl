@@ -158,9 +158,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         plist_test_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
@@ -175,9 +174,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         plist_test_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests xcasset tool is passed the correct arguments.
