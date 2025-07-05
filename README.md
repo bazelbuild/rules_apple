@@ -1,4 +1,4 @@
-# Apple Rules for [Bazel](https://bazel.build)
+# Apple Rules for [Bazel](https://bazel.build) 
 
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms.
