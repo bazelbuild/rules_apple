@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+<<<<<<< HEAD
       "size" : "24x24",
       "idiom" : "watch",
       "filename" : "WatchAppIcon-24@2x.png",
@@ -60,3 +61,16 @@
     "author" : "xcode"
   }
 }
+=======
+      "filename" : "WatchAppIcon.png",
+      "idiom" : "universal",
+      "platform" : "watchos",
+      "size" : "1024x1024"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+>>>>>>> a46ce2f5 (Implement support for .icon bundles for Xcode 26 in macOS. Cover the happy paths of watchOS and macOS icon bundles with tests.)

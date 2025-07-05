@@ -366,7 +366,7 @@ def compile_asset_catalog(
 
     alticons_outputs = []
     actool_output_plist = None
-    actool_outputs = [output_dir]
+    outputs = [output_dir]
     if output_plist:
         if alternate_icons:
             alticons_outputs = [output_plist]
@@ -379,7 +379,7 @@ def compile_asset_catalog(
         else:
             actool_output_plist = output_plist
 
-        actool_outputs.append(actool_output_plist)
+        outputs.append(actool_output_plist)
         args.add_all([
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(actool_output_plist.path),
@@ -401,7 +401,7 @@ def compile_asset_catalog(
         execution_requirements = {"no-sandbox": "1"},
         inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
-        outputs = actool_outputs,
+        outputs = outputs,
         xcode_config = xcode_config,
     )
 
