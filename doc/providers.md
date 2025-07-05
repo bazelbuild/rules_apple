@@ -494,7 +494,7 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-metals"></a>metals |  Metal Shading Language source files to be compiled into a single .metallib file and bundled at the top level.    |
 | <a id="AppleResourceInfo-mlmodels"></a>mlmodels |  Core ML model files that should be processed and bundled at the top level.    |
 | <a id="AppleResourceInfo-plists"></a>plists |  Resource Plist files that should not be merged into Info.plist    |
-| <a id="AppleResourceInfo-pngs"></a>pngs |  PNG images which are not bundled in an .xcassets folder.    |
+| <a id="AppleResourceInfo-pngs"></a>pngs |  PNG images which are not bundled in an .xcassets folder or an .icon folder in Xcode 26+.    |
 | <a id="AppleResourceInfo-processed"></a>processed |  Typed resources that have already been processed.    |
 | <a id="AppleResourceInfo-storyboards"></a>storyboards |  Storyboard files.    |
 | <a id="AppleResourceInfo-strings"></a>strings |  Localization strings files.    |
