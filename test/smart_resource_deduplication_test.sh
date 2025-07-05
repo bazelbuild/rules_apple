@@ -86,7 +86,6 @@ objc_library(
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.strings",
-        "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.xcstrings",
     ],
 )
 
