@@ -347,10 +347,7 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:processed_resources_in_structured_resources_lib",
     ],
@@ -368,10 +365,7 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
     ],

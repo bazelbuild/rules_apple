@@ -187,7 +187,7 @@ def ios_application_resources_test_suite(name):
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
         # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
     )
 
     # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
@@ -205,7 +205,7 @@ def ios_application_resources_test_suite(name):
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
         # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
     )
 
     # Tests that the launch storyboard is bundled with the application and that
