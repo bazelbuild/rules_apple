@@ -186,13 +186,14 @@ ios_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
-    primary_app_icon = "app_icon",
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+# TODO: b/425967223 - Add .icon test cases for multiple app icons with a primary app icon selected.
 
 ios_application(
     name = "app",
