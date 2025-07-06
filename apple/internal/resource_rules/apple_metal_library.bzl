@@ -19,10 +19,6 @@ load(
     "dicts",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -70,7 +66,6 @@ def _metal_apple_target_triple(platform_prerequisites):
 
 def _apple_metal_library_impl(ctx):
     """Implementation of the apple_metal_library rule."""
-    air_files = []
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -88,46 +83,23 @@ def _apple_metal_library_impl(ctx):
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
+
     target = _metal_apple_target_triple(platform_prerequisites)
-
-    for src in ctx.files.srcs:
-        air_file = ctx.actions.declare_file(
-            paths.replace_extension(src.basename, ".air"),
-        )
-        air_files.append(air_file)
-
-        args = ctx.actions.args()
-        args.add("metal")
-        args.add("-c")
-        args.add("-target", target)
-        args.add("-o", air_file)
-        args.add_all(ctx.attr.copts)
-        args.add(src.path)
-
-        apple_support.run(
-            actions = ctx.actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            arguments = [args],
-            executable = "/usr/bin/xcrun",
-            inputs = [src] + ctx.files.hdrs,
-            mnemonic = "MetalCompile",
-            outputs = [air_file],
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
-
     out = ctx.actions.declare_file(ctx.attr.out)
 
     args = ctx.actions.args()
-    args.add("metallib")
+    args.add("metal")
+    args.add("-target", target)
     args.add("-o", out.path)
-    args.add_all(air_files)
+    args.add_all(ctx.attr.copts)
+    args.add_all(ctx.files.srcs)
 
     apple_support.run(
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         executable = "/usr/bin/xcrun",
-        inputs = air_files,
+        inputs = ctx.files.srcs + ctx.files.hdrs,
         mnemonic = "MetallibCompile",
         outputs = [out],
         xcode_config = platform_prerequisites.xcode_version_config,
