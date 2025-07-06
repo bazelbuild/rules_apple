@@ -22,6 +22,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
@@ -304,6 +305,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -352,10 +354,22 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         bundle_loader = None
 
     extra_linkopts = [
+        "-Xlinker",
+        "-needed_framework",
+        "-Xlinker",
+        "XCTest",
         "-framework",
         "XCTest",
         "-bundle",
     ]
+
+    if any([_is_swift_target(dep) for dep in ctx.attr.deps]):
+        extra_linkopts.extend([
+            "-Xlinker",
+            "-needed-lXCTestSwiftSupport",
+            "-lXCTestSwiftSupport",
+        ])
+
     extra_link_inputs = []
 
     if "apple.swizzle_absolute_xcttestsourcelocation" in features:
@@ -376,6 +390,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
@@ -398,9 +413,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
-        targets_to_avoid = list(ctx.attr.frameworks)
+        frameworks = list(ctx.attr.frameworks)
+        targets_to_avoid = frameworks
+        debug_dependencies.extend(frameworks)
     else:
         targets_to_avoid = []
+
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 

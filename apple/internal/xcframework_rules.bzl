@@ -113,6 +113,32 @@ load(
     "files",
 )
 
+def _has_non_system_swift_modules(*, target):
+    """Indicates if the given target references any non-system Swift modules.
+
+    This is a reasonable signal to determine if we need to generate framework interfaces, though
+    correctness should be determined as well via further analysis of the graph of deps. See
+    b/321089167 for follow up work to that end.
+
+    Args:
+        target: A Target representing a dep for a given split from `deps` on the XCFramework rule.
+
+    Returns:
+        `True` if a non-system module was found from the target's SwiftInfo provider, `False`
+        otherwise.
+    """
+    if SwiftInfo not in target:
+        return False
+
+    swift_info = target[SwiftInfo]
+
+    # Covers both direct and transitive modules, from how the SwiftInfo provider is constructed.
+    for module in swift_info.transitive_modules.to_list():
+        if module.swift and not module.is_system:
+            return True
+
+    return False
+
 def _group_link_outputs_by_library_identifier(
         *,
         actions,
@@ -188,7 +214,7 @@ def _group_link_outputs_by_library_identifier(
         dsym_binaries = {}
         linkmaps = {}
         split_attr_keys = []
-        swift_infos = {}
+        framework_swift_infos = {}
         uses_swift = False
         for link_output in link_outputs:
             split_attr_key = transition_support.xcframework_split_attr_key(
@@ -200,13 +226,18 @@ def _group_link_outputs_by_library_identifier(
             architectures.append(link_output.architecture)
             split_attr_keys.append(split_attr_key)
 
-            # If there's any Swift dependencies on this framework rule,
-            # look for providers to see if we need to generate Swift interfaces.
+            # Determine up front if the given dep references any SwiftUsageInfo, for partial
+            # processing.
             if swift_support.uses_swift(deps[split_attr_key]):
                 uses_swift = True
-                for dep in deps[split_attr_key]:
-                    if SwiftInfo in dep:
-                        swift_infos[link_output.architecture] = dep[SwiftInfo]
+
+            # If there's any Swift dependencies on this framework rule, look for providers
+            # referencing non-system Swift modules to see if we need to generate Swift interfaces.
+            for dep in deps[split_attr_key]:
+                # TODO(b/321089167): Fail the build if the build graph has an arrangement of Swift
+                # modules that is not suitable for generating frameworks.
+                if _has_non_system_swift_modules(target = dep):
+                    framework_swift_infos[link_output.architecture] = dep[SwiftInfo]
 
             # static library linking does not support dsym, and linkmaps yet.
             if linking_type == "binary":
@@ -230,7 +261,7 @@ def _group_link_outputs_by_library_identifier(
             linkmaps = linkmaps,
             platform = platform,
             split_attr_keys = split_attr_keys,
-            swift_infos = swift_infos,
+            framework_swift_infos = framework_swift_infos,
             uses_swift = uses_swift,
         )
 
@@ -458,6 +489,7 @@ def _apple_xcframework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     deps = ctx.split_attr.deps
 
@@ -483,6 +515,7 @@ def _apple_xcframework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -664,14 +697,14 @@ def _apple_xcframework_impl(ctx):
             ),
         ]
 
-        if link_output.uses_swift and link_output.swift_infos:
+        if link_output.framework_swift_infos:
             processor_partials.append(
                 partials.swift_framework_partial(
                     actions = actions,
                     bundle_name = bundle_name,
                     label_name = label.name,
                     output_discriminator = library_identifier,
-                    swift_infos = link_output.swift_infos,
+                    swift_infos = link_output.framework_swift_infos,
                 ),
             )
         else:
@@ -929,6 +962,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.label.name
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.split_attr.deps
     label = ctx.label
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
@@ -939,13 +973,16 @@ def _apple_static_xcframework_impl(ctx):
     outputs_archive = ctx.outputs.archive
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
-    link_result = linking_support.register_static_library_linking_action(ctx = ctx)
+    archive_result = linking_support.register_static_library_archive_action(
+        ctx = ctx,
+        cc_toolchains = cc_toolchain_forwarder,
+    )
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
         apple_fragment = apple_fragment,
         deps = deps,
         label_name = bundle_name,
-        link_result = link_result,
+        link_result = archive_result,
         xcode_config = xcode_config,
     )
 
@@ -962,7 +999,7 @@ def _apple_static_xcframework_impl(ctx):
         ))
         framework_archive_files.append(depset([binary_artifact]))
 
-        if link_output.uses_swift and link_output.swift_infos:
+        if link_output.framework_swift_infos:
             # Generate headers, modulemaps, and swiftmodules
             interface_artifacts = partial.call(
                 partials.swift_framework_partial(
@@ -972,7 +1009,7 @@ def _apple_static_xcframework_impl(ctx):
                     framework_modulemap = True,
                     label_name = label.name,
                     output_discriminator = library_identifier,
-                    swift_infos = link_output.swift_infos,
+                    swift_infos = link_output.framework_swift_infos,
                 ),
             )
         else:
@@ -1141,7 +1178,7 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     toolchains = [],
     attrs = [
         rule_attrs.common_tool_attrs(),
-        rule_attrs.static_library_linking_attrs(
+        rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.xcframework_transition,
         ),
         {

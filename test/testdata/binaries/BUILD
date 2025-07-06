@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load(
     "//apple:apple_binary.bzl",
     "apple_binary",

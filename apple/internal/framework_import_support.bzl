@@ -20,6 +20,9 @@ load(
     "SwiftInfo",
     "swift_common",
 )
+load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("//apple:utils.bzl", "group_files_by_directory")
 load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")
@@ -500,10 +503,17 @@ def _swift_info_from_module_interface(
         target_name = ctx.label.name,
     )
 
-    return swift_common.create_swift_info(
-        modules = [module_context],
-        swift_infos = swift_infos,
-    )
+    # TODO: use SwiftInfo directly when rules_apple sets min for rules_swift to v3+
+    if hasattr(swift_common, "create_swift_info"):
+        return swift_common.create_swift_info(
+            modules = [module_context],
+            swift_infos = swift_infos,
+        )
+    else:
+        return SwiftInfo(
+            modules = [module_context],
+            swift_infos = swift_infos,
+        )
 
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
@@ -513,11 +523,20 @@ def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports)
     # Assume that there is only a single module map file (the legacy
     # implementation that read from the Objc provider made the same
     # assumption).
-    return swift_common.create_swift_interop_info(
-        module_map = module_map_imports[0],
-        module_name = module_name,
-        swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],
-    )
+
+    # TODO: Use the free function when rules_apple sets min for rules_swift to v3+
+    if hasattr(swift_common, "create_swift_interop_info"):
+        return swift_common.create_swift_interop_info(
+            module_map = module_map_imports[0],
+            module_name = module_name,
+            swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],
+        )
+    else:
+        return create_swift_interop_info(
+            module_map = module_map_imports[0],
+            module_name = module_name,
+            swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep],
+        )
 
 framework_import_support = struct(
     cc_info_with_dependencies = _cc_info_with_dependencies,

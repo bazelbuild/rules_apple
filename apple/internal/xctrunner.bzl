@@ -18,6 +18,10 @@ platform and architectures as the given `tests` bundles.
 """
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
 )
@@ -92,6 +96,9 @@ test_bundle_info_aspect = aspect(
 )
 
 def _xctrunner_impl(ctx):
+    apple_fragment = ctx.fragments.apple
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     output = ctx.actions.declare_directory(ctx.attr.name + ".app")
     infos = [target[_TestBundleInfo] for target in ctx.attr.tests]
     infoplists = depset(
@@ -117,7 +124,10 @@ def _xctrunner_impl(ctx):
 
     args.add("--output", output.path)
 
-    ctx.actions.run(
+    apple_support.run(
+        actions = ctx.actions,
+        xcode_config = xcode_config,
+        apple_fragment = apple_fragment,
         inputs = depset(transitive = [xctests, infoplists]),
         outputs = [output],
         executable = ctx.attr._xctrunnertool[DefaultInfo].files_to_run,
@@ -163,7 +173,7 @@ An executable binary that can merge separate xctest into a single XCTestRunner
 bundle.
 """,
         ),
-    },
+    } | apple_support.action_required_attrs(),
     doc = """
 Packages one or more .xctest bundles into a XCTRunner.app. Retains same 
 platform and architectures as the given `tests` bundles.
@@ -188,4 +198,5 @@ xctrunner(
 )
 ````
 """,
+    fragments = ["apple"],
 )

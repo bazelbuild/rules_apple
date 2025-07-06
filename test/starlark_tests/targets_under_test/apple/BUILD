@@ -3,6 +3,9 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_xcframework_import",
@@ -48,7 +51,7 @@ load(
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -253,6 +256,20 @@ apple_core_data_model(
     tags = common.fixture_tags,
 )
 
+apple_core_data_model(
+    name = "explicit_outs_data_model",
+    srcs = [
+        "//test/starlark_tests/resources:swift_datamodel",
+    ],
+    outs = {
+        "swift_datamodel": [
+            "swift_datamodel+CoreDataModel.swift",
+            "Item+CoreDataProperties.swift",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "fmwk_lib",
     srcs = [
@@ -297,10 +314,15 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "swift_fmwk_lib",
     srcs = [
         "DummyFmwk.swift",
+    ],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
     ],
     module_name = "ios_dynamic_lipoed_swift_xcframework",
     tags = common.fixture_tags,
@@ -381,7 +403,7 @@ apple_static_xcframework(
 # Generate importable dynamic XCFramework files
 genrule(
     name = "generated_ios_dynamic_xcframework",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_dynamic_xcframework.xcframework.zip"],
     outs = ["ios_dynamic_xcframework.xcframework/Info.plist"] + [
         "{0}/{1}/{2}/{3}".format(
@@ -410,7 +432,7 @@ unzip -oqq $(execpath :ios_dynamic_xcframework.xcframework.zip) -d $(RULEDIR)
 # Generate importable static XCFramework files with static archives
 genrule(
     name = "generated_ios_static_xcframework",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}".format(
@@ -461,7 +483,7 @@ done
 # map
 genrule(
     name = "generated_ios_static_xcframework_with_module_map",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework_with_module_map.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}".format(
@@ -507,7 +529,7 @@ done
 # now. We manually generate one for testing.
 genrule(
     name = "generated_ios_xcframework_bundling_static_fmwks",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_xcframework_bundling_static_fmwks.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}/{3}".format(
@@ -970,7 +992,7 @@ apple_static_xcframework(
 
 genrule(
     name = "generated_ios_static_xcframework_with_resources",
-    testonly = 1,
+    testonly = True,
     srcs = [":ios_static_xcframework_with_resources.xcframework.zip"],
     outs = [
         "{0}/{1}/{2}/{3}".format(
@@ -1168,7 +1190,6 @@ apple_static_xcframework(
         ],
         "device": [
             "arm64",
-            "x86_64",
         ],
     },
     minimum_os_versions = {
@@ -1179,6 +1200,31 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_swift_static_xcframework_with_broad_avoid_deps",
+    avoid_deps = [":swift_lib_for_static_xcfmwk"],
+    # TODO(b/239957001): Remove this when the rule no longer forces library
+    # evolution.
+    features = ["apple.no_legacy_swiftinterface"],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":swift_lib_for_static_xcfmwk"],
 )
 
 genrule(
@@ -1265,9 +1311,14 @@ swift_library(
 
 # Reserved as an input for import_dynamic_(xc)framework rules; referenced by an apple_xcframework
 # rule treated as a List of Files that properly declares a bundle_name matching this module_name.
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "Swift3PFmwkWithGenHeader",
     srcs = ["DummyFmwk.swift"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
     generates_header = True,
     module_name = "Swift3PFmwkWithGenHeader",
     tags = common.fixture_tags,

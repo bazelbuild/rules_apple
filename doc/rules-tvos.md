@@ -7,6 +7,8 @@
 ## tvos_application
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_application")
+
 tvos_application(<a href="#tvos_application-name">name</a>, <a href="#tvos_application-deps">deps</a>, <a href="#tvos_application-resources">resources</a>, <a href="#tvos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_application-app_icons">app_icons</a>, <a href="#tvos_application-app_intents">app_intents</a>, <a href="#tvos_application-bundle_id">bundle_id</a>,
                  <a href="#tvos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#tvos_application-bundle_name">bundle_name</a>, <a href="#tvos_application-codesign_inputs">codesign_inputs</a>, <a href="#tvos_application-codesignopts">codesignopts</a>, <a href="#tvos_application-entitlements">entitlements</a>,
                  <a href="#tvos_application-entitlements_validation">entitlements_validation</a>, <a href="#tvos_application-executable_name">executable_name</a>, <a href="#tvos_application-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_application-extensions">extensions</a>,
@@ -64,6 +66,8 @@ Builds and bundles a tvOS Application.
 ## tvos_build_test
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_build_test")
+
 tvos_build_test(<a href="#tvos_build_test-name">name</a>, <a href="#tvos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#tvos_build_test-platform_type">platform_type</a>, <a href="#tvos_build_test-targets">targets</a>)
 </pre>
 
@@ -98,6 +102,8 @@ tvos_build_test(
 ## tvos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_dynamic_framework")
+
 tvos_dynamic_framework(<a href="#tvos_dynamic_framework-name">name</a>, <a href="#tvos_dynamic_framework-deps">deps</a>, <a href="#tvos_dynamic_framework-resources">resources</a>, <a href="#tvos_dynamic_framework-hdrs">hdrs</a>, <a href="#tvos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                        <a href="#tvos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#tvos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#tvos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#tvos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#tvos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                        <a href="#tvos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#tvos_dynamic_framework-executable_name">executable_name</a>, <a href="#tvos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -147,6 +153,8 @@ Builds and bundles a tvOS dynamic framework that is consumable by Xcode.
 ## tvos_extension
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_extension")
+
 tvos_extension(<a href="#tvos_extension-name">name</a>, <a href="#tvos_extension-deps">deps</a>, <a href="#tvos_extension-resources">resources</a>, <a href="#tvos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_extension-bundle_id">bundle_id</a>, <a href="#tvos_extension-bundle_id_suffix">bundle_id_suffix</a>,
                <a href="#tvos_extension-bundle_name">bundle_name</a>, <a href="#tvos_extension-codesign_inputs">codesign_inputs</a>, <a href="#tvos_extension-codesignopts">codesignopts</a>, <a href="#tvos_extension-entitlements">entitlements</a>, <a href="#tvos_extension-entitlements_validation">entitlements_validation</a>,
                <a href="#tvos_extension-executable_name">executable_name</a>, <a href="#tvos_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_extension-extensionkit_extension">extensionkit_extension</a>, <a href="#tvos_extension-families">families</a>, <a href="#tvos_extension-frameworks">frameworks</a>,
@@ -197,6 +205,8 @@ Builds and bundles a tvOS Extension.
 ## tvos_framework
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_framework")
+
 tvos_framework(<a href="#tvos_framework-name">name</a>, <a href="#tvos_framework-deps">deps</a>, <a href="#tvos_framework-resources">resources</a>, <a href="#tvos_framework-hdrs">hdrs</a>, <a href="#tvos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_framework-base_bundle_id">base_bundle_id</a>, <a href="#tvos_framework-bundle_id">bundle_id</a>,
                <a href="#tvos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#tvos_framework-bundle_name">bundle_name</a>, <a href="#tvos_framework-bundle_only">bundle_only</a>, <a href="#tvos_framework-codesign_inputs">codesign_inputs</a>, <a href="#tvos_framework-codesignopts">codesignopts</a>,
                <a href="#tvos_framework-executable_name">executable_name</a>, <a href="#tvos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_framework-extension_safe">extension_safe</a>, <a href="#tvos_framework-families">families</a>, <a href="#tvos_framework-frameworks">frameworks</a>,
@@ -247,6 +257,8 @@ To use this framework for your app and extensions, list it in the frameworks att
 ## tvos_static_framework
 
 <pre>
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_static_framework")
+
 tvos_static_framework(<a href="#tvos_static_framework-name">name</a>, <a href="#tvos_static_framework-deps">deps</a>, <a href="#tvos_static_framework-resources">resources</a>, <a href="#tvos_static_framework-hdrs">hdrs</a>, <a href="#tvos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#tvos_static_framework-avoid_deps">avoid_deps</a>,
                       <a href="#tvos_static_framework-bundle_name">bundle_name</a>, <a href="#tvos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#tvos_static_framework-codesignopts">codesignopts</a>, <a href="#tvos_static_framework-exclude_resources">exclude_resources</a>, <a href="#tvos_static_framework-executable_name">executable_name</a>,
                       <a href="#tvos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#tvos_static_framework-families">families</a>, <a href="#tvos_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#tvos_static_framework-linkopts">linkopts</a>,
@@ -326,9 +338,11 @@ i.e. `--features=-swift.no_generated_header`).
 ## tvos_ui_test
 
 <pre>
-tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-bundle_name">bundle_name</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_ui_test-minimum_os_version">minimum_os_version</a>,
-             <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>, <a href="#tvos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_ui_test-test_filter">test_filter</a>, <a href="#tvos_ui_test-test_host">test_host</a>,
-             <a href="#tvos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_ui_test")
+
+tvos_ui_test(<a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-deps">deps</a>, <a href="#tvos_ui_test-data">data</a>, <a href="#tvos_ui_test-bundle_name">bundle_name</a>, <a href="#tvos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#tvos_ui_test-env">env</a>, <a href="#tvos_ui_test-env_inherit">env_inherit</a>,
+             <a href="#tvos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#tvos_ui_test-platform_type">platform_type</a>, <a href="#tvos_ui_test-runner">runner</a>,
+             <a href="#tvos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_ui_test-test_filter">test_filter</a>, <a href="#tvos_ui_test-test_host">test_host</a>, <a href="#tvos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
@@ -349,7 +363,9 @@ the attributes inherited by all test rules, please check the
 | <a id="tvos_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="tvos_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="tvos_ui_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="tvos_ui_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="tvos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="tvos_ui_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="tvos_ui_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="tvos_ui_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="tvos_ui_test-platform_type"></a>platform_type |  -   | String | optional |  `"tvos"`  |
@@ -365,9 +381,11 @@ the attributes inherited by all test rules, please check the
 ## tvos_unit_test
 
 <pre>
-tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-bundle_name">bundle_name</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>,
-               <a href="#tvos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>, <a href="#tvos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_unit_test-test_filter">test_filter</a>,
-               <a href="#tvos_unit_test-test_host">test_host</a>, <a href="#tvos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:tvos.doc.bzl", "tvos_unit_test")
+
+tvos_unit_test(<a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_test-deps">deps</a>, <a href="#tvos_unit_test-data">data</a>, <a href="#tvos_unit_test-bundle_name">bundle_name</a>, <a href="#tvos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#tvos_unit_test-env">env</a>, <a href="#tvos_unit_test-env_inherit">env_inherit</a>,
+               <a href="#tvos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#tvos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#tvos_unit_test-platform_type">platform_type</a>, <a href="#tvos_unit_test-runner">runner</a>,
+               <a href="#tvos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#tvos_unit_test-test_filter">test_filter</a>, <a href="#tvos_unit_test-test_host">test_host</a>, <a href="#tvos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
@@ -396,7 +414,9 @@ of the attributes inherited by all test rules, please check the
 | <a id="tvos_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="tvos_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="tvos_unit_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="tvos_unit_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="tvos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="tvos_unit_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="tvos_unit_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="tvos_unit_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="tvos_unit_test-platform_type"></a>platform_type |  -   | String | optional |  `"tvos"`  |

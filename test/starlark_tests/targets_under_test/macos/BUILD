@@ -2,6 +2,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
@@ -47,7 +48,7 @@ load("//test/testdata/rules:substitution.bzl", "substitution")
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -656,7 +657,7 @@ objc_library(
     ],
     tags = common.fixture_tags,
     deps = [":framework_dependent_lib_with_resource"],
-    alwayslink = 1,
+    alwayslink = True,
 )
 
 objc_library(
@@ -890,7 +891,7 @@ macos_framework(
     name = "fmwk_min_os_baseline",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1679,7 +1680,7 @@ macos_framework(
 macos_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2068,7 +2069,7 @@ macos_static_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:swift_framework_lib",
+        "//test/starlark_tests/resources:swift_framework_lib_with_swiftinterface",
     ],
 )
 

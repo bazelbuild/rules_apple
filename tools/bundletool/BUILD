@@ -1,3 +1,7 @@
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
+
 licenses(["notice"])
 
 py_binary(
@@ -13,7 +17,10 @@ py_binary(
 
 py_library(
     name = "bundletool_lib",
-    srcs = ["bundletool.py"],
+    srcs = [
+        "__init__.py",
+        "bundletool.py",
+    ],
     srcs_version = "PY3",
 )
 
@@ -31,10 +38,7 @@ py_test(
     name = "bundletool_test",
     srcs = ["bundletool_test.py"],
     python_version = "PY3",
-    deps = [
-        ":bundletool_lib",
-        "//:py_init_shim",
-    ],
+    deps = [":bundletool_lib"],
 )
 
 filegroup(
@@ -48,7 +52,7 @@ filegroup(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//tools:__pkg__",

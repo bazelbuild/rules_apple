@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 if [[ -z "${DEVELOPER_DIR:-}" ]]; then
   echo "error: Missing \$DEVELOPER_DIR" >&2
   exit 1
@@ -58,7 +62,7 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
-test_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
+test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 if [[ -z "${NO_CLEAN:-}" ]]; then
   trap 'rm -rf "${test_tmp_dir}"' EXIT
 else
@@ -134,8 +138,19 @@ fi
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
-default_test_env="TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
+default_test_env="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 test_env="%(test_env)s"
+env_inherit=%(test_env_inherit)s
+for env_var in "${env_inherit[@]:-}"; do
+  # If the environment variable is set, add it to the test environment
+  if declare -p "$env_var" &>/dev/null; then
+    if [[ -n "$test_env" ]]; then
+      test_env="$test_env,$env_var=${!env_var}"
+    else
+      test_env="$env_var=${!env_var}"
+    fi
+  fi
+done
 if [[ -n "$test_env" ]]; then
   test_env="$test_env,$default_test_env"
 else
@@ -213,7 +228,6 @@ if [[ -n "$test_host_path" ]]; then
     mkdir -p "$runner_app_frameworks_destination"
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
-    cp -R "$libraries_path/PrivateFrameworks/XCUIAutomation.framework" "$runner_app_frameworks_destination/XCUIAutomation.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
     cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
@@ -227,6 +241,14 @@ if [[ -n "$test_host_path" ]]; then
     if [[ -d "$testing_framework_path" ]]; then
       cp -R "$testing_framework_path" "$runner_app_frameworks_destination/Testing.framework"
     fi
+
+    # On Xcode 16.3 and later, XCUIAutomation is not private anymore
+    xcuiautomation_path="$libraries_path/Frameworks/XCUIAutomation.framework"
+    if [[ ! -d "$xcuiautomation_path" ]]; then
+        xcuiautomation_path="$libraries_path/PrivateFrameworks/XCUIAutomation.framework"
+    fi
+    cp -R "$xcuiautomation_path" "$runner_app_frameworks_destination/XCUIAutomation.framework"
+
     if [[ "$build_for_device" == true ]]; then
       # XCTRunner is multi-archs. When launching XCTRunner on arm64e device, it
       # will be launched as arm64e process by default. If the test bundle is arm64
@@ -428,6 +450,7 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   should_use_xcodebuild=true
 fi
 
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 SIMULATOR_UDID="$simulator_id" \
   "$pre_action_binary"
@@ -468,7 +491,6 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
     "%(xctestrun_template)s" > "$xctestrun_file"
 
-
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo
     echo "xctestrun contents:"
@@ -502,8 +524,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   fi
 
   xcodebuild test-without-building "${args[@]}" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
   platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
@@ -525,15 +546,41 @@ else
     "$xctest_binary" \
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
-    2>&1 | tee -i "$testlog" | (grep -v "One of the two will be used" || true) \
-    || test_exit_code=$?
+    2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
-TEST_EXIT_CODE=$test_exit_code \
-  TEST_LOG_FILE="$testlog" \
-  SIMULATOR_UDID="$simulator_id" \
-  "$post_action_binary"
+post_action_determines_exit_code="%(post_action_determines_exit_code)s"
+post_action_exit_code=0
+if [[ -n "${result_bundle_path:-}" ]]; then
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+    "$post_action_binary" || post_action_exit_code=$?
+else
+  TEST_EXIT_CODE=$test_exit_code \
+    TEST_LOG_FILE="$testlog" \
+    SIMULATOR_UDID="$simulator_id" \
+    "$post_action_binary" || post_action_exit_code=$?
+fi
+
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+fi
+
+if [[
+  "$test_exit_code" -eq 0 &&
+  "$create_xcresult_bundle" == true &&
+  "${KEEP_XCRESULT_ON_SUCCESS:-1}" != "1"
+]]; then
+  # Reduce download size by removing the xcresult bundle if the test run was successful
+  rm -r "$result_bundle_path"
+fi
 
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
@@ -549,9 +596,16 @@ if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
   cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
-if [[ "$test_exit_code" -ne 0 ]]; then
-  echo "error: tests exited with '$test_exit_code'" >&2
-  exit "$test_exit_code"
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+else
+  if [[ "$test_exit_code" -ne 0 ]]; then
+    echo "error: tests exited with '$test_exit_code'" >&2
+    exit "$test_exit_code"
+  fi
 fi
 
 if [[ "${ERROR_ON_NO_TESTS_RAN:-1}" == "1" ]]; then
@@ -608,8 +662,12 @@ then
   exit 1
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 ]]; then
+if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
@@ -679,4 +737,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi

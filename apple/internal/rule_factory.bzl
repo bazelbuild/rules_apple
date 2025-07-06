@@ -40,6 +40,12 @@ load(
 # Returns the common set of rule attributes to support Apple test rules.
 # TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
 _COMMON_TEST_ATTRS = {
+    "collect_code_coverage": attr.bool(
+        doc = """
+Whether to collect code coverage for this test if `--collect_code_coverage=yes`.
+""",
+        default = True,
+    ),
     "data": attr.label_list(
         allow_files = True,
         default = [],
@@ -49,6 +55,11 @@ _COMMON_TEST_ATTRS = {
         doc = """
 Dictionary of environment variables that should be set during the test execution. The values of
 the dictionary are subject to "Make" variable expansion.
+""",
+    ),
+    "env_inherit": attr.string_list(
+        doc = """
+List of environment variables to inherit from the external environment.
 """,
     ),
     "runner": attr.label(
@@ -66,7 +77,7 @@ AppleTestRunnerInfo provider.
         providers = [AppleBundleInfo],
     ),
     "_apple_coverage_support": attr.label(
-        cfg = "exec",
+        cfg = config.exec(exec_group = "test"),
         default = Label("@build_bazel_apple_support//tools:coverage_support"),
     ),
     "_lcov_merger": attr.label(
@@ -74,7 +85,7 @@ AppleTestRunnerInfo provider.
             fragment = "coverage",
             name = "output_generator",
         ),
-        cfg = "exec",
+        cfg = config.exec(exec_group = "test"),
     ),
     "test_filter": attr.string(
         doc = """
@@ -169,11 +180,14 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
-        exec_compatible_with = [
-            "@platforms//os:macos",
-        ],
+        exec_groups = {
+            "test": exec_group(
+                exec_compatible_with = [
+                    "@platforms//os:macos",
+                ],
+            ),
+        },
         test = True,
-        toolchains = use_cpp_toolchain(),
     )
 
 rule_factory = struct(

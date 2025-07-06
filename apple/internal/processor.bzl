@@ -429,7 +429,9 @@ def _bundle_partial_outputs_files(
             "no-sandbox": "1",
         }
 
-        if platform_prerequisites.platform.is_device and provisioning_profile:
+        if (codesigning_command and
+            platform_prerequisites.platform.is_device and
+            provisioning_profile):
             # Added so that the output of this action is not cached remotely,
             # in case multiple developers sign the same artifact with different
             # identities.

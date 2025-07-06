@@ -38,6 +38,7 @@ load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
     "ios_xctestrun_runner"
 )
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
@@ -76,6 +77,27 @@ echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
 sh_binary(
   name = "post_action",
   srcs = [":post_action_gen"],
+)
+
+genrule(
+  name = "post_action_soft_fail_gen",
+  executable = True,
+  outs = ["post_action_soft_fail.bash"],
+  cmd = """
+echo 'echo "POST-ACTION: Soft failing." && exit 0' > \$@
+""",
+)
+
+sh_binary(
+  name = "post_action_soft_fail",
+  srcs = [":post_action_soft_fail_gen"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_soft_fail",
+    device_type = "iPhone Xs",
+    post_action = ":post_action_soft_fail",
+    post_action_determines_exit_code = True,
 )
 
 ios_xctestrun_runner(
@@ -371,6 +393,14 @@ ios_unit_test(
 )
 
 ios_unit_test(
+    name = 'SoftFailingUnitTest',
+    infoplists = ["FailUnitTest-Info.plist"],
+    deps = [":fail_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner_with_soft_fail",
+)
+
+ios_unit_test(
     name = 'FailingWithHost',
     infoplists = ["FailUnitTest-Info.plist"],
     deps = [":fail_unit_test_lib"],
@@ -381,7 +411,7 @@ ios_unit_test(
 EOF
 }
 
-function create_ios_unit_envtest() {
+function create_ios_unit_env_test() {
   if [[ ! -f ios/BUILD ]]; then
     fail "create_sim_runners must be called first."
   fi
@@ -432,6 +462,66 @@ ios_unit_test(
     name = 'EnvWithHost',
     infoplists = ["EnvUnitTest-Info.plist"],
     deps = [":env_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+EOF
+}
+
+function create_ios_unit_env_inherit_test() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/env_inherit_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+#include <assert.h>
+#include <stdlib.h>
+
+@interface EnvInheritUnitTest : XCTestCase
+
+@end
+
+@implementation EnvInheritUnitTest
+
+- (void)testEnv {
+  NSString *var_value = [[[NSProcessInfo processInfo] environment] objectForKey:@"$1"];
+  XCTAssertEqualObjects(var_value, @"$2", @"env $1 should be %@, instead is %@", @"$2", var_value);
+}
+
+@end
+EOF
+
+  cat >ios/EnvInheritUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>EnvInheritUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+objc_library(
+    name = "env_inherit_unit_test_lib",
+    srcs = ["env_inherit_unit_test.m"],
+)
+
+ios_unit_test(
+    name = 'EnvInheritUnitTest',
+    infoplists = ["EnvInheritUnitTest-Info.plist"],
+    deps = [":env_inherit_unit_test_lib"],
+    env_inherit = ["$1"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = 'EnvInheritWithHost',
+    infoplists = ["EnvInheritUnitTest-Info.plist"],
+    deps = [":env_inherit_unit_test_lib"],
+    env_inherit = ["$1"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
@@ -729,6 +819,17 @@ function test_ios_unit_test_fail() {
   expect_log "Executed 1 test, with 1 failure"
 }
 
+function test_ios_unit_test_soft_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:SoftFailingUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Test Suite 'SoftFailingUnitTest.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+  expect_log "POST-ACTION: Soft failing."
+}
+
 function test_ios_unit_test_with_host_fail() {
   create_sim_runners
   create_test_host_app
@@ -844,7 +945,7 @@ function test_ios_unit_test_with_host_and_skip_and_only_filters() {
 
 function test_ios_unit_test_with_env() {
   create_sim_runners
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
@@ -853,10 +954,27 @@ function test_ios_unit_test_with_env() {
 function test_ios_unit_test_with_host_with_env() {
   create_sim_runners
   create_test_host_app
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvWithHost || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_env_inherit() {
+  create_sim_runners
+  create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
+  ENV_INHERIT_KEY1=ENV_INHERIT_VALUE2 do_ios_test //ios:EnvInheritUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'EnvInheritUnitTest' passed"
+}
+
+function test_ios_unit_test_with_host_with_env_inherit() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
+  ENV_INHERIT_KEY1=ENV_INHERIT_VALUE2 do_ios_test //ios:EnvInheritWithHost || fail "should pass"
+
+  expect_log "Test Suite 'EnvInheritUnitTest' passed"
 }
 
 function test_ios_unit_test_with_make_var_empty() {
@@ -922,7 +1040,7 @@ function test_ios_unit_other_arg() {
 
 function test_ios_unit_test_with_multi_equal_env() {
   create_sim_runners
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2=ENV_VALUE3
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"

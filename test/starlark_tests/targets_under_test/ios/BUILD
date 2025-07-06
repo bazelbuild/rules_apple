@@ -3,6 +3,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple.bzl",
     "apple_dynamic_framework_import",
@@ -71,6 +72,37 @@ package(
 # since most of them do not have any source dependencies, so they are all tagged as manual and
 # notap to avoid them being built/tested when testing the //test/...
 # package.
+
+ios_application(
+    name = "app minimal has several spaces",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_minimal_bundle_name_with_spaces",
+    bundle_id = "com.google.example",
+    bundle_name = "app minimal bundle name has several spaces",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
 
 ios_application(
     name = "app_minimal",
@@ -758,12 +790,12 @@ docc_archive(
 )
 
 ios_static_framework(
-    name = "swift_static_framework",
+    name = "swift_static_framework_with_swiftinterface",
     bundle_name = "swift_framework_lib",
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:swift_framework_lib",
+        "//test/starlark_tests/resources:swift_framework_lib_with_swiftinterface",
     ],
 )
 
@@ -880,7 +912,7 @@ ios_framework(
     name = "fmwk_min_os_baseline",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     families = [
         "iphone",
         "ipad",
@@ -1971,7 +2003,7 @@ ios_framework(
 ios_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
+    extension_safe = True,
     families = [
         "iphone",
         "ipad",

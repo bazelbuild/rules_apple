@@ -694,13 +694,13 @@ def _post_process_and_sign_archive_action(
         output = process_and_sign_expanded_template,
         is_executable = True,
         substitutions = {
-            "%ipa_post_processor%": ipa_post_processor_path or "",
-            "%output_path%": output_archive.path,
+            "%ipa_post_processor%": shell.quote(ipa_post_processor_path) or "",
+            "%output_path%": shell.quote(output_archive.path),
             "%should_compress%": "1" if should_compress else "",
             "%should_verify%": "1",  # always verify the crc
             "%signing_command_lines%": signing_command_lines,
-            "%unprocessed_archive_path%": input_archive.path,
-            "%work_dir%": output_archive_root_path,
+            "%unprocessed_archive_path%": shell.quote(input_archive.path),
+            "%work_dir%": shell.quote(output_archive_root_path),
         },
     )
 

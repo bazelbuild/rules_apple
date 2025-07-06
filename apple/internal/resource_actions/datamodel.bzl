@@ -109,6 +109,7 @@ def generate_datamodels(
         datamodel_path,
         input_files,
         output_dir,
+        outputs,
         platform_prerequisites,
         xctoolrunner,
         swift_version = None):
@@ -119,6 +120,7 @@ def generate_datamodels(
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
         output_dir: The output directory reference where generated datamodel classes will be.
+        outputs: The list of generated datamodel files or the directory containing those files.
         platform_prerequisites: Struct containing information on the platform being targeted.
         xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
         swift_version: (optional) Target Swift version for generated datamodel classes.
@@ -136,9 +138,9 @@ def generate_datamodels(
         args.add("--swift-version", swift_version)
 
     args.add(xctoolrunner_support.prefixed_path(datamodel_path))
-    args.add(xctoolrunner_support.prefixed_path(output_dir.path))
+    args.add(xctoolrunner_support.prefixed_path(output_dir))
 
-    args.add("--xctoolrunner_assert_nonempty_dir", output_dir.path)
+    args.add("--xctoolrunner_assert_nonempty_dir", output_dir)
 
     apple_support.run(
         actions = actions,
@@ -147,6 +149,6 @@ def generate_datamodels(
         executable = xctoolrunner,
         inputs = input_files,
         mnemonic = "MomGenerate",
-        outputs = [output_dir],
+        outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
     )

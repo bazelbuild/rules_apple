@@ -14,7 +14,10 @@
 
 """Rule for creating header_maps."""
 
+load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_common")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 HeaderMapInfo = provider(
     doc = "Provides information about created `.hmap` (header map) files",
@@ -81,9 +84,15 @@ def _header_map_impl(ctx):
         hdrs_lists = hdrs_lists,
     )
 
+    # TODO: use SwiftInfo directly when rules_apple sets min for rules_swift to v3+
+    if hasattr(swift_common, "create_swift_info"):
+        swift_info = swift_common.create_swift_info()
+    else:
+        swift_info = SwiftInfo()
+
     return [
         apple_common.new_objc_provider(),
-        swift_common.create_swift_info(),
+        swift_info,
         CcInfo(
             compilation_context = cc_common.create_compilation_context(
                 headers = depset([ctx.outputs.header_map]),

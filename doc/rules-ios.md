@@ -7,6 +7,8 @@
 ## ios_app_clip
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_app_clip")
+
 ios_app_clip(<a href="#ios_app_clip-name">name</a>, <a href="#ios_app_clip-deps">deps</a>, <a href="#ios_app_clip-resources">resources</a>, <a href="#ios_app_clip-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_app_clip-app_icons">app_icons</a>, <a href="#ios_app_clip-bundle_id">bundle_id</a>,
              <a href="#ios_app_clip-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_app_clip-bundle_name">bundle_name</a>, <a href="#ios_app_clip-codesign_inputs">codesign_inputs</a>, <a href="#ios_app_clip-codesignopts">codesignopts</a>, <a href="#ios_app_clip-entitlements">entitlements</a>,
              <a href="#ios_app_clip-entitlements_validation">entitlements_validation</a>, <a href="#ios_app_clip-executable_name">executable_name</a>, <a href="#ios_app_clip-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_app_clip-extensions">extensions</a>, <a href="#ios_app_clip-families">families</a>,
@@ -59,6 +61,8 @@ Builds and bundles an iOS App Clip.
 ## ios_application
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_application")
+
 ios_application(<a href="#ios_application-name">name</a>, <a href="#ios_application-deps">deps</a>, <a href="#ios_application-resources">resources</a>, <a href="#ios_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_application-alternate_icons">alternate_icons</a>, <a href="#ios_application-app_clips">app_clips</a>,
                 <a href="#ios_application-app_icons">app_icons</a>, <a href="#ios_application-app_intents">app_intents</a>, <a href="#ios_application-bundle_id">bundle_id</a>, <a href="#ios_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_application-bundle_name">bundle_name</a>, <a href="#ios_application-codesign_inputs">codesign_inputs</a>,
                 <a href="#ios_application-codesignopts">codesignopts</a>, <a href="#ios_application-entitlements">entitlements</a>, <a href="#ios_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_application-executable_name">executable_name</a>,
@@ -122,6 +126,8 @@ Builds and bundles an iOS Application.
 ## ios_build_test
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_build_test")
+
 ios_build_test(<a href="#ios_build_test-name">name</a>, <a href="#ios_build_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_build_test-platform_type">platform_type</a>, <a href="#ios_build_test-targets">targets</a>)
 </pre>
 
@@ -156,6 +162,8 @@ ios_build_test(
 ## ios_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_dynamic_framework")
+
 ios_dynamic_framework(<a href="#ios_dynamic_framework-name">name</a>, <a href="#ios_dynamic_framework-deps">deps</a>, <a href="#ios_dynamic_framework-resources">resources</a>, <a href="#ios_dynamic_framework-hdrs">hdrs</a>, <a href="#ios_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                       <a href="#ios_dynamic_framework-bundle_id">bundle_id</a>, <a href="#ios_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_dynamic_framework-bundle_name">bundle_name</a>, <a href="#ios_dynamic_framework-bundle_only">bundle_only</a>, <a href="#ios_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                       <a href="#ios_dynamic_framework-codesignopts">codesignopts</a>, <a href="#ios_dynamic_framework-executable_name">executable_name</a>, <a href="#ios_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_dynamic_framework-extension_safe">extension_safe</a>, <a href="#ios_dynamic_framework-families">families</a>,
@@ -205,6 +213,8 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 ## ios_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_extension")
+
 ios_extension(<a href="#ios_extension-name">name</a>, <a href="#ios_extension-deps">deps</a>, <a href="#ios_extension-resources">resources</a>, <a href="#ios_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_extension-app_icons">app_icons</a>, <a href="#ios_extension-app_intents">app_intents</a>, <a href="#ios_extension-bundle_id">bundle_id</a>,
               <a href="#ios_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_extension-bundle_name">bundle_name</a>, <a href="#ios_extension-codesign_inputs">codesign_inputs</a>, <a href="#ios_extension-codesignopts">codesignopts</a>, <a href="#ios_extension-entitlements">entitlements</a>,
               <a href="#ios_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_extension-executable_name">executable_name</a>, <a href="#ios_extension-exported_symbols_lists">exported_symbols_lists</a>,
@@ -263,6 +273,8 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 ## ios_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_framework")
+
 ios_framework(<a href="#ios_framework-name">name</a>, <a href="#ios_framework-deps">deps</a>, <a href="#ios_framework-resources">resources</a>, <a href="#ios_framework-hdrs">hdrs</a>, <a href="#ios_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_framework-base_bundle_id">base_bundle_id</a>, <a href="#ios_framework-bundle_id">bundle_id</a>,
               <a href="#ios_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_framework-bundle_name">bundle_name</a>, <a href="#ios_framework-bundle_only">bundle_only</a>, <a href="#ios_framework-codesign_inputs">codesign_inputs</a>, <a href="#ios_framework-codesignopts">codesignopts</a>,
               <a href="#ios_framework-executable_name">executable_name</a>, <a href="#ios_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_framework-extension_safe">extension_safe</a>, <a href="#ios_framework-families">families</a>, <a href="#ios_framework-frameworks">frameworks</a>,
@@ -314,6 +326,8 @@ of those `ios_application` and/or `ios_extension` rules.
 ## ios_imessage_application
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_imessage_application")
+
 ios_imessage_application(<a href="#ios_imessage_application-name">name</a>, <a href="#ios_imessage_application-resources">resources</a>, <a href="#ios_imessage_application-app_icons">app_icons</a>, <a href="#ios_imessage_application-bundle_id">bundle_id</a>, <a href="#ios_imessage_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_imessage_application-bundle_name">bundle_name</a>,
                          <a href="#ios_imessage_application-entitlements">entitlements</a>, <a href="#ios_imessage_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_application-executable_name">executable_name</a>, <a href="#ios_imessage_application-extension">extension</a>, <a href="#ios_imessage_application-families">families</a>,
                          <a href="#ios_imessage_application-infoplists">infoplists</a>, <a href="#ios_imessage_application-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_imessage_application-locales_to_include">locales_to_include</a>,
@@ -359,6 +373,8 @@ for either an iOS iMessage extension or a Sticker Pack extension.
 ## ios_imessage_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_imessage_extension")
+
 ios_imessage_extension(<a href="#ios_imessage_extension-name">name</a>, <a href="#ios_imessage_extension-deps">deps</a>, <a href="#ios_imessage_extension-resources">resources</a>, <a href="#ios_imessage_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_imessage_extension-app_icons">app_icons</a>, <a href="#ios_imessage_extension-bundle_id">bundle_id</a>,
                        <a href="#ios_imessage_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_imessage_extension-bundle_name">bundle_name</a>, <a href="#ios_imessage_extension-codesign_inputs">codesign_inputs</a>, <a href="#ios_imessage_extension-codesignopts">codesignopts</a>, <a href="#ios_imessage_extension-entitlements">entitlements</a>,
                        <a href="#ios_imessage_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_extension-executable_name">executable_name</a>, <a href="#ios_imessage_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_imessage_extension-families">families</a>,
@@ -409,6 +425,8 @@ Builds and bundles an iOS iMessage Extension.
 ## ios_static_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_static_framework")
+
 ios_static_framework(<a href="#ios_static_framework-name">name</a>, <a href="#ios_static_framework-deps">deps</a>, <a href="#ios_static_framework-resources">resources</a>, <a href="#ios_static_framework-hdrs">hdrs</a>, <a href="#ios_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_static_framework-avoid_deps">avoid_deps</a>, <a href="#ios_static_framework-bundle_name">bundle_name</a>,
                      <a href="#ios_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#ios_static_framework-codesignopts">codesignopts</a>, <a href="#ios_static_framework-exclude_resources">exclude_resources</a>, <a href="#ios_static_framework-executable_name">executable_name</a>,
                      <a href="#ios_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_static_framework-families">families</a>, <a href="#ios_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_static_framework-linkopts">linkopts</a>,
@@ -488,6 +506,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## ios_sticker_pack_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_sticker_pack_extension")
+
 ios_sticker_pack_extension(<a href="#ios_sticker_pack_extension-name">name</a>, <a href="#ios_sticker_pack_extension-resources">resources</a>, <a href="#ios_sticker_pack_extension-app_icons">app_icons</a>, <a href="#ios_sticker_pack_extension-bundle_id">bundle_id</a>, <a href="#ios_sticker_pack_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_sticker_pack_extension-bundle_name">bundle_name</a>,
                            <a href="#ios_sticker_pack_extension-entitlements">entitlements</a>, <a href="#ios_sticker_pack_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_sticker_pack_extension-executable_name">executable_name</a>, <a href="#ios_sticker_pack_extension-families">families</a>,
                            <a href="#ios_sticker_pack_extension-infoplists">infoplists</a>, <a href="#ios_sticker_pack_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_sticker_pack_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>,
@@ -529,8 +549,10 @@ Builds and bundles an iOS Sticker Pack Extension.
 ## ios_test_runner
 
 <pre>
-ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>, <a href="#ios_test_runner-pre_action">pre_action</a>,
-                <a href="#ios_test_runner-test_environment">test_environment</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_test_runner")
+
+ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>,
+                <a href="#ios_test_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#ios_test_runner-pre_action">pre_action</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
 </pre>
 
 Rule to identify an iOS runner that runs tests for iOS.
@@ -557,6 +579,7 @@ Outputs:
 | <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{"requires-darwin": ""}`  |
 | <a id="ios_test_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. By default, it is the latest supported version of the device type.'   | String | optional |  `""`  |
 | <a id="ios_test_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_test_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.   | Boolean | optional |  `False`  |
 | <a id="ios_test_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_test_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 
@@ -566,9 +589,11 @@ Outputs:
 ## ios_ui_test
 
 <pre>
-ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-bundle_name">bundle_name</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_ui_test-minimum_os_version">minimum_os_version</a>,
-            <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>, <a href="#ios_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>,
-            <a href="#ios_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_ui_test")
+
+ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-bundle_name">bundle_name</a>, <a href="#ios_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-env_inherit">env_inherit</a>,
+            <a href="#ios_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>,
+            <a href="#ios_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>, <a href="#ios_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 iOS UI Test rule.
@@ -594,7 +619,9 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_ui_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="ios_ui_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_ui_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="ios_ui_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="ios_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="ios_ui_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="ios_ui_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="ios_ui_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_ui_test-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
@@ -610,9 +637,11 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test
 
 <pre>
-ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-bundle_name">bundle_name</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_unit_test-minimum_os_version">minimum_os_version</a>,
-              <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>, <a href="#ios_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>,
-              <a href="#ios_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_unit_test")
+
+ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-bundle_name">bundle_name</a>, <a href="#ios_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-env_inherit">env_inherit</a>,
+              <a href="#ios_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>,
+              <a href="#ios_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>, <a href="#ios_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 Builds and bundles an iOS Unit `.xctest` test bundle. Runs the tests using the
@@ -644,7 +673,9 @@ of the attributes inherited by all test rules, please check the
 | <a id="ios_unit_test-deps"></a>deps |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="ios_unit_test-data"></a>data |  Files to be made available to the test during its execution.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_unit_test-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
+| <a id="ios_unit_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="ios_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="ios_unit_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
 | <a id="ios_unit_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="ios_unit_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_unit_test-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
@@ -660,9 +691,12 @@ of the attributes inherited by all test rules, please check the
 ## ios_xctestrun_runner
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_xctestrun_runner")
+
 ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-attachment_lifetime">attachment_lifetime</a>, <a href="#ios_xctestrun_runner-command_line_args">command_line_args</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>,
-                     <a href="#ios_xctestrun_runner-destination_timeout">destination_timeout</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-post_action">post_action</a>, <a href="#ios_xctestrun_runner-pre_action">pre_action</a>, <a href="#ios_xctestrun_runner-random">random</a>,
-                     <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>, <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
+                     <a href="#ios_xctestrun_runner-destination_timeout">destination_timeout</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-post_action">post_action</a>,
+                     <a href="#ios_xctestrun_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#ios_xctestrun_runner-pre_action">pre_action</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
+                     <a href="#ios_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
 </pre>
 
 This rule creates a test runner for iOS tests that uses xctestrun files to run
@@ -714,7 +748,8 @@ in Xcode.
 | <a id="ios_xctestrun_runner-destination_timeout"></a>destination_timeout |  Use the specified timeout when searching for a destination device. The default is 30 seconds.   | Integer | optional |  `0`  |
 | <a id="ios_xctestrun_runner-device_type"></a>device_type |  The device type of the iOS simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air. By default, it reads from --ios_simulator_device or falls back to some device.   | String | optional |  `""`  |
 | <a id="ios_xctestrun_runner-os_version"></a>os_version |  The os version of the iOS simulator to run test. The supported os versions correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5. By default, it reads --ios_simulator_version and then falls back to the latest supported version.   | String | optional |  `""`  |
-| <a id="ios_xctestrun_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_xctestrun_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_xctestrun_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.   | Boolean | optional |  `False`  |
 | <a id="ios_xctestrun_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional |  `False`  |
 | <a id="ios_xctestrun_runner-reuse_simulator"></a>reuse_simulator |  Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.   | Boolean | optional |  `True`  |
@@ -726,7 +761,9 @@ in Xcode.
 ## ios_ui_test_suite
 
 <pre>
-ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">kwargs</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_ui_test_suite")
+
+ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">**kwargs</a>)
 </pre>
 
 Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
@@ -752,7 +789,9 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 ## ios_unit_test_suite
 
 <pre>
-ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">kwargs</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_unit_test_suite")
+
+ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">**kwargs</a>)
 </pre>
 
 Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.

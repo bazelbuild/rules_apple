@@ -1,3 +1,6 @@
+load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
 load("//tools:binary_env.bzl", "binary_env")
 
 licenses(["notice"])
@@ -16,7 +19,10 @@ py_binary(
 
 py_library(
     name = "xctoolrunner_lib",
-    srcs = ["xctoolrunner.py"],
+    srcs = [
+        "__init__.py",
+        "xctoolrunner.py",
+    ],
     srcs_version = "PY3",
     deps = ["//tools/wrapper_common:execute"],
 )
@@ -28,7 +34,6 @@ py_test(
     tags = ["requires-darwin"],
     deps = [
         ":xctoolrunner_lib",
-        "//:py_init_shim",
         "//tools/wrapper_common:execute",
     ],
 )
@@ -36,7 +41,7 @@ py_test(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//tools:__pkg__",

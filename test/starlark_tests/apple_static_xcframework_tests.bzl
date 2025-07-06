@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -127,12 +131,9 @@ def apple_static_xcframework_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.framework/ios_static_xcfmwk_with_swift",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.framework/Modules/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.framework/ios_static_xcfmwk_with_swift",
         ],
         tags = [name],
@@ -149,14 +150,11 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.framework/Headers/ios_static_xcfmwk_with_swift_generated_headers.h",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift_generated_headers.framework/ios_static_xcfmwk_with_swift_generated_headers",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Headers/ios_static_xcfmwk_with_swift_generated_headers.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/Modules/ios_static_xcfmwk_with_swift_generated_headers.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift_generated_headers.framework/ios_static_xcfmwk_with_swift_generated_headers",
         ],
         tags = [name],
@@ -275,6 +273,13 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_static_xcframework_with_resources.framework/resource_bundle.bundle/custom_apple_resource_info.out",
         ],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_overreaching_avoid_deps_swift_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_xcframework_with_broad_avoid_deps",
+        expected_error = "Error: Could not find a Swift module to build a Swift framework. This could be because \"avoid_deps\" is too broadly defined.",
         tags = [name],
     )
 

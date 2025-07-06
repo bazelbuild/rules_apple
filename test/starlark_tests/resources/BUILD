@@ -2,6 +2,10 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
@@ -157,7 +161,7 @@ objc_library(
         "shared.m",
     ],
     deps = [":objc_common_lib_with_structured_images"],
-    alwayslink = 1,
+    alwayslink = True,
 )
 
 objc_library(
@@ -311,6 +315,19 @@ swift_library(
 swift_library(
     name = "swift_framework_lib",
     srcs = ["//test/testdata/sources:main.swift"],
+    generates_header = True,
+    module_name = "swift_framework_lib",
+    tags = common.fixture_tags,
+)
+
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
+swift_library(
+    name = "swift_framework_lib_with_swiftinterface",
+    srcs = ["//test/testdata/sources:main.swift"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
     generates_header = True,
     module_name = "swift_framework_lib",
     tags = common.fixture_tags,

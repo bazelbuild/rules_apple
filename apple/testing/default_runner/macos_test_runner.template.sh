@@ -20,6 +20,10 @@
 # https://github.com/bazelbuild/rules_apple/blob/master/apple/testing/apple_test_rules.bzl
 # for more info.
 
+if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  touch "$TEST_PREMATURE_EXIT_FILE"
+fi
+
 if [[ "%(test_type)s" = "XCUITEST" ]]; then
   echo "This runner only works with macos_unit_test (b/63707899)."
   exit 1
@@ -41,7 +45,7 @@ BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
 
 # Create a temporary folder that will contain the test bundle and potentially
 # the test host bundle as well.
-TEST_TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/test_tmp_dir.XXXXXX")"
+TEST_TMP_DIR="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 trap 'rm -rf "${TEST_TMP_DIR}"' ERR EXIT
 
 TEST_BUNDLE_PATH="%(test_bundle_path)s"
@@ -134,38 +138,61 @@ if [[ "$XML_OUTPUT_FILE" != /* ]]; then
   export XML_OUTPUT_FILE="$PWD/$XML_OUTPUT_FILE"
 fi
 
+
+# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 "$pre_action_binary"
 
+readonly result_bundle_path="$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
+# TEST_UNDECLARED_OUTPUTS_DIR isn't cleaned up with multiple retries of flaky tests
+rm -rf "$result_bundle_path"
+
 test_exit_code=0
+readonly testlog="$TEST_TMP_DIR/test.log"
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
-rm -rf "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult"
 xcodebuild test-without-building \
     -destination "platform=macOS" \
-    -resultBundlePath "$TEST_UNDECLARED_OUTPUTS_DIR/tests.xcresult" \
+    -resultBundlePath "$result_bundle_path" \
     -xctestrun "$XCTESTRUN" \
+    2>&1 | tee -i "$testlog" \
     || test_exit_code=$?
 
+# Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
+post_action_determines_exit_code="%(post_action_determines_exit_code)s"
+post_action_exit_code=0
 TEST_EXIT_CODE=$test_exit_code \
-  "$post_action_binary"
+  TEST_LOG_FILE="$testlog" \
+  TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+  "$post_action_binary" || post_action_exit_code=$?
 
-if [[ "$test_exit_code" -ne 0 ]]; then
-  echo "error: tests exited with '$test_exit_code'" >&2
-  exit "$test_exit_code"
+if [[ "$post_action_determines_exit_code" == true ]]; then
+  if [[ "$post_action_exit_code" -ne 0 ]]; then
+    echo "error: post_action exited with '$post_action_exit_code'" >&2
+    exit "$post_action_exit_code"
+  fi
+else
+  if [[ "$test_exit_code" -ne 0 ]]; then
+    echo "error: tests exited with '$test_exit_code'" >&2
+    exit "$test_exit_code"
+  fi
 fi
 
 if [[ "${COVERAGE:-}" -ne 1 ]]; then
   # Normal tests run without coverage
+  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+    rm -f "$TEST_PREMATURE_EXIT_FILE"
+  fi
+
   exit 0
 fi
 
 llvm_coverage_manifest="$COVERAGE_MANIFEST"
-readonly provided_llvm_coverage_manifest="%(test_llvm_coverage_manifest)s"
-if [[ -s "${provided_llvm_coverage_manifest:-}" ]]; then
-  llvm_coverage_manifest="$provided_llvm_coverage_manifest"
+readonly provided_coverage_manifest="%(test_coverage_manifest)s"
+if [[ -s "${provided_coverage_manifest:-}" ]]; then
+  llvm_coverage_manifest="$provided_coverage_manifest"
 fi
 
 readonly profdata="$TEST_TMP_DIR/coverage.profdata"
@@ -212,4 +239,8 @@ if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
     cat "$export_error_file" >&2
     exit 1
   fi
+fi
+
+if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
+  rm -f "$TEST_PREMATURE_EXIT_FILE"
 fi

@@ -76,19 +76,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "experimental_mixed_language_library",
-    srcs = ["experimental_mixed_language_library.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "//apple/internal:header_map_support",
-        "@bazel_skylib//lib:paths",
-        "@build_bazel_rules_swift//swift",
-    ],
-)
-
-bzl_library(
     name = "apple_universal_binary",
     srcs = ["apple_universal_binary.bzl"],
     visibility = [
@@ -825,6 +812,7 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal/providers:apple_debug_info",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -850,6 +838,7 @@ bzl_library(
     ],
     deps = [
         "@build_bazel_rules_swift//swift",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -867,7 +856,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/internal/aspects:for_bazel_tests",
         "//apple/internal/partials:for_bazel_tests",

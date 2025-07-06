@@ -8,9 +8,9 @@ licenses(["notice"])
 
 # Create a set of public config_settings that can be used in select()s.
 [
-    config_setting(
+    alias(
         name = arch,
-        values = {"cpu": arch},
+        actual = "@build_bazel_apple_support//configs:{}".format(arch),
     )
     for arch in [
         "darwin_x86_64",
@@ -40,10 +40,11 @@ bzl_library(
         "//apple/internal:apple_framework_import",
         "//apple/internal:apple_universal_binary",
         "//apple/internal:apple_xcframework_import",
-        "//apple/internal:experimental_mixed_language_library",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
+        "@bazel_features//:features",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -110,6 +111,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -123,6 +125,7 @@ bzl_library(
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:ios_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -147,6 +150,7 @@ bzl_library(
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:macos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -181,7 +185,9 @@ bzl_library(
         "//apple/internal/resource_rules:apple_precompiled_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
+        "@rules_cc//cc:core_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -194,6 +200,7 @@ bzl_library(
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:tvos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -227,6 +234,7 @@ bzl_library(
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:visionos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -245,6 +253,7 @@ bzl_library(
         "//apple/internal/testing:build_test_rules",
         "//apple/internal/testing:watchos_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -285,7 +294,7 @@ cc_toolchain_forwarder(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/build_settings:for_bazel_tests",
         "//apple/internal:for_bazel_tests",

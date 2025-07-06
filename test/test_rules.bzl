@@ -14,6 +14,8 @@
 
 """Utilities for testing Apple rules."""
 
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
 def apple_multi_shell_test(
         name,
         src,
@@ -94,7 +96,7 @@ def apple_shell_test(
       **kwargs: Additional attribute values to apply to the test target.
     """
 
-    native.sh_test(
+    sh_test(
         name = name,
         srcs = ["bazel_testrunner.sh"],
         args = [
@@ -106,7 +108,6 @@ def apple_shell_test(
             "//test:apple_shell_testutils.sh",
             "//test/testdata/provisioning:integration_testing_profiles",
             "//test:unittest.bash",
-            "//:BUILD",
         ] + (data or []),
         deps = [
             "@bazel_tools//tools/bash/runfiles",
