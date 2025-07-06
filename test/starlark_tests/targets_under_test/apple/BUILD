@@ -3,6 +3,7 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(

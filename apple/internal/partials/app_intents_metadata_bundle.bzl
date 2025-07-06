@@ -15,6 +15,7 @@
 """Partial implementation for processing AppIntents metadata bundle."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//apple/internal:intermediates.bzl", "intermediates")
 load("//apple/internal:linking_support.bzl", "linking_support")
 load("//apple/internal:processor.bzl", "processor")

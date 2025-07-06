@@ -14,6 +14,8 @@
 
 """Support utility for creating multi-arch Apple binaries."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+
 visibility([
     "//apple/...",
 ])
