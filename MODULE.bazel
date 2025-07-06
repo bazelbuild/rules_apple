@@ -34,18 +34,9 @@ bazel_dep(
     dev_dependency = True,
     repo_name = "io_bazel_stardoc",
 )
-bazel_dep(
-    name = "protobuf",
-    version = "29.0",
-    dev_dependency = True,
-    repo_name = "com_google_protobuf",
-)
 
 non_module_deps = use_extension("//apple:extensions.bzl", "non_module_deps")
-use_repo(
-    non_module_deps,
-    "xctestrunner",
-)
+use_repo(non_module_deps, "xctestrunner")
 
 provisioning_profile_repository = use_extension("//apple:apple.bzl", "provisioning_profile_repository_extension")
 use_repo(provisioning_profile_repository, "local_provisioning_profiles")
