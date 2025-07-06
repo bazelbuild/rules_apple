@@ -14,6 +14,7 @@
 
 """Implementation of apple_resource_bundle rule."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",

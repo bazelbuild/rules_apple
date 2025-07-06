@@ -14,6 +14,7 @@
 
 """apple_static_library Starlark implementation"""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
     "ApplePlatformInfo",
