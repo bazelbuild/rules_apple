@@ -233,6 +233,34 @@ def ios_application_resources_test_suite(name):
         tags = [name] + common.fixture_tags + common.skip_ci_tags,
     )
 
+    # Tests that icon composer icons must be provided when the minimum_os_version is 26.0 or higher.
+    analysis_failure_message_test(
+        name = "{}_legacy_app_icons_for_minimum_os_version_26_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcassets_for_ios_26",
+        expected_error = """
+Legacy .appiconset files should not be used on iOS/macOS/watchOS 26+.
+
+These platforms prefer Icon Composer .icon bundles. .appiconset files are preferred for better control of rendering icons in iOS/macOS/watchOS prior to 26.
+
+Found the following legacy .appiconset files: """,
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that icon composer icons will be flagged when building against Xcode 16 instead of 26.
+    analysis_failure_message_test(
+        name = "{}_test_xcode_16_with_icon_composer_icons_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle",
+        expected_error = """
+Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.
+
+Found the following: """,
+        tags = [
+            name,
+        ],
+    )
+
     # Tests that the launch storyboard is bundled with the application and that
     # the bundler inserts the correct key/value into Info.plist.
     archive_contents_test(
@@ -282,9 +310,9 @@ Found multiple app icons among the asset catalogs with no primary_app_icon assig
 If you intend to assign multiple app icons to this target, please declare which of these is intended
 to be the primary app icon with the primary_app_icon attribute on the rule itself.
 
-app_icons was assigned the following: [
-  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
-  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
+Target was assigned the following app icons: [
+  third_party/bazel_rules/rules_apple/test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
+  third_party/bazel_rules/rules_apple/test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
 ]
 """,
         tags = [name],
