@@ -219,6 +219,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         "Description: The data couldn’t be read because it isn’t in the " +
         "correct format.",
         "Failed to parse icontool JSON output.",
+        "Failed to generate flattened icon stack for icon named ",
     ]
     for muted_warning in warning_substrings_to_ignore:
       if muted_warning in line:
