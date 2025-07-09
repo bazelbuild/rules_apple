@@ -23,6 +23,7 @@ load(
     "swift_clang_module_aspect",
     "swift_common",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "//apple/internal:apple_toolchains.bzl",

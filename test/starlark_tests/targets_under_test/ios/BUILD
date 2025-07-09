@@ -159,6 +159,43 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_icon_bundle",
+    app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_icon_bundle_and_xcassets_app_icons",
+    app_icons = [
+        "//test/starlark_tests/resources:dark_and_tinted_app_icons_ios",
+        "//test/starlark_tests/resources:icon_bundle_assets",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# TODO: b/425967223 - Add .icon test cases for multiple app icons with a primary app icon selected.
+
+ios_application(
     name = "app",
     app_icons = ["//test/testdata/resources:app_icons_ios"],
     bundle_id = "com.google.example",
@@ -310,10 +347,7 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:processed_resources_in_structured_resources_lib",
     ],
@@ -331,10 +365,7 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = [
-        "manual",
-        "notap",
-    ],
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
     ],
@@ -558,6 +589,25 @@ ios_application(
 ios_application(
     name = "app_with_alternate_app_icons_without_primary",
     app_icons = ["//test/testdata/resources:app_icons_with_alts_ios"],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_dark_and_tinted_app_icons",
+    app_icons = ["//test/starlark_tests/resources:dark_and_tinted_app_icons_ios"],
     bundle_id = "com.google.example",
     families = [
         "iphone",

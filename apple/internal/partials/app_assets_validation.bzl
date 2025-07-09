@@ -85,7 +85,15 @@ def _app_assets_validation_partial_impl(
                 message = message,
             )
         else:
+            # For Xcode 26, appiconset-s can live alongside iOS/macOS/watchOS .icon bundle contents
+            # to ensure rendering is correct for pre-26 Apple OSes, so we need to make that
+            # exception here.
+            additional_path_fragments = []
+            xcode_version = platform_prerequisites.xcode_version_config.xcode_version()
+            if xcode_version >= apple_common.dotted_version("26.0"):
+                additional_path_fragments.append("icon")
             bundling_support.ensure_single_xcassets_type(
+                additional_path_fragments = additional_path_fragments,
                 attr = "app_icons",
                 extension = "appiconset",
                 files = app_icons,

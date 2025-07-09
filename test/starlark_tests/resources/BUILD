@@ -2,6 +2,9 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:resources.bzl",
@@ -618,6 +621,16 @@ filegroup(
 filegroup(
     name = "assets",
     srcs = glob(["assets.xcassets/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets",
+    srcs = glob(["app_icon.icon/**"]),
+)
+
+filegroup(
+    name = "dark_and_tinted_app_icons_ios",
+    srcs = glob(["dark_and_tinted_app_icons_ios.xcassets/**"]),
 )
 
 filegroup(

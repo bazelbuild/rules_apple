@@ -58,4 +58,4 @@ tasks:
     test_targets:
     - "doc/..."
 
-buildifier: 6.4.0
+buildifier: 8.2.1
