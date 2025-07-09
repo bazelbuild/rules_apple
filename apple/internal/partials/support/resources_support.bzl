@@ -774,6 +774,43 @@ def _xibs(
         processed_origins = processed_origins,
     )
 
+def _xcstrings(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        files,
+        output_discriminator,
+        parent_dir,
+        platform_prerequisites,
+        rule_label,
+        **_kwargs):
+    """Process xcstrings files."""
+    lproj_files = []
+    processed_origins = {}
+    for file in files.to_list():
+        basename = paths.replace_extension(file.basename, "")
+        out_path = paths.join("xcstrings", parent_dir or "", basename)
+        out_dir = intermediates.directory(
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            dir_name = out_path,
+        )
+        processed_origins[out_dir.short_path] = [file.short_path]
+        resource_actions.compile_xcstrings(
+            actions = actions,
+            input_file = file,
+            output_dir = out_dir,
+            platform_prerequisites = platform_prerequisites,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        )
+        lproj_files.append(out_dir)
+
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(lproj_files))],
+        processed_origins = processed_origins,
+    )
+
 def _noop(
         *,
         parent_dir,
@@ -834,5 +871,6 @@ PROVIDER_TO_FIELD_ACTION = {
     "strings": (_plists_and_strings, False),
     "texture_atlases": (_texture_atlases, False),
     "unprocessed": (_noop, False),
+    "xcstrings": (_xcstrings, False),
     "xibs": (_xibs, True),
 }

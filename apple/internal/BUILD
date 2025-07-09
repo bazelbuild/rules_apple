@@ -493,6 +493,7 @@ bzl_library(
         "//apple/internal/resource_actions:plist",
         "//apple/internal/resource_actions:png",
         "//apple/internal/resource_actions:texture_atlas",
+        "//apple/internal/resource_actions:xcstrings",
     ],
 )
 
