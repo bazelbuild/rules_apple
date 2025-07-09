@@ -25,7 +25,7 @@ Download and install [Xcode](https://developer.apple.com/xcode/downloads/). Xcod
 
 ## Set Up a Workspace
 
-A [workspace](https://bazel.build/concepts/build-ref#workspace) is a directory that contains the source files for one or more software projects, as well as a `MODULE.bazel` file and `BUILD.bazel` files that contain the instructions that Bazel uses to build the software. The workspace may also contain symbolic links to output directories.
+A [workspace](https://bazel.build/concepts/build-ref#workspace) is a directory that contains the source files for one or more software projects, as well as a `MODULE.bazel` file and `BUILD` files that contain the instructions that Bazel uses to build the software. The workspace may also contain symbolic links to output directories.
 
 A workspace directory can be located anywhere on your filesystem and is denoted by the presence of the `MODULE.bazel` file at its root.
 
@@ -55,7 +55,7 @@ These three `bazel_dep`s are versions available on the [Bazel Central Registry](
 - [`rules_swift`](https://registry.bazel.build/modules/rules_swift) provides build rules and utilities for compiling and testing Swift code.
 
 > [!NOTE]
-> Always use the latest releases of the rules in your MODULE.bazel to minimize incompatibility with newer releases of Bazel and Xcode. You can find release information for each of your `bazel_dep`s at <https://registry.bazel.build>.
+> Always use the latest releases of the rules in your MODULE.bazel to minimize incompatibility with newer releases of Bazel and Xcode. You can find release information for each `bazel_dep` at <https://registry.bazel.build>.
 
 ### Add Some Swift Code
 
@@ -80,11 +80,11 @@ struct BazelApp: App {
 >
 > [mattrobmattrob/bazel-ios-swiftui-template](https://github.com/mattrobmattrob/bazel-ios-swiftui-template) contains a template for a SwiftUI iOS application that builds with Bazel if you want to speed up this process for future usages.
 
-### Create a BUILD.bazel File
+### Create a BUILD File
 
-A Bazel workspace is made up of directories called [packages](https://bazel.build/concepts/build-ref#packages). A package is a directory containing a `BUILD.bazel` file (sometimes called a `BUILD` file) and can contain any number of sources or subpackages. `BUILD.bazel` files contain specifications for [targets](https://bazel.build/concepts/build-ref#targets) that you use Bazel to build, run, or test.
+A Bazel workspace is made up of directories called [packages](https://bazel.build/concepts/build-ref#packages). A package is a directory containing a [`BUILD` file](https://bazel.build/concepts/build-files) and can contain any number of sources or subpackages. `BUILD` files contain specifications for [targets](https://bazel.build/concepts/build-ref#targets) that you use Bazel to build, run, or test.
 
-Run `touch BUILD.bazel` to create a file, then open it in your preferred text editor.
+Run `touch BUILD` to create a file, then open it in your preferred text editor.
 
 Then, add load statements to bring the [rules](https://bazel.build/reference/glossary#rule) you will be using into scope:
 
@@ -104,7 +104,7 @@ swift_library(
 
 This rule informs Bazel how to build your Swift source code prior to packaging it. Note the name of the target, `lib`, which can be referenced with the label `//:lib` (or simply `lib` when running Bazel in the current directory). Also note the [`glob`](https://bazel.build/reference/be/functions#glob) function passed to the `srcs` attribute, which will automatically add all files in `Sources` with the `.swift` extension to the library.
 
-Finally, you're going to set up an `ios_application` target in much the same way. You will be using this target to build the iOS application as an `.ipa`. Create another directory next to `Sources` named `Resources` and create an `Info.plist` in that directory. You may use [this example Info.plist](/examples/ios/HelloWorldSwift/Info.plist) as reference to populate your new `Info.plist`.
+Finally, you're going to set up an `ios_application` target in much the same way. You will be using this target to build the iOS application as an `.ipa`. Create another directory next to `Sources` named `Resources` and create an `Info.plist` in that directory. You may use [this example Info.plist](/examples/ios/HelloWorldSwift/Info.plist) as a reference to populate your new `Info.plist`.
 
 Then, below the `swift_library`, add the following code snippet to the file:
 
@@ -119,7 +119,7 @@ ios_application(
 )
 ```
 
-Observe how the `deps` attribute references the `lib` target you declared earlier. This is indicative of one of the ways Bazel expresses dependencies between rules. Additionally, you may feel free to update the `minimum_os_version` attribute to whatever OS versions you plan to support.
+Observe how the `deps` attribute references the `lib` target you declared earlier. This is one of the ways Bazel expresses dependencies between targets. Additionally, you may update the `minimum_os_version` attribute to whatever minimum OS version you plan to support.
 
 With that, you're now ready to run your app!
 
@@ -161,13 +161,13 @@ First, in your `MODULE.bazel` file, add the following code snippet:
 bazel_dep(name = "rules_xcodeproj", version = "3.0.0")
 ```
 
-Next, towards the top of your `BUILD.bazel` file, add the following code snippet:
+Next, at the top of your `BUILD` file, add the following code snippet:
 
 ```starlark
 load("@rules_xcodeproj//xcodeproj:defs.bzl", "top_level_target", "xcodeproj")
 ```
 
-Finally, towards the bottom of the same `BUILD.bazel` file, add the following code snippet:
+Finally, at the bottom of the same `BUILD` file, add the following code snippet:
 
 ```starlark
 xcodeproj(
@@ -189,7 +189,7 @@ To generate the Xcode project, invoke this rule by executing the following comma
 bazel run //:xcodeproj
 ```
 
-You should be able to open the generated `iOSApp.xcodeproj` in Xcode (e.g. with `xed iOSApp.xcodeproj`), and perform all the usual operations of building and testing in Xcode.
+You should be able to open the generated `iOSApp.xcodeproj` in Xcode (e.g. with `xed iOSApp.xcodeproj`) to perform all the usual operations of building and testing in Xcode.
 
 ## Build and Run the App on an iOS Device
 
@@ -198,7 +198,7 @@ Building an iOS application to run on iOS devices requires some additional setup
 1. Go to the [Apple Developer Center](https://developer.apple.com/account). Download the appropriate [provisioning profile](https://developer.apple.com/library/ios/documentation/IDEs/Conceptual/AppDistributionGuide/MaintainingProfiles/MaintainingProfiles.html) for your device.
 2. Move your provisioning profile into your workspace directory.
    1. Provisioning profiles do not contain sensitive signing information, so don't worry about them lingering on your system. If you'd rather not track them in version control, add the path to a `.gitignore` (if using Git).
-3. In your `BUILD.bazel` file, add the following code snippet **to your `ios_application` target**:
+3. In your `BUILD` file, add the following code snippet **to your `ios_application` target**:
 
    ```starlark
    provisioning_profile = "<your_profile_name>.mobileprovision",
@@ -210,7 +210,7 @@ Building an iOS application to run on iOS devices requires some additional setup
 bazel build //:iOSApp --ios_multi_cpus=arm64
 ```
 
-The [`--ios_multi_cpus`](https://bazel.build/reference/command-line-reference#flag--ios_multi_cpus) flag controls the architecture of the application build. The default unspecified value for `ios_application` is `ios_sim_arm64` (or `ios_x86_64` if your host is an Intel Mac). A full list of possible options can be found [here](https://github.com/bazelbuild/apple_support/blob/master/configs/platforms.bzl).
+The [`--ios_multi_cpus`](https://bazel.build/reference/command-line-reference#flag--ios_multi_cpus) flag controls the architecture(s) of the built application. The default unspecified value for `ios_application` is `ios_sim_arm64` (or `ios_x86_64` if your host is an Intel Mac). A full list of possible options can be found [here](https://github.com/bazelbuild/apple_support/blob/master/configs/platforms.bzl).
 
 > [!TIP]
 > rules_apple provides a pair of more advanced integrations for exposing provisioning profiles to Bazel, with the [`provisioning_profile_repository`](/doc/rules-apple.md#provisioning_profile_repository) and [`local_provisioning_profile`](/doc/rules-apple.md#local_provisioning_profile) rules.
@@ -233,3 +233,5 @@ Another method to install the app on a connected device is using Xcode. Launch X
 Check out the [examples/](/examples) we have in rules_apple, as well as those in [rules_swift](https://github.com/bazelbuild/rules_swift/tree/master/examples) and [rules_xcodeproj](https://github.com/MobileNativeFoundation/rules_xcodeproj/tree/main/examples).
 
 Make sure to also check out the other articles we have under [doc/](/doc) – in particular [common_info](/doc/common_info.md).
+
+Finally, check out [How to migrate an iOS app to Bazel](https://brentley.dev/how-to-migrate-an-ios-app-to-bazel/), written by @brentleyjones. 
