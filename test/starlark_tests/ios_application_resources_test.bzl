@@ -203,12 +203,10 @@ def ios_application_resources_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle",
         contains = [
-            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
-            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+            "$BUNDLE_ROOT/Assets.car",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
         # Skip CI until CI is on Xcode 26

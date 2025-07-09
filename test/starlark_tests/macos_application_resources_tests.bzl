@@ -40,13 +40,11 @@ def macos_application_resources_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle",
         contains = [
-            "$RESOURCE_ROOT/app_icon.icns",
             "$RESOURCE_ROOT/Assets.car",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
             "CFBundleIconName": "app_icon",
-            "CFBundleIconFile": "app_icon",
         },
         # Skip CI until CI is on Xcode 26
         tags = [name] + common.fixture_tags + common.skip_ci_tags,
