@@ -77,6 +77,12 @@ def compile_storyboard(
         "ibtool",
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
+        "--errors",
+        "--warnings",
+        "--notices",
+        "--auto-activate-custom-fonts",
+        "--output-format",
+        "human-readable-text",
     ]
 
     min_os = platform_prerequisites.minimum_os
