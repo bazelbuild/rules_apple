@@ -16,10 +16,10 @@ bzl_library(
     deps = [
         "//apple:utils",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
         "//apple/internal/utils:xctoolrunner",
         "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:sets",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

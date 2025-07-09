@@ -32,6 +32,7 @@ _min_os_ios = struct(
     arm_sim_support = "14.0",
     baseline = "13.0",
     concurrency_support = "13.0",
+    icon_bundle_required = "26.0",
     oldest_supported = "12.0",
     nplus1 = "14.0",
     stable_swift_abi = "12.2",
