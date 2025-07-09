@@ -185,7 +185,7 @@ def objc_intent_library(
         tags = ["manual"],
         testonly = testonly,
     )
-    native.objc_library(
+    objc_library(
         name = name,
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],
