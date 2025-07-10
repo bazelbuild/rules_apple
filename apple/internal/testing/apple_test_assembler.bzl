@@ -103,6 +103,10 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
         if x in test_attrs:
             bundle_attrs[x] = test_attrs[x]
 
+    # Add the 'ide-test-intermediate' tag to the bundle to ensure the IDE considers the target an
+    # intermediate for test library detection.
+    bundle_attrs["tags"] = ["ide-test-intermediate"] + (bundle_attrs.get("tags", []) or [])
+
     if "bundle_name" in kwargs:
         fail("bundle_name is not supported in test rules.")
 
