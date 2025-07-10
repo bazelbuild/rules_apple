@@ -442,13 +442,8 @@ def _create_deduped_linkopts_linking_context(owner, cc_linking_context, seen_fla
                 libraries = depset(linker_input.libraries),
                 user_link_flags = new_flags,
                 additional_inputs = depset(linker_input.additional_inputs),
+                linkstamps = depset(linker_input.linkstamps),
             ))
-
-    # Why does linker_input not expose linkstamp?  This needs to be fixed.
-    linker_inputs.append(cc_common.create_linker_input(
-        owner = owner,
-        linkstamps = cc_linking_context.linkstamps(),
-    ))
 
     return (
         cc_common.create_linking_context(
