@@ -128,13 +128,17 @@ def _validate_standard_app_icon_sets(
         xcode_config):
     """Validates that the asset files contain only standard app icon sets."""
 
-    if (apple_common.dotted_version(minimum_os_version) >=
-        apple_common.dotted_version("26.0")) and icon_files:
+    min_os_version_26_or_later = (
+        apple_common.dotted_version(minimum_os_version) >=
+        apple_common.dotted_version("26.0")
+    )
+
+    if min_os_version_26_or_later and icon_files:
         fail("""
 Legacy .appiconset files should not be used on iOS/macOS/watchOS 26+.
 
-These platforms prefer Icon Composer .icon bundles. .appiconset files are preferred for better \
-control of rendering icons in iOS/macOS/watchOS prior to 26.
+These platforms prefer Icon Composer .icon bundles. .appiconset files are only needed for \
+rendering icons in iOS/macOS/watchOS prior to 26.
 
 Found the following legacy .appiconset files: {xcasset_appicon_files}
 """.format(xcasset_appicon_files = icon_files))
@@ -151,6 +155,18 @@ Found the following legacy .appiconset files: {xcasset_appicon_files}
             Found Icon Composer .icon bundles among the assigned app_icons. These are only \
             supported on Xcode 26 or later.
             """)
+
+        if not min_os_version_26_or_later and not icon_files:
+            fail("""
+Found no .appiconset files among the assigned app icons, which are required to support \
+iOS/macOS/watchOS prior to 26.
+
+.appiconset files in .xcassets directories are required for rendering icons in iOS/macOS/watchOS \
+prior to 26.
+
+Found the following app icons instead: {icon_bundle_files}
+
+""".format(icon_bundle_files = icon_bundle_files))
 
         bundling_support.ensure_asset_catalog_files_not_in_xcassets(
             extension = "icon",
@@ -320,12 +336,32 @@ def _args_for_app_icons(
             xcode_config = xcode_config,
         )
 
-        all_icon_dirs = icon_dirs + icon_bundle_dirs
-
         if primary_icon_name:
+            unique_app_icon_names = _unique_icon_names(all_icon_dirs = icon_dirs)
+            unique_icon_bundle_names = _unique_icon_names(all_icon_dirs = icon_bundle_dirs)
+            if unique_app_icon_names and unique_icon_bundle_names:
+                # Validate that the xcassets app icons and icon bundles have the same names.
+                icons_missing_icon_bundles = unique_app_icon_names - unique_icon_bundle_names
+                icons_missing_app_icons = unique_icon_bundle_names - unique_app_icon_names
+                if icons_missing_icon_bundles or icons_missing_app_icons:
+                    fail("""
+Among the primary and alternate app icons provided, the following are missing resources to support \
+Apple OSes prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS:
+{icons_missing_icon_bundles_text}{icons_missing_app_icons_text}
+""".format(
+                        icons_missing_icon_bundles_text = (
+                            "\nFound the following xcassets app icons by name missing Xcode 26 " +
+                            "icon bundles:\n" + ", ".join(icons_missing_icon_bundles)
+                        ) if icons_missing_icon_bundles else "",
+                        icons_missing_app_icons_text = (
+                            "\nFound the following icon bundles by name missing legacy xcassets " +
+                            "app icons:\n" + ", ".join(icons_missing_app_icons)
+                        ) if icons_missing_app_icons else "",
+                    ))
+
             # Check that primary_icon_name matches one of the icon sets, then add actool arguments
             # for `--alternate-app-icon` and `--app_icon` as appropriate. These do NOT overlap.
-            unique_icon_names = _unique_icon_names(all_icon_dirs = all_icon_dirs)
+            unique_icon_names = unique_app_icon_names | unique_icon_bundle_names
             found_primary = False
             for app_icon_name in unique_icon_names:
                 if app_icon_name == primary_icon_name:
@@ -343,7 +379,7 @@ Found the following icon names from those provided: {unique_icon_names}.
                     unique_icon_names = ", ".join(unique_icon_names),
                 ))
         else:
-            app_icon_name = _unique_icon_names(all_icon_dirs = all_icon_dirs).pop()
+            app_icon_name = _unique_icon_names(all_icon_dirs = icon_dirs + icon_bundle_dirs).pop()
             args += ["--app-icon", app_icon_name]
 
     return args

@@ -45,6 +45,7 @@ _min_os_macos = struct(
     arm64_support = "11.0",
     concurrency_sleep_support = "10.15",
     baseline = "10.13",
+    icon_bundle_required = "26.0",
     requires_concurrency_stdlib = "10.14",
     arm64_support_plus1 = "12.0",
 )
@@ -71,6 +72,7 @@ _min_os_watchos = struct(
     arm64_support = "9.0",
     arm_sim_support = "7.0",
     baseline = "4.0",
+    icon_bundle_required = "26.0",
     requires_single_target_app = "9.0",
     requires_single_target_app_nplus1 = "10.0",
     single_target_app = "7.0",

@@ -437,6 +437,21 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         ],
     )
 
+    # Tests that icon bundles alone will fail when the minimum_os_version is lower than 26.0.
+    analysis_failure_message_test(
+        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_icon_bundle_only_for_low_minimum_os_version",
+        expected_error = """
+Found no .appiconset files among the assigned app icons, which are required to support iOS/macOS/watchOS prior to 26.
+
+.appiconset files in .xcassets directories are required for rendering icons in iOS/macOS/watchOS prior to 26.
+
+Found the following app icons instead: """,
+        tags = [
+            name,
+        ],
+    )
+
     # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
         name = "{}_icon_composer_app_icons_plist_test".format(name),
