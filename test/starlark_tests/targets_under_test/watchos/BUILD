@@ -99,6 +99,21 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = common.min_os_watchos.icon_bundle_required,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
+)
+
+watchos_application(
+    name = "app_with_icon_bundle_only_for_low_minimum_os_version",
+    app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = common.min_os_watchos.single_target_app,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,

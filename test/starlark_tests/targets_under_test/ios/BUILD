@@ -166,6 +166,22 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
+    minimum_os_version = common.min_os_ios.icon_bundle_required,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_icon_bundle_only_for_low_minimum_os_version",
+    app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
@@ -587,6 +603,78 @@ ios_application(
 ios_application(
     name = "app_with_alternate_app_icons",
     app_icons = ["//test/testdata/resources:app_icons_with_alts_ios"],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    primary_app_icon = "app_icon",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_alternate_app_icons_with_incomplete_icon_bundle_coverage",
+    app_icons = [
+        "//test/starlark_tests/resources:app_icons_with_alts_ios",
+        "//test/starlark_tests/resources:icon_bundle_assets",
+    ],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    primary_app_icon = "app_icon",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_alternate_app_icons_with_isolated_icon_bundles",
+    app_icons = [
+        "//test/starlark_tests/resources:app_icons_with_alts_ios",
+        "//test/starlark_tests/resources:icon_bundle_assets",
+        "//test/starlark_tests/resources:icon_bundle_assets_alternative",
+        "//test/starlark_tests/resources:icon_bundle_assets_mismatched_with_xcassets_alternative",
+    ],
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    primary_app_icon = "app_icon",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_alternate_app_icons_with_full_icon_bundle_coverage",
+    app_icons = [
+        "//test/starlark_tests/resources:app_icons_with_alts_ios",
+        "//test/starlark_tests/resources:icon_bundle_assets",
+        "//test/starlark_tests/resources:icon_bundle_assets_alternative",
+    ],
     bundle_id = "com.google.example",
     families = [
         "iphone",

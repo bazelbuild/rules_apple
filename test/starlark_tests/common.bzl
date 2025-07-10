@@ -46,6 +46,9 @@ _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
     baseline = "10.13",
+    icon_bundle_required = "26.0",
+    requires_concurrency_stdlib = "10.14",
+    arm64_support_plus1 = "12.0",
 )
 
 # The current baseline for tvOS is version 12.0, based on when the arm64e architecture was
@@ -69,6 +72,7 @@ _min_os_watchos = struct(
     arm64_support = "9.0",
     arm_sim_support = "7.0",
     baseline = "4.0",
+    icon_bundle_required = "26.0",
     requires_single_target_app = "9.0",
     single_target_app = "7.0",
     stable_swift_abi = "6.0",
