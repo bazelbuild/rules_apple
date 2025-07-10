@@ -201,13 +201,19 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   def is_warning_or_notice_an_error(line):
     """Returns True if the warning/notice should be treated as an error."""
 
+    # List of warnings that should continue to be treated as warnings.
     warnings = [
-        # Current things staying as warnings are launch image deprecations,
-        # requiring a 1024x1024 for appstore (b/246165573) and "foo" is used by
-        # multiple imagesets (b/139094648)
-        "is used by multiple", "1024x1024",
+        # Requiring a 1024x1024 PNG for App Store distribution. (b/246165573)
+        "1024x1024",
+        # "foo" is used by multiple imagesets. (b/139094648)
+        "is used by multiple",
+        # Launch image deprecations.
         "Launch images are deprecated in iOS 13.0",
-        "Launch images are deprecated in tvOS 13.0"
+        "Launch images are deprecated in tvOS 13.0",
+        # Xcode 26 watchOS "failed to generate flattened icon stack" errors
+        # when building Icon Composer icon bundles without legacy xcassets App
+        # Icons that define a "universal" 1024x1024 PNG icon. (b/430862638)
+        "Failed to generate flattened icon stack for icon named ",
     ]
     for warning in warnings:
       if warning in line:
@@ -226,7 +232,6 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
         "Description: The data couldn’t be read because it isn’t in the " +
         "correct format.",
         "Failed to parse icontool JSON output.",
-        "Failed to generate flattened icon stack for icon named ",
     ]
     for muted_warning in warning_substrings_to_ignore:
       if muted_warning in line:
