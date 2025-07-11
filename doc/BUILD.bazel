@@ -1,90 +1,73 @@
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@aspect_bazel_lib//lib:docs.bzl", "stardoc_with_diff_test", "update_docs")
 
-_PLAIN_DOC_SRCS = [
-    "providers",
-]
-
-_RULES_DOC_SRCS = [
-    "apple",
-    "docc",
-    "dtrace",
-    "header_map",
-    "ios.doc",
-    "macos.doc",
-    "resources",
-    "tvos.doc",
-    "versioning",
-    "visionos.doc",
-    "watchos.doc",
-    "xcarchive",
-    "xctrunner",
-]
-
-_DOC_SRCS = _PLAIN_DOC_SRCS + _RULES_DOC_SRCS
-
-[
-    stardoc(
-        name = file + "_doc",
-        out = file + ".gen.md",
-        input = "//apple:%s.bzl" % file,
-        tags = [
-            "no-cache",
-            "no-sandbox",  # https://github.com/bazelbuild/stardoc/issues/112
-        ],
-        deps = ["//apple:" + file],
-    )
-    for file in _DOC_SRCS
-]
-
-# Help developers who get a red CI result by telling them how to fix it
-_failure_message = "\nPlease update the docs by running\n    bazel run //doc:update"
-
-[
-    diff_test(
-        name = "check_" + file,
-        failure_message = _failure_message,
-        file1 = file + ".gen.md",
-        file2 = "%s.md" % file.replace(".doc", ""),
-    )
-    for file in _PLAIN_DOC_SRCS
-]
-
-[
-    diff_test(
-        name = "check_" + file,
-        failure_message = _failure_message,
-        file1 = file + ".gen.md",
-        file2 = "rules-%s.md" % file.replace(".doc", ""),
-    )
-    for file in _RULES_DOC_SRCS
-]
-
-write_file(
-    name = "gen_update",
-    out = "update.sh",
-    content = [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-    ] + [
-        'cp -fv doc/{src}.gen.md "$BUILD_WORKSPACE_DIRECTORY/doc/{dst}.md"'.format(
-            src = file,
-            dst = file.replace(".doc", ""),
-        )
-        for file in _PLAIN_DOC_SRCS
-    ] + [
-        'cp -fv doc/{src}.gen.md "$BUILD_WORKSPACE_DIRECTORY/doc/rules-{dst}.md"'.format(
-            src = file,
-            dst = file.replace(".doc", ""),
-        )
-        for file in _RULES_DOC_SRCS
-    ],
+stardoc_with_diff_test(
+    name = "rules-apple",
+    bzl_library_target = "//apple:apple",
 )
 
-sh_binary(
-    name = "update",
-    srcs = ["update.sh"],
-    data = [file + ".gen.md" for file in _DOC_SRCS],
+stardoc_with_diff_test(
+    name = "rules-docc",
+    bzl_library_target = "//apple:docc",
 )
+
+stardoc_with_diff_test(
+    name = "rules-dtrace",
+    bzl_library_target = "//apple:dtrace",
+)
+
+stardoc_with_diff_test(
+    name = "rules-header_map",
+    bzl_library_target = "//apple:header_map",
+)
+
+stardoc_with_diff_test(
+    name = "rules-ios",
+    bzl_library_target = "//apple:ios.doc",
+)
+
+stardoc_with_diff_test(
+    name = "rules-macos",
+    bzl_library_target = "//apple:macos.doc",
+)
+
+stardoc_with_diff_test(
+    name = "providers",
+    bzl_library_target = "//apple:providers",
+)
+
+stardoc_with_diff_test(
+    name = "rules-resources",
+    bzl_library_target = "//apple:resources",
+)
+
+stardoc_with_diff_test(
+    name = "rules-tvos",
+    bzl_library_target = "//apple:tvos.doc",
+)
+
+stardoc_with_diff_test(
+    name = "rules-versioning",
+    bzl_library_target = "//apple:versioning",
+)
+
+stardoc_with_diff_test(
+    name = "rules-visionos",
+    bzl_library_target = "//apple:visionos.doc",
+)
+
+stardoc_with_diff_test(
+    name = "rules-watchos",
+    bzl_library_target = "//apple:watchos.doc",
+)
+
+stardoc_with_diff_test(
+    name = "rules-xcarchive",
+    bzl_library_target = "//apple:xcarchive",
+)
+
+stardoc_with_diff_test(
+    name = "rules-xctrunner",
+    bzl_library_target = "//apple:xctrunner",
+)
+
+update_docs()
