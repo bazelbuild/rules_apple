@@ -6,15 +6,6 @@ package(
 
 licenses(["notice"])
 
-filegroup(
-    name = "dummy_runner",
-    srcs = [
-        "BUILD",
-        "dummy_test_runner.bzl",
-        "dummy_test_runner.template",
-    ],
-)
-
 exports_files(
     [
         "dummy_test_runner.template",
