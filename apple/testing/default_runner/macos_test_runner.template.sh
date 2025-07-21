@@ -1,4 +1,6 @@
-#!/bin/bash -eu
+#!/bin/bash
+
+set -euo pipefail
 
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
@@ -149,11 +151,12 @@ rm -rf "$result_bundle_path"
 
 test_exit_code=0
 readonly testlog="$TEST_TMP_DIR/test.log"
+
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
 xcodebuild test-without-building \
-    -destination "platform=macOS" \
+    -destination "platform=macOS,variant=macos,arch=$(uname -m)" \
     -resultBundlePath "$result_bundle_path" \
     -xctestrun "$XCTESTRUN" \
     2>&1 | tee -i "$testlog" \
