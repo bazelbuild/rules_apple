@@ -55,8 +55,7 @@ def archive_contents_test(
         plist_test_file = "",
         plist_test_values = {},
         asset_catalog_test_file = "",
-        asset_catalog_test_contains = [],
-        asset_catalog_test_not_contains = [],
+        asset_catalog_test_jq_script = "",
         text_test_file = "",
         text_test_values = [],
         text_file_not_contains = [],
@@ -96,10 +95,8 @@ def archive_contents_test(
             its value doesn't match the specified value. * can be used as a wildcard value.
             See `plist_test_file`(previous Arg) to specify plist file to test.
         asset_catalog_test_file: Optional, The asset catalog file to test (see next two Args).
-        asset_catalog_test_contains: Optional, A list of names of assets that should appear in the
-            asset catalog specified in `asset_catalog_file`.
-        asset_catalog_test_not_contains: Optional, A list of names of assets that should not appear
-            in the asset catalog specified in `asset_catalog_file`.
+        asset_catalog_test_jq_script: Optional, A jq script to run against the asset catalog
+            specified in `asset_catalog_file`.
         text_test_file: Optional, The text file to test (see the next Arg).
         text_test_values: Optional, A list of regular expressions that should be tested against
             the contents of `text_test_file`. Regular expressions must follow POSIX Basic Regular
@@ -128,13 +125,11 @@ def archive_contents_test(
     if any([plist_test_file, plist_test_values]) and not all([plist_test_file, plist_test_values]):
         fail("Need both plist_test_file and plist_test_values")
 
-    got_asset_catalog_tests = any([asset_catalog_test_contains, asset_catalog_test_not_contains])
-    if any([asset_catalog_test_file, got_asset_catalog_tests]) and not all([
+    if any([asset_catalog_test_file, asset_catalog_test_jq_script]) and not all([
         asset_catalog_test_file,
-        got_asset_catalog_tests,
+        asset_catalog_test_jq_script,
     ]):
-        fail("Need asset_catalog_test_file along with " +
-             "asset_catalog_test_contains and/or asset_catalog_test_not_contains")
+        fail("Need asset_catalog_test_file along with asset_catalog_test_jq_script")
 
     if (any([text_test_file, text_test_values, text_file_not_contains]) and
         not (text_test_file and (text_test_values or text_file_not_contains))):
@@ -192,9 +187,8 @@ def archive_contents_test(
         build_type = build_type,
         env = {
             "ASSERT_FILE_PERMISSIONS": assert_file_permissions_list,
-            "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
             "ASSET_CATALOG_FILE": [asset_catalog_test_file],
-            "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,
+            "ASSET_CATALOG_JQ_SCRIPT": [asset_catalog_test_jq_script],
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
             "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,

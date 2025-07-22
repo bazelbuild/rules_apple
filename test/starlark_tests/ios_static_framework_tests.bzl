@@ -258,7 +258,9 @@ def ios_static_framework_test_suite(name):
         ],
         not_contains = ["$BUNDLE_ROOT/Info.plist"],
         asset_catalog_test_file = "$BUNDLE_ROOT/Assets.car",
-        asset_catalog_test_contains = ["star_iphone"],
+        # The jq script iterate over all the assets in the asset catalog and verifies that one of
+        # the assets is named "star_iphone".
+        asset_catalog_test_jq_script = 'any(.[].Name; . == "star_iphone")',
         tags = [name],
     )
 

@@ -49,8 +49,7 @@ newline=$'\n'
 #  Asset catalog file tests:
 #
 #  - ASSET_CATALOG_FILE: The Asset.car file to test against.
-#  - ASSET_CATALOG_CONTAINS: Array of asset names that should exist.
-#  - ASSET_CATALOG_NOT_CONTAINS: Array of asset names that should not exist.
+#  - ASSET_CATALOG_JQ_SCRIPT: The jq script to run against the asset catalog.
 #
 #  Text file tests:
 #
@@ -385,8 +384,13 @@ if [[ -n "${ASSERT_FILE_PERMISSIONS-}" ]]; then
   done
 fi
 
-# Use `assetutil` to test for asset names in a car file.
+# Use `assetutil` and jq to test the contents of an asset catalog file.
 if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
+  if [[ -z "${ASSET_CATALOG_JQ_SCRIPT-}" ]]; then
+    fail "Rule Misconfigured: Supposed to look for asset catalog contents," \
+      "but missing ASSET_CATALOG_JQ_SCRIPT"
+  fi
+
   path=$(eval echo "$ASSET_CATALOG_FILE")
   if [[ ! -e $path ]]; then
     fail "Archive did not contain asset catalog at \"$path\"" \
@@ -395,48 +399,12 @@ if [[ -n "${ASSET_CATALOG_FILE-}" ]]; then
   # Get the JSON representation of the Asset catalog.
   json=$(/usr/bin/assetutil -I "$path")
 
-  # Use a regular expression to extract the "Name" fields with each value on a
-  # separate line.
-  asset_names=$(sed -nE 's/"Name"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/p' <<< "$json")
+  # Run the jq script against the JSON representation of the Asset catalog.
+  echo "$json" | jq --exit-status "$ASSET_CATALOG_JQ_SCRIPT" || \
+   fail "Expected asset catalog script \"$ASSET_CATALOG_JQ_SCRIPT\" did not" \
+     "match asset catalog contents $newline$json"
 
-  if [[ -n "${ASSET_CATALOG_CONTAINS-}" ]]; then
-    for expected_name in "${ASSET_CATALOG_CONTAINS[@]}"
-    do
-      something_tested=true
-      name_found=false
-      # Loop over the known asset names. `while read` loops loop over lines.
-      while read -r actual_name
-      do
-        if [[ "$actual_name" == "$expected_name" ]]; then
-          name_found=true
-          break
-        fi
-      done <<< "$asset_names"
-      if [[ "$name_found" = false ]]; then
-        fail "Expected asset name \"$expected_name\" was not found." \
-          "The names in the asset were:$newline${asset_names[@]}"
-      fi
-    done
-  fi
-
-  if [[ -n "${ASSET_CATALOG_NOT_CONTAINS-}" ]]; then
-    for unexpected_name in "${ASSET_CATALOG_NOT_CONTAINS[@]}"
-    do
-      something_tested=true
-      name_found=false
-      # Loop over the known asset names. `while read` loops loop over lines.
-      while read -r actual_name
-      do
-        if [[ "$actual_name" == "$unexpected_name" ]]; then
-          name_found=true
-          break
-        fi
-      done <<< "$asset_names"
-      if [[ "$name_found" = true ]]; then
-        fail "Unexpected asset name \"$unexpected_name\" was found."
-      fi
-    done
-  fi
+  something_tested=true
 fi
 
 if [[ "$something_tested" = false ]]; then
