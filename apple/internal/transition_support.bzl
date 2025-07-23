@@ -347,9 +347,6 @@ def _command_line_options(
         # are identical between platforms.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
-        "//command_line_option:crosstool_top": (
-            settings["//command_line_option:apple_crosstool_top"]
-        ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
         "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else [_CPU_TO_PLATFORM[cpu]],
@@ -505,7 +502,6 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:apple_platforms",
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
-    "//command_line_option:crosstool_top",
     "//command_line_option:fission",
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
