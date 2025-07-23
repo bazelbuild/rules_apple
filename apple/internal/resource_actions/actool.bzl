@@ -156,13 +156,20 @@ Found the following legacy .appiconset files: {xcasset_appicon_files}
             supported on Xcode 26 or later.
             """)
 
-        if not min_os_version_26_or_later and not icon_files:
+        xcode_26_beta_4_or_later = (
+            xcode_config.xcode_version() >=
+            apple_common.dotted_version("26.0.0.17A5285i")
+        )
+        if not min_os_version_26_or_later and not icon_files and not xcode_26_beta_4_or_later:
             fail("""
 Found no .appiconset files among the assigned app icons, which are required to support \
-iOS/macOS/watchOS prior to 26.
+iOS/macOS/watchOS prior to 26 in Xcode 26 beta 3.
 
-.appiconset files in .xcassets directories are required for rendering icons in iOS/macOS/watchOS \
-prior to 26.
+.appiconset files in .xcassets directories are required for rendering legacy icons in \
+iOS/macOS/watchOS prior to 26 in Xcode 26 beta 3.
+
+NOTE: This issue is fixed in Xcode 26 beta 4, and this error will not be seen when building with \
+Xcode 26 beta 4 or later.
 
 Found the following app icons instead: {icon_bundle_files}
 
