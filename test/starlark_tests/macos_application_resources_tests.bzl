@@ -15,10 +15,6 @@
 """macos_application resources Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
@@ -38,20 +34,9 @@ def macos_application_resources_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # Tests that icon bundles alone will fail when the minimum_os_version is lower than 26.0.
-    analysis_failure_message_test(
-        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version",
-        expected_error = """
-Found no .appiconset files among the assigned app icons, which are required to support iOS/macOS/watchOS prior to 26.
-
-.appiconset files in .xcassets directories are required for rendering icons in iOS/macOS/watchOS prior to 26.
-
-Found the following app icons instead: """,
-        tags = [
-            name,
-        ],
-    )
+    # TODO: b/433727264 - Create a new test with archive_contents_test once Xcode 26 beta 4 is
+    # widely used by clients with the following target:
+    # //test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version
 
     # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
