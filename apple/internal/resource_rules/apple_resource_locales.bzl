@@ -51,6 +51,8 @@ def apple_locale_from_unicode_locale(unicode_locale):
 
 def _apple_resource_locales_impl(_ctx):
     ctx_locales = _ctx.attr.locales_to_include
+    if _ctx.attr.default_locale not in ctx_locales:
+        ctx_locales = [_ctx.attr.default_locale] + ctx_locales
     locales_to_include = [apple_locale_from_unicode_locale(locale) for locale in ctx_locales]
     return new_appleresourcelocalesinfo(
         locales_to_include = locales_to_include,
@@ -63,6 +65,14 @@ apple_resource_locales = rule(
             doc = """
 List of [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers) strings in
 `<language_id>[_<region_subtag>]` format.
+""",
+        ),
+        "default_locale": attr.string(
+            default = "en",
+            doc = """
+The locale that should always be included. Sometimes projects explicitly exclude "en" from their
+translation console language lists to avoid doing translations at build time. This makes sure that
+this locale is always included.
 """,
         ),
     },

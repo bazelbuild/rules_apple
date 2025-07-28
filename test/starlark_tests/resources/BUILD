@@ -1077,5 +1077,6 @@ objc_library(
 
 apple_resource_locales(
     name = "locales_it",
-    locales_to_include = ["it"],
+    default_locale = "it",
+    locales_to_include = [],
 )
