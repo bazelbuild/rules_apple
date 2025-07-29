@@ -647,8 +647,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ])
 
     return providers
