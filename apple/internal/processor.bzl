@@ -95,14 +95,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebundlearchivesupportinfo",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
-)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -272,31 +264,9 @@ def _bundle_partial_outputs_files(
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
 
-    # Autotrim locales here only if the rule supports it and there weren't requested locales.
-    config_vars = platform_prerequisites.config_vars
-    requested_locales_flag = config_vars.get("apple.locales_to_include")
-
-    trim_locales = defines.bool_value(
-        config_vars = config_vars,
-        default = None,
-        define_name = "apple.trim_lproj_locales",
-    ) and rule_descriptor.allows_locale_trimming and requested_locales_flag == None
-
     control_files = []
     control_zips = []
     input_files = []
-    base_locales = ["Base"]
-
-    # Collect the base locales to filter subfolders.
-    if trim_locales:
-        for partial_output in partial_outputs:
-            for _, parent_dir, _ in getattr(partial_output, "bundle_files", []):
-                if parent_dir:
-                    top_parent = parent_dir.split("/", 1)[0]
-                    if top_parent:
-                        locale = bundle_paths.locale_for_path(top_parent)
-                        if locale:
-                            base_locales.append(locale)
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
@@ -321,12 +291,6 @@ def _bundle_partial_outputs_files(
             if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
                 # These files get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
-
-            if trim_locales:
-                locale = bundle_paths.locale_for_path(parent_dir)
-                if locale and locale not in base_locales:
-                    # Skip files for locales that aren't in the locales for the base resources.
-                    continue
 
             parent_dir_is_valid = _is_parent_dir_valid(
                 invalid_top_level_dirs = invalid_top_level_dirs,

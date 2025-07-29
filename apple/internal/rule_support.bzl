@@ -76,7 +76,6 @@ def _describe_bundle_locations(
 def _describe_rule_type(
         additional_infoplist_values = None,
         allowed_device_families = None,
-        allows_locale_trimming = False,
         binary_infoplist = True,
         bundle_extension = None,
         bundle_locations = None,
@@ -95,7 +94,6 @@ def _describe_rule_type(
         additional_infoplist_values: Dictionary of additional values to set into the rule's
             Info.plist.
         allowed_device_families: If given, the list of device families that this rule supports.
-        allows_locale_trimming: Whether the rule supports trimming `.lproj` localizations.
         binary_infoplist: Whether the Info.plist output should be in binary form.
         bundle_package_type: Four-character code representing the bundle type.
         bundle_extension: Extension for the Apple bundle inside the archive.
@@ -125,7 +123,6 @@ def _describe_rule_type(
     return struct(
         additional_infoplist_values = additional_infoplist_values,
         allowed_device_families = allowed_device_families,
-        allows_locale_trimming = allows_locale_trimming,
         binary_infoplist = binary_infoplist,
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
@@ -153,7 +150,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
@@ -168,7 +164,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_app_clip
         apple_product_type.app_clip: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
@@ -184,7 +179,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.app_extension,
@@ -197,7 +191,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_extension (ExtensionKit)
         apple_product_type.extensionkit_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.extensionkit_extension,
@@ -224,7 +217,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_imessage_application
         apple_product_type.messages_application: _describe_rule_type(
             additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
-            allows_locale_trimming = True,
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".app",
             bundle_package_type = bundle_package_type.application,
@@ -236,7 +228,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # ios_imessage_extension
         apple_product_type.messages_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.messages_extension,
@@ -290,7 +281,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["mac"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.application,
@@ -320,7 +310,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
@@ -336,7 +325,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # macos_extension (ExtensionKit)
         apple_product_type.extensionkit_extension: _describe_rule_type(
             allowed_device_families = ["mac"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
@@ -438,7 +426,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["tv"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
@@ -453,7 +440,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["tv"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.app_extension,
@@ -466,7 +452,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # tvos_extension (ExtensionKit)
         apple_product_type.extensionkit_extension: _describe_rule_type(
             allowed_device_families = ["tv"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.extensionkit_extension,
@@ -534,7 +519,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # visionos_application
         apple_product_type.application: _describe_rule_type(
             allowed_device_families = ["vision"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
             bundle_package_type = bundle_package_type.application,
@@ -581,7 +565,6 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.application: _describe_rule_type(
             additional_infoplist_values = {"WKApplication": True},
             allowed_device_families = ["watch"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_package_type = bundle_package_type.application,
             product_type = apple_product_type.application,
@@ -595,7 +578,6 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.watch2_application: _describe_rule_type(
             additional_infoplist_values = {"WKWatchKitApp": True},
             allowed_device_families = ["watch"],
-            allows_locale_trimming = True,
             bundle_extension = ".app",
             bundle_package_type = bundle_package_type.application,
             product_type = apple_product_type.watch2_application,
@@ -605,7 +587,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_extension (watchOS 2 app extension)
         apple_product_type.watch2_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.watch2_extension,
@@ -619,7 +600,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.app_extension,
@@ -632,7 +612,6 @@ _RULE_TYPE_DESCRIPTORS = {
         # watchos_extension (ExtensionKit)
         apple_product_type.extensionkit_extension: _describe_rule_type(
             allowed_device_families = ["watch"],
-            allows_locale_trimming = True,
             bundle_extension = ".appex",
             bundle_package_type = bundle_package_type.extension_or_xpc,
             product_type = apple_product_type.extensionkit_extension,

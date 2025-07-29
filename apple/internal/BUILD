@@ -443,8 +443,6 @@ bzl_library(
         ":intermediates",
         ":outputs",
         ":providers",
-        "//apple/internal/utils:bundle_paths",
-        "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
