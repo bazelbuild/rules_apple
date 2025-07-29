@@ -547,8 +547,6 @@ def _ios_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
@@ -870,8 +868,6 @@ def _ios_app_clip_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
@@ -1134,8 +1130,6 @@ def _ios_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
@@ -1446,8 +1440,6 @@ def _ios_extension_impl(ctx):
             )
         ),
         merged_apple_framework_import_info,
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_dynamic_framework_impl(ctx):
@@ -2370,8 +2362,6 @@ def _ios_imessage_extension_impl(ctx):
             )
         ),
         merged_apple_framework_import_info,
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_sticker_pack_extension_impl(ctx):

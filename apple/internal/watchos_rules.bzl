@@ -399,8 +399,6 @@ def _watchos_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _watchos_dynamic_framework_impl(ctx):
@@ -1327,8 +1325,6 @@ def _watchos_extension_impl(ctx):
             )
         ),
         new_watchosextensionbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _watchos_static_framework_impl(ctx):

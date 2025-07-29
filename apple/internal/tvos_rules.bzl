@@ -474,8 +474,6 @@ def _tvos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_dynamic_framework_impl(ctx):
@@ -1032,8 +1030,6 @@ def _tvos_framework_impl(ctx):
         ),
         new_appleframeworkbundleinfo(),
         new_tvosframeworkbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_extension_impl(ctx):
@@ -1322,8 +1318,6 @@ def _tvos_extension_impl(ctx):
             cc_info = link_result.cc_info,
         ),
         new_tvosextensionbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_static_framework_impl(ctx):
