@@ -42,7 +42,6 @@ load(
     "AppleDynamicFrameworkInfo",
     "AppleExecutableBinaryInfo",
     "ApplePlatformInfo",
-    "new_appledebugoutputsinfo",
 )
 
 def _archive_multi_arch_static_library(
@@ -184,7 +183,6 @@ def _link_multi_arch_binary(
         *   `output_groups`: A `dict` with the single key `_validation` and as valuea depset
             containing the validation artifacts from the compilation contexts of the CcInfo
             providers of the targets that were linked.
-        *   `debug_outputs_provider`: A deprecated AppleDebugOutputs provider
     """
 
     split_deps = ctx.split_attr.deps
@@ -211,7 +209,6 @@ def _link_multi_arch_binary(
     )
 
     linker_outputs = []
-    legacy_debug_outputs = {}
 
     # $(location...) is only used in one test, and tokenize only affects linkopts in one target
     additional_linker_inputs = getattr(ctx.attr, "additional_linker_inputs", [])
@@ -309,13 +306,6 @@ Please report this as a bug to the Apple BUILD Rules team.
                     file_name = "{}.dwarf".format(main_binary_unstripped_basename),
                 )
 
-                # TODO(b/391401130): Remove this once all users are migrated to the downstream
-                # provider AppleDsymBundleInfo.
-                legacy_debug_outputs.setdefault(
-                    platform_info.target_arch,
-                    {},
-                )["dsym_binary"] = dsym_output
-
             extensions["dsym_path"] = dsym_output.path  # dsym symbol file
             additional_outputs.append(dsym_output)
 
@@ -329,7 +319,6 @@ Please report this as a bug to the Apple BUILD Rules team.
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
             additional_outputs.append(linkmap)
-            legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
         main_binary_basename = outputs.main_binary_basename(
             cpp_fragment = ctx.fragments.cpp,
@@ -375,7 +364,6 @@ Please report this as a bug to the Apple BUILD Rules team.
     return struct(
         output_groups = output_groups,
         outputs = linker_outputs,
-        debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
 def _debug_outputs_by_architecture(link_outputs):
@@ -519,7 +507,6 @@ def _register_binary_linking_action(
             and environment that each was built for.
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
-        *   `debug_outputs_provider`: An AppleDebugOutputs provider
     """
     linkopts = []
     link_inputs = []
@@ -612,7 +599,6 @@ def _register_binary_linking_action(
 
     return struct(
         binary = fat_binary,
-        debug_outputs_provider = linking_outputs.debug_outputs_provider,
         objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,

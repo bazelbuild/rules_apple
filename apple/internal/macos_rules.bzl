@@ -470,8 +470,6 @@ def _macos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_bundle_impl(ctx):
@@ -713,8 +711,6 @@ def _macos_bundle_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_extension_impl(ctx):
@@ -1247,8 +1243,6 @@ def _macos_quick_look_plugin_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_kernel_extension_impl(ctx):
@@ -1502,8 +1496,6 @@ def _macos_kernel_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_spotlight_importer_impl(ctx):
@@ -1743,8 +1735,6 @@ def _macos_spotlight_importer_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_xpc_service_impl(ctx):
@@ -1984,8 +1974,6 @@ def _macos_xpc_service_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_command_line_application_impl(ctx):
@@ -2139,8 +2127,6 @@ def _macos_command_line_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _macos_dylib_impl(ctx):
@@ -2274,8 +2260,6 @@ def _macos_dylib_impl(ctx):
                 {"dylib": depset(direct = [output_file])},
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 macos_application = rule_factory.create_apple_rule(
