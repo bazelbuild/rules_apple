@@ -795,8 +795,6 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             )
         ),
         new_watchosextensionbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _watchos_single_target_application_impl(ctx):
@@ -1096,8 +1094,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             )
         ),
         new_watchosapplicationbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _watchos_framework_impl(ctx):
@@ -1340,8 +1336,6 @@ def _watchos_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(

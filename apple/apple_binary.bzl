@@ -130,7 +130,6 @@ Resolved Xcode is version {xcode_version}.
             ctx,
             dependency_attributes = ["bundle_loader", "deps"],
         ),
-        link_result.debug_outputs_provider,
     ]
 
     # If the binary was an executable, also propagate the appropriate provider

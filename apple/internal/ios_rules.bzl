@@ -533,8 +533,6 @@ def _ios_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
@@ -839,8 +837,6 @@ def _ios_app_clip_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
@@ -1094,8 +1090,6 @@ def _ios_framework_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_extension_impl(ctx):
@@ -1392,8 +1386,6 @@ def _ios_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _ios_static_framework_impl(ctx):
@@ -2000,8 +1992,6 @@ def _ios_imessage_extension_impl(ctx):
                 processor_result.output_groups,
             )
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 ios_application = rule_factory.create_apple_rule(

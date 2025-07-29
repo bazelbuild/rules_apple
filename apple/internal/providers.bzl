@@ -236,20 +236,6 @@ target if one was generated.
     init = make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
 )
 
-AppleDebugOutputsInfo, new_appledebugoutputsinfo = provider(
-    """
-Holds debug outputs of an Apple binary rule.
-
-This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
-
-""",
-    fields = {"outputs_map": """
-A dictionary of: `{ [ARCH]: { "dsym_binary": File, "linkmap": File }`. Where `ARCH` is any Apple
-architecture such as "arm64" or "armv7".
-"""},
-    init = make_banned_init(provider_name = "AppleDebugOutputsInfo"),
-)
-
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
