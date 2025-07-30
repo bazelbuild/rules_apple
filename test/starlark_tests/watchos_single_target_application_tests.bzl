@@ -481,7 +481,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
-            "xctoolrunner actool --compile",
+            "--compile",
             "--minimum-deployment-target " + common.min_os_watchos.single_target_app,
             "--platform watchsimulator",
         ],

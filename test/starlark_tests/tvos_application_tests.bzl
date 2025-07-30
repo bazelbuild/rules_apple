@@ -160,7 +160,7 @@ def tvos_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
-            "xctoolrunner actool --compile",
+            "--compile",
             "--minimum-deployment-target " + common.min_os_tvos.baseline,
             "--platform appletvsimulator",
         ],

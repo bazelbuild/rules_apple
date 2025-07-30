@@ -507,9 +507,59 @@ def compile_asset_catalog(
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
+    xcode_config = platform_prerequisites.xcode_version_config
 
-    args = [
-        "actool",
+    xcode_before_26 = (
+        xcode_config.xcode_version() <
+        apple_common.dotted_version("26.0")
+    )
+
+    xcode_26_beta_4_or_later = (
+        xcode_config.xcode_version() >=
+        apple_common.dotted_version("26.0.0.17A5285i")
+    )
+
+    args = ["actool"]
+
+    # Custom xctoolrunner options.
+    args.extend([
+        # Mute warnings for iPad 1x 76x76 icons.
+        "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: (null)",
+        "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: 76x76@1x ",
+        "--mute-warning=substring=app icons only apply to iPad apps targeting releases of iOS prior to 10.0.",
+        # Mute harmless CoreImage errors, referencing SDK artifacts that are not provided by Xcode.
+        "--mute-error=substring=CIPortraitEffectSpillCorrection",
+        "--mute-error=substring=RuntimeRoot/System/Library/CoreImage/PortraitFilters.cifilter",
+        # Downgrade errors for requiring a 1024x1024 PNG for App Store distribution. (b/246165573)
+        "--downgrade-error=substring=1024x1024",
+        # Downgrade errors for icons referenced by multiple xcassets imagesets. (b/139094648)
+        "--downgrade-error=substring=is used by multiple",
+        # Downgrade errors for the use of launch images in iOS and tvOS apps.
+        "--downgrade-error=substring=Launch images are deprecated in iOS 13.0",
+        "--downgrade-error=substring=Launch images are deprecated in tvOS 13.0",
+    ])
+
+    if not (xcode_before_26 or xcode_26_beta_4_or_later):
+        # Handle the nonsense warnings and errors for Xcode 26 beta 1/2/3.
+        args.extend([
+            # Mute warnings for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
+            "--mute-warning=substring=Failure Reason: The data is not in the correct format.",
+            "--mute-warning=substring=Underlying Errors:",
+            "--mute-warning=substring=Debug Description: Garbage at end around line ",
+            "--mute-warning=substring=Description: The data couldn’t be read because it isn’t in the correct format.",
+            "--mute-warning=substring=Failed to parse icontool JSON output.",
+            # Mute errors for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
+            "--mute-error=exact=Entity: line 1: parser error : Start tag expected, '<' not found",
+            "--mute-error=exact=�PNG",
+            "--mute-error=exact=^",
+            # Downgrade Xcode 26 beta 3 watchOS "Failed to generate flattened icon stack" errors
+            # when building Icon Composer icon bundles without legacy xcassets App Icons that define
+            # a "universal" 1024x1024 PNG icon. (b/430862638)
+            "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
+        ])
+
+    # Standard actool options.
+    args.extend([
         "--compile",
         xctoolrunner_support.prefixed_path(output_dir.path),
         "--errors",
@@ -522,9 +572,7 @@ def compile_asset_catalog(
         "--minimum-deployment-target",
         platform_prerequisites.minimum_os,
         "--compress-pngs",
-    ]
-
-    xcode_config = platform_prerequisites.xcode_version_config
+    ])
 
     if platform_prerequisites.platform_type == "macos" and (
         xcode_config.xcode_version() >= apple_common.dotted_version("26.0")

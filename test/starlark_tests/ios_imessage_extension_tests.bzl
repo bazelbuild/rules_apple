@@ -61,7 +61,7 @@ def ios_imessage_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext",
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
-            "xctoolrunner actool --compile",
+            "--compile",
             "--include-sticker-content",
             "--stickers-icon-role",
             "extension",

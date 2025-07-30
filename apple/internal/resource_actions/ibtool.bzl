@@ -48,6 +48,9 @@ def _ibtool_arguments(min_os, families):
       An array of command-line arguments to pass to ibtool.
     """
     return [
+        # Custom xctoolrunner options.
+        "--mute-warning=substring=WARNING: Unhandled destination metrics: (null)",
+        # Standard ibtool options.
         "--minimum-deployment-target",
         min_os,
     ] + collections.before_each(
@@ -77,8 +80,14 @@ def compile_storyboard(
         storyboard.
     """
 
+    min_os = platform_prerequisites.minimum_os
+    families = platform_prerequisites.device_families
+
     args = [
         "ibtool",
+    ]
+    args.extend(_ibtool_arguments(min_os, families))
+    args.extend([
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
         "--errors",
@@ -87,11 +96,7 @@ def compile_storyboard(
         "--auto-activate-custom-fonts",
         "--output-format",
         "human-readable-text",
-    ]
-
-    min_os = platform_prerequisites.minimum_os
-    families = platform_prerequisites.device_families
-    args.extend(_ibtool_arguments(min_os, families))
+    ])
     args.extend([
         "--module",
         swift_module,
@@ -144,10 +149,12 @@ def link_storyboards(
 
     args = [
         "ibtool",
-        "--link",
-        xctoolrunner_support.prefixed_path(output_dir.path),
     ]
     args.extend(_ibtool_arguments(min_os, families))
+    args.extend([
+        "--link",
+        xctoolrunner_support.prefixed_path(output_dir.path),
+    ])
     args.extend([
         xctoolrunner_support.prefixed_path(f.path)
         for f in storyboardc_dirs
@@ -195,10 +202,12 @@ def compile_xib(
 
     args = [
         "ibtool",
-        "--compile",
-        xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
     ]
     args.extend(_ibtool_arguments(min_os, families))
+    args.extend([
+        "--compile",
+        xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
+    ])
     args.extend([
         "--module",
         swift_module,

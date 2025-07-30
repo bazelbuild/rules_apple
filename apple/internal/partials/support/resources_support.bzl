@@ -205,7 +205,7 @@ def _asset_catalogs(
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
     )
 
     return struct(
@@ -649,7 +649,7 @@ def _storyboards(
             mac_exec_group = mac_exec_group,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
             swift_module = swift_module,
         )
         compiled_storyboardcs.append(storyboardc_dir)
@@ -667,7 +667,7 @@ def _storyboards(
         mac_exec_group = mac_exec_group,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
-        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
         storyboardc_dirs = compiled_storyboardcs,
     )
     return struct(
@@ -749,7 +749,7 @@ def _xibs(
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
             swift_module = swift_module,
         )
         nib_files.append(out_dir)

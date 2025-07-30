@@ -781,7 +781,7 @@ Target was assigned the following app icons: [
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
-            "xctoolrunner actool --compile",
+            "--compile",
             "--minimum-deployment-target " + common.min_os_ios.baseline,
             "--platform iphonesimulator",
         ],
