@@ -207,10 +207,10 @@ def _lipo_command_for_dsyms(
             found_binary_paths.append(dsym_binary.path)
 
     lipo_command = (
-        "mkdir -p ${{OUTPUT_DIR}}/Contents/Resources/DWARF && " +
+        'mkdir -p "${{OUTPUT_DIR}}/Contents/Resources/DWARF" && ' +
         "/usr/bin/lipo " +
         "-create {found_binary_inputs} " +
-        "-output ${{OUTPUT_DIR}}/Contents/Resources/DWARF/{main_binary_basename}"
+        '-output "${{OUTPUT_DIR}}/Contents/Resources/DWARF/{main_binary_basename}"'
     ).format(
         found_binary_inputs = " ".join([shell.quote(path) for path in found_binary_paths]),
         main_binary_basename = main_binary_basename,
@@ -235,10 +235,10 @@ def _ditto_command_for_dsyms(*, found_binaries_by_arch):
         found_binary_paths.append(dsym_binary.path + "/Contents/Resources/Relocations")
 
     ditto_command = (
-        "mkdir -p \"${{OUTPUT_DIR}}/Contents/Resources/Relocations\" && " +
+        'mkdir -p "${{OUTPUT_DIR}}/Contents/Resources/Relocations" && ' +
         "/usr/bin/ditto " +
         "{found_binary_inputs} " +
-        "\"${{OUTPUT_DIR}}/Contents/Resources/Relocations\""
+        '"${{OUTPUT_DIR}}/Contents/Resources/Relocations"'
     ).format(
         found_binary_inputs = " ".join([shell.quote(path) for path in found_binary_paths]),
     )
@@ -414,13 +414,13 @@ def _bundle_dsym_files(
         # We expect any given Info.plist from the splits to be as good as any, no need to merge
         # them, but we can do that with plisttool if and when it's needed.
         plist_command = (
-            "cp {dsym_plist_path} ${{OUTPUT_DIR}}/Contents/Info.plist"
+            'cp {dsym_plist_path} "${{OUTPUT_DIR}}/Contents/Info.plist"'
         ).format(
-            dsym_plist_path = dsym_inputs.values()[0].path + "/Contents/Info.plist",
+            dsym_plist_path = shell.quote(dsym_inputs.values()[0].path + "/Contents/Info.plist"),
         )
 
         command = (
-            "rm -rf ${OUTPUT_DIR} && " +
+            'rm -rf "${OUTPUT_DIR}" && ' +
             lipo_command + " && " +
             ditto_command + " && " +
             plist_command
@@ -454,11 +454,11 @@ def _bundle_dsym_files(
         )
         command_inputs.append(dsym_plist)
         output_files.append(dsym_plist)
-        plist_command = ("cp \"{dsym_plist_path}\" \"${{OUTPUT_DIR}}/Contents/Info.plist\"").format(
-            dsym_plist_path = dsym_plist.path,
+        plist_command = ('cp {dsym_plist_path} "${{OUTPUT_DIR}}/Contents/Info.plist"').format(
+            dsym_plist_path = shell.quote(dsym_plist.path),
         )
 
-        command = "rm -rf ${OUTPUT_DIR} && " + lipo_command + " && " + plist_command
+        command = 'rm -rf "${OUTPUT_DIR}" && ' + lipo_command + " && " + plist_command
 
         # Put the tree artifact dSYMs in a subdirectory to avoid conflicts with any legacy dSYMs
         # provided through existing APIs such as --output_groups=+dsyms; note that legacy "flat
