@@ -234,6 +234,7 @@ Resolved Xcode is version {xcode_version}.
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -571,6 +572,7 @@ def _visionos_dynamic_framework_impl(ctx):
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -854,6 +856,7 @@ def _visionos_framework_impl(ctx):
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1127,6 +1130,7 @@ def _visionos_extension_impl(ctx):
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [

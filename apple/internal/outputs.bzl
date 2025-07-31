@@ -142,27 +142,29 @@ def _infoplist(*, actions, label_name, output_discriminator):
 def _main_binary(
         *,
         actions,
-        apple_platform_info,
+        bundle_name,
+        cc_toolchain,
         cpp_fragment,
         label,
         unstripped):
     """Returns a file reference for the main binary that gets linked."""
 
-    # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact() as soon as
-    # it is safe to do so.
-    return actions.declare_shareable_artifact(
-        paths.join(label.package, _main_binary_basename(
+    return intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = cc_toolchain.target_gnu_system_name,
+        file_name = _main_binary_basename(
             cpp_fragment = cpp_fragment,
-            label_name = label.name,
+            bundle_name = bundle_name,
             unstripped = unstripped,
-        )),
-        apple_platform_info.target_build_config.bin_dir,
+        ),
+        no_intermediates = True,
     )
 
 def _main_binary_basename(
         *,
+        bundle_name,
         cpp_fragment,
-        label_name,
         unstripped):
     """Returns the basename of the main binary that gets linked."""
 
@@ -178,7 +180,7 @@ def _main_binary_basename(
     else:
         suffix = "_bin"
 
-    return label_name + suffix
+    return bundle_name + suffix
 
 def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""

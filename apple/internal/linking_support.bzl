@@ -135,6 +135,7 @@ def _link_multi_arch_binary(
         ctx,
         avoid_deps = [],
         build_settings,
+        bundle_name,
         cc_toolchains,
         extra_linkopts = [],
         extra_link_inputs = [],
@@ -153,6 +154,7 @@ def _link_multi_arch_binary(
             bundle loader or any dynamic libraries/frameworks that will be loaded by
             this binary.
         build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
+        bundle_name: The name of the bundle name that the linked binary will be a part of, if any.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
@@ -266,14 +268,14 @@ def _link_multi_arch_binary(
             dsym_variants = build_settings.dsym_variant_flag
             if dsym_variants == "bundle":
                 if rule_descriptor:
-                    dsym_bundle_name = ctx.label.name + rule_descriptor.bundle_extension
+                    dsym_bundle_name = bundle_name + rule_descriptor.bundle_extension
                 else:
-                    dsym_bundle_name = ctx.label.name
+                    dsym_bundle_name = bundle_name
 
                 if multi_arch_build:
                     dsym_output = intermediates.directory(
                         actions = ctx.actions,
-                        target_name = ctx.label.name,
+                        target_name = bundle_name,
                         output_discriminator = cc_toolchain.target_gnu_system_name,
                         dir_name = dsym_bundle_name,
                     )
@@ -294,13 +296,13 @@ Please report this as a bug to the Apple BUILD Rules team.
                 ))
             else:
                 main_binary_unstripped_basename = outputs.main_binary_basename(
+                    bundle_name = bundle_name,
                     cpp_fragment = ctx.fragments.cpp,
-                    label_name = ctx.label.name,
                     unstripped = True,
                 )
                 dsym_output = intermediates.file(
                     actions = ctx.actions,
-                    target_name = ctx.label.name,
+                    target_name = bundle_name,
                     output_discriminator = cc_toolchain.target_gnu_system_name,
                     file_name = "{}.dwarf".format(main_binary_unstripped_basename),
                 )
@@ -320,8 +322,8 @@ Please report this as a bug to the Apple BUILD Rules team.
             additional_outputs.append(linkmap)
 
         main_binary_basename = outputs.main_binary_basename(
+            bundle_name = bundle_name,
             cpp_fragment = ctx.fragments.cpp,
-            label_name = ctx.label.name,
             unstripped = False,
         )
 
@@ -329,6 +331,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             additional_outputs = additional_outputs,
             apple_platform_info = platform_info,
             attr_linkopts = attr_linkopts,
+            bundle_name = bundle_name,
             cc_linking_context = subtracted_cc_linking_context,
             common_variables = common_variables,
             extra_link_args = extra_linkopts,
@@ -435,6 +438,7 @@ def _register_binary_linking_action(
         *,
         avoid_deps = [],
         build_settings,
+        bundle_name,
         bundle_loader = None,
         cc_toolchains,
         entitlements = None,
@@ -456,6 +460,7 @@ def _register_binary_linking_action(
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
         build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
+        bundle_name: The name of the bundle name that the linked binary will be a part of, if any.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
             This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
@@ -567,6 +572,7 @@ def _register_binary_linking_action(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
         build_settings = build_settings,
+        bundle_name = bundle_name,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,

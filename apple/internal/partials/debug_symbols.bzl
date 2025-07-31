@@ -323,6 +323,7 @@ def _bundle_dsym_files(
         *,
         actions,
         bundle_extension = "",
+        bundle_name,
         debug_output_filename,
         dsym_inputs = {},
         dsym_info_plist_template,
@@ -344,6 +345,7 @@ def _bundle_dsym_files(
     Args:
         actions: The actions provider from `ctx.actions`.
         bundle_extension: The extension for the bundle.
+        bundle_name: The name of the output bundle.
         debug_output_filename: The base file name to use for this debug output, which will be
             followed by each architecture with an underscore to make each dSYM binary file name or
             with the bundle extension following it for the dSYM bundle file name.
@@ -387,7 +389,7 @@ def _bundle_dsym_files(
     # referencing dSYM binaries from a dSYM bundle.
     main_binary_basename = outputs.main_binary_basename(
         cpp_fragment = platform_prerequisites.cpp_fragment,
-        label_name = rule_label.name,
+        bundle_name = bundle_name,
         unstripped = True,
     )
 
@@ -537,6 +539,7 @@ def _debug_symbols_partial_impl(
             dsym_files, dsym_bundle_dir = _bundle_dsym_files(
                 actions = actions,
                 bundle_extension = bundle_extension,
+                bundle_name = bundle_name,
                 debug_output_filename = debug_output_filename,
                 dsym_inputs = dsym_outputs,
                 dsym_info_plist_template = dsym_info_plist_template,
