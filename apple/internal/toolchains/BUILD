@@ -38,7 +38,6 @@ apple_mac_tools_toolchain(
     signature_tool = "//tools:prebuilt_signature_tool_osx",
     swift_stdlib_tool = "//tools:prebuilt_swift_stdlib_tool_osx",
     xcframework_processor_tool = "//tools:prebuilt_xcframework_processor_tool_osx",
-    xctoolrunner = "//tools/xctoolrunner",
     xctoolrunner_alternative = "//tools:prebuilt_xctoolrunner_osx",
 )
 
