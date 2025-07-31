@@ -428,6 +428,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
+        bundle_name = bundle_name,
         cc_toolchains = cc_toolchain_forwarder,
         # Unit/UI tests do not use entitlements.
         entitlements = None,

@@ -21,13 +21,15 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-def _intermediates_path_string(*, target_name, output_discriminator):
+def _intermediates_path_string(*, target_name, output_discriminator, no_intermediates = False):
     """Returns a preferred path string given a target name and an optional output discriminator."""
-    if not output_discriminator:
-        return "%s-intermediates" % target_name
-    return "%s-intermediates-%s" % (target_name, output_discriminator)
+    return "{target_name}{intermediates}{output_discriminator}".format(
+        target_name = target_name,
+        intermediates = "-intermediates" if not no_intermediates else "",
+        output_discriminator = "-%s" % output_discriminator if output_discriminator else "",
+    )
 
-def _directory(*, actions, target_name, output_discriminator, dir_name):
+def _directory(*, actions, target_name, output_discriminator, dir_name, no_intermediates = False):
     """Declares an intermediate directory with the given name.
 
     Args:
@@ -37,6 +39,7 @@ def _directory(*, actions, target_name, output_discriminator, dir_name):
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       dir_name: Name of the directory to declare.
+      no_intermediates: Whether to omit the "-intermediates" component of the path.
 
     Returns:
       A new File object that represents an intermediate directory.
@@ -44,12 +47,13 @@ def _directory(*, actions, target_name, output_discriminator, dir_name):
     intermediates_path = _intermediates_path_string(
         target_name = target_name,
         output_discriminator = output_discriminator,
+        no_intermediates = no_intermediates,
     )
     return actions.declare_directory(
         paths.join(intermediates_path, dir_name),
     )
 
-def _file(*, actions, target_name, output_discriminator, file_name):
+def _file(*, actions, target_name, output_discriminator, file_name, no_intermediates = False):
     """Declares an intermediate file with the given name.
 
     Args:
@@ -66,6 +70,7 @@ def _file(*, actions, target_name, output_discriminator, file_name):
     intermediates_path = _intermediates_path_string(
         target_name = target_name,
         output_discriminator = output_discriminator,
+        no_intermediates = no_intermediates,
     )
     return actions.declare_file(
         paths.join(intermediates_path, file_name),

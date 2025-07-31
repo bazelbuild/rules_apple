@@ -502,7 +502,7 @@ def macos_application_test_suite(name):
         name = "{}_runfiles_dsymutil_bundle_test_with_bundle_name_spaces".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
         expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app_with_space.app.dSYM",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM",
         ],
         tags = [name],
     )

@@ -1230,6 +1230,7 @@ def _apple_xcframework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
