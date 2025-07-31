@@ -195,6 +195,8 @@ def _register_binary_strip_action(
         ctx,
         apple_platform_info,
         binary,
+        bundle_name,
+        cc_toolchain,
         extra_link_args,
         feature_configuration,
         name):
@@ -219,7 +221,8 @@ def _register_binary_strip_action(
 
     stripped_binary = outputs.main_binary(
         actions = ctx.actions,
-        apple_platform_info = apple_platform_info,
+        bundle_name = bundle_name,
+        cc_toolchain = cc_toolchain,
         cpp_fragment = ctx.fragments.cpp,
         label = ctx.label,
         unstripped = False,
@@ -301,6 +304,7 @@ def _register_configuration_specific_link_actions(
         additional_outputs,
         apple_platform_info,
         attr_linkopts,
+        bundle_name,
         common_variables,
         cc_linking_context,
         extra_link_args,
@@ -329,7 +333,8 @@ def _register_configuration_specific_link_actions(
 
     binary = outputs.main_binary(
         actions = ctx.actions,
-        apple_platform_info = apple_platform_info,
+        bundle_name = bundle_name,
+        cc_toolchain = common_variables.toolchain,
         cpp_fragment = ctx.fragments.cpp,
         label = ctx.label,
         unstripped = unstripped,
@@ -345,6 +350,7 @@ def _register_configuration_specific_link_actions(
             apple_platform_info = apple_platform_info,
             attr_linkopts = attr_linkopts,
             binary = binary,
+            bundle_name = bundle_name,
             cc_linking_context = cc_linking_context,
             common_variables = common_variables,
             extra_link_args = extra_link_args,
@@ -377,6 +383,7 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
         apple_platform_info,
         attr_linkopts,
         binary,
+        bundle_name,
         cc_linking_context,
         common_variables,
         extra_link_args,
@@ -433,6 +440,8 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
             ctx = ctx,
             apple_platform_info = apple_platform_info,
             binary = binary,
+            bundle_name = bundle_name,
+            cc_toolchain = common_variables.toolchain,
             extra_link_args = extra_link_args,
             feature_configuration = feature_configuration,
             name = name,

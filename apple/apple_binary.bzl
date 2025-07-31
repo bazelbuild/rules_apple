@@ -106,6 +106,7 @@ Resolved Xcode is version {xcode_version}.
         cc_toolchains = cc_toolchain_forwarder,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
+        bundle_name = ctx.label.name,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
