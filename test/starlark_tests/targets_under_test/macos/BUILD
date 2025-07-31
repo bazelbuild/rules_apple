@@ -165,7 +165,7 @@ macos_application(
 )
 
 macos_application(
-    name = "app_with_space",
+    name = "app_with_space_in_bundle_name",
     bundle_id = "com.google.example",
     bundle_name = "app with space",
     infoplists = [
@@ -179,7 +179,7 @@ macos_application(
 )
 
 macos_application(
-    name = "app with space",
+    name = "app with space in target name",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
