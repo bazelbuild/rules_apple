@@ -1,6 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//apple/internal/aspects:resource_aspect_hint.bzl", "apple_resource_hint", "apple_resource_hint_action")
 load(":cc_toolchain_forwarder.bzl", "cc_toolchain_forwarder")
+load(":dtrace.bzl", "dtrace_wrapper")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -318,4 +319,11 @@ apple_resource_hint(
 apple_resource_hint(
     name = "suppress_resources",
     action = apple_resource_hint_action.suppress,
+)
+
+dtrace_wrapper(
+    name = "dtrace_wrapper",
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
 )
