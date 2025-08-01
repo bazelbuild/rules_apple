@@ -247,9 +247,10 @@ def _bucketize_data(
 
             # For each type of resource, place in the appropriate bucket.
             if AppleFrameworkBundleInfo in target:
-                if "framework.dSYM/" in resource_short_path or resource.extension == "linkmap":
-                    # Ignore dSYM bundle and linkmap since the debug symbols partial is
-                    # responsible for propagating this up the dependency graph.
+                if ".dSYM" in resource_short_path or resource.extension == "linkmap":
+                    # Never ever bundle dSYMs or linkmaps since they should never, ever belong in
+                    # resource processing. This goes for any "framework" outputs that do not belong
+                    # in the shipping framework bundle itself.
                     continue
                 bucket_name = "framework"
             elif (resource_short_path.endswith(".strings") or

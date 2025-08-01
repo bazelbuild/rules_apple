@@ -48,13 +48,26 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
     bundle_zips = []
     for target, subdirectory in additional_contents.items():
         if AppleBundleInfo in target:
-            bundle_zips.append(
-                (
-                    processor.location.content,
-                    subdirectory,
-                    depset([target[AppleBundleInfo].archive]),
-                ),
-            )
+            target_archive = target[AppleBundleInfo].archive
+            if (target_archive.short_path.endswith(".zip") or
+                target_archive.short_path.endswith(".ipa")):
+                # Zipped archive case.
+                bundle_zips.append(
+                    (
+                        processor.location.content,
+                        subdirectory,
+                        depset([target_archive]),
+                    ),
+                )
+            else:
+                # Tree artifact archive case.
+                bundle_files.append(
+                    (
+                        processor.location.content,
+                        subdirectory,
+                        depset([target_archive]),
+                    ),
+                )
         elif AppleBinaryInfo in target:
             bundle_files.append(
                 (
