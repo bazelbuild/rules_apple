@@ -120,7 +120,7 @@ temporary_actionsdata_file={output_dir}/extract_sorted.actionsdata
 # Set write permission to allow rewrite extract.actionsdata
 chmod -R +w {output_dir}
 # Write extract.actionsdata with sorted keys
-/usr/bin/python3 -m json.tool --compact --sort-keys "$original_actionsdata_file" > "$temporary_actionsdata_file"
+"$DEVELOPER_DIR/usr/bin/python3" -m json.tool --compact --sort-keys "$original_actionsdata_file" > "$temporary_actionsdata_file"
 # Remove the original unsorted extract.actionsdata file
 rm "$original_actionsdata_file"
 # Rename the sorted file to the original name
