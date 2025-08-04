@@ -112,6 +112,22 @@ set -euo pipefail
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1) || exit_status=$?
 
+# The Metadata.appintents/extract.actionsdata output is a json file with non-deterministic keys order.
+# Here we sort the keys of the json file to ensure that the output is deterministic.
+original_actionsdata_file={output_dir}/extract.actionsdata
+temporary_actionsdata_file={output_dir}/extract_sorted.actionsdata
+
+# Set write permission to allow rewrite extract.actionsdata
+chmod -R +w {output_dir}
+# Write extract.actionsdata with sorted keys
+/usr/bin/python3 -m json.tool --compact --sort-keys "$original_actionsdata_file" > "$temporary_actionsdata_file"
+# Remove the original unsorted extract.actionsdata file
+rm "$original_actionsdata_file"
+# Rename the sorted file to the original name
+mv "$temporary_actionsdata_file" "$original_actionsdata_file"
+# Restore read-only permission
+chmod -R -w {output_dir}
+
 if [[ "$exit_status" -ne 0 ]]; then
   echo "$output" >&2
   exit $exit_status
@@ -122,7 +138,7 @@ elif [[ "$output" == *"skipping writing output"* ]]; then
   echo "$output" >&2
   exit 1
 fi
-''',
+'''.format(output_dir = output.path),
         inputs = depset([bundle_binary], transitive = transitive_inputs),
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
