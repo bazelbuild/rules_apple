@@ -46,22 +46,9 @@ apple_resource_group = _apple_resource_group
 apple_resource_locales = _apple_resource_locales
 
 # TODO(rdar/48851150): Add support for Swift once the generator supports public interfaces.
-def apple_core_ml_library(name, mlmodel, **kwargs):
+def _apple_core_ml_library_impl(name, mlmodel, **kwargs):
     # buildifier: disable=function-docstring-args
     """Macro to orchestrate an objc_library with generated sources for mlmodel files."""
-
-    # List of allowed attributes for the apple_core_ml_library rule. Do not want to expose the
-    # underlying objc_library attributes which might slow down migration once we're able to create a
-    # proper rule.
-    allowed_attributes = [
-        "tags",
-        "testonly",
-        "visibility",
-    ]
-
-    for attr, _ in kwargs.items():
-        if attr not in allowed_attributes:
-            fail("Unknown attribute '{}' in rule 'apple_core_ml_library'".format(attr))
 
     core_ml_name = "{}.CoreML".format(name)
 
@@ -88,3 +75,35 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         data = [mlmodel],
         **kwargs
     )
+
+apple_core_ml_library = macro(
+    implementation = _apple_core_ml_library_impl,
+    inherit_attrs = "common",
+    attrs = {
+        "mlmodel": attr.label(
+            allow_single_file = ["mlmodel"],
+            configurable = False,
+            mandatory = True,
+            doc = """
+A single `.mlmodel` file from which to generate sources and compile into mlmodelc files.
+""",
+        ),
+    },
+    doc = """
+This rule supports the integration of CoreML `mlmodel` files into Apple rules.
+`apple_core_ml_library` targets are added directly into `deps` for both
+`objc_library` and `swift_library` targets.
+
+For Swift, import the `apple_core_ml_library` the same way you'd import an
+`objc_library` or `swift_library` target. For `objc_library` targets,
+`apple_core_ml_library` creates a header file named after the target.
+
+For example, if the `apple_core_ml_library` target's label is
+`//my/package:MyModel`, then to import this module in Swift you need to use
+`import my_package_MyModel`. From Objective-C sources, you'd import the header
+as `#import my/package/MyModel.h`.
+
+This rule will also compile the `mlmodel` into an `mlmodelc` and propagate it
+upstream so that it is packaged as a resource inside the top level bundle.
+""",
+)
