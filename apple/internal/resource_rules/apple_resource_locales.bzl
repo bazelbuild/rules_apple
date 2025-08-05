@@ -24,14 +24,16 @@ visibility("@build_bazel_rules_apple//apple/...")
 def apple_locale_from_unicode_locale(unicode_locale):
     """Converts a Unicode Locale Identifier to an Apple locale.
 
-    Apple locales are a subset of
-    [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers) strings that are in
-    `<language_id>[_<region_subtag>]` format.
+    This function converts a [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers) in
+    `<language_id>[{-_}<region_subtag>]` format to Apple's preferred names for
+    `lproj` directories.
 
     Args:
-        unicode_locale: The Unicode Locale Identifier to convert.
+        unicode_locale: [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers)
+            string to convert to an `lproj` directory name.
+
     Returns:
-        The Apple locale.
+        A String with the Apple locale name.
     """
 
     # TODO(b/349902843): Add some input verification for unicode_locale to make sure it is
@@ -77,7 +79,7 @@ this locale is always included.
         ),
     },
     doc = """
-This rule supplies an allow list of [Unicode Locale Identifiers][ULI] in
+This rule supplies an allow list of [Unicode Locale Identifiers](https://unicode.org/reports/tr35/#Identifiers) in
 `<language_id>[{-_}<region_subtag>]` format. Any hyphens `-` will be converted
 to underscores `_` matching `.lproj` naming conventions. Resources that are
 filtered out by the allow list will not be copied to the final bundle.
