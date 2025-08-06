@@ -216,13 +216,16 @@ if [[ -n "$test_host_path" ]]; then
     fi
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
+    runner_app_infoplist="$runner_app_destination/Info.plist"
+    /usr/bin/plutil -convert xml1 "$runner_app_infoplist"
     /usr/bin/sed \
       -e "s@\$(WRAPPEDPRODUCTNAME)@XCTRunner@g"\
       -e "s@WRAPPEDPRODUCTNAME@XCTRunner@g"\
       -e "s@\$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)@$xcrun_test_host_bundle_identifier@g"\
       -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@$xcrun_test_host_bundle_identifier@g"\
       -i "" \
-      "$runner_app_destination/Info.plist"
+      "$runner_app_infoplist"
+    /usr/bin/plutil -convert binary1 "$runner_app_infoplist"
 
     readonly runner_app_frameworks_destination="$runner_app_destination/Frameworks"
     mkdir -p "$runner_app_frameworks_destination"
