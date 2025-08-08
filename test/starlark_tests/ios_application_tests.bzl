@@ -38,10 +38,6 @@ load(
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
-    "//test/starlark_tests/rules:apple_bundle_archive_support_info_device_test.bzl",
-    "apple_bundle_archive_support_info_device_test",
-)
-load(
     "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
     "apple_codesigning_dossier_info_provider_test",
 )
@@ -167,59 +163,22 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
-    # Verify that Swift dylibs are packaged with the application, when the application uses Swift.
+    # Verify that Swift dylibs are no longer packaged with the application for iOS 15+, when the
+    # application uses Swift.
     archive_contents_test(
-        name = "{}_device_swift_dylibs_present".format(name),
+        name = "{}_device_swift_dylibs_not_present".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_support_libs",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
-            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
-        ],
-        tags = [name],
-    )
-    apple_bundle_archive_support_info_device_test(
-        name = "{}_bundle_archive_support_contains_stub_executable_device_test".format(name),
-        expected_archive_bundle_files = ["SwiftSupport/iphoneos/swiftlibs"],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_support_libs",
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_simulator_swift_dylibs_present".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_support_libs",
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        tags = [name],
-    )
-
-    # Verify that Swift concurrency dylibs are packaged with the application, while the runtime is
-    # not when the application is built for a target that supports the stable Swift ABI but lacks
-    # OS support for the concurrency dylibs.
-    archive_contents_test(
-        name = "{}_device_swift_concurrency_dylibs_present".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
-        contains = [
-            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",
-            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
-        ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
         ],
         tags = [name],
     )
-    apple_bundle_archive_support_info_device_test(
-        name = "{}_bundle_archive_support_contains_stub_executable_for_swift_concurrency_device_test".format(name),
-        expected_archive_bundle_files = ["SwiftSupport/iphoneos/swiftlibs"],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
-        tags = [name],
-    )
     archive_contents_test(
-        name = "{}_simulator_swift_concurrency_dylibs_present".format(name),
+        name = "{}_simulator_swift_dylibs_not_present".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
-        contains = ["$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_support_libs",
         not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
@@ -254,11 +213,11 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_dynamic_fmwk",
         contains = [
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
         ],
         not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
@@ -304,8 +263,10 @@ All requested architectures must be either device or simulator architectures."""
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSSwiftStaticFramework.framework"],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$BUNDLE_ROOT/Frameworks/iOSSwiftStaticFramework.framework",
+        ],
         tags = [name],
     )
     archive_contents_test(
@@ -318,8 +279,10 @@ All requested architectures must be either device or simulator architectures."""
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework",
+        ],
         tags = [name],
     )
     archive_contents_test(
@@ -329,8 +292,10 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass"],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/iOSSwiftStaticFramework.framework"],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$BUNDLE_ROOT/Frameworks/iOSSwiftStaticFramework.framework",
+        ],
         tags = [name],
     )
 

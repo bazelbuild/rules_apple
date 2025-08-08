@@ -136,7 +136,7 @@ def ios_app_clip_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_ios.appclip_support,
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
@@ -164,18 +164,17 @@ def ios_app_clip_test_suite(name):
         tags = [name],
     )
 
-    # Verify that Swift dylibs are packaged with the application, when the application uses Swift.
+    # Verify that Swift dylibs are no longer packaged with the application, when the application
+    # uses Swift.
     archive_contents_test(
-        name = "{}_device_swift_dylibs_present".format(name),
+        name = "{}_device_swift_dylibs_not_present".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_clip_with_swift_support",
-        contains = [
-            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
-            "$BUNDLE_ROOT/AppClips/app_clip_with_swift_support.app/Frameworks/libswift_Concurrency.dylib",
-            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",
-        ],
         not_contains = [
-            "$BUNDLE_ROOT/AppClips/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",  # Not required for iOS 15+.
+            "$BUNDLE_ROOT/AppClips/app_clip_with_swift_support.app/Frameworks/libswift_Concurrency.dylib",  # Wrong location.
+            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",  # Not required for iOS 15+.
+            "$BUNDLE_ROOT/AppClips/SwiftSupport/iphoneos/libswift_Concurrency.dylib",  # Wrong location.
         ],
         tags = [name],
     )

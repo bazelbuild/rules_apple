@@ -24,18 +24,15 @@ _fixture_tags = [
     "notap",
 ]
 
-# The current baseline for iOS is version 13.0, based on Xcode 15.3's minimum version for XCTest.
+# The current baseline for iOS is version 15.0, based on Xcode 16.0 on Apple's Xcode Support page:
+# https://developer.apple.com/support/xcode/
 _min_os_ios = struct(
     app_intents_support = "16.0",
     app_intents_package_support = "17.0",
-    appclip_support = "14.0",
-    arm_sim_support = "14.0",
-    baseline = "13.0",
-    concurrency_support = "13.0",
+    baseline = "15.0",
     icon_bundle_required = "26.0",
-    oldest_supported = "12.0",
-    nplus1 = "14.0",
-    stable_swift_abi = "12.2",
+    oldest_supported = "15.0",
+    nplus1 = "16.0",
     test_mismatch_high_threshold = "17.0",
     widget_configuration_intents_support = "16.0",
 )

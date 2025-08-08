@@ -229,7 +229,7 @@ def ios_unit_test_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 

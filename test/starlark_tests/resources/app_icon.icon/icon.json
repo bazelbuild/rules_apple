@@ -7,8 +7,8 @@
       "layers" : [
         {
           "glass" : true,
-          "image-name" : "Bazel_logo.png",
-          "name" : "Bazel_logo"
+          "image-name" : "app_icon.png",
+          "name" : "app_icon"
         }
       ],
       "shadow" : {

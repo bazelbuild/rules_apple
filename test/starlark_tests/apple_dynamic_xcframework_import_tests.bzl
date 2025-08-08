@@ -64,11 +64,11 @@ def apple_dynamic_xcframework_import_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Headers/",
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Modules/",
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",  # Only required for iOS before 15.0.
         ],
         binary_test_file = "$BINARY",
         macho_load_commands_contain = [

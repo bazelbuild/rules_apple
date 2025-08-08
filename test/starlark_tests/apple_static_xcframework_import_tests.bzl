@@ -89,7 +89,7 @@ There must be one root Info.plist in the framework bundle at \
     )
 
     # Verify ios_application with XCFramework with Swift static library dependency contains
-    # Objective-C symbols, doesn't bundle XCFramework, and does bundle Swift standard libraries.
+    # Objective-C symbols, doesn't bundle XCFramework, and does not bundle Swift standard libraries.
     archive_contents_test(
         name = "{}_swift_ios_application_with_imported_static_xcframework_includes_symbols".format(name),
         build_type = "simulator",
@@ -100,15 +100,17 @@ There must be one root Info.plist in the framework bundle at \
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
-        not_contains = ["$BUNDLE_ROOT/Frameworks/generated_static_xcframework_with_headers"],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_static_xcframework_with_headers",
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",  # Only required for iOS before 15.0.
+        ],
         tags = [name],
     )
 
     # Verify ios_application with an imported XCFramework that has a Swift static library
-    # contains symbols visible to Objective-C, and bundles Swift standard libraries.
+    # contains symbols visible to Objective-C, and does not bundle Swift standard libraries.
     archive_contents_test(
-        name = "{}_swift_with_imported_static_fmwk_contains_symbols_and_bundles_swift_std_libraries".format(name),
+        name = "{}_swift_with_imported_static_fmwk_contains_symbols_and_does_not_bundle_swift_std_libraries".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library",
         binary_test_file = "$BINARY",
@@ -116,11 +118,11 @@ There must be one root Info.plist in the framework bundle at \
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
     archive_contents_test(
-        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_bundles_swift_std_libraries".format(name),
+        name = "{}_swift_with_imported_swift_static_fmwk_contains_symbols_and_does_not_bundle_swift_std_libraries".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework_with_static_library",
         binary_test_file = "$BINARY",
@@ -128,15 +130,15 @@ There must be one root Info.plist in the framework bundle at \
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 
-    # Verify Swift standard libraries are bundled for an imported XCFramework that has a Swift
+    # Verify Swift standard libraries are not bundled for an imported XCFramework that has a Swift
     # static library containing no module interface files (.swiftmodule directory) and where the
     # import rule sets `has_swift` = True.
     archive_contents_test(
-        name = "{}_swift_with_no_module_interface_files_and_has_swift_attr_enabled_bundles_swift_std_libraries".format(name),
+        name = "{}_swift_with_no_module_interface_files_and_has_swift_attr_enabled_does_not_bundle_swift_std_libraries".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library_without_swiftmodule",
         binary_test_file = "$BINARY",
@@ -144,7 +146,7 @@ There must be one root Info.plist in the framework bundle at \
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
-        contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],
     )
 

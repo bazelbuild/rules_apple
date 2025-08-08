@@ -183,7 +183,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -198,7 +198,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -212,7 +212,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
         tags = [name],
     )
 
@@ -227,7 +227,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
         tags = [name],
     )
 
@@ -244,7 +244,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -259,7 +259,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -276,7 +276,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -291,7 +291,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 

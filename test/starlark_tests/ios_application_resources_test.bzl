@@ -280,14 +280,12 @@ app_icon-dupe
         contains = [
             "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
             "$BUNDLE_ROOT/app_icon60x60@2x.png",
-            "$BUNDLE_ROOT/app_icon-bazel60x60@2x.png",
-            "$BUNDLE_ROOT/app_icon-bazel76x76@2x~ipad.png",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
-            "CFBundleIcons:CFBundleAlternateIcons:app_icon-bazel:CFBundleIconFiles:0": "app_icon-bazel60x60",
+            "CFBundleIcons:CFBundleAlternateIcons:app_icon-bazel:CFBundleIconName": "app_icon-bazel",
         },
         tags = [
             name,
@@ -350,8 +348,6 @@ Found the following: """,
         contains = [
             "$BUNDLE_ROOT/app_icon60x60@2x.png",
             "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
-            "$BUNDLE_ROOT/app_icon-bazel60x60@2x.png",
-            "$BUNDLE_ROOT/app_icon-bazel76x76@2x~ipad.png",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {

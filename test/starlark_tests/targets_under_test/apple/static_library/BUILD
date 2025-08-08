@@ -42,7 +42,7 @@ apple_static_library(
 
 apple_static_library(
     name = "example_library_arm_sim_support",
-    minimum_os_version = common.min_os_ios.arm_sim_support,
+    minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
     tags = common.fixture_tags,
     deps = [":main_lib"],
