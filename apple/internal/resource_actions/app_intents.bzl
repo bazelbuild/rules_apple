@@ -109,24 +109,36 @@ an issue with the Apple BUILD rules with repro steps.
         command = '''\
 set -euo pipefail
 
+# sorts JSON file keys for deterministic output
+sort_json_file() {
+    local original_file="$1"
+    local temp_file="${original_file}.sorted"
+
+    # Sort the JSON file keys
+    "$DEVELOPER_DIR/usr/bin/python3" -m json.tool --compact --sort-keys "$original_file" > "$temp_file"
+    # Replace original with sorted version
+    mv "$temp_file" "$original_file"
+}
+
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1) || exit_status=$?
 
-# The Metadata.appintents/extract.actionsdata output is a json file with non-deterministic keys order.
-# Here we sort the keys of the json file to ensure that the output is deterministic.
-original_actionsdata_file={output_dir}/extract.actionsdata
-temporary_actionsdata_file={output_dir}/extract_sorted.actionsdata
+# The Metadata.appintents/extract.actionsdata and version.json outputs are json
+# files with non-deterministic keys order.
+# Here we sort their keys to ensure that the output is deterministic.
+# This should be removed once the issue is fixed (FB19585633).
+actionsdata_file="{output_dir}/extract.actionsdata"
+version_file="{output_dir}/version.json"
 
-# Set write permission to allow rewrite extract.actionsdata
-chmod -R +w {output_dir}
-# Write extract.actionsdata with sorted keys
-"$DEVELOPER_DIR/usr/bin/python3" -m json.tool --compact --sort-keys "$original_actionsdata_file" > "$temporary_actionsdata_file"
-# Remove the original unsorted extract.actionsdata file
-rm "$original_actionsdata_file"
-# Rename the sorted file to the original name
-mv "$temporary_actionsdata_file" "$original_actionsdata_file"
+# Set write permission to allow rewriting files
+chmod -R +w "{output_dir}"
+
+# Sort both JSON files to ensure deterministic output
+sort_json_file "$version_file"
+sort_json_file "$actionsdata_file"
+
 # Restore read-only permission
-chmod -R -w {output_dir}
+chmod -R -w "{output_dir}"
 
 if [[ "$exit_status" -ne 0 ]]; then
   echo "$output" >&2
