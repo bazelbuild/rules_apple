@@ -519,6 +519,11 @@ def compile_asset_catalog(
         apple_common.dotted_version("26.0.0.17A5285i")
     )
 
+    xcode_26_beta_5_or_later = (
+        xcode_config.xcode_version() >=
+        apple_common.dotted_version("26.0.0.17A5295f")
+    )
+
     args = ["actool"]
 
     # Custom xctoolrunner options.
@@ -574,18 +579,18 @@ def compile_asset_catalog(
         "--compress-pngs",
     ])
 
-    if platform_prerequisites.platform_type == "macos" and (
-        xcode_config.xcode_version() >= apple_common.dotted_version("26.0")
-    ):
+    platform_type = platform_prerequisites.platform_type
+
+    if platform_type == "macos" and not (xcode_before_26 or xcode_26_beta_5_or_later):
         # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
-        # it's not documented. Xcode 26 currently relies on this flag to be set for macOS.
+        # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
         args.extend(["--lightweight-asset-runtime-mode", "enabled"])
 
     extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
         bundle_id = bundle_id,
         minimum_os_version = platform_prerequisites.minimum_os,
-        platform_type = platform_prerequisites.platform_type,
+        platform_type = platform_type,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
         xcode_config = xcode_config,
