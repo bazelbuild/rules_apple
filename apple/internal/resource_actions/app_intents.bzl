@@ -110,15 +110,15 @@ an issue with the Apple BUILD rules with repro steps.
 set -euo pipefail
 
 # sorts JSON file keys for deterministic output
-sort_json_file() {
+sort_json_file() {{
     local original_file="$1"
-    local temp_file="${original_file}.sorted"
+    local temp_file="${{original_file}}.sorted"
 
     # Sort the JSON file keys
     "$DEVELOPER_DIR/usr/bin/python3" -m json.tool --compact --sort-keys "$original_file" > "$temp_file"
     # Replace original with sorted version
     mv "$temp_file" "$original_file"
-}
+}}
 
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1) || exit_status=$?
