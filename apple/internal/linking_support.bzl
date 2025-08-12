@@ -272,19 +272,21 @@ def _link_multi_arch_binary(
                 else:
                     dsym_bundle_name = bundle_name
 
+                full_dsym_bundle_name = "{dsym_bundle_name}.dSYM".format(
+                    dsym_bundle_name = dsym_bundle_name,
+                )
+
                 if multi_arch_build:
                     dsym_output = intermediates.directory(
                         actions = ctx.actions,
                         target_name = bundle_name,
                         output_discriminator = cc_toolchain.target_gnu_system_name,
-                        dir_name = dsym_bundle_name,
+                        dir_name = full_dsym_bundle_name,
                     )
                 else:
                     # Avoiding "intermediates" as this will be the only dSYM in a single arch build.
                     dsym_output = ctx.actions.declare_directory(
-                        "{dsym_bundle_name}.dSYM".format(
-                            dsym_bundle_name = dsym_bundle_name,
-                        ),
+                        full_dsym_bundle_name,
                     )
             elif dsym_variants != "flat":
                 fail("""
