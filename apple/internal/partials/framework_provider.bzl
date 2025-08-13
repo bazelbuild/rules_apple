@@ -19,7 +19,6 @@ load(
     "partial",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple/internal:providers.bzl", "new_appledynamicframeworkinfo")
 
 def _framework_provider_partial_impl(
