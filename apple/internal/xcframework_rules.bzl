@@ -126,6 +126,7 @@ load(
     "files",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",

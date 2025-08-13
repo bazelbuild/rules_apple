@@ -19,6 +19,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:package_specs.bzl",
     "label_matches_package_specs",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",

@@ -14,6 +14,8 @@
 
 """Support methods for handling artifacts from CcInfo providers."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",

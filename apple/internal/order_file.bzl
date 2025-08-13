@@ -16,6 +16,9 @@
 A rule for providing support for order files during build.
 """
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",

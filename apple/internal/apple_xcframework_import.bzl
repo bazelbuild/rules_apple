@@ -57,6 +57,7 @@ load(
     "swift_clang_module_aspect",
 )
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",

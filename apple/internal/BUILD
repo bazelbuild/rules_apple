@@ -14,17 +14,23 @@ bzl_library(
     ],
     deps = [
         ":cc_toolchain_info_support",
+        ":experimental",
         ":framework_import_support",
+        ":providers",
         ":resources",
         ":rule_attrs",
         "//apple:utils",
         "//apple/internal/aspects:swift_usage_aspect",
+        "//apple/internal/providers:apple_dynamic_framework_info",
+        "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:sets",
+        "@bazel_tools//tools/cpp:toolchain_utils_bzl",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -61,10 +67,13 @@ bzl_library(
     ],
     deps = [
         ":cc_toolchain_info_support",
+        ":experimental",
         ":framework_import_support",
         ":intermediates",
+        ":providers",
         ":rule_attrs",
         "//apple/internal/aspects:swift_usage_aspect",
+        "//apple/internal/providers:apple_dynamic_framework_info",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:dicts",
@@ -73,6 +82,7 @@ bzl_library(
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -113,6 +123,7 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
+    deps = ["@rules_cc//cc/common"],
 )
 
 bzl_library(
@@ -161,6 +172,7 @@ bzl_library(
         ":outputs",
         ":platform_support",
         "@bazel_skylib//lib:paths",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -216,6 +228,7 @@ bzl_library(
     deps = [
         "//apple/internal/utils:package_specs",
         "@bazel_skylib//lib:new_sets",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -241,6 +254,7 @@ bzl_library(
         "@build_bazel_rules_swift//swift:providers",
         "@build_bazel_rules_swift//swift:swift_common",
         "@build_bazel_rules_swift//swift:swift_interop_info",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -303,6 +317,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -322,6 +337,7 @@ bzl_library(
         ":providers",
         "//apple/internal/providers:apple_dynamic_framework_info",
         "@build_bazel_apple_support//lib:lipo",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -359,6 +375,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -368,6 +385,7 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
+    deps = ["@rules_cc//cc/common"],
 )
 
 bzl_library(
@@ -511,6 +529,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -644,6 +663,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -675,6 +695,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -750,6 +771,7 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
+        "@rules_cc//cc/common",
     ],
 )
 

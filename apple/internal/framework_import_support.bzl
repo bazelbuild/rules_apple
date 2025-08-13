@@ -25,6 +25,8 @@ load("@build_bazel_rules_apple//apple/internal/utils:files.bzl", "files")
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
 load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
