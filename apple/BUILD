@@ -53,11 +53,13 @@ bzl_library(
     srcs = ["apple_binary.bzl"],
     deps = [
         "//apple/internal:linking_support",
+        "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -71,6 +73,7 @@ bzl_library(
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -100,6 +103,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 

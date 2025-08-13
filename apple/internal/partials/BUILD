@@ -31,6 +31,7 @@ bzl_library(
         "//apple/internal/providers:app_intents_info",
         "//apple/internal/resource_actions:app_intents",
         "@bazel_skylib//lib:partial",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -238,6 +239,7 @@ bzl_library(
         "//apple/internal:framework_import_support",
         "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
+        "@rules_cc//cc/common",
     ],
 )
 
