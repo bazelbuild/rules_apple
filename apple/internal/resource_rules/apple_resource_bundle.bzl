@@ -18,6 +18,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("@build_bazel_rules_apple//apple/...")
 

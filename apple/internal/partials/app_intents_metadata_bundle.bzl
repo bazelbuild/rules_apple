@@ -25,6 +25,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:app_intents.bzl",
     "generate_app_intents_metadata_bundle",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("@build_bazel_rules_apple//apple/...")
 

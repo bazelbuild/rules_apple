@@ -22,6 +22,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("@build_bazel_rules_apple//apple/...")
 

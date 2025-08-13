@@ -43,6 +43,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("public")
 

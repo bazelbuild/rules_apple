@@ -86,6 +86,7 @@ load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("@build_bazel_rules_apple//apple/...")
 

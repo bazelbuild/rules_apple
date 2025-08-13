@@ -39,6 +39,7 @@ bzl_library(
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
         "@build_bazel_rules_swift//swift:providers",
+        "@rules_cc//cc/common",
     ],
 )
 

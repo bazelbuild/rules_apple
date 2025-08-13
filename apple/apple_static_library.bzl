@@ -35,6 +35,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("public")
 

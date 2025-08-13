@@ -46,6 +46,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:providers",
+        "@rules_cc//cc/common",
     ],
 )
 

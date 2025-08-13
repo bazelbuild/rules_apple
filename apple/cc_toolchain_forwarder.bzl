@@ -37,6 +37,7 @@ load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("public")
 

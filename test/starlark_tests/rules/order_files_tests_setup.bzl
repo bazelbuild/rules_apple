@@ -15,6 +15,7 @@
 """order_file Starlark tests setup."""
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("//test/starlark_tests/...")
 
