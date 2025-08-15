@@ -251,7 +251,9 @@ def _register_configuration_specific_link_actions(
         cc_toolchain = common_variables.toolchain,
         cpp_fragment = ctx.fragments.cpp,
         label = ctx.label,
+        # LINT.IfChange
         unstripped = ctx.fragments.objc.builtin_objc_strip_action,
+        # LINT.ThenChange(partials/debug_symbols.bzl)
     )
 
     prefixed_attr_linkopts = [

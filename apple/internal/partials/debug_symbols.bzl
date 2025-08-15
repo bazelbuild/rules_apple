@@ -375,13 +375,15 @@ def _bundle_dsym_files(
     if not dsym_inputs:
         return [], None
 
-    # The dSYM binary file names are expected to match the unstripped binaries that they were based
-    # on from the original crosstool dsymutil invocation; this is more imperative to get right when
-    # referencing dSYM binaries from a dSYM bundle.
+    # The name of the main binary is currently contingent on the Objective-C fragment's
+    # `builtin_objc_strip_action` attribute, which determines *how* the unstripped binary is
+    # named as an artifact.
     main_binary_basename = outputs.main_binary_basename(
         cpp_fragment = platform_prerequisites.cpp_fragment,
         bundle_name = bundle_name,
-        unstripped = True,
+        # LINT.IfChange
+        unstripped = platform_prerequisites.objc_fragment.builtin_objc_strip_action,
+        # LINT.ThenChange(../compilation_support.bzl)
     )
 
     command_inputs = dsym_inputs.values()
