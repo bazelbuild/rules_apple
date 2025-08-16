@@ -41,9 +41,7 @@ def _dtrace_compile_impl(ctx):
     output_hdrs = []
     include_dir = None
 
-    dtrace = "/usr/sbin/dtrace"
-    if ctx.executable.dtrace:
-        dtrace = ctx.executable.dtrace
+    dtrace = ctx.executable.dtrace
 
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
@@ -88,6 +86,7 @@ dtrace_compile = rule(
             mandatory = False,
             executable = True,
             cfg = "exec",
+            default = "//apple:dtrace_wrapper",
         ),
         "srcs": attr.label_list(
             allow_files = [".d"],
@@ -95,9 +94,6 @@ dtrace_compile = rule(
             doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
-    exec_compatible_with = [
-        "@platforms//os:macos",
-    ],
     fragments = ["apple"],
     doc = """
 Compiles
@@ -115,4 +111,16 @@ structure. For example with a directory structure of
 and a target named `dtrace_gen` the header path would be
 `<GENFILES>/dtrace_gen/foo/bar.h`.
 """,
+)
+
+def _dtrace_wrapper_impl(ctx):
+    dtrace_wrapper = ctx.actions.declare_file("%s.sh" % ctx.label.name)
+    contents = """#!/bin/bash
+exec /usr/sbin/dtrace "$@"
+"""
+    ctx.actions.write(dtrace_wrapper, contents, is_executable = True)
+    return [DefaultInfo(files = depset([dtrace_wrapper]), executable = dtrace_wrapper)]
+
+dtrace_wrapper = rule(
+    implementation = _dtrace_wrapper_impl,
 )
