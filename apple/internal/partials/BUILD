@@ -57,6 +57,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal/providers:apple_symbols_file_info",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",
         "@build_bazel_apple_support//lib:apple_support",
