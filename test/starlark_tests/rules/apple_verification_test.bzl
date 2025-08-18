@@ -45,6 +45,27 @@ visibility("//test/starlark_tests/...")
 _CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
+_CPU_TO_PLATFORM = {
+    "darwin_x86_64": "//buildenv/platforms/apple:darwin_x86_64",
+    "darwin_arm64": "//buildenv/platforms/apple:darwin_arm64",
+    "darwin_arm64e": "//buildenv/platforms/apple:darwin_arm64e",
+    "ios_x86_64": "//buildenv/platforms/apple/simulator:ios_x86_64",
+    "ios_arm64": "//buildenv/platforms/apple:ios_arm64",
+    "ios_sim_arm64": "//buildenv/platforms/apple/simulator:ios_arm64",
+    "ios_arm64e": "//buildenv/platforms/apple:ios_arm64e",
+    "tvos_sim_arm64": "//buildenv/platforms/apple/simulator:tvos_arm64",
+    "tvos_arm64": "//buildenv/platforms/apple:tvos_arm64",
+    "tvos_x86_64": "//buildenv/platforms/apple/simulator:tvos_x86_64",
+    "visionos_arm64": "//buildenv/platforms/apple:visionos_arm64",
+    "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
+    "watchos_armv7k": "//buildenv/platforms/apple:watchos_armv7k",
+    "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
+    "watchos_device_arm64": "//buildenv/platforms/apple:watchos_arm64",
+    "watchos_device_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
+    "watchos_arm64_32": "//buildenv/platforms/apple:watchos_arm64_32",
+    "watchos_x86_64": "//buildenv/platforms/apple/simulator:watchos_x86_64",
+}
+
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
@@ -58,9 +79,10 @@ def _apple_verification_transition_impl(settings, attr):
 Internal Error: A verification test should only specify `apple_platforms` or `cpus`, but not both.
 """)
 
+    apple_cpu = getattr(attr, "apple_cpu", "darwin_x86_64")
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
-        "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
+        "//command_line_option:platforms": _CPU_TO_PLATFORM[apple_cpu if apple_cpu else "darwin_x86_64"],
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
@@ -126,7 +148,7 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
-        "//command_line_option:cpu",
+        "//command_line_option:platforms",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
