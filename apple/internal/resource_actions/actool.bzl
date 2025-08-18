@@ -545,7 +545,7 @@ def compile_asset_catalog(
     ])
 
     if not (xcode_before_26 or xcode_26_beta_4_or_later):
-        # Handle the nonsense warnings and errors for Xcode 26 beta 1/2/3.
+        # Handle the nonsense warnings and errors expected for Xcode 26 beta 1/2/3.
         args.extend([
             # Mute warnings for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
             "--mute-warning=substring=Failure Reason: The data is not in the correct format.",
@@ -561,6 +561,15 @@ def compile_asset_catalog(
             # when building Icon Composer icon bundles without legacy xcassets App Icons that define
             # a "universal" 1024x1024 PNG icon. (b/430862638)
             "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
+        ])
+
+    if not xcode_before_26:
+        # Handle the nonsense warnings and errors for Xcode 26 up to beta 5.
+        args.extend([
+            # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26.
+            "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
+            # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld.
+            "--mute-error=substring= is being set to 0xBAD4007.",
         ])
 
     # Standard actool options.
@@ -581,7 +590,7 @@ def compile_asset_catalog(
 
     platform_type = platform_prerequisites.platform_type
 
-    if platform_type == "macos" and not (xcode_before_26 or xcode_26_beta_5_or_later):
+    if platform_type == "macos" and not xcode_before_26:
         # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
         # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
         args.extend(["--lightweight-asset-runtime-mode", "enabled"])
