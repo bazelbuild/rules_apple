@@ -72,6 +72,22 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "arm64": "arm64_32",
 }
 
+_IOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:ios_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:ios_arm64e"): "arm64e",
+    Label("@build_bazel_apple_support//platforms:ios_sim_arm64"): "sim_arm64",
+    Label("@build_bazel_apple_support//platforms:ios_x86_64"): "x86_64",
+}
+
+_WATCHOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:watchos_arm64_32"): "arm64_32",
+    Label("@build_bazel_apple_support//platforms:watchos_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:watchos_armv7k"): "armv7k",
+    Label("@build_bazel_apple_support//platforms:watchos_device_arm64"): "device_arm64",
+    Label("@build_bazel_apple_support//platforms:watchos_device_arm64e"): "device_arm64e",
+    Label("@build_bazel_apple_support//platforms:watchos_x86_64"): "x86_64",
+}
+
 # Set the default architecture for all platforms as 64-bit Intel.
 # TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
 # Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
@@ -95,26 +111,11 @@ def _platform_specific_cpu_setting_name(platform_type):
         fail("ERROR: Unknown platform type: {}".format(platform_type))
     return flag
 
-def _environment_arch_from_cpu(*, cpu_value, platform_prefix):
-    """Returns a specific platform's environment arch if found from the `--cpu` command line option.
-
-    Args:
-        cpu_value: String found from an incoming `--cpu` value.
-        platform_prefix: The platform prefix to search for within the incoming `--cpu` string.
-
-    Returns:
-        The value following the platform_prefix if it was found in the incoming `--cpu` value, which
-            is expected to be a valid environment arch, or `None`.
-    """
-    if cpu_value.startswith(platform_prefix):
-        return cpu_value[len(platform_prefix):]
-    return None
-
-def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settings):
+def _watchos_environment_archs_from_ios(*, platform, minimum_os_version, settings):
     """Returns a set of watchOS environment archs based on incoming iOS archs.
 
     Args:
-        cpu_value: String found from an incoming `--cpu` value.
+        platform: Value of the `--platforms` flag.
         minimum_os_version: A string coming directly from a rule's `minimum_os_version` attribute.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
@@ -127,10 +128,7 @@ def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settin
     environment_archs = []
     ios_archs = settings[_platform_specific_cpu_setting_name("ios")]
     if not ios_archs:
-        ios_arch = _environment_arch_from_cpu(
-            cpu_value = cpu_value,
-            platform_prefix = "ios_",
-        )
+        ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
         if ios_arch:
             ios_archs = [ios_arch]
     if ios_archs:
@@ -162,27 +160,22 @@ def _environment_archs(platform_type, minimum_os_version, settings):
     """
     environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
     if not environment_archs:
-        cpu_value = settings["//command_line_option:cpu"]
+        platform = settings["//command_line_option:platforms"][0]
         if platform_type == "ios":
-            # Legacy handling to interpret the --cpu as an iOS environment arch.
-            ios_arch = _environment_arch_from_cpu(
-                cpu_value = cpu_value,
-                platform_prefix = "ios_",
-            )
+            # Get the iOS environment arch based on the --platforms flag.
+            ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
             if ios_arch:
                 environment_archs = [ios_arch]
         if platform_type == "watchos":
-            # Interpret the --cpu as a watchOS environment arch; often will be set by a transition.
-            watchos_arch = _environment_arch_from_cpu(
-                cpu_value = cpu_value,
-                platform_prefix = "watchos_",
-            )
+            # Use --platforms to determine the watchOS environment arch; often will be set by
+            # a transition.
+            watchos_arch = _WATCHOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
             if watchos_arch:
                 environment_archs = [watchos_arch]
             else:
                 # If not found, generate watchOS archs via incoming iOS environment arch(s).
                 environment_archs = _watchos_environment_archs_from_ios(
-                    cpu_value = cpu_value,
+                    platform = platform,
                     minimum_os_version = minimum_os_version,
                     settings = settings,
                 )
@@ -219,31 +212,19 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         ios_cpus = settings["//command_line_option:ios_multi_cpus"]
         if ios_cpus:
             return "ios_{}".format(ios_cpus[0])
-        cpu_value = settings["//command_line_option:cpu"]
-        if cpu_value.startswith("ios_"):
-            return cpu_value
-        if cpu_value == "darwin_arm64":
-            return "ios_sim_arm64"
+        env_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(
+            settings["//command_line_option:platforms"][0],
+            None,
+        )
+        if env_arch:
+            return "ios_{}".format(env_arch)
         return "ios_x86_64"
-    if platform_type == "visionos":
-        if environment_arch:
-            return "visionos_{}".format(environment_arch)
-        visionos_cpus = settings["//command_line_option:visionos_cpus"]
-        if visionos_cpus:
-            return "visionos_{}".format(visionos_cpus[0])
-        cpu_value = settings["//command_line_option:cpu"]
-        if cpu_value.startswith("visionos_"):
-            return cpu_value
-        return "visionos_sim_arm64"
     if platform_type == "macos":
         if environment_arch:
             return "darwin_{}".format(environment_arch)
         macos_cpus = settings["//command_line_option:macos_cpus"]
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
-        cpu_value = settings["//command_line_option:cpu"]
-        if cpu_value.startswith("darwin_"):
-            return cpu_value
         return "darwin_x86_64"
     if platform_type == "tvos":
         if environment_arch:
@@ -251,23 +232,20 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
-        cpu_value = settings["//command_line_option:cpu"]
-        if cpu_value.startswith("tvos_"):
-            return cpu_value
-        if cpu_value == "darwin_arm64":
-            return "tvos_sim_arm64"
         return "tvos_x86_64"
+    if platform_type == "visionos":
+        if environment_arch:
+            return "visionos_{}".format(environment_arch)
+        visionos_cpus = settings["//command_line_option:visionos_cpus"]
+        if visionos_cpus:
+            return "visionos_{}".format(visionos_cpus[0])
+        return "visionos_sim_arm64"
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
-        cpu_value = settings["//command_line_option:cpu"]
-        if cpu_value.startswith("watchos_"):
-            return cpu_value
-        if cpu_value == "darwin_arm64":
-            return "watchos_arm64"
         return "watchos_x86_64"
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
@@ -492,7 +470,7 @@ _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
 ] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values()
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
-    "//command_line_option:cpu",
+    "//command_line_option:platforms",
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
@@ -501,9 +479,6 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
 _apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
     "//command_line_option:apple_platforms",
     "//command_line_option:incompatible_enable_apple_toolchain_resolution",
-]
-_apple_platform_transition_inputs = _apple_platforms_rule_base_transition_inputs + [
-    "//command_line_option:platforms",
 ]
 _apple_rule_base_transition_outputs = [
     build_settings_labels.building_apple_bundle,
@@ -748,7 +723,7 @@ def _apple_platform_split_transition_impl(settings, attr):
 
 _apple_platform_split_transition = transition(
     implementation = _apple_platform_split_transition_impl,
-    inputs = _apple_platform_transition_inputs,
+    inputs = _apple_platforms_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
 
