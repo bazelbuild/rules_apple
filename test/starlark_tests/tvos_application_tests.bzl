@@ -41,6 +41,10 @@ load(
     "archive_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -266,6 +270,21 @@ def tvos_application_test_suite(name):
             "fmwk_with_provisioning.framework.dSYM",
             "app_with_fmwk_with_fmwk_provisioned.app.dSYM",
         ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        expected_directories = {
+            "app.app.dSYM": [
+                "Contents/Resources/DWARF/app_bin",
+                "Contents/Info.plist",
+            ],
+        },
         tags = [name],
     )
 

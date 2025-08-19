@@ -377,6 +377,25 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_directories = {
+            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM": [
+                "Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_bin",
+                "Contents/Info.plist",
+            ],
+            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM": [
+                "Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_bin",
+                "Contents/Info.plist",
+            ],
+        },
+        tags = [name],
+    )
+
     linkmap_test(
         name = "{}_device_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",

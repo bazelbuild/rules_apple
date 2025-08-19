@@ -36,6 +36,10 @@ load(
     "binary_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -283,6 +287,21 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_capability_set_derived_bundle_id",
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.watchkitapp",
+        },
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        expected_directories = {
+            "single_target_app.app.dSYM": [
+                "Contents/Resources/DWARF/single_target_app_bin",
+                "Contents/Info.plist",
+            ],
         },
         tags = [name],
     )
