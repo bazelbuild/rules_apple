@@ -250,6 +250,8 @@ def _bucketize_data(
                 bucket_name = "framework"
             elif resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
                 bucket_name = "strings"
+            elif resource_short_path.endswith(".xcstrings"):
+                bucket_name = "xcstrings"
             elif resource_short_path.endswith(".storyboard"):
                 bucket_name = "storyboards"
                 resource_swift_module = swift_module
@@ -258,7 +260,9 @@ def _bucketize_data(
                 resource_swift_module = swift_module
             elif ".alticon/" in resource_short_path:
                 bucket_name = "asset_catalogs"
-            elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
+            elif (".icon/" in resource_short_path or
+                  ".xcassets/" in resource_short_path or
+                  ".xcstickers/" in resource_short_path):
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"

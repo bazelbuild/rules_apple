@@ -130,7 +130,7 @@ def _main(
 
   # If is an .ipa, extract and copy .app to destination
   # Else Copy the archive contents to the destination.
-  if bundle_path.suffix == ".ipa":
+  if bundle_path.suffix in [".ipa", ".zip"]:
     _extract_app_from_ipa(bundle_path, bundle_dest_path)
   else:
     shutil.copytree(bundle_path, bundle_dest_path,

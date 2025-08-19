@@ -427,19 +427,21 @@ AppleResourceInfo, new_appleresourceinfo = provider(
         "asset_catalogs": "Resources that need to be embedded into Assets.car.",
         "datamodels": "Datamodel files.",
         "framework": "Apple framework bundle from `ios_framework` and `tvos_framework` targets.",
-        "infoplists": """Plist files to be merged and processed. Plist files that should not be
-merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists should
-only be bucketed with the `bucketize_typed` method.""",
+        "infoplists": """Plist files to be merged and processed. Plist files that should not be \
+merged into the root Info.plist should be propagated in `plists`. Because of this, infoplists \
+should only be bucketed with the `bucketize_typed` method.""",
         "metals": """Metal Shading Language source files to be compiled into a single .metallib file
 and bundled at the top level.""",
         "mlmodels": "Core ML model files that should be processed and bundled at the top level.",
         "plists": "Resource Plist files that should not be merged into Info.plist",
-        "pngs": "PNG images which are not bundled in an .xcassets folder.",
+        "pngs": """PNG images which are not bundled in an .xcassets folder or an .icon folder in \
+Xcode 26+.""",
         "processed": "Typed resources that have already been processed.",
         "storyboards": "Storyboard files.",
         "strings": "Localization strings files.",
         "texture_atlases": "Texture atlas files.",
         "unprocessed": "Generic resources not mapped to the other types.",
+        "xcstrings": "String catalog files.",
         "xibs": "XIB Interface files.",
         "owners": """`depset` of (resource, owner) pairs.""",
         "processed_origins": """`depset` of (processed resource, resource list) pairs.""",

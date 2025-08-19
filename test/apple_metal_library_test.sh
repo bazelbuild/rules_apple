@@ -37,6 +37,7 @@ apple_metal_library(
     name = "SampleMetal",
     hdrs = ["@build_bazel_rules_apple//test/testdata/resources:metal_hdrs"],
     srcs = ["@build_bazel_rules_apple//test/testdata/resources:metal_srcs"],
+    copts = ["-frecord-sources"]
 )
 
 objc_library(

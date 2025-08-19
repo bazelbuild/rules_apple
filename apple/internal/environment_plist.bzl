@@ -70,7 +70,7 @@ def _environment_plist_impl(ctx):
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
             "--platform",
-            platform.name_in_plist.lower() + str(sdk_version),
+            (platform.name_in_plist + str(sdk_version)).lower(),
             "--output",
             ctx.outputs.plist.path,
         ],

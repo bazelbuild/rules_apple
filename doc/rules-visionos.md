@@ -7,6 +7,8 @@
 ## visionos_application
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_application")
+
 visionos_application(<a href="#visionos_application-name">name</a>, <a href="#visionos_application-deps">deps</a>, <a href="#visionos_application-resources">resources</a>, <a href="#visionos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_application-app_icons">app_icons</a>, <a href="#visionos_application-app_intents">app_intents</a>,
                      <a href="#visionos_application-bundle_id">bundle_id</a>, <a href="#visionos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_application-bundle_name">bundle_name</a>, <a href="#visionos_application-codesign_inputs">codesign_inputs</a>, <a href="#visionos_application-codesignopts">codesignopts</a>,
                      <a href="#visionos_application-entitlements">entitlements</a>, <a href="#visionos_application-entitlements_validation">entitlements_validation</a>, <a href="#visionos_application-executable_name">executable_name</a>, <a href="#visionos_application-exported_symbols_lists">exported_symbols_lists</a>,
@@ -27,7 +29,7 @@ Builds and bundles a visionOS Application.
 | <a id="visionos_application-deps"></a>deps |  A list of dependent targets that will be linked into this target's binary(s). Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle(s).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="visionos_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="visionos_application-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="visionos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..solidimagestack` and there may be only one such `..solidimagestack` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="visionos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..solidimagestack` and there may be only one such `..solidimagestack` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="visionos_application-app_intents"></a>app_intents |  List of dependencies implementing the AppIntents protocol.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="visionos_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="visionos_application-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
@@ -49,7 +51,7 @@ Builds and bundles a visionOS Application.
 | <a id="visionos_application-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="visionos_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="visionos_application-platform_type"></a>platform_type |  -   | String | optional |  `"visionos"`  |
-| <a id="visionos_application-primary_app_icon"></a>primary_app_icon |  An optional String to identify the name of the primary app icon when alternate app icons have been provided for the app.   | String | optional |  `""`  |
+| <a id="visionos_application-primary_app_icon"></a>primary_app_icon |  An optional String to identify the name of the primary app icon when alternate app icons have been provided for the app. This should match both the `*.icon` bundle in iOS/macOS/watchOS 26+ and the `*..xcassets/.appiconset` bundle's AppIcon resource in previous versions of iOS/macOS/watchOS.   | String | optional |  `""`  |
 | <a id="visionos_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (`.mobileprovision` file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="visionos_application-shared_capabilities"></a>shared_capabilities |  A list of shared `apple_capability_set` rules to represent the capabilities that a code sign aware Apple bundle rule output should have. These can define the formal prefix for the target's `bundle_id` and can further be merged with information provided by `entitlements`, if defined by any capabilities found within the `apple_capability_set`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="visionos_application-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   `stamp = 1`: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   `stamp = 0`: Always replace build information by constant values. This gives good build     result caching. *   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.   | Integer | optional |  `-1`  |
@@ -62,6 +64,8 @@ Builds and bundles a visionOS Application.
 ## visionos_build_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_build_test")
+
 visionos_build_test(<a href="#visionos_build_test-name">name</a>, <a href="#visionos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_build_test-platform_type">platform_type</a>, <a href="#visionos_build_test-targets">targets</a>)
 </pre>
 
@@ -96,6 +100,8 @@ visionos_build_test(
 ## visionos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_dynamic_framework")
+
 visionos_dynamic_framework(<a href="#visionos_dynamic_framework-name">name</a>, <a href="#visionos_dynamic_framework-deps">deps</a>, <a href="#visionos_dynamic_framework-resources">resources</a>, <a href="#visionos_dynamic_framework-hdrs">hdrs</a>, <a href="#visionos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                            <a href="#visionos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#visionos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#visionos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#visionos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                            <a href="#visionos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#visionos_dynamic_framework-executable_name">executable_name</a>, <a href="#visionos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -145,6 +151,8 @@ Builds and bundles a visionos dynamic framework that is consumable by Xcode.
 ## visionos_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_framework")
+
 visionos_framework(<a href="#visionos_framework-name">name</a>, <a href="#visionos_framework-deps">deps</a>, <a href="#visionos_framework-resources">resources</a>, <a href="#visionos_framework-hdrs">hdrs</a>, <a href="#visionos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_framework-base_bundle_id">base_bundle_id</a>, <a href="#visionos_framework-bundle_id">bundle_id</a>,
                    <a href="#visionos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#visionos_framework-bundle_name">bundle_name</a>, <a href="#visionos_framework-bundle_only">bundle_only</a>, <a href="#visionos_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_framework-codesignopts">codesignopts</a>,
                    <a href="#visionos_framework-executable_name">executable_name</a>, <a href="#visionos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_framework-extension_safe">extension_safe</a>, <a href="#visionos_framework-families">families</a>, <a href="#visionos_framework-frameworks">frameworks</a>,
@@ -195,6 +203,8 @@ To use this framework for your app and extensions, list it in the frameworks att
 ## visionos_static_framework
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_static_framework")
+
 visionos_static_framework(<a href="#visionos_static_framework-name">name</a>, <a href="#visionos_static_framework-deps">deps</a>, <a href="#visionos_static_framework-resources">resources</a>, <a href="#visionos_static_framework-hdrs">hdrs</a>, <a href="#visionos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#visionos_static_framework-avoid_deps">avoid_deps</a>,
                           <a href="#visionos_static_framework-bundle_name">bundle_name</a>, <a href="#visionos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#visionos_static_framework-codesignopts">codesignopts</a>, <a href="#visionos_static_framework-exclude_resources">exclude_resources</a>,
                           <a href="#visionos_static_framework-executable_name">executable_name</a>, <a href="#visionos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#visionos_static_framework-families">families</a>, <a href="#visionos_static_framework-ipa_post_processor">ipa_post_processor</a>,
@@ -274,6 +284,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## visionos_ui_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_ui_test")
+
 visionos_ui_test(<a href="#visionos_ui_test-name">name</a>, <a href="#visionos_ui_test-deps">deps</a>, <a href="#visionos_ui_test-data">data</a>, <a href="#visionos_ui_test-bundle_name">bundle_name</a>, <a href="#visionos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#visionos_ui_test-env">env</a>, <a href="#visionos_ui_test-env_inherit">env_inherit</a>,
                  <a href="#visionos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#visionos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_ui_test-platform_type">platform_type</a>, <a href="#visionos_ui_test-runner">runner</a>,
                  <a href="#visionos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_ui_test-test_filter">test_filter</a>, <a href="#visionos_ui_test-test_host">test_host</a>, <a href="#visionos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -315,6 +327,8 @@ the attributes inherited by all test rules, please check the
 ## visionos_unit_test
 
 <pre>
+load("@rules_apple//apple:visionos.doc.bzl", "visionos_unit_test")
+
 visionos_unit_test(<a href="#visionos_unit_test-name">name</a>, <a href="#visionos_unit_test-deps">deps</a>, <a href="#visionos_unit_test-data">data</a>, <a href="#visionos_unit_test-bundle_name">bundle_name</a>, <a href="#visionos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#visionos_unit_test-env">env</a>, <a href="#visionos_unit_test-env_inherit">env_inherit</a>,
                    <a href="#visionos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#visionos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#visionos_unit_test-platform_type">platform_type</a>, <a href="#visionos_unit_test-runner">runner</a>,
                    <a href="#visionos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#visionos_unit_test-test_filter">test_filter</a>, <a href="#visionos_unit_test-test_host">test_host</a>, <a href="#visionos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)

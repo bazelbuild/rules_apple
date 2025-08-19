@@ -8,6 +8,8 @@ platform and architectures as the given `tests` bundles.
 ## xctrunner
 
 <pre>
+load("@rules_apple//apple:xctrunner.bzl", "xctrunner")
+
 xctrunner(<a href="#xctrunner-name">name</a>, <a href="#xctrunner-tests">tests</a>, <a href="#xctrunner-verbose">verbose</a>)
 </pre>
 

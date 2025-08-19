@@ -17,6 +17,7 @@ A rule for handling the cc_toolchains and their constraints for a potential "fat
 """
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//apple:providers.bzl", "ApplePlatformInfo")
 load("//apple/internal:providers.bzl", "new_appleplatforminfo")
 

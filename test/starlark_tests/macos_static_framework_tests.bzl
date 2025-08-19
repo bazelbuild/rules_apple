@@ -90,7 +90,6 @@ def macos_static_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:static_fmwk_with_swift_and_avoid_deps",
         contains = [
             "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkUpperLib.swiftmodule/x86_64.swiftinterface",
         ],
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwkUpperLib",
         binary_test_architecture = "x86_64",
@@ -158,7 +157,6 @@ def macos_static_framework_test_suite(name):
             "$BUNDLE_ROOT/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         ],
         tags = [name],
     )

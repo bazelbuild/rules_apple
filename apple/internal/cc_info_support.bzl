@@ -14,6 +14,8 @@
 
 """Support methods for handling artifacts from CcInfo providers."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 def _get_all_deps(*, deps, split_deps_keys = []):
     """Returns a list of all dependencies from a Label list and optional split attribute keys.
 

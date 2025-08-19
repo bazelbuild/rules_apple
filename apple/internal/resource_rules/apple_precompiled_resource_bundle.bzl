@@ -169,6 +169,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                     "storyboards",
                     "strings",
                     "texture_atlases",
+                    "xcstrings",
                     "xibs",
                 ],
                 unowned_resources = unowned_resources,

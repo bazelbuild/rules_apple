@@ -7,6 +7,8 @@ Rules for creating Xcode archives.
 ## xcarchive
 
 <pre>
+load("@rules_apple//apple:xcarchive.bzl", "xcarchive")
+
 xcarchive(<a href="#xcarchive-name">name</a>, <a href="#xcarchive-bundle">bundle</a>)
 </pre>
 

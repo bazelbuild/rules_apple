@@ -14,6 +14,8 @@
 
 """Support utility for creating multi-arch Apple binaries."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+
 visibility([
     "//apple/...",
 ])
@@ -75,5 +77,4 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
                 linkstamps = depset(linkstamps),
             ),
         ]),
-        owner = owner,
     )

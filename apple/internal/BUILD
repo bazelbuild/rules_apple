@@ -493,6 +493,7 @@ bzl_library(
         "//apple/internal/resource_actions:plist",
         "//apple/internal/resource_actions:png",
         "//apple/internal/resource_actions:texture_atlas",
+        "//apple/internal/resource_actions:xcstrings",
     ],
 )
 
@@ -812,6 +813,7 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal/providers:apple_debug_info",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -837,6 +839,7 @@ bzl_library(
     ],
     deps = [
         "@build_bazel_rules_swift//swift",
+        "@rules_cc//cc/common",
     ],
 )
 

@@ -15,6 +15,7 @@
 """Partial implementation for gathering cc_info dylibs."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple/internal:processor.bzl",
     "processor",

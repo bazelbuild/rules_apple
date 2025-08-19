@@ -7,6 +7,8 @@
 ## dtrace_compile
 
 <pre>
+load("@rules_apple//apple:dtrace.bzl", "dtrace_compile")
+
 dtrace_compile(<a href="#dtrace_compile-name">name</a>, <a href="#dtrace_compile-srcs">srcs</a>, <a href="#dtrace_compile-dtrace">dtrace</a>)
 </pre>
 
