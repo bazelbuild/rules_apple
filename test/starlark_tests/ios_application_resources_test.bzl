@@ -207,6 +207,28 @@ def ios_application_resources_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_and_xcassets_app_icons",
         contains = [
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
+    # than 26.0.
+    archive_contents_test(
+        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
+        contains = [
+            "$BUNDLE_ROOT/Assets.car",
             "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
             "$BUNDLE_ROOT/app_icon60x60@2x.png",
         ],
@@ -234,10 +256,6 @@ Found the following legacy .appiconset files: """,
             name,
         ],
     )
-
-    # TODO: b/433727264 - Create a new test with archive_contents_test once Xcode 26 beta 4 is
-    # widely used by clients with the following target:
-    # //test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version
 
     # Tests that an app with alternate app icons that also provides Icon Composer icon bundles will
     # fail if every icon bundle is not backed by a legacy .appiconset app icon.

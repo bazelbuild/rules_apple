@@ -28,10 +28,6 @@ def macos_application_resources_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # TODO: b/433727264 - Create a new test with archive_contents_test once Xcode 26 beta 4 is
-    # widely used by clients with the following target:
-    # //test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version
-
     # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
         name = "{}_icon_composer_app_icons_plist_test".format(name),
@@ -42,6 +38,26 @@ def macos_application_resources_test_suite(name):
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
+            "CFBundleIconName": "app_icon",
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
+    # than 26.0.
+    archive_contents_test(
+        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version",
+        contains = [
+            "$RESOURCE_ROOT/Assets.car",
+            # "$RESOURCE_ROOT/app_icon.icns",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            # "CFBundleIconFile": "app_icon",
             "CFBundleIconName": "app_icon",
         },
         tags = [
@@ -60,8 +76,8 @@ def macos_application_resources_test_suite(name):
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
-            "CFBundleIconName": "app_icon",
             # "CFBundleIconFile": "app_icon",
+            "CFBundleIconName": "app_icon",
         },
         tags = [
             name,
