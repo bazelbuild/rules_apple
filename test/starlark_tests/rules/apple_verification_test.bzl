@@ -103,7 +103,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+            "//command_line_option:watchos_cpus": "device_arm64,arm64_32,armv7k",
         })
 
         if _supports_visionos:
