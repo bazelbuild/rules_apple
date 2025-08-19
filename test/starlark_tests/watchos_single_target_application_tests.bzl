@@ -32,6 +32,10 @@ load(
     "binary_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -617,6 +621,21 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
         ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        expected_directories = {
+            "single_target_app.app.dSYM": [
+                "Contents/Resources/DWARF/single_target_app_bin",
+                "Contents/Info.plist",
+            ],
+        },
         tags = [name],
     )
 
