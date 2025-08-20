@@ -14,7 +14,9 @@
 
 """Support for the xctoolrunner tool."""
 
-visibility("@build_bazel_rules_apple//apple/internal/...")
+visibility([
+    "@build_bazel_rules_apple//apple/internal/...",
+])
 
 def _prefixed_path(path):
     """Prefix paths with a token used in the xctoolrunner tool.

@@ -47,6 +47,9 @@ bzl_library(
 bzl_library(
     name = "xctoolrunner",
     srcs = ["xctoolrunner.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
 )
 
 # Consumed by bazel tests.
