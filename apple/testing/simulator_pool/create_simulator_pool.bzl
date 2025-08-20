@@ -1,3 +1,5 @@
+""" Creates a simulator pool for a given OS version and device type. """
+
 def _create_simulator_pool_impl(ctx):
     executable = ctx.actions.declare_file(ctx.label.name + ".sh")
     ctx.actions.expand_template(
