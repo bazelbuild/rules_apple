@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
 load(
     "//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner",
@@ -90,6 +91,12 @@ exports_files([
     "xctrunner_entitlements.template.plist",
 ])
 
+py_library(
+    name = "simulator_utils",
+    srcs = ["simulator_utils.py"],
+    visibility = ["//apple:__subpackages__"],
+)
+
 py_binary(
     name = "simulator_creator",
     srcs = ["simulator_creator.py"],
@@ -99,6 +106,9 @@ py_binary(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+    deps = [
+        ":simulator_utils",
+    ],
 )
 
 ios_test_runner(
