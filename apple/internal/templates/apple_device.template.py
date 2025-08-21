@@ -94,15 +94,15 @@ class Device(collections.abc.Mapping):
 
   @property
   def udid(self) -> str:
-    return self.hardware_properties["udid"]
+    return self.hardware_properties.get("udid", "unknown")
 
   @property
   def device_type(self) -> str:
-    return self.hardware_properties["deviceType"]
+    return self.hardware_properties.get("deviceType", "unknown")
 
   @property
   def os_version_number(self) -> str:
-    return self.device_properties["osVersionNumber"]
+    return self.device_properties.get("osVersionNumber", "unknown")
 
   @property
   def is_apple_tv(self) -> bool:
@@ -405,7 +405,7 @@ def run_app(
           device_identifier,
           app_path
         ],
-        check=True
+        check=True,
     )
     app_bundle_id = bundle_id(app_path)
     launch_args = shlex.split(
