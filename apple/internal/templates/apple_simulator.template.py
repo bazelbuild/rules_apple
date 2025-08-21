@@ -57,7 +57,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from typing import Dict, Optional
 import zipfile
 
@@ -377,26 +376,12 @@ def wait_for_sim_to_boot(simctl_path: str, udid: str) -> bool:
     True if the simulator boots within 60 seconds, False otherwise.
   """
   logger.info("Waiting for simulator to boot...")
-  for _ in range(0, 60):
-    # The expected output of "simctl list" is like:
-    # -- iOS 8.4 --
-    # iPhone 5s (E946FA1C-26AB-465C-A7AC-24750D520BEA) (Shutdown)
-    # TestDevice (8491C4BC-B18E-4E2D-934A-54FA76365E48) (Booted)
-    # So if there's any booted simulator, $booted_device will not be empty.
-    simctl_list_result = subprocess.run(
-        [simctl_path, "list", "devices"],
-        encoding="utf-8",
-        check=True,
-        stdout=subprocess.PIPE,
-    )
-    for line in simctl_list_result.stdout.split("\n"):
-      if line.find(udid) != -1 and line.find("Booted") != -1:
-        logger.debug("Simulator is booted.")
-        # Simulator is booted.
-        return True
-    logger.debug("Simulator not booted, still waiting...")
-    time.sleep(1)
-  return False
+  subprocess.run(
+      [simctl_path, "bootstatus", udid, "-b"],
+      encoding="utf-8",
+      check=True,
+  )
+  return True
 
 
 def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
