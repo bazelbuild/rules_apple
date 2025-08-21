@@ -53,15 +53,6 @@ def watchos_single_target_application_test_suite(name):
       name: the base name to be used in things created by this macro
     """
     analysis_failure_message_test(
-        name = "{}_too_low_minimum_os_version_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_too_low_minos",
-        expected_error = "Single-target watchOS applications require a minimum_os_version of 7.0 or greater.",
-        tags = [
-            name,
-        ],
-    )
-
-    analysis_failure_message_test(
         name = "{}_unexpected_watch2_extension_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_watch2_ext",
         expected_error = """
@@ -432,7 +423,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.single_target_app,
+            "MinimumOSVersion": common.min_os_watchos.baseline,
             "UIDeviceFamily:0": "4",
             "WKApplication": "true",
         },
@@ -500,7 +491,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_watchos.single_target_app,
+            "--minimum-deployment-target " + common.min_os_watchos.baseline,
             "--platform watchsimulator",
         ],
         tags = [

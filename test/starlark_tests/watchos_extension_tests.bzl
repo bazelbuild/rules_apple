@@ -224,15 +224,6 @@ def watchos_extension_test_suite(name):
     )
 
     entry_point_test(
-        name = "{}_entry_point_wkextensionmain_from_watchos2_app_test".format(name),
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
-        build_type = "simulator",
-        entry_point = "_WKExtensionMain",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
-        tags = [name],
-    )
-
-    entry_point_test(
         name = "{}_entry_point_nsextensionmain_from_single_target_app_test".format(name),
         binary_test_file = "$BUNDLE_ROOT/PlugIns/generic_ext.appex/generic_ext",
         build_type = "simulator",

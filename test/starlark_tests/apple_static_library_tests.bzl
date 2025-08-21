@@ -305,7 +305,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
@@ -320,7 +320,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
@@ -334,7 +334,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOS"],
         tags = [name],
     )
 
@@ -349,7 +349,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOS"],
         tags = [name],
     )
 

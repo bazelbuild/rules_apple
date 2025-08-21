@@ -67,14 +67,10 @@ _min_os_watchos = struct(
     app_intents_support = "9.0",
     app_intents_package_support = "10.0",
     arm64_support = "9.0",
-    arm_sim_support = "7.0",
-    baseline = "4.0",
+    baseline = "8.0",
     icon_bundle_required = "26.0",
     requires_single_target_app = "9.0",
     requires_single_target_app_nplus1 = "10.0",
-    single_target_app = "7.0",
-    stable_swift_abi = "6.0",
-    test_runner_support = "7.4",
 )
 
 common = struct(

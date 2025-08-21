@@ -50,7 +50,7 @@ apple_static_library(
 
 apple_static_library(
     name = "example_watch_library_arm_sim_support",
-    minimum_os_version = common.min_os_watchos.arm_sim_support,
+    minimum_os_version = common.min_os_watchos.baseline,
     platform_type = "watchos",
     tags = common.fixture_tags,
     deps = [":main_lib"],
