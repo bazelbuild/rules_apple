@@ -39,6 +39,7 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -407,6 +408,13 @@ def run_app(
         check=True
     )
     app_bundle_id = bundle_id(app_path)
+    launch_args = shlex.split(
+      os.environ.get(
+        "BAZEL_DEVICECTL_LAUNCH_FLAGS",
+        # Attaches the application to the console and waits for it to exit.
+        "--console",
+      ),
+    )
     logger.info(
         "Launching app %s on %s", app_bundle_id, device_identifier
     )
@@ -415,7 +423,7 @@ def run_app(
         "device",
         "process",
         "launch",
-        "--console",  # Attaches the application to the console and waits for it to exit.
+        *launch_args,
         "--device",
         device_identifier,
         app_bundle_id,

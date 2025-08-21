@@ -52,6 +52,7 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -681,13 +682,20 @@ def run_app_in_simulator(
         [simctl_path, "install", simulator_udid, app_path], check=True
     )
     app_bundle_id = bundle_id(app_path)
+    launch_args = shlex.split(
+      os.environ.get(
+        "BAZEL_SIMCTL_LAUNCH_FLAGS",
+        # Attaches the application to the console and waits for it to exit.
+        "--console-pty",
+      ),
+    )
     logger.info(
         "Launching app %s in simulator %s", app_bundle_id, simulator_udid
     )
     args = [
         simctl_path,
         "launch",
-        "--console-pty",
+        *launch_args,
         simulator_udid,
         app_bundle_id,
     ]
