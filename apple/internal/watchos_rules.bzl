@@ -98,6 +98,10 @@ load(
     "new_watchosextensionbundleinfo",
 )
 load(
+    "//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "//apple/internal:resources.bzl",
     "resources",
 )
@@ -149,6 +153,12 @@ load(
 
 def _watchos_framework_impl(ctx):
     """Experimental implementation of watchos_framework."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
@@ -404,6 +414,12 @@ def _watchos_framework_impl(ctx):
 
 def _watchos_dynamic_framework_impl(ctx):
     """Experimental implementation of watchos_dynamic_framework."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
@@ -707,6 +723,11 @@ def _watchos_dynamic_framework_impl(ctx):
 
 def _watchos_application_impl(ctx):
     """Implementation of watchos_application."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
 
     if ctx.attr.deps:
         return _watchos_single_target_application_impl(ctx)
@@ -715,7 +736,6 @@ def _watchos_application_impl(ctx):
 
 def _watchos_extension_based_application_impl(ctx):
     """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
-
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os >= apple_common.dotted_version("9.0"):
         fail("""
@@ -1011,6 +1031,11 @@ reproducible error case.".format(
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
 
     # TODO(b/155313625): Set the product type as apple_product_type.extension if the attrs set on
     # the rule match a criteria appropriate for watchOS extensions (i.e. SiriKit, Notification
@@ -1332,6 +1357,12 @@ def _watchos_extension_impl(ctx):
 
 def _watchos_static_framework_impl(ctx):
     """Implementation of watchos_static_framework."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.static_framework,
@@ -1489,7 +1520,6 @@ def _watchos_static_framework_impl(ctx):
 
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
-
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os < apple_common.dotted_version("7.0"):
         fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
