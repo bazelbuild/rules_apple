@@ -263,8 +263,7 @@ def _bucketize_data(
                 bucket_name = "xibs"
                 resource_swift_module = swift_module
             elif (".icon/" in resource_short_path or
-                  ".xcassets/" in resource_short_path or
-                  ".xcstickers/" in resource_short_path):
+                  ".xcassets/" in resource_short_path):
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"
@@ -282,6 +281,12 @@ def _bucketize_data(
                 bucket_name = "plists"
             elif resource_short_path.endswith(".mlmodel"):
                 bucket_name = "mlmodels"
+            elif ".xcstickers/" in resource_short_path:
+                fail("""
+.xcstickers for sticker packs are not supported, but one was found from {target}
+
+Found at: {resource_short_path}
+""".format(target = str(target.label), resource_short_path = resource_short_path))
             else:
                 bucket_name = "unprocessed"
 

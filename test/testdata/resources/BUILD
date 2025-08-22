@@ -48,7 +48,6 @@ filegroup(
         ":localized_xibs_ios",
         ":message_ext_app_icon_ios",
         ":settings_bundle_ios_files",
-        ":sticker_pack_ios",
     ],
 )
 
@@ -283,11 +282,6 @@ filegroup(
 filegroup(
     name = "imageset_with_invalid_json",
     srcs = glob(["imageset_with_invalid_json.xcassets/**"]),
-)
-
-filegroup(
-    name = "sticker_pack_ios",
-    srcs = glob(["sticker_pack_ios.xcstickers/**"]),
 )
 
 filegroup(
