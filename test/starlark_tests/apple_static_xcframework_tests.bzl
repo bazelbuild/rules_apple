@@ -182,7 +182,7 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_oldest_supported",
         binary_test_architecture = "arm64",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_oldest_supported.framework/ios_static_xcframework_oldest_supported",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
