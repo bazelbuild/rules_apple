@@ -670,6 +670,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "required_minimum_os",
+    srcs = ["required_minimum_os.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "transition_support",
     srcs = ["transition_support.bzl"],
     visibility = [
@@ -741,6 +749,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":providers",
+        ":required_minimum_os",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
@@ -827,7 +836,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect_hint",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/providers:xcframework_deps_info",
-        "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:files",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

@@ -52,12 +52,12 @@ bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [
+        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
-        "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
     ],
@@ -266,6 +266,7 @@ bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
+        "//apple/internal:required_minimum_os",
         "//apple/internal:watchos_rules",
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",

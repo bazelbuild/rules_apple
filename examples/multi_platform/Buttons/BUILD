@@ -120,7 +120,7 @@ ios_framework(
         "ipad",
     ],
     infoplists = ["ButtonsSharedFramework/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     deps = [
         ":ButtonsShared2Lib",
         ":ButtonsSharedLib",
@@ -137,7 +137,7 @@ ios_application(
     ],
     frameworks = [":ButtonsSharedFramework"],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     watch_application = ":ButtonsWatch",
     deps = [":ButtonsLib"],
 )
@@ -151,14 +151,14 @@ ios_extension(
     ],
     frameworks = [":ButtonsSharedFramework"],
     infoplists = ["ButtonsExtension/Info.plist"],
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     deps = [":ButtonsExtensionLib"],
 )
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
     bundle_name = "ButtonsShared",
-    minimum_os_version = "9.0",
+    minimum_os_version = "15.0",
     deps = [":ButtonsSharedLib"],
 )
 
@@ -166,20 +166,20 @@ ios_static_framework(
 
 ios_unit_test(
     name = "ButtonsTests",
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     test_host = ":Buttons",
     deps = [":ButtonsTestsLib"],
 )
 
 ios_unit_test(
     name = "ButtonsLogicTests",
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     deps = [":ButtonsTestsLib"],
 )
 
 ios_ui_test(
     name = "ButtonsUITests",
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     test_host = ":Buttons",
     deps = [":ButtonsUITestsLib"],
 )
@@ -216,7 +216,7 @@ watchos_application(
     bundle_id = "com.google.Buttons.watchkitapp",
     extension = ":ButtonsWatchExtension",
     infoplists = ["ButtonsWatch/Info.plist"],
-    minimum_os_version = "4.0",
+    minimum_os_version = "8.0",
     resources = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
 )
 
@@ -224,7 +224,7 @@ watchos_extension(
     name = "ButtonsWatchExtension",
     bundle_id = "com.google.Buttons.watchkitapp.watchkitextension",
     infoplists = ["ButtonsWatchExtension/Info.plist"],
-    minimum_os_version = "4.0",
+    minimum_os_version = "8.0",
     deps = [
         ":ButtonsWatchExtensionLib",
     ],

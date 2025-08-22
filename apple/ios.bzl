@@ -125,7 +125,7 @@ Typical usage:
 ```starlark
 ios_build_test(
     name = "my_build_test",
-    minimum_os_version = "12.0",
+    minimum_os_version = "15.0",
     targets = [
         "//some/package:my_library",
     ],

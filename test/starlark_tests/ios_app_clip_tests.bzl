@@ -134,7 +134,7 @@ def ios_app_clip_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_ios.appclip_support,
+            "MinimumOSVersion": common.min_os_ios.baseline,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],
