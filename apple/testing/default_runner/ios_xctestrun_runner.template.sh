@@ -23,7 +23,6 @@ if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
 fi
 
 custom_xcodebuild_args=(%(xcodebuild_args)s)
-simulator_name=""
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
@@ -31,9 +30,6 @@ destination_timeout="%(destination_timeout)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
-    --simulator_name=*)
-      simulator_name="${arg##*=}"
-      ;;
     --xcodebuild_args=*)
       xcodebuild_arg="${arg#--xcodebuild_args=}" # Strip "--xcodebuild_args=" prefix
       custom_xcodebuild_args+=("$xcodebuild_arg")
@@ -391,24 +387,71 @@ fi
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
-simulator_creator_args=(
-  "%(os_version)s" \
-  "%(device_type)s" \
-  --name "$simulator_name"
-)
-
-reuse_simulator=%(reuse_simulator)s
-if [[ "$reuse_simulator" == true ]]; then
-  simulator_creator_args+=(--reuse-simulator)
-else
-  simulator_creator_args+=(--no-reuse-simulator)
-fi
-
-simulator_id="unused"
+simulator_id=""
 if [[ "$build_for_device" == false ]]; then
-  simulator_id="$("./%(simulator_creator.py)s" \
-    "${simulator_creator_args[@]}"
+  simulator_manager_command() {
+    local _http_method="$1"
+    local _command_path="$2"
+
+    # Retry up to 10 times with a 1 second delay between each attempt, to allow
+    # for the server to be down during upgrades
+    for i in {1..10}; do
+      set +e
+      local _simulator_response
+      _simulator_response=$(
+        curl \
+          "http:/-/$_command_path" \
+          --request "$_http_method" \
+          --silent \
+          --fail-with-body \
+          --unix-socket "/tmp/simulator_manager.sock"
+      )
+      local _curl_exit_code=$?
+      set -e
+
+      if [[ $_curl_exit_code -eq 0 ]]; then
+        echo "$_simulator_response"
+        return 0
+      fi
+
+      # If the error was a connection issue (e.g., couldn't connect), then retry
+      #   6: couldn't resolve host
+      #   7: failed to connect
+      #   28: operation timeout
+      if [[
+        $_curl_exit_code -eq 6 ||
+        $_curl_exit_code -eq 7 ||
+        $_curl_exit_code -eq 28
+      ]]; then
+        echo >&2 "$(date '+[%H:%M:%S]') warning: simulator manager command" \
+          "\"$_command_path\" failed with exit code $_curl_exit_code:"
+        echo >&2 "$(date '+[%H:%M:%S]') $_simulator_response"
+        echo >&2 "$(date '+[%H:%M:%S]') retrying in 1 second"
+        sleep 1
+      else
+        echo >&2 "$(date '+[%H:%M:%S]') error: simulator manager command" \
+          "\"$_command_path\" failed:"
+        echo >&2 "$(date '+[%H:%M:%S]') $_simulator_response"
+        return $_curl_exit_code
+      fi
+    done
+  }
+
+  reuse_simulator=%(reuse_simulator)s
+  if [[ "$reuse_simulator" == true ]]; then
+    exclusive_simulator=0
+  else
+    exclusive_simulator=1
+  fi
+
+  "./%(simulator_manager_start)s"
+
+  echo "$(date '+[%H:%M:%S]') Attempting to lease simulator"
+  simulator_id="$(
+    simulator_manager_command POST "simulator/$$?exclusive=$exclusive_simulator&deviceType=%(url_encoded_device_type)s&os=iOS&version=%(os_version)s"
   )"
+
+  echo "$(date '+[%H:%M:%S]') ✅ Leased simulator $simulator_id"
 fi
 
 test_exit_code=0
@@ -585,9 +628,13 @@ if [[
   rm -r "$result_bundle_path"
 fi
 
-if [[ "$reuse_simulator" == false ]]; then
-  # Delete will shutdown down the simulator if it's still currently running.
-  xcrun simctl delete "$simulator_id"
+if [[ -n "$simulator_id" ]]; then
+  echo "$(date '+[%H:%M:%S]') Releasing simulator $simulator_id"
+  if response=$(simulator_manager_command DELETE "simulator/$$"); then
+    echo "$(date '+[%H:%M:%S]') ✅ Released simulator $simulator_id"
+  else
+    echo "$(date '+[%H:%M:%S]') ❌ Failed to release simulator $simulator_id: $response" >&2
+  fi
 fi
 
 profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
