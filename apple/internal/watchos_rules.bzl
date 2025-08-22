@@ -75,6 +75,10 @@ load(
     "new_watchosframeworkbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -142,6 +146,11 @@ def _watchos_application_impl(ctx):
 
 def _watchos_extension_based_application_impl(ctx):
     """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
 
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os >= apple_common.dotted_version("9.0"):
@@ -463,6 +472,11 @@ reproducible error case.".format(
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
@@ -800,6 +814,11 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
 
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os < apple_common.dotted_version("7.0"):
@@ -1100,6 +1119,12 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
 def _watchos_framework_impl(ctx):
     """Implementation of the watchos_framework rule."""
+    required_minimum_os.validate(
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,

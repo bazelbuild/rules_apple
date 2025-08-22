@@ -27,7 +27,7 @@ ios_application(
     bundle_id = "com.example.prenot-calculator",
     families = ["iphone"],
     infoplists = ["PrenotCalculator-Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "15.0",
     deps = [":PrenotCalculator_library"],
 )
 

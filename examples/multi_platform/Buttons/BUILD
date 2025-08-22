@@ -67,7 +67,7 @@ ios_application(
     ],
     features = ["exported_symbols"],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "15.0",
     watch_application = ":ButtonsWatch",
     deps = [
         ":ButtonsLib",
@@ -83,7 +83,7 @@ ios_extension(
         "ipad",
     ],
     infoplists = ["ButtonsExtension/Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "15.0",
     deps = [":ButtonsExtensionLib"],
 )
 
@@ -109,7 +109,7 @@ watchos_application(
     bundle_id = "com.google.Buttons.watchkitapp",
     extension = ":ButtonsWatchExtension",
     infoplists = ["ButtonsWatch/Info.plist"],
-    minimum_os_version = "4.0",
+    minimum_os_version = "8.0",
     resources = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
 )
 
@@ -117,7 +117,7 @@ watchos_extension(
     name = "ButtonsWatchExtension",
     bundle_id = "com.google.Buttons.watchkitapp.watchkitextension",
     infoplists = ["ButtonsWatchExtension/Info.plist"],
-    minimum_os_version = "4.0",
+    minimum_os_version = "8.0",
     deps = [
         ":ButtonsWatchExtensionLib",
     ],

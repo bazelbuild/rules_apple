@@ -616,6 +616,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "required_minimum_os",
+    srcs = ["required_minimum_os.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "transition_support",
     srcs = ["transition_support.bzl"],
     visibility = [
@@ -716,6 +724,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":providers",
+        ":required_minimum_os",
         ":resources",
         ":rule_attrs",
         ":rule_factory",
