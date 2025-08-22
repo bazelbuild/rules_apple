@@ -52,12 +52,14 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import pty
+import re
 import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Dict, Optional
+from typing import IO, Dict, Optional, Sequence
 import zipfile
 
 
@@ -76,6 +78,22 @@ if platform.system() != "Darwin":
   raise Exception(
       "Cannot run Apple platform application targets on a non-mac machine."
   )
+
+
+class BufferFlusher:
+  """Flushes a buffer to a file descriptor.
+
+  This is used to ensure that the buffer is flushed to the file descriptor
+  as soon as possible.
+  """
+
+  def __init__(self, raw: IO[bytes]):
+    self.raw = raw
+
+  def write(self, b: bytes) -> int:
+    n = self.raw.write(b)
+    self.raw.flush()
+    return n
 
 
 class DeviceType(collections.abc.Mapping):
@@ -662,9 +680,10 @@ def run_app_in_simulator(
   root_dir = os.path.dirname(application_output_path)
   register_dsyms(root_dir)
   with extracted_app(application_output_path, app_name) as app_path:
-    logger.debug("Installing app %s to simulator %s", app_path, simulator_udid)
+    logger.info("Installing app %s to simulator %s", app_path, simulator_udid)
     subprocess.run(
-        [simctl_path, "install", simulator_udid, app_path], check=True
+        [simctl_path, "install", simulator_udid, app_path],
+        check=True,
     )
     app_bundle_id = bundle_id(app_path)
     launch_args = shlex.split(
@@ -686,7 +705,71 @@ def run_app_in_simulator(
     ]
     # Append optional launch arguments.
     args.extend(sys.argv[1:])
-    subprocess.run(args, env=simctl_launch_environ(), check=False)
+    launch_app(args, env=simctl_launch_environ(), simulator_udid=simulator_udid)
+
+
+def launch_app(
+    args: Sequence[str],
+    *,
+    env: Dict[str, str],
+    simulator_udid: str,
+) -> None:
+  """Launches an app in a simulator.
+
+  Args:
+    args: The arguments to pass to simctl.
+    env: The environment variables to pass to simctl.
+    simulator_udid: The UDID of the simulator in which to run the app.
+  """
+  launch_info_path = os.environ.get("BAZEL_APPLE_LAUNCH_INFO_PATH")
+  if not launch_info_path:
+    subprocess.run(args, env=env, check=True)
+    return
+
+  # Open a PTY to capture the output of simctl. We need a PTY to ensure that
+  # the PID is written to stdout before the rest of the app output.
+  primary_fd, secondary_fd = pty.openpty()
+
+  proc = subprocess.Popen(
+      args,
+      env=env,
+      stdout=secondary_fd,
+      close_fds=True,
+  )
+
+  # simctl has the fd dup; close ours.
+  os.close(secondary_fd)
+
+  with os.fdopen(primary_fd, "rb", buffering=0) as r:
+    # Grab PID from the first line of output.
+    first_line = r.readline()
+    pid_match = re.search(rb":\s*(\d+)\s*$", first_line)
+    if pid_match:
+      pid = int(pid_match.group(1))
+      try:
+        os.makedirs(os.path.dirname(launch_info_path), exist_ok=True)
+        with open(launch_info_path, "w", encoding="utf-8") as f:
+          f.write(json.dumps(
+              {
+                  "platform": "ios-simulator",
+                  "udid": simulator_udid,
+                  "pid": pid,
+              },
+              indent=2,
+          ))
+      except Exception as e:
+        logger.error("Failed to write launch info to file: %s", e)
+    else:
+      logger.error("Failed to parse PID from output")
+
+    # Stream the rest until simctl exits.
+    sys.stdout.buffer.write(first_line)
+    sys.stdout.flush()
+    shutil.copyfileobj(r, BufferFlusher(sys.stdout.buffer))
+
+  exit_code = proc.wait()
+  if exit_code != 0:
+    raise subprocess.CalledProcessError(exit_code, args)
 
 
 def main(
