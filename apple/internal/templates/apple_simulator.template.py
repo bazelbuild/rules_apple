@@ -749,9 +749,14 @@ def launch_app(
       try:
         os.makedirs(os.path.dirname(launch_info_path), exist_ok=True)
         with open(launch_info_path, "w", encoding="utf-8") as f:
-          f.write("ios-simulator\n")
-          f.write(f"{simulator_udid}\n")
-          f.write(f"{pid}\n")
+          f.write(json.dumps(
+              {
+                  "platform": "ios-simulator",
+                  "udid": simulator_udid,
+                  "pid": pid,
+              },
+              indent=2,
+          ))
       except Exception as e:
         logger.error("Failed to write launch info to file: %s", e)
     else:

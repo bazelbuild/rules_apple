@@ -491,9 +491,14 @@ def launch_app(
       if pid:
         os.makedirs(os.path.dirname(launch_info_path), exist_ok=True)
         with open(launch_info_path, "w", encoding="utf-8") as f:
-          f.write("device\n")
-          f.write(f"{device_identifier}\n")
-          f.write(f"{pid}\n")
+          f.write(json.dumps(
+              {
+                  "platform": "device",
+                  "udid": device_identifier,
+                  "pid": pid,
+              },
+              indent=2,
+          ))
       else:
           logger.error("Failed to find PID in JSON output")
   except Exception as e:
