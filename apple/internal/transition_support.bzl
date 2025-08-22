@@ -475,7 +475,6 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
-    "//command_line_option:apple_crosstool_top",
 ]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:platforms",
