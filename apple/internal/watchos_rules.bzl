@@ -15,10 +15,6 @@
 """Implementation of watchOS rules."""
 
 load(
-    "@bazel_skylib//lib:sets.bzl",
-    "sets",
-)
-load(
     "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     "find_cpp_toolchain",
 )
@@ -277,11 +273,12 @@ watchos_application's `deps`.
     )
 
     # Collect all architectures found from the cc_toolchain forwarder.
-    requested_archs = sets.make()
-    for cc_toolchain in cc_toolchain_forwarder.values():
-        requested_archs = sets.insert(requested_archs, cc_toolchain[ApplePlatformInfo].target_arch)
+    requested_archs = set([
+        cc_toolchain[ApplePlatformInfo].target_arch
+        for cc_toolchain in cc_toolchain_forwarder.values()
+    ])
 
-    if sets.length(requested_archs) == 0:
+    if len(requested_archs) == 0:
         fail("Internal Error: No architectures found for {label_name}. Please file an issue with a \
 reproducible error case.".format(
             label_name = label.name,
@@ -289,7 +286,7 @@ reproducible error case.".format(
 
     binary_artifact = stub_support.create_stub_binary(
         actions = actions,
-        archs_for_lipo = sets.to_list(requested_archs),
+        archs_for_lipo = list(requested_archs),
         platform_prerequisites = platform_prerequisites,
         rule_label = label,
         xcode_stub_path = rule_descriptor.stub_binary_path,
