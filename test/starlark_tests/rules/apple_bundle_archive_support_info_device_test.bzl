@@ -15,10 +15,6 @@
 """Starlark test rule for files found in AppleBundleArchiveSupportInfo fields."""
 
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -44,16 +40,16 @@ visibility("//test/starlark_tests/...")
 def _assert_outputs_in_set(*, actual_outputs, env, expected_outputs):
     """Assert the expected set of outputs is within actual_outputs."""
 
-    actual_set = sets.make(actual_outputs)
-    expected_set = sets.make(expected_outputs)
+    actual_set = set(actual_outputs)
+    expected_set = set(expected_outputs)
 
-    asserts.set_equals(
+    asserts.equals(
         env,
         expected_set,
-        sets.intersection(actual_set, expected_set),
+        actual_set & expected_set,
         "{expected_list} not contained in {actual_list}".format(
-            actual_list = sets.to_list(actual_set),
-            expected_list = sets.to_list(expected_set),
+            actual_list = list(actual_set),
+            expected_list = list(expected_set),
         ),
     )
 

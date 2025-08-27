@@ -15,10 +15,6 @@
 """Starlark analysis test assertions for tests."""
 
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -32,9 +28,9 @@ visibility("//test/starlark_tests/...")
 
 def _contains_files(env, expected_files, actual_files):
     target_under_test = analysistest.target_under_test(env)
-    expected_set = sets.make(expected_files)
+    expected_set = set(expected_files)
 
-    all_outputs = sets.make([
+    all_outputs = set([
         paths.relativize(
             file.short_path,
             target_under_test.label.package,
@@ -43,11 +39,11 @@ def _contains_files(env, expected_files, actual_files):
     ])
 
     # Test that the expected outputs are contained within actual outputs
-    asserts.set_equals(
+    asserts.equals(
         env,
         expected_set,
-        sets.intersection(all_outputs, expected_set),
-        "{} not contained in {}".format(sets.to_list(expected_set), sets.to_list(all_outputs)),
+        all_outputs & expected_set,
+        "{} not contained in {}".format(list(expected_set), list(all_outputs)),
     )
 
 assertions = struct(
