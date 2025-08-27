@@ -110,6 +110,10 @@ load(
     "rule_support",
 )
 load(
+    "//apple/internal:run_support.bzl",
+    "run_support",
+)
+load(
     "//apple/internal:stub_support.bzl",
     "stub_support",
 )
@@ -1004,9 +1008,45 @@ reproducible error case.".format(
         rule_label = label,
     )
 
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+    if platform_prerequisites.platform.is_device:
+        run_support.register_device_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._device_runner_template,
+            device = apple_xplat_toolchain_info.build_settings.watchos_device,
+        )
+    else:
+        run_support.register_simulator_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._simulator_runner_template,
+            simulator_device = getattr(ctx.fragments.objc, 'watchos_simulator_device', None),
+            simulator_version = getattr(ctx.fragments.objc, 'watchos_simulator_version', None),
+        )
+
     return [
         DefaultInfo(
+            executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = [archive],
+            ),
         ),
         OutputGroupInfo(**processor_result.output_groups),
         new_watchosapplicationbundleinfo(),
@@ -1783,9 +1823,45 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         rule_label = label,
     )
 
+    executable = outputs.executable(
+        actions = actions,
+        label_name = label.name,
+    )
+    if platform_prerequisites.platform.is_device:
+        run_support.register_device_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._device_runner_template,
+            device = apple_xplat_toolchain_info.build_settings.watchos_device,
+        )
+    else:
+        run_support.register_simulator_executable(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label.name,
+            output = executable,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+            runner_template = ctx.file._simulator_runner_template,
+            simulator_device = getattr(ctx.fragments.objc, 'watchos_simulator_device', None),
+            simulator_version = getattr(ctx.fragments.objc, 'watchos_simulator_version', None),
+        )
+
     return [
         DefaultInfo(
+            executable = executable,
             files = processor_result.output_files,
+            runfiles = ctx.runfiles(
+                files = [archive],
+            ),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
@@ -1799,6 +1875,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 watchos_application = rule_factory.create_apple_rule(
     doc = "Builds and bundles a watchOS Application.",
     implementation = _watchos_application_impl,
+    is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         rule_attrs.app_icon_attrs(),
@@ -1821,6 +1898,7 @@ watchos_application = rule_factory.create_apple_rule(
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.watchos,
         ),
+        rule_attrs.device_runner_template_attr(),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.locales_to_include_attrs(),
@@ -1831,6 +1909,7 @@ watchos_application = rule_factory.create_apple_rule(
         rule_attrs.signing_attrs(
             default_bundle_id_suffix = bundle_id_suffix_default.watchos_app,
         ),
+        rule_attrs.simulator_runner_template_attr(),
         {
             # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr and check for
             # the incoming AppleBundleInfo product_type.

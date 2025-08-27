@@ -46,6 +46,14 @@ You can get a list of devices by running 'xcrun devicectl list devices`.
 """,
         default = "",
     ),
+    "watchos_device": struct(
+        doc = """
+The identifier, ECID, serial number, UDID, user-provided name, or DNS name
+of the device for running a watchOS application.
+You can get a list of devices by running 'xcrun devicectl list devices`.
+""",
+        default = "",
+    ),
 }
 
 _BUILD_SETTING_LABELS = {

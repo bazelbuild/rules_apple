@@ -562,11 +562,20 @@ def extracted_app(
     # can't re-use the output directory).
     with tempfile.TemporaryDirectory(prefix="bazel_temp") as temp_dir:
       logger.debug(
-          "Unzipping IPA from %s to %s", application_output_path, temp_dir
+          "Unzipping archive from %s to %s", application_output_path, temp_dir
       )
-      with zipfile.ZipFile(application_output_path) as ipa_zipfile:
-        ipa_zipfile.extractall(temp_dir)
-        yield os.path.join(temp_dir, "Payload", app_name + ".app")
+      with zipfile.ZipFile(application_output_path) as archive_zipfile:
+        archive_zipfile.extractall(temp_dir)
+        # iOS applications use .ipa files with Payload/ structure
+        # Other platforms (watchOS, tvOS, visionOS) use .zip files without Payload/
+        payload_path = os.path.join(temp_dir, "Payload", app_name + ".app")
+        direct_path = os.path.join(temp_dir, app_name + ".app")
+        if os.path.exists(payload_path):
+          yield payload_path
+        elif os.path.exists(direct_path):
+          yield direct_path
+        else:
+          raise Exception(f"Could not find {app_name}.app in either Payload/ or root of archive")
 
 
 def bundle_id(bundle_path: str) -> str:

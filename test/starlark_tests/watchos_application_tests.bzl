@@ -235,6 +235,24 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that watchOS applications produce executable runner scripts
+    apple_verification_test(
+        name = "{}_executable_runner_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        verifier_script = "verifier_scripts/executable_test.sh",
+        tags = [name],
+    )
+
+    # Test that watchOS single-target applications produce executable runner scripts
+    apple_verification_test(
+        name = "{}_single_target_executable_runner_test".format(name),
+        build_type = "simulator", 
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        verifier_script = "verifier_scripts/executable_test.sh",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
