@@ -26,10 +26,6 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
-load(
-    "@bazel_skylib//lib:sets.bzl",
-    "sets",
-)
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
@@ -100,10 +96,11 @@ def _framework_search_paths(header_imports):
     if header_imports:
         header_groups = _grouped_framework_files(header_imports)
 
-        search_paths = sets.make()
-        for path in header_groups.keys():
-            sets.insert(search_paths, paths.dirname(path))
-        return sets.to_list(search_paths)
+        search_paths = set([
+            paths.dirname(path)
+            for path in header_groups.keys()
+        ])
+        return list(search_paths)
     else:
         return []
 

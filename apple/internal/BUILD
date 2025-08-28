@@ -26,7 +26,6 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:sets",
         "@bazel_tools//tools/cpp:toolchain_utils_bzl",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
