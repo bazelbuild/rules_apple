@@ -283,7 +283,6 @@ bzl_library(
         "//apple/internal:resources",
         "//apple/internal/partials/support:resources_support",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",
     ],
 )

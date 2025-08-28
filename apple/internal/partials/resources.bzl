@@ -21,10 +21,6 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -263,29 +259,29 @@ def _locales_requested(*, config_vars, resource_locales):
         resource_locales: An allow list of locales to be included in the bundle.
 
     Returns:
-        A set of locales to include or None if all should be included.
+        A Starlark set of locales to include or None if all should be included.
     """
     requested_locales = config_vars.get("apple.locales_to_include")
     if requested_locales != None:
-        return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
+        return set(["Base"] + [x.strip() for x in requested_locales.split(",")])
     elif resource_locales != None:
-        return sets.make(["Base"] + resource_locales[AppleResourceLocalesInfo].locales_to_include)
+        return set(["Base"] + resource_locales[AppleResourceLocalesInfo].locales_to_include)
     else:
         return None
 
 def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
-    if sets.length(locales_dropped):
+    if locales_dropped:
         # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
         # could mean that the user made a mistake in defining the locales they want to keep.
-        if not sets.is_equal(locales_requested, locales_included):
-            unused_locales = sets.difference(locales_requested, locales_included)
+        if locales_requested != locales_included:
+            unused_locales = locales_requested - locales_included
 
             # There is no way to issue a warning, so print is the only way
             # to message.
             # buildifier: disable=print
             print("Warning: " + str(label) + " did not have resources that matched " +
-                  sets.str(unused_locales) + " in locale filter. Please verify " +
+                  str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include or your bundle's resource_locales is defined properly.")
 
 def _resources_partial_impl(
@@ -409,8 +405,8 @@ def _resources_partial_impl(
         config_vars = platform_prerequisites.config_vars,
         resource_locales = resource_locales,
     )
-    locales_included = sets.make(["Base"])
-    locales_dropped = sets.make()
+    locales_included = set(["Base"])
+    locales_dropped = set()
 
     # Precompute owners, avoid_owners and processed_origins to avoid duplicate work in _deduplicate.
     # Build a dictionary with the file paths under each key for the avoided resources.
@@ -443,10 +439,10 @@ def _resources_partial_impl(
         for parent_dir, swift_module, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
-                if sets.contains(locales_requested, locale):
-                    sets.insert(locales_included, locale)
+                if locale in locales_requested:
+                    locales_included.add(locale)
                 elif locale != None:
-                    sets.insert(locales_dropped, locale)
+                    locales_dropped.add(locale)
                     continue
 
             processing_args = {
