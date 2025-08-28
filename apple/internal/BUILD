@@ -226,7 +226,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/utils:package_specs",
-        "@bazel_skylib//lib:new_sets",
         "@rules_cc//cc/common",
     ],
 )
@@ -599,7 +598,6 @@ bzl_library(
     ],
     deps = [
         ":intermediates",
-        "@bazel_skylib//lib:sets",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )

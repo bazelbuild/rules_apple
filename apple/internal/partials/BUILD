@@ -117,8 +117,6 @@ bzl_library(
         "//apple/internal:outputs",
         "//apple/internal:processor",
         "//apple/internal:providers",
-        "@bazel_skylib//lib:dicts",
-        "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],

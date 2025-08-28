@@ -14,7 +14,6 @@
 
 """Support macros to assist in detecting build features."""
 
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load(
     "@build_bazel_rules_apple//apple/internal/utils:package_specs.bzl",
     "label_matches_package_specs",
@@ -36,12 +35,9 @@ def _compute_enabled_features(*, requested_features, unsupported_features):
     Returns:
       A list containing the subset of features that should be used.
     """
-    enabled_features_set = sets.make(requested_features)
-    enabled_features_set = sets.difference(
-        enabled_features_set,
-        sets.make(unsupported_features),
-    )
-    return sets.to_list(enabled_features_set)
+    enabled_features_set = set(requested_features)
+    enabled_features_set.difference_update(unsupported_features)
+    return list(enabled_features_set)
 
 def _validate_feature_usage(*, label, toolchain, requested_features, unsupported_features):
     """Checks the toolchain's allowlists to verify the requested features.

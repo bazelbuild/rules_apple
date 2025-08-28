@@ -14,7 +14,6 @@
 
 """Support methods for handling artifacts from SwiftInfo providers."""
 
-load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
@@ -47,25 +46,24 @@ frameworks expect a single swift_library dependency with `module_name` set to th
         ))
 
 def _modules_from_avoid_deps(*, avoid_deps):
-    """Returns a set of module names found from the SwiftInfo providers of avoid_deps"""
+    """Returns a Starlark set of module names found from the SwiftInfo providers of avoid_deps"""
     avoid_swiftinfos = [t[SwiftInfo] for t in avoid_deps if SwiftInfo in t]
-    avoid_modules = sets.make()
+    avoid_modules = set()
     for swiftinfo in avoid_swiftinfos:
         for module in swiftinfo.transitive_modules.to_list():
-            if not module.swift:
-                continue
-            sets.insert(avoid_modules, module.name)
+            if module.swift:
+                avoid_modules.add(module.name)
     return avoid_modules
 
 def _swift_include_info(
         *,
-        avoid_modules = sets.make(),
+        avoid_modules = set(),
         found_module_name,
         transitive_modules):
     """Returns the module containing the Swift interface information from a SwiftInfo provider.
 
     Args:
-        avoid_modules: A set of modules to avoid, if specified.
+        avoid_modules: A Starlark set of modules to avoid, if specified.
         found_module_name: The module name that was previously found from transitive deps.
         transitive_modules: The transitive_modules field of a SwiftInfo provider.
 
@@ -76,7 +74,7 @@ def _swift_include_info(
     transitive_modules_list = transitive_modules.to_list()
 
     for module in transitive_modules_list:
-        if not module.swift or sets.contains(avoid_modules, module.name):
+        if not module.swift or module.name in avoid_modules:
             continue
 
         if swift_module or (found_module_name and module.name != found_module_name):
@@ -120,7 +118,7 @@ Internal Error: Swift third party frameworks require a Swift module to be define
 BUILD rules with a reproducible error case.
 """)
 
-        avoid_modules_list = sets.to_list(avoid_modules) if avoid_modules else None
+        avoid_modules_list = list(avoid_modules) if avoid_modules else None
         if avoid_modules_list:
             fail("""\
 Error: Could not find a Swift module to build a Swift framework. This could be because "avoid_deps"\

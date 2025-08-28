@@ -15,10 +15,6 @@
 """Partial implementation for codesigning dossier file generation."""
 
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -64,7 +60,7 @@ Depset of structs with codesigning dossier information to be embedded in another
     },
 )
 
-_VALID_LOCATIONS = sets.make([
+_VALID_LOCATIONS = set([
     processor.location.app_clip,
     processor.location.extension,
     processor.location.framework,
@@ -72,17 +68,6 @@ _VALID_LOCATIONS = sets.make([
     processor.location.watch,
     processor.location.xpc_service,
 ])
-
-def _is_location_valid(location):
-    """Determines if a location is a valid location to embed a signed binary.
-
-    Args:
-      location: The location for an embedded signed binary.
-
-    Returns:
-      True if the location is valid, False otherwise.
-    """
-    return sets.contains(_VALID_LOCATIONS, location)
 
 def _location_map(rule_descriptor):
     """Given a rule descriptor, returns a map of locations to actual paths within the bundle for the location.
@@ -134,7 +119,7 @@ def _embedded_codesign_dossiers_from_dossier_infos(
     Returns:
       List of codesign dossiers embedded in locations computed using the map provided.
     """
-    existing_bundle_paths = sets.make()
+    existing_bundle_paths = set()
     embedded_codesign_dossiers = []
     for dossier_info_depset in embedded_dossier_info_depsets:
         embedded_dossier_infos = dossier_info_depset.to_list()
@@ -144,9 +129,9 @@ def _embedded_codesign_dossiers_from_dossier_infos(
                 bundle_paths[dossier_info.bundle_location],
                 bundle_filename,
             )
-            if sets.contains(existing_bundle_paths, relative_bundle_path):
+            if relative_bundle_path in existing_bundle_paths:
                 continue
-            sets.insert(existing_bundle_paths, relative_bundle_path)
+            existing_bundle_paths.add(relative_bundle_path)
             dossier = codesigning_support.embedded_codesigning_dossier(
                 relative_bundle_path,
                 dossier_info.codesigning_dossier,
@@ -241,10 +226,10 @@ def _codesigning_dossier_partial_impl(
         rule_descriptor):
     """Implementation of codesigning_dossier_partial"""
 
-    if bundle_location and not _is_location_valid(bundle_location):
+    if bundle_location and bundle_location not in _VALID_LOCATIONS:
         fail(("Bundle location %s is not a valid location to embed a signed " +
               "binary - valid locations are %s") %
-             bundle_location, sets.str(_VALID_LOCATIONS))
+             bundle_location, _VALID_LOCATIONS)
     embedded_dossier_infos_depsets = [
         x[_AppleCodesigningDossierInfo].embedded_dossiers
         for x in embedded_targets
