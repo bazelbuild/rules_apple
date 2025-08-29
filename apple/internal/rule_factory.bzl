@@ -99,13 +99,6 @@ A file that will be used in lcov export calls to limit the scope of files instru
 """,
         allow_single_file = True,
     ),
-    "bundle_name": attr.string(
-        mandatory = False,
-        doc = """
-The desired name of the bundle (without the extension). If this attribute is not set, then the name
-of the target will be used instead.
-""",
-    ),
 }
 
 def _create_apple_rule(
@@ -170,6 +163,23 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
         # The aspect is withheld to avoid unnecessary overhead in this instance of `test_host`, and
         # the provider is unnecessarily generic to accomodate any possible value of `test_host`.
         rule_attrs.test_host_attrs(aspects = [], providers = [[AppleBundleInfo]]),
+        # Add bundle attributes to make them visible in documentation
+        rule_attrs.infoplist_attrs(),
+        {
+            "bundle_name": attr.string(
+                mandatory = False,
+                doc = """
+The desired name of the bundle (without the extension). If this attribute is not set, then the name
+of the target will be used instead.
+""",
+            ),
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo]],
+                doc = """
+A list of framework targets that this target depends on.
+""",
+            ),
+        },
     ]
 
     return rule(

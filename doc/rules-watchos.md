@@ -306,8 +306,8 @@ Builds and bundles a watchOS Static Framework.
 <pre>
 load("@rules_apple//apple:watchos.doc.bzl", "watchos_ui_test")
 
-watchos_ui_test(<a href="#watchos_ui_test-name">name</a>, <a href="#watchos_ui_test-deps">deps</a>, <a href="#watchos_ui_test-data">data</a>, <a href="#watchos_ui_test-bundle_name">bundle_name</a>, <a href="#watchos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#watchos_ui_test-env">env</a>, <a href="#watchos_ui_test-env_inherit">env_inherit</a>,
-                <a href="#watchos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_ui_test-platform_type">platform_type</a>, <a href="#watchos_ui_test-runner">runner</a>,
+watchos_ui_test(<a href="#watchos_ui_test-name">name</a>, <a href="#watchos_ui_test-deps">deps</a>, <a href="#watchos_ui_test-data">data</a>, <a href="#watchos_ui_test-bundle_name">bundle_name</a>, <a href="#watchos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#watchos_ui_test-env">env</a>, <a href="#watchos_ui_test-env_inherit">env_inherit</a>, <a href="#watchos_ui_test-frameworks">frameworks</a>,
+                <a href="#watchos_ui_test-infoplists">infoplists</a>, <a href="#watchos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_ui_test-platform_type">platform_type</a>, <a href="#watchos_ui_test-runner">runner</a>,
                 <a href="#watchos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#watchos_ui_test-test_filter">test_filter</a>, <a href="#watchos_ui_test-test_host">test_host</a>, <a href="#watchos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
@@ -325,6 +325,8 @@ watchOS UI Test rule.
 | <a id="watchos_ui_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="watchos_ui_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="watchos_ui_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
+| <a id="watchos_ui_test-frameworks"></a>frameworks |  A list of framework targets that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="watchos_ui_test-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="watchos_ui_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="watchos_ui_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="watchos_ui_test-platform_type"></a>platform_type |  -   | String | optional |  `"watchos"`  |
@@ -343,8 +345,9 @@ watchOS UI Test rule.
 load("@rules_apple//apple:watchos.doc.bzl", "watchos_unit_test")
 
 watchos_unit_test(<a href="#watchos_unit_test-name">name</a>, <a href="#watchos_unit_test-deps">deps</a>, <a href="#watchos_unit_test-data">data</a>, <a href="#watchos_unit_test-bundle_name">bundle_name</a>, <a href="#watchos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#watchos_unit_test-env">env</a>, <a href="#watchos_unit_test-env_inherit">env_inherit</a>,
-                  <a href="#watchos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#watchos_unit_test-platform_type">platform_type</a>, <a href="#watchos_unit_test-runner">runner</a>,
-                  <a href="#watchos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#watchos_unit_test-test_filter">test_filter</a>, <a href="#watchos_unit_test-test_host">test_host</a>, <a href="#watchos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
+                  <a href="#watchos_unit_test-frameworks">frameworks</a>, <a href="#watchos_unit_test-infoplists">infoplists</a>, <a href="#watchos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#watchos_unit_test-minimum_os_version">minimum_os_version</a>,
+                  <a href="#watchos_unit_test-platform_type">platform_type</a>, <a href="#watchos_unit_test-runner">runner</a>, <a href="#watchos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#watchos_unit_test-test_filter">test_filter</a>, <a href="#watchos_unit_test-test_host">test_host</a>,
+                  <a href="#watchos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
 </pre>
 
 watchOS Unit Test rule.
@@ -361,6 +364,8 @@ watchOS Unit Test rule.
 | <a id="watchos_unit_test-collect_code_coverage"></a>collect_code_coverage |  Whether to collect code coverage for this test if `--collect_code_coverage=yes`.   | Boolean | optional |  `True`  |
 | <a id="watchos_unit_test-env"></a>env |  Dictionary of environment variables that should be set during the test execution. The values of the dictionary are subject to "Make" variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="watchos_unit_test-env_inherit"></a>env_inherit |  List of environment variables to inherit from the external environment.   | List of strings | optional |  `[]`  |
+| <a id="watchos_unit_test-frameworks"></a>frameworks |  A list of framework targets that this target depends on.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="watchos_unit_test-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for this target. At least one file must be specified. Please see [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling) for what is supported.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="watchos_unit_test-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="watchos_unit_test-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="watchos_unit_test-platform_type"></a>platform_type |  -   | String | optional |  `"watchos"`  |
