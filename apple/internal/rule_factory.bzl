@@ -164,7 +164,7 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
         # the provider is unnecessarily generic to accomodate any possible value of `test_host`.
         rule_attrs.test_host_attrs(aspects = [], providers = [[AppleBundleInfo]]),
         # Add bundle attributes to make them visible in documentation
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(default_infoplist = "//apple/testing:DefaultTestBundlePlist"),
         {
             "bundle_name": attr.string(
                 mandatory = False,
