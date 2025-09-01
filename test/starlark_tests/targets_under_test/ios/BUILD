@@ -1057,6 +1057,39 @@ ios_app_clip(
     ],
 )
 
+ios_application(
+    name = "app_with_app_clip_with_swift_support",
+    app_clips = [":app_clip_with_swift_support"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_swift_support",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.appclip_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_application(

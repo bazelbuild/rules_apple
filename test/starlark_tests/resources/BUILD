@@ -1394,6 +1394,12 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "swift_concurrency_main_lib",
+    srcs = ["concurrency_main.swift"],
+    tags = common.fixture_tags,
+)
+
 # --------------------------------------------------------------------------------
 # C/C++ rules with data
 
