@@ -455,7 +455,9 @@ def _generate_codesigning_dossier_action(
     mnemonic = "GenerateCodesigningDossier"
     progress_message = "Generating codesigning dossier for %s" % label_name
 
-    dossier_arguments = ["--output", output_dossier.path, "--zip"]
+    args = actions.args()
+    args.add("create")
+    args.add("--output-path", output_dossier)
 
     # Try to use the identity passed on the command line, if any. If it's a simulator build, use an
     # ad hoc identity.
@@ -463,14 +465,12 @@ def _generate_codesigning_dossier_action(
     if not codesign_identity and not provisioning_profile:
         codesign_identity = _ADHOC_PSEUDO_IDENTITY
     if codesign_identity:
-        dossier_arguments.extend(["--codesign_identity", codesign_identity])
-    else:
-        dossier_arguments.append("--infer_identity")
+        args.add("--code-signing-identity", codesign_identity)
     if entitlements and platform_prerequisites.platform.is_device:
         # Entitlements are embedded as segments of the linked simulator binary. They should not be
         # used for signing simulator binaries.
         input_files.append(entitlements)
-        dossier_arguments.extend(["--entitlements_file", entitlements.path])
+        args.add("--entitlements-file-path", entitlements)
     if provisioning_profile and codesign_identity != _ADHOC_PSEUDO_IDENTITY:
         # If we're signing with the ad-hoc pseudo-identity, no identity may be retrieved from the
         # signed artifact and any code requirement placing restrictions on the signing identity will
@@ -482,31 +482,17 @@ def _generate_codesigning_dossier_action(
         #
         # Only reference and embed the provisioning profile in standard code signing.
         input_files.append(provisioning_profile)
-        dossier_arguments.extend(["--provisioning_profile", provisioning_profile.path])
+        args.add("--provisioning-profile-path", provisioning_profile)
 
     for embedded_dossier in embedded_dossiers:
         input_files.append(embedded_dossier.dossier_file)
-        dossier_arguments.extend(["--embedded_dossier", embedded_dossier.relative_bundle_path, embedded_dossier.dossier_file.path])
-
-    args_file = intermediates.file(
-        actions = actions,
-        target_name = label_name,
-        output_discriminator = output_discriminator,
-        file_name = "dossier_arguments",
-    )
-    actions.write(
-        output = args_file,
-        content = "\n".join(dossier_arguments),
-    )
-
-    input_files.append(args_file)
-    args_path_argument = "@%s" % args_file.path
-    args = ["create", args_path_argument]
+        args.add("--relative-path-to-embed", embedded_dossier.relative_bundle_path)
+        args.add("--dossier-file-to-embed", embedded_dossier.dossier_file)
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = [args],
         exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
         execution_requirements = {

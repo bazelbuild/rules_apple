@@ -172,7 +172,7 @@ post-processing, and signing steps into a single action that eliminates the arch
             doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
         "dossier_codesigningtool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in generating signing dossiers.",
         ),

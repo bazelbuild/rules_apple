@@ -1,35 +1,5 @@
 licenses(["notice"])
 
-py_binary(
-    name = "dossier_codesigningtool",
-    srcs = ["dossier_codesigningtool.py"],
-    visibility = [
-        "//apple/internal/toolchains:__subpackages__",
-    ],
-    deps = [
-        ":dossier_codesigningtool_lib",
-    ],
-)
-
-py_library(
-    name = "dossier_codesigningtool_lib",
-    srcs = ["dossier_codesigningtool.py"],
-    visibility = [
-        "//tools:__subpackages__",
-    ],
-    deps = [
-        ":dossier_codesigning_reader_lib",
-    ],
-)
-
-py_test(
-    name = "dossier_codesigningtool_lib_test",
-    srcs = ["dossier_codesigningtool_lib_test.py"],
-    deps = [
-        ":dossier_codesigningtool_lib",
-    ],
-)
-
 # TODO(b/277604599): Address supporting Apple Silicon. This target is only supported on an Intel
 # Mac, which incurs a performance penalty for all spawned subprocesses including /usr/bin/codesign
 # when it is executed.
