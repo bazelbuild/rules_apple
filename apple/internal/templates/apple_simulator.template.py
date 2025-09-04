@@ -52,11 +52,11 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from typing import Dict, Optional
 import zipfile
 
@@ -376,26 +376,12 @@ def wait_for_sim_to_boot(simctl_path: str, udid: str) -> bool:
     True if the simulator boots within 60 seconds, False otherwise.
   """
   logger.info("Waiting for simulator to boot...")
-  for _ in range(0, 60):
-    # The expected output of "simctl list" is like:
-    # -- iOS 8.4 --
-    # iPhone 5s (E946FA1C-26AB-465C-A7AC-24750D520BEA) (Shutdown)
-    # TestDevice (8491C4BC-B18E-4E2D-934A-54FA76365E48) (Booted)
-    # So if there's any booted simulator, $booted_device will not be empty.
-    simctl_list_result = subprocess.run(
-        [simctl_path, "list", "devices"],
-        encoding="utf-8",
-        check=True,
-        stdout=subprocess.PIPE,
-    )
-    for line in simctl_list_result.stdout.split("\n"):
-      if line.find(udid) != -1 and line.find("Booted") != -1:
-        logger.debug("Simulator is booted.")
-        # Simulator is booted.
-        return True
-    logger.debug("Simulator not booted, still waiting...")
-    time.sleep(1)
-  return False
+  subprocess.run(
+      [simctl_path, "bootstatus", udid, "-b"],
+      encoding="utf-8",
+      check=True,
+  )
+  return True
 
 
 def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
@@ -681,13 +667,20 @@ def run_app_in_simulator(
         [simctl_path, "install", simulator_udid, app_path], check=True
     )
     app_bundle_id = bundle_id(app_path)
+    launch_args = shlex.split(
+      os.environ.get(
+        "BAZEL_SIMCTL_LAUNCH_FLAGS",
+        # Attaches the application to the console and waits for it to exit.
+        "--console-pty",
+      ),
+    )
     logger.info(
         "Launching app %s in simulator %s", app_bundle_id, simulator_udid
     )
     args = [
         simctl_path,
         "launch",
-        "--console-pty",
+        *launch_args,
         simulator_udid,
         app_bundle_id,
     ]
@@ -753,5 +746,6 @@ if __name__ == "__main__":
     )
   except subprocess.CalledProcessError as e:
     logger.error("%s exited with error code %d", e.cmd, e.returncode)
+    sys.exit(e.returncode)
   except KeyboardInterrupt:
-    pass
+    sys.exit(1)

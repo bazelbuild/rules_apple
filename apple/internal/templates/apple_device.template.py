@@ -39,6 +39,7 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -93,15 +94,15 @@ class Device(collections.abc.Mapping):
 
   @property
   def udid(self) -> str:
-    return self.hardware_properties["udid"]
+    return self.hardware_properties.get("udid", "unknown")
 
   @property
   def device_type(self) -> str:
-    return self.hardware_properties["deviceType"]
+    return self.hardware_properties.get("deviceType", "unknown")
 
   @property
   def os_version_number(self) -> str:
-    return self.device_properties["osVersionNumber"]
+    return self.device_properties.get("osVersionNumber", "unknown")
 
   @property
   def is_apple_tv(self) -> bool:
@@ -404,9 +405,16 @@ def run_app(
           device_identifier,
           app_path
         ],
-        check=True
+        check=True,
     )
     app_bundle_id = bundle_id(app_path)
+    launch_args = shlex.split(
+      os.environ.get(
+        "BAZEL_DEVICECTL_LAUNCH_FLAGS",
+        # Attaches the application to the console and waits for it to exit.
+        "--console",
+      ),
+    )
     logger.info(
         "Launching app %s on %s", app_bundle_id, device_identifier
     )
@@ -415,7 +423,7 @@ def run_app(
         "device",
         "process",
         "launch",
-        "--console",  # Attaches the application to the console and waits for it to exit.
+        *launch_args,
         "--device",
         device_identifier,
         app_bundle_id,
@@ -498,5 +506,6 @@ if __name__ == "__main__":
     )
   except subprocess.CalledProcessError as e:
     logger.error("%s exited with error code %d", e.cmd, e.returncode)
+    sys.exit(e.returncode)
   except KeyboardInterrupt:
-    pass
+    sys.exit(1)
