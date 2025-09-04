@@ -41,19 +41,21 @@ def compile_mlmodel(
       platform_prerequisites: Struct containing information on the platform being targeted.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
-    args = [
-        "coremlc",
-        "compile",
-        xctoolrunner_support.prefixed_path(input_file.path),
-        output_bundle.dirname,
+
+    args = actions.args()
+    args.add("coremlc")
+    args.add("compile")
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
+    args.add(output_bundle.dirname)
+    args.add(
         "--output-partial-info-plist",
         xctoolrunner_support.prefixed_path(output_plist.path),
-    ]
+    )
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = [args],
         executable = xctoolrunner,
         inputs = [input_file],
         mnemonic = "MlmodelCompile",
@@ -86,29 +88,28 @@ def generate_mlmodel_sources(
 
     is_swift = language == "Swift"
 
-    arguments = [
-        "coremlc",
-        "generate",
-        xctoolrunner_support.prefixed_path(input_file.path),
-    ]
+    arguments = actions.args()
+    arguments.add("coremlc")
+    arguments.add("generate")
+    arguments.add(xctoolrunner_support.prefixed_path(input_file.path))
 
     outputs = []
     if is_swift:
-        arguments += [
+        arguments.add_all([
             "--public-access",
             "--language",
             "Swift",
             swift_output_src.dirname,
-        ]
+        ])
         outputs = [swift_output_src]
     else:
-        arguments.append(objc_output_src.dirname)
+        arguments.add(objc_output_src.dirname)
         outputs = [objc_output_src, objc_output_hdr]
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = arguments,
+        arguments = [arguments],
         executable = xctoolrunner,
         inputs = [input_file],
         mnemonic = "MlmodelGenerate",
