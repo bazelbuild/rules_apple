@@ -231,15 +231,17 @@ def discover_best_compatible_simulator(
     simctl_path: str,
     minimum_os: str,
     sim_device: str,
+    sim_identifier: str,
     sim_os_version: str,
-) -> (Optional[DeviceType], Optional[Device]):
+) -> tuple[Optional[DeviceType], Optional[Device]]:
   """Discovers the best compatible simulator device type and device.
 
   Args:
     platform_type: The Apple platform type for the given *_application() target.
     simctl_path: The path to the `simctl` binary.
     minimum_os: The minimum OS version required by the *_application() target.
-    sim_device: Optional name of the device (e.g. "iPhone 8 Plus").
+    sim_device: Optional name of the device type (e.g. "iPhone 8 Plus").
+    sim_identifier: The identifier of the simulator (<uuid>).
     sim_os_version: Optional version of the Apple platform runtime (e.g.
       "13.2").
 
@@ -298,6 +300,12 @@ def discover_best_compatible_simulator(
     for device in devices:
       if not device["isAvailable"]:
         continue
+      if sim_identifier:
+        if device["udid"] != sim_identifier:
+          continue
+        compatible_device = Device(device, None)
+        compatible_devices.append(compatible_device)
+        break
       compatible_device = None
       for device_type in compatible_device_types:
         if device["deviceTypeIdentifier"] == device_type["identifier"]:
@@ -308,7 +316,7 @@ def discover_best_compatible_simulator(
       compatible_devices.append(compatible_device)
   compatible_devices.sort()
   logger.debug("Found %d compatible devices.", len(compatible_devices))
-  if compatible_device_types:
+  if not sim_identifier and compatible_device_types:
     best_compatible_device_type = compatible_device_types[-1]
   else:
     best_compatible_device_type = None
@@ -325,6 +333,7 @@ def persistent_simulator(
     simctl_path: str,
     minimum_os: str,
     sim_device: str,
+    sim_identifier: str,
     sim_os_version: str,
 ) -> str:
   """Finds or creates a persistent compatible Apple simulator.
@@ -336,7 +345,8 @@ def persistent_simulator(
     platform_type: The Apple platform type for the given *_application() target.
     simctl_path: The path to the `simctl` binary.
     minimum_os: The minimum OS version required by the *_application() target.
-    sim_device: Optional name of the device (e.g. "iPhone 8 Plus").
+    sim_device: Optional name of the device type (e.g. "iPhone 8 Plus").
+    sim_identifier: The identifier of the simulator (<uuid>).
     sim_os_version: Optional version of the Apple platform runtime (e.g.
       "13.2").
 
@@ -352,6 +362,7 @@ def persistent_simulator(
           simctl_path=simctl_path,
           minimum_os=minimum_os,
           sim_device=sim_device,
+          sim_identifier=sim_identifier,
           sim_os_version=sim_os_version,
       )
   )
@@ -377,9 +388,10 @@ def persistent_simulator(
     logger.debug("Created new simulator: %s", udid)
     return udid
   raise Exception(
-      f"Could not find or create a simulator for the {platform_type} platform"
-      f"compatible with minimum OS version {minimum_os} (device name "
-      f"{sim_device}, OS version {sim_os_version})"
+      f"Could not find or create a simulator for the {platform_type} platform "
+      f"compatible with minimum OS version {minimum_os} (uuid "
+      f"'{sim_identifier}', device name '{sim_device}', OS version "
+      f"'{sim_os_version}')"
   )
 
 
@@ -622,15 +634,17 @@ def apple_simulator(
     simctl_path: str,
     minimum_os: str,
     sim_device: str,
+    sim_identifier: str,
     sim_os_version: str,
 ) -> AppleSimulatorUDID:
-  """Finds either a temporary or persistent Apple simulator based on args.
+  """Finds or creates a persistent compatible Apple simulator.
 
   Args:
     platform_type: The Apple platform type for the given *_application() target.
     simctl_path: The path to the `simctl` binary.
     minimum_os: The minimum OS version required by the *_application() target.
-    sim_device: Optional name of the device (e.g. "iPhone 8 Plus").
+    sim_device: Optional name of the device type (e.g. "iPhone 8 Plus").
+    sim_identifier: The identifier of the simulator (<uuid>).
     sim_os_version: Optional version of the Apple platform runtime (e.g.
       "13.2").
 
@@ -651,6 +665,7 @@ def apple_simulator(
         simctl_path=simctl_path,
         minimum_os=minimum_os,
         sim_device=sim_device,
+        sim_identifier=sim_identifier,
         sim_os_version=sim_os_version,
     )
 
@@ -779,6 +794,7 @@ def main(
     minimum_os: str,
     platform_type: str,
     sim_device: str,
+    sim_identifier: str,
     sim_os_version: str,
 ):
   """Main entry point to `bazel run` for *_application() targets.
@@ -788,7 +804,8 @@ def main(
     application_output_path: Path to the output of an *_application().
     minimum_os: The minimum OS version required by the *_application() target.
     platform_type: The Apple platform type for the given *_application() target.
-    sim_device: The name of the device (e.g. "iPhone 8 Plus").
+    sim_device: The name of the device type (e.g. "iPhone 8 Plus").
+    sim_identifier: The identifier of the simulator (<uuid>).
     sim_os_version: The version of the Apple platform runtime (e.g. "13.2").
   """
   xcode_select_result = subprocess.run(
@@ -805,6 +822,7 @@ def main(
       simctl_path=simctl_path,
       minimum_os=minimum_os,
       sim_device=sim_device,
+      sim_identifier=sim_identifier,
       sim_os_version=sim_os_version,
   ) as simulator_udid:
     run_app_in_simulator(
@@ -825,6 +843,7 @@ if __name__ == "__main__":
         minimum_os="%minimum_os%",
         platform_type="%platform_type%",
         sim_device="%sim_device%",
+        sim_identifier="%sim_identifier%",
         sim_os_version="%sim_os_version%",
     )
   except subprocess.CalledProcessError as e:
