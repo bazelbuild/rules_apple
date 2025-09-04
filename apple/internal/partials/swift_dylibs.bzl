@@ -105,26 +105,23 @@ def _swift_dylib_action(
         platform_prerequisites,
         swift_stdlib_tool):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
-    swift_stdlib_tool_args = [
-        "--platform",
-        platform_name,
-        "--output_path",
-        output_dir.path,
-    ]
-    for x in binary_files:
-        swift_stdlib_tool_args.extend([
-            "--binary",
-            x.path,
-        ])
+
+    swift_stdlib_tool_args = actions.args()
+    swift_stdlib_tool_args.add("--platform", platform_name)
+    swift_stdlib_tool_args.add("--output_path", output_dir.path)
+    swift_stdlib_tool_args.add_all(
+        binary_files,
+        before_each = "--binary",
+    )
 
     minimum_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
     if minimum_os < _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING[platform_prerequisites.platform_type]:
-        swift_stdlib_tool_args.append("--requires_bundled_swift_runtime")
+        swift_stdlib_tool_args.add("--requires_bundled_swift_runtime")
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = swift_stdlib_tool_args,
+        arguments = [swift_stdlib_tool_args],
         exec_group = mac_exec_group,
         executable = swift_stdlib_tool,
         inputs = binary_files,

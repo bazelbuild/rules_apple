@@ -15,10 +15,6 @@
 """ACTool related actions."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -524,10 +520,11 @@ def compile_asset_catalog(
         apple_common.dotted_version("26.0.0.17A5295f")
     )
 
-    args = ["actool"]
+    args = actions.args()
+    args.add("actool")
 
     # Custom xctoolrunner options.
-    args.extend([
+    args.add_all([
         # Mute warnings for iPad 1x 76x76 icons.
         "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: (null)",
         "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: 76x76@1x ",
@@ -546,7 +543,7 @@ def compile_asset_catalog(
 
     if not (xcode_before_26 or xcode_26_beta_4_or_later):
         # Handle the nonsense warnings and errors expected for Xcode 26 beta 1/2/3.
-        args.extend([
+        args.add_all([
             # Mute warnings for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
             "--mute-warning=substring=Failure Reason: The data is not in the correct format.",
             "--mute-warning=substring=Underlying Errors:",
@@ -565,7 +562,7 @@ def compile_asset_catalog(
 
     if not xcode_before_26:
         # Handle the nonsense warnings and errors for Xcode 26 up to beta 5.
-        args.extend([
+        args.add_all([
             # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26.
             "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
             # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld.
@@ -573,27 +570,21 @@ def compile_asset_catalog(
         ])
 
     # Standard actool options.
-    args.extend([
-        "--compile",
-        xctoolrunner_support.prefixed_path(output_dir.path),
-        "--errors",
-        "--warnings",
-        "--notices",
-        "--output-format",
-        "human-readable-text",
-        "--platform",
-        actool_platform,
-        "--minimum-deployment-target",
-        platform_prerequisites.minimum_os,
-        "--compress-pngs",
-    ])
+    args.add("--compile", xctoolrunner_support.prefixed_path(output_dir.path))
+    args.add("--errors")
+    args.add("--warnings")
+    args.add("--notices")
+    args.add("--output-format", "human-readable-text")
+    args.add("--platform", actool_platform)
+    args.add("--minimum-deployment-target", platform_prerequisites.minimum_os)
+    args.add("--compress-pngs")
 
     platform_type = platform_prerequisites.platform_type
 
     if platform_type == "macos" and not xcode_before_26:
         # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
         # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
-        args.extend(["--lightweight-asset-runtime-mode", "enabled"])
+        args.add("--lightweight-asset-runtime-mode", "enabled")
 
     extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
@@ -604,20 +595,17 @@ def compile_asset_catalog(
         product_type = product_type,
         xcode_config = xcode_config,
     )
-    args.extend(extra_actool_args)
+    args.add_all(extra_actool_args)
 
-    args.extend(collections.before_each(
-        "--target-device",
-        platform_prerequisites.device_families,
-    ))
+    args.add_all(platform_prerequisites.device_families, before_each = "--target-device")
 
     outputs = [output_dir]
     if output_plist:
         outputs.append(output_plist)
-        args.extend([
+        args.add(
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(output_plist.path),
-        ])
+        )
 
     xcassets = group_files_by_directory(
         asset_files,
@@ -625,7 +613,7 @@ def compile_asset_catalog(
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
+    args.add_all([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
 
     execution_requirements = {
         "no-sandbox": "1",
@@ -633,7 +621,7 @@ def compile_asset_catalog(
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,

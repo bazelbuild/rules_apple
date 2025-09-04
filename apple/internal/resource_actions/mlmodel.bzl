@@ -45,19 +45,21 @@ def compile_mlmodel(
       platform_prerequisites: Struct containing information on the platform being targeted.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
-    args = [
-        "coremlc",
-        "compile",
-        xctoolrunner_support.prefixed_path(input_file.path),
-        output_bundle.dirname,
+
+    args = actions.args()
+    args.add("coremlc")
+    args.add("compile")
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
+    args.add(output_bundle.dirname)
+    args.add(
         "--output-partial-info-plist",
         xctoolrunner_support.prefixed_path(output_plist.path),
-    ]
+    )
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = [args],
         executable = xctoolrunner,
         inputs = [input_file],
         mnemonic = "MlmodelCompile",
@@ -86,17 +88,16 @@ def generate_objc_mlmodel_sources(
       platform_prerequisites: Struct containing information on the platform being targeted.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
-    args = [
-        "coremlc",
-        "generate",
-        xctoolrunner_support.prefixed_path(input_file.path),
-        output_source.dirname,
-    ]
+    args = actions.args()
+    args.add("coremlc")
+    args.add("generate")
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
+    args.add(output_source.dirname)
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = args,
+        arguments = [args],
         executable = xctoolrunner,
         inputs = [input_file],
         mnemonic = "MlmodelGenerate",

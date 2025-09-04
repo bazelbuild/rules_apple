@@ -18,7 +18,6 @@ bzl_library(
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal/utils:xctoolrunner",
-        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -57,7 +56,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/utils:xctoolrunner",
-        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],

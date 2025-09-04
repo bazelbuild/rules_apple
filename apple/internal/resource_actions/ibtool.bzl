@@ -15,10 +15,6 @@
 """IBTool related actions."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -32,31 +28,6 @@ load(
 )
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
-
-def _ibtool_arguments(min_os, families):
-    """Returns common `ibtool` command line arguments.
-
-    This function returns the common arguments used by both xib and storyboard
-    compilation, as well as storyboard linking. Callers should add their own
-    arguments to the returned array for their specific purposes.
-
-    Args:
-      min_os: The minimum OS version to use when compiling interface files.
-      families: The families that should be supported by the compiled interfaces.
-
-    Returns:
-      An array of command-line arguments to pass to ibtool.
-    """
-    return [
-        # Custom xctoolrunner options.
-        "--mute-warning=substring=WARNING: Unhandled destination metrics: (null)",
-        # Standard ibtool options.
-        "--minimum-deployment-target",
-        min_os,
-    ] + collections.before_each(
-        "--target-device",
-        families,
-    )
 
 def compile_storyboard(
         *,
@@ -83,25 +54,26 @@ def compile_storyboard(
     min_os = platform_prerequisites.minimum_os
     families = platform_prerequisites.device_families
 
-    args = [
-        "ibtool",
-    ]
-    args.extend(_ibtool_arguments(min_os, families))
-    args.extend([
+    args = actions.args()
+    args.add("ibtool")
+
+    # Custom xctoolrunner options.
+    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+
+    # Standard ibtool options.
+    args.add("--minimum-deployment-target", min_os)
+    args.add_all(families, before_each = "--target-device")
+    args.add(
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
-        "--errors",
-        "--warnings",
-        "--notices",
-        "--auto-activate-custom-fonts",
-        "--output-format",
-        "human-readable-text",
-    ])
-    args.extend([
-        "--module",
-        swift_module,
-        xctoolrunner_support.prefixed_path(input_file.path),
-    ])
+    )
+    args.add("--errors")
+    args.add("--warnings")
+    args.add("--notices")
+    args.add("--auto-activate-custom-fonts")
+    args.add("--output-format", "human-readable-text")
+    args.add("--module", swift_module)
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
 
     execution_requirements = {
         "no-sandbox": "1",
@@ -109,7 +81,7 @@ def compile_storyboard(
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,
@@ -147,22 +119,24 @@ def link_storyboards(
     min_os = platform_prerequisites.minimum_os
     families = platform_prerequisites.device_families
 
-    args = [
-        "ibtool",
-    ]
-    args.extend(_ibtool_arguments(min_os, families))
-    args.extend([
-        "--link",
-        xctoolrunner_support.prefixed_path(output_dir.path),
-    ])
-    args.extend([
+    args = actions.args()
+    args.add("ibtool")
+
+    # Custom xctoolrunner options.
+    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+
+    # Standard ibtool options.
+    args.add("--minimum-deployment-target", min_os)
+    args.add_all(families, before_each = "--target-device")
+    args.add("--link", xctoolrunner_support.prefixed_path(output_dir.path))
+    args.add_all([
         xctoolrunner_support.prefixed_path(f.path)
         for f in storyboardc_dirs
     ])
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
@@ -200,19 +174,21 @@ def compile_xib(
 
     nib_name = paths.replace_extension(paths.basename(input_file.short_path), ".nib")
 
-    args = [
-        "ibtool",
-    ]
-    args.extend(_ibtool_arguments(min_os, families))
-    args.extend([
+    args = actions.args()
+    args.add("ibtool")
+
+    # Custom xctoolrunner options.
+    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+
+    # Standard ibtool options.
+    args.add("--minimum-deployment-target", min_os)
+    args.add_all(families, before_each = "--target-device")
+    args.add(
         "--compile",
         xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
-    ])
-    args.extend([
-        "--module",
-        swift_module,
-        xctoolrunner_support.prefixed_path(input_file.path),
-    ])
+    )
+    args.add("--module", swift_module)
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
 
     execution_requirements = {
         "no-sandbox": "1",
@@ -220,7 +196,7 @@ def compile_xib(
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,
