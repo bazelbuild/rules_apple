@@ -33,6 +33,27 @@ load(
     "bundle_paths",
 )
 
+def _dtrace_toolchain_impl(ctx):
+    """Implementation for dtrace_toolchain."""
+    return [
+        platform_common.ToolchainInfo(
+            dtrace_executable = ctx.executable.dtrace or "/usr/sbin/dtrace",
+        ),
+    ]
+
+dtrace_toolchain = rule(
+    implementation = _dtrace_toolchain_impl,
+    attrs = {
+        "dtrace": attr.label(
+            doc = "dtrace binary to use. If not set /usr/sbin/dtrace is used.",
+            mandatory = False,
+            executable = True,
+            cfg = "exec",
+        ),
+    },
+    doc = "Defines a toolchain for dtrace_compile rules.",
+)
+
 def _dtrace_compile_impl(ctx):
     """Implementation for dtrace_compile."""
     apple_fragment = ctx.fragments.apple
@@ -41,7 +62,9 @@ def _dtrace_compile_impl(ctx):
     output_hdrs = []
     include_dir = None
 
-    dtrace = ctx.executable.dtrace
+    # Get dtrace executable from toolchain
+    dtrace_toolchain = ctx.toolchains["//apple:dtrace_toolchain_type"]
+    dtrace = dtrace_toolchain.dtrace_executable
 
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
@@ -81,19 +104,13 @@ def _dtrace_compile_impl(ctx):
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
-        "dtrace": attr.label(
-            doc = "dtrace binary to use.",
-            mandatory = False,
-            executable = True,
-            cfg = "exec",
-            default = "//apple:dtrace_wrapper",
-        ),
         "srcs": attr.label_list(
             allow_files = [".d"],
             allow_empty = False,
             doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
+    toolchains = ["//apple:dtrace_toolchain_type"],
     fragments = ["apple"],
     doc = """
 Compiles
@@ -111,16 +128,4 @@ structure. For example with a directory structure of
 and a target named `dtrace_gen` the header path would be
 `<GENFILES>/dtrace_gen/foo/bar.h`.
 """,
-)
-
-def _dtrace_wrapper_impl(ctx):
-    dtrace_wrapper = ctx.actions.declare_file("%s.sh" % ctx.label.name)
-    contents = """#!/bin/bash
-exec /usr/sbin/dtrace "$@"
-"""
-    ctx.actions.write(dtrace_wrapper, contents, is_executable = True)
-    return [DefaultInfo(files = depset([dtrace_wrapper]), executable = dtrace_wrapper)]
-
-dtrace_wrapper = rule(
-    implementation = _dtrace_wrapper_impl,
 )
