@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//apple/internal/aspects:resource_aspect_hint.bzl", "apple_resource_hint", "apple_resource_hint_action")
 load(":cc_toolchain_forwarder.bzl", "cc_toolchain_forwarder")
-load(":dtrace.bzl", "dtrace_wrapper")
+load(":dtrace.bzl", "dtrace_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -321,9 +321,21 @@ apple_resource_hint(
     action = apple_resource_hint_action.suppress,
 )
 
-dtrace_wrapper(
-    name = "dtrace_wrapper",
-    target_compatible_with = [
+toolchain_type(
+    name = "dtrace_toolchain_type",
+)
+
+dtrace_toolchain(
+    name = "dtrace_toolchain_impl",
+    # If no label specified the system dtrace binary is used.
+    dtrace = None,
+)
+
+toolchain(
+    name = "dtrace_toolchain",
+    exec_compatible_with = [
         "@platforms//os:macos",
     ],
+    toolchain = ":dtrace_toolchain_impl",
+    toolchain_type = ":dtrace_toolchain_type",
 )
