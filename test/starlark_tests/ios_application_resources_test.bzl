@@ -213,12 +213,27 @@ def ios_application_resources_test_suite(name):
         tags = [name] + common.fixture_tags + common.skip_ci_tags,
     )
 
-    # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
-    archive_contents_test(
-        name = "{}_icon_composer_and_asset_catalog_app_icons_plist_test".format(name),
-        build_type = "device",
+    # Test a failure when the new icon composer bundles for Xcode 26 are mixed with a set of asset \
+    # catalog icons.
+    analysis_failure_message_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_and_xcassets_app_icons",
+        expected_error = """
+Found .appiconset files among the assigned app_icons, which are ignored when Icon Composer .icon \
+bundles are present.""",
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
+    # than 26.0.
+    archive_contents_test(
+        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
         contains = [
+            "$BUNDLE_ROOT/Assets.car",
             "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
             "$BUNDLE_ROOT/app_icon60x60@2x.png",
         ],
@@ -246,60 +261,14 @@ Found the following legacy .appiconset files: """,
         ],
     )
 
-    # TODO: b/433727264 - Create a new test with archive_contents_test once Xcode 26 beta 4 is
-    # widely used by clients with the following target:
-    # //test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version
-
-    # Tests that an app with alternate app icons that also provides Icon Composer icon bundles will
-    # fail if every icon bundle is not backed by a legacy .appiconset app icon.
+    # Test a failure when new icon composer bundles for Xcode 26 are mixed with a set of asset
+    # catalog icons in an iOS app that provides alternate app icons.
     analysis_failure_message_test(
-        name = "{}_alt_app_icons_with_incomplete_icon_bundle_coverage_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons_with_incomplete_icon_bundle_coverage",
-        expected_error = """
-Among the primary and alternate app icons provided, the following are missing resources to support Apple OSes prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS:
-
-Found the following xcassets app icons by name missing Xcode 26 icon bundles:
-app_icon-bazel
-""",
-        tags = [
-            name,
-        ],
-    )
-
-    # Tests that an app with alternate app icons that also provides Icon Composer icon bundles will
-    # fail if every legacy .appiconset app icon is not backed by an Icon Composer icon bundle.
-    analysis_failure_message_test(
-        name = "{}_alt_app_icons_with_incomplete_xcassets_app_icons_coverage_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons_with_isolated_icon_bundles",
-        expected_error = """
-Among the primary and alternate app icons provided, the following are missing resources to support Apple OSes prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS:
-
-Found the following icon bundles by name missing legacy xcassets app icons:
-app_icon-dupe
-""",
-        tags = [
-            name,
-        ],
-    )
-
-    # Tests the new icon composer bundles for Xcode 26 with a set of asset catalog icons can be used
-    # with alternate app icons.
-    archive_contents_test(
-        name = "{}_icon_composer_and_asset_catalog_app_icons_with_alternate_app_icons_plist_test".format(name),
-        build_type = "device",
+        name = "{}_icon_composer_and_asset_catalog_app_icons_with_alternate_app_icons_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons_with_full_icon_bundle_coverage",
-        contains = [
-            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
-            "$BUNDLE_ROOT/app_icon60x60@2x.png",
-            "$BUNDLE_ROOT/app_icon-bazel60x60@2x.png",
-            "$BUNDLE_ROOT/app_icon-bazel76x76@2x~ipad.png",
-        ],
-        plist_test_file = "$CONTENT_ROOT/Info.plist",
-        plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
-            "CFBundleIcons:CFBundleAlternateIcons:app_icon-bazel:CFBundleIconFiles:0": "app_icon-bazel60x60",
-        },
+        expected_error = """
+Found .appiconset files among the assigned app_icons, which are ignored when Icon Composer .icon \
+bundles are present.""",
         tags = [
             name,
         ],
@@ -308,11 +277,9 @@ app_icon-dupe
     # Tests that icon composer icons will be flagged when building against Xcode 16 instead of 26.
     analysis_failure_message_test(
         name = "{}_test_xcode_16_with_icon_composer_icons_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
         expected_error = """
-Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.
-
-Found the following: """,
+Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.""",
         tags = [
             name,
         ],
@@ -364,14 +331,8 @@ Found the following: """,
         expected_error = """
 Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
 
-If you intend to assign multiple app icons to this target, please declare which of these is intended
-to be the primary app icon with the primary_app_icon attribute on the rule itself.
-
-Target was assigned the following app icons: [
-  third_party/bazel_rules/rules_apple/test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
-  third_party/bazel_rules/rules_apple/test/starlark_tests/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
-]
-""",
+If you intend to assign multiple app icons to this target, please declare which of these is \
+intended to be the primary app icon with the primary_app_icon attribute on the rule itself.""",
         tags = [name],
     )
 
