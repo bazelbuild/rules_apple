@@ -85,25 +85,22 @@ def _swift_dylib_action(
         strip_bitcode,
         swift_stdlib_tool):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
-    swift_stdlib_tool_args = [
-        "--platform",
-        platform_name,
-        "--output_path",
-        output_dir.path,
-    ]
-    for x in binary_files:
-        swift_stdlib_tool_args.extend([
-            "--binary",
-            x.path,
-        ])
+
+    swift_stdlib_tool_args = actions.args()
+    swift_stdlib_tool_args.add("--platform", platform_name)
+    swift_stdlib_tool_args.add("--output_path", output_dir.path)
+    swift_stdlib_tool_args.add_all(
+        binary_files,
+        before_each = "--binary",
+    )
 
     if strip_bitcode:
-        swift_stdlib_tool_args.append("--strip_bitcode")
+        swift_stdlib_tool_args.add("--strip_bitcode")
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = swift_stdlib_tool_args,
+        arguments = [swift_stdlib_tool_args],
         executable = swift_stdlib_tool,
         inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",
