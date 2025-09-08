@@ -487,6 +487,7 @@ def _generate_codesigning_dossier_action(
         output_discriminator,
         output_dossier,
         platform_prerequisites,
+        mac_exec_group,
         provisioning_profile):
     """Generates a codesigning dossier based on parameters.
 
@@ -502,6 +503,7 @@ def _generate_codesigning_dossier_action(
           or `None`.
       output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      mac_exec_group: The exec_group associated with dossier_codesigningtool.
       provisioning_profile: The provisioning profile file. May be `None`.
     """
     input_files = [x.dossier_file for x in embedded_dossiers]
@@ -561,6 +563,7 @@ def _generate_codesigning_dossier_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
         inputs = input_files,
         mnemonic = mnemonic,

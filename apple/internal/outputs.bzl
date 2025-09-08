@@ -37,6 +37,7 @@ def _archive(
         bundle_extension,
         bundle_name,
         label_name,
+        output_discriminator = "",
         platform_prerequisites,
         predeclared_outputs,
         rule_descriptor):
@@ -47,6 +48,11 @@ def _archive(
         platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
+        if output_discriminator:
+            return actions.declare_directory(paths.join(
+                output_discriminator,
+                bundle_name_with_extension,
+            ))
         if bundle_name != label_name:
             archive_relative_path = rule_descriptor.bundle_locations.archive_relative
             root_path = label_name + "_archive-root"

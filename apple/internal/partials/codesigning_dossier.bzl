@@ -235,7 +235,9 @@ def _codesigning_dossier_partial_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        mac_exec_group,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_location = None,
         bundle_name,
@@ -250,10 +252,10 @@ def _codesigning_dossier_partial_impl(
         rule_descriptor):
     """Implementation of codesigning_dossier_partial"""
 
-    if bundle_location and not _is_location_valid(bundle_location):
+    if bundle_location and bundle_location not in _VALID_LOCATIONS:
         fail(("Bundle location %s is not a valid location to embed a signed " +
               "binary - valid locations are %s") %
-             bundle_location, sets.str(_VALID_LOCATIONS))
+             bundle_location, _VALID_LOCATIONS)
     embedded_dossier_infos_depsets = [
         x[_AppleCodesigningDossierInfo].embedded_dossiers
         for x in embedded_targets
@@ -284,6 +286,7 @@ def _codesigning_dossier_partial_impl(
         embedded_dossiers = embedded_codesign_dossiers,
         entitlements = entitlements,
         provisioning_profile = provisioning_profile,
+        mac_exec_group = mac_exec_group,
     )
 
     embedded_dossier_depset = None
@@ -310,32 +313,46 @@ def _codesigning_dossier_partial_impl(
         ),
     )
 
-    output_archive = outputs.archive(
-        actions = actions,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        label_name = label_name,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        rule_descriptor = rule_descriptor,
-    )
-
-    output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
-
-    _create_combined_zip_artifact(
-        actions = actions,
-        bundletool = apple_xplat_toolchain_info.bundletool,
-        dossier_merge_zip = output_dossier,
-        input_archive = output_archive,
-        label_name = label_name,
-        output_combined_zip = output_combined_zip,
-        output_discriminator = output_discriminator,
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
     )
+
+    combined_zip_files = []
+
+    if not tree_artifact_is_enabled:
+        # The combined zip is only created when the rule's output is a zip file; if it's a tree
+        # artifact, we supply the bits necessary to create a combined zip in a downstream rule via
+        # the contents of the AppleBundleArchiveSupportInfo provider.
+        output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
+
+        output_archive = outputs.archive(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            label_name = label_name,
+            output_discriminator = output_discriminator,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
+        )
+
+        _create_combined_zip_artifact(
+            actions = actions,
+            dossier_merge_zip = output_dossier,
+            input_archive = output_archive,
+            label_name = label_name,
+            output_combined_zip = output_combined_zip,
+            output_discriminator = output_discriminator,
+            platform_prerequisites = platform_prerequisites,
+            bundletool = apple_xplat_toolchain_info.bundletool,
+            xplat_exec_group = xplat_exec_group,
+        )
+
+        combined_zip_files.append(output_combined_zip)
 
     return struct(
         output_groups = {
-            "combined_dossier_zip": depset([output_combined_zip]),
+            "combined_dossier_zip": depset(combined_zip_files),
             "dossier": depset([output_dossier]),
         },
         providers = providers,

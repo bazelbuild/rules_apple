@@ -257,6 +257,12 @@ triplet.
     implementation = _apple_mac_tools_toolchain_impl,
 )
 
+APPLE_MAC_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal/toolchains:mac_tools_toolchain_type"
+APPLE_XPLAT_TOOLCHAIN_TYPE = "@build_bazel_rules_apple//apple/internal/toolchains:apple_xplat_toolchain_type"
+
+APPLE_MAC_EXEC_GROUP = "_mac_tool_group"
+APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
+
 def _apple_xplat_tools_toolchain_impl(ctx):
     return [
         AppleXPlatToolsToolchainInfo(
@@ -271,6 +277,18 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         ),
         DefaultInfo(),
     ]
+
+def _get_mac_toolchain(ctx):
+    return ctx.exec_groups[APPLE_MAC_EXEC_GROUP].toolchains[APPLE_MAC_TOOLCHAIN_TYPE].mac_tools_info
+
+def _get_mac_exec_group(_ctx):
+    return APPLE_MAC_EXEC_GROUP
+
+def _get_xplat_toolchain(ctx):
+    return ctx.exec_groups[APPLE_XPLAT_EXEC_GROUP].toolchains[APPLE_XPLAT_TOOLCHAIN_TYPE].xplat_tools_info
+
+def _get_xplat_exec_group(_ctx):
+    return APPLE_XPLAT_EXEC_GROUP
 
 apple_xplat_tools_toolchain = rule(
     attrs = {
@@ -303,5 +321,9 @@ A `File` referencing a tool for extracting version info from builds.
 
 # Define the loadable module that lists the exported symbols in this file.
 apple_toolchain_utils = struct(
+    get_mac_toolchain = _get_mac_toolchain,
+    get_mac_exec_group = _get_mac_exec_group,
+    get_xplat_toolchain = _get_xplat_toolchain,
+    get_xplat_exec_group = _get_xplat_exec_group,
     shared_attrs = _shared_attrs,
 )

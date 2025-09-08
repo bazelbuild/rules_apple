@@ -112,6 +112,10 @@ load(
     "//apple/internal/utils:files.bzl",
     "files",
 )
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
 
 def _has_non_system_swift_modules(*, target):
     """Indicates if the given target references any non-system Swift modules.
@@ -422,20 +426,28 @@ def _create_xcframework_root_infoplist(
 def _create_xcframework_bundle(
         *,
         actions,
+        apple_fragment,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_name,
-        bundletool,
         framework_archive_files,
         framework_archive_merge_files,
         framework_archive_merge_zips = [],
         label_name,
+        mac_exec_group,
         output_archive,
-        root_info_plist):
+        root_info_plist,
+        tree_artifact_is_enabled,
+        xcode_config,
+        xplat_exec_group):
     """Generates the bundle archive for an XCFramework.
 
      Args:
         actions: The actions providerx from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_name: The name of the XCFramework bundle.
-        bundletool: A files to run for the bundle tool.
         framework_archive_files: A list of depsets referencing files to be used as inputs to the
             bundling action. This should include every archive referenced as a "src" of
             framework_archive_merge_zips.
@@ -449,8 +461,12 @@ def _create_xcframework_bundle(
             the bundle where the ZIPs contents should be placed. The destination path is relative to
             `bundle_path`.
         label_name: Name of the target being built.
+        mac_exec_group: A string. The exec_group for actions using mac toolchain.
         output_archive: The file representing the final bundled archive.
         root_info_plist: A `File` representing a fully formed root Info.plist for this XCFramework.
+        tree_artifact_is_enabled: Whether tree artifacts are enabled for the target.
+        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     bundletool_control_file = intermediates.file(
         actions = actions,
@@ -471,33 +487,71 @@ def _create_xcframework_bundle(
         content = json.encode(bundletool_control),
     )
 
-    actions.run(
-        arguments = [bundletool_control_file.path],
-        executable = bundletool,
-        inputs = depset(
-            direct = [bundletool_control_file, root_info_plist],
-            transitive = framework_archive_files,
-        ),
-        mnemonic = "CreateXCFrameworkBundle",
-        outputs = [output_archive],
-        progress_message = "Bundling %s" % label_name,
-    )
+    if tree_artifact_is_enabled:
+        bundletool = apple_mac_toolchain_info.bundletool_experimental
+        apple_support.run(
+            actions = actions,
+            apple_fragment = apple_fragment,
+            arguments = [bundletool_control_file.path],
+            executable = bundletool,
+            execution_requirements = {
+                # Added so that the output of this action is not cached remotely, in case multiple
+                # developers sign the same artifact with different identities.
+                "no-remote": "1",
+                # Unsure, but may be needed for keychain access, especially for files that live in
+                # $HOME.
+                "no-sandbox": "1",
+            },
+            exec_group = mac_exec_group,
+            inputs = depset(
+                direct = [bundletool_control_file, root_info_plist],
+                transitive = framework_archive_files,
+            ),
+            mnemonic = "CreateXCFrameworkBundle",
+            outputs = [output_archive],
+            progress_message = "Bundling %s" % label_name,
+            xcode_config = xcode_config,
+        )
+    else:
+        bundletool = apple_xplat_toolchain_info.bundletool
+        actions.run(
+            arguments = [bundletool_control_file.path],
+            executable = bundletool.files_to_run,
+            exec_group = xplat_exec_group,
+            inputs = depset(
+                direct = [bundletool_control_file, root_info_plist],
+                transitive = framework_archive_files,
+            ),
+            mnemonic = "CreateXCFrameworkBundle",
+            outputs = [output_archive],
+            progress_message = "Bundling %s" % label_name,
+        )
 
 def _apple_xcframework_impl(ctx):
     """Implementation of apple_xcframework."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_fragment = ctx.fragments.apple
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    config_vars = ctx.var
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     deps = ctx.split_attr.deps
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    tree_artifact_is_enabled = False
+    outputs_archive = ctx.outputs.archive
     if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = ctx.var)):
-        fail("The apple_xcframework rule does not yet support the experimental tree artifact. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
+        is_experimental_tree_artifact_enabled(config_vars = config_vars)):
+        actions.write(
+            output = ctx.outputs.archive,
+            content = "This is a dummy file because tree artifacts are enabled",
+        )
+        tree_artifact_is_enabled = True
+        outputs_archive = actions.declare_directory(bundle_name + ".xcframework")
 
     # Add the disable_legacy_signing feature to the list of features
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
@@ -553,7 +607,7 @@ def _apple_xcframework_impl(ctx):
         deps = deps,
         label_name = label.name,
         link_result = link_result,
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_config = xcode_version_config,
     )
 
     available_libraries = []
@@ -579,7 +633,7 @@ def _apple_xcframework_impl(ctx):
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
             build_settings = apple_xplat_toolchain_info.build_settings,
-            config_vars = ctx.var,
+            config_vars = config_vars,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(
                 link_output.platform,
@@ -741,10 +795,25 @@ def _apple_xcframework_impl(ctx):
         for provider in processor_result.providers:
             # Save the framework archive.
             if getattr(provider, "archive", None):
-                # Repackage every archive found for bundle_merge_zips in the final bundler action.
-                framework_archive_merge_zips.append(
-                    struct(src = provider.archive.path, dest = library_identifier),
-                )
+                # Repackage every archive found for bundle_merge_files or bundle_merge_zips in the
+                # final bundler action, depending on whether tree artifacts are enabled.
+                if tree_artifact_is_enabled:
+                    framework_archive_merge_files.append(
+                        struct(
+                            src = provider.archive.path,
+                            dest = paths.join(
+                                library_identifier,
+                                bundle_name + nested_bundle_extension,
+                            ),
+                        ),
+                    )
+                else:
+                    framework_archive_merge_zips.append(
+                        struct(
+                            src = provider.archive.path,
+                            dest = library_identifier,
+                        ),
+                    )
 
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
@@ -775,25 +844,31 @@ def _apple_xcframework_impl(ctx):
         available_libraries = available_libraries,
         plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_config = xcode_version_config,
     )
 
     _create_xcframework_bundle(
         actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
-        bundletool = apple_xplat_toolchain_info.bundletool,
         framework_archive_files = framework_archive_files,
         framework_archive_merge_files = framework_archive_merge_files,
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
+        mac_exec_group = mac_exec_group,
         output_archive = ctx.outputs.archive,
         root_info_plist = root_info_plist,
+        tree_artifact_is_enabled = tree_artifact_is_enabled,
+        xcode_config = xcode_version_config,
+        xplat_exec_group = xplat_exec_group,
     )
 
     processor_output = [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
         new_applebundleinfo(
-            archive = ctx.outputs.archive,
+            archive = outputs_archive,
             bundle_extension = ".xcframework",
             bundle_id = nested_bundle_id,
             bundle_name = bundle_name,
@@ -803,7 +878,7 @@ def _apple_xcframework_impl(ctx):
         ),
         new_applexcframeworkbundleinfo(),
         DefaultInfo(
-            files = depset([ctx.outputs.archive], transitive = framework_output_files),
+            files = depset([outputs_archive], transitive = framework_output_files),
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
@@ -959,19 +1034,34 @@ def _apple_static_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.label.name
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    config_vars = ctx.var
     deps = ctx.split_attr.deps
     label = ctx.label
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+
+
+    tree_artifact_is_enabled = False
     outputs_archive = ctx.outputs.archive
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+        is_experimental_tree_artifact_enabled(config_vars = config_vars)):
+        actions.write(
+            output = ctx.outputs.archive,
+            content = "This is a dummy file because tree artifacts are enabled",
+        )
+        tree_artifact_is_enabled = True
+        outputs_archive = actions.declare_directory(bundle_name + ".xcframework")
+
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
@@ -983,7 +1073,7 @@ def _apple_static_xcframework_impl(ctx):
         deps = deps,
         label_name = bundle_name,
         link_result = archive_result,
-        xcode_config = xcode_config,
+        xcode_config = xcode_version_config,
     )
 
     available_libraries = []
@@ -1067,7 +1157,7 @@ def _apple_static_xcframework_impl(ctx):
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
             build_settings = apple_xplat_toolchain_info.build_settings,
-            config_vars = ctx.var,
+            config_vars = config_vars,
             cpp_fragment = ctx.fragments.cpp,
             device_families = ctx.attr.families_required.get(
                 link_output.platform,
@@ -1140,18 +1230,24 @@ def _apple_static_xcframework_impl(ctx):
         available_libraries = available_libraries,
         plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
-        xcode_config = xcode_config,
+        xcode_config = xcode_version_config,
     )
 
     _create_xcframework_bundle(
         actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
-        bundletool = apple_xplat_toolchain_info.bundletool,
         framework_archive_files = framework_archive_files,
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
+        mac_exec_group = mac_exec_group,
         output_archive = outputs_archive,
         root_info_plist = root_info_plist,
+        tree_artifact_is_enabled = tree_artifact_is_enabled,
+        xcode_config = xcode_version_config,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
