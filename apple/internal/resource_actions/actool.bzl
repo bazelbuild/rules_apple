@@ -152,24 +152,11 @@ Found the following legacy .appiconset files: {xcasset_appicon_files}
             supported on Xcode 26 or later.
             """)
 
-        xcode_26_beta_4_or_later = (
-            xcode_config.xcode_version() >=
-            apple_common.dotted_version("26.0.0.17A5285i")
-        )
-        if not min_os_version_26_or_later and not icon_files and not xcode_26_beta_4_or_later:
+        if icon_files:
             fail("""
-Found no .appiconset files among the assigned app icons, which are required to support \
-iOS/macOS/watchOS prior to 26 in Xcode 26 beta 3.
-
-.appiconset files in .xcassets directories are required for rendering legacy icons in \
-iOS/macOS/watchOS prior to 26 in Xcode 26 beta 3.
-
-NOTE: This issue is fixed in Xcode 26 beta 4, and this error will not be seen when building with \
-Xcode 26 beta 4 or later.
-
-Found the following app icons instead: {icon_bundle_files}
-
-""".format(icon_bundle_files = icon_bundle_files))
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """)
 
         bundling_support.ensure_asset_catalog_files_not_in_xcassets(
             extension = "icon",
@@ -251,14 +238,6 @@ def _verify_icon_dirs(
 
     if len(icon_dirs + icon_bundle_dirs) == 1:
         has_exactly_one_icon_dir = True
-    elif len(icon_dirs) == 1 and len(icon_bundle_dirs) == 1:
-        # Carve out; the AppIcon and Icon bundles can be used together to support Apple OSes
-        # prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS as long as
-        # their names match perfectly.
-        icon_paths_to_compare = [icon_dirs[0], icon_bundle_dirs[0]]
-        unique_icon_names = _unique_icon_names(all_icon_dirs = icon_paths_to_compare)
-        if len(unique_icon_names) == 1:
-            has_exactly_one_icon_dir = True
 
     if not has_exactly_one_icon_dir and not primary_icon_name:
         formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
@@ -267,31 +246,35 @@ def _verify_icon_dirs(
         # iOS-on-macOS (Catalyst)
         if (platform_type in ("watchos", "macos") or
             product_type != apple_product_type.application):
-            xcode_26_workaround_message = ""
-            if xcode_config.xcode_version() >= apple_common.dotted_version("26.0"):
-                xcode_26_workaround_message = (
-                    "which can be accompanied by exactly one Icon Composer .icon bundle of " +
-                    "the same name, "
-                )
+            if icon_bundle_dirs:
+                fail("""
+The app_icons should contain exactly one directory named *.icon (the Icon Composer .icon bundle), \
+but found the following:
+{formatted_dirs}
 
-            fail("""
+""".format(
+                    formatted_dirs = formatted_dirs,
+                ))
+            else:
+                fail("""
 The asset catalogs should contain exactly one directory named *.{appicon_extension} among its \
-asset catalogs, \
-{xcode_26_workaround_message}\
-but found the following: \
-{formatted_dirs}""".format(
-                appicon_extension = appicon_extension,
-                formatted_dirs = formatted_dirs,
-                xcode_26_workaround_message = xcode_26_workaround_message,
-            ))
+asset catalogs, but found the following:
+{formatted_dirs}
+
+""".format(
+                    appicon_extension = appicon_extension,
+                    formatted_dirs = formatted_dirs,
+                ))
         else:
             fail("""
 Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
 
-If you intend to assign multiple app icons to this target, please declare which of these is intended
-to be the primary app icon with the primary_app_icon attribute on the rule itself.
+If you intend to assign multiple app icons to this target, please declare which of these is \
+intended to be the primary app icon with the primary_app_icon attribute on the rule itself.
 
-Target was assigned the following app icons: {formatted_dirs}
+Target was assigned the following app icons:
+{formatted_dirs}
+
 """.format(formatted_dirs = formatted_dirs))
 
 def _args_for_app_icons(
@@ -340,31 +323,9 @@ def _args_for_app_icons(
         )
 
         if primary_icon_name:
-            unique_app_icon_names = _unique_icon_names(all_icon_dirs = icon_dirs)
-            unique_icon_bundle_names = _unique_icon_names(all_icon_dirs = icon_bundle_dirs)
-            if unique_app_icon_names and unique_icon_bundle_names:
-                # Validate that the xcassets app icons and icon bundles have the same names.
-                icons_missing_icon_bundles = unique_app_icon_names - unique_icon_bundle_names
-                icons_missing_app_icons = unique_icon_bundle_names - unique_app_icon_names
-                if icons_missing_icon_bundles or icons_missing_app_icons:
-                    fail("""
-Among the primary and alternate app icons provided, the following are missing resources to support \
-Apple OSes prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS:
-{icons_missing_icon_bundles_text}{icons_missing_app_icons_text}
-""".format(
-                        icons_missing_icon_bundles_text = (
-                            "\nFound the following xcassets app icons by name missing Xcode 26 " +
-                            "icon bundles:\n" + ", ".join(icons_missing_icon_bundles)
-                        ) if icons_missing_icon_bundles else "",
-                        icons_missing_app_icons_text = (
-                            "\nFound the following icon bundles by name missing legacy xcassets " +
-                            "app icons:\n" + ", ".join(icons_missing_app_icons)
-                        ) if icons_missing_app_icons else "",
-                    ))
-
             # Check that primary_icon_name matches one of the icon sets, then add actool arguments
             # for `--alternate-app-icon` and `--app_icon` as appropriate. These do NOT overlap.
-            unique_icon_names = unique_app_icon_names | unique_icon_bundle_names
+            unique_icon_names = _unique_icon_names(all_icon_dirs = icon_dirs + icon_bundle_dirs)
             found_primary = False
             for app_icon_name in unique_icon_names:
                 if app_icon_name == primary_icon_name:

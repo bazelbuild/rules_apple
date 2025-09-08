@@ -467,18 +467,14 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         ],
     )
 
-    # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
-    archive_contents_test(
-        name = "{}_icon_composer_and_asset_catalog_app_icons_plist_test".format(name),
-        build_type = "device",
+    # Test for a failure when the new icon composer bundles for Xcode 26 are assigned  with a set
+    # of asset catalog icons.
+    analysis_failure_message_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_icon_bundle_and_xcassets_app_icons",
-        contains = [
-            "$BUNDLE_ROOT/Assets.car",
-        ],
-        plist_test_file = "$CONTENT_ROOT/Info.plist",
-        plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
-        },
+        expected_error = """
+Found .appiconset files among the assigned app_icons, which are ignored when Icon Composer .icon \
+bundles are present.""",
         tags = [
             name,
         ],
