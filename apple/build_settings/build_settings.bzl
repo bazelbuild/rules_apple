@@ -42,7 +42,9 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
         doc = """
 The identifier, ECID, serial number, UDID, user-provided name, or DNS name
 of the device for running an iOS application.
-You can get a list of devices by running 'xcrun devicectl list devices`.
+
+You can get a list of devices by running `xcrun devicectl list devices` (for
+physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),

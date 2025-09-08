@@ -496,6 +496,9 @@ def _ios_application_impl(ctx):
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
             simulator_device = ctx.fragments.objc.ios_simulator_device,
+            simulator_identifier = (
+                apple_xplat_toolchain_info.build_settings.ios_device
+            ),
             simulator_version = ctx.fragments.objc.ios_simulator_version,
         )
 
