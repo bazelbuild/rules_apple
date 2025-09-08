@@ -748,6 +748,7 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
         )

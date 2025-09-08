@@ -49,6 +49,7 @@ def _apple_bundle_info_partial_impl(
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )

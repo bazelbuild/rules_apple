@@ -100,6 +100,10 @@ directory_test = rule(
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
 """,
         ),
+        "build_settings": attr.string_dict(
+            mandatory = False,
+            doc = "Build settings for target under test.",
+        ),
         "build_type": attr.string(
             default = "simulator",
             doc = """

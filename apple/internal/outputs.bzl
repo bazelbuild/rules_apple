@@ -45,6 +45,7 @@ def _archive(
         actions,
         bundle_extension,
         bundle_name,
+        output_discriminator = "",
         platform_prerequisites,
         predeclared_outputs):
     """Returns a file reference for this target's archive."""
@@ -54,6 +55,11 @@ def _archive(
         platform_prerequisites = platform_prerequisites,
     )
     if tree_artifact_enabled:
+        if output_discriminator:
+            return actions.declare_directory(paths.join(
+                output_discriminator,
+                bundle_name_with_extension,
+            ))
         return actions.declare_directory(bundle_name_with_extension)
     return predeclared_outputs.archive
 
