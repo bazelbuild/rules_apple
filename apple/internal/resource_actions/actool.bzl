@@ -542,7 +542,7 @@ def compile_asset_catalog(
 
     platform_type = platform_prerequisites.platform_type
 
-    if platform_type == "macos" and not xcode_before_26:
+    if platform_type == "macos" and not (xcode_before_26 or xcode_26_beta_5_or_later):
         # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
         # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
         args.add("--lightweight-asset-runtime-mode", "enabled")
