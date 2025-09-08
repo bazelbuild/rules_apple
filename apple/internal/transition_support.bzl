@@ -254,9 +254,6 @@ def _command_line_options(
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
         "//command_line_option:cpu": cpu,
-        "//command_line_option:crosstool_top": (
-            settings["//command_line_option:apple_crosstool_top"]
-        ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
         "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else default_platforms,
@@ -383,7 +380,6 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
-    "//command_line_option:apple_crosstool_top",
 ] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values()
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
@@ -407,7 +403,6 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:cpu",
-    "//command_line_option:crosstool_top",
     "//command_line_option:fission",
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
