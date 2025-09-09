@@ -471,16 +471,6 @@ def compile_asset_catalog(
         apple_common.dotted_version("26.0")
     )
 
-    xcode_26_beta_4_or_later = (
-        xcode_config.xcode_version() >=
-        apple_common.dotted_version("26.0.0.17A5285i")
-    )
-
-    xcode_26_beta_5_or_later = (
-        xcode_config.xcode_version() >=
-        apple_common.dotted_version("26.0.0.17A5295f")
-    )
-
     args = actions.args()
     args.add("actool")
 
@@ -502,29 +492,12 @@ def compile_asset_catalog(
         "--downgrade-error=substring=Launch images are deprecated in tvOS 13.0",
     ])
 
-    if not (xcode_before_26 or xcode_26_beta_4_or_later):
-        # Handle the nonsense warnings and errors expected for Xcode 26 beta 1/2/3.
-        args.add_all([
-            # Mute warnings for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
-            "--mute-warning=substring=Failure Reason: The data is not in the correct format.",
-            "--mute-warning=substring=Underlying Errors:",
-            "--mute-warning=substring=Debug Description: Garbage at end around line ",
-            "--mute-warning=substring=Description: The data couldn’t be read because it isn’t in the correct format.",
-            "--mute-warning=substring=Failed to parse icontool JSON output.",
-            # Mute errors for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
-            "--mute-error=exact=Entity: line 1: parser error : Start tag expected, '<' not found",
-            "--mute-error=exact=�PNG",
-            "--mute-error=exact=^",
-            # Downgrade Xcode 26 beta 3 watchOS "Failed to generate flattened icon stack" errors
-            # when building Icon Composer icon bundles without legacy xcassets App Icons that define
-            # a "universal" 1024x1024 PNG icon. (b/430862638)
-            "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
-        ])
-
     if not xcode_before_26:
-        # Handle the nonsense warnings and errors for Xcode 26 up to beta 5.
+        # Handle the nonsense warnings and errors for Xcode 26.
         args.add_all([
-            # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26.
+            # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26. This is
+            # called out in the release notes as an error that can be "safely ignored" in
+            # https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes.
             "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
             # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld.
             "--mute-error=substring= is being set to 0xBAD4007.",
@@ -541,11 +514,6 @@ def compile_asset_catalog(
     args.add("--compress-pngs")
 
     platform_type = platform_prerequisites.platform_type
-
-    if platform_type == "macos" and not (xcode_before_26 or xcode_26_beta_5_or_later):
-        # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
-        # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
-        args.add("--lightweight-asset-runtime-mode", "enabled")
 
     extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
