@@ -295,8 +295,7 @@ def _args_for_app_icons(
         icon_info,
         primary_icon_name,
         platform_type,
-        product_type,
-        xcode_config):
+        product_type):
     """Returns arguments for app icons."""
     args = []
     if product_type == apple_product_type.messages_extension:
@@ -331,7 +330,6 @@ def _args_for_app_icons(
             platform_type = platform_type,
             primary_icon_name = primary_icon_name,
             product_type = product_type,
-            xcode_config = xcode_config,
         )
 
         if primary_icon_name:
@@ -424,7 +422,6 @@ def _validate_asset_files_and_generate_args(
         platform_type = platform_type,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-        xcode_config = xcode_config,
     ))
 
     launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
@@ -506,62 +503,11 @@ def compile_asset_catalog(
     actool_platform = platform.name_in_plist.lower()
     xcode_config = platform_prerequisites.xcode_version_config
 
-    xcode_before_26 = (
-        xcode_config.xcode_version() <
-        apple_common.dotted_version("26.0")
-    )
-
-    xcode_26_beta_4_or_later = (
-        xcode_config.xcode_version() >=
-        apple_common.dotted_version("26.0.0.17A5285i")
-    )
-
-    xcode_26_beta_5_or_later = (
-        xcode_config.xcode_version() >=
-        apple_common.dotted_version("26.0.0.17A5295f")
-    )
-
-    args = ["actool"]
-
-    # Custom xctoolrunner options.
-    args.extend([
-        # Mute warnings for iPad 1x 76x76 icons.
-        "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: (null)",
-        "--mute-warning=substring=[][ipad][76x76][][][1x][][][]: notice: 76x76@1x ",
-        "--mute-warning=substring=app icons only apply to iPad apps targeting releases of iOS prior to 10.0.",
-        # Mute harmless CoreImage errors, referencing SDK artifacts that are not provided by Xcode.
-        "--mute-error=substring=CIPortraitEffectSpillCorrection",
-        "--mute-error=substring=RuntimeRoot/System/Library/CoreImage/PortraitFilters.cifilter",
-        # Downgrade errors for requiring a 1024x1024 PNG for App Store distribution. (b/246165573)
-        "--downgrade-error=substring=1024x1024",
-        # Downgrade errors for icons referenced by multiple xcassets imagesets. (b/139094648)
-        "--downgrade-error=substring=is used by multiple",
-        # Downgrade errors for the use of launch images in iOS and tvOS apps.
-        "--downgrade-error=substring=Launch images are deprecated in iOS 13.0",
-        "--downgrade-error=substring=Launch images are deprecated in tvOS 13.0",
-    ])
-
-    if not (xcode_before_26 or xcode_26_beta_4_or_later):
-        # Handle the nonsense warnings and errors for Xcode 26 beta 1/2/3.
-        args.extend([
-            # Mute warnings for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
-            "--mute-warning=substring=Failure Reason: The data is not in the correct format.",
-            "--mute-warning=substring=Underlying Errors:",
-            "--mute-warning=substring=Debug Description: Garbage at end around line ",
-            "--mute-warning=substring=Description: The data couldn’t be read because it isn’t in the correct format.",
-            "--mute-warning=substring=Failed to parse icontool JSON output.",
-            # Mute errors for Xcode 26 beta 1/2/3's erroneous attempt to parse PNG files as XML.
-            "--mute-error=exact=Entity: line 1: parser error : Start tag expected, '<' not found",
-            "--mute-error=exact=�PNG",
-            "--mute-error=exact=^",
-            # Downgrade Xcode 26 beta 3 watchOS "Failed to generate flattened icon stack" errors
-            # when building Icon Composer icon bundles without legacy xcassets App Icons that define
-            # a "universal" 1024x1024 PNG icon. (b/430862638)
-            "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
-        ])
+    args = actions.args()
+    args.add("actool")
 
     # Standard actool options.
-    args.extend([
+    args.add_all([
         "--compile",
         xctoolrunner_support.prefixed_path(output_dir.path),
         "--errors",
@@ -578,11 +524,6 @@ def compile_asset_catalog(
 
     platform_type = platform_prerequisites.platform_type
 
-    if platform_type == "macos" and not (xcode_before_26 or xcode_26_beta_5_or_later):
-        # FB18666546 - Required for the Icon Composer .icon bundles to work as inputs, even though
-        # it's not documented. Xcode 26 betas 1 through 4 rely on this flag to be set for macOS.
-        args.extend(["--lightweight-asset-runtime-mode", "enabled"])
-
     extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
         bundle_id = bundle_id,
@@ -592,9 +533,9 @@ def compile_asset_catalog(
         product_type = product_type,
         xcode_config = xcode_config,
     )
-    args.extend(extra_actool_args)
+    args.add_all(extra_actool_args)
 
-    args.extend(
+    args.add_all(
         collections.before_each(
             "--target-device",
             platform_prerequisites.device_families,
@@ -617,7 +558,7 @@ def compile_asset_catalog(
             actool_output_plist = output_plist
 
         outputs.append(actool_output_plist)
-        args.extend([
+        args.add_all([
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(actool_output_plist.path),
         ])
@@ -628,11 +569,11 @@ def compile_asset_catalog(
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
+    args.add_all([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
