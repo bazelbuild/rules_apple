@@ -147,6 +147,9 @@ def _watchos_environment_archs_from_ios(*, platform, minimum_os_version, setting
         ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
         if ios_arch:
             ios_archs = [ios_arch]
+        elif (platform == Label("//buildenv/platforms/apple:darwin_arm64") or
+              platform == Label("//buildenv/platforms/apple:darwin_arm64e")):
+            ios_archs = ["sim_arm64"]
     if ios_archs:
         # Make sure to return a fallback compatible with the rule's assigned minimum OS.
         ios_to_watchos_arch_dict = _IOS_ARCH_TO_64_BIT_WATCHOS
@@ -182,6 +185,9 @@ def _environment_archs(platform_type, minimum_os_version, settings):
             ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
             if ios_arch:
                 environment_archs = [ios_arch]
+            elif (platform == Label("//buildenv/platforms/apple:darwin_arm64") or
+                  platform == Label("//buildenv/platforms/apple:darwin_arm64e")):
+                environment_archs = ["sim_arm64"]
         if platform_type == "watchos":
             # Use --platforms to determine the watchOS environment arch; often will be set by
             # a transition.
