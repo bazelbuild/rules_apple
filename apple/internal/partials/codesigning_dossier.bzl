@@ -274,16 +274,25 @@ def _codesigning_dossier_partial_impl(
         bundle_name = bundle_name,
     ) if bundle_location else None
 
+    codesign_identity = codesigning_support.preferred_codesigning_identity(
+        build_settings = platform_prerequisites.build_settings,
+        objc_fragment = platform_prerequisites.objc_fragment,
+        requires_adhoc_signing = not platform_prerequisites.platform.is_device,
+    )
+
     codesigning_support.generate_codesigning_dossier_action(
         actions = actions,
-        label_name = label_name,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
-        output_discriminator = output_discriminator,
-        output_dossier = output_dossier,
-        platform_prerequisites = platform_prerequisites,
         embedded_dossiers = embedded_codesign_dossiers,
         entitlements = entitlements,
+        label_name = label_name,
+        output_discriminator = output_discriminator,
+        output_dossier = output_dossier,
         provisioning_profile = provisioning_profile,
+        target_signs_with_entitlements = platform_prerequisites.platform.is_device,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     embedded_dossier_depset = None
