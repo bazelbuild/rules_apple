@@ -832,6 +832,7 @@ bzl_library(
         ":swift_support",
         ":transition_support",
         "//apple:providers",
+        "//apple/internal:codesigning_support",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:resource_aspect_hint",
         "//apple/internal/aspects:swift_usage_aspect",
