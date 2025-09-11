@@ -769,13 +769,15 @@ def _apple_xcframework_impl(ctx):
                     debug_discriminator = link_output.platform + "_" + link_output.environment
                     dsym_output_filename = (executable_name or bundle_name) + "_" + debug_discriminator
                     dsym_bundle_dirname = (bundle_name + "_" + debug_discriminator +
-                        nested_bundle_extension + ".dSYM")
+                                           nested_bundle_extension + ".dSYM")
 
                     for f in provider.dsyms.to_list():
                         p = f.path
+
                         # Match only this target's dSYM files by bundle dir name.
                         if "/" + dsym_bundle_dirname + "/" not in p:
                             continue
+
                         # We only embed the Info.plist and DWARF binary; skip other transitive
                         # dSYMs from deps if any leak in.
                         is_info = p.endswith("/Contents/Info.plist")
