@@ -318,6 +318,7 @@ def _available_library_dictionary(
         architectures,
         environment,
         headers_path,
+        debug_symbols_path = None,
         library_identifier,
         library_path,
         platform):
@@ -352,6 +353,9 @@ def _available_library_dictionary(
 
     if headers_path:
         available_library["HeadersPath"] = headers_path
+
+    if debug_symbols_path:
+        available_library["DebugSymbolsPath"] = debug_symbols_path
 
     if environment != "device":
         available_library["SupportedPlatformVariant"] = environment
@@ -562,6 +566,7 @@ def _apple_xcframework_impl(ctx):
     framework_archive_merge_zips = []
     framework_output_files = []
     framework_output_groups = []
+    include_dsym = getattr(ctx.attr, "include_dsym", False)
 
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -738,6 +743,9 @@ def _apple_xcframework_impl(ctx):
             rule_label = label,
         )
 
+        # Used to collect the dSYM files that correspond to the current library identifier only.
+        current_lib_dsym_files = []
+
         for provider in processor_result.providers:
             # Save the framework archive.
             if getattr(provider, "archive", None):
@@ -754,6 +762,41 @@ def _apple_xcframework_impl(ctx):
                 framework_output_files.append(depset(transitive = [provider.dsyms]))
                 framework_output_groups.append({"dsyms": provider.dsyms})
 
+                # If embedding dSYMs was requested, filter the direct dSYM files for this
+                # framework slice and schedule them to be merged into the XCFramework bundle.
+                if include_dsym:
+                    # Reconstruct names used by debug_symbols_partial to locate the expected files.
+                    debug_discriminator = link_output.platform + "_" + link_output.environment
+                    dsym_output_filename = (executable_name or bundle_name) + "_" + debug_discriminator
+                    dsym_bundle_dirname = (bundle_name + "_" + debug_discriminator +
+                        nested_bundle_extension + ".dSYM")
+
+                    for f in provider.dsyms.to_list():
+                        p = f.path
+                        # Match only this target's dSYM files by bundle dir name.
+                        if "/" + dsym_bundle_dirname + "/" not in p:
+                            continue
+                        # We only embed the Info.plist and DWARF binary; skip other transitive
+                        # dSYMs from deps if any leak in.
+                        is_info = p.endswith("/Contents/Info.plist")
+                        is_dwarf = p.endswith("/Contents/Resources/DWARF/" + dsym_output_filename)
+                        if not (is_info or is_dwarf):
+                            continue
+                        current_lib_dsym_files.append(f)
+                        framework_archive_files.append(depset([f]))
+                        dest_rel = "Contents/Info.plist" if is_info else (
+                            "Contents/Resources/DWARF/" + dsym_output_filename
+                        )
+                        framework_archive_merge_files.append(struct(
+                            src = f.path,
+                            dest = paths.join(
+                                library_identifier,
+                                "dSYMs",
+                                dsym_bundle_dirname,
+                                dest_rel,
+                            ),
+                        ))
+
             # Save the linkmaps.
             if getattr(provider, "linkmaps", None):
                 framework_output_files.append(depset(transitive = [provider.linkmaps]))
@@ -764,6 +807,7 @@ def _apple_xcframework_impl(ctx):
             architectures = link_output.architectures,
             environment = link_output.environment,
             headers_path = None,
+            debug_symbols_path = ("dSYMs" if include_dsym and current_lib_dsym_files else None),
             library_identifier = library_identifier,
             library_path = bundle_name + nested_bundle_extension,
             platform = link_output.platform,
@@ -835,6 +879,15 @@ apple_xcframework = rule_factory.create_apple_rule(
                     "//apple/internal:environment_plist_ios",
                     "//apple/internal:environment_plist_tvos",
                 ],
+            ),
+            "include_dsym": attr.bool(
+                default = False,
+                doc = """
+If true, include debug symbol (dSYM) bundles inside the generated XCFramework and annotate
+the XCFramework Info.plist with DebugSymbolsPath for each library slice. This allows tools like
+consumers (including Xcode) to locate the embedded symbols. This mirrors the behavior of
+`xcodebuild -create-xcframework -debug-symbols`.
+""",
             ),
             "bundle_id": attr.string(
                 mandatory = True,

@@ -353,6 +353,30 @@ apple_xcframework(
     deps = [":fmwk_lib"],
 )
 
+# Same as ios_dynamic_xcframework but embeds dSYM bundles into the XCFramework
+# when dSYM generation is enabled in the build.
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_dsyms",
+    bundle_id = "com.google.example",
+    extension_safe = True,
+    include_dsym = True,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
 genrule(
     name = "generate_umbrella_header",
     outs = ["Umbrella.h"],

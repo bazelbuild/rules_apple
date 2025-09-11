@@ -69,6 +69,19 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # When include_dsym is enabled and dSYM generation is requested, ensure the
+    # XCFramework Info.plist contains DebugSymbolsPath for each slice.
+    infoplist_contents_test(
+        name = "{}_ios_plist_includes_dsym_path_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_dsyms",
+        expected_values = {
+            "AvailableLibraries:0:DebugSymbolsPath": "dSYMs",
+            "AvailableLibraries:1:DebugSymbolsPath": "dSYMs",
+        },
+        apple_generate_dsym = True,
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_ios_fat_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
@@ -148,6 +161,22 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    # Verify that when include_dsym is set, the dSYM bundles are embedded under
+    # the library identifier inside the XCFramework.
+    archive_contents_test(
+        name = "{}_ios_embeds_dsyms_in_xcframework_test".format(name),
+        build_type = "device",
+        apple_generate_dsym = True,
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_dsyms",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/dSYMs/ios_dynamic_xcframework_with_dsyms_ios_device.framework.dSYM/Contents/Info.plist",
+            "$BUNDLE_ROOT/ios-arm64/dSYMs/ios_dynamic_xcframework_with_dsyms_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_with_dsyms_ios_device",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/dSYMs/ios_dynamic_xcframework_with_dsyms_ios_simulator.framework.dSYM/Contents/Info.plist",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/dSYMs/ios_dynamic_xcframework_with_dsyms_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_with_dsyms_ios_simulator",
         ],
         tags = [name],
     )
