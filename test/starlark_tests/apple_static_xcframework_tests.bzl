@@ -23,6 +23,14 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -779,6 +787,23 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
         name = "{}_framework_does_not_define_valid_minimum_os_versions_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_framework_without_valid_minimum_os_versions",
         expected_error = "received a minimum OS version for xros, but this is not supported by the XCFramework rules.",
+        tags = [name],
+    )
+
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_dossier_info_provider_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_static_xcframework",
+        expected_dossier = "multiplatform_static_xcframework_dossier.zip",
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dossier_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_static_xcframework",
+        output_group_name = "dossier",
+        expected_outputs = [
+            "multiplatform_static_xcframework_dossier.zip",
+        ],
         tags = [name],
     )
 

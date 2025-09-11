@@ -62,20 +62,28 @@ def _no_op(x):
     """Helper that does not nothing be return the result."""
     return x
 
-def _preferred_codesigning_identity(platform_prerequisites):
-    """Returns the preferred codesigning identity from platform prerequisites"""
-    if not platform_prerequisites.platform.is_device:
+def _preferred_codesigning_identity(
+        *,
+        build_settings,
+        objc_fragment,
+        requires_adhoc_signing):
+    """Returns the preferred codesigning identity from platform prerequisites.
+
+    Args:
+      build_settings: The build settings from apple_xplat_toolchain_info or platform_prerequisites.
+      objc_fragment: The objc fragment interface from ctx.fragments.objc.
+      requires_adhoc_signing: Whether this signing operation requires adhoc signing with the adhoc
+          pseudo identity. i.e. if this is a simulator build.
+    """
+    if requires_adhoc_signing:
         return _ADHOC_PSEUDO_IDENTITY
-    build_settings = platform_prerequisites.build_settings
     if build_settings:
-        objc_fragment = platform_prerequisites.objc_fragment
         if objc_fragment:
             # TODO(b/252873771): Remove this fallback when the native Bazel flag
             # ios_signing_cert_name is removed.
             return (build_settings.signing_certificate_name or
                     objc_fragment.signing_certificate_name)
-        else:
-            return build_settings.signing_certificate_name
+        return build_settings.signing_certificate_name
     return None
 
 def _codesign_args_for_path(
@@ -120,7 +128,11 @@ def _codesign_args_for_path(
 
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
     # use an ad hoc identity.
-    identity = _preferred_codesigning_identity(platform_prerequisites)
+    identity = _preferred_codesigning_identity(
+        build_settings = platform_prerequisites.build_settings,
+        objc_fragment = platform_prerequisites.objc_fragment,
+        requires_adhoc_signing = not platform_prerequisites.platform.is_device,
+    )
     if not identity:
         if provisioning_profile:
             cmd_codesigning.extend([
@@ -258,10 +270,11 @@ def _should_sign_simulator_bundles(
     the other bundles.
 
     Args:
+      config_vars: The config_vars from `ctx.var`.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
 
     Returns:
       True/False for if the bundle should be signed.
-
     """
     if not rule_descriptor.skip_simulator_signing_allowed:
         return True
@@ -304,16 +317,16 @@ def _codesigning_args(
     """Returns a set of codesigning arguments to be passed to the codesigning tool.
 
     Args:
-        entitlements: The entitlements file to sign with. Can be None.
-        features: List of features enabled by the user. Typically from `ctx.features`.
-        full_archive_path: The full path to the codesigning target.
-        is_framework: If the target is a framework. False by default.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        provisioning_profile: File for the provisioning profile.
-        rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      entitlements: The entitlements file to sign with. Can be None.
+      features: List of features enabled by the user. Typically from `ctx.features`.
+      full_archive_path: The full path to the codesigning target.
+      is_framework: If the target is a framework. False by default.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: File for the provisioning profile.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
 
     Returns:
-        A list containing the arguments to pass to the codesigning tool.
+      A list containing the arguments to pass to the codesigning tool.
     """
     should_sign_bundles = _should_sign_bundles(
         provisioning_profile = provisioning_profile,
@@ -359,15 +372,15 @@ def _codesigning_command(
     """Returns a codesigning command that includes framework embedded bundles.
 
     Args:
-        bundle_path: The location of the bundle, relative to the archive.
-        codesigningtool: The executable `File` representing the code signing tool.
-        entitlements: The entitlements file to sign with. Can be None.
-        features: List of features enabled by the user. Typically from `ctx.features`.
-        frameworks_path: The location of the Frameworks directory, relative to the archive.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        provisioning_profile: File for the provisioning profile.
-        rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        signed_frameworks: A depset containing each framework that has already been signed.
+      bundle_path: The location of the bundle, relative to the archive.
+      codesigningtool: The executable `File` representing the code signing tool.
+      entitlements: The entitlements file to sign with. Can be None.
+      features: List of features enabled by the user. Typically from `ctx.features`.
+      frameworks_path: The location of the Frameworks directory, relative to the archive.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: File for the provisioning profile.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      signed_frameworks: A depset containing each framework that has already been signed.
 
     Returns:
         A string containing the codesigning commands.
@@ -423,32 +436,41 @@ def _codesigning_command(
     )
 
 def _generate_codesigning_dossier_action(
+        *,
         actions,
-        label_name,
+        apple_fragment,
+        codesign_identity,
         dossier_codesigningtool,
+        embedded_dossiers,
+        entitlements,
         output_discriminator,
         output_dossier,
-        platform_prerequisites,
+        label_name,
         mac_exec_group,
-        embedded_dossiers = [],
-        entitlements = None,
-        provisioning_profile = None):
+        provisioning_profile,
+        target_signs_with_entitlements,
+        xcode_config):
     """Generates a codesigning dossier based on parameters.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_fragment: The apple fragment from `ctx.fragments.apple` to use for the action.
+      codesign_identity: The identity for the dossier to sign with.
+      dossier_codesigningtool: The files_to_run for the code signing tool.
       embedded_dossiers: An optional List of Structs generated from
          `embedded_codesigning_dossier` that should also be included in this
           dossier.
-      entitlements: Optional file representing the entitlements to sign with.
+      entitlements: Optional file representing the entitlements to sign with. May be `None`.
       label_name: Name of the target being built.
       mac_exec_group: Th exec_group associated with dossier_codesigningtool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
-      platform_prerequisites: Struct containing information on the platform being targeted.
+      output_dossier: The `File` representing the output dossier file - the zipped dossier will be
+          placed here.
       provisioning_profile: The provisioning profile file. May be `None`.
-      dossier_codesigningtool: The files_to_run for the code signing tool.
+      target_signs_with_entitlements: Whether the target platform needs signing with entitlements,
+          which is true for non-simulator builds.
+      xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     """
     input_files = [x.dossier_file for x in embedded_dossiers]
 
@@ -459,14 +481,13 @@ def _generate_codesigning_dossier_action(
     args.add("create")
     args.add("--output-path", output_dossier)
 
-    # Try to use the identity passed on the command line, if any. If it's a simulator build, use an
-    # ad hoc identity.
-    codesign_identity = _preferred_codesigning_identity(platform_prerequisites)
+    # Try to use the identity passed through, if any. Use the ad-hoc pseudo-identity if no identity
+    # or provisioning profile is passed through.
     if not codesign_identity and not provisioning_profile:
         codesign_identity = _ADHOC_PSEUDO_IDENTITY
     if codesign_identity:
         args.add("--code-signing-identity", codesign_identity)
-    if entitlements and platform_prerequisites.platform.is_device:
+    if entitlements and target_signs_with_entitlements:
         # Entitlements are embedded as segments of the linked simulator binary. They should not be
         # used for signing simulator binaries.
         input_files.append(entitlements)
@@ -491,7 +512,7 @@ def _generate_codesigning_dossier_action(
 
     apple_support.run(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_fragment = apple_fragment,
         arguments = [args],
         exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
@@ -507,7 +528,7 @@ def _generate_codesigning_dossier_action(
         mnemonic = mnemonic,
         outputs = [output_dossier],
         progress_message = progress_message,
-        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_config = xcode_config,
     )
 
 def _post_process_and_sign_archive_action(
@@ -767,5 +788,6 @@ codesigning_support = struct(
     embedded_codesigning_dossier = _embedded_codesigning_dossier,
     generate_codesigning_dossier_action = _generate_codesigning_dossier_action,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
+    preferred_codesigning_identity = _preferred_codesigning_identity,
     sign_binary_action = _sign_binary_action,
 )

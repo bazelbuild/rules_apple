@@ -28,6 +28,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -1096,6 +1100,23 @@ Check the rule definition for each of the dependencies to ensure that they have 
             "use \"multiplatform_xcframework_with_avoid_frameworks\"",
             "requires objc",
             "}",
+        ],
+        tags = [name],
+    )
+
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_dossier_info_provider_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        expected_dossier = "multiplatform_dynamic_xcframework_dossier.zip",
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dossier_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        output_group_name = "dossier",
+        expected_outputs = [
+            "multiplatform_dynamic_xcframework_dossier.zip",
         ],
         tags = [name],
     )

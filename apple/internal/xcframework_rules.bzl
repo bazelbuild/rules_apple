@@ -33,6 +33,10 @@ load(
     "cc_info_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:experimental.bzl",
     "is_experimental_tree_artifact_enabled",
 )
@@ -70,6 +74,7 @@ load(
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
     "new_applebundleinfo",
+    "new_applecodesigningdossierinfo",
     "new_applestaticxcframeworkbundleinfo",
     "new_applexcframeworkbundleinfo",
 )
@@ -1192,6 +1197,52 @@ def _create_xcframework_bundle(
             progress_message = "Bundling %s" % label_name,
         )
 
+def _create_xcframework_codesigning_dossier(
+        *,
+        actions,
+        apple_fragment,
+        apple_mac_toolchain_info,
+        build_settings,
+        mac_exec_group,
+        objc_fragment,
+        rule_label,
+        xcode_config):
+    """Generates the codesigning dossier for an XCFramework."""
+    output_dossier = actions.declare_file("%s_dossier.zip" % rule_label.name)
+
+    codesign_identity = codesigning_support.preferred_codesigning_identity(
+        build_settings = build_settings,
+        objc_fragment = objc_fragment,
+        # Never adhoc sign XCFrameworks; the SDK signing requires a valid code signing identity
+        # corresponding to a certificate.
+        requires_adhoc_signing = False,
+    )
+
+    codesigning_support.generate_codesigning_dossier_action(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        codesign_identity = codesign_identity,
+        dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
+        embedded_dossiers = [],
+        entitlements = None,
+        label_name = rule_label.name,
+        mac_exec_group = mac_exec_group,
+        output_discriminator = None,
+        output_dossier = output_dossier,
+        provisioning_profile = None,
+        target_signs_with_entitlements = False,  # Frameworks are never signed with entitlements.
+        xcode_config = xcode_config,
+    )
+
+    return struct(
+        output_groups = {
+            "dossier": depset([output_dossier]),
+        },
+        providers = [new_applecodesigningdossierinfo(
+            dossier = output_dossier,
+        )],
+    )
+
 def _apple_xcframework_impl(ctx):
     """Implementation of apple_xcframework."""
     actions = ctx.actions
@@ -1215,9 +1266,11 @@ def _apple_xcframework_impl(ctx):
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    build_settings = apple_xplat_toolchain_info.build_settings
+
     tree_artifact_is_enabled = False
     outputs_archive = ctx.outputs.archive
-    if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+    if (build_settings.use_tree_artifacts_outputs or
         is_experimental_tree_artifact_enabled(config_vars = config_vars)):
         actions.write(
             output = ctx.outputs.archive,
@@ -1288,7 +1341,7 @@ def _apple_xcframework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
+        build_settings = build_settings,
         bundle_name = bundle_name,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
@@ -1375,6 +1428,17 @@ def _apple_xcframework_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
 
+    dossier_outputs = _create_xcframework_codesigning_dossier(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        build_settings = build_settings,
+        mac_exec_group = mac_exec_group,
+        objc_fragment = objc_fragment,
+        rule_label = rule_label,
+        xcode_config = xcode_version_config,
+    )
+
     processor_output = [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
         new_applebundleinfo(
@@ -1401,10 +1465,11 @@ def _apple_xcframework_impl(ctx):
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
+                dossier_outputs.output_groups,
                 *bundled_artifacts.framework_output_groups
             )
         ),
-    ]
+    ] + dossier_outputs.providers
     return processor_output
 
 apple_xcframework = rule_factory.create_apple_rule(
@@ -1649,9 +1714,11 @@ def _apple_static_xcframework_impl(ctx):
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    build_settings = apple_xplat_toolchain_info.build_settings
+
     tree_artifact_is_enabled = False
     outputs_archive = ctx.outputs.archive
-    if (apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+    if (build_settings.use_tree_artifacts_outputs or
         is_experimental_tree_artifact_enabled(config_vars = config_vars)):
         actions.write(
             output = ctx.outputs.archive,
@@ -1763,6 +1830,17 @@ def _apple_static_xcframework_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
 
+    dossier_outputs = _create_xcframework_codesigning_dossier(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        build_settings = build_settings,
+        mac_exec_group = mac_exec_group,
+        objc_fragment = objc_fragment,
+        rule_label = rule_label,
+        xcode_config = xcode_version_config,
+    )
+
     return [
         # Limiting the contents of AppleBundleInfo to what is necessary for testing and validation.
         new_applebundleinfo(
@@ -1781,10 +1859,11 @@ def _apple_static_xcframework_impl(ctx):
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
+                dossier_outputs.output_groups,
                 *bundled_artifacts.framework_output_groups
             )
         ),
-    ]
+    ] + dossier_outputs.providers
 
 apple_static_xcframework = rule_factory.create_apple_rule(
     cfg = transition_support.xcframework_base_transition,

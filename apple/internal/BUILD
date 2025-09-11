@@ -765,6 +765,7 @@ bzl_library(
         ":rule_support",
         ":swift_support",
         ":transition_support",
+        "//apple/internal:codesigning_support",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_generated_header_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
