@@ -1079,6 +1079,47 @@ apple_static_xcframework_import(
 )
 
 apple_static_xcframework(
+    name = "multiplatform_static_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "ios": common.min_os_ios.baseline,
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
     name = "ios_xcframework_bundling_static_fmwks_with_avoid_deps",
     avoid_deps = [":fmwk_lib_with_resources"],
     ios = {
