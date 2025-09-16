@@ -371,6 +371,7 @@ def visionos_application_test_suite(name):
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
         tags = [
+            # TODO: b/445474232: Re-enable when fixed.
             name,
         ],
     )
@@ -381,6 +382,7 @@ def visionos_application_test_suite(name):
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_standalone_realitykit_content",
         tags = [
+            # TODO: b/445474232: Re-enable when fixed.
             name,
         ],
     )
@@ -400,6 +402,7 @@ def visionos_application_test_suite(name):
         contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_dependent_realitykit_content",
         tags = [
+            # TODO: b/445474232: Re-enable when fixed.
             name,
         ],
     )
