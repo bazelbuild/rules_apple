@@ -6,7 +6,6 @@ py_binary(
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],
-    deps = [":plisttool_lib"],
 )
 
 py_library(

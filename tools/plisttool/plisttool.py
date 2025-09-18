@@ -440,11 +440,19 @@ BUNDLE_VERSION_VALUE_MAX_LENGTH = 18
 CF_BUNDLE_SHORT_VERSION_RE = re.compile(r'^[0-9]+(\.[0-9]+){0,3}$')
 
 
+def plutil_path():
+  """Returns the path to the plutil binary for execution."""
+  platform = sys.platform
+  if platform == 'linux':
+    return 'swiftlang/swift-corelibs-foundation/plutil'
+  elif platform == 'darwin':
+    return '/usr/bin/plutil'
+  else:
+    raise PlistToolError('plutil is not available on this platform.')
+
+
 def plist_from_bytes(byte_content):
-  try:
-    return plistlib.loads(byte_content)
-  except AttributeError:
-    return plistlib.readPlistFromString(byte_content)
+  return plistlib.loads(byte_content)
 
 
 def extract_variable_from_match(re_match_obj):
@@ -669,6 +677,8 @@ class SubstitutionEngine(object):
       def sub_helper(match_obj):
         return self._substitutions[match_obj.group(0)]
 
+      if not self._substitutions_re:
+        return value
       return self._substitutions_re.sub(sub_helper, value)
 
     if isinstance(value, dict):
@@ -806,7 +816,7 @@ class PlistIO(object):
     # handle them the same way.
     if not plist_contents.startswith(b'<?xml'):
       plutil_process = subprocess.Popen(
-          ['plutil', '-convert', 'xml1', '-o', '-', '--', '-'],
+          [plutil_path(), '-convert', 'xml1', '-o', '-', '--', '-'],
           stdout=subprocess.PIPE,
           stdin=subprocess.PIPE,
       )
@@ -840,7 +850,8 @@ class PlistIO(object):
       plistlib.dump(plist, path_or_file)
 
     if binary and isinstance(path_or_file, str):
-      subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
+      subprocess.check_call(
+          [plutil_path(), '-convert', 'binary1', path_or_file])
 
 
 class PlistToolTask(object):

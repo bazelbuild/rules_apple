@@ -26,10 +26,15 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
+)
+load(
+    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
@@ -62,10 +67,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
-    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
@@ -107,7 +108,6 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -122,7 +122,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_imports,
     )
     tree_artifact_enabled = (
-        apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
+        ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value or
         is_experimental_tree_artifact_enabled(config_vars = ctx.var)
     )
     if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
@@ -388,6 +388,11 @@ target.
                     [CcInfo, AppleFrameworkImportInfo],
                 ],
             ),
+            "_use_tree_artifacts_outputs": attr.label(
+                default = build_settings_labels.use_tree_artifacts_outputs,
+                doc = "Whether to use tree artifacts for outputs.",
+                providers = [BuildSettingInfo],
+            ),
         },
     ),
     doc = """
@@ -395,7 +400,6 @@ This rule encapsulates an already-built dynamic framework. It is defined by a li
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
 targets through the `deps` attribute.
 """,
-    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
 
@@ -469,6 +473,5 @@ This rule encapsulates an already-built static framework. It is defined by a lis
 .framework directory. apple_static_framework_import targets need to be added to library targets
 through the `deps` attribute.
 """,
-    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
