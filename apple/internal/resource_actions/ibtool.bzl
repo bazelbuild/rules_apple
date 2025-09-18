@@ -59,14 +59,14 @@ def compile_storyboard(
 
     # Custom xctoolrunner options.
     args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
-
-    # Standard ibtool options.
-    args.add("--minimum-deployment-target", min_os)
-    args.add_all(families, before_each = "--target-device")
     args.add(
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
     )
+
+    # Standard ibtool options.
+    args.add("--minimum-deployment-target", min_os)
+    args.add_all(families, before_each = "--target-device")
     args.add("--errors")
     args.add("--warnings")
     args.add("--notices")
@@ -124,11 +124,11 @@ def link_storyboards(
 
     # Custom xctoolrunner options.
     args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+    args.add("--link", xctoolrunner_support.prefixed_path(output_dir.path))
 
     # Standard ibtool options.
     args.add("--minimum-deployment-target", min_os)
     args.add_all(families, before_each = "--target-device")
-    args.add("--link", xctoolrunner_support.prefixed_path(output_dir.path))
     args.add_all([
         xctoolrunner_support.prefixed_path(f.path)
         for f in storyboardc_dirs
@@ -179,14 +179,14 @@ def compile_xib(
 
     # Custom xctoolrunner options.
     args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
-
-    # Standard ibtool options.
-    args.add("--minimum-deployment-target", min_os)
-    args.add_all(families, before_each = "--target-device")
     args.add(
         "--compile",
         xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
     )
+
+    # Standard ibtool options.
+    args.add("--minimum-deployment-target", min_os)
+    args.add_all(families, before_each = "--target-device")
     args.add("--module", swift_module)
     args.add(xctoolrunner_support.prefixed_path(input_file.path))
 
