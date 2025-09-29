@@ -46,7 +46,8 @@ def create_schema_rkassets(
         output_file,
         platform_prerequisites,
         swift_files,
-        transitive_swift_srcs):
+        transitive_swift_srcs,
+        xctoolrunner):
     """Creates an action that generates a USDA schema from Swift source files for a reality bundle.
 
     Args:
@@ -61,6 +62,7 @@ def create_schema_rkassets(
       swift_files: A depset of swift source File inputs that will be used to build the schema.
       transitive_swift_srcs: A list of AppleResourceSwiftSourcesInfo providers representing
         transitive Swift module names and source files if any are required for building the schema.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
 
     # Intermediate step; create a JSON file with json.encode(...) on a struct and write that to a
@@ -97,14 +99,17 @@ def create_schema_rkassets(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
+            # Custom xctoolrunner options.
+            "passthrough-commands",
             "realitytool",
+            # Standard realitytool options.
             "create-schema",
             "--output-schema",
             output_file.path,
             module_with_deps_json_file.path,
         ],
         exec_group = mac_exec_group,
-        executable = "/usr/bin/xcrun",
+        executable = xctoolrunner,
         inputs = depset([module_with_deps_json_file], transitive = transitive_inputs),
         mnemonic = "CreateSchemaRealityKitAssets",
         outputs = [output_file],
@@ -119,8 +124,8 @@ def compile_rkassets(
         mac_exec_group,
         output_file,
         platform_prerequisites,
-        xctoolrunner,
-        schema_file):
+        schema_file,
+        xctoolrunner):
     """Creates an action that compiles Reality Composer Pro bundles (i.e. .rkassets).
 
     Args:
@@ -130,10 +135,10 @@ def compile_rkassets(
       mac_exec_group: The exec_group associated with Apple actions.
       output_file: The File reference for the compiled .reality output.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
       schema_file: The File reference for the optional usda schema file, composed from swift sources
         if any were provided for this rkassets bundle through one or more associated swift_library
         targets.
+      xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
 
     if platform_prerequisites.platform_type != "visionos":

@@ -541,6 +541,7 @@ def _rkassets(
     """Transforms rkassets into a reality bundle."""
 
     label_name = rule_label.name
+    xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative
 
     schema_file = None
     if swift_files:
@@ -571,6 +572,7 @@ def _rkassets(
             platform_prerequisites = platform_prerequisites,
             swift_files = swift_files,
             transitive_swift_srcs = transitive_swift_srcs,
+            xctoolrunner = xctoolrunner,
         )
 
     rkassets_groups = group_files_by_directory(
@@ -597,8 +599,8 @@ def _rkassets(
             mac_exec_group = mac_exec_group,
             output_file = reality_file,
             platform_prerequisites = platform_prerequisites,
-            xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
             schema_file = schema_file,
+            xctoolrunner = xctoolrunner,
         )
 
         reality_files.append(reality_file)
