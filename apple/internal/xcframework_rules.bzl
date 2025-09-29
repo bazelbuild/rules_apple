@@ -820,6 +820,7 @@ bundle_id on the target.
             partials.resources_partial(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
@@ -838,6 +839,7 @@ bundle_id on the target.
                 top_level_resources = top_level_resources,
                 version = version,
                 version_keys_required = False,
+                xplat_exec_group = xplat_exec_group,
             ),
         ]
 
@@ -892,12 +894,12 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                     dsym_outputs = link_output.dsym_outputs,
                     dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                     linkmaps = link_output.linkmaps,
-                    mac_exec_group = mac_exec_group,
                     output_discriminator = library_identifier,
                     platform_prerequisites = platform_prerequisites,
-                    plisttool = apple_mac_toolchain_info.plisttool,
+                    plisttool = apple_xplat_toolchain_info.plisttool,
                     rule_label = rule_label,
                     version = version,
+                    xplat_exec_group = xplat_exec_group,
                 ),
                 partials.framework_provider_partial(
                     actions = actions,
@@ -1032,23 +1034,19 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
 def _create_xcframework_root_infoplist(
         *,
         actions,
-        apple_fragment,
         available_libraries,
         exec_group,
         plisttool,
-        rule_label,
-        xcode_config):
+        rule_label):
     """Generates a root Info.plist for a given XCFramework.
 
      Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         available_libraries: A dictionary containing keys representing how a given framework should
             be referenced in the root Info.plist of a given XCFramework bundle.
         exec_group: The exec_group associated with plisttool.
         plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
     Returns:
         A `File` representing a root Info.plist to be embedded within an XCFramework bundle.
@@ -1081,16 +1079,13 @@ def _create_xcframework_root_infoplist(
         output = plisttool_control_file,
         content = json.encode(plisttool_control),
     )
-    apple_support.run(
-        actions = actions,
-        apple_fragment = apple_fragment,
+    actions.run(
         arguments = [plisttool_control_file.path],
         executable = plisttool,
         exec_group = exec_group,
         inputs = [plisttool_control_file],
         mnemonic = "CreateXCFrameworkRootInfoPlist",
         outputs = [root_info_plist],
-        xcode_config = xcode_config,
     )
     return root_info_plist
 
@@ -1402,12 +1397,10 @@ def _apple_xcframework_impl(ctx):
 
     root_info_plist = _create_xcframework_root_infoplist(
         actions = actions,
-        apple_fragment = apple_fragment,
         available_libraries = bundled_artifacts.available_libraries,
-        exec_group = mac_exec_group,
-        plisttool = apple_mac_toolchain_info.plisttool,
+        exec_group = xplat_exec_group,
+        plisttool = apple_xplat_toolchain_info.plisttool,
         rule_label = rule_label,
-        xcode_config = xcode_version_config,
     )
 
     _create_xcframework_bundle(
@@ -1804,12 +1797,10 @@ def _apple_static_xcframework_impl(ctx):
 
     root_info_plist = _create_xcframework_root_infoplist(
         actions = actions,
-        apple_fragment = apple_fragment,
         available_libraries = bundled_artifacts.available_libraries,
-        exec_group = mac_exec_group,
-        plisttool = apple_mac_toolchain_info.plisttool,
+        exec_group = xplat_exec_group,
+        plisttool = apple_xplat_toolchain_info.plisttool,
         rule_label = rule_label,
-        xcode_config = xcode_version_config,
     )
 
     _create_xcframework_bundle(

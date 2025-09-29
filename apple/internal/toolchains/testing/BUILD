@@ -1,6 +1,25 @@
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_mac_tools_toolchain",
+    "apple_xplat_tools_toolchain",
+)
+
+toolchain(
+    name = "apple_xplat_toolchain",
+    toolchain = ":xplat_tools_toolchain",
+    toolchain_type = "//apple/internal/toolchains:apple_xplat_toolchain_type",
+)
+
+apple_xplat_tools_toolchain(
+    name = "xplat_tools_toolchain",
+    build_settings = build_settings_labels.all_labels,
+    bundletool = "//tools/bundletool",
+    plisttool = "//tools/plisttool",
+    versiontool = "//tools/versiontool",
 )
 
 toolchain(
@@ -18,7 +37,6 @@ apple_mac_tools_toolchain(
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_osx",
-    plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool:provisioning_profile_tool_osx",
     signature_tool = "//tools/signaturetool:signature_tool_osx",

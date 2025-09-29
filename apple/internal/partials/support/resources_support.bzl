@@ -296,13 +296,13 @@ def _datamodels(
 def _infoplists(
         *,
         actions,
-        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         files,
-        mac_exec_group,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
+        xplat_exec_group,
         **_kwargs):
     """Processes infoplists.
 
@@ -313,14 +313,14 @@ def _infoplists(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
         files: The infoplist files to process.
-        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        xplat_exec_group: The exec group associated with apple_xplat_toolchain.
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
@@ -341,12 +341,12 @@ def _infoplists(
             actions = actions,
             bundle_name_with_extension = paths.basename(parent_dir),
             input_files = input_files,
-            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = rule_label,
+            xplat_exec_group = xplat_exec_group,
         )
         return struct(
             files = [

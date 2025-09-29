@@ -454,6 +454,7 @@ def _process_bucketized_data(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bucketized_owners = [],
         buckets,
         bundle_id,
@@ -465,7 +466,8 @@ def _process_bucketized_data(
         rule_label,
         swift_files,
         transitive_swift_srcs,
-        unowned_resources = []):
+        unowned_resources = [],
+        xplat_exec_group):
     """Registers actions for cacheable resource types, given bucketized groupings of data.
 
     This method performs the same actions as bucketize_data, and further iterates through a subset
@@ -475,7 +477,8 @@ def _process_bucketized_data(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
+        apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
         bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
         buckets: A dictionary with bucketized resources organized by resource type.
         bundle_id: The bundle ID to configure for this target.
@@ -493,6 +496,7 @@ def _process_bucketized_data(
             transitive Swift module names and source files required for processing resource actions
             if any were needed. Should be gated by an aspect_hint.
         unowned_resources: A list of "unowned" resources.
+        xplat_exec_group: The exec_group associated with apple_xplat_toolchain_info
 
     Returns:
         An AppleResourceInfo provider with resources bucketized according to type.
@@ -511,6 +515,7 @@ def _process_bucketized_data(
             processing_args = {
                 "actions": actions,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
+                "apple_xplat_toolchain_info": apple_xplat_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
                 "mac_exec_group": mac_exec_group,
@@ -521,6 +526,7 @@ def _process_bucketized_data(
                 "rule_label": rule_label,
                 "swift_files": swift_files,
                 "transitive_swift_srcs": transitive_swift_srcs,
+                "xplat_exec_group": xplat_exec_group,
             }
 
             # Only pass the Swift module name if the resource to process requires it.

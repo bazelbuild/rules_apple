@@ -262,6 +262,7 @@ watchos_application's `deps`.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -270,6 +271,7 @@ watchos_application's `deps`.
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     # Collect all architectures found from the cc_toolchain forwarder.
@@ -343,9 +345,7 @@ reproducible error case.".format(
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -353,10 +353,12 @@ reproducible error case.".format(
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -364,11 +366,11 @@ reproducible error case.".format(
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -379,6 +381,7 @@ reproducible error case.".format(
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -393,6 +396,7 @@ reproducible error case.".format(
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -424,13 +428,12 @@ reproducible error case.".format(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
-        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -438,6 +441,7 @@ reproducible error case.".format(
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     executable = outputs.executable(
@@ -552,6 +556,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -560,6 +565,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     extra_linkopts = ["-fapplication-extension"]
@@ -704,11 +710,11 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -723,6 +729,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -738,6 +745,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -780,13 +788,12 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
-        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -794,6 +801,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
@@ -892,14 +900,16 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     link_result = linking_support.register_binary_linking_action(
@@ -977,8 +987,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = xplat_exec_group,
-            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.watch,
             bundle_name = bundle_name,
@@ -986,10 +994,12 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -999,11 +1009,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -1025,6 +1035,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1040,6 +1051,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1066,13 +1078,12 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
-        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1080,6 +1091,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     executable = outputs.executable(
@@ -1131,6 +1143,7 @@ def _watchos_framework_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1275,11 +1288,11 @@ def _watchos_framework_impl(ctx):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1306,6 +1319,7 @@ def _watchos_framework_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1321,6 +1335,7 @@ def _watchos_framework_impl(ctx):
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
             version_keys_required = False,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1336,12 +1351,11 @@ def _watchos_framework_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1349,6 +1363,7 @@ def _watchos_framework_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [

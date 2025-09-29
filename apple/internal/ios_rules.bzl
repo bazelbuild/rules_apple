@@ -163,6 +163,7 @@ def _ios_application_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -224,14 +225,16 @@ def _ios_application_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     extra_linkopts = []
@@ -318,18 +321,18 @@ def _ios_application_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.child_bundle_info_validation_partial(
             frameworks = ctx.attr.frameworks,
@@ -341,10 +344,10 @@ def _ios_application_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             features = features,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
@@ -356,11 +359,11 @@ def _ios_application_impl(ctx):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -383,12 +386,13 @@ def _ios_application_impl(ctx):
             additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
             additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             primary_icon_name = ctx.attr.primary_app_icon,
             resource_deps = resource_deps,
@@ -399,6 +403,7 @@ def _ios_application_impl(ctx):
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.settings_bundle_partial(
             actions = actions,
@@ -409,11 +414,11 @@ def _ios_application_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -463,14 +468,13 @@ def _ios_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -478,6 +482,7 @@ def _ios_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     executable = outputs.executable(
@@ -548,6 +553,7 @@ def _ios_app_clip_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -600,6 +606,7 @@ def _ios_app_clip_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
@@ -608,6 +615,7 @@ def _ios_app_clip_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     link_result = linking_support.register_binary_linking_action(
@@ -676,19 +684,19 @@ def _ios_app_clip_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_location = processor.location.app_clip,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -708,11 +716,11 @@ def _ios_app_clip_impl(ctx):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -736,11 +744,12 @@ def _ios_app_clip_impl(ctx):
             additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
             additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
@@ -750,15 +759,16 @@ def _ios_app_clip_impl(ctx):
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -775,13 +785,12 @@ def _ios_app_clip_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -789,6 +798,7 @@ def _ios_app_clip_impl(ctx):
         provisioning_profile = getattr(ctx.file, "provisioning_profile", None),
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     executable = outputs.executable(
@@ -853,6 +863,7 @@ def _ios_framework_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -975,19 +986,19 @@ def _ios_framework_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_location = processor.location.framework,
             bundle_name = bundle_name,
             embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -997,11 +1008,11 @@ def _ios_framework_impl(ctx):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1029,12 +1040,13 @@ def _ios_framework_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             platform_prerequisites = platform_prerequisites,
+            mac_exec_group = mac_exec_group,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
@@ -1044,6 +1056,7 @@ def _ios_framework_impl(ctx):
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
             version_keys_required = False,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1068,13 +1081,12 @@ def _ios_framework_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1082,6 +1094,7 @@ def _ios_framework_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
@@ -1112,6 +1125,7 @@ def _ios_extension_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1161,14 +1175,16 @@ def _ios_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     extra_linkopts = [
@@ -1263,9 +1279,7 @@ def _ios_extension_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_location = bundle_location,
             bundle_name = bundle_name,
@@ -1273,10 +1287,12 @@ def _ios_extension_impl(ctx):
             embedded_targets = ctx.attr.frameworks,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -1296,11 +1312,11 @@ def _ios_extension_impl(ctx):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1315,12 +1331,13 @@ def _ios_extension_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
             extensionkit_keys_required = ctx.attr.extensionkit_extension,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
@@ -1330,6 +1347,7 @@ def _ios_extension_impl(ctx):
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1363,14 +1381,13 @@ def _ios_extension_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1378,6 +1395,7 @@ def _ios_extension_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
@@ -1404,6 +1422,7 @@ def _ios_static_framework_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     avoid_deps = ctx.attr.avoid_deps
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.attr.deps
@@ -1501,34 +1520,36 @@ def _ios_static_framework_impl(ctx):
         processor_partials.append(partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             avoid_root_infoplist = True,
-            mac_exec_group = mac_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ))
 
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
@@ -1546,7 +1567,9 @@ def _ios_imessage_application_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1597,7 +1620,8 @@ def _ios_imessage_application_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1605,6 +1629,7 @@ def _ios_imessage_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     binary_artifact = stub_support.create_stub_binary(
@@ -1641,17 +1666,17 @@ def _ios_imessage_application_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -1679,12 +1704,13 @@ def _ios_imessage_application_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             bundle_verification_targets = bundle_verification_targets,
             environment_plist = ctx.file._environment_plist,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
@@ -1693,6 +1719,7 @@ def _ios_imessage_application_impl(ctx):
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1719,13 +1746,12 @@ def _ios_imessage_application_impl(ctx):
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
         features = features,
+        mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
@@ -1733,6 +1759,7 @@ def _ios_imessage_application_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return [
@@ -1754,6 +1781,7 @@ def _ios_imessage_extension_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1803,14 +1831,16 @@ def _ios_imessage_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     extra_linkopts = [
@@ -1879,9 +1909,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
@@ -1889,10 +1917,12 @@ def _ios_imessage_extension_impl(ctx):
             embedded_targets = ctx.attr.frameworks,
             entitlements = entitlements,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -1911,12 +1941,12 @@ def _ios_imessage_extension_impl(ctx):
             debug_dependencies = ctx.attr.frameworks,
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            mac_exec_group = mac_exec_group,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1931,11 +1961,12 @@ def _ios_imessage_extension_impl(ctx):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
@@ -1945,6 +1976,7 @@ def _ios_imessage_extension_impl(ctx):
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -1971,7 +2003,7 @@ def _ios_imessage_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        xplat_exec_group = xplat_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,

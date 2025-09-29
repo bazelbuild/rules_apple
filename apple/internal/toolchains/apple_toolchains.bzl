@@ -71,10 +71,6 @@ such that the given framework only contains the same slices as the app binary, e
 to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
 and zipped as a cacheable artifact.
 """,
-        "plisttool": """\
-The files_to_run for a tool to perform plist operations such as variable
-substitution, merging, and conversion of plist files to binary format.
-""",
         "provisioning_profile_tool": """\
 The files_to_run for a tool that extracts entitlements from a
 provisioning profile.
@@ -122,6 +118,10 @@ files/ZIPs and destinations paths to build the directory structure for those fil
 A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
 from requesting or disabling features.
 """,
+        "plisttool": """\
+The files_to_run for a tool to perform plist operations such as variable
+substitution, merging, and conversion of plist files to binary format.
+""",
         "versiontool": """\
 A tool that acts as a wrapper for xcrun actions.
 """,
@@ -139,7 +139,6 @@ def _apple_mac_tools_toolchain_impl(ctx):
         environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
-        plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
         signature_tool = ctx.attr.signature_tool.files_to_run,
         swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
@@ -206,14 +205,6 @@ copied to a temporary location, and the dynamic framework is codesigned and zipp
 artifact.
 """,
         ),
-        "plisttool": attr.label(
-            cfg = "target",
-            executable = True,
-            doc = """
-A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
-conversion of plist files to binary format.
-""",
-        ),
         "process_and_sign_template": attr.label(
             allow_single_file = True,
             doc = "A `File` referencing a template for a shell script to process and sign.",
@@ -275,6 +266,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         ),
         bundletool = ctx.attr.bundletool,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
+        plisttool = ctx.attr.plisttool.files_to_run,
         versiontool = ctx.attr.versiontool,
     )
 
@@ -306,6 +298,14 @@ A list of `apple_feature_allowlist` targets that allow or prohibit packages from
 requesting or disabling features.
 """,
             providers = [[AppleFeatureAllowlistInfo]],
+        ),
+        "plisttool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
+conversion of plist files to binary format.
+""",
         ),
         "versiontool": attr.label(
             cfg = "exec",

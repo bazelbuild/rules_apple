@@ -123,11 +123,12 @@ def _apple_build_test_rule_impl(ctx):
     resource_artifacts = partial.call(partials.resources_partial(
         actions = ctx.actions,
         apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx),
+        apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
         avoid_root_infoplist = True,
-        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         bundle_extension = ".app",
         bundle_name = ctx.label.name + "_build_test",
         environment_plist = ctx.file._environment_plist,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         platform_prerequisites = platform_prerequisites,
         resource_deps = ctx.attr.targets,
         resource_locales = None,
@@ -135,6 +136,7 @@ def _apple_build_test_rule_impl(ctx):
         rule_label = ctx.label,
         version = None,
         version_keys_required = False,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     ))
 
     transitive_files = [target[DefaultInfo].files for target in targets]

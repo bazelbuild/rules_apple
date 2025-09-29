@@ -67,22 +67,22 @@ _PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 def _merge_root_infoplists(
         *,
         actions,
-        mac_exec_group,
         out_infoplist,
         output_discriminator,
         rule_descriptor,
         rule_label,
+        xplat_exec_group,
         **kwargs):
     """Registers the root Info.plist generation action.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      mac_exec_group: The exec group associated with apple_mac_toolchain.
       out_infoplist: Reference to the output Info plist.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
+      xplat_exec_group: The exec group associated with apple_xplat_toolchain.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
@@ -103,12 +103,12 @@ def _merge_root_infoplists(
 
     resource_actions.merge_root_infoplists(
         actions = actions,
-        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
+        xplat_exec_group = xplat_exec_group,
         **kwargs
     )
 
@@ -290,6 +290,7 @@ def _resources_partial_impl(
         additional_forced_root_infoplist_values,
         additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         avoid_root_infoplist,
         bundle_extension,
         bundle_id,
@@ -311,7 +312,8 @@ def _resources_partial_impl(
         targets_to_avoid,
         targets_to_avoid_must_be_owned,
         version,
-        version_keys_required):
+        version_keys_required,
+        xplat_exec_group):
     """Implementation for the resource processing partial."""
     providers = []
 
@@ -448,6 +450,7 @@ def _resources_partial_impl(
             processing_args = {
                 "actions": actions,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
+                "apple_xplat_toolchain_info": apple_xplat_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
                 "mac_exec_group": mac_exec_group,
@@ -457,6 +460,7 @@ def _resources_partial_impl(
                 "primary_icon_name": primary_icon_name,
                 "product_type": rule_descriptor.product_type,
                 "rule_label": rule_label,
+                "xplat_exec_group": xplat_exec_group,
             }
 
             # Only pass the Swift module name if the type of resource to process
@@ -522,16 +526,16 @@ with dependencies where applicable. Please add a bundle ID to your target defini
                 environment_plist = environment_plist,
                 extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
-                mac_exec_group = mac_exec_group,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                plisttool = apple_mac_toolchain_info.plisttool,
+                plisttool = apple_xplat_toolchain_info.plisttool,
                 resource_locales = resource_locales,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,
                 version_keys_required = version_keys_required,
+                xplat_exec_group = xplat_exec_group,
             ),
         )
 
@@ -547,6 +551,7 @@ def resources_partial(
         additional_forced_root_infoplist_values = [],
         additional_overridable_root_infoplist_values = [],
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         avoid_root_infoplist = False,
         bundle_extension,
         bundle_id = None,
@@ -568,7 +573,8 @@ def resources_partial(
         top_level_infoplists = [],
         top_level_resources = {},
         version,
-        version_keys_required = True):
+        version_keys_required = True,
+        xplat_exec_group):
     """Constructor for the resources processing partial.
 
     This partial collects and propagates all resources that should be bundled in the target being
@@ -581,7 +587,8 @@ def resources_partial(
         additional_overridable_root_infoplist_values: A List of structs that reference Info.plist
             keys and values that are merged into the final root Info.plist without validation before
             any plists, including user input. This allows for overridable "default" values.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of Apple tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
         avoid_root_infoplist: Bool. Indicates if the root Info.plist should not be generated for
             the given bundle target. In practice this only applies to a subset of Static Frameworks
             that are not compatible with Apple's Xcode 15 Static Frameworks.
@@ -623,6 +630,7 @@ def resources_partial(
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         version_keys_required: Whether to validate that the Info.plist version keys are correctly
             configured.
+        xplat_exec_group: The exec group associated with apple_xplat_toolchain.
 
     Returns:
         A partial that returns the bundle location of the resources and the resources provider.
@@ -633,6 +641,7 @@ def resources_partial(
         additional_forced_root_infoplist_values = additional_forced_root_infoplist_values,
         additional_overridable_root_infoplist_values = additional_overridable_root_infoplist_values,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         avoid_root_infoplist = avoid_root_infoplist,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
@@ -655,4 +664,5 @@ def resources_partial(
         top_level_resources = top_level_resources,
         version = version,
         version_keys_required = version_keys_required,
+        xplat_exec_group = xplat_exec_group,
     )

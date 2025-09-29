@@ -498,7 +498,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -508,11 +508,11 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -534,6 +534,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -549,6 +550,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
             version_keys_required = False,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -572,7 +574,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
         mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -584,6 +585,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     archive = outputs.archive(

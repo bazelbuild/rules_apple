@@ -206,6 +206,7 @@ def _extract_signing_info(
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         entitlements_file,
         mac_exec_group,
@@ -213,7 +214,8 @@ def _process_entitlements(
         product_type,
         provisioning_profile,
         rule_label,
-        validation_mode):
+        validation_mode,
+        xplat_exec_group):
     """Processes the entitlements for a binary or bundle.
 
     Entitlements are generated based on a plist-format entitlements file passed
@@ -236,6 +238,8 @@ def _process_entitlements(
         actions: The object used to register actions.
         apple_mac_toolchain_info: `AppleMacToolsToolchainInfo` from the shared Apple
             toolchain.
+        apple_xplat_toolchain_info: `AppleXplatToolchainInfo` from the shared Apple
+            toolchain.
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
@@ -248,6 +252,7 @@ def _process_entitlements(
         rule_label: The `Label` of the target being built.
         validation_mode: A value from `entitlements_validation_mode` describing
             how the entitlements should be validated.
+        xplat_exec_group: The exec group associated with apple_xplat_toolchain.
 
     Returns:
         A `File` containing the processed entitlements, or `None` if there are
@@ -332,11 +337,10 @@ def _process_entitlements(
         actions = actions,
         control_file = control_file,
         inputs = inputs,
-        mac_exec_group = mac_exec_group,
         mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
-        platform_prerequisites = platform_prerequisites,
-        plisttool = apple_mac_toolchain_info.plisttool,
+        plisttool = apple_xplat_toolchain_info.plisttool,
+        xplat_exec_group = xplat_exec_group,
     )
 
     return final_entitlements

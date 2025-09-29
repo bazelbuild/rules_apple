@@ -1,13 +1,5 @@
 licenses(["notice"])
 
-py_binary(
-    name = "plisttool",
-    srcs = ["plisttool.py"],
-    visibility = [
-        "//apple/internal/toolchains:__subpackages__",
-    ],
-)
-
 py_library(
     name = "plisttool_lib",
     srcs = [

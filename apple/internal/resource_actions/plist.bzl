@@ -47,11 +47,10 @@ def plisttool_action(
         actions,
         control_file,
         inputs,
-        mac_exec_group,
         mnemonic = None,
         outputs,
-        platform_prerequisites,
-        plisttool):
+        plisttool,
+        xplat_exec_group):
     """Registers an action that invokes `plisttool`.
 
     This function is a low-level helper that simply invokes `plisttool` with the given arguments.
@@ -62,22 +61,18 @@ def plisttool_action(
       actions: The actions provider from `ctx.actions`.
       control_file: The `File` containing the control struct to be passed to plisttool.
       inputs: Any `File`s that should be treated as inputs to the underlying action.
-      mac_exec_group: The exec group associated with plisttool.
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
-      platform_prerequisites: Struct containing information on the platform being targeted.
       plisttool: A files_to_run for the plist tool.
+      xplat_exec_group: The exec group associated with plisttool.
     """
-    apple_support.run(
-        actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+    actions.run(
         arguments = [control_file.path],
-        exec_group = mac_exec_group,
+        exec_group = xplat_exec_group,
         executable = plisttool,
         inputs = inputs + [control_file],
         mnemonic = mnemonic,
         outputs = outputs,
-        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
@@ -121,25 +116,25 @@ def merge_resource_infoplists(
         actions,
         bundle_name_with_extension,
         input_files,
-        mac_exec_group,
         output_discriminator,
         output_plist,
         platform_prerequisites,
         plisttool,
-        rule_label):
+        rule_label,
+        xplat_exec_group):
     """Merges a list of plist files for resource bundles with substitutions.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
-      mac_exec_group: The exec_group associated with plisttool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_plist: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
       plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
+      xplat_exec_group: The exec_group associated with plisttool.
     """
     product_name = paths.replace_extension(bundle_name_with_extension, "")
     substitutions = {
@@ -173,11 +168,10 @@ def merge_resource_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
-        mac_exec_group = mac_exec_group,
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
-        platform_prerequisites = platform_prerequisites,
         plisttool = plisttool,
+        xplat_exec_group = xplat_exec_group,
     )
 
 def merge_root_infoplists(
@@ -194,7 +188,6 @@ def merge_root_infoplists(
         extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
-        mac_exec_group,
         output_discriminator,
         output_plist,
         output_pkginfo,
@@ -204,7 +197,8 @@ def merge_root_infoplists(
         rule_descriptor,
         rule_label,
         version,
-        version_keys_required = False):
+        version_keys_required = False,
+        xplat_exec_group):
     """Creates an action that merges Info.plists and converts them to binary.
 
     This action merges multiple plists by shelling out to plisttool, then
@@ -234,7 +228,6 @@ def merge_root_infoplists(
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
-      mac_exec_group: The exec_group associated with plist_tool
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
@@ -248,6 +241,7 @@ def merge_root_infoplists(
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
       version_keys_required: If True, the merged Info.plist file must include
           entries for CFBundleShortVersionString and CFBundleVersion.
+      xplat_exec_group: The exec_group associated with plist_tool
     """
     input_files = list(input_plists + child_plists)
 
@@ -391,9 +385,8 @@ def merge_root_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
-        mac_exec_group = mac_exec_group,
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
-        platform_prerequisites = platform_prerequisites,
         plisttool = plisttool,
+        xplat_exec_group = xplat_exec_group,
     )

@@ -132,6 +132,7 @@ Resolved Xcode is version {xcode_version}.
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -181,6 +182,7 @@ Resolved Xcode is version {xcode_version}.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -189,6 +191,7 @@ Resolved Xcode is version {xcode_version}.
         provisioning_profile = provisioning_profile,
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
+        xplat_exec_group = xplat_exec_group,
     )
 
     extra_requested_features = []
@@ -249,7 +252,6 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             entitlements = entitlements,
@@ -259,6 +261,7 @@ Resolved Xcode is version {xcode_version}.
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -268,15 +271,16 @@ Resolved Xcode is version {xcode_version}.
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_mac_toolchain_info.plisttool,
+            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = label,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -291,6 +295,7 @@ Resolved Xcode is version {xcode_version}.
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
+            xplat_exec_group = xplat_exec_group,
         ),
         partials.swift_dylibs_partial(
             actions = actions,
@@ -317,7 +322,6 @@ Resolved Xcode is version {xcode_version}.
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
@@ -330,6 +334,7 @@ Resolved Xcode is version {xcode_version}.
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     executable = outputs.executable(
