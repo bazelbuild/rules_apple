@@ -498,8 +498,11 @@ def compile_asset_catalog(
             # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26. This is
             # called out in the release notes as an error that can be "safely ignored" in
             # https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes.
+            # In our experience, these are sometimes actionable, but appear to be impossible to
+            # resolve on watchOS given certain inputs.
             "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
-            # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld.
+            # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld
+            # when executing the actool command to build new icons on Sequoia instead of Tahoe.
             "--mute-error=substring= is being set to 0xBAD4007.",
         ])
 
