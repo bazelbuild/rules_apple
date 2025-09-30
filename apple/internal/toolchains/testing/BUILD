@@ -18,7 +18,7 @@ apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
-    plisttool = "//tools/plisttool",
+    plisttool = "//tools/plisttool:plisttool.par",
     versiontool = "//tools/versiontool",
 )
 
