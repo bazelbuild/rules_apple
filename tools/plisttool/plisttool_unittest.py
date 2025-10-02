@@ -92,19 +92,60 @@ class PlistToolMainTest(unittest.TestCase):
       outfile = tempfile.NamedTemporaryFile(delete=False)
       self.addCleanup(lambda: os.unlink(outfile.name))
       outfile.close()
+      control = {
+          'plists': [plist_fp.name],
+          'target': '//test:target',
+          'output': outfile.name,
+      }
+      json.dump(control, json_fp)
+
+    # A None/zero return code means success.
+    self.assertFalse(
+        plisttool._main(json_fp.name), 'plisttool did not successfully run'
+    )
+
+    with open(outfile.name, 'rb') as fp:
+      self.assertIn(
+          member=(
+              b'<?xml version="1.0" encoding="UTF-8"?>\n'
+              b'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+              b'"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+              b'<plist version="1.0">\n'
+              b'<dict>\n'
+              b'\t<key>Foo</key>\n'
+              b'\t<string>abc</string>\n'
+              b'</dict>\n'
+              b'</plist>\n'
+          ),
+          container=fp.read(),
+      )
+
+  def test_main_binary_invocation(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(plist_fp.name))
+    with plist_fp:
+      plist = _xml_plist('<key>Foo</key><string>abc</string>')
+      plist_fp.write(plist.getvalue())
+
+    json_fp = tempfile.NamedTemporaryFile(mode='wt', delete=False)
+    self.addCleanup(lambda: os.unlink(json_fp.name))
+    with json_fp:
+      outfile = tempfile.NamedTemporaryFile(delete=False)
+      self.addCleanup(lambda: os.unlink(outfile.name))
+      outfile.close()
       control = {'plists': [plist_fp.name],
                  'target': '//test:target',
-                 'output': outfile.name}
+                 'output': outfile.name,
+                 'binary': True}
       json.dump(control, json_fp)
 
     # A None/zero return code means success.
     self.assertFalse(plisttool._main(json_fp.name),
                      'plisttool did not successfully run')
 
-    # TODO(b/111687215): Test that the written output is correct.
     with open(outfile.name, 'rb') as fp:
-      self.assertIn(b'<?xml', fp.read())
-
+      # Check that the output is a binary plist based on the header.
+      self.assertIn(b'bplist', fp.read())
 
 class PlistToolVariableReferenceTest(unittest.TestCase):
 
