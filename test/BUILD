@@ -1,11 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 licenses(["notice"])
-
-bzl_library(
-    name = "test_rules",
-    srcs = ["test_rules.bzl"],
-)
 
 # Export shell test utilities so can can be pulled in as data to the tests.
 exports_files(["apple_shell_testutils.sh"])
