@@ -528,7 +528,7 @@ When using Bazel's remote cache and/or build execution, there are a few flags yo
 We recommend adding the following to your `.bazelrc`:
 
 ```shell
-common --modify_execution_info=^(BitcodeSymbolsCopy|BundleApp|BundleTreeApp|DsymDwarf|DsymLipo|GenerateAppleSymbolsFile|ObjcBinarySymbolStrip|CppArchive|CppLink|ObjcLink|ProcessAndSign|SignBinary|SwiftArchive|SwiftStdlibCopy)$=+no-remote,^(BundleResources|ImportedDynamicFrameworkProcessor)$=+no-remote-exec
+common --modify_execution_info=^(AppIntentsMetadataProcessor|BitcodeSymbolsCopy|BundleApp|BundleTreeApp|DsymDwarf|DsymLipo|GenerateAppleSymbolsFile|ObjcBinarySymbolStrip|CppArchive|CppLink|ObjcLink|ProcessAndSign|SignBinary|SwiftArchive|SwiftStdlibCopy)$=+no-remote,^(BundleResources|ImportedDynamicFrameworkProcessor)$=+no-remote-exec
 ```
 
 The following table provides a rationale for each mnemonic and tag. In general though, the mnemonics that are excluded in `--modify_execution_info` are excluded because they produce or work on large outputs which change frequently and as such are faster when run locally, or they are not generally configured for remote execution (such as signing).
@@ -541,5 +541,6 @@ The following table provides a rationale for each mnemonic and tag. In general t
 | `BitcodeSymbolsCopy`, `DsymDwarf`, `DsymLipo`, `GenerateAppleSymbolsFile`| `no-remote-exec` | Processing dSYMs/Symbols remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
 | `ImportedDynamicFrameworkProcessor` | `no-remote-exec` | Processing dynamic frameworks remotely incurs an upload and download of the same blob |
 | `ObjcBinarySymbolStrip` | `no-remote-exec` | Stripping binaries remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
+| `AppIntentsMetadataProcessor` | `no-remote-exec` | App Intents metadata generation requires uploading the linked stub binary; this could go away if you switch to uploading linked binaries |
 | `ProcessAndSign`, `SignBinary` | `no-remote-exec` | RBE is not generally configured for code signing |
 | `BundleApp`, `BundleResources`, `BundleTreeApp`, `ImportedDynamicFrameworkProcessor`, `ProcessAndSign`, `SignBinary` | `no-remote-exec` | These actions are inefficient to do remotely, but in large numbers downloading can be efficient |
