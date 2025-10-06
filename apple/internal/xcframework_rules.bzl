@@ -1093,10 +1093,21 @@ def _apple_static_xcframework_impl(ctx):
             split_attr = ctx.split_attr,
             split_attr_keys = link_output.split_attr_keys,
         )
+        
+        # Collect top_level_infoplists only if bundle_id is set
+        top_level_infoplists = []
+        if ctx.attr.bundle_id:
+            top_level_infoplists = resources.collect(
+                attr = ctx.split_attr,
+                res_attrs = ["infoplists"],
+                split_attr_keys = link_output.split_attr_keys,
+            )
+        
         partial_output = partial.call(partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_extension = ".framework",
+            bundle_id = ctx.attr.bundle_id,
             bundle_name = bundle_name,
             # TODO(b/174858377): Select which environment_plist to use based on Apple platform.
             environment_plist = ctx.file._environment_plist_ios,
@@ -1108,7 +1119,8 @@ def _apple_static_xcframework_impl(ctx):
             rule_descriptor = rule_descriptor,
             rule_label = label,
             targets_to_avoid = targets_to_avoid,
-            version = None,
+            top_level_infoplists = top_level_infoplists,
+            version = ctx.attr.version,
         ))
 
         if getattr(partial_output, "bundle_files", None):
@@ -1182,6 +1194,14 @@ apple_static_xcframework = rule_factory.create_apple_rule(
             deps_cfg = transition_support.xcframework_transition,
         ),
         {
+            "bundle_id": attr.string(
+                mandatory = False,
+                doc = """
+Optional bundle ID (reverse-DNS path followed by framework name) for each of the embedded frameworks.
+If present, this value will be embedded in an Info.plist within each framework bundle, similar to
+apple_xcframework (dynamic frameworks).
+""",
+            ),
             "executable_name": attr.string(
                 mandatory = False,
                 doc = """
@@ -1228,6 +1248,16 @@ values are `iphone` and `ipad` for `ios`; at least one must be specified if a pl
 Currently, this only affects processing of `ios` resources.
 """,
             ),
+            "infoplists": attr.label_list(
+                allow_empty = True,
+                allow_files = [".plist"],
+                cfg = transition_support.xcframework_transition,
+                doc = """
+A list of .plist files that will be merged to form the Info.plist for each of the embedded
+frameworks. Only used if bundle_id is provided.
+""",
+                mandatory = False,
+            ),
             "ios": attr.string_list_dict(
                 doc = """
 A dictionary of strings indicating which platform variants should be built for the `ios` platform (
@@ -1273,6 +1303,13 @@ An optional single .h file to use as the umbrella header for this framework. Usu
 will have the same name as this target, so that clients can load the header using the #import
 <MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
 umbrella header will be generated under the same name as this target.
+""",
+            ),
+            "version": attr.label(
+                providers = [[AppleBundleVersionInfo]],
+                doc = """
+An `apple_bundle_version` target that represents the version for this target. See
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
 """,
             ),
         },
