@@ -1657,3 +1657,27 @@ apple_static_xcframework(
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
+
+apple_bundle_version(
+    name = "static_xcframework_version",
+    build_version = "2.1.0",
+    short_version_string = "2.1",
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_bundle_id",
+    bundle_id = "com.example.static.framework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = ["//test/starlark_tests/resources:shared.h"],
+    deps = [":fmwk_lib"],
+    version = ":static_xcframework_version",
+    tags = common.fixture_tags,
+)
