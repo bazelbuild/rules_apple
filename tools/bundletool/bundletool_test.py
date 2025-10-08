@@ -87,8 +87,7 @@ class BundlerTest(unittest.TestCase):
     """Creates a scratch ZIP file with the given entries.
 
     The scratch ZIP's path, which is returned by this function, can then be
-    passed into the bunlder as one of its `bundle_merge_zips` or
-    `root_merge_zips`.
+    passed into the bunlder as one of its `bundle_merge_zips`.
 
     Args:
       name: The name of the ZIP file.
@@ -222,33 +221,6 @@ class BundlerTest(unittest.TestCase):
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/foo.bundle/some.exe', True)
-
-  def test_root_merge_zips(self):
-    support_zip = self._scratch_zip('support.zip', 'SomeSupport/some.dylib')
-    out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'root_merge_zips': [{'src': support_zip, 'dest': '.'}],
-    })
-    with zipfile.ZipFile(out_zip, 'r') as z:
-      self._assert_zip_contains(z, 'SomeSupport/some.dylib')
-
-  def test_root_merge_zips_with_different_destination(self):
-    support_zip = self._scratch_zip('support.zip', 'some.dylib')
-    out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'root_merge_zips': [{'src': support_zip, 'dest': 'SomeSupport'}],
-    })
-    with zipfile.ZipFile(out_zip, 'r') as z:
-      self._assert_zip_contains(z, 'SomeSupport/some.dylib')
-
-  def test_root_merge_zips_propagates_executable(self):
-    support_zip = self._scratch_zip('support.zip', '*SomeSupport/some.dylib')
-    out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'root_merge_zips': [{'src': support_zip, 'dest': '.'}],
-    })
-    with zipfile.ZipFile(out_zip, 'r') as z:
-      self._assert_zip_contains(z, 'SomeSupport/some.dylib', True)
 
   def test_duplicate_files_with_same_content_are_allowed(self):
     foo_txt = self._scratch_file('foo.txt', 'foo')
