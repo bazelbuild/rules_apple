@@ -43,6 +43,7 @@ py_binary(
     srcs = ["dossier_codesigning_reader.py"],
     python_version = "PY3",
     srcs_version = "PY3",
+    visibility = ["//visibility:public"],
     deps = [":dossier_codesigning_reader_lib"],
 )
 
