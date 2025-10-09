@@ -60,20 +60,21 @@ File object that represents a directory containing the Swift dylibs to package f
 )
 
 # For each platform, the minimum OS version at which we no longer need to bundle
-# any Swift dylibs with the application -- either the pre-ABI-stable runtime,
-# the back-deployed Concurrency runtime, or some future libraries that begin to
-# be included in the OS. We do not need to consider each of these cases
-# individually; `swift-stdlib-tool` will only bundle the libraries required
-# based on the minimum OS version of the scanned binaries.
+# any Swift dylibs with the application -- either the pre-ABI-stable runtime or
+# back-deployed runtimes (e.g., Concurrency and Span). We do not need to
+# consider each of these cases individually; `swift-stdlib-tool` will only
+# bundle the libraries required based on the minimum OS version of the scanned
+# binaries.
 #
-# These values should be kept in sync with the function defined here:
-# https://github.com/apple/swift/blob/998d3518938bd7229e7c5e7b66088d0501c02051/lib/Basic/Platform.cpp#L82-L105
+# These values should be kept in sync with the values in
+# `swift::tripleRequiresRPathForSwiftLibrariesInOS` defined in:
+# https://github.com/apple/swift/blob/main/lib/Basic/Platform.cpp.
 _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": apple_common.dotted_version("15.0"),
-    "macos": apple_common.dotted_version("12.0"),
-    "tvos": apple_common.dotted_version("15.0"),
-    "visionos": apple_common.dotted_version("1.0"),
-    "watchos": apple_common.dotted_version("8.0"),
+    "ios": apple_common.dotted_version("26.0"),
+    "macos": apple_common.dotted_version("26.0"),
+    "tvos": apple_common.dotted_version("26.0"),
+    "visionos": apple_common.dotted_version("26.0"),
+    "watchos": apple_common.dotted_version("26.0"),
 }
 
 # swift-stdlib-tool currently bundles an unnecessary copy of the Swift runtime

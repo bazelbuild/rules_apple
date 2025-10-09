@@ -33,6 +33,7 @@ _min_os_ios = struct(
     icon_bundle_required = "26.0",
     oldest_supported = "15.0",
     nplus1 = "16.0",
+    span_in_os = "26.0",
     test_mismatch_high_threshold = "17.0",
     widget_configuration_intents_support = "16.0",
 )

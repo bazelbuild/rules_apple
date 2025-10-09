@@ -187,6 +187,54 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
     apple_verification_test(
         name = "{}_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",
