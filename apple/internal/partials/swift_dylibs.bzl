@@ -57,22 +57,22 @@ File object that represents a directory containing the Swift dylibs to package f
     },
 )
 
-# Minimum OS versions for which we no longer need to potentially bundle any
-# Swift dylibs with the application. The first cutoff point was when the
-# platforms bundled the standard libraries, the second was when they started
-# bundling the Concurrency library. There may be future libraries that require
-# us to continue bumping these values. The tool is smart enough only to bundle
-# those libraries required by the minimum OS version of the scanned binaries.
+# For each platform, the minimum OS version at which we no longer need to bundle
+# any Swift dylibs with the application -- either the pre-ABI-stable runtime or
+# back-deployed runtimes (e.g., Concurrency and Span). We do not need to
+# consider each of these cases individually; `swift-stdlib-tool` will only
+# bundle the libraries required based on the minimum OS version of the scanned
+# binaries.
 #
-# Values are the first version where bundling is no longer required and should
-# correspond with the Swift compilers values for these which is the source of
-# truth https://github.com/apple/swift/blob/998d3518938bd7229e7c5e7b66088d0501c02051/lib/Basic/Platform.cpp#L82-L105
+# These values should be kept in sync with the values in
+# `swift::tripleRequiresRPathForSwiftLibrariesInOS` defined in:
+# https://github.com/apple/swift/blob/main/lib/Basic/Platform.cpp.
 _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": apple_common.dotted_version("15.0"),
-    "macos": apple_common.dotted_version("12.0"),
-    "tvos": apple_common.dotted_version("15.0"),
-    "visionos": apple_common.dotted_version("1.0"),
-    "watchos": apple_common.dotted_version("8.0"),
+    "ios": apple_common.dotted_version("26.0"),
+    "macos": apple_common.dotted_version("26.0"),
+    "tvos": apple_common.dotted_version("26.0"),
+    "visionos": apple_common.dotted_version("26.0"),
+    "watchos": apple_common.dotted_version("26.0"),
 }
 
 # swift-stdlib-tool currently bundles an unnecessary copy of the Swift runtime
