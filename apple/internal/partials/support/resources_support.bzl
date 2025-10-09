@@ -296,8 +296,10 @@ def _datamodels(
 def _infoplists(
         *,
         actions,
+        apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         files,
+        mac_exec_group,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
@@ -339,12 +341,14 @@ def _infoplists(
         processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_name_with_extension = paths.basename(parent_dir),
             input_files = input_files,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            plisttool = apple_xplat_toolchain_info.plisttool,
             rule_label = rule_label,
             xplat_exec_group = xplat_exec_group,
         )

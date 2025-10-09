@@ -760,6 +760,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":providers",
+        ":resource_actions",
         ":resources",
         ":rule_attrs",
         ":rule_factory",

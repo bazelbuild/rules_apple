@@ -71,7 +71,6 @@ def _merge_root_infoplists(
         output_discriminator,
         rule_descriptor,
         rule_label,
-        xplat_exec_group,
         **kwargs):
     """Registers the root Info.plist generation action.
 
@@ -82,7 +81,6 @@ def _merge_root_infoplists(
           or `None`.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
-      xplat_exec_group: The exec group associated with apple_xplat_toolchain.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
@@ -108,7 +106,6 @@ def _merge_root_infoplists(
         output_pkginfo = out_pkginfo,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
-        xplat_exec_group = xplat_exec_group,
         **kwargs
     )
 
@@ -518,6 +515,8 @@ with dependencies where applicable. Please add a bundle ID to your target defini
                 actions = actions,
                 additional_forced_values = additional_forced_root_infoplist_values,
                 additional_overridable_values = additional_overridable_root_infoplist_values,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = bundle_extension,
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
@@ -526,10 +525,10 @@ with dependencies where applicable. Please add a bundle ID to your target defini
                 environment_plist = environment_plist,
                 extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
+                mac_exec_group = mac_exec_group,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                plisttool = apple_xplat_toolchain_info.plisttool,
                 resource_locales = resource_locales,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,

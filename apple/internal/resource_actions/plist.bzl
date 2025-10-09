@@ -45,11 +45,14 @@ visibility("@build_bazel_rules_apple//apple/internal/...")
 def plisttool_action(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         control_file,
         inputs,
+        mac_exec_group,
         mnemonic = None,
         outputs,
-        plisttool,
+        platform_prerequisites,
         xplat_exec_group):
     """Registers an action that invokes `plisttool`.
 
@@ -59,21 +62,37 @@ def plisttool_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       control_file: The `File` containing the control struct to be passed to plisttool.
       inputs: Any `File`s that should be treated as inputs to the underlying action.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
-      plisttool: A files_to_run for the plist tool.
-      xplat_exec_group: The exec group associated with plisttool.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
-    actions.run(
-        arguments = [control_file.path],
-        exec_group = xplat_exec_group,
-        executable = plisttool,
-        inputs = inputs + [control_file],
-        mnemonic = mnemonic,
-        outputs = outputs,
-    )
+    if platform_prerequisites.build_settings.force_plisttool_on_mac:
+        apple_support.run(
+            actions = actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            arguments = [control_file.path],
+            exec_group = mac_exec_group,
+            executable = apple_mac_toolchain_info.plisttool,
+            inputs = inputs + [control_file],
+            mnemonic = mnemonic,
+            outputs = outputs,
+            xcode_config = platform_prerequisites.xcode_version_config,
+        )
+    else:
+        actions.run(
+            arguments = [control_file.path],
+            exec_group = xplat_exec_group,
+            executable = apple_xplat_toolchain_info.plisttool,
+            inputs = inputs + [control_file],
+            mnemonic = mnemonic,
+            outputs = outputs,
+        )
 
 def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that compiles plist and strings files.
@@ -114,27 +133,31 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
 def merge_resource_infoplists(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_name_with_extension,
         input_files,
+        mac_exec_group,
         output_discriminator,
         output_plist,
         platform_prerequisites,
-        plisttool,
         rule_label,
         xplat_exec_group):
     """Merges a list of plist files for resource bundles with substitutions.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_plist: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
-      xplat_exec_group: The exec_group associated with plisttool.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     product_name = paths.replace_extension(bundle_name_with_extension, "")
     substitutions = {
@@ -166,11 +189,14 @@ def merge_resource_infoplists(
 
     plisttool_action(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
-        plisttool = plisttool,
+        platform_prerequisites = platform_prerequisites,
         xplat_exec_group = xplat_exec_group,
     )
 
@@ -179,6 +205,8 @@ def merge_root_infoplists(
         actions,
         additional_forced_values = [],
         additional_overridable_values = [],
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_name,
         bundle_id = None,
         bundle_extension,
@@ -188,11 +216,11 @@ def merge_root_infoplists(
         extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
+        mac_exec_group,
         output_discriminator,
         output_plist,
         output_pkginfo,
         platform_prerequisites,
-        plisttool,
         resource_locales,
         rule_descriptor,
         rule_label,
@@ -211,6 +239,8 @@ def merge_root_infoplists(
       additional_overridable_values: A List of structs that reference Info.plist keys and
           values that are merged into the final root Info.plist without validation before any
           plists, including user input. This allows for overridable "default" values.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundle_name: The name of the output bundle.
       bundle_id: The bundle identifier to set in the output plist.
       bundle_extension: The extension for the bundle.
@@ -228,13 +258,13 @@ def merge_root_infoplists(
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
       input_plists: The root plist files to merge.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
           required.
       output_plist: The file reference for the merged output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      plisttool: A files_to_run for the plist tool.
       resource_locales: The locales to include in the `CFBundleLocalizations` in the Info.plist.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
@@ -383,10 +413,13 @@ def merge_root_infoplists(
 
     plisttool_action(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
-        plisttool = plisttool,
+        platform_prerequisites = platform_prerequisites,
         xplat_exec_group = xplat_exec_group,
     )

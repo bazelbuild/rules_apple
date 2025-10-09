@@ -79,6 +79,10 @@ load(
     "new_applexcframeworkbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -591,6 +595,18 @@ def _available_library_dictionary(
         available_library["SupportedPlatformVariant"] = environment
     return available_library
 
+def _limited_platform_prerequisites(
+        *,
+        apple_fragment,
+        build_settings,
+        xcode_version_config):
+    """Returns a limited set of platform prerequisites for generating XCFramework Info.plists."""
+    return struct(
+        apple_fragment = apple_fragment,
+        build_settings = build_settings,
+        xcode_version_config = xcode_version_config,
+    )
+
 def _create_framework_outputs(
         *,
         actions,
@@ -885,6 +901,8 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             processor_partials.extend([
                 partials.debug_symbols_partial(
                     actions = actions,
+                    apple_mac_toolchain_info = apple_mac_toolchain_info,
+                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     bundle_extension = nested_bundle_extension,
                     bundle_name = bundle_name,
                     debug_discriminator = _framework_key(
@@ -894,9 +912,9 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                     dsym_outputs = link_output.dsym_outputs,
                     dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                     linkmaps = link_output.linkmaps,
+                    mac_exec_group = mac_exec_group,
                     output_discriminator = library_identifier,
                     platform_prerequisites = platform_prerequisites,
-                    plisttool = apple_xplat_toolchain_info.plisttool,
                     rule_label = rule_label,
                     version = version,
                     xplat_exec_group = xplat_exec_group,
@@ -1034,19 +1052,25 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
 def _create_xcframework_root_infoplist(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         available_libraries,
-        exec_group,
-        plisttool,
-        rule_label):
+        mac_exec_group,
+        platform_prerequisites,
+        rule_label,
+        xplat_exec_group):
     """Generates a root Info.plist for a given XCFramework.
 
      Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         available_libraries: A dictionary containing keys representing how a given framework should
             be referenced in the root Info.plist of a given XCFramework bundle.
-        exec_group: The exec_group associated with plisttool.
-        plisttool: A files_to_run for the plist tool.
+        mac_exec_group: A string. The exec_group for actions using mac toolchain.
+        platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
 
     Returns:
         A `File` representing a root Info.plist to be embedded within an XCFramework bundle.
@@ -1079,13 +1103,17 @@ def _create_xcframework_root_infoplist(
         output = plisttool_control_file,
         content = json.encode(plisttool_control),
     )
-    actions.run(
-        arguments = [plisttool_control_file.path],
-        executable = plisttool,
-        exec_group = exec_group,
-        inputs = [plisttool_control_file],
+    resource_actions.plisttool_action(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        control_file = plisttool_control_file,
+        inputs = [],
+        mac_exec_group = mac_exec_group,
         mnemonic = "CreateXCFrameworkRootInfoPlist",
         outputs = [root_info_plist],
+        platform_prerequisites = platform_prerequisites,
+        xplat_exec_group = xplat_exec_group,
     )
     return root_info_plist
 
@@ -1397,10 +1425,17 @@ def _apple_xcframework_impl(ctx):
 
     root_info_plist = _create_xcframework_root_infoplist(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         available_libraries = bundled_artifacts.available_libraries,
-        exec_group = xplat_exec_group,
-        plisttool = apple_xplat_toolchain_info.plisttool,
+        mac_exec_group = mac_exec_group,
+        platform_prerequisites = _limited_platform_prerequisites(
+            apple_fragment = apple_fragment,
+            build_settings = build_settings,
+            xcode_version_config = xcode_version_config,
+        ),
         rule_label = rule_label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     _create_xcframework_bundle(
@@ -1797,10 +1832,17 @@ def _apple_static_xcframework_impl(ctx):
 
     root_info_plist = _create_xcframework_root_infoplist(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         available_libraries = bundled_artifacts.available_libraries,
-        exec_group = xplat_exec_group,
-        plisttool = apple_xplat_toolchain_info.plisttool,
+        mac_exec_group = mac_exec_group,
+        platform_prerequisites = _limited_platform_prerequisites(
+            apple_fragment = apple_fragment,
+            build_settings = build_settings,
+            xcode_version_config = xcode_version_config,
+        ),
         rule_label = rule_label,
+        xplat_exec_group = xplat_exec_group,
     )
 
     _create_xcframework_bundle(

@@ -44,6 +44,15 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),
+    "force_plisttool_on_mac": struct(
+        doc = """
+Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency
+valve so the default can be flipped if we ever have a problem with the Apple
+swift-corelibs-foundation plutil binary on Linux, and should not be used or set by anyone except
+Apple BUILD rule maintainers.
+""",
+        default = False,
+    ),
 }
 
 # List of all registered build settings without command line flags at

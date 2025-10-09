@@ -238,11 +238,13 @@ def _ditto_command_for_dsyms(*, found_binaries_by_arch):
 
 def _generate_dsym_info_plist(
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         dsym_bundle_name,
         dsym_info_plist_template,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
-        plisttool,
         rule_label,
         version,
         xplat_exec_group):
@@ -250,12 +252,14 @@ def _generate_dsym_info_plist(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         dsym_bundle_name: The full name of the dSYM bundle, including its extension.
         dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+        mac_exec_group: The exec_group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         xplat_exec_group: The exec_group associated with plisttool.
@@ -303,11 +307,14 @@ def _generate_dsym_info_plist(
 
     resource_actions.plisttool_action(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         control_file = control_file,
         inputs = plisttool_input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileDSYMInfoPlist",
         outputs = [dsym_plist],
-        plisttool = plisttool,
+        platform_prerequisites = platform_prerequisites,
         xplat_exec_group = xplat_exec_group,
     )
     return dsym_plist
@@ -315,14 +322,16 @@ def _generate_dsym_info_plist(
 def _bundle_dsym_files(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension = "",
         bundle_name,
         debug_output_filename,
         dsym_inputs = {},
         dsym_info_plist_template,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
-        plisttool,
         rule_label,
         version,
         xplat_exec_group):
@@ -337,6 +346,8 @@ def _bundle_dsym_files(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         debug_output_filename: The base file name to use for this debug output, which will be
@@ -345,10 +356,10 @@ def _bundle_dsym_files(
         dsym_inputs: A mapping of architectures to Files representing dSYM outputs for each
             architecture.
         dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+        mac_exec_group: The exec_group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         xplat_exec_group: The exec_group associated with plisttool.
@@ -438,14 +449,16 @@ def _bundle_dsym_files(
         # If we found any binaries, create the Info.plist for the bundle as well.
         dsym_plist = _generate_dsym_info_plist(
             actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             dsym_bundle_name = dsym_bundle_name,
             dsym_info_plist_template = dsym_info_plist_template,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
-            xplat_exec_group = xplat_exec_group,
             platform_prerequisites = platform_prerequisites,
-            plisttool = plisttool,
             rule_label = rule_label,
             version = version,
+            xplat_exec_group = xplat_exec_group,
         )
         command_inputs.append(dsym_plist)
         output_files.append(dsym_plist)
@@ -481,6 +494,8 @@ def _bundle_dsym_files(
 def _debug_symbols_partial_impl(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         debug_dependencies = [],
@@ -488,9 +503,9 @@ def _debug_symbols_partial_impl(
         dsym_outputs = {},
         dsym_info_plist_template,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
-        plisttool,
         rule_label,
         version,
         xplat_exec_group):
@@ -525,14 +540,16 @@ def _debug_symbols_partial_impl(
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
             dsym_files, dsym_bundle_dir = _bundle_dsym_files(
                 actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 debug_output_filename = debug_output_filename,
                 dsym_inputs = dsym_outputs,
                 dsym_info_plist_template = dsym_info_plist_template,
+                mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                plisttool = plisttool,
                 rule_label = rule_label,
                 version = version,
                 xplat_exec_group = xplat_exec_group,
@@ -595,6 +612,8 @@ def _debug_symbols_partial_impl(
 def debug_symbols_partial(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         debug_dependencies = [],
@@ -602,9 +621,9 @@ def debug_symbols_partial(
         dsym_outputs = {},
         dsym_info_plist_template,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
-        plisttool,
         rule_label,
         version,
         xplat_exec_group):
@@ -620,6 +639,8 @@ def debug_symbols_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         debug_dependencies: List of targets from which to collect the transitive dependency debug
@@ -630,10 +651,10 @@ def debug_symbols_partial(
             architecture.
         dsym_info_plist_template: File referencing a plist template for dSYM bundles.
         linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
+        mac_exec_group: The exec_group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
         xplat_exec_group: The exec_group associated with plisttool.
@@ -644,6 +665,8 @@ def debug_symbols_partial(
     return partial.make(
         _debug_symbols_partial_impl,
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         debug_dependencies = debug_dependencies,
@@ -651,9 +674,9 @@ def debug_symbols_partial(
         dsym_outputs = dsym_outputs,
         dsym_info_plist_template = dsym_info_plist_template,
         linkmaps = linkmaps,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        plisttool = plisttool,
         rule_label = rule_label,
         version = version,
         xplat_exec_group = xplat_exec_group,

@@ -37,6 +37,7 @@ apple_mac_tools_toolchain(
     dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_osx",
+    plisttool = "//tools/plisttool:plisttool.par",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool:provisioning_profile_tool_osx",
     signature_tool = "//tools/signaturetool:signature_tool_osx",

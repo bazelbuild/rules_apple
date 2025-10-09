@@ -335,11 +335,14 @@ def _process_entitlements(
 
     resource_actions.plisttool_action(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         control_file = control_file,
         inputs = inputs,
+        mac_exec_group = mac_exec_group,
         mnemonic = "ProcessEntitlementsFiles",
         outputs = [final_entitlements],
-        plisttool = apple_xplat_toolchain_info.plisttool,
+        platform_prerequisites = platform_prerequisites,
         xplat_exec_group = xplat_exec_group,
     )
 

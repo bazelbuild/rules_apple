@@ -71,6 +71,10 @@ such that the given framework only contains the same slices as the app binary, e
 to the dynamic framework is copied to a temporary location, and the dynamic framework is codesigned
 and zipped as a cacheable artifact.
 """,
+        "plisttool": """\
+The files_to_run for a tool to perform plist operations such as variable
+substitution, merging, and conversion of plist files to binary format.
+""",
         "provisioning_profile_tool": """\
 The files_to_run for a tool that extracts entitlements from a
 provisioning profile.
@@ -139,6 +143,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
         environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
+        plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
         signature_tool = ctx.attr.signature_tool.files_to_run,
         swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
@@ -203,6 +208,14 @@ A `File` referencing a tool to process an imported dynamic framework such that t
 only contains the same slices as the app binary, every file belonging to the dynamic framework is
 copied to a temporary location, and the dynamic framework is codesigned and zipped as a cacheable
 artifact.
+""",
+        ),
+        "plisttool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
+conversion of plist files to binary format.
 """,
         ),
         "process_and_sign_template": attr.label(
