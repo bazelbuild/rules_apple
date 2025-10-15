@@ -138,6 +138,8 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             ignore_version_differences = ignore_version_differences,
         )
 
+        native.register_toolchains("//apple:dtrace_toolchain")
+
     _maybe(
         http_archive,
         name = "xctestrunner",
