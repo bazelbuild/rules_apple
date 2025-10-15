@@ -41,11 +41,13 @@
       "scale" : "2x"
     },
     {
+      "filename" : "star.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "subtype" : "mac-catalyst"
     },
     {
+      "filename" : "star_2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "subtype" : "mac-catalyst"
@@ -68,6 +70,11 @@
     {
       "filename" : "star_2x.png",
       "idiom" : "mac",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "star_2x.png",
+      "idiom" : "vision",
       "scale" : "2x"
     },
     {

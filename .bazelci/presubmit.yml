@@ -7,6 +7,7 @@ x_defaults:
     shell_commands:
     - xcodebuild -downloadComponent metalToolchain
     - xcrun simctl runtime list
+    - xcrun simctl runtime dyld_shared_cache update --all
     build_targets:
     - "tools/..."
     - "test/..."
