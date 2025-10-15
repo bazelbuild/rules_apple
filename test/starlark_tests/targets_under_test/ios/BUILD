@@ -1502,7 +1502,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -1645,7 +1645,7 @@ ios_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -2304,7 +2304,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_swift_lib",
@@ -2499,7 +2499,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":swift_static_without_module_interfaces_fmwk_depending_lib",
@@ -2540,7 +2540,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":swift_static_fmwk_depending_swift_lib",
@@ -2689,7 +2689,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":dynamic_objc_xcframework_depending_swift_lib",
@@ -2800,7 +2800,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":dynamic_swift_xcframework_depending_swift_lib",
@@ -2872,7 +2872,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":static_fmwk_depending_swift_lib",
@@ -2993,7 +2993,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":swift_static_xcframework_depending_objc_lib",
@@ -3034,7 +3034,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":swift_static_xcframework_without_swiftmodule_depending_objc_lib",
@@ -3086,7 +3086,7 @@ ios_application(
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":static_xcframework_depending_swift_lib",
@@ -3150,7 +3150,7 @@ ios_application(
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
     tags = common.fixture_tags,
     deps = [
         ":static_swift_xcframework_depending_swift_lib",
