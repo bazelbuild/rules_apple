@@ -8,11 +8,6 @@ if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
   touch "$TEST_PREMATURE_EXIT_FILE"
 fi
 
-if [[ -z "${DEVELOPER_DIR:-}" ]]; then
-  echo "error: Missing \$DEVELOPER_DIR" >&2
-  exit 1
-fi
-
 if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
   set -x
 fi
@@ -177,12 +172,14 @@ xcrun_is_xctrunner_hosted_bundle="false"
 xcrun_is_ui_test_bundle="false"
 test_type="%(test_type)s"
 if [[ -n "$test_host_path" ]]; then
+  developer_dir=$(xcode-select -p)
+
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
   xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
 
-  developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+  developer_path="$developer_dir/Platforms/$test_execution_platform/Developer"
   libraries_path="$developer_path/Library"
 
   # Added in Xcode 16.0
@@ -212,7 +209,7 @@ if [[ -n "$test_host_path" ]]; then
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
     # No longer necessary starting in Xcode 15 - hence the `-f` file existence check
-    libswift_concurrency_path="$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib"
+    libswift_concurrency_path="$developer_dir/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib"
     if [[ -f "$libswift_concurrency_path" ]]; then
       cp "$libswift_concurrency_path" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
     fi
@@ -532,7 +529,8 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
-  platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+  developer_dir=$(xcode-select -p)
+  platform_developer_dir="$developer_dir/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
   test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
   if [[ "$intel_simulator_hack" == true ]]; then
