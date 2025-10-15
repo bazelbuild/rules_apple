@@ -164,6 +164,34 @@ def _asset_catalogs(
     """Processes asset catalog files."""
     processed_origins = {}
 
+    asset_files = files.to_list()
+
+    # A list of all known asset catalog types besides Icon Composer icons can be found at this link
+    # within the Apple legacy documentation archive:
+    # https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/AssetTypes.html#//apple_ref/doc/uid/TP40015170-CH30-SW1
+    #
+    # Check for empty asset catalogs; these will waste time and resources executing actool.
+    contains_assets_to_compile = False
+    for file in asset_files:
+        # Skip directories and Contents.json files outside of .colorset folders.
+        #
+        # Contents.json files *inside* of .colorset folders are transformed into compiled asset
+        # catalogs with color sets, and do not require any other files to generate these color sets.
+        if (file.is_directory or (
+            file.basename == "Contents.json" and not file.dirname.endswith(".colorset")
+        )):
+            continue
+        contains_assets_to_compile = True
+        break
+    if not contains_assets_to_compile:
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("""
+WARNING: No assets to compile for {rule_label} even though an asset catalog (.xcassets directory) \
+was declared. Skipping asset catalog compilation.
+""".format(rule_label = str(rule_label)))
+        return struct(files = [], infoplists = [])
+
     # Only merge the resulting plist for the top level bundle. For resource
     # bundles, skip generating the plist.
     assets_plist = None
