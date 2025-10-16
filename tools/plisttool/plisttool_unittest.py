@@ -459,6 +459,19 @@ class PlistToolTest(unittest.TestCase):
     self._assert_plisttool_result({'plists': [plist1]}, {'Foo': 'abc'})
 
   def test_merge_of_one_empty_file(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(path=plist_fp.name))
+    self._assert_plisttool_result({'plists': [plist_fp.name]}, {})
+
+  def test_merge_of_one_empty_file_with_binary_output(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(path=plist_fp.name))
+    self._assert_plisttool_result({
+        'binary': True,
+        'plists': [plist_fp.name],
+    }, {})
+
+  def test_merge_of_one_empty_xml_file(self):
     plist1 = _xml_plist('')
     self._assert_plisttool_result({'plists': [plist1]}, {})
 
