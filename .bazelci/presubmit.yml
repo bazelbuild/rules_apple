@@ -6,14 +6,13 @@ x_defaults:
     platform: macos_arm64
     shell_commands:
     - xcrun simctl runtime list
-    - xcrun simctl runtime delete 22D8075 || true
     - xcrun simctl runtime delete 21F79 || true
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - xcrun simctl runtime match set xros2.2 22N895
+    - xcrun simctl runtime match set xros2.5 22O473
     - xcrun simctl runtime match list
     post_shell_commands:
-    - xcrun simctl runtime match set xros2.2 --default
+    - xcrun simctl runtime match set xros2.5 --default
     - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
