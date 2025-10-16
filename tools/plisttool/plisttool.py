@@ -774,6 +774,9 @@ class PlistIO(object):
       PlistToolError: if plutil return code is non-zero.
     """
     plist_contents = plist_file.read()
+    if not plist_contents:
+      # If the incoming file is empty, return an empty dictionary.
+      return {}
 
     # Binary plists are easy to identify because they start with 'bplist'. For
     # plain text plists, it may be possible to have leading whitespace, but
