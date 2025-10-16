@@ -127,12 +127,17 @@ for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
   XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
 done
 
+declare -r sed_delim=$'\001'
+
 # Replace the substitution values into the xctestrun file.
-/usr/bin/sed -i '' 's@BAZEL_TEST_BUNDLE_PATH@'"$XCTESTRUN_TEST_BUNDLE_PATH"'@g' "$XCTESTRUN"
-/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BASED@'"$XCTESTRUN_TEST_HOST_BASED"'@g' "$XCTESTRUN"
-/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_BINARY@'"$XCTESTRUN_TEST_HOST_BINARY"'@g' "$XCTESTRUN"
-/usr/bin/sed -i '' 's@BAZEL_TEST_HOST_PATH@'"$XCTESTRUN_TEST_HOST_PATH"'@g' "$XCTESTRUN"
-/usr/bin/sed -i '' 's@BAZEL_TEST_ENVIRONMENT@'"$XCTESTRUN_ENV"'@g' "$XCTESTRUN"
+/usr/bin/sed \
+  -e "s${sed_delim}BAZEL_TEST_BUNDLE_PATH${sed_delim}$XCTESTRUN_TEST_BUNDLE_PATH${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_TEST_HOST_BASED${sed_delim}$XCTESTRUN_TEST_HOST_BASED${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_TEST_HOST_BINARY${sed_delim}$XCTESTRUN_TEST_HOST_BINARY${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_TEST_HOST_PATH${sed_delim}$XCTESTRUN_TEST_HOST_PATH${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_TEST_ENVIRONMENT${sed_delim}$XCTESTRUN_ENV${sed_delim}g" \
+  -i "" \
+  "$XCTESTRUN"
 
 # If XML_OUTPUT_FILE is not an absolute path, make it absolute with regards of
 # where this script is being run.
