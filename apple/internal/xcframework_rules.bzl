@@ -1093,7 +1093,7 @@ def _apple_static_xcframework_impl(ctx):
             split_attr = ctx.split_attr,
             split_attr_keys = link_output.split_attr_keys,
         )
-        
+
         # Collect top_level_infoplists only if bundle_id is set
         top_level_infoplists = []
         if ctx.attr.bundle_id:
@@ -1102,7 +1102,7 @@ def _apple_static_xcframework_impl(ctx):
                 res_attrs = ["infoplists"],
                 split_attr_keys = link_output.split_attr_keys,
             )
-        
+
         partial_output = partial.call(partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

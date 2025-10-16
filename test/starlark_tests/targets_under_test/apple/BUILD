@@ -1677,7 +1677,7 @@ apple_static_xcframework(
         "ios": common.min_os_ios.baseline,
     },
     public_hdrs = ["//test/starlark_tests/resources:shared.h"],
-    deps = [":fmwk_lib"],
-    version = ":static_xcframework_version",
     tags = common.fixture_tags,
+    version = ":static_xcframework_version",
+    deps = [":fmwk_lib"],
 )
