@@ -243,6 +243,7 @@ def _macos_application_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embedded_targets,
@@ -811,6 +812,7 @@ def _macos_extension_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
             embedded_bundles = [],

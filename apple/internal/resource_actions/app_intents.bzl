@@ -71,6 +71,7 @@ def _generate_intermediate_file_list(
 def generate_app_intents_metadata_bundle(
         *,
         actions,
+        apple_mac_toolchain_info,
         bundle_id,
         constvalues_files,
         intents_module_name,
@@ -84,6 +85,7 @@ def generate_app_intents_metadata_bundle(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_id: The bundle ID to configure for this target.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
@@ -112,8 +114,12 @@ def generate_app_intents_metadata_bundle(
     direct_inputs = []
 
     args = actions.args()
+
+    # Custom xctoolrunner options.
+    args.add("passthrough-commands")
     args.add("appintentsmetadataprocessor")
 
+    # Standard appintentsmetadataprocessor options.
     if xcode_version_config.xcode_version() < apple_common.dotted_version("16.3"):
         # FB347041279: Though this is not required for --compile-time-extraction, which is the only
         # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
@@ -193,7 +199,7 @@ an issue with the Apple BUILD rules with repro steps.
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
-        executable = "/usr/bin/xcrun",
+        executable = apple_mac_toolchain_info.xctoolrunner_alternative,
         exec_group = mac_exec_group,
         inputs = depset(direct_inputs, transitive = transitive_inputs),
         mnemonic = "AppIntentsMetadataProcessor",

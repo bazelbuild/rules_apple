@@ -174,6 +174,7 @@ def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
         app_intents,
+        apple_mac_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
@@ -225,6 +226,7 @@ def _app_intents_metadata_bundle_partial_impl(
 
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         constvalues_files = [
             swiftconstvalues_file
@@ -272,6 +274,7 @@ def app_intents_metadata_bundle_partial(
         *,
         actions,
         app_intents,
+        apple_mac_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
@@ -287,6 +290,7 @@ def app_intents_metadata_bundle_partial(
         actions: The actions provider from ctx.actions.
         app_intents: A list of dictionaries for targets under a split transition providing
             AppIntentsInfo.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_id: The bundle ID to configure for this target.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
@@ -303,6 +307,7 @@ def app_intents_metadata_bundle_partial(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
         app_intents = app_intents,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         embedded_bundles = embedded_bundles,
         cc_toolchains = cc_toolchains,

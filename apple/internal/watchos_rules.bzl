@@ -329,6 +329,7 @@ reproducible error case.".format(
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
@@ -655,6 +656,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -956,6 +958,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
@@ -1237,6 +1240,7 @@ def _watchos_framework_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
