@@ -38,11 +38,29 @@ load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
     "ios_xctestrun_runner"
 )
+load(
+    "@build_bazel_rules_apple//apple/testing/simulator_pool:create_simulator_pool.bzl",
+    "create_simulator_pool"
+)
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone Xs",
+)
+
+create_simulator_pool(
+    name = "create_simulator_pool",
+    device_type = "iPhone Xs",
+    pool_size = 2,
+    os_version = "${MIN_OS_IOS}",
+    server_port = 50051,
+)
+
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_using_simulator_pool",
+    device_type = "iPhone Xs",
+    simulator_pool_server_port = 50051,
 )
 
 ios_xctestrun_runner(
@@ -107,6 +125,15 @@ ios_xctestrun_runner(
     post_action = ":post_action",
 )
 EOF
+}
+
+function setup_simulator_pool_server() {
+  bazel run //ios:create_simulator_pool
+}
+
+function teardown_simulator_pool_server() {
+  curl -X GET http://localhost:50051/shutdown --fail > /dev/null 2>&1
+  xcrun simctl delete all
 }
 
 function create_test_host_app() {
@@ -319,6 +346,15 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     env = test_env,
     runner = ":ios_x86_64_sim_runner",
+)
+
+ios_unit_test(
+    name = "SmallUnitTestUsingSimulatorPool",
+    infoplists = ["SmallUnitTest-Info.plist"],
+    deps = [":small_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner_using_simulator_pool",
 )
 
 objc_library(
@@ -728,6 +764,19 @@ function test_ios_unit_test_small_pass() {
   expect_log "Test Suite 'SmallUnitTest1' passed"
   expect_log "Test Suite 'SmallUnitTest2' passed"
   expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_test_small_pass_using_simulator_pool() {
+  create_sim_runners
+  create_ios_unit_tests
+  setup_simulator_pool_server
+  do_ios_test //ios:SmallUnitTestUsingSimulatorPool || fail "should pass"
+  teardown_simulator_pool_server
+
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTestUsingSimulatorPool.xctest' passed"
   expect_log "Executed 2 tests, with 0 failures"
 }
 

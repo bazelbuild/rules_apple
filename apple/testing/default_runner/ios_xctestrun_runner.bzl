@@ -25,7 +25,9 @@ def _get_template_substitutions(
         xctrunner_entitlements_template,
         pre_action_binary,
         post_action_binary,
-        post_action_determines_exit_code):
+        post_action_determines_exit_code,
+        simulator_pool_server_port,
+        simulator_pool_client):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
@@ -43,6 +45,8 @@ def _get_template_substitutions(
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
+        "simulator_pool_server_port": simulator_pool_server_port,
+        "simulator_pool_client.py": simulator_pool_client,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -70,6 +74,8 @@ def _ios_xctestrun_runner_impl(ctx):
         ctx.file._xctestrun_template,
         ctx.file._xctrunner_entitlements_template,
     ]).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles)
+
+    runfiles = runfiles.merge(ctx.attr._simulator_pool_client[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -105,6 +111,8 @@ def _ios_xctestrun_runner_impl(ctx):
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
+            simulator_pool_server_port = "" if ctx.attr.simulator_pool_server_port else str(ctx.attr.simulator_pool_server_port),
+            simulator_pool_client = ctx.executable._simulator_pool_client.short_path,
         ),
     )
 
@@ -203,6 +211,14 @@ A binary to run following test execution. Runs after testing but before test res
             doc = """
 When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
 """,
+        ),
+        "simulator_pool_server_port": attr.int(
+            doc = "The port of a running simulator pool server. If set, the test runner will connect to the simulator pool server and use the simulators from the pool instead of creating new ones.",
+        ),
+        "_simulator_pool_client": attr.label(
+            default = "//apple/testing/simulator_pool:simulator_pool_client",
+            executable = True,
+            cfg = "exec",
         ),
         "_simulator_creator": attr.label(
             default = Label(
