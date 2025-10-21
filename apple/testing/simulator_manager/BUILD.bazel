@@ -1,0 +1,31 @@
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+# This is a macro in our repo, so this won't compile as is. But it's basically `macos_application` and `macos_unit_test` combined.
+macos_swift_tool(
+    name = "simulator_manager",
+    deps = [
+        "@swiftpkg_shellout//:ShellOut",
+        "@swiftpkg_swift_argument_parser//:ArgumentParser",
+        "@swiftpkg_swift_nio//:NIO",
+        "@swiftpkg_swift_nio//:NIOCore",
+        "@swiftpkg_swift_nio//:NIOHTTP1",
+        "@swiftpkg_swift_nio_extras//:NIOExtras",
+    ],
+)
+
+sh_binary(
+    name = "start",
+    srcs = ["start.sh"],
+    data = [
+        ":prepare_simulator",
+        ":simulator_manager_opt",
+        ":start_tunnel",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
+sh_binary(
+    name = "prepare_simulator",
+    srcs = ["prepare_simulator.sh"],
+)
