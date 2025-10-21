@@ -95,6 +95,8 @@ def create_schema_rkassets(
         output = module_with_deps_json_file,
         content = json.encode(module_with_deps),
     )
+    execution_requirements = {}
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
@@ -110,6 +112,7 @@ def create_schema_rkassets(
         ],
         exec_group = mac_exec_group,
         executable = xctoolrunner,
+        execution_requirements = execution_requirements,
         inputs = depset([module_with_deps_json_file], transitive = transitive_inputs),
         mnemonic = "CreateSchemaRealityKitAssets",
         outputs = [output_file],
