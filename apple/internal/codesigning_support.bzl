@@ -65,7 +65,6 @@ def _no_op(x):
 def _preferred_codesigning_identity(
         *,
         build_settings,
-        objc_fragment,
         requires_adhoc_signing):
     """Returns the preferred codesigning identity from platform prerequisites.
 
@@ -78,11 +77,6 @@ def _preferred_codesigning_identity(
     if requires_adhoc_signing:
         return _ADHOC_PSEUDO_IDENTITY
     if build_settings:
-        if objc_fragment:
-            # TODO(b/252873771): Remove this fallback when the native Bazel flag
-            # ios_signing_cert_name is removed.
-            return (build_settings.signing_certificate_name or
-                    objc_fragment.signing_certificate_name)
         return build_settings.signing_certificate_name
     return None
 
@@ -130,7 +124,6 @@ def _codesign_args_for_path(
     # use an ad hoc identity.
     identity = _preferred_codesigning_identity(
         build_settings = platform_prerequisites.build_settings,
-        objc_fragment = platform_prerequisites.objc_fragment,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
     if not identity:
