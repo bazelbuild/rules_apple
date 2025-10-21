@@ -14,11 +14,6 @@
 
 """List of Bazel's rules_apple build settings."""
 
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-
 visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",
@@ -94,10 +89,10 @@ _local_build_flags_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build
 _extra_build_config_packages_by_name = {
 }
 
-_all_starlark_build_config_packages_by_name = dicts.add(
-    _local_build_settings_packages_by_name,
-    _local_build_flags_packages_by_name,
-    _extra_build_config_packages_by_name,
+_all_starlark_build_config_packages_by_name = (
+    _local_build_settings_packages_by_name |
+    _local_build_flags_packages_by_name |
+    _extra_build_config_packages_by_name
 )
 
 build_settings_labels = struct(

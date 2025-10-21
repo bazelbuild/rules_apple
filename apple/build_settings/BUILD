@@ -55,9 +55,6 @@ bzl_library(
     visibility = [
         "//:__subpackages__",
     ],
-    deps = [
-        "@bazel_skylib//lib:dicts",
-    ],
 )
 
 # Consumed by bazel tests.
