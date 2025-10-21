@@ -1184,7 +1184,6 @@ def _create_xcframework_codesigning_dossier(
         apple_fragment,
         apple_mac_toolchain_info,
         build_settings,
-        objc_fragment,
         rule_label,
         xcode_config):
     """Generates the codesigning dossier for an XCFramework."""
@@ -1192,7 +1191,6 @@ def _create_xcframework_codesigning_dossier(
 
     codesign_identity = codesigning_support.preferred_codesigning_identity(
         build_settings = build_settings,
-        objc_fragment = objc_fragment,
         # Never adhoc sign XCFrameworks; the SDK signing requires a valid code signing identity
         # corresponding to a certificate.
         requires_adhoc_signing = False,
@@ -1399,7 +1397,6 @@ def _apple_xcframework_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         build_settings = build_settings,
-        objc_fragment = objc_fragment,
         rule_label = rule_label,
         xcode_config = xcode_version_config,
     )
@@ -1781,7 +1778,6 @@ def _apple_static_xcframework_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         build_settings = build_settings,
-        objc_fragment = objc_fragment,
         rule_label = rule_label,
         xcode_config = xcode_version_config,
     )

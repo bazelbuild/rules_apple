@@ -276,7 +276,6 @@ def _codesigning_dossier_partial_impl(
 
     codesign_identity = codesigning_support.preferred_codesigning_identity(
         build_settings = platform_prerequisites.build_settings,
-        objc_fragment = platform_prerequisites.objc_fragment,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
 
