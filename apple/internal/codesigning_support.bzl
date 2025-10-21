@@ -74,24 +74,17 @@ def _codesignopts_from_rule_ctx(ctx):
 def _preferred_codesigning_identity(
         *,
         build_settings,
-        objc_fragment,
         requires_adhoc_signing):
     """Returns the preferred codesigning identity from platform prerequisites.
 
     Args:
       build_settings: The build settings from apple_xplat_toolchain_info or platform_prerequisites.
-      objc_fragment: The objc fragment interface from ctx.fragments.objc.
       requires_adhoc_signing: Whether this signing operation requires adhoc signing with the adhoc
           pseudo identity. i.e. if this is a simulator build.
     """
     if requires_adhoc_signing:
         return _ADHOC_PSEUDO_IDENTITY
     if build_settings:
-        if objc_fragment:
-            # TODO(b/252873771): Remove this fallback when the native Bazel flag
-            # ios_signing_cert_name is removed.
-            return (build_settings.signing_certificate_name or
-                    objc_fragment.signing_certificate_name)
         return build_settings.signing_certificate_name
     return None
 
@@ -141,7 +134,6 @@ def _codesign_args_for_path(
     # use an ad hoc identity.
     identity = _preferred_codesigning_identity(
         build_settings = platform_prerequisites.build_settings,
-        objc_fragment = platform_prerequisites.objc_fragment,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
     if not identity:
