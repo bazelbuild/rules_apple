@@ -56,27 +56,20 @@ def _environment_plist_impl(ctx):
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
-    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    environment_plist_tool = apple_mac_toolchain_info.environment_plist_tool
+    environment_plist_tool = apple_toolchain_utils.get_mac_toolchain(ctx).environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
-            # Custom xctoolrunner options.
-            "passthrough-commands",
-            # Standard bash script options.
-            "bash",
-            environment_plist_tool.executable.path,
             "--platform",
             platform.name_in_plist.lower() + str(sdk_version),
             "--output",
             ctx.outputs.plist.path,
         ],
-        executable = apple_mac_toolchain_info.xctoolrunner_alternative,
+        executable = environment_plist_tool,
         exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
-        inputs = [environment_plist_tool.executable],
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
