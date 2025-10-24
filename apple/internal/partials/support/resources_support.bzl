@@ -471,6 +471,8 @@ def _mlmodels(
             output_discriminator = output_discriminator,
             dir_name = paths.join(parent_dir or "", paths.replace_extension(basename, ".mlmodelc")),
         )
+        processed_origins[output_bundle.short_path] = [file.short_path]
+
         output_plist = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
