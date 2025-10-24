@@ -31,6 +31,7 @@ toolchain(
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
+    bundletool_mac = "//tools/bundletool:bundletool_osx",
     clangrttool = "//tools/clangrttool:clangrttool_osx",
     codesigningtool = "//tools/codesigningtool:codesigntool_osx",
     dossier_codesigningtool = "//tools/dossier_codesigning_reader:dossier_code_sign_tool_swift_osx",

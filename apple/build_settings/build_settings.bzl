@@ -24,6 +24,15 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
+    "force_plisttool_on_mac": struct(
+        doc = """
+Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency
+valve so the default can be flipped if we ever have a problem with the Apple
+swift-corelibs-foundation plutil binary on Linux, and should not be used or set by anyone except
+Apple BUILD rule maintainers.
+""",
+        default = False,
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(
@@ -32,19 +41,22 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
+    # TODO(b/448648527): Flip this to "True" when ready, then remove this build flag once the new
+    # mac bundletool is deemed sufficient for all users.
+    "use_mac_tree_artifact_bundletool": struct(
+        doc = """
+Indicates that the new mac tree artifact bundletool should be used, rather than the legacy
+experimental tree artifact bundletool when generating tree artifact bundles. This setting has no
+effect on non-tree artifact bundles (i.e. "zipped" bundle archives). This is an emergency valve so
+the default can be flipped if we ever have a problem with the new mac bundletool, and should not be
+used or set by anyone except Apple BUILD rule maintainers.
+""",
+        default = False,
+    ),
     # TODO(b/266604130): Migrate users from tree artifacts outputs define flag to build setting.
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
-""",
-        default = False,
-    ),
-    "force_plisttool_on_mac": struct(
-        doc = """
-Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency
-valve so the default can be flipped if we ever have a problem with the Apple
-swift-corelibs-foundation plutil binary on Linux, and should not be used or set by anyone except
-Apple BUILD rule maintainers.
 """,
         default = False,
     ),

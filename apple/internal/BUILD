@@ -102,6 +102,7 @@ bzl_library(
     ],
     deps = [
         ":providers",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -455,6 +456,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":bundling_support",
         ":codesigning_support",
         ":experimental",
         ":intermediates",
@@ -462,7 +464,6 @@ bzl_library(
         ":providers",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -777,7 +778,6 @@ bzl_library(
         "//apple/internal/utils:files",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
     ],

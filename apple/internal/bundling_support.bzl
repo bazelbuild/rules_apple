@@ -15,6 +15,10 @@
 """Low-level bundling name helpers."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
@@ -298,6 +302,64 @@ def _ensure_single_xcassets_type(
         message = message,
     )
 
+def _generate_tree_artifact_bundle_action(
+        *,
+        actions,
+        additional_bundling_tools,
+        apple_fragment,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        bundletool_control_file,
+        bundletool_inputs,
+        mac_exec_group,
+        mnemonic,
+        output_archive,
+        progress_message,
+        xcode_config):
+    """Generates an action that creates a tree artifact for a bundle rule output.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      additional_bundling_tools: A list of additional tools to make available to the action.
+      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+      bundletool_control_file: A File referencing the control file for the bundletool.
+      bundletool_inputs: A depset of files to pass to the bundletool.
+      mac_exec_group: A String. The exec_group for actions using the mac toolchain.
+      mnemonic: A String. The mnemonic to use for the action.
+      output_archive: A File referencing the output tree artifact.
+      progress_message: A String. The progress message to use for the action.
+      xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+    """
+    bundletool = apple_mac_toolchain_info.bundletool_experimental
+    if apple_xplat_toolchain_info.build_settings.use_mac_tree_artifact_bundletool:
+        bundletool = apple_mac_toolchain_info.bundletool_mac
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [
+            bundletool_control_file.path,
+        ],
+        exec_group = mac_exec_group,
+        executable = bundletool,
+        execution_requirements = {
+            # Added so that the output of this action is not cached remotely, in case multiple
+            # developers sign the same artifact with different identities.
+            "no-remote": "1",
+            # Unsure, but may be needed for keychain access, especially for files that live in
+            # $HOME.
+            "no-sandbox": "1",
+        },
+        inputs = bundletool_inputs,
+        mnemonic = mnemonic,
+        outputs = [output_archive],
+        progress_message = progress_message,
+        tools = additional_bundling_tools,
+        xcode_config = xcode_config,
+    )
+
 def _path_is_under_fragments(path, path_fragments):
     """Helper for _ensure_asset_types().
 
@@ -405,5 +467,6 @@ bundling_support = struct(
     bundle_full_id = _bundle_full_id,
     ensure_asset_catalog_files_not_in_xcassets = _ensure_asset_catalog_files_not_in_xcassets,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
+    generate_tree_artifact_bundle_action = _generate_tree_artifact_bundle_action,
     validate_bundle_id = _validate_bundle_id,
 )

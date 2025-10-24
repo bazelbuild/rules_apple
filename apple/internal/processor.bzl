@@ -72,8 +72,8 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
@@ -382,17 +382,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
 
     bundletool_inputs = input_files + [control_file] + extra_input_files
 
-    action_args = {
-        "arguments": [control_file.path],
-        "outputs": [output_file],
-    }
-
     if tree_artifact_is_enabled:
-        # Since the tree artifact bundler also runs the post processor and codesigning, this
-        # action needs to run on a macOS machine.
-
-        bundletool = apple_mac_toolchain_info.bundletool_experimental
-
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
         # the experimental bundle tool script.
         codesigningtool = apple_mac_toolchain_info.codesigningtool
@@ -401,35 +391,30 @@ Please file a bug against the Apple BUILD rules with repro steps.
         if post_processor:
             additional_bundling_tools.append(post_processor)
 
-        apple_support.run(
+        bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
+            additional_bundling_tools = additional_bundling_tools,
             apple_fragment = platform_prerequisites.apple_fragment,
-            executable = bundletool,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-remote": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
-            exec_group = mac_exec_group,
-            inputs = bundletool_inputs,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundletool_control_file = control_file,
+            bundletool_inputs = depset(bundletool_inputs),
+            mac_exec_group = mac_exec_group,
             mnemonic = "BundleTreeApp",
+            output_archive = output_file,
             progress_message = "Bundling, processing and signing %s" % label_name,
-            tools = additional_bundling_tools,
             xcode_config = platform_prerequisites.xcode_version_config,
-            **action_args
         )
     else:
         bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
+            arguments = [control_file.path],
             executable = bundletool.files_to_run,
+            exec_group = xplat_exec_group,
             inputs = depset(bundletool_inputs),
             mnemonic = "BundleApp",
+            outputs = [output_file],
             progress_message = "Bundling %s" % label_name,
-            exec_group = xplat_exec_group,
-            **action_args
         )
 
 def _bundle_post_process_and_sign(

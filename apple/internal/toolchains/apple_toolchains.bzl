@@ -47,6 +47,9 @@ The files_to_run for an experimental tool to create an Apple bundle by
 combining the bundling, post-processing, and signing steps into a single action that eliminates the
 archiving step.
 """,
+        "bundletool_mac": """\
+The files_to_run for a tool to create an Apple bundle that is expected to always run on a Mac.
+""",
         "clangrttool": """\
 The files_to_run for a tool to find all Clang runtime libs linked to a
 binary.
@@ -134,16 +137,17 @@ A tool that acts as a wrapper for xcrun actions.
 
 def _apple_mac_tools_toolchain_impl(ctx):
     apple_mac_tools_info = AppleMacToolsToolchainInfo(
-        dsym_info_plist_template = ctx.file.dsym_info_plist_template,
-        process_and_sign_template = ctx.file.process_and_sign_template,
         bundletool_experimental = ctx.attr.bundletool_experimental.files_to_run,
+        bundletool_mac = ctx.attr.bundletool_mac.files_to_run,
+        clangrttool = ctx.attr.clangrttool.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
         dossier_codesigningtool = ctx.attr.dossier_codesigningtool.files_to_run,
-        clangrttool = ctx.attr.clangrttool.files_to_run,
+        dsym_info_plist_template = ctx.file.dsym_info_plist_template,
         environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
         plisttool = ctx.attr.plisttool.files_to_run,
+        process_and_sign_template = ctx.file.process_and_sign_template,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
         signature_tool = ctx.attr.signature_tool.files_to_run,
         swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
@@ -163,6 +167,13 @@ apple_mac_tools_toolchain = rule(
             doc = """
 A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
 post-processing, and signing steps into a single action that eliminates the archiving step.
+""",
+        ),
+        "bundletool_mac": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool to create an Apple bundle that is expected to always run on a Mac.
 """,
         ),
         "clangrttool": attr.label(

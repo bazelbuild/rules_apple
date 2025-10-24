@@ -17,10 +17,6 @@
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -1181,27 +1177,20 @@ def _create_xcframework_bundle(
     )
 
     if tree_artifact_is_enabled:
-        bundletool = apple_mac_toolchain_info.bundletool_experimental
-        apple_support.run(
+        bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
+            additional_bundling_tools = [],
             apple_fragment = apple_fragment,
-            arguments = [bundletool_control_file.path],
-            executable = bundletool,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-remote": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
-            exec_group = mac_exec_group,
-            inputs = depset(
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundletool_control_file = bundletool_control_file,
+            bundletool_inputs = depset(
                 direct = [bundletool_control_file, root_info_plist],
                 transitive = framework_archive_files,
             ),
+            mac_exec_group = mac_exec_group,
             mnemonic = "CreateXCFrameworkBundle",
-            outputs = [output_archive],
+            output_archive = output_archive,
             progress_message = "Bundling %s" % label_name,
             xcode_config = xcode_config,
         )
