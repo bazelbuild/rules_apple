@@ -18,6 +18,10 @@ load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
+    "@rules_cc//cc/private/rules_impl:objc_compilation_support.bzl",
+    objc_compilation_support = "compilation_support",
+)
+load(
     "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
@@ -79,7 +83,7 @@ def _archive_multi_arch_static_library(
 
     for split_transition_key, child_toolchain in cc_toolchains.items():
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
-        common_variables = apple_common.compilation_support.build_common_variables(
+        common_variables = objc_compilation_support.build_common_variables(
             ctx = ctx,
             toolchain = cc_toolchain,
             use_pch = True,
@@ -238,7 +242,7 @@ def _link_multi_arch_binary(
         deps = split_deps.get(split_transition_key, [])
         platform_info = child_toolchain[ApplePlatformInfo]
 
-        common_variables = apple_common.compilation_support.build_common_variables(
+        common_variables = objc_compilation_support.build_common_variables(
             ctx = ctx,
             toolchain = cc_toolchain,
             deps = deps,
