@@ -33,8 +33,6 @@ Apple BUILD rule maintainers.
 """,
         default = False,
     ),
-    # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
-    # new custom build setting.
     "signing_certificate_name": struct(
         doc = """
 Declare a code signing identity, to be used in all code signing flows related to the rules.
@@ -53,7 +51,7 @@ used or set by anyone except Apple BUILD rule maintainers.
 """,
         default = False,
     ),
-    # TODO(b/266604130): Migrate users from tree artifacts outputs define flag to build setting.
+    # TODO(b/266604130): Migrate users from the tree artifact output --define flag to this flag.
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
