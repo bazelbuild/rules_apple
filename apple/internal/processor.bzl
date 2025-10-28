@@ -575,7 +575,6 @@ def _bundle_post_process_and_sign(
 
         output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
 
-        # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (ios_application).
         codesigning_support.post_process_and_sign_archive_action(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,

@@ -24,23 +24,16 @@ representation of a "control" structure, which makes it easier to pass in
 complex structured data. This control structure is a dictionary with the
 following keys:
 
-  bundle_path: The path relative to the archive root where the bundle files will
-      be stored. Application targets, for example, might specify a path like
-      "Payload/foo.app".
   bundle_merge_files: A list of dictionaries representing files to be merged
       into the bundle. Each dictionary contains the following fields: "src", the
       path of the file to be added to the bundle; "dest", the path inside the
       bundle where the file should live, including its filename (which lets the
-      name be changed, if desired); and "executable", a Boolean value indicating
-      whether or not the executable bit should be set on the file. If
-      `executable` is omitted, False is used.
-      The destination path is relative to `bundle_path`.
+      name be changed, if desired).
   bundle_merge_zips: A list of dictionaries representing ZIP archives whose
       contents should be merged into the bundle. Each dictionary contains two
       fields: "src", the path of the archive whose contents should be merged
       into the bundle; and "dest", the path inside the bundle where the ZIPs
-      contents should be placed. The destination path is relative to
-      `bundle_path`.
+      contents should be placed.
   output: The path to the uncompressed ZIP archive that should be created with
       the merged bundle contents.
 """
@@ -98,26 +91,24 @@ class Bundler(object):
     if not output_path:
       raise BundleConflictError('No output file specified.')
 
-    bundle_path = self._control.get('bundle_path', '')
     bundle_merge_files = self._control.get('bundle_merge_files', [])
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
 
     with zipfile.ZipFile(output_path, 'w') as out_zip:
       for z in bundle_merge_zips:
-        dest = os.path.normpath(os.path.join(bundle_path, z['dest']))
+        dest = os.path.normpath(z['dest'])
         self._add_zip_contents(z['src'], dest, out_zip)
 
       for f in bundle_merge_files:
-        dest = os.path.join(bundle_path, f['dest'])
-        self._add_files(f['src'], dest, f.get('executable', False),
-                        f.get('contents_only', False), out_zip)
+        dest = f['dest']
+        self._add_files(f['src'], dest, out_zip)
 
     with zipfile.ZipFile(output_path, 'r') as test_zip:
       badfile = test_zip.testzip()
       if badfile:
         raise BadZipFileError('Bad CRC-32 for file %s' % (badfile))
 
-  def _add_files(self, src, dest, executable, contents_only, out_zip):
+  def _add_files(self, src, dest, out_zip):
     """Adds a file or a directory of files to the ZIP archive.
 
     Args:
@@ -127,28 +118,20 @@ class Bundler(object):
           the file should have within the archive. If `src` is a directory, it
           represents the directory into which the files underneath `src` will
           be recursively added.
-      executable: A Boolean value indicating whether or not the file(s) should
-          be made executable. If a file is already executable, it will remain
-          executable, regardless of this value.
-      contents_only: A Boolean value indicating whether only the files in `src`
-          or `src` itself should be added to the bundle (if `src` is a
-          directory).
       out_zip: The `ZipFile` into which the files should be added.
     """
     if os.path.isdir(src):
       for root, _, files in os.walk(src):
         relpath = os.path.relpath(root, src)
-        if contents_only:
-          relpath = os.path.dirname(relpath)
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          fexec = executable or os.access(fsrc, os.X_OK)
+          fexec = os.access(fsrc, os.X_OK)
           with open(fsrc, 'rb') as f:
             self._write_entry(
                 dest=fdest, data=f.read(), is_executable=fexec, out_zip=out_zip)
     elif os.path.isfile(src):
-      fexec = executable or os.access(src, os.X_OK)
+      fexec = os.access(src, os.X_OK)
       with open(src, 'rb') as f:
         self._write_entry(
             dest=dest, data=f.read(), is_executable=fexec, out_zip=out_zip)

@@ -121,8 +121,7 @@ class Bundler(object):
       self._add_zip_contents(z['src'], z['dest'], output_path)
 
     for f in bundle_merge_files:
-      self._add_files(f['src'], f['dest'], f.get('executable', False),
-                      output_path)
+      self._add_files(f['src'], f['dest'], output_path)
 
     os.chmod(output_path, 0o755)
 
@@ -134,7 +133,7 @@ class Bundler(object):
     if code_signing_commands:
       self._sign_bundle(output_path, code_signing_commands)
 
-  def _add_files(self, src, dest, executable, bundle_root):
+  def _add_files(self, src, dest, bundle_root):
     """Adds a file or a directory of files to the bundle.
 
     Args:
@@ -144,8 +143,6 @@ class Bundler(object):
           filename that the file should have within the bundle. If `src` is a
           directory, it represents the directory into which the files underneath
           `src` will be recursively added.
-      executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
       bundle_root: The bundle root directory into which the files should be
           added.
     """
@@ -155,9 +152,9 @@ class Bundler(object):
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          self._copy_file(fsrc, fdest, executable, bundle_root)
+          self._copy_file(fsrc, fdest, bundle_root)
     elif os.path.isfile(src):
-      self._copy_file(src, dest, executable, bundle_root)
+      self._copy_file(src, dest, bundle_root)
 
   def _add_zip_contents(self, src, dest, bundle_root):
     """Adds the contents of another ZIP file to the bundle.
@@ -184,17 +181,18 @@ class Bundler(object):
         data = src_zip.read(src_zipinfo)
         self._write_entry(file_dest, data, executable, bundle_root)
 
-  def _copy_file(self, src, dest, executable, bundle_root):
+  def _copy_file(self, src, dest, bundle_root):
     """Copies a file into the bundle.
 
     Args:
       src: The path to the file or directory that should be added.
       dest: The path relative to the bundle root where the file should be
           stored.
-      executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
       bundle_root: The bundle root directory into which the files should be
           added.
+    Raises:
+      BundleConflictError: If a different file already exists at the destination
+          path within the bundle.
     """
     full_dest = os.path.join(bundle_root, dest)
     if (os.path.isfile(full_dest) and
@@ -203,15 +201,15 @@ class Bundler(object):
 
     self._makedirs_safely(os.path.dirname(full_dest))
     shutil.copy(src, full_dest)
-    os.chmod(full_dest, 0o755 if executable else 0o644)
+    os.chmod(full_dest, 0o644)
 
   def _write_entry(self, dest, data, executable, bundle_root):
     """Writes the given data as a file in the output ZIP archive.
 
     Args:
-      data: The data to be written in a file in the bundle.
       dest: The path relative to the bundle root where the data should be
           written.
+      data: The data to be written in a file in the bundle.
       executable: A Boolean value indicating whether or not the file should be
           made executable.
       bundle_root: The bundle root directory into which the files should be
@@ -248,6 +246,8 @@ class Bundler(object):
       bundle_root: The path to the bundle.
       post_processor: The path to the tool or script that should be executed on
           the bundle before it is signed.
+    Raises:
+      PostProcessorError: If the post-processing command fails.
     """
     work_dir = os.path.dirname(bundle_root)
     # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
@@ -265,6 +265,8 @@ class Bundler(object):
       bundle_root: The path to the bundle.
       command_lines: A newline-separated list of command lines that should be
         executed in the bundle to sign it.
+    Raises:
+      CodeSignError: If the code signing commands fail.
     """
     exit_code = os.system(
         'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)

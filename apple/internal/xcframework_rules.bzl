@@ -1165,18 +1165,18 @@ def _create_xcframework_bundle(
         file_name = "xcframework_bundletool_control.json",
     )
     root_info_plist_merge_file = struct(src = root_info_plist.path, dest = "Info.plist")
-    bundletool_control = struct(
-        bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files,
-        bundle_merge_zips = framework_archive_merge_zips,
-        bundle_path = bundle_name + ".xcframework",
-        output = output_archive.path,
-    )
-    actions.write(
-        output = bundletool_control_file,
-        content = json.encode(bundletool_control),
-    )
 
     if tree_artifact_is_enabled:
+        final_bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files
+        bundletool_control = struct(
+            bundle_merge_files = final_bundle_merge_files,
+            bundle_merge_zips = framework_archive_merge_zips,
+            output = output_archive.path,
+        )
+        actions.write(
+            output = bundletool_control_file,
+            content = json.encode(bundletool_control),
+        )
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
             additional_bundling_tools = [],
@@ -1195,6 +1195,30 @@ def _create_xcframework_bundle(
             xcode_config = xcode_config,
         )
     else:
+        root_bundle_path = "{}.xcframework".format(bundle_name)
+        final_bundle_merge_files = [
+            struct(
+                src = f.src,
+                dest = paths.join(root_bundle_path, f.dest),
+            )
+            for f in [root_info_plist_merge_file] + framework_archive_merge_files
+        ]
+        final_bundle_merge_zips = [
+            struct(
+                src = z.src,
+                dest = paths.join(root_bundle_path, z.dest),
+            )
+            for z in framework_archive_merge_zips
+        ]
+        bundletool_control = struct(
+            bundle_merge_files = final_bundle_merge_files,
+            bundle_merge_zips = final_bundle_merge_zips,
+            output = output_archive.path,
+        )
+        actions.write(
+            output = bundletool_control_file,
+            content = json.encode(bundletool_control),
+        )
         bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
             arguments = [bundletool_control_file.path],
@@ -1287,7 +1311,7 @@ def _apple_xcframework_impl(ctx):
             content = "This is a dummy file because tree artifacts are enabled",
         )
         tree_artifact_is_enabled = True
-        outputs_archive = actions.declare_directory(bundle_name + ".xcframework")
+        outputs_archive = actions.declare_directory("{}.xcframework".format(bundle_name))
 
     # Add the disable_legacy_signing feature to the list of features
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
@@ -1739,7 +1763,7 @@ def _apple_static_xcframework_impl(ctx):
             content = "This is a dummy file because tree artifacts are enabled",
         )
         tree_artifact_is_enabled = True
-        outputs_archive = actions.declare_directory(bundle_name + ".xcframework")
+        outputs_archive = actions.declare_directory("{}.xcframework".format(bundle_name))
 
     _validate_resource_attrs(
         all_attrs = ctx.attr,

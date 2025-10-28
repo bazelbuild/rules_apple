@@ -50,6 +50,8 @@ def _run_bundler(control):
 
 class BundlerTest(unittest.TestCase):
 
+  _root_bundle_path = 'Payload/foo.app'
+
   def setUp(self):
     super().setUp()
     self._scratch_dir = tempfile.mkdtemp('bundlerTestScratch')
@@ -139,39 +141,24 @@ class BundlerTest(unittest.TestCase):
 
   def test_bundle_merge_files(self):
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
         'bundle_merge_files': [
-            {'src': self._scratch_file('foo.txt'), 'dest': 'foo.txt'},
-            {'src': self._scratch_file('bar.txt'), 'dest': 'bar.txt'},
+            {'src': self._scratch_file('foo.txt'),
+             'dest': os.path.join(self._root_bundle_path, 'foo.txt')},
+            {'src': self._scratch_file('bar.txt'),
+             'dest': os.path.join(self._root_bundle_path, 'bar.txt')},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/foo.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/bar.txt')
 
-  def test_bundle_merge_files_with_executable(self):
-    out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'bundle_merge_files': [
-            {'src': self._scratch_file('foo.exe'), 'dest': 'foo.exe',
-             'executable': True},
-            {'src': self._scratch_file('bar.txt'), 'dest': 'bar.txt',
-             'executable': False},
-            {'src': self._scratch_file('baz.txt', executable=True),
-             'dest': 'baz.txt', 'executable': False},
-        ]
-    })
-    with zipfile.ZipFile(out_zip, 'r') as z:
-      self._assert_zip_contains(z, 'Payload/foo.app/foo.exe', True)
-      self._assert_zip_contains(z, 'Payload/foo.app/bar.txt', False)
-      self._assert_zip_contains(z, 'Payload/foo.app/baz.txt', True)
-
   def test_bundle_merge_files_with_renaming(self):
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
         'bundle_merge_files': [
-            {'src': self._scratch_file('foo.txt'), 'dest': 'renamed1'},
-            {'src': self._scratch_file('bar.txt'), 'dest': 'renamed2'},
+            {'src': self._scratch_file('foo.txt'),
+             'dest': os.path.join(self._root_bundle_path, 'renamed1')},
+            {'src': self._scratch_file('bar.txt'),
+             'dest': os.path.join(self._root_bundle_path, 'renamed2')},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
@@ -186,8 +173,9 @@ class BundlerTest(unittest.TestCase):
     self._scratch_file('c/e/f.txt', executable=True)
 
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'bundle_merge_files': [{'src': root, 'dest': 'x/y/z'}],
+        'bundle_merge_files': [
+            {'src': root,
+             'dest': os.path.join(self._root_bundle_path, 'x/y/z')}],
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/a.txt')
@@ -201,10 +189,11 @@ class BundlerTest(unittest.TestCase):
     bar_zip = self._scratch_zip('bar.zip',
                                 'bar.bundle/img.png', 'bar.bundle/strings.txt')
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
         'bundle_merge_zips': [
-            {'src': foo_zip, 'dest': '.'},
-            {'src': bar_zip, 'dest': '.'},
+            {'src': foo_zip,
+             'dest': os.path.join(self._root_bundle_path, '.')},
+            {'src': bar_zip,
+             'dest': os.path.join(self._root_bundle_path, '.')},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
@@ -216,8 +205,9 @@ class BundlerTest(unittest.TestCase):
   def test_bundle_merge_zips_propagates_executable(self):
     foo_zip = self._scratch_zip('foo.zip', '*foo.bundle/some.exe')
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
-        'bundle_merge_zips': [{'src': foo_zip, 'dest': '.'}],
+        'bundle_merge_zips': [
+            {'src': foo_zip,
+             'dest': os.path.join(self._root_bundle_path, '.')}],
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/foo.bundle/some.exe', True)
@@ -226,10 +216,11 @@ class BundlerTest(unittest.TestCase):
     foo_txt = self._scratch_file('foo.txt', 'foo')
     bar_txt = self._scratch_file('bar.txt', 'foo')
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
         'bundle_merge_files': [
-            {'src': foo_txt, 'dest': 'renamed'},
-            {'src': bar_txt, 'dest': 'renamed'},
+            {'src': foo_txt,
+             'dest': os.path.join(self._root_bundle_path, 'renamed')},
+            {'src': bar_txt,
+             'dest': os.path.join(self._root_bundle_path, 'renamed')},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
@@ -243,10 +234,11 @@ class BundlerTest(unittest.TestCase):
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
                   'Payload/foo.app/renamed')):
       _run_bundler({
-          'bundle_path': 'Payload/foo.app',
           'bundle_merge_files': [
-              {'src': foo_txt, 'dest': 'renamed'},
-              {'src': bar_txt, 'dest': 'renamed'},
+              {'src': foo_txt,
+               'dest': os.path.join(self._root_bundle_path, 'renamed')},
+              {'src': bar_txt,
+               'dest': os.path.join(self._root_bundle_path, 'renamed')},
           ]
       })
 
@@ -254,10 +246,11 @@ class BundlerTest(unittest.TestCase):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
     two_zip = self._scratch_zip('two.zip', 'some.dylib:foo')
     out_zip = _run_bundler({
-        'bundle_path': 'Payload/foo.app',
         'bundle_merge_zips': [
-            {'src': one_zip, 'dest': '.'},
-            {'src': two_zip, 'dest': '.'},
+            {'src': one_zip,
+             'dest': os.path.join(self._root_bundle_path, '.')},
+            {'src': two_zip,
+             'dest': os.path.join(self._root_bundle_path, '.')},
         ]
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
@@ -271,10 +264,11 @@ class BundlerTest(unittest.TestCase):
         re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
                   'Payload/foo.app/some.dylib')):
       _run_bundler({
-          'bundle_path': 'Payload/foo.app',
           'bundle_merge_zips': [
-              {'src': one_zip, 'dest': '.'},
-              {'src': two_zip, 'dest': '.'},
+              {'src': one_zip,
+               'dest': os.path.join(self._root_bundle_path, '.')},
+              {'src': two_zip,
+               'dest': os.path.join(self._root_bundle_path, '.')},
           ]
       })
 
