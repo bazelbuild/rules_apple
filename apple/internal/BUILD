@@ -338,6 +338,7 @@ bzl_library(
         "//apple/internal/providers:apple_dynamic_framework_info",
         "@build_bazel_apple_support//lib:lipo",
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",
     ],
 )
 
