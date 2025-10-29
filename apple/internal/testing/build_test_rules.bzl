@@ -97,6 +97,9 @@ def apple_build_test_rule(doc, platform_type):
     # libraries compiles.
     return rule(
         attrs = {
+            # TODO: b/449684779 - Add a "secure_features" attribute to set required Clang
+            # features for the purposes of build testing. Don't concern ourselves with setting
+            # entitlements as they should not be necessary for validating compile time behavior.
             "minimum_os_version": attr.string(
                 mandatory = True,
                 doc = """\
