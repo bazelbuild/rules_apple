@@ -15,10 +15,6 @@
 """Implementation of framework import rules."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -365,39 +361,36 @@ There should only be one valid framework binary, given a name that matches its f
 apple_dynamic_framework_import = rule(
     implementation = _apple_dynamic_framework_import_impl,
     fragments = ["cpp"],
-    attrs = dicts.add(
-        rule_attrs.common_tool_attrs(),
-        {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
-            "framework_imports": attr.label_list(
-                allow_empty = False,
-                allow_files = True,
-                mandatory = True,
-                doc = """
+    attrs = rule_attrs.common_tool_attrs() | {
+        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
+        # are expected to be present in the precompiled framework, so the rules can validate against
+        # that and set required entitlements if necessary.
+        "framework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
+            mandatory = True,
+            doc = """
 The list of files under a .framework directory which are provided to Apple based targets that depend
 on this target.
 """,
-            ),
-            "deps": attr.label_list(
-                aspects = [swift_clang_module_aspect],
-                doc = """
+        ),
+        "deps": attr.label_list(
+            aspects = [swift_clang_module_aspect],
+            doc = """
 A list of targets that are dependencies of the target being built, which will be linked into that
 target.
 """,
-                providers = [
-                    [CcInfo],
-                    [CcInfo, AppleFrameworkImportInfo],
-                ],
-            ),
-            "_use_tree_artifacts_outputs": attr.label(
-                default = build_settings_labels.use_tree_artifacts_outputs,
-                doc = "Whether to use tree artifacts for outputs.",
-                providers = [BuildSettingInfo],
-            ),
-        },
-    ),
+            providers = [
+                [CcInfo],
+                [CcInfo, AppleFrameworkImportInfo],
+            ],
+        ),
+        "_use_tree_artifacts_outputs": attr.label(
+            default = build_settings_labels.use_tree_artifacts_outputs,
+            doc = "Whether to use tree artifacts for outputs.",
+            providers = [BuildSettingInfo],
+        ),
+    },
     doc = """
 This rule encapsulates an already-built dynamic framework. It is defined by a list of files in
 exactly one .framework directory. apple_dynamic_framework_import targets need to be added to library
@@ -409,71 +402,68 @@ targets through the `deps` attribute.
 apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
     fragments = ["cpp", "objc"],
-    attrs = dicts.add(
-        rule_attrs.common_tool_attrs(),
-        {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
-            "framework_imports": attr.label_list(
-                allow_empty = False,
-                allow_files = True,
-                mandatory = True,
-                doc = """
+    attrs = rule_attrs.common_tool_attrs() | {
+        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
+        # are expected to be present in the precompiled framework, so the rules can validate against
+        # that and set required entitlements if necessary.
+        "framework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
+            mandatory = True,
+            doc = """
 The list of files under a .framework directory which are provided to Apple based targets that depend
 on this target.
 """,
-            ),
-            "sdk_dylibs": attr.string_list(
-                doc = """
+        ),
+        "sdk_dylibs": attr.string_list(
+            doc = """
 Names of SDK .dylib libraries to link with. For instance, `libz` or `libarchive`. `libc++` is
 included automatically if the binary has any C++ or Objective-C++ sources in its dependency tree.
 When linking a binary, all libraries named in that binary's transitive dependency graph are used.
 """,
-            ),
-            "sdk_frameworks": attr.string_list(
-                doc = """
+        ),
+        "sdk_frameworks": attr.string_list(
+            doc = """
 Names of SDK frameworks to link with (e.g. `AddressBook`, `QuartzCore`). When linking a top level
 binary, all SDK frameworks listed in that binary's transitive dependency graph are linked.
 """,
-            ),
-            "weak_sdk_frameworks": attr.string_list(
-                doc = """
+        ),
+        "weak_sdk_frameworks": attr.string_list(
+            doc = """
 Names of SDK frameworks to weakly link with. For instance, `MediaAccessibility`. In difference to
 regularly linked SDK frameworks, symbols from weakly linked frameworks do not cause an error if they
 are not present at runtime.
 """,
-            ),
-            "deps": attr.label_list(
-                aspects = [swift_clang_module_aspect],
-                doc = """
+        ),
+        "deps": attr.label_list(
+            aspects = [swift_clang_module_aspect],
+            doc = """
 A list of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
 """,
-                providers = [
-                    [CcInfo],
-                    [CcInfo, AppleFrameworkImportInfo],
-                ],
-            ),
-            "alwayslink": attr.bool(
-                default = False,
-                doc = """
+            providers = [
+                [CcInfo],
+                [CcInfo, AppleFrameworkImportInfo],
+            ],
+        ),
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
 If true, any binary that depends (directly or indirectly) on this framework will link in all the
 object files for the framework file, even if some contain no symbols referenced by the binary. This
 is useful if your code isn't explicitly called by code in the binary; for example, if you rely on
 runtime checks for protocol conformances added in extensions in the library but do not directly
 reference any other symbols in the object file that adds that conformance.
 """,
-            ),
-            "has_swift": attr.bool(
-                doc = """
+        ),
+        "has_swift": attr.bool(
+            doc = """
 A boolean indicating if the target has Swift source code. This helps flag Apple frameworks that do
 not include Swift interface files.
 """,
-                default = False,
-            ),
-        },
-    ),
+            default = False,
+        ),
+    },
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of files in a
 .framework directory. apple_static_framework_import targets need to be added to library targets

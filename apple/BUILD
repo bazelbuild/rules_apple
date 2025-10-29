@@ -78,7 +78,6 @@ bzl_library(
     deps = [
         ":providers",
         "//apple/internal:platform_support",
-        "@bazel_skylib//lib:dicts",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
@@ -171,7 +170,6 @@ bzl_library(
     deps = [
         "//apple/internal:providers",
         "//apple/internal/toolchains:apple_toolchains",
-        "@bazel_skylib//lib:dicts",
     ],
 )
 

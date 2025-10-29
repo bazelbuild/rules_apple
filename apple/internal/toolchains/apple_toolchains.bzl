@@ -362,10 +362,8 @@ def _use_apple_exec_group_toolchain():
     Usage:
     ```
     my_rule = rule(
-        exec_groups = dicts.add(
-          {other exec_groups},
-          apple_toolchain_utils.use_apple_exec_group_toolchain(),
-        ),
+        exec_groups = {other exec_groups} |
+                      apple_toolchain_utils.use_apple_exec_group_toolchain(),
     )
     ```
     Returns:

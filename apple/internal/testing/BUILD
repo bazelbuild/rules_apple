@@ -51,7 +51,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:providers",
-        "@bazel_skylib//lib:dicts",
     ],
 )
 
@@ -72,7 +71,6 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
-        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
     ],

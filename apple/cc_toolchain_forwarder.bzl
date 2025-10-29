@@ -17,10 +17,6 @@ A rule for handling the cc_toolchains and their constraints for a potential univ
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     "find_cpp_toolchain",
     "use_cpp_toolchain",
@@ -49,11 +45,7 @@ def _cc_toolchain_forwarder_impl(ctx):
 
 cc_toolchain_forwarder = rule(
     implementation = _cc_toolchain_forwarder_impl,
-    attrs = dicts.add(
-        apple_support.platform_constraint_attrs(),
-        {
-        },
-    ),
+    attrs = apple_support.platform_constraint_attrs(),
     doc = """
 Shared rule that returns CcToolchainInfo, plus a rules_apple defined provider based on querying
 ctx.target_platform_has_constraint(...) that covers all Apple cpu, platform, environment constraints

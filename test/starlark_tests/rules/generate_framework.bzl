@@ -14,7 +14,6 @@
 
 """Rules to generate import-ready frameworks for testing."""
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:generation_support.bzl",
@@ -159,7 +158,7 @@ def _generate_import_framework_impl(ctx):
 
 generate_import_framework = rule(
     implementation = _generate_import_framework_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), {
+    attrs = apple_support.action_required_attrs() | {
         "archs": attr.string_list(
             allow_empty = False,
             doc = "A list of architectures this framework will be generated for.",
@@ -232,7 +231,7 @@ Flag to indicate if the framework should include additional versions of the fram
 Versions directory. This is only supported for macOS platform.
                 """,
         ),
-    }),
+    },
     fragments = ["apple"],
     doc = """
 Generates an imported dynamic framework for testing.

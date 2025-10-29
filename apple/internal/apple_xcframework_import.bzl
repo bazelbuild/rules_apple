@@ -14,7 +14,6 @@
 
 """Implementation of XCFramework import rules."""
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
@@ -960,42 +959,39 @@ directory. apple_xcframework_import targets need to be added as dependencies to 
 through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
-    attrs = dicts.add(
-        rule_attrs.common_tool_attrs(),
-        {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
-            "codesigned_xcframework_imports": attr.label_list(
-                allow_files = True,
-                doc = """
+    attrs = rule_attrs.common_tool_attrs() | {
+        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
+        # are expected to be present in the precompiled framework, so the rules can validate against
+        # that and set required entitlements if necessary.
+        "codesigned_xcframework_imports": attr.label_list(
+            allow_files = True,
+            doc = """
 Optional List of code signed Files under an .xcframework directory which will be used to generate a
 "Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
 code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
 """,
-            ),
-            "deps": attr.label_list(
-                doc = """
+        ),
+        "deps": attr.label_list(
+            doc = """
 List of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
 """,
-                providers = [
-                    [CcInfo],
-                    [CcInfo, AppleFrameworkImportInfo],
-                ],
-                aspects = [swift_clang_module_aspect],
-            ),
-            "xcframework_imports": attr.label_list(
-                allow_empty = False,
-                allow_files = True,
-                mandatory = True,
-                doc = """
+            providers = [
+                [CcInfo],
+                [CcInfo, AppleFrameworkImportInfo],
+            ],
+            aspects = [swift_clang_module_aspect],
+        ),
+        "xcframework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
+            mandatory = True,
+            doc = """
 List of files under a .xcframework directory which are provided to Apple based targets that depend
 on this target.
 """,
-            ),
-        },
-    ),
+        ),
+    },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
     provides = [
@@ -1013,63 +1009,60 @@ files in a .xcframework directory. apple_xcframework_import targets need to be a
 to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
-    attrs = dicts.add(
-        rule_attrs.common_tool_attrs(),
-        {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
-            "alwayslink": attr.bool(
-                default = False,
-                doc = """
+    attrs = rule_attrs.common_tool_attrs() | {
+        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
+        # are expected to be present in the precompiled framework, so the rules can validate against
+        # that and set required entitlements if necessary.
+        "alwayslink": attr.bool(
+            default = False,
+            doc = """
 If true, any binary that depends (directly or indirectly) on this XCFramework will link in all the
 object files for the XCFramework bundle, even if some contain no symbols referenced by the binary.
 This is useful if your code isn't explicitly called by code in the binary; for example, if you rely
 on runtime checks for protocol conformances added in extensions in the library but do not directly
 reference any other symbols in the object file that adds that conformance.
 """,
-            ),
-            "codesigned_xcframework_imports": attr.label_list(
-                allow_files = True,
-                doc = """
+        ),
+        "codesigned_xcframework_imports": attr.label_list(
+            allow_files = True,
+            doc = """
 Optional List of code signed Files under an .xcframework directory which will be used to generate a
 "Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
 code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
 """,
-            ),
-            "deps": attr.label_list(
-                doc = """
+        ),
+        "deps": attr.label_list(
+            doc = """
 List of targets that are dependencies of the target being built, which will provide headers and be
 linked into that target.
 """,
-                providers = [
-                    [CcInfo],
-                    [CcInfo, AppleFrameworkImportInfo],
-                ],
-            ),
-            "has_swift": attr.bool(
-                doc = """
+            providers = [
+                [CcInfo],
+                [CcInfo, AppleFrameworkImportInfo],
+            ],
+        ),
+        "has_swift": attr.bool(
+            doc = """
 A boolean indicating if the target has Swift source code. This helps flag XCFrameworks that do not
 include Swift interface files.
 """,
-                default = False,
-            ),
-            "linkopts": attr.string_list(
-                doc = """
+            default = False,
+        ),
+        "linkopts": attr.string_list(
+            doc = """
 A list of strings representing extra flags that should be passed to the linker.
 """,
-            ),
-            "xcframework_imports": attr.label_list(
-                allow_empty = False,
-                allow_files = True,
-                mandatory = True,
-                doc = """
+        ),
+        "xcframework_imports": attr.label_list(
+            allow_empty = False,
+            allow_files = True,
+            mandatory = True,
+            doc = """
 List of files under an .xcframework directory which are provided to Apple based targets that depend
 on this target.
 """,
-            ),
-        },
-    ),
+        ),
+    },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp", "objc"],
     toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),

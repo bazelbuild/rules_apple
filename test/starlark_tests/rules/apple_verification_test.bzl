@@ -19,10 +19,6 @@ that may change at any time. Please do not depend on this rule.
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -252,10 +248,10 @@ def _apple_verification_test_impl(ctx):
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),
-        testing.TestEnvironment(dicts.add(
-            apple_common.apple_host_system_env(xcode_config),
+        testing.TestEnvironment(
+            apple_common.apple_host_system_env(xcode_config) |
             test_env,
-        )),
+        ),
         DefaultInfo(
             executable = output_script,
             runfiles = ctx.runfiles(

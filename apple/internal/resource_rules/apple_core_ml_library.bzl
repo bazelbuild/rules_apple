@@ -15,10 +15,6 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -115,24 +111,21 @@ def _apple_core_ml_library_impl(ctx):
 apple_core_ml_library = rule(
     implementation = _apple_core_ml_library_impl,
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    attrs = dicts.add(
-        apple_support.action_required_attrs(),
-        apple_support.platform_constraint_attrs(),
-        rule_attrs.common_tool_attrs(),
-        {
-            "mlmodel": attr.label(
-                allow_single_file = ["mlmodel"],
-                mandatory = True,
-                doc = """
+    attrs = apple_support.action_required_attrs() |
+            apple_support.platform_constraint_attrs() |
+            rule_attrs.common_tool_attrs() | {
+        "mlmodel": attr.label(
+            allow_single_file = ["mlmodel"],
+            mandatory = True,
+            doc = """
 Label to a single mlmodel file from which to generate sources and compile into mlmodelc files.
 """,
-            ),
-            "header_name": attr.string(
-                mandatory = True,
-                doc = "Private attribute to configure the ObjC header name to be exported.",
-            ),
-        },
-    ),
+        ),
+        "header_name": attr.string(
+            mandatory = True,
+            doc = "Private attribute to configure the ObjC header name to be exported.",
+        ),
+    },
     fragments = ["apple", "cpp"],
     outputs = {
         "source": "%{name}.m",

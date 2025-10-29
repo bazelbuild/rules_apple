@@ -15,10 +15,6 @@
 """Rules for writing build tests for libraries that target Apple platforms."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -172,29 +168,26 @@ def apple_build_test_rule(doc, platform_type):
         The created `rule`.
     """
     return rule(
-        attrs = dicts.add(
-            apple_support.platform_constraint_attrs(),
-            rule_attrs.common_attrs(),
-            rule_attrs.platform_attrs(
-                platform_type = platform_type,
-                add_environment_plist = True,
+        attrs = apple_support.platform_constraint_attrs() |
+                rule_attrs.common_attrs() |
+                rule_attrs.platform_attrs(
+                    platform_type = platform_type,
+                    add_environment_plist = True,
+                ) | {
+            # TODO: b/449684779 - Add a "secure_features" attribute to set required Clang features
+            # for the purposes of build testing. Don't concern ourselves with setting entitlements
+            # as they should not be necessary for validating compile time behavior.
+            "_platform_type": attr.string(
+                default = platform_type,
+                doc = "The platform type for which the test should build its targets.",
             ),
-            {
-                # TODO: b/449684779 - Add a "secure_features" attribute to set required Clang
-                # features for the purposes of build testing. Don't concern ourselves with setting
-                # entitlements as they should not be necessary for validating compile time behavior.
-                "_platform_type": attr.string(
-                    default = platform_type,
-                    doc = "The platform type for which the test should build its targets.",
-                ),
-                "targets": attr.label_list(
-                    allow_empty = False,
-                    aspects = [apple_resource_aspect],
-                    cfg = transition_support.apple_platform_split_transition,
-                    doc = "The targets to check for successful build.",
-                ),
-            },
-        ),
+            "targets": attr.label_list(
+                allow_empty = False,
+                aspects = [apple_resource_aspect],
+                cfg = transition_support.apple_platform_split_transition,
+                doc = "The targets to check for successful build.",
+            ),
+        },
         doc = doc,
         fragments = [
             "apple",

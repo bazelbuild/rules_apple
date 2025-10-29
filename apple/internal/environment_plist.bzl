@@ -17,10 +17,6 @@ A rule for generating the environment plist
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -81,18 +77,15 @@ def _environment_plist_impl(ctx):
     )
 
 environment_plist = rule(
-    attrs = dicts.add(
-        apple_support.platform_constraint_attrs(),
-        rule_attrs.common_tool_attrs(),
-        {
-            "platform_type": attr.string(
-                mandatory = True,
-                doc = """
+    attrs = apple_support.platform_constraint_attrs() |
+            rule_attrs.common_tool_attrs() | {
+        "platform_type": attr.string(
+            mandatory = True,
+            doc = """
 The platform for which the plist is being generated
 """,
-            ),
-        },
-    ),
+        ),
+    },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = """
 This rule generates the plist containing the required variables about the versions the target is

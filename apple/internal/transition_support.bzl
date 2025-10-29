@@ -32,7 +32,6 @@ part on the language used for XCFramework library identifiers:
     getting the right Apple toolchain to build outputs with from the Apple Crosstool.
 """
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
@@ -464,7 +463,7 @@ def _command_line_options_for_xcframework_platform(
                     settings = settings,
                 ),
             }
-            output_dictionary = dicts.add(found_cpu, output_dictionary)
+            output_dictionary |= found_cpu
 
     return output_dictionary
 
@@ -613,8 +612,8 @@ def _apple_rule_arm64_as_arm64e_transition_impl(settings, attr):
 
     # These additional settings are sent to both the base implementation and the final transition.
     additional_settings = {key: [arch if arch != "arm64" else "arm64e" for arch in settings[key]]}
-    return dicts.add(
-        _apple_rule_base_transition_impl(dicts.add(settings, additional_settings), attr),
+    return (
+        _apple_rule_base_transition_impl(settings | additional_settings, attr) |
         additional_settings,
     )
 
@@ -830,7 +829,7 @@ def _xcframework_split_transition_impl(settings, attr):
             settings = settings,
             target_environments = sorted(target_environments),
         )
-        output_dictionary = dicts.add(command_line_options, output_dictionary)
+        output_dictionary |= command_line_options
     return output_dictionary
 
 _xcframework_split_transition = transition(

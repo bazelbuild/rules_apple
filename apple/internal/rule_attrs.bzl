@@ -15,10 +15,6 @@
 """Common sets of attributes to be shared between the Apple rules."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -77,11 +73,8 @@ visibility([
 
 def _common_attrs():
     """Private attributes on all rules; these should be included in all rule attributes."""
-    return dicts.add(
-        {
-        },
-        apple_support.action_required_attrs(),
-    )
+    return apple_support.action_required_attrs() | {
+    }
 
 def _common_tool_attrs():
     """Returns the set of attributes to support rules that need rules_apple tools and toolchains."""
@@ -119,14 +112,14 @@ def _common_linking_api_attrs(*, deps_cfg):
             To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
             use the same transition.
     """
-    return dicts.add(_common_attrs(), {
+    return _common_attrs() | {
         "_cc_toolchain_forwarder": attr.label(
             cfg = deps_cfg,
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
             default =
                 "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
         ),
-    })
+    }
 
 def _static_library_archive_attrs(*, deps_cfg):
     """Returns dict of required attributes for linking_support._archive_multi_arch_static_library.
@@ -184,13 +177,10 @@ Internal attribute read by Apple rule transitions to set the
         deps_aspects.append(apple_test_info_aspect)
         default_stamp = 0
 
-    return dicts.add(
-        extra_attrs,
-        _common_linking_api_attrs(deps_cfg = deps_cfg),
-        {
-            "exported_symbols_lists": attr.label_list(
-                allow_files = True,
-                doc = """
+    return extra_attrs | _common_linking_api_attrs(deps_cfg = deps_cfg) | {
+        "exported_symbols_lists": attr.label_list(
+            allow_files = True,
+            doc = """
 A list of targets containing exported symbols lists files for the linker to control symbol
 resolution.
 
@@ -201,21 +191,21 @@ file.
 
 See the man page documentation for `ld(1)` on macOS for more details.
 """,
-            ),
-            "linkopts": attr.string_list(
-                doc = """
+        ),
+        "linkopts": attr.string_list(
+            doc = """
 A list of strings representing extra flags that should be passed to the linker.
     """,
-            ),
-            "additional_linker_inputs": attr.label_list(
-                allow_files = True,
-                doc = """
+        ),
+        "additional_linker_inputs": attr.label_list(
+            allow_files = True,
+            doc = """
 A list of input files to be passed to the linker.
     """,
-            ),
-            "stamp": attr.int(
-                default = default_stamp,
-                doc = """
+        ),
+        "stamp": attr.int(
+            default = default_stamp,
+            doc = """
 Enable link stamping. Whether to encode build information into the binary. Possible values:
 
 *   `stamp = 1`: Stamp the build information into the binary. Stamped binaries are only rebuilt
@@ -225,20 +215,19 @@ Enable link stamping. Whether to encode build information into the binary. Possi
     result caching.
 *   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.
 """,
-                values = [-1, 0, 1],
-            ),
-            "deps": attr.label_list(
-                aspects = deps_aspects,
-                cfg = deps_cfg,
-                doc = """
+            values = [-1, 0, 1],
+        ),
+        "deps": attr.label_list(
+            aspects = deps_aspects,
+            cfg = deps_cfg,
+            doc = """
 A list of dependent targets that will be linked into this target's binary(s). Any resources, such as
 asset catalogs, that are referenced by those targets will also be transitively included in the final
 bundle(s).
 """,
-                providers = [CcInfo],
-            ),
-        },
-    )
+            providers = [CcInfo],
+        ),
+    }
 
 def _platform_attrs(*, platform_type = None, add_environment_plist = False):
     """Returns a dictionary for rules that must know about the Apple platform being targeted.
@@ -266,12 +255,12 @@ dotted version number (for example, "9.0").
         # If platform_type is given when the rule is constructed, treat the platform_type attribute
         # as predefined and leave it undocumented. In this sense, the platform_type is treated as
         # immutable and an implementation detail of linking even though it is not a private attr.
-        platform_attrs = dicts.add(platform_attrs, {
+        platform_attrs |= {
             "platform_type": attr.string(default = platform_type),
-        })
+        }
     else:
         # Otherwise, require the user of the rule to define the platform_type.
-        platform_attrs = dicts.add(platform_attrs, {
+        platform_attrs |= {
             "platform_type": attr.string(
                 doc = """
 The target Apple platform for which to create a binary. This dictates which SDK
@@ -287,19 +276,19 @@ binaries/libraries will be created combining all architectures specified by
 """,
                 mandatory = True,
             ),
-        })
+        }
     if add_environment_plist:
         if not platform_type:
             fail("Internal Error: An environment plist attribute requires a platform_type to be " +
                  "defined by the rule definition.")
-        platform_attrs = dicts.add(platform_attrs, {
+        platform_attrs |= {
             "_environment_plist": attr.label(
                 allow_single_file = True,
                 default = "@build_bazel_rules_apple//apple/internal:environment_plist_{}".format(
                     platform_type,
                 ),
             ),
-        })
+        }
     return platform_attrs
 
 def _test_bundle_attrs():
@@ -401,7 +390,7 @@ required for device builds.
         ),
     }
     if supports_capabilities:
-        signing_attrs = dicts.add(signing_attrs, {
+        signing_attrs |= {
             "entitlements": attr.label(
                 allow_single_file = True,
                 doc = """
@@ -441,16 +430,16 @@ Apple bundle rule output should have. These can define the formal prefix for the
 capabilities found within the `apple_capability_set`.
 """,
             ),
-        })
+        }
     else:
-        signing_attrs = dicts.add(signing_attrs, {
+        signing_attrs |= {
             "base_bundle_id": attr.label(
                 providers = [[AppleBaseBundleIdInfo]],
                 doc = """
 The base bundle ID rule to dictate the form that a given bundle rule's bundle ID prefix should take.
 """,
             ),
-        })
+        }
 
     return signing_attrs
 
@@ -612,7 +601,7 @@ pre-26 Apple OS rendering.""".format(
         ),
     }
     if supports_alternate_icons:
-        app_icon_attrs = dicts.add(app_icon_attrs, {
+        app_icon_attrs |= {
             "primary_app_icon": attr.string(
                 doc = """
 An optional String to identify the name of the primary app icon when alternate app icons have been
@@ -623,7 +612,7 @@ iOS/macOS/watchOS.
                     app_icon_parent_extension = icon_parent_extension,
                 ),
             ),
-        })
+        }
     return app_icon_attrs
 
 def _launch_images_attrs():

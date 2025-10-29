@@ -23,7 +23,6 @@ bzl_library(
         "//apple/build_settings",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/providers:apple_dynamic_framework_info",
-        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//rules:common_settings",
@@ -76,7 +75,6 @@ bzl_library(
         "//apple/internal/providers:apple_dynamic_framework_info",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
@@ -204,7 +202,6 @@ bzl_library(
         ":platform_support",
         ":rule_attrs",
         "//apple/internal/toolchains:apple_toolchains",
-        "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -527,7 +524,6 @@ bzl_library(
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/toolchains:apple_toolchains",
-        "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
@@ -551,7 +547,6 @@ bzl_library(
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
         "//apple/internal/testing:apple_test_rule_support",
-        "@bazel_skylib//lib:dicts",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -631,7 +626,6 @@ bzl_library(
     ],
     deps = [
         "//apple/build_settings",
-        "@bazel_skylib//lib:dicts",
     ],
 )
 

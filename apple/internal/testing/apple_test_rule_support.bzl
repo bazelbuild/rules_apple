@@ -15,10 +15,6 @@
 """Helper methods for implementing test rules."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
@@ -202,9 +198,9 @@ def _get_simulator_test_environment(
     """
 
     # Get mutable copies of the different test environment dicts.
-    command_line_test_env_copy = dicts.add(command_line_test_env)
-    rule_test_env_copy = dicts.add(rule_test_env)
-    runner_test_env_copy = dicts.add(runner_test_env)
+    command_line_test_env_copy = dict(command_line_test_env)
+    rule_test_env_copy = dict(rule_test_env)
+    runner_test_env_copy = dict(runner_test_env)
 
     # Combine all DYLD_INSERT_LIBRARIES values in a list ordered as per the source:
     # 1. Command line test-env
@@ -229,11 +225,11 @@ def _get_simulator_test_environment(
         test_env_dyld_insert_pairs = {_INSERT_LIBRARIES_KEY: insert_libraries_values_joined}
 
     # Combine all the environments with the DYLD_INSERT_LIBRARIES values merged together.
-    return dicts.add(
-        command_line_test_env_copy,
-        rule_test_env_copy,
-        runner_test_env_copy,
-        test_env_dyld_insert_pairs,
+    return (
+        command_line_test_env_copy |
+        rule_test_env_copy |
+        runner_test_env_copy |
+        test_env_dyld_insert_pairs
     )
 
 def _apple_test_rule_impl(
@@ -257,7 +253,7 @@ def _apple_test_rule_impl(
     """
     runner_attr = ctx.attr.runner
     runner_info = runner_attr[AppleTestRunnerInfo]
-    execution_requirements = getattr(runner_info, "execution_requirements", {})
+    execution_requirements = dict(getattr(runner_info, "execution_requirements", {}))
 
     test_bundle_target = ctx.attr.deps[0]
 
@@ -303,11 +299,8 @@ def _apple_test_rule_impl(
     if ctx.configuration.coverage_enabled:
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
 
-        execution_environment = dicts.add(
-            execution_environment,
-            _get_coverage_execution_environment(
-                covered_binaries = covered_binaries,
-            ),
+        execution_environment |= _get_coverage_execution_environment(
+            covered_binaries = covered_binaries,
         )
 
         transitive_runfiles.extend([

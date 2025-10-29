@@ -14,21 +14,14 @@
 
 """Starlark test rules for matching text in (non-bundle) rule outputs."""
 
-load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-
 visibility("//test/starlark_tests/...")
 
 def _output_text_match_test_impl(ctx):
     """Implementation of the `output_text_match_test` rule."""
     target_under_test = ctx.attr.target_under_test
 
-    path_suffixes = dicts.add(
-        ctx.attr.files_match,
-        ctx.attr.files_not_match,
-    ).keys()
+    all_files = ctx.attr.files_match | ctx.attr.files_not_match
+    path_suffixes = all_files.keys()
 
     # Map the path suffixes to files output by the target. If multiple outputs
     # match, fail the build.

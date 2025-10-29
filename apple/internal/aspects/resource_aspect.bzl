@@ -19,10 +19,6 @@ load(
     "collections",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -457,10 +453,8 @@ App Intents are not supported within frameworks that aren't directly loaded by a
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
-    attrs = dicts.add(
-        apple_support.action_required_attrs(),
-        apple_support.platform_constraint_attrs(),
-    ),
+    attrs = apple_support.action_required_attrs() |
+            apple_support.platform_constraint_attrs(),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "cpp"],
     doc = """
