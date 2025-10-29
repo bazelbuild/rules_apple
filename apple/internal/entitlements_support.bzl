@@ -194,12 +194,14 @@ def _extract_signing_info(
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         entitlements_file,
         platform_prerequisites,
         product_type,
         provisioning_profile,
         rule_label,
+        secure_features,
         validation_mode):
     """Processes the entitlements for a binary or bundle.
 
@@ -232,6 +234,8 @@ def _process_entitlements(
             from which entitlements will be extracted if `entitlements_file` is
             `None`. This argument may also be `None`.
         rule_label: The `Label` of the target being built.
+        secure_features: A list of strings representing Apple Enhanced Security crosstool features
+            that should be enabled for this target.
         validation_mode: A value from `entitlements_validation_mode` describing
             how the entitlements should be validated.
 
@@ -263,6 +267,14 @@ def _process_entitlements(
     if _include_app_clip_entitlements(product_type = product_type):
         app_clip = {"com.apple.developer.on-demand-install-capable": True}
         forced_plists.append(struct(**app_clip))
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+        # TODO: b/449684779 - Have a mapping to declare which entitlements should be added for the
+        # given secure_features on Xcode 26.0 and later with validation against supported features.
+        # Create a new bzl (secure_features_support) to contain this mapping and validation and use
+        # it here.
 
     inputs = list(plists)
 
