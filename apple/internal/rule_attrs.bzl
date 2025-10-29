@@ -473,6 +473,12 @@ the provisioning profile to ensure they are supported.
                     entitlements_validation_mode.skip,
                 ],
             ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
+""",
+            ),
             "shared_capabilities": attr.label_list(
                 providers = [[AppleSharedCapabilityInfo]],
                 doc = """

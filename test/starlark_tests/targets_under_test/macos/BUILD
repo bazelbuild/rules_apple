@@ -2839,13 +2839,15 @@ macos_bundle(
 )
 
 macos_command_line_application(
-    name = "cmd_app_with_base_bundle_id_derived_bundle_id",
-    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
-    bundle_id_suffix = "cmd-app-with-base-bundle-id-derived-bundle-id",
+    name = "cmd_app_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "cmd-app-with-capability-set-derived-bundle-id",
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
@@ -2853,13 +2855,15 @@ macos_command_line_application(
 )
 
 macos_dylib(
-    name = "dylib_with_base_bundle_id_derived_bundle_id",
-    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
-    bundle_id_suffix = "dylib-with-base-bundle-id-derived-bundle-id",
+    name = "dylib_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "dylib-with-capability-set-derived-bundle-id",
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",

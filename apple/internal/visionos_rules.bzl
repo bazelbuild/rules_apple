@@ -222,12 +222,14 @@ Resolved Xcode is version {xcode_version}.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
     )
 
@@ -1124,12 +1126,14 @@ def _visionos_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
     )
 
