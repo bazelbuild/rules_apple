@@ -18,6 +18,7 @@ load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_common")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 
 HeaderMapInfo = provider(
     doc = "Provides information about created `.hmap` (header map) files",
@@ -66,8 +67,8 @@ def _header_map_impl(ctx):
 
     for dep in ctx.attr.deps:
         found_headers = []
-        if apple_common.Objc in dep:
-            found_headers.append(getattr(dep[apple_common.Objc], "direct_headers", []))
+        if ObjcInfo in dep:
+            found_headers.append(getattr(dep[ObjcInfo], "direct_headers", []))
         if CcInfo in dep:
             found_headers.append(dep[CcInfo].compilation_context.direct_headers)
         if not found_headers:
@@ -91,7 +92,7 @@ def _header_map_impl(ctx):
         swift_info = SwiftInfo()
 
     return [
-        apple_common.new_objc_provider(),
+        ObjcInfo(),
         swift_info,
         CcInfo(
             compilation_context = cc_common.create_compilation_context(
@@ -117,7 +118,7 @@ header_map = rule(
         ),
         "deps": attr.label_list(
             mandatory = False,
-            providers = [[apple_common.Objc], [CcInfo]],
+            providers = [[ObjcInfo], [CcInfo]],
             doc = "Targets whose direct headers should be added to the list of hdrs and rooted at the module_name",
         ),
         "_hmaptool": attr.label(
