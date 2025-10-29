@@ -368,6 +368,9 @@ apple_dynamic_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -409,6 +412,9 @@ apple_static_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,

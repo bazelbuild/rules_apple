@@ -180,6 +180,9 @@ def apple_build_test_rule(doc, platform_type):
                 add_environment_plist = True,
             ),
             {
+                # TODO: b/449684779 - Add a "secure_features" attribute to set required Clang
+                # features for the purposes of build testing. Don't concern ourselves with setting
+                # entitlements as they should not be necessary for validating compile time behavior.
                 "_platform_type": attr.string(
                     default = platform_type,
                     doc = "The platform type for which the test should build its targets.",

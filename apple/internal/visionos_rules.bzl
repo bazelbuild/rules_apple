@@ -190,6 +190,7 @@ Resolved Xcode is version {xcode_version}.
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )

@@ -473,6 +473,10 @@ def _apple_rule_base_transition_impl(settings, attr):
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
+
+    # TODO: b/449684779 - Perform light validation to determine if the secure_features should be
+    # configured and amended to the existing set of features for this target so the crosstool can
+    # configure required Clang features, and determine if we should set arm64e as necessary.
     return _command_line_options(
         building_apple_bundle = building_apple_bundle,
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
@@ -492,6 +496,9 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:platforms",
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
+    # TODO: b/449684779 - Add //command_line_option:features as a required input here. This is
+    # needed to allow the transition to see the current value of the --features flag so it can
+    # potentially amend it with secure_features if needed.
     "//command_line_option:tvos_cpus",
     "//command_line_option:visionos_cpus",
     "//command_line_option:watchos_cpus",
@@ -507,6 +514,8 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:fission",
+    # TODO: b/449684779 - Add //command_line_option:features as a required output here. Remember
+    # that `[]` can be passed through to indicate "make no changes to incoming --features".
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
     "//command_line_option:macos_minimum_os",
@@ -538,6 +547,10 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
+
+    # TODO: b/449684779 - Perform light validation to determine if the secure_features should be
+    # configured and amended to the existing set of features for this target so the crosstool can
+    # configure required Clang features, and determine if we should set arm64e as necessary.
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
         building_apple_bundle = building_apple_bundle,
@@ -562,6 +575,10 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
     if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
         # Add fallback to match an anticipated split of Apple cpu-based resolution
         environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
+
+    # TODO: b/449684779 - Perform light validation to determine if the secure_features should be
+    # configured and amended to the existing set of features for this target so the crosstool can
+    # configure required Clang features, and determine if we should set arm64e as necessary.
     return _command_line_options(
         apple_platforms = settings["//command_line_option:apple_platforms"],
         building_apple_bundle = building_apple_bundle,
@@ -769,6 +786,10 @@ _watchos2_app_extension_transition = transition(
 def _xcframework_base_transition_impl(settings, _):
     """Rule transition for XCFramework rules producing SDK-adjacent artifacts."""
 
+    # TODO: b/449684779 - Perform light validation to determine if the secure_features should be
+    # configured and amended to the existing set of features for this target so the crosstool can
+    # configure required Clang features, and determine if we should set arm64e as necessary.
+
     # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
     # incoming settings meant for other platforms overriding the settings for the xcframework rule's
     # underlying actions, and allow for toolchain resolution in the future.
@@ -789,6 +810,10 @@ _xcframework_base_transition = transition(
 def _xcframework_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     output_dictionary = {}
+
+    # TODO: b/449684779 - Perform light validation to determine if the secure_features should be
+    # configured and amended to the existing set of features for this target so the crosstool can
+    # configure required Clang features, and determine if we should set arm64e as necessary.
 
     for platform_type in ["ios", "tvos", "watchos", "visionos", "macos"]:
         if not hasattr(attr, platform_type):

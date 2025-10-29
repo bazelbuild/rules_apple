@@ -215,6 +215,7 @@ def _macos_application_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -521,6 +522,7 @@ def _macos_bundle_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -764,6 +766,7 @@ def _macos_extension_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -1035,6 +1038,7 @@ def _macos_kernel_extension_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -1280,6 +1284,7 @@ def _macos_spotlight_importer_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -1516,6 +1521,7 @@ def _macos_xpc_service_impl(ctx):
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
         xplat_exec_group = xplat_exec_group,
     )
@@ -1709,13 +1715,13 @@ def _macos_command_line_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
     bundle_id = ""
-    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+    if ctx.attr.bundle_id or ctx.attr.shared_capabilities:
         bundle_id = bundling_support.bundle_full_id(
-            base_bundle_id = ctx.attr.base_bundle_id,
             bundle_id = ctx.attr.bundle_id,
             bundle_id_suffix = ctx.attr.bundle_id_suffix,
             bundle_name = bundle_name,
             suffix_default = ctx.attr._bundle_id_suffix_default,
+            shared_capabilities = ctx.attr.shared_capabilities,
         )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
@@ -1821,18 +1827,18 @@ def _macos_command_line_application_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            # Command-line applications have a fixed set of entitlements built around the bundle ID.
-            entitlements_file = None,
+            entitlements_file = ctx.file.entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             provisioning_profile = provisioning_profile,
             rule_label = label,
-            # Since there is no entitlements file, the only potential issue is a bundle ID mismatch,
-            # which should be fatal.
-            validation_mode = entitlements_validation_mode.error,
+            secure_features = ctx.attr.secure_features,
+            validation_mode = ctx.attr.entitlements_validation,
             xplat_exec_group = xplat_exec_group,
         )
+    elif ctx.attr.secure_features:
+        fail("secure_features require a bundle ID to be set to apply required entitlements.")
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -1963,13 +1969,13 @@ def _macos_dylib_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
     bundle_id = ""
-    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+    if ctx.attr.bundle_id or ctx.attr.shared_capabilities:
         bundle_id = bundling_support.bundle_full_id(
-            base_bundle_id = ctx.attr.base_bundle_id,
             bundle_id = ctx.attr.bundle_id,
             bundle_id_suffix = ctx.attr.bundle_id_suffix,
             bundle_name = bundle_name,
             suffix_default = ctx.attr._bundle_id_suffix_default,
+            shared_capabilities = ctx.attr.shared_capabilities,
         )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
@@ -2043,15 +2049,18 @@ def _macos_dylib_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            # Dynamic libraries have a fixed set of entitlements built around the bundle ID.
-            entitlements_file = None,
+            entitlements_file = ctx.file.entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             provisioning_profile = provisioning_profile,
             rule_label = label,
-            # Since there is no entitlements file, the only potential issue is a bundle ID mismatch,
-            # which should be fatal.
+            # For macos_dylib, secure_features are primarily going to be affecting compiler features
+            # rather than entitlements; the required entitlements are still expected to be defined
+            # by the binary that loads the dylib.
+            secure_features = [],
+            # As Xcode 16.1 has discouraged setting entitlements for macOS dylibs, the most likely
+            # potential issue is a bundle ID mismatch, which should be fatal.
             validation_mode = entitlements_validation_mode.error,
             xplat_exec_group = xplat_exec_group,
         )
@@ -2487,7 +2496,6 @@ macos_command_line_application = rule_factory.create_apple_rule(
             platform_type = "macos",
         ),
         rule_attrs.signing_attrs(
-            supports_capabilities = False,
             profile_extension = ".provisionprofile",
         ),
         {
@@ -2543,7 +2551,6 @@ macos_dylib = rule_factory.create_apple_rule(
             platform_type = "macos",
         ),
         rule_attrs.signing_attrs(
-            supports_capabilities = False,
             profile_extension = ".provisionprofile",
         ),
         {

@@ -963,6 +963,9 @@ through the `deps` attribute.
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "codesigned_xcframework_imports": attr.label_list(
                 allow_files = True,
                 doc = """
@@ -1013,6 +1016,9 @@ to library targets through the `deps` attribute.
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "alwayslink": attr.bool(
                 default = False,
                 doc = """
