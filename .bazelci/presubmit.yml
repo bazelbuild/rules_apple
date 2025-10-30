@@ -7,7 +7,7 @@ x_defaults:
     xcode_version: "16.4"
     shell_commands:
     - xcrun simctl runtime list
-    - xcodebuild -downloadAllPlatforms
+    - xcodebuild -downloadPlatform iOS -buildVersion 18.5
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     build_targets:
