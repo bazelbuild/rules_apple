@@ -39,8 +39,8 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
-    # TODO(b/448648527): Flip this to "True" when ready, then remove this build flag once the new
-    # mac bundletool is deemed sufficient for all users.
+    # TODO(b/448648527): Remove this build flag once the new mac bundletool is deemed sufficient for
+    # all users.
     "use_mac_tree_artifact_bundletool": struct(
         doc = """
 Indicates that the new mac tree artifact bundletool should be used, rather than the legacy
@@ -49,7 +49,7 @@ effect on non-tree artifact bundles (i.e. "zipped" bundle archives). This is an 
 the default can be flipped if we ever have a problem with the new mac bundletool, and should not be
 used or set by anyone except Apple BUILD rule maintainers.
 """,
-        default = False,
+        default = True,
     ),
     # TODO(b/266604130): Migrate users from the tree artifact output --define flag to this flag.
     "use_tree_artifacts_outputs": struct(
