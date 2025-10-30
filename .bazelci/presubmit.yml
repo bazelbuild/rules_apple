@@ -10,10 +10,10 @@ x_defaults:
     - xcrun simctl runtime delete 21F79 || true
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - xcrun simctl runtime match set xros2.5 22O473
+    - xcrun simctl runtime match set xros26.0 23M336
     - xcrun simctl runtime match list
     post_shell_commands:
-    - xcrun simctl runtime match set xros2.5 --default
+    - xcrun simctl runtime match set xros26.0 --default
     - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
