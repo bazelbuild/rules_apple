@@ -77,4 +77,3 @@ stardoc_pinned_maven_install()
 load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
-
