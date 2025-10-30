@@ -8,7 +8,11 @@ x_defaults:
     shell_commands:
     - xcrun simctl runtime list
     - xcodebuild -downloadPlatform iOS -buildVersion 18.5
+    - xcrun simctl runtime match set iphoneos18.5 22F77
     - xcrun simctl runtime list
+    - xcrun simctl runtime match list
+    post_shell_commands:
+    - xcrun simctl runtime match set iphoneos18.5 --default
     - xcrun simctl runtime match list
     build_targets:
     - //test/starlark_tests/targets_under_test/ios:ui_test_xctrunner_app
