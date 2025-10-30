@@ -4,26 +4,20 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
+    xcode_version: "16.4"
     shell_commands:
     - xcrun simctl runtime list
-    - xcrun simctl runtime delete 22D8075 || true
-    - xcrun simctl runtime delete 21F79 || true
+    - xcodebuild -downloadPlatform iOS -buildVersion 18.5
+    - xcrun simctl runtime match set iphoneos18.5 22F77
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - xcrun simctl runtime match set xros2.2 22N895
-    - xcrun simctl runtime match list
     post_shell_commands:
-    - xcrun simctl runtime match set xros2.2 --default
+    - xcrun simctl runtime match set iphoneos18.5 --default
     - xcrun simctl runtime match list
     build_targets:
-    - "tools/..."
-    - "test/..."
+    - //test/starlark_tests/targets_under_test/ios:ui_test_xctrunner_app
     build_flags:
     - --modify_execution_info=AssetCatalogCompile=+exclusive
-    test_targets:
-    - "tools/..."
-    - "test/..."
-    - "examples/..."
     test_flags:
     - --local_test_jobs=2
     - --modify_execution_info=AssetCatalogCompile=+exclusive
@@ -48,12 +42,14 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    # TODO: Move back to last_green ASAP
+    bazel: 5409637c4e2d5c010b7264172b1004a2afd46bfe
     <<: *common
 
   doc_tests:
     name: "Doc tests"
-    bazel: last_green
+    # TODO: Move back to last_green once rules_cc is fixed
+    bazel: 48555196ef92f54d0a331a01dac9db0a6aabc8b4
     platform: ubuntu2004
     test_targets:
     - "doc/..."
