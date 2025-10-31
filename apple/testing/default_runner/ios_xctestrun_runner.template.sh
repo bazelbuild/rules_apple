@@ -611,7 +611,6 @@ if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
   if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
     echo "error: while exporting coverage report" >&2
     cat "$error_file" >&2
-    exit 1
   fi
 
   if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
@@ -734,6 +733,16 @@ if grep -q \
   "$testlog"
 then
   echo "error: log contained test false negative" >&2
+  exit 1
+fi
+
+if [[ "$llvm_cov_status" -ne 0 ]]; then
+  echo "error: while exporting coverage report" >&2
+  exit 1
+fi
+
+if [[ "$llvm_cov_json_export_status" -ne 0 ]]; then
+  echo "error: while exporting json coverage report" >&2
   exit 1
 fi
 
