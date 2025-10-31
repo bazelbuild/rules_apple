@@ -366,7 +366,6 @@ bzl_library(
         ":run_support",
         ":swift_support",
         ":transition_support",
-        "//apple:common",
         "//apple/internal/aspects:app_intents_aspect",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",

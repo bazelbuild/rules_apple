@@ -50,28 +50,6 @@ def macos_dylib_test_suite(name):
     )
 
     binary_contents_test(
-        name = "{}_binary_contents_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
-        binary_test_file = "$BINARY",
-        compilation_mode = "opt",
-        embedded_plist_test_values = {
-            "BuildMachineOSBuild": "*",
-            "CFBundleIdentifier": "com.google.example",
-            "CFBundleName": "dylib",
-            "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
-            "DTPlatformBuild": "*",
-            "DTPlatformName": "macosx",
-            "DTPlatformVersion": "*",
-            "DTSDKBuild": "*",
-            "DTSDKName": "macosx*",
-            "DTXcode": "*",
-            "DTXcodeBuild": "*",
-        },
-        tags = [name],
-    )
-
-    binary_contents_test(
         name = "{}_exported_symbols_list_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
@@ -115,18 +93,6 @@ def macos_dylib_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
         expected_direct_dsyms = ["dylib.dSYM"],
         expected_transitive_dsyms = ["dylib.dSYM"],
-        tags = [name],
-    )
-
-    binary_contents_test(
-        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_with_capability_set_derived_bundle_id",
-        binary_test_file = "$BINARY",
-        compilation_mode = "opt",
-        embedded_plist_test_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.dylib-with-capability-set-derived-bundle-id",
-        },
         tags = [name],
     )
 

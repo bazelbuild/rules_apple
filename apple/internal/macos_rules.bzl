@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
-    "entitlements_validation_mode",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -1968,21 +1964,11 @@ def _macos_dylib_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    bundle_id = ""
-    if ctx.attr.bundle_id or ctx.attr.shared_capabilities:
-        bundle_id = bundling_support.bundle_full_id(
-            bundle_id = ctx.attr.bundle_id,
-            bundle_id_suffix = ctx.attr.bundle_id_suffix,
-            bundle_name = bundle_name,
-            suffix_default = ctx.attr._bundle_id_suffix_default,
-            shared_capabilities = ctx.attr.shared_capabilities,
-        )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    infoplists = ctx.files.infoplists
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -1998,79 +1984,18 @@ def _macos_dylib_impl(ctx):
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
-    version = ctx.attr.version
 
     extra_link_inputs = []
     extra_linkopts = []
-
-    if bundle_id or infoplists or version:
-        merged_infoplist = intermediates.file(
-            actions = actions,
-            target_name = label.name,
-            output_discriminator = None,
-            file_name = "Info.plist",
-        )
-
-        resource_actions.merge_root_infoplists(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            environment_plist = ctx.file._environment_plist,
-            include_executable_name = False,
-            input_plists = infoplists,
-            mac_exec_group = mac_exec_group,
-            output_discriminator = None,
-            output_pkginfo = None,
-            output_plist = merged_infoplist,
-            platform_prerequisites = platform_prerequisites,
-            resource_locales = None,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            version = version,
-            xplat_exec_group = xplat_exec_group,
-        )
-
-        extra_link_inputs.append(merged_infoplist)
-        extra_linkopts.append(
-            "-Wl,-sectcreate,{segment},{section},{file}".format(
-                segment = "__TEXT",
-                section = "__info_plist",
-                file = merged_infoplist.path,
-            ),
-        )
-
-    entitlements = None
-    if bundle_id:
-        entitlements = entitlements_support.process_entitlements(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_id = bundle_id,
-            entitlements_file = ctx.file.entitlements,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            product_type = rule_descriptor.product_type,
-            provisioning_profile = provisioning_profile,
-            rule_label = label,
-            # For macos_dylib, secure_features are primarily going to be affecting compiler features
-            # rather than entitlements; the required entitlements are still expected to be defined
-            # by the binary that loads the dylib.
-            secure_features = [],
-            # As Xcode 16.1 has discouraged setting entitlements for macOS dylibs, the most likely
-            # potential issue is a bundle ID mismatch, which should be fatal.
-            validation_mode = entitlements_validation_mode.error,
-            xplat_exec_group = xplat_exec_group,
-        )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_toolchains = cc_toolchain_forwarder,
-        entitlements = entitlements,
+        # dylibs do not need entitlements, as the entitlements are instead declared by the
+        # executable that loads the dylib.
+        entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
@@ -2094,7 +2019,7 @@ def _macos_dylib_impl(ctx):
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         rule_label = label,
-        version = ctx.attr.version,
+        version = None,
         xplat_exec_group = xplat_exec_group,
     )
 
@@ -2120,7 +2045,7 @@ def _macos_dylib_impl(ctx):
     output_file = actions.declare_file(label.name + ".dylib")
     codesigning_support.sign_binary_action(
         actions = actions,
-        entitlements = entitlements,
+        entitlements = None,
         input_binary = binary_artifact,
         mac_exec_group = mac_exec_group,
         output_binary = output_file,
@@ -2137,7 +2062,7 @@ def _macos_dylib_impl(ctx):
                 for x in cc_toolchain_forwarder.values()
             ]),
             binary = output_file,
-            bundle_id = bundle_id,
+            bundle_id = None,
             platform_type = platform_prerequisites.platform_type,
             product_type = rule_descriptor.product_type,
             target_environment = platform_prerequisites.target_environment,
@@ -2550,24 +2475,13 @@ macos_dylib = rule_factory.create_apple_rule(
             add_environment_plist = True,
             platform_type = "macos",
         ),
-        rule_attrs.signing_attrs(
-            profile_extension = ".provisionprofile",
-        ),
         {
-            "infoplists": attr.label_list(
-                allow_files = [".plist"],
+            "provisioning_profile": attr.label(
+                allow_single_file = [".provisionprofile"],
                 doc = """
-A list of .plist files that will be merged to form the Info.plist that represents the application
-and is embedded into the binary. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
-for what is supported.
-""",
-            ),
-            "version": attr.label(
-                providers = [[AppleBundleVersionInfo]],
-                doc = """
-An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+The provisioning profile (`.provisionprofile` file) to use when creating the bundle. This value is
+optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
+required for device builds.
 """,
             ),
         },
