@@ -641,7 +641,7 @@ if [[ -n "${result_bundle_path:-}" ]]; then
     SIMULATOR_UDID="$simulator_id" \
     TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
     LLVM_COV_EXIT_CODE="${llvm_cov_status:-0}" \
-    LLVM_COV_JSON_EXPORT_STATUS="${llvm_cov_json_export_status:-0}" \
+    LLVM_COV_JSON_EXPORT_EXIT_CODE="${llvm_cov_json_export_status:-0}" \
     "$post_action_binary" || post_action_exit_code=$?
 else
   TEST_EXIT_CODE=$test_exit_code \
