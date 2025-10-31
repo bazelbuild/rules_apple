@@ -627,7 +627,6 @@ if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
     if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
       echo "error: while exporting json coverage report" >&2
       cat "$error_file" >&2
-      exit 1
     fi
   fi
 fi
@@ -641,6 +640,8 @@ if [[ -n "${result_bundle_path:-}" ]]; then
     TEST_LOG_FILE="$testlog" \
     SIMULATOR_UDID="$simulator_id" \
     TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+    LLVM_COV_STATUS="${llvm_cov_status:-0}" \
+    LLVM_COV_JSON_EXPORT_STATUS="${llvm_cov_json_export_status:-0}" \
     "$post_action_binary" || post_action_exit_code=$?
 else
   TEST_EXIT_CODE=$test_exit_code \
