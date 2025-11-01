@@ -1,67 +1,6 @@
 {
   "images" : [
     {
-<<<<<<< HEAD
-      "size" : "24x24",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-24@2x.png",
-      "scale" : "2x",
-      "role" : "notificationCenter",
-      "subtype" : "38mm"
-    },
-    {
-      "size" : "27.5x27.5",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-27.5@2x.png",
-      "scale" : "2x",
-      "role" : "notificationCenter",
-      "subtype" : "42mm"
-    },
-    {
-      "size" : "29x29",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-29@2x.png",
-      "role" : "companionSettings",
-      "scale" : "2x"
-    },
-    {
-      "size" : "29x29",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-29@3x.png",
-      "role" : "companionSettings",
-      "scale" : "3x"
-    },
-    {
-      "size" : "40x40",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-40@2x.png",
-      "scale" : "2x",
-      "role" : "appLauncher",
-      "subtype" : "38mm"
-    },
-    {
-      "size" : "86x86",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-86@2x.png",
-      "scale" : "2x",
-      "role" : "quickLook",
-      "subtype" : "38mm"
-    },
-    {
-      "size" : "98x98",
-      "idiom" : "watch",
-      "filename" : "WatchAppIcon-98@2x.png",
-      "scale" : "2x",
-      "role" : "quickLook",
-      "subtype" : "42mm"
-    }
-  ],
-  "info" : {
-    "version" : 1,
-    "author" : "xcode"
-  }
-}
-=======
       "filename" : "WatchAppIcon.png",
       "idiom" : "universal",
       "platform" : "watchos",
@@ -73,4 +12,3 @@
     "version" : 1
   }
 }
->>>>>>> a46ce2f5 (Implement support for .icon bundles for Xcode 26 in macOS. Cover the happy paths of watchOS and macOS icon bundles with tests.)
