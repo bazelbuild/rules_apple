@@ -33,6 +33,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -160,6 +161,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -236,6 +238,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -312,6 +315,7 @@ load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

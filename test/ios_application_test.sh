@@ -35,6 +35,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
 load("@build_bazel_rules_apple//apple:resources.bzl",
      "apple_resource_bundle",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

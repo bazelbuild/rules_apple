@@ -252,6 +252,7 @@ test_env = {
     "REFERENCE_DIR": "/Project/My Tests/ReferenceImages",
     "IMAGE_DIR": "/Project/My Tests/Images"
 }
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "small_unit_test_lib",

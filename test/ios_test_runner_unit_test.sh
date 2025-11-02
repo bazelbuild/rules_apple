@@ -130,6 +130,8 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+
 objc_library(
     name = "app_lib",
     srcs = [
@@ -252,6 +254,8 @@ EOF
 EOF
 
   cat >> ios/BUILD <<EOF
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+
 test_env = {
     "SomeVariable1": "Its My First Variable",
     "SomeVariable2": "Its My Second Variable",

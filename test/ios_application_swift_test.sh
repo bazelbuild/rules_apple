@@ -134,6 +134,8 @@ static void dummy() {}
 EOF
 
   cat >> app/BUILD <<EOF
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+
 objc_library(
     name = "lib",
     srcs = ["dummy.m"],

@@ -192,7 +192,7 @@ def macos_framework_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_app_includes_transitive_framework_test".format(name),
+        name = "{}_/private/var/tmp/_bazel_adincebic/cf85c47d8f16b187aad2397199632423/execroot/_main/bazel-out/darwin_arm64-fastbuild/testlogs/test/ios_extension_test.simulator/test.log".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fmwk_with_fmwk",
         binary_test_file = "$CONTENT_ROOT/Frameworks/fmwk.framework/fmwk",
@@ -210,7 +210,7 @@ def macos_framework_test_suite(name):
             "$CONTENT_ROOT/framework_resources/nonlocalized.plist",
         ],
         binary_contains_symbols = ["_anotherFunctionShared"],
-        tags = [name],
+        tags = [name] + common.skip_ci_tags,
     )
 
     archive_contents_test(

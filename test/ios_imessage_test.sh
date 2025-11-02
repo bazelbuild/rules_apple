@@ -36,6 +36,7 @@ load(
     "ios_imessage_extension",
     "ios_sticker_pack_extension",
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
