@@ -839,6 +839,7 @@ bzl_library(
     ],
     deps = [
         "@build_bazel_rules_swift//swift",
+        "@cc_compatibility_proxy//:proxy_bzl",
         "@rules_cc//cc/common",
     ],
 )
