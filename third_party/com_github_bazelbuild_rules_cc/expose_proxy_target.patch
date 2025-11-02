@@ -1,0 +1,20 @@
+--- a/cc/extensions.bzl
++++ b/cc/extensions.bzl
+@@ -41,7 +41,7 @@ bzl_library(
+     "@rules_cc//cc/private/rules_impl:toolchain_rules",
+     "@rules_cc//cc/private:cc_common",
+   ],
+-  visibility = ["@rules_cc//cc:__subpackages__"],
++  visibility = ["//visibility:public"],
+ )
+             """,
+         )
+@@ -107,7 +107,7 @@ bzl_library(
+   name = "proxy_bzl",
+   srcs = ["proxy.bzl", "symbols.bzl"],
+   deps = ["@rules_cc//cc/private/rules_impl:native_bzl"],
+-  visibility = ["@rules_cc//cc:__subpackages__"],
++  visibility = ["//visibility:public"],
+ )
+             """,
+         )

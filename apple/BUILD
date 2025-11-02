@@ -111,6 +111,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+        "@cc_compatibility_proxy//:proxy_bzl",
         "@rules_cc//cc/common",
     ],
 )
