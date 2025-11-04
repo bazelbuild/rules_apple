@@ -219,6 +219,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":resource_actions",
+        ":secure_features_support",
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
@@ -634,6 +635,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "secure_features_support",
+    srcs = ["secure_features_support.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "stub_support",
     srcs = ["stub_support.bzl"],
     visibility = [
@@ -683,6 +692,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":secure_features_support",
         "//apple/build_settings",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//configs:platforms",

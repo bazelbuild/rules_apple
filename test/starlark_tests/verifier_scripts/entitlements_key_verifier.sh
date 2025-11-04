@@ -19,35 +19,32 @@ set -euo pipefail
 TEMP_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
 TEMP_DER_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_der_output.XXXXXX")"
 
-# This key marks the application as an app clip.
-TEST_APP_CLIP_ENTITLEMENT_KEY="com.apple.developer.on-demand-install-capable"
-
 if [[ "$BUILD_TYPE" == "simulator" ]]; then
   # First check the legacy xml plist section.
   xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
 
-  assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+  assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
 
   # Then check the DER encoded section.
   xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
 
-  assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
+  assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
 
 elif [[ "$BUILD_TYPE" == "device" ]]; then
   # First check the legacy xml plist section.
   codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT" || \
     codesign --display --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "<key>$TEST_APP_CLIP_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+  assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
 
   # Then check the DER encoded section.
   codesign --display --der --entitlements "$TEMP_DER_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "$TEST_APP_CLIP_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
+  assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
 else
   fail "Unsupported BUILD_TYPE = $BUILD_TYPE for this test"
 fi

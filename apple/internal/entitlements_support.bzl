@@ -35,6 +35,10 @@ load(
     "resource_actions",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -225,6 +229,8 @@ def _process_entitlements(
         actions: The object used to register actions.
         apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
+        apple_xplat_toolchain_info: The `struct` of tools from the shared Apple
+            cross platform toolchain.
         bundle_id: The bundle identifier.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
@@ -270,11 +276,11 @@ def _process_entitlements(
     if secure_features:
         if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
             fail("secure_features are still a work in progress and not yet supported in the rules.")
-
-        # TODO: b/449684779 - Have a mapping to declare which entitlements should be added for the
-        # given secure_features on Xcode 26.0 and later with validation against supported features.
-        # Create a new bzl (secure_features_support) to contain this mapping and validation and use
-        # it here.
+        secure_features_entitlements = secure_features_support.entitlements_from_secure_features(
+            secure_features = secure_features,
+            xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
+        )
+        forced_plists.append(struct(**secure_features_entitlements))
 
     inputs = list(plists)
 
