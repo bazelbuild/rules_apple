@@ -68,7 +68,10 @@ def ios_app_clip_test_suite(name):
         name = "{}_app_clip_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
-        verifier_script = "verifier_scripts/app_clip_entitlements_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.developer.on-demand-install-capable"],
+        },
         tags = [name],
     )
 
@@ -77,7 +80,10 @@ def ios_app_clip_test_suite(name):
         name = "{}_app_clip_entitlements_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip",
-        verifier_script = "verifier_scripts/app_clip_entitlements_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.developer.on-demand-install-capable"],
+        },
         tags = [name],
     )
 

@@ -312,6 +312,12 @@ considered to be an error if this is set with `apple_platforms` as both opt into
 toolchain resolution.
 """,
         ),
+        "env": attr.string_list_dict(
+            doc = """
+The environmental variables to pass to the verifier script. The list of strings will be transformed
+into a bash array. These will be passed to the verifier script.
+""",
+        ),
         "sanitizer": attr.string(
             default = "none",
             values = ["none", "asan", "tsan", "ubsan"],
@@ -347,12 +353,6 @@ variables to exist:
 * BUNDLE_ROOT: The directory where the bundle is located.
 * CONTENT_ROOT: The directory where the bundle contents are located.
 * RESOURCE_ROOT: The directory where the resource files are located.
-""",
-        ),
-        "env": attr.string_list_dict(
-            doc = """
-The environmental variables to pass to the verifier script. The list of strings will be transformed
-into a bash array.
 """,
         ),
         "_runner_script": attr.label(

@@ -1227,6 +1227,41 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    # Tests that the required Xcode 26 entitlements are added when enhanced security features are
+    # assigned to a target.
+    apple_verification_test(
+        name = "{}_enhanced_security_features_entitlements_device_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
