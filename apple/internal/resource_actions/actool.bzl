@@ -506,13 +506,6 @@ def compile_asset_catalog(
             "--mute-error=substring= is being set to 0xBAD4007.",
         ])
 
-    # TODO: b/447391969 - Remove this if it causes no issues for a period of three or four weeks.
-    args.add("--only-error-on-messaging", "false")
-
-    # TODO: b/447391969 - Flip to "false" by default in the actool wrapper and remove this if it
-    # causes no issues for a period of three or four weeks.
-    args.add("--ignore-missing-outputs-if-inputs-are-all-json", "false")
-
     # Standard actool options.
     args.add("--compile", xctoolrunner_support.prefixed_path(output_dir.path))
     args.add("--errors")
