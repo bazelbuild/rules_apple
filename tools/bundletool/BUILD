@@ -14,7 +14,7 @@ py_library(
     srcs = ["bundletool.py"],
 )
 
-py_binary(
+almost_py_binary(
     name = "bundletool_experimental",
     srcs = ["bundletool_experimental.py"],
     visibility = [
