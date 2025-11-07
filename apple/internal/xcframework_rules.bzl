@@ -775,12 +775,14 @@ bundle_id on the target.
         top_level_infoplists = resources.collect(
             attr = resource_split_attrs,
             res_attrs = ["infoplists"],
+            rule_label = rule_label,
             split_attr_keys = link_output.split_attr_keys,
         )
 
         top_level_resources = resources.collect(
             attr = resource_split_attrs,
             res_attrs = ["resources"],
+            rule_label = rule_label,
             split_attr_keys = link_output.split_attr_keys,
         )
 
@@ -789,6 +791,7 @@ bundle_id on the target.
             split_avoid_deps = resources.collect(
                 attr = resource_split_attrs,
                 res_attrs = [targets_to_avoid_attr_name],
+                rule_label = rule_label,
                 split_attr_keys = link_output.split_attr_keys,
             )
 
@@ -1635,6 +1638,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             split_avoid_deps = resources.collect(
                 attr = resource_split_attrs,
                 res_attrs = [targets_to_avoid_attr_name],
+                rule_label = rule_label,
                 split_attr_keys = link_output.split_attr_keys,
             )
 

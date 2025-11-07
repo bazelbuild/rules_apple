@@ -169,6 +169,7 @@ Resolved Xcode is version {xcode_version}.
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -177,6 +178,7 @@ Resolved Xcode is version {xcode_version}.
             "resources",
             "strings",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(

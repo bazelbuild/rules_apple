@@ -203,7 +203,9 @@ def _ios_application_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
+
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = [
@@ -213,6 +215,7 @@ def _ios_application_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     default_launch_screen = True
@@ -596,6 +599,7 @@ def _ios_app_clip_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -605,6 +609,7 @@ def _ios_app_clip_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -913,10 +918,12 @@ def _ios_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
 
     link_result = linking_support.register_binary_linking_action(
@@ -1173,6 +1180,7 @@ def _ios_extension_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1180,6 +1188,7 @@ def _ios_extension_impl(ctx):
             "app_icons",
             "strings",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -1621,6 +1630,7 @@ def _ios_imessage_application_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1629,6 +1639,7 @@ def _ios_imessage_application_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -1833,6 +1844,7 @@ def _ios_imessage_extension_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1841,6 +1853,7 @@ def _ios_imessage_extension_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(

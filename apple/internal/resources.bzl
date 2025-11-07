@@ -88,6 +88,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
+load(
+    "@rules_cc//cc/common:cc_info.bzl",
+    "CcInfo",
+)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -102,6 +106,8 @@ CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "rkassets": (resources_support.rkassets, True),
     "strings": (resources_support.plists_and_strings, False),
 }
+
+_KNOWN_BINARY_ATTRS = ["deps", "avoid_deps"]
 
 def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
     """Helper method to always get an attribute as a list within an existing list.
@@ -594,7 +600,51 @@ def _bundle_relative_parent_dir(resource, extension):
         parent_dir = paths.join(parent_dir, bundle_relative_dir)
     return parent_dir
 
-def _collect(*, attr, res_attrs = [], split_attr_keys = []):
+def _validate_target_to_collect(*, binary_attr, res_attr, rule_label, target):
+    """Validates that the given target can be collected as a resource.
+
+    Args:
+        binary_attr: Whether the attribute is known to be a binary attribute.
+        res_attr: The resource attribute being collected from.
+        rule_label: The label of the rule being analyzed.
+        target: The target being collected.
+    """
+
+    # Avoid validation for attributes that are expected to safely handle library files.
+    if binary_attr:
+        return
+
+    # Avoid collecting targets that generate library files (static or dynamic) as
+    # resources from known resource-only attributes (e.g. "data", "resources").
+    if CcInfo in target:
+        libraries_found = [
+            library
+            for linker_input in target[CcInfo].linking_context.linker_inputs.to_list()
+            for library in linker_input.libraries
+        ]
+        if libraries_found:
+            fail("""
+Error: {parent_target} has a static or dynamic library coming from a target referenced from the \
+resource-only attribute `{res_attr}`:
+
+{target}
+
+This is not supported. Attempting to build resources from this target may lead to a static library \
+or dynamic library being bundled in an unexpected location, which is not supported by the App Store.
+
+Please move the dependency on {target} to the `deps` attribute of {parent_target}.""".format(
+                parent_target = str(rule_label),
+                target = str(target.label),
+                res_attr = res_attr,
+            ))
+
+def _collect(
+        *,
+        attr,
+        res_attrs = [],
+        rule_label,
+        skip_library_validation = False,
+        split_attr_keys = []):
     """Collects all resource attributes present in the given attributes.
 
     Iterates over the given res_attrs attributes to be processed as resources.
@@ -605,6 +655,8 @@ def _collect(*, attr, res_attrs = [], split_attr_keys = []):
             -like struct that has targets/lists as its values, or a `ctx.split_attr`-like struct
             with the dictionary fan-out corresponding to split key.
         res_attrs: List of attributes to iterate over collecting resources.
+        rule_label: The label of the rule being analyzed.
+        skip_library_validation: Whether to skip validation of targets that generate libraries.
         split_attr_keys: If defined, a list of 1:2+ transition keys to merge values from.
 
     Returns:
@@ -623,10 +675,21 @@ def _collect(*, attr, res_attrs = [], split_attr_keys = []):
             nested_attr = res_attr,
             split_attr_keys = split_attr_keys,
         )
+        if not targets_for_attr:
+            continue
+
+        binary_attr = True if res_attr in _KNOWN_BINARY_ATTRS else False
         for target in targets_for_attr:
             if not target.files:
                 # Target does not export any File interfaces, ignore.
                 continue
+            if not skip_library_validation:
+                _validate_target_to_collect(
+                    binary_attr = binary_attr,
+                    res_attr = res_attr,
+                    rule_label = rule_label,
+                    target = target,
+                )
             targets_with_files.append(target)
 
     return targets_with_files

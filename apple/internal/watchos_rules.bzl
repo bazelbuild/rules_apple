@@ -248,6 +248,7 @@ watchos_application's `deps`.
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -257,6 +258,7 @@ watchos_application's `deps`.
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -547,6 +549,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -555,6 +558,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -894,6 +898,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -903,6 +908,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -1198,10 +1204,12 @@ def _watchos_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
 
     link_result = linking_support.register_binary_linking_action(
