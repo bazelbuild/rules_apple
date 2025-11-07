@@ -401,10 +401,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
 
     # For unit tests, only pass the test host as the bundle's loader if it propagates

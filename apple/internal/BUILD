@@ -557,6 +557,7 @@ bzl_library(
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:types",
+        "@rules_cc//cc/common",
     ],
 )
 

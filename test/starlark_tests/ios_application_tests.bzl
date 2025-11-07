@@ -1280,6 +1280,20 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    # Test that an app with a compiled binary resource coming from a resource attribute will fail to
+    # build and present a user-actionable error message.
+    analysis_failure_message_test(
+        name = "{}_with_binary_resources_in_transitive_deps_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_binary_resources_in_transitive_deps",
+        expected_error = (
+            "Error: {parent_target} has a static or dynamic library coming from a target referenced from the resource-only attribute `data`:\n\n{bad_target}"
+        ).format(
+            parent_target = Label("//test/starlark_tests/targets_under_test/ios:objc_lib_with_binary_resources"),
+            bad_target = Label("//test/starlark_tests/resources:objc_common_lib"),
+        ),
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
