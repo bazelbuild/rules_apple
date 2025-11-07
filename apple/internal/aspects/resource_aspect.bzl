@@ -125,9 +125,18 @@ def _apple_resource_aspect_impl(target, ctx):
         "product_type": None,
         "rule_label": ctx.label,
     }
-    collect_infoplists_args = {}
-    collect_args = {}
-    collect_structured_args = {}
+
+    skip_library_validation = False
+
+    common_collect_args = {
+        "rule_label": ctx.label,
+    }
+    collect_infoplists_args = dict(common_collect_args)
+    collect_args = common_collect_args | {
+        "skip_library_validation": skip_library_validation,
+    }
+    collect_structured_args = dict(common_collect_args)
+
     collect_framework_import_bundle_files = None
 
     hint_action = None

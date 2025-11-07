@@ -122,11 +122,13 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["infoplists"],
+            rule_label = ctx.label,
         )
     else:
         infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["_fallback_infoplist"],
+            rule_label = ctx.label,
         )
 
     bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
@@ -151,6 +153,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     resource_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
     if resource_files:
         bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
@@ -186,6 +189,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     structured_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["structured_resources"],
+        rule_label = ctx.label,
     )
     if structured_files:
         structured_parent_dir_param = partial.make(
