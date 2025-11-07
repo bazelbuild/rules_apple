@@ -777,12 +777,14 @@ bundle_id on the target.
         top_level_infoplists = resources.collect(
             attr = resource_split_attrs,
             res_attrs = ["infoplists"],
+            rule_label = rule_label,
             split_attr_keys = link_output.split_attr_keys,
         )
 
         top_level_resources = resources.collect(
             attr = resource_split_attrs,
             res_attrs = ["data"],
+            rule_label = rule_label,
             split_attr_keys = link_output.split_attr_keys,
         )
 
@@ -791,6 +793,7 @@ bundle_id on the target.
             split_avoid_deps = resources.collect(
                 attr = resource_split_attrs,
                 res_attrs = [targets_to_avoid_attr_name],
+                rule_label = rule_label,
                 split_attr_keys = link_output.split_attr_keys,
             )
 
@@ -1543,6 +1546,7 @@ def _create_static_library_outputs(
             split_avoid_deps = resources.collect(
                 attr = resource_split_attrs,
                 res_attrs = [targets_to_avoid_attr_name],
+                rule_label = rule_label,
                 split_attr_keys = link_output.split_attr_keys,
             )
 

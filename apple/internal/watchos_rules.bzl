@@ -208,10 +208,12 @@ def _watchos_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
 
     extra_linkopts = [
@@ -480,6 +482,7 @@ def _watchos_dynamic_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -489,6 +492,7 @@ def _watchos_dynamic_framework_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     signed_frameworks = []
@@ -818,6 +822,7 @@ Please add a `watchos_extension` to this target `extensions` attribute.
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -827,6 +832,7 @@ Please add a `watchos_extension` to this target `extensions` attribute.
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
@@ -1091,6 +1097,7 @@ def _watchos_extension_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1099,6 +1106,7 @@ def _watchos_extension_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
     product_type = rule_descriptor.product_type
 
@@ -1468,6 +1476,7 @@ def _watchos_static_framework_impl(ctx):
         top_level_infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["infoplists"],
+            rule_label = ctx.label,
         )
         top_level_resources = resources.collect(
             attr = ctx.attr,
@@ -1476,6 +1485,7 @@ def _watchos_static_framework_impl(ctx):
                 "strings",
                 "resources",
             ],
+            rule_label = ctx.label,
         )
 
         processor_partials.append(partials.resources_partial(
@@ -1591,6 +1601,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1600,6 +1611,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
