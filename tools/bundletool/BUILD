@@ -14,14 +14,6 @@ py_library(
     srcs = ["bundletool.py"],
 )
 
-almost_py_binary(
-    name = "bundletool_experimental",
-    srcs = ["bundletool_experimental.py"],
-    visibility = [
-        "//apple/internal/toolchains:__subpackages__",
-    ],
-)
-
 py_test(
     name = "bundletool_test",
     srcs = ["bundletool_test.py"],

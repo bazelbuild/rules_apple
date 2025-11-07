@@ -332,18 +332,35 @@ def _generate_tree_artifact_bundle_action(
       progress_message: A String. The progress message to use for the action.
       xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     """
-    bundletool = apple_mac_toolchain_info.bundletool_experimental
     if apple_xplat_toolchain_info.build_settings.use_mac_tree_artifact_bundletool:
         bundletool = apple_mac_toolchain_info.bundletool_mac
+        arguments = [
+            bundletool_control_file.path,
+        ]
+        executable = bundletool
+        inputs = bundletool_inputs
+    else:
+        bundletool = apple_mac_toolchain_info.bundletool_experimental
+        arguments = [
+            # Custom xctoolrunner options.
+            "passthrough-commands",
+            # Standard python3 options.
+            "python3",
+            bundletool.executable.path,
+            bundletool_control_file.path,
+        ]
+        executable = apple_mac_toolchain_info.xctoolrunner_alternative
+        inputs = depset(
+            direct = [bundletool.executable],
+            transitive = [bundletool_inputs],
+        )
 
     apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
-        arguments = [
-            bundletool_control_file.path,
-        ],
+        arguments = arguments,
         exec_group = mac_exec_group,
-        executable = bundletool,
+        executable = executable,
         execution_requirements = {
             # Added so that the output of this action is not cached remotely, in case multiple
             # developers sign the same artifact with different identities.
@@ -352,7 +369,7 @@ def _generate_tree_artifact_bundle_action(
             # $HOME.
             "no-sandbox": "1",
         },
-        inputs = bundletool_inputs,
+        inputs = inputs,
         mnemonic = mnemonic,
         outputs = [output_archive],
         progress_message = progress_message,

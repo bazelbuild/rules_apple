@@ -162,7 +162,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
 apple_mac_tools_toolchain = rule(
     attrs = {
         "bundletool_experimental": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
