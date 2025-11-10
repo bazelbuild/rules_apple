@@ -1001,21 +1001,6 @@ def _ios_framework_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = processor.location.framework,
-            bundle_name = bundle_name,
-            embed_target_dossiers = False,
-            embedded_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        ),
         # TODO(kaipi): Check if clang_rt dylibs are needed in Frameworks, or if
         # the can be skipped.
         partials.clang_rt_dylibs_partial(
@@ -1597,21 +1582,6 @@ def _ios_dynamic_framework_impl(ctx):
             bundle_name = bundle_name,
             executable_name = executable_name,
             label_name = label.name,
-        ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = processor.location.framework,
-            bundle_name = bundle_name,
-            embed_target_dossiers = False,
-            embedded_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
