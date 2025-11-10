@@ -15,7 +15,12 @@ x_defaults:
     - xcrun simctl runtime match set iphoneos18.5 --default
     - xcrun simctl runtime match list
     build_targets:
-    - //test/starlark_tests/targets_under_test/ios:ui_test_xctrunner_app
+    - "tools/..."
+    - "test/..."
+    test_targets:
+    - "tools/..."
+    - "test/..."
+    - "examples/..."
     build_flags:
     - --modify_execution_info=AssetCatalogCompile=+exclusive
     test_flags:
