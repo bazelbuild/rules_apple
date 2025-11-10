@@ -17,12 +17,12 @@ x_defaults:
     build_targets:
     - "tools/..."
     - "test/..."
+    build_flags:
+    - --modify_execution_info=AssetCatalogCompile=+exclusive
     test_targets:
     - "tools/..."
     - "test/..."
     - "examples/..."
-    build_flags:
-    - --modify_execution_info=AssetCatalogCompile=+exclusive
     test_flags:
     - --local_test_jobs=2
     - --modify_execution_info=AssetCatalogCompile=+exclusive
