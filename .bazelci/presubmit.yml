@@ -35,15 +35,21 @@ x_defaults:
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
-  macos_latest:
-    name: "Current LTS"
-    bazel: latest
+  macos_7.x:
+    name: "7.x"
+    bazel: 7.x
     <<: *common
 
-  macos_last_rc:
-    name: "Last RC Bazel"
-    bazel: last_rc
+  macos_8.x:
+    name: "8.x"
+    bazel: 8.x
     <<: *common
+
+  # TODO: Re-enable when we fix bazel 9.x
+  # macos_last_rc:
+  #   name: "Last RC Bazel"
+  #   bazel: last_rc
+  #   <<: *common
 
   macos_last_green:
     name: "Last Green Bazel"
