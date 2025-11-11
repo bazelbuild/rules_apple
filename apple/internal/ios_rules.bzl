@@ -17,6 +17,8 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
@@ -494,6 +496,9 @@ def _ios_application_impl(ctx):
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
             simulator_device = ctx.fragments.objc.ios_simulator_device,
+            simulator_identifier = (
+                apple_xplat_toolchain_info.build_settings.ios_device
+            ),
             simulator_version = ctx.fragments.objc.ios_simulator_version,
         )
 
@@ -753,7 +758,6 @@ def _ios_app_clip_impl(ctx):
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
-            package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
     ]

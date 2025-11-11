@@ -7,6 +7,8 @@
 ## macos_application
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_application")
+
 macos_application(<a href="#macos_application-name">name</a>, <a href="#macos_application-deps">deps</a>, <a href="#macos_application-resources">resources</a>, <a href="#macos_application-additional_contents">additional_contents</a>, <a href="#macos_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_application-app_icons">app_icons</a>,
                   <a href="#macos_application-app_intents">app_intents</a>, <a href="#macos_application-bundle_id">bundle_id</a>, <a href="#macos_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_application-bundle_name">bundle_name</a>, <a href="#macos_application-codesign_inputs">codesign_inputs</a>,
                   <a href="#macos_application-codesignopts">codesignopts</a>, <a href="#macos_application-entitlements">entitlements</a>, <a href="#macos_application-entitlements_validation">entitlements_validation</a>, <a href="#macos_application-executable_name">executable_name</a>,
@@ -32,7 +34,7 @@ simple command line tool as a standalone binary, use
 | <a id="macos_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_application-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: Label -> String</a> | optional |  `{}`  |
 | <a id="macos_application-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="macos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="macos_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_application-app_intents"></a>app_intents |  List of dependencies implementing the AppIntents protocol.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="macos_application-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"_"`  |
@@ -67,6 +69,8 @@ simple command line tool as a standalone binary, use
 ## macos_build_test
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_build_test")
+
 macos_build_test(<a href="#macos_build_test-name">name</a>, <a href="#macos_build_test-minimum_os_version">minimum_os_version</a>, <a href="#macos_build_test-platform_type">platform_type</a>, <a href="#macos_build_test-targets">targets</a>)
 </pre>
 
@@ -101,6 +105,8 @@ macos_build_test(
 ## macos_bundle
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_bundle")
+
 macos_bundle(<a href="#macos_bundle-name">name</a>, <a href="#macos_bundle-deps">deps</a>, <a href="#macos_bundle-resources">resources</a>, <a href="#macos_bundle-additional_contents">additional_contents</a>, <a href="#macos_bundle-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_bundle-app_icons">app_icons</a>,
              <a href="#macos_bundle-bundle_extension">bundle_extension</a>, <a href="#macos_bundle-bundle_id">bundle_id</a>, <a href="#macos_bundle-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_bundle-bundle_loader">bundle_loader</a>, <a href="#macos_bundle-bundle_name">bundle_name</a>,
              <a href="#macos_bundle-codesign_inputs">codesign_inputs</a>, <a href="#macos_bundle-codesignopts">codesignopts</a>, <a href="#macos_bundle-entitlements">entitlements</a>, <a href="#macos_bundle-entitlements_validation">entitlements_validation</a>, <a href="#macos_bundle-executable_name">executable_name</a>,
@@ -121,7 +127,7 @@ Builds and bundles a macOS Loadable Bundle.
 | <a id="macos_bundle-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_bundle-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: Label -> String</a> | optional |  `{}`  |
 | <a id="macos_bundle-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="macos_bundle-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="macos_bundle-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_bundle-bundle_extension"></a>bundle_extension |  The extension, without a leading dot, that will be used to name the bundle. If this attribute is not set, then the extension will be `.bundle`.   | String | optional |  `""`  |
 | <a id="macos_bundle-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="macos_bundle-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
@@ -152,6 +158,8 @@ Builds and bundles a macOS Loadable Bundle.
 ## macos_command_line_application
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_command_line_application")
+
 macos_command_line_application(<a href="#macos_command_line_application-name">name</a>, <a href="#macos_command_line_application-deps">deps</a>, <a href="#macos_command_line_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_command_line_application-base_bundle_id">base_bundle_id</a>, <a href="#macos_command_line_application-bundle_id">bundle_id</a>,
                                <a href="#macos_command_line_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_command_line_application-codesign_inputs">codesign_inputs</a>, <a href="#macos_command_line_application-codesignopts">codesignopts</a>,
                                <a href="#macos_command_line_application-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_command_line_application-infoplists">infoplists</a>, <a href="#macos_command_line_application-launchdplists">launchdplists</a>, <a href="#macos_command_line_application-linkopts">linkopts</a>,
@@ -200,6 +208,8 @@ Targets created with `macos_command_line_application` can be executed using
 ## macos_dylib
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_dylib")
+
 macos_dylib(<a href="#macos_dylib-name">name</a>, <a href="#macos_dylib-deps">deps</a>, <a href="#macos_dylib-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_dylib-base_bundle_id">base_bundle_id</a>, <a href="#macos_dylib-bundle_id">bundle_id</a>, <a href="#macos_dylib-bundle_id_suffix">bundle_id_suffix</a>,
             <a href="#macos_dylib-codesign_inputs">codesign_inputs</a>, <a href="#macos_dylib-codesignopts">codesignopts</a>, <a href="#macos_dylib-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_dylib-infoplists">infoplists</a>, <a href="#macos_dylib-linkopts">linkopts</a>,
             <a href="#macos_dylib-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#macos_dylib-minimum_os_version">minimum_os_version</a>, <a href="#macos_dylib-platform_type">platform_type</a>, <a href="#macos_dylib-provisioning_profile">provisioning_profile</a>,
@@ -237,6 +247,8 @@ Builds a macOS Dylib binary.
 ## macos_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_dynamic_framework")
+
 macos_dynamic_framework(<a href="#macos_dynamic_framework-name">name</a>, <a href="#macos_dynamic_framework-deps">deps</a>, <a href="#macos_dynamic_framework-resources">resources</a>, <a href="#macos_dynamic_framework-hdrs">hdrs</a>, <a href="#macos_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                         <a href="#macos_dynamic_framework-bundle_id">bundle_id</a>, <a href="#macos_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_dynamic_framework-bundle_name">bundle_name</a>, <a href="#macos_dynamic_framework-bundle_only">bundle_only</a>, <a href="#macos_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                         <a href="#macos_dynamic_framework-codesignopts">codesignopts</a>, <a href="#macos_dynamic_framework-executable_name">executable_name</a>, <a href="#macos_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_dynamic_framework-extension_safe">extension_safe</a>,
@@ -286,6 +298,8 @@ Builds and bundles a macOS dynamic framework that is consumable by Xcode.
 ## macos_extension
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_extension")
+
 macos_extension(<a href="#macos_extension-name">name</a>, <a href="#macos_extension-deps">deps</a>, <a href="#macos_extension-resources">resources</a>, <a href="#macos_extension-additional_contents">additional_contents</a>, <a href="#macos_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_extension-app_icons">app_icons</a>,
                 <a href="#macos_extension-bundle_id">bundle_id</a>, <a href="#macos_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_extension-bundle_name">bundle_name</a>, <a href="#macos_extension-codesign_inputs">codesign_inputs</a>, <a href="#macos_extension-codesignopts">codesignopts</a>, <a href="#macos_extension-entitlements">entitlements</a>,
                 <a href="#macos_extension-entitlements_validation">entitlements_validation</a>, <a href="#macos_extension-executable_name">executable_name</a>, <a href="#macos_extension-exported_symbols_lists">exported_symbols_lists</a>,
@@ -311,7 +325,7 @@ point (typically expressed through Swift's `@main` attribute).
 | <a id="macos_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_extension-additional_contents"></a>additional_contents |  Files that should be copied into specific subdirectories of the Contents folder in the bundle. The keys of this dictionary are labels pointing to single files, filegroups, or targets; the corresponding value is the name of the subdirectory of Contents where they should be placed.<br><br>The relative directory structure of filegroup contents is preserved when they are copied into the desired Contents subdirectory.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: Label -> String</a> | optional |  `{}`  |
 | <a id="macos_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="macos_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="macos_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="macos_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="macos_extension-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
 | <a id="macos_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
@@ -343,6 +357,8 @@ point (typically expressed through Swift's `@main` attribute).
 ## macos_framework
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_framework")
+
 macos_framework(<a href="#macos_framework-name">name</a>, <a href="#macos_framework-deps">deps</a>, <a href="#macos_framework-resources">resources</a>, <a href="#macos_framework-hdrs">hdrs</a>, <a href="#macos_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_framework-base_bundle_id">base_bundle_id</a>, <a href="#macos_framework-bundle_id">bundle_id</a>,
                 <a href="#macos_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_framework-bundle_name">bundle_name</a>, <a href="#macos_framework-bundle_only">bundle_only</a>, <a href="#macos_framework-codesign_inputs">codesign_inputs</a>, <a href="#macos_framework-codesignopts">codesignopts</a>,
                 <a href="#macos_framework-executable_name">executable_name</a>, <a href="#macos_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_framework-extension_safe">extension_safe</a>, <a href="#macos_framework-families">families</a>, <a href="#macos_framework-frameworks">frameworks</a>,
@@ -394,6 +410,8 @@ of those `macos_application` and/or `macos_extension` rules.
 ## macos_kernel_extension
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_kernel_extension")
+
 macos_kernel_extension(<a href="#macos_kernel_extension-name">name</a>, <a href="#macos_kernel_extension-deps">deps</a>, <a href="#macos_kernel_extension-resources">resources</a>, <a href="#macos_kernel_extension-additional_contents">additional_contents</a>, <a href="#macos_kernel_extension-additional_linker_inputs">additional_linker_inputs</a>,
                        <a href="#macos_kernel_extension-bundle_id">bundle_id</a>, <a href="#macos_kernel_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_kernel_extension-bundle_name">bundle_name</a>, <a href="#macos_kernel_extension-codesign_inputs">codesign_inputs</a>, <a href="#macos_kernel_extension-codesignopts">codesignopts</a>,
                        <a href="#macos_kernel_extension-entitlements">entitlements</a>, <a href="#macos_kernel_extension-entitlements_validation">entitlements_validation</a>, <a href="#macos_kernel_extension-executable_name">executable_name</a>, <a href="#macos_kernel_extension-exported_symbols_lists">exported_symbols_lists</a>,
@@ -442,6 +460,8 @@ Builds and bundles a macOS Kernel Extension.
 ## macos_quick_look_plugin
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_quick_look_plugin")
+
 macos_quick_look_plugin(<a href="#macos_quick_look_plugin-name">name</a>, <a href="#macos_quick_look_plugin-deps">deps</a>, <a href="#macos_quick_look_plugin-resources">resources</a>, <a href="#macos_quick_look_plugin-additional_contents">additional_contents</a>, <a href="#macos_quick_look_plugin-additional_linker_inputs">additional_linker_inputs</a>,
                         <a href="#macos_quick_look_plugin-bundle_id">bundle_id</a>, <a href="#macos_quick_look_plugin-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_quick_look_plugin-bundle_name">bundle_name</a>, <a href="#macos_quick_look_plugin-codesign_inputs">codesign_inputs</a>, <a href="#macos_quick_look_plugin-codesignopts">codesignopts</a>,
                         <a href="#macos_quick_look_plugin-entitlements">entitlements</a>, <a href="#macos_quick_look_plugin-entitlements_validation">entitlements_validation</a>, <a href="#macos_quick_look_plugin-executable_name">executable_name</a>,
@@ -490,6 +510,8 @@ Builds and bundles a macOS Quick Look Plugin.
 ## macos_spotlight_importer
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_spotlight_importer")
+
 macos_spotlight_importer(<a href="#macos_spotlight_importer-name">name</a>, <a href="#macos_spotlight_importer-deps">deps</a>, <a href="#macos_spotlight_importer-resources">resources</a>, <a href="#macos_spotlight_importer-additional_contents">additional_contents</a>, <a href="#macos_spotlight_importer-additional_linker_inputs">additional_linker_inputs</a>,
                          <a href="#macos_spotlight_importer-bundle_id">bundle_id</a>, <a href="#macos_spotlight_importer-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_spotlight_importer-bundle_name">bundle_name</a>, <a href="#macos_spotlight_importer-codesign_inputs">codesign_inputs</a>, <a href="#macos_spotlight_importer-codesignopts">codesignopts</a>,
                          <a href="#macos_spotlight_importer-entitlements">entitlements</a>, <a href="#macos_spotlight_importer-entitlements_validation">entitlements_validation</a>, <a href="#macos_spotlight_importer-executable_name">executable_name</a>,
@@ -538,6 +560,8 @@ Builds and bundles a macOS Spotlight Importer.
 ## macos_static_framework
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_static_framework")
+
 macos_static_framework(<a href="#macos_static_framework-name">name</a>, <a href="#macos_static_framework-deps">deps</a>, <a href="#macos_static_framework-resources">resources</a>, <a href="#macos_static_framework-hdrs">hdrs</a>, <a href="#macos_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_static_framework-avoid_deps">avoid_deps</a>,
                        <a href="#macos_static_framework-bundle_name">bundle_name</a>, <a href="#macos_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#macos_static_framework-codesignopts">codesignopts</a>, <a href="#macos_static_framework-exclude_resources">exclude_resources</a>, <a href="#macos_static_framework-executable_name">executable_name</a>,
                        <a href="#macos_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_static_framework-families">families</a>, <a href="#macos_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#macos_static_framework-linkopts">linkopts</a>,
@@ -617,6 +641,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## macos_ui_test
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_ui_test")
+
 macos_ui_test(<a href="#macos_ui_test-name">name</a>, <a href="#macos_ui_test-deps">deps</a>, <a href="#macos_ui_test-data">data</a>, <a href="#macos_ui_test-bundle_name">bundle_name</a>, <a href="#macos_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#macos_ui_test-env">env</a>, <a href="#macos_ui_test-env_inherit">env_inherit</a>,
               <a href="#macos_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#macos_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#macos_ui_test-platform_type">platform_type</a>, <a href="#macos_ui_test-runner">runner</a>,
               <a href="#macos_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#macos_ui_test-test_filter">test_filter</a>, <a href="#macos_ui_test-test_host">test_host</a>, <a href="#macos_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -654,6 +680,8 @@ Note: macOS UI tests are not currently supported in the default test runner.
 ## macos_unit_test
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_unit_test")
+
 macos_unit_test(<a href="#macos_unit_test-name">name</a>, <a href="#macos_unit_test-deps">deps</a>, <a href="#macos_unit_test-data">data</a>, <a href="#macos_unit_test-bundle_name">bundle_name</a>, <a href="#macos_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#macos_unit_test-env">env</a>, <a href="#macos_unit_test-env_inherit">env_inherit</a>,
                 <a href="#macos_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#macos_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#macos_unit_test-platform_type">platform_type</a>, <a href="#macos_unit_test-runner">runner</a>,
                 <a href="#macos_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#macos_unit_test-test_filter">test_filter</a>, <a href="#macos_unit_test-test_host">test_host</a>, <a href="#macos_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -697,6 +725,8 @@ find more information about testing for Apple platforms
 ## macos_xpc_service
 
 <pre>
+load("@rules_apple//apple:macos.doc.bzl", "macos_xpc_service")
+
 macos_xpc_service(<a href="#macos_xpc_service-name">name</a>, <a href="#macos_xpc_service-deps">deps</a>, <a href="#macos_xpc_service-resources">resources</a>, <a href="#macos_xpc_service-additional_contents">additional_contents</a>, <a href="#macos_xpc_service-additional_linker_inputs">additional_linker_inputs</a>, <a href="#macos_xpc_service-bundle_id">bundle_id</a>,
                   <a href="#macos_xpc_service-bundle_id_suffix">bundle_id_suffix</a>, <a href="#macos_xpc_service-bundle_name">bundle_name</a>, <a href="#macos_xpc_service-codesign_inputs">codesign_inputs</a>, <a href="#macos_xpc_service-codesignopts">codesignopts</a>, <a href="#macos_xpc_service-entitlements">entitlements</a>,
                   <a href="#macos_xpc_service-entitlements_validation">entitlements_validation</a>, <a href="#macos_xpc_service-executable_name">executable_name</a>, <a href="#macos_xpc_service-exported_symbols_lists">exported_symbols_lists</a>, <a href="#macos_xpc_service-families">families</a>,

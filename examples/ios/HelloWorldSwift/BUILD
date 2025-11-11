@@ -13,6 +13,7 @@ swift_library(
     ],
     data = [
         "Resources/HelloWorldSwift.docc",
+        "//examples/resources:Localizable.xcstrings",
     ],
     module_name = "Sources",
     tags = ["manual"],

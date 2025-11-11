@@ -150,13 +150,14 @@ def _generate_dsym_binaries(
             mnemonic = "DsymDwarf",
             progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
             command = """
-if [[ $OSTYPE == darwin* ]]; then
+# Only use `-c` if we're on Darwin and src and dst are on the same filesystem
+if [[ $OSTYPE == darwin* && $(stat -f "%d" {src}) == $(stat -f "%d" $(dirname {dst})) ]]; then
     readonly flags='-cp'
 else
     readonly flags='-p'
 fi
-cp $flags '%s' '%s'
-""" % (dsym_binary.path, output_binary.path),
+cp $flags "{src}" "{dst}"
+""".format(src = dsym_binary.path, dst = output_binary.path),
         )
     else:
         lipo.create(

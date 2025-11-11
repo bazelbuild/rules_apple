@@ -22,6 +22,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    ":common.bzl",
+    "common",
+)
 
 def macos_application_resources_test_suite(name):
     """Test suite for macos_application resources.
@@ -29,6 +33,42 @@ def macos_application_resources_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+
+    # Tests the new icon composer bundles for Xcode 26.
+    archive_contents_test(
+        name = "{}_icon_composer_app_icons_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle",
+        contains = [
+            "$RESOURCE_ROOT/app_icon.icns",
+            "$RESOURCE_ROOT/Assets.car",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIconName": "app_icon",
+            "CFBundleIconFile": "app_icon",
+        },
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+    )
+
+    # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
+    archive_contents_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_and_xcassets_app_icons",
+        contains = [
+            "$RESOURCE_ROOT/app_icon.icns",
+            "$RESOURCE_ROOT/Assets.car",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIconName": "app_icon",
+            "CFBundleIconFile": "app_icon",
+        },
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+    )
 
     # Tests that various nonlocalized resource types are bundled correctly with
     # the application (at the top-level, rather than inside an .lproj directory).

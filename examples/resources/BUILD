@@ -6,6 +6,7 @@ licenses(["notice"])
 
 exports_files([
     "Launch.storyboard",
+    "Localizable.xcstrings",
 ])
 
 filegroup(

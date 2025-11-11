@@ -7,6 +7,8 @@
 ## ios_app_clip
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_app_clip")
+
 ios_app_clip(<a href="#ios_app_clip-name">name</a>, <a href="#ios_app_clip-deps">deps</a>, <a href="#ios_app_clip-resources">resources</a>, <a href="#ios_app_clip-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_app_clip-app_icons">app_icons</a>, <a href="#ios_app_clip-bundle_id">bundle_id</a>,
              <a href="#ios_app_clip-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_app_clip-bundle_name">bundle_name</a>, <a href="#ios_app_clip-codesign_inputs">codesign_inputs</a>, <a href="#ios_app_clip-codesignopts">codesignopts</a>, <a href="#ios_app_clip-entitlements">entitlements</a>,
              <a href="#ios_app_clip-entitlements_validation">entitlements_validation</a>, <a href="#ios_app_clip-executable_name">executable_name</a>, <a href="#ios_app_clip-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_app_clip-extensions">extensions</a>, <a href="#ios_app_clip-families">families</a>,
@@ -26,7 +28,7 @@ Builds and bundles an iOS App Clip.
 | <a id="ios_app_clip-deps"></a>deps |  A list of dependent targets that will be linked into this target's binary(s). Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle(s).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_app_clip-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_app_clip-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_app_clip-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_app_clip-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_app_clip-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_app_clip-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
 | <a id="ios_app_clip-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
@@ -59,6 +61,8 @@ Builds and bundles an iOS App Clip.
 ## ios_application
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_application")
+
 ios_application(<a href="#ios_application-name">name</a>, <a href="#ios_application-deps">deps</a>, <a href="#ios_application-resources">resources</a>, <a href="#ios_application-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_application-alternate_icons">alternate_icons</a>, <a href="#ios_application-app_clips">app_clips</a>,
                 <a href="#ios_application-app_icons">app_icons</a>, <a href="#ios_application-app_intents">app_intents</a>, <a href="#ios_application-bundle_id">bundle_id</a>, <a href="#ios_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_application-bundle_name">bundle_name</a>, <a href="#ios_application-codesign_inputs">codesign_inputs</a>,
                 <a href="#ios_application-codesignopts">codesignopts</a>, <a href="#ios_application-entitlements">entitlements</a>, <a href="#ios_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_application-executable_name">executable_name</a>,
@@ -82,7 +86,7 @@ Builds and bundles an iOS Application.
 | <a id="ios_application-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_application-alternate_icons"></a>alternate_icons |  Files that comprise the alternate app icons for the application. Each file must have a containing directory named after the alternate icon identifier.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_application-app_clips"></a>app_clips |  A list of iOS app clips to include in the final application bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_application-app_intents"></a>app_intents |  List of dependencies implementing the AppIntents protocol.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_application-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"_"`  |
@@ -106,7 +110,7 @@ Builds and bundles an iOS Application.
 | <a id="ios_application-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
 | <a id="ios_application-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
 | <a id="ios_application-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
-| <a id="ios_application-primary_app_icon"></a>primary_app_icon |  An optional String to identify the name of the primary app icon when alternate app icons have been provided for the app.   | String | optional |  `""`  |
+| <a id="ios_application-primary_app_icon"></a>primary_app_icon |  An optional String to identify the name of the primary app icon when alternate app icons have been provided for the app. This should match both the `*.icon` bundle in iOS/macOS/watchOS 26+ and the `*..xcassets/.appiconset` bundle's AppIcon resource in previous versions of iOS/macOS/watchOS.   | String | optional |  `""`  |
 | <a id="ios_application-provisioning_profile"></a>provisioning_profile |  The provisioning profile (`.mobileprovision` file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="ios_application-sdk_frameworks"></a>sdk_frameworks |  Names of SDK frameworks to link with (e.g., `AddressBook`, `QuartzCore`). `UIKit` and `Foundation` are always included, even if this attribute is provided and does not list them.<br><br>This attribute is discouraged; in general, targets should list system framework dependencies in the library targets where that framework is used, not in the top-level bundle.   | List of strings | optional |  `[]`  |
 | <a id="ios_application-settings_bundle"></a>settings_bundle |  A resource bundle (e.g. `apple_bundle_import`) target that contains the files that make up the application's settings bundle. These files will be copied into the root of the final application bundle in a directory named `Settings.bundle`.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
@@ -122,6 +126,8 @@ Builds and bundles an iOS Application.
 ## ios_build_test
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_build_test")
+
 ios_build_test(<a href="#ios_build_test-name">name</a>, <a href="#ios_build_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_build_test-platform_type">platform_type</a>, <a href="#ios_build_test-targets">targets</a>)
 </pre>
 
@@ -156,6 +162,8 @@ ios_build_test(
 ## ios_dynamic_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_dynamic_framework")
+
 ios_dynamic_framework(<a href="#ios_dynamic_framework-name">name</a>, <a href="#ios_dynamic_framework-deps">deps</a>, <a href="#ios_dynamic_framework-resources">resources</a>, <a href="#ios_dynamic_framework-hdrs">hdrs</a>, <a href="#ios_dynamic_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_dynamic_framework-base_bundle_id">base_bundle_id</a>,
                       <a href="#ios_dynamic_framework-bundle_id">bundle_id</a>, <a href="#ios_dynamic_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_dynamic_framework-bundle_name">bundle_name</a>, <a href="#ios_dynamic_framework-bundle_only">bundle_only</a>, <a href="#ios_dynamic_framework-codesign_inputs">codesign_inputs</a>,
                       <a href="#ios_dynamic_framework-codesignopts">codesignopts</a>, <a href="#ios_dynamic_framework-executable_name">executable_name</a>, <a href="#ios_dynamic_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_dynamic_framework-extension_safe">extension_safe</a>, <a href="#ios_dynamic_framework-families">families</a>,
@@ -205,6 +213,8 @@ Builds and bundles an iOS dynamic framework that is consumable by Xcode.
 ## ios_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_extension")
+
 ios_extension(<a href="#ios_extension-name">name</a>, <a href="#ios_extension-deps">deps</a>, <a href="#ios_extension-resources">resources</a>, <a href="#ios_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_extension-app_icons">app_icons</a>, <a href="#ios_extension-app_intents">app_intents</a>, <a href="#ios_extension-bundle_id">bundle_id</a>,
               <a href="#ios_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_extension-bundle_name">bundle_name</a>, <a href="#ios_extension-codesign_inputs">codesign_inputs</a>, <a href="#ios_extension-codesignopts">codesignopts</a>, <a href="#ios_extension-entitlements">entitlements</a>,
               <a href="#ios_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_extension-executable_name">executable_name</a>, <a href="#ios_extension-exported_symbols_lists">exported_symbols_lists</a>,
@@ -229,7 +239,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 | <a id="ios_extension-deps"></a>deps |  A list of dependent targets that will be linked into this target's binary(s). Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle(s).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_extension-app_intents"></a>app_intents |  List of dependencies implementing the AppIntents protocol.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_extension-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
@@ -263,6 +273,8 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
 ## ios_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_framework")
+
 ios_framework(<a href="#ios_framework-name">name</a>, <a href="#ios_framework-deps">deps</a>, <a href="#ios_framework-resources">resources</a>, <a href="#ios_framework-hdrs">hdrs</a>, <a href="#ios_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_framework-base_bundle_id">base_bundle_id</a>, <a href="#ios_framework-bundle_id">bundle_id</a>,
               <a href="#ios_framework-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_framework-bundle_name">bundle_name</a>, <a href="#ios_framework-bundle_only">bundle_only</a>, <a href="#ios_framework-codesign_inputs">codesign_inputs</a>, <a href="#ios_framework-codesignopts">codesignopts</a>,
               <a href="#ios_framework-executable_name">executable_name</a>, <a href="#ios_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_framework-extension_safe">extension_safe</a>, <a href="#ios_framework-families">families</a>, <a href="#ios_framework-frameworks">frameworks</a>,
@@ -314,6 +326,8 @@ of those `ios_application` and/or `ios_extension` rules.
 ## ios_imessage_application
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_imessage_application")
+
 ios_imessage_application(<a href="#ios_imessage_application-name">name</a>, <a href="#ios_imessage_application-resources">resources</a>, <a href="#ios_imessage_application-app_icons">app_icons</a>, <a href="#ios_imessage_application-bundle_id">bundle_id</a>, <a href="#ios_imessage_application-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_imessage_application-bundle_name">bundle_name</a>,
                          <a href="#ios_imessage_application-entitlements">entitlements</a>, <a href="#ios_imessage_application-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_application-executable_name">executable_name</a>, <a href="#ios_imessage_application-extension">extension</a>, <a href="#ios_imessage_application-families">families</a>,
                          <a href="#ios_imessage_application-infoplists">infoplists</a>, <a href="#ios_imessage_application-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_imessage_application-locales_to_include">locales_to_include</a>,
@@ -333,7 +347,7 @@ for either an iOS iMessage extension or a Sticker Pack extension.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_imessage_application-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="ios_imessage_application-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_imessage_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_imessage_application-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_imessage_application-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_imessage_application-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"_"`  |
 | <a id="ios_imessage_application-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
@@ -359,6 +373,8 @@ for either an iOS iMessage extension or a Sticker Pack extension.
 ## ios_imessage_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_imessage_extension")
+
 ios_imessage_extension(<a href="#ios_imessage_extension-name">name</a>, <a href="#ios_imessage_extension-deps">deps</a>, <a href="#ios_imessage_extension-resources">resources</a>, <a href="#ios_imessage_extension-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_imessage_extension-app_icons">app_icons</a>, <a href="#ios_imessage_extension-bundle_id">bundle_id</a>,
                        <a href="#ios_imessage_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_imessage_extension-bundle_name">bundle_name</a>, <a href="#ios_imessage_extension-codesign_inputs">codesign_inputs</a>, <a href="#ios_imessage_extension-codesignopts">codesignopts</a>, <a href="#ios_imessage_extension-entitlements">entitlements</a>,
                        <a href="#ios_imessage_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_imessage_extension-executable_name">executable_name</a>, <a href="#ios_imessage_extension-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_imessage_extension-families">families</a>,
@@ -378,7 +394,7 @@ Builds and bundles an iOS iMessage Extension.
 | <a id="ios_imessage_extension-deps"></a>deps |  A list of dependent targets that will be linked into this target's binary(s). Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle(s).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_imessage_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_imessage_extension-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_imessage_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_imessage_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcassets/*..appiconset` and there may be only one such `..appiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcassets` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_imessage_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_imessage_extension-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
 | <a id="ios_imessage_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
@@ -409,6 +425,8 @@ Builds and bundles an iOS iMessage Extension.
 ## ios_static_framework
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_static_framework")
+
 ios_static_framework(<a href="#ios_static_framework-name">name</a>, <a href="#ios_static_framework-deps">deps</a>, <a href="#ios_static_framework-resources">resources</a>, <a href="#ios_static_framework-hdrs">hdrs</a>, <a href="#ios_static_framework-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_static_framework-avoid_deps">avoid_deps</a>, <a href="#ios_static_framework-bundle_name">bundle_name</a>,
                      <a href="#ios_static_framework-codesign_inputs">codesign_inputs</a>, <a href="#ios_static_framework-codesignopts">codesignopts</a>, <a href="#ios_static_framework-exclude_resources">exclude_resources</a>, <a href="#ios_static_framework-executable_name">executable_name</a>,
                      <a href="#ios_static_framework-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_static_framework-families">families</a>, <a href="#ios_static_framework-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_static_framework-linkopts">linkopts</a>,
@@ -488,6 +506,8 @@ i.e. `--features=-swift.no_generated_header`).
 ## ios_sticker_pack_extension
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_sticker_pack_extension")
+
 ios_sticker_pack_extension(<a href="#ios_sticker_pack_extension-name">name</a>, <a href="#ios_sticker_pack_extension-resources">resources</a>, <a href="#ios_sticker_pack_extension-app_icons">app_icons</a>, <a href="#ios_sticker_pack_extension-bundle_id">bundle_id</a>, <a href="#ios_sticker_pack_extension-bundle_id_suffix">bundle_id_suffix</a>, <a href="#ios_sticker_pack_extension-bundle_name">bundle_name</a>,
                            <a href="#ios_sticker_pack_extension-entitlements">entitlements</a>, <a href="#ios_sticker_pack_extension-entitlements_validation">entitlements_validation</a>, <a href="#ios_sticker_pack_extension-executable_name">executable_name</a>, <a href="#ios_sticker_pack_extension-families">families</a>,
                            <a href="#ios_sticker_pack_extension-infoplists">infoplists</a>, <a href="#ios_sticker_pack_extension-ipa_post_processor">ipa_post_processor</a>, <a href="#ios_sticker_pack_extension-minimum_deployment_os_version">minimum_deployment_os_version</a>,
@@ -504,7 +524,7 @@ Builds and bundles an iOS Sticker Pack Extension.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="ios_sticker_pack_extension-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="ios_sticker_pack_extension-resources"></a>resources |  A list of resources or files bundled with the bundle. The resources will be stored in the appropriate resources location within the bundle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="ios_sticker_pack_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcstickers/*..stickersiconset` and there may be only one such `..stickersiconset` directory in the list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_sticker_pack_extension-app_icons"></a>app_icons |  Files that comprise the app icons for the application. Each file must have a containing directory named `*..xcstickers/*..stickersiconset` and there may be only one such `..stickersiconset` directory in the list. In Xcode 26+ for iOS/macOS/watchOS, an `*.icon` bundle can be provided along with the `*..xcstickers` bundle to support 26 and pre-26 Apple OS rendering.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="ios_sticker_pack_extension-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID rule found within `signed_capabilities`.   | String | optional |  `""`  |
 | <a id="ios_sticker_pack_extension-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from a base bundle ID rule found within `signed_capabilities`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"bundle_name"`  |
 | <a id="ios_sticker_pack_extension-bundle_name"></a>bundle_name |  The desired name of the bundle (without the extension). If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
@@ -529,6 +549,8 @@ Builds and bundles an iOS Sticker Pack Extension.
 ## ios_test_runner
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_test_runner")
+
 ios_test_runner(<a href="#ios_test_runner-name">name</a>, <a href="#ios_test_runner-device_type">device_type</a>, <a href="#ios_test_runner-execution_requirements">execution_requirements</a>, <a href="#ios_test_runner-os_version">os_version</a>, <a href="#ios_test_runner-post_action">post_action</a>,
                 <a href="#ios_test_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#ios_test_runner-pre_action">pre_action</a>, <a href="#ios_test_runner-test_environment">test_environment</a>)
 </pre>
@@ -567,6 +589,8 @@ Outputs:
 ## ios_ui_test
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_ui_test")
+
 ios_ui_test(<a href="#ios_ui_test-name">name</a>, <a href="#ios_ui_test-deps">deps</a>, <a href="#ios_ui_test-data">data</a>, <a href="#ios_ui_test-bundle_name">bundle_name</a>, <a href="#ios_ui_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_ui_test-env">env</a>, <a href="#ios_ui_test-env_inherit">env_inherit</a>,
             <a href="#ios_ui_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_ui_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_ui_test-platform_type">platform_type</a>, <a href="#ios_ui_test-runner">runner</a>,
             <a href="#ios_ui_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_ui_test-test_filter">test_filter</a>, <a href="#ios_ui_test-test_host">test_host</a>, <a href="#ios_ui_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -613,6 +637,8 @@ of the attributes inherited by all test rules, please check the
 ## ios_unit_test
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_unit_test")
+
 ios_unit_test(<a href="#ios_unit_test-name">name</a>, <a href="#ios_unit_test-deps">deps</a>, <a href="#ios_unit_test-data">data</a>, <a href="#ios_unit_test-bundle_name">bundle_name</a>, <a href="#ios_unit_test-collect_code_coverage">collect_code_coverage</a>, <a href="#ios_unit_test-env">env</a>, <a href="#ios_unit_test-env_inherit">env_inherit</a>,
               <a href="#ios_unit_test-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_unit_test-minimum_os_version">minimum_os_version</a>, <a href="#ios_unit_test-platform_type">platform_type</a>, <a href="#ios_unit_test-runner">runner</a>,
               <a href="#ios_unit_test-test_coverage_manifest">test_coverage_manifest</a>, <a href="#ios_unit_test-test_filter">test_filter</a>, <a href="#ios_unit_test-test_host">test_host</a>, <a href="#ios_unit_test-test_host_is_bundle_loader">test_host_is_bundle_loader</a>)
@@ -665,6 +691,8 @@ of the attributes inherited by all test rules, please check the
 ## ios_xctestrun_runner
 
 <pre>
+load("@rules_apple//apple:ios.doc.bzl", "ios_xctestrun_runner")
+
 ios_xctestrun_runner(<a href="#ios_xctestrun_runner-name">name</a>, <a href="#ios_xctestrun_runner-attachment_lifetime">attachment_lifetime</a>, <a href="#ios_xctestrun_runner-command_line_args">command_line_args</a>, <a href="#ios_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>,
                      <a href="#ios_xctestrun_runner-destination_timeout">destination_timeout</a>, <a href="#ios_xctestrun_runner-device_type">device_type</a>, <a href="#ios_xctestrun_runner-os_version">os_version</a>, <a href="#ios_xctestrun_runner-post_action">post_action</a>,
                      <a href="#ios_xctestrun_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#ios_xctestrun_runner-pre_action">pre_action</a>, <a href="#ios_xctestrun_runner-random">random</a>, <a href="#ios_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
@@ -733,7 +761,9 @@ in Xcode.
 ## ios_ui_test_suite
 
 <pre>
-ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">kwargs</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_ui_test_suite")
+
+ios_ui_test_suite(<a href="#ios_ui_test_suite-name">name</a>, <a href="#ios_ui_test_suite-runners">runners</a>, <a href="#ios_ui_test_suite-kwargs">**kwargs</a>)
 </pre>
 
 Generates a [test_suite] containing an [ios_ui_test] for each of the given `runners`.
@@ -759,7 +789,9 @@ Generates a [test_suite] containing an [ios_ui_test] for each of the given `runn
 ## ios_unit_test_suite
 
 <pre>
-ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">kwargs</a>)
+load("@rules_apple//apple:ios.doc.bzl", "ios_unit_test_suite")
+
+ios_unit_test_suite(<a href="#ios_unit_test_suite-name">name</a>, <a href="#ios_unit_test_suite-runners">runners</a>, <a href="#ios_unit_test_suite-kwargs">**kwargs</a>)
 </pre>
 
 Generates a [test_suite] containing an [ios_unit_test] for each of the given `runners`.

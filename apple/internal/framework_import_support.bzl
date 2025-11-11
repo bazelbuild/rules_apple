@@ -21,6 +21,8 @@ load(
     "swift_common",
 )
 load("@build_bazel_rules_swift//swift:swift_interop_info.bzl", "create_swift_interop_info")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load("//apple:utils.bzl", "group_files_by_directory")
 load("//apple/internal:providers.bzl", "new_appleframeworkimportinfo")

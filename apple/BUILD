@@ -111,6 +111,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -184,7 +185,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_precompiled_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
-        "//apple/internal/resource_rules:apple_resource_locales",
+        "@rules_cc//cc:action_names.bzl",
         "@rules_cc//cc:core_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",

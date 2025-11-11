@@ -19,6 +19,8 @@ load(
     "paths",
 )
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",

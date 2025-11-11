@@ -7,6 +7,8 @@ Rules for creating header maps.
 ## header_map
 
 <pre>
+load("@rules_apple//apple:header_map.bzl", "header_map")
+
 header_map(<a href="#header_map-name">name</a>, <a href="#header_map-deps">deps</a>, <a href="#header_map-hdrs">hdrs</a>, <a href="#header_map-module_name">module_name</a>)
 </pre>
 
