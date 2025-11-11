@@ -42,11 +42,6 @@ A `File` referencing a plist template for dSYM bundles.
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
 """,
-        "bundletool_experimental": """\
-The files_to_run for an experimental tool to create an Apple bundle by
-combining the bundling, post-processing, and signing steps into a single action that eliminates the
-archiving step.
-""",
         "bundletool_mac": """\
 The files_to_run for a tool to create an Apple bundle that is expected to always run on a Mac.
 """,
@@ -137,7 +132,6 @@ A tool that acts as a wrapper for xcrun actions.
 
 def _apple_mac_tools_toolchain_impl(ctx):
     apple_mac_tools_info = AppleMacToolsToolchainInfo(
-        bundletool_experimental = ctx.attr.bundletool_experimental.files_to_run,
         bundletool_mac = ctx.attr.bundletool_mac.files_to_run,
         clangrttool = ctx.attr.clangrttool.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
@@ -161,14 +155,6 @@ def _apple_mac_tools_toolchain_impl(ctx):
 
 apple_mac_tools_toolchain = rule(
     attrs = {
-        "bundletool_experimental": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = """
-A `File` referencing an experimental tool to create an Apple bundle by combining the bundling,
-post-processing, and signing steps into a single action that eliminates the archiving step.
-""",
-        ),
         "bundletool_mac": attr.label(
             cfg = "exec",
             executable = True,
