@@ -753,6 +753,7 @@ def _process(
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             label_name = rule_label.name,
+            output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,

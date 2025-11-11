@@ -315,6 +315,7 @@ def _codesigning_dossier_partial_impl(
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         rule_descriptor = rule_descriptor,
