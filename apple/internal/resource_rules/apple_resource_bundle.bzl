@@ -15,7 +15,7 @@
 """Implementation of apple_resource_bundle rule."""
 
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "new_objc_provider")
 load(
     "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
@@ -28,7 +28,7 @@ def _apple_resource_bundle_impl(_ctx):
     # be used to iterate through all relevant instances of this rule in the build graph.
     return [
         # TODO(b/122578556): Remove this ObjC provider instance.
-        ObjcInfo(),
+        new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),
     ]

@@ -18,7 +18,7 @@ load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_common")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo", "new_objc_provider")
 
 HeaderMapInfo = provider(
     doc = "Provides information about created `.hmap` (header map) files",
@@ -92,7 +92,7 @@ def _header_map_impl(ctx):
         swift_info = SwiftInfo()
 
     return [
-        ObjcInfo(),
+        new_objc_provider(),
         swift_info,
         CcInfo(
             compilation_context = cc_common.create_compilation_context(

@@ -28,7 +28,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "new_objc_provider")
 load(
     "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
@@ -70,7 +70,7 @@ def _dtrace_compile_impl(ctx):
             include_dir = hdr.path.removesuffix(hdr_suffix)
 
     return [
-        ObjcInfo(
+        new_objc_provider(
             strict_include = depset([include_dir]),
         ),
         CcInfo(
