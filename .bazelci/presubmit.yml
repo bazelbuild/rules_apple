@@ -54,13 +54,13 @@ tasks:
   macos_last_green:
     name: "Last Green Bazel"
     # TODO: Move back to last_green ASAP
-    bazel: a25f64adff6feabb8c34fdb3a5b36ca569a4c4bb
+    bazel: 9.0.0-pre.20250908.2
     <<: *common
 
   doc_tests:
     name: "Doc tests"
     # TODO: Move back to last_green once rules_cc is fixed
-    bazel: 48555196ef92f54d0a331a01dac9db0a6aabc8b4
+    bazel: a25f64adff6feabb8c34fdb3a5b36ca569a4c4bb
     platform: ubuntu2004
     test_targets:
     - "doc/..."
