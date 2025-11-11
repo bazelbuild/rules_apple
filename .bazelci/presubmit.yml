@@ -54,7 +54,7 @@ tasks:
   macos_last_green:
     name: "Last Green Bazel"
     # TODO: Move back to last_green ASAP
-    bazel: 5409637c4e2d5c010b7264172b1004a2afd46bfe
+    bazel: a25f64adff6feabb8c34fdb3a5b36ca569a4c4bb
     <<: *common
 
   doc_tests:
