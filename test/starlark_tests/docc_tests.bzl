@@ -40,7 +40,7 @@ def docc_test_suite(name):
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
             "\"bundleDisplayName\":\"app_with_swift_dep\"",
-            "\"bundleIdentifier\":\"com.google.example\"",
+            "\"bundleID\":\"com.google.example\"",
             "\"major\":0",
             "\"minor\":1",
             "\"patch\":0",
@@ -60,7 +60,7 @@ def docc_test_suite(name):
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
             "\"bundleDisplayName\":\"BasicFramework\"",
-            "\"bundleIdentifier\":\"com.google.example.framework\"",
+            "\"bundleID\":\"com.google.example.framework\"",
             "\"major\":0",
             "\"minor\":1",
             "\"patch\":0",
@@ -80,7 +80,7 @@ def docc_test_suite(name):
         text_test_file = "$BUNDLE_ROOT/metadata.json",
         text_test_values = [
             "\"bundleDisplayName\":\"BasicLib\"",
-            "\"bundleIdentifier\":\"com.google.example.objc.lib\"",
+            "\"bundleID\":\"com.google.example.objc.lib\"",
             "\"major\":0",
             "\"minor\":1",
             "\"patch\":0",
