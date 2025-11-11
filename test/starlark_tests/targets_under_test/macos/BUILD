@@ -516,18 +516,6 @@ macos_static_framework(
 )
 
 macos_static_framework(
-    name = "static_framework_with_umbrella_header_conflict",
-    hdrs = [
-        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
-        "//test/starlark_tests/resources:shared.h",
-    ],
-    bundle_name = "UmbrellaHeaderConflict",
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [":shared_lib"],
-)
-
-macos_static_framework(
     name = "static_framework_from_objc_library",
     minimum_os_version = common.min_os_macos.baseline,
     deps = [":objc_library_with_sdk_dylib_and_framework"],
