@@ -1205,6 +1205,25 @@ apple_static_xcframework(
     deps = [":swift_lib_for_static_xcfmwk"],
 )
 
+apple_static_xcframework(
+    name = "ios_static_framework_xcframework_with_deps_resource_bundle",
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":fmwk_lib",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+)
+
 genrule(
     name = "dummy_fmwk_objc_hdr",
     outs = ["DummyFmwk.h"],
