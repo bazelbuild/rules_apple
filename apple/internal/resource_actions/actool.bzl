@@ -15,10 +15,6 @@
 """ACTool related actions."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -330,7 +326,8 @@ def compile_asset_catalog(
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
 
-    args = [
+    args = actions.args()
+    args.add_all([
         "actool",
         "--compile",
         xctoolrunner_support.prefixed_path(output_dir.path),
@@ -344,7 +341,7 @@ def compile_asset_catalog(
         "--minimum-deployment-target",
         platform_prerequisites.minimum_os,
         "--compress-pngs",
-    ]
+    ])
 
     xcode_config = platform_prerequisites.xcode_version_config
 
@@ -353,19 +350,19 @@ def compile_asset_catalog(
     ):
         # Required for the Icon Composer .icon bundles to work as inputs, even though it's not
         # documented. Xcode 26 currently relies on this flag to be set.
-        args.extend(["--lightweight-asset-runtime-mode", "enabled"])
+        args.add_all(["--lightweight-asset-runtime-mode", "enabled"])
 
-    args.extend(_actool_args_for_special_file_types(
+    args.add_all(_actool_args_for_special_file_types(
         asset_files = asset_files,
         bundle_id = bundle_id,
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
     ))
-    args.extend(collections.before_each(
-        "--target-device",
+    args.add_all(
         platform_prerequisites.device_families,
-    ))
+        before_each = "--target-device",
+    )
 
     alticons_outputs = []
     actool_output_plist = None
@@ -383,7 +380,7 @@ def compile_asset_catalog(
             actool_output_plist = output_plist
 
         actool_outputs.append(actool_output_plist)
-        args.extend([
+        args.add_all([
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(actool_output_plist.path),
         ])
@@ -394,11 +391,11 @@ def compile_asset_catalog(
         attr = "asset_catalogs",
     ).keys()
 
-    args.extend([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
+    args.add_all([xctoolrunner_support.prefixed_path(xcasset) for xcasset in xcassets])
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},

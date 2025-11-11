@@ -8,11 +8,6 @@ if [[ -n "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
   touch "$TEST_PREMATURE_EXIT_FILE"
 fi
 
-if [[ -z "${DEVELOPER_DIR:-}" ]]; then
-  echo "error: Missing \$DEVELOPER_DIR" >&2
-  exit 1
-fi
-
 if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
   set -x
 fi
@@ -168,6 +163,8 @@ for test_env_key_value in ${test_env}; do
 done
 IFS=$saved_IFS
 
+declare -r sed_delim=$'\001'
+
 xcrun_target_app_path=""
 xcrun_test_host_bundle_identifier=""
 xcrun_test_bundle_path="__TESTROOT__/$test_bundle_name.xctest"
@@ -175,12 +172,14 @@ xcrun_is_xctrunner_hosted_bundle="false"
 xcrun_is_ui_test_bundle="false"
 test_type="%(test_type)s"
 if [[ -n "$test_host_path" ]]; then
+  developer_dir=$(xcode-select -p)
+
   xctestrun_test_host_path="__TESTROOT__/$test_host_name.app"
   xctestrun_test_host_based=true
   # If this is set in the case there is no test host, some tests hang indefinitely
   xctestrun_env+="<key>XCInjectBundleInto</key><string>$(escape "__TESTHOST__/$test_host_name.app/$test_host_name")</string>"
 
-  developer_path="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+  developer_path="$developer_dir/Platforms/$test_execution_platform/Developer"
   libraries_path="$developer_path/Library"
 
   # Added in Xcode 16.0
@@ -210,19 +209,22 @@ if [[ -n "$test_host_path" ]]; then
     # We need this dylib for 14.x OSes. This intentionally doesn't use `test_execution_platform`
     # since this file isn't present in the `iPhoneSimulator.platform`.
     # No longer necessary starting in Xcode 15 - hence the `-f` file existence check
-    libswift_concurrency_path="$(xcode-select -p)/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib"
+    libswift_concurrency_path="$developer_dir/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/usr/lib/swift/libswift_Concurrency.dylib"
     if [[ -f "$libswift_concurrency_path" ]]; then
       cp "$libswift_concurrency_path" "$plugins_path/$test_bundle_name.xctest/Frameworks/libswift_Concurrency.dylib"
     fi
     xcrun_test_bundle_path="__TESTHOST__/PlugIns/$test_bundle_name.xctest"
 
+    runner_app_infoplist="$runner_app_destination/Info.plist"
+    /usr/bin/plutil -convert xml1 "$runner_app_infoplist"
     /usr/bin/sed \
-      -e "s@\$(WRAPPEDPRODUCTNAME)@XCTRunner@g"\
-      -e "s@WRAPPEDPRODUCTNAME@XCTRunner@g"\
-      -e "s@\$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)@$xcrun_test_host_bundle_identifier@g"\
-      -e "s@WRAPPEDPRODUCTBUNDLEIDENTIFIER@$xcrun_test_host_bundle_identifier@g"\
+      -e "s${sed_delim}\$(WRAPPEDPRODUCTNAME)${sed_delim}XCTRunner${sed_delim}g"\
+      -e "s${sed_delim}WRAPPEDPRODUCTNAME${sed_delim}XCTRunner${sed_delim}g"\
+      -e "s${sed_delim}\$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)${sed_delim}$xcrun_test_host_bundle_identifier${sed_delim}g"\
+      -e "s${sed_delim}WRAPPEDPRODUCTBUNDLEIDENTIFIER${sed_delim}$xcrun_test_host_bundle_identifier${sed_delim}g"\
       -i "" \
-      "$runner_app_destination/Info.plist"
+      "$runner_app_infoplist"
+    /usr/bin/plutil -convert binary1 "$runner_app_infoplist"
 
     readonly runner_app_frameworks_destination="$runner_app_destination/Frameworks"
     mkdir -p "$runner_app_frameworks_destination"
@@ -266,8 +268,8 @@ if [[ -n "$test_host_path" ]]; then
       codesigning_team_identifier=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/TeamIdentifier=(.*)/\1/p')
       codesigning_authority=$(codesign -dvv "$test_host_binary_path"  2>&1 >/dev/null | /usr/bin/sed -n  -E 's/^Authority=(.*)/\1/p'| head -n 1)
       /usr/bin/sed \
-        -e "s@BAZEL_CODESIGNING_TEAM_IDENTIFIER@$codesigning_team_identifier@g" \
-        -e "s@BAZEL_TEST_HOST_BUNDLE_IDENTIFIER@$xcrun_test_host_bundle_identifier@g" \
+        -e "s${sed_delim}BAZEL_CODESIGNING_TEAM_IDENTIFIER${sed_delim}$codesigning_team_identifier${sed_delim}g" \
+        -e "s${sed_delim}BAZEL_TEST_HOST_BUNDLE_IDENTIFIER${sed_delim}$xcrun_test_host_bundle_identifier${sed_delim}g" \
         "%(xctrunner_entitlements_template)s" > "$xctrunner_entitlements"
       codesign -f \
         --entitlements "$xctrunner_entitlements" \
@@ -469,27 +471,28 @@ if [[ "$should_use_xcodebuild" == true ]]; then
 
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
-    -e "s@BAZEL_INSERT_LIBRARIES@$xctestrun_libraries@g" \
-    -e "s@BAZEL_TEST_BUNDLE_PATH@$xcrun_test_bundle_path@g" \
-    -e "s@BAZEL_TEST_ENVIRONMENT@$xctestrun_env@g" \
-    -e "s@BAZEL_TEST_HOST_BASED@$xctestrun_test_host_based@g" \
-    -e "s@BAZEL_TEST_HOST_PATH@$xctestrun_test_host_path@g" \
-    -e "s@BAZEL_TEST_HOST_BUNDLE_IDENTIFIER@$xcrun_test_host_bundle_identifier@g" \
-    -e "s@BAZEL_TEST_PRODUCT_MODULE_NAME@${test_bundle_name//-/_}@g" \
-    -e "s@BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE@$xcrun_is_xctrunner_hosted_bundle@g" \
-    -e "s@BAZEL_IS_UI_TEST_BUNDLE@$xcrun_is_ui_test_bundle@g" \
-    -e "s@BAZEL_TARGET_APP_PATH@$xcrun_target_app_path@g" \
-    -e "s@BAZEL_TEST_ORDER_STRING@%(test_order)s@g" \
-    -e "s@BAZEL_DYLD_LIBRARY_PATH@__PLATFORMS__/$test_execution_platform/Developer/usr/lib@g" \
-    -e "s@BAZEL_COVERAGE_OUTPUT_DIR@$test_tmp_dir@g" \
-    -e "s@BAZEL_COMMAND_LINE_ARGS_SECTION@$xctestrun_cmd_line_args_section@g" \
-    -e "s@BAZEL_ATTACHMENT_LIFETIME_SECTION@$xctestrun_attachment_lifetime_section@g" \
-    -e "s@BAZEL_SKIP_TEST_SECTION@$xctestrun_skip_test_section@g" \
-    -e "s@BAZEL_ONLY_TEST_SECTION@$xctestrun_only_test_section@g" \
-    -e "s@BAZEL_ARCHITECTURE@$architecture@g" \
-    -e "s@BAZEL_TEST_BUNDLE_NAME@$test_bundle_name.xctest@g" \
-    -e "s@BAZEL_PRODUCT_PATH@$xcrun_test_bundle_path@g" \
-    "%(xctestrun_template)s" > "$xctestrun_file"
+    -e "s${sed_delim}BAZEL_INSERT_LIBRARIES${sed_delim}$xctestrun_libraries${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_BUNDLE_PATH${sed_delim}$xcrun_test_bundle_path${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_ENVIRONMENT${sed_delim}$xctestrun_env${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_HOST_BASED${sed_delim}$xctestrun_test_host_based${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_HOST_PATH${sed_delim}$xctestrun_test_host_path${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_HOST_BUNDLE_IDENTIFIER${sed_delim}$xcrun_test_host_bundle_identifier${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_PRODUCT_MODULE_NAME${sed_delim}${test_bundle_name//-/_}${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_IS_XCTRUNNER_HOSTED_BUNDLE${sed_delim}$xcrun_is_xctrunner_hosted_bundle${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_IS_UI_TEST_BUNDLE${sed_delim}$xcrun_is_ui_test_bundle${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TARGET_APP_PATH${sed_delim}$xcrun_target_app_path${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_ORDER_STRING${sed_delim}%(test_order)s${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_DYLD_LIBRARY_PATH${sed_delim}__PLATFORMS__/$test_execution_platform/Developer/usr/lib${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_COVERAGE_OUTPUT_DIR${sed_delim}$test_tmp_dir${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_COMMAND_LINE_ARGS_SECTION${sed_delim}$xctestrun_cmd_line_args_section${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_ATTACHMENT_LIFETIME_SECTION${sed_delim}$xctestrun_attachment_lifetime_section${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_SKIP_TEST_SECTION${sed_delim}$xctestrun_skip_test_section${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_ONLY_TEST_SECTION${sed_delim}$xctestrun_only_test_section${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_ARCHITECTURE${sed_delim}$architecture${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_TEST_BUNDLE_NAME${sed_delim}$test_bundle_name.xctest${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_PRODUCT_PATH${sed_delim}$xcrun_test_bundle_path${sed_delim}g" \
+    "%(xctestrun_template)s" \
+    > "$xctestrun_file"
 
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo
@@ -526,7 +529,8 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
-  platform_developer_dir="$(xcode-select -p)/Platforms/$test_execution_platform/Developer"
+  developer_dir=$(xcode-select -p)
+  platform_developer_dir="$developer_dir/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
   test_file=$(file "$test_tmp_dir/$test_bundle_name.xctest/$test_bundle_name")
   if [[ "$intel_simulator_hack" == true ]]; then

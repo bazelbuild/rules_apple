@@ -185,6 +185,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_precompiled_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
+        "@rules_cc//cc:action_names.bzl",
         "@rules_cc//cc:core_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
