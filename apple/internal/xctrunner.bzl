@@ -113,6 +113,7 @@ def _xctrunner_impl(ctx):
     args = ctx.actions.args()
     args.add("--name", ctx.attr.name)
     args.add("--platform", PLATFORM_MAP[platform])
+    args.add("--xcode-version", xcode_config.xcode_version())
     if ctx.attr.verbose:
         args.add("--verbose", ctx.attr.verbose)
 
