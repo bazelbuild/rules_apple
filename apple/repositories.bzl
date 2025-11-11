@@ -126,7 +126,13 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
             url = "https://github.com/bazelbuild/rules_swift/releases/download/2.4.0/rules_swift.2.4.0.tar.gz",
             ignore_version_differences = ignore_version_differences,
         )
-
+        _maybe(
+            http_archive,
+            name = "rules_cc",
+            sha256 = "472ddca8cec1e64ad78e4f0cabbec55936a3baddbe7bef072764ca91504bd523",
+            strip_prefix = "rules_cc-0.2.13",
+            url = "https://github.com/bazelbuild/rules_cc/releases/download/0.2.13/rules_cc-0.2.13.tar.gz",
+        )
         _maybe(
             http_archive,
             name = "platforms",
