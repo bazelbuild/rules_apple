@@ -20,10 +20,6 @@ visibility([
     "//apple/internal/...",
 ])
 
-# TODO: b/449684779 - Stand up a solution for allowing arm64e as a target arch in a transition when
-# building for devices. Simulators don't have adequate support yet (FB20484613), so consider
-# fail-ing or warning until that's resolved.
-
 # The name of the secure feature that's required for opting into any set of enhanced security
 # features on Xcode 26.0 or later.
 #
@@ -149,7 +145,7 @@ def _entitlements_from_secure_features(
         secure_features,
         xcode_version):
     if not secure_features:
-        return []
+        return {}
 
     for feature_name in secure_features:
         if not feature_name.startswith("apple."):
@@ -179,7 +175,7 @@ attempting to explicitly disable the feature via minus prefixed feature names, s
     # Check that we're building with Xcode 26.0 or later. If not, return an empty list to signal
     # that no entitlements are supported or needed for this build.
     if not xcode_version >= apple_common.dotted_version("26.0"):
-        return []
+        return {}
 
     # Build a set of all of the entitlements that are required by the requested secure features.
     required_entitlements = dict()
@@ -191,7 +187,33 @@ attempting to explicitly disable the feature via minus prefixed feature names, s
 
     return required_entitlements
 
+def _environment_archs_from_secure_features(
+        *,
+        enable_wip_features,
+        environment_archs,
+        secure_features):
+    # TODO: b/449684779 - Migrate users to secure_features behind an allowlist when it's ready for
+    # onboarding. Remove this "enable_wip_features" check once pointer_authentication is onboarded.
+    if not enable_wip_features:
+        return environment_archs
+
+    # Leave environment_archs as-is if pointer_authentication is explicitly requested, since we can
+    # assume that arm64e does not need to be removed from the list of architectures to build for.
+    if "pointer_authentication" in secure_features:
+        return environment_archs
+
+    # TODO: b/449684779 - Simulators don't have adequate support yet (FB20484613), so further
+    # consider fail-ing or warning if we have arm64e + simulator + pointer_authentication until
+    # that's resolved.
+
+    return [
+        environment_arch
+        for environment_arch in environment_archs
+        if not environment_arch.endswith("arm64e")
+    ]
+
 secure_features_support = struct(
     crosstool_features_from_secure_features = _crosstool_features_from_secure_features,
     entitlements_from_secure_features = _entitlements_from_secure_features,
+    environment_archs_from_secure_features = _environment_archs_from_secure_features,
 )

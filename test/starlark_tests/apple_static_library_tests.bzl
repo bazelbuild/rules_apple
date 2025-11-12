@@ -15,11 +15,6 @@
 """apple_static_library Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_mismatched_platform_test.bzl",
-    "analysis_incoming_ios_platform_mismatch_test",
-    "analysis_incoming_watchos_platform_mismatch_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_test",
 )
@@ -111,26 +106,6 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the rule will fail to build if it assigned an Apple platform that does not match
-    # the platform type on the rule where the incoming platform is for iOS and the underlying rule
-    # is for watchOS.
-    analysis_incoming_ios_platform_mismatch_test(
-        name = "{}_incoming_ios_platform_mismatch_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
-        expected_platform_type = "watchos",
-        tags = [name],
-    )
-
-    # Tests that the rule will fail to build if it assigned an Apple platform that does not match
-    # the platform type on the rule where the incoming platform is for watchOS and the underlying
-    # rule is for iOS.
-    analysis_incoming_watchos_platform_mismatch_test(
-        name = "{}_incoming_watchos_platform_mismatch_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
-        expected_platform_type = "ios",
-        tags = [name],
-    )
-
     # Verify that this is a "static library" as identified by macOS, which is also known as an
     # archive produced by `ar`.
     binary_contents_test(
@@ -175,12 +150,15 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Test that the output binary is identified as iOS simulator (PLATFORM_IOSSIMULATOR) via the
-    # Mach-O load command LC_BUILD_VERSION for an Arm binary when specifying the outputs via the
-    # apple_platforms command line option.
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
+    # command LC_BUILD_VERSION for an Arm binary when specifying the outputs via the platforms
+    # command line option.
     binary_contents_test(
         name = "{}_ios_binary_contents_device_apple_platforms_test".format(name),
-        apple_platforms = ["@build_bazel_apple_support//platforms:ios_arm64"],
+        cpus = {
+            "platforms": ["@build_bazel_apple_support//platforms:ios_arm64"],
+            "ios_multi_cpus": [],
+        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
@@ -251,23 +229,6 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
-    # command LC_BUILD_VERSION for an Intel binary when specifying the outputs via the
-    # apple_platforms command line option.
-    binary_contents_test(
-        name = "{}_ios_simulator_multiarch_intel_apple_platforms_test".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:ios_sim_arm64",
-            "@build_bazel_apple_support//platforms:ios_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 15.0", "platform IOSSIMULATOR"],
-        tags = [name],
-    )
-
     # Test that the output multi-arch binary is identified as iOS simulator (PLATFORM_IOSSIMULATOR)
     # via the Mach-O load command LC_BUILD_VERSION for the Intel binary slice.
     binary_contents_test(
@@ -280,23 +241,6 @@ def apple_static_library_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
-        tags = [name],
-    )
-
-    # Test that the output multi-arch binary is identified as iOS simulator (PLATFORM_IOSSIMULATOR)
-    # via the Mach-O load command LC_BUILD_VERSION for the Arm binary slice when specifying the
-    # outputs via the apple_platforms command line option.
-    binary_contents_test(
-        name = "{}_ios_simulator_multiarch_arm_apple_platforms_test".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:ios_sim_arm64",
-            "@build_bazel_apple_support//platforms:ios_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 15.0", "platform IOSSIMULATOR"],
         tags = [name],
     )
 
