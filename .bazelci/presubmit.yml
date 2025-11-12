@@ -4,15 +4,11 @@ x_defaults:
   # it doesn't know about; so that is used to avoid repeating common subparts.
   common: &common
     platform: macos_arm64
-    xcode_version: "16.4"
     shell_commands:
-    - xcrun simctl runtime list
-    - xcodebuild -downloadPlatform iOS -buildVersion 18.5
-    - xcrun simctl runtime match set iphoneos18.5 22F77
+    - xcodebuild -downloadComponent metalToolchain
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
     post_shell_commands:
-    - xcrun simctl runtime match set iphoneos18.5 --default
     - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
