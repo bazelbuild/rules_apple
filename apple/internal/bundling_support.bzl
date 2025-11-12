@@ -15,6 +15,10 @@
 """Low-level bundling name helpers."""
 
 load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
     "//apple:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
@@ -353,11 +357,11 @@ Please file an issue on the Apple BUILD Rules.
         formatted_path_fragments.append(".%s/" % x)
     allow_path_under_fragments = bool(allowed_path_fragments)
 
-    bad_paths = set()
+    bad_paths = sets.make()
     for f in files:
         path = f.path
         if _path_is_under_fragments(path, formatted_path_fragments) != allow_path_under_fragments:
-            bad_paths.add(path)
+            sets.insert(bad_paths, path)
 
     if len(bad_paths):
         if not message:
