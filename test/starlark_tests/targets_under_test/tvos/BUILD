@@ -115,7 +115,7 @@ tvos_application(
     bundle_id = "com.google.example",
     extensions = [":swift_ext"],
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_tvos.baseline,
+    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
@@ -137,7 +137,7 @@ tvos_extension(
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_tvos.baseline,
+    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -1062,7 +1062,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_tvos.baseline,
+    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [":swift_lib"],
@@ -1074,7 +1074,7 @@ tvos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_tvos.baseline,
+    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [":objc_to_swift_lib"],
