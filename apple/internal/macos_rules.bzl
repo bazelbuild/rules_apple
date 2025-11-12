@@ -3699,10 +3699,8 @@ that this target depends on.
     ],
 )
 
-_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
-
 macos_static_framework = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = """Builds and bundles a macOS static framework for third-party distribution.
 
 A static framework is bundled like a dynamic framework except that the embedded
@@ -3745,7 +3743,7 @@ i.e. `--features=-swift.no_generated_header`).""",
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -3754,7 +3752,7 @@ i.e. `--features=-swift.no_generated_header`).""",
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -3771,7 +3769,7 @@ i.e. `--features=-swift.no_generated_header`).""",
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
             "avoid_deps": attr.label_list(
-                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                cfg = transition_support.apple_platform_split_transition,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.

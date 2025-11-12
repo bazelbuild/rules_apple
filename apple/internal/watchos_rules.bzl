@@ -2108,17 +2108,15 @@ that this target depends on.
     ],
 )
 
-_STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
-
 watchos_static_framework = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a watchOS Static Framework.",
     implementation = _watchos_static_framework_impl,
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+            deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
                 apple_resource_aspect,
                 framework_provider_aspect,
@@ -2127,7 +2125,7 @@ watchos_static_framework = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_bundle_attrs(
-            deps_cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.common_tool_attrs(),
         rule_attrs.device_family_attrs(
@@ -2144,7 +2142,7 @@ watchos_static_framework = rule_factory.create_apple_rule(
                 doc = "Private attribute to generate Swift interfaces for static frameworks.",
             ),
             "avoid_deps": attr.label_list(
-                cfg = _STATIC_FRAMEWORK_DEPS_CFG,
+                cfg = transition_support.apple_platform_split_transition,
                 doc = """
 A list of library targets on which this framework depends in order to compile, but the transitive
 closure of which will not be linked into the framework's binary.

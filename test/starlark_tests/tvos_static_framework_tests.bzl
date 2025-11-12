@@ -70,36 +70,6 @@ def tvos_static_framework_test_suite(name):
         tags = [name],
     )
 
-    # Tests Swift tvos_static_framework builds correctly using apple_platforms.
-    archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_platforms".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:tvos_sim_arm64",
-            "@build_bazel_apple_support//platforms:tvos_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
-        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_swift_x86_64_builds_using_platforms".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:tvos_sim_arm64",
-            "@build_bazel_apple_support//platforms:tvos_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
-        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        tags = [name],
-    )
-
     native.test_suite(
         name = name,
         tags = [name],
