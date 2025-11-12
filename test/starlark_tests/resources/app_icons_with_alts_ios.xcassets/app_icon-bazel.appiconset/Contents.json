@@ -1,9 +1,9 @@
 {
   "images" : [
     {
-      "filename" : "WatchAppIcon.png",
+      "filename" : "Bazel_logo.png",
       "idiom" : "universal",
-      "platform" : "watchos",
+      "platform" : "ios",
       "size" : "1024x1024"
     }
   ],
