@@ -143,15 +143,11 @@ def _apple_resource_aspect_impl(target, ctx):
         "xplat_exec_group": apple_toolchain_utils.get_xplat_exec_group(ctx),
     }
 
-    skip_library_validation = False
-
     common_collect_args = {
         "rule_label": ctx.label,
     }
     collect_infoplists_args = dict(common_collect_args)
-    collect_args = common_collect_args | {
-        "skip_library_validation": skip_library_validation,
-    }
+    collect_args = dict(common_collect_args)
     collect_structured_args = dict(common_collect_args)
 
     # Owner to attach to the resources as they're being bucketed.
