@@ -54,6 +54,7 @@ objc_library(
         "WatchApp2Sources/ExtensionDelegate.m",
     ],
     deps = [":WatchSharedSources"],
+    tags = ["manual"],
 )
 
 objc_library(
@@ -64,6 +65,7 @@ objc_library(
         "SingleTargetWatchSources/main.m",
     ],
     deps = [":WatchSharedSources"],
+    tags = ["manual"],
 )
 
 apple_bundle_version(
