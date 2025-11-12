@@ -363,7 +363,7 @@ Please file an issue on the Apple BUILD Rules.
         if _path_is_under_fragments(path, formatted_path_fragments) != allow_path_under_fragments:
             sets.insert(bad_paths, path)
 
-    if len(bad_paths):
+    if sets.length(bad_paths):
         if not message:
             message_prefix = (
                 "Expected only " if allow_path_under_fragments else "Did not expect any "
@@ -371,7 +371,7 @@ Please file an issue on the Apple BUILD Rules.
             as_path = "*" + "*".join(formatted_path_fragments) + "..."
             message = message_prefix + "files inside directories named '*.%s'" % (as_path)
 
-        formatted_paths = "[\n  %s\n]" % ",\n  ".join(bad_paths)
+        formatted_paths = "[\n  %s\n]" % ",\n  ".join(sets.to_list(bad_paths))
         fail("%s, but found the following: %s" % (message, formatted_paths))
 
 def _validate_bundle_id(bundle_id):

@@ -281,7 +281,7 @@ Found the following legacy .appiconset files: """,
 Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.""",
         tags = [
             name,
-        ],
+        ] + common.skip_ci_tags,
     )
 
     # Tests that the launch storyboard is bundled with the application and that
