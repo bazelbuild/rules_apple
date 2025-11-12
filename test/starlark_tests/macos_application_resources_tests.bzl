@@ -67,9 +67,8 @@ def macos_application_resources_test_suite(name):
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests that various nonlocalized resource types are bundled correctly with

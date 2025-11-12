@@ -175,9 +175,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        tags = [
-            name,
-        ],
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests xcasset tool is passed the correct arguments.
