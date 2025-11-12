@@ -432,6 +432,11 @@ def _validate_asset_files_and_generate_args(
         )
         args.extend(_args_for_launch_images(launch_image_files = launch_image_files))
 
+    # Add arguments for watch extension complication, if there is one.
+    complication_files = [f for f in asset_files if ".complicationset/" in f.path]
+    if product_type == apple_product_type.watch2_extension and complication_files:
+        args += ["--complication", "Complication"]
+
     return args
 
 def _alticonstool_args(
