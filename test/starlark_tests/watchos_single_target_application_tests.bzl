@@ -172,8 +172,9 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         name = "{}_icon_composer_and_asset_catalog_app_icons_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_icon_bundle_and_xcassets_app_icons",
         expected_error = """
-Found .appiconset files among the assigned app_icons, which are ignored when Icon Composer .icon \
-bundles are present.""",
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """,
         tags = [
             name,
         ],

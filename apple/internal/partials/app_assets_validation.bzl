@@ -30,6 +30,7 @@ _STANDARD_ICONS = [".appiconset/", ".icon/"]
 # of platform.
 _VALID_ICON_EXTENSIONS_FOR_PRODUCT_TYPE = {
     apple_product_type.messages_extension: [".stickersiconset/"],
+    apple_product_type.messages_sticker_pack_extension: [".stickersiconset/", ".stickerpack/", ".sticker/", ".stickersequence/"],
 }
 
 # Comprehensive list of all valid icon extensions for each platform. These cover apps, extensions,
@@ -68,7 +69,8 @@ def _app_assets_validation_partial_impl(
                     possible_valid_icon = True
                     break
             if (not possible_valid_icon and
-                not resource_short_path.endswith(".xcassets/Contents.json")):
+                not resource_short_path.endswith(".xcassets/Contents.json") and
+                not resource_short_path.endswith(".xcstickers/Contents.json")):
                 fail("""
 Found in app_icons a file that cannot be used as an app icon:
 {resource_short_path}

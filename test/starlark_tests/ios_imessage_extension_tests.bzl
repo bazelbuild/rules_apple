@@ -121,7 +121,7 @@ def ios_imessage_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_ext_with_wrong_appicons",
         expected_error = """
 Found in app_icons a file that cannot be used as an app icon:
-third_party/bazel_rules/rules_apple/test/testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/Contents.json
+test/testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/Contents.json
 
 Valid icon bundles for this target have the following extensions: [".stickersiconset/"]
 """,
