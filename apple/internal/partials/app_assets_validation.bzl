@@ -59,7 +59,7 @@ def _app_assets_validation_partial_impl(
     if app_icons:
         valid_icon_extensions = (
             _VALID_ICON_EXTENSIONS_FOR_PRODUCT_TYPE.get(product_type, None) or
-            _VALID_ICON_EXTENSIONS_FOR_PLATFORM[platform_prerequisites.platform_type]
+            _VALID_ICON_EXTENSIONS_FOR_PLATFORM[str(platform_prerequisites.platform_type)]
         )
         for resource in app_icons:
             resource_short_path = resource.short_path
