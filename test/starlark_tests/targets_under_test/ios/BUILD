@@ -4535,6 +4535,9 @@ ios_unit_test(
     ],
 )
 
+# ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
 ios_application(
     name = "simple_enhanced_security_app",
     bundle_id = "com.google.example",
@@ -4553,6 +4556,69 @@ ios_application(
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    families = ["iphone"],
+    frameworks = [":fmwk_min_os_baseline"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_and_extension_with_fmwk",
+    bundle_id = "com.google.example",
+    extensions = [":simple_pointer_authentication_extension"],
+    families = ["iphone"],
+    frameworks = [":fmwk_min_os_baseline"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "simple_pointer_authentication_extension",
+    bundle_id = "com.google.example.ext",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# TODO: b/449684779 - Add app clip, watchOS bundling variants.
 
 # ---------------------------------------------------------------------------------------
 # Targets for testing unexpected binary resources in transitive dependencies.

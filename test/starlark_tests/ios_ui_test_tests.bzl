@@ -183,6 +183,10 @@ def ios_ui_test_test_suite(name):
         tags = [name],
     )
 
+    # TODO: b/449684779 - Check how enhanced security entitlements propagate from test to test host.
+
+    # TODO: b/449684779 - Use arm64e support to test binary contents and how they propagate.
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -1262,6 +1262,135 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         ],
     )
 
+    # TODO: b/449684779 - Check how entitlements propagate from the app to frameworks, from
+    # extensions to frameworks, from the app to app clips, from the app to the extension, from the
+    # app to the watchOS app. Use that to validate that the features are getting propagated
+    # correctly for entitlements.
+
+    # TODO: b/449684779 - Use arm64e support to test crosstool features and verify how they
+    # propagate. It is the easiest thing for us to verify that the features are getting propagated
+    # correctly. Could be handled alongside the entitlements check above since enable_wip_features
+    # will cover both at this time.
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/simple_pointer_authentication_extension",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/simple_pointer_authentication_extension",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_framework_in_app_and_extension_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_framework_in_app_and_extension_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
     # Test that an app with a compiled binary resource coming from a resource attribute will fail to
     # build and present a user-actionable error message.
     analysis_failure_message_test(

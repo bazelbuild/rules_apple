@@ -65,24 +65,12 @@ _CPU_TO_PLATFORM = {
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
-    has_apple_platforms = True if getattr(attr, "apple_platforms", []) else False
-    has_apple_cpus = True if getattr(attr, "cpus", {}) else False
-
-    # Kept mutually exclusive as a preference to test new-style toolchain resolution separately from
-    # old-style toolchain resolution.
-    if has_apple_platforms and has_apple_cpus:
-        fail("""
-Internal Error: A verification test should only specify `apple_platforms` or `cpus`, but not both.
-""")
-
-    apple_cpu = getattr(attr, "apple_cpu", "darwin_x86_64")
+    platforms = [_CPU_TO_PLATFORM["darwin_x86_64"]]
     output_dictionary = {
-        "//command_line_option:apple_platforms": [],
-        "//command_line_option:platforms": _CPU_TO_PLATFORM[apple_cpu if apple_cpu else "darwin_x86_64"],
+        "//command_line_option:platforms": platforms,
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
-        "//command_line_option:incompatible_enable_apple_toolchain_resolution": has_apple_platforms,
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
@@ -99,11 +87,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
             "//command_line_option:visionos_cpus": "arm64",
         })
 
-    if has_apple_platforms:
-        output_dictionary.update({
-            "//command_line_option:apple_platforms": ",".join(attr.apple_platforms),
-        })
-    elif has_apple_cpus:
+    if hasattr(attr, "cpus"):
         for cpu_option, cpus in attr.cpus.items():
             command_line_option = "//command_line_option:%s" % cpu_option
             output_dictionary.update({command_line_option: ",".join(cpus)})
@@ -153,8 +137,6 @@ apple_verification_transition = transition(
         "//command_line_option:compilation_mode",
         "//command_line_option:features",
         "//command_line_option:apple_generate_dsym",
-        "//command_line_option:apple_platforms",
-        "//command_line_option:incompatible_enable_apple_toolchain_resolution",
     ] + _CUSTOM_BUILD_SETTINGS,
 )
 
@@ -266,23 +248,10 @@ def _apple_verification_test_impl(ctx):
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
     attrs = {
-        "apple_cpu": attr.string(
-            doc = """
-A string to indicate what should be the value of the Apple --cpu flag. Defaults to `darwin_x86_64`.
-""",
-        ),
         "apple_generate_dsym": attr.bool(
             default = False,
             doc = """
 If true, generates .dSYM debug symbol bundles for the target(s) under test.
-""",
-        ),
-        "apple_platforms": attr.string_list(
-            doc = """
-List of strings representing Apple platform definitions to resolve. When set, this opts into
-toolchain resolution to select the Apple SDK for Apple rules (Starlark and native). Currently it is
-considered to be an error if this is set with `cpus` as both opt into different means of toolchain
-resolution.
 """,
         ),
         "build_settings": attr.string_dict(
@@ -307,9 +276,7 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
         "cpus": attr.string_list_dict(
             doc = """
 Dictionary of command line options cpu flags (e.g. ios_multi_cpus, macos_cpus) and the list of
-cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']}) Currently it is
-considered to be an error if this is set with `apple_platforms` as both opt into different means of
-toolchain resolution.
+cpu's to use for test under target (e.g. {'ios_multi_cpus': ['arm64', 'x86_64']}).
 """,
         ),
         "env": attr.string_list_dict(

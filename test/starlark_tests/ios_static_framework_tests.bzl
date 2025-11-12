@@ -32,21 +32,7 @@ def ios_static_framework_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # Tests Swift ios_static_framework builds correctly for sim_arm64, and x86_64 cpu's.
-    archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_cpu".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
-        apple_cpu = "ios_sim_arm64",
-        cpus = {
-            "ios_multi_cpus": [],
-        },
-        binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
-        tags = [name],
-    )
+    # Tests Swift ios_static_framework builds correctly for sim_arm64 and x86_64 cpus.
     archive_contents_test(
         name = "{}_swift_sim_arm64_builds_using_ios_multi_cpus".format(name),
         build_type = "simulator",
@@ -74,15 +60,15 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
 
-    # Tests Swift ios_static_framework builds correctly for apple_platforms.
+    # Tests Swift ios_static_framework builds correctly for platforms.
     archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_apple_platforms".format(name),
-        apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
-        ],
+        name = "{}_swift_sim_arm64_builds_using_platform".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        cpus = {
+            "platforms": ["//buildenv/platforms/apple/simulator:ios_arm64"],
+            "ios_multi_cpus": [],
+        },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
@@ -90,14 +76,14 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
     archive_contents_test(
-        name = "{}_swift_x86_64_builds_using_apple_platforms".format(name),
-        apple_platforms = [
-            "//buildenv/platforms/apple/simulator:ios_arm64",
-            "//buildenv/platforms/apple/simulator:ios_x86_64",
-        ],
+        name = "{}_swift_x86_64_builds_using_platform".format(name),
         build_type = "simulator",
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
+        cpus = {
+            "platforms": ["//buildenv/platforms/apple/simulator:ios_x86_64"],
+            "ios_multi_cpus": [],
+        },
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
