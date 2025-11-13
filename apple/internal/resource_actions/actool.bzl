@@ -15,12 +15,16 @@
 """ACTool related actions."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
 )
 load(
-    "@bazel_skylib//lib:sets.bzl",
+    "@bazel_skylib//lib:new_sets.bzl",
     "sets",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
@@ -35,6 +39,10 @@ load(
     "apple_product_type",
 )
 load(
+    "//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
     "//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -43,19 +51,341 @@ load(
     xctoolrunner_support = "xctoolrunner",
 )
 
-_supports_visionos = hasattr(apple_common.platform_type, "visionos")
-
 # TODO: b/425967223 - Rework the validation to better account for Xcode 26, and make it a bit more
 # readable via helper functions as we add more conditions.
 
-def _actool_args_for_special_file_types(
+def _validate_sticker_icon_sets(*, icon_bundle_files, stickers_icon_files, xcasset_appicon_files):
+    """Validates that the asset files contain only sticker icon sets."""
+    message = ("Message extensions must use Messages Extensions Icon Sets " +
+               "(named .stickersiconset), not traditional App Icon Sets")
+    bundling_support.ensure_single_xcassets_type(
+        extension = "stickersiconset",
+        files = stickers_icon_files,
+        message = message,
+    )
+
+    # Check that there are no .appiconset files, which are not allowed for messages extensions.
+    bundling_support.ensure_asset_catalog_files_not_in_xcassets(
+        extension = "appiconset",
+        files = xcasset_appicon_files,
+        message = message,
+    )
+
+    if icon_bundle_files:
+        fail("""
+Icon Composer .icon bundles are not supported for Messages Extensions.
+
+Found the following: {icon_bundle_files}
+
+""".format(icon_bundle_files = icon_bundle_files))
+
+def _validate_tvos_icon_sets(*, brandassets_icon_files, icon_bundle_files, xcasset_appicon_files):
+    """Validates that the asset files contain only tvOS brand assets."""
+    message = ("tvOS apps must use tvOS brand assets (named .brandassets), " +
+               "not traditional App Icon Sets")
+    bundling_support.ensure_single_xcassets_type(
+        extension = "brandassets",
+        files = brandassets_icon_files,
+        message = message,
+    )
+
+    # Check that there are no .appiconset files, which are not allowed for tvOS apps.
+    bundling_support.ensure_asset_catalog_files_not_in_xcassets(
+        extension = "appiconset",
+        files = xcasset_appicon_files,
+        message = message,
+    )
+
+    if icon_bundle_files:
+        fail("""
+Icon Composer .icon bundles are not supported for tvOS.
+
+Found the following: {icon_bundle_files}
+
+""".format(icon_bundle_files = icon_bundle_files))
+
+def _validate_visionos_icon_sets(*, icon_bundle_files, image_stack_files, xcasset_appicon_files):
+    """Validates that the asset files contain only visionOS app icon layers."""
+    message = ("visionOS apps must use visionOS app icon layers grouped in " +
+               ".solidimagestack bundles, not traditional App Icon Sets")
+    bundling_support.ensure_single_xcassets_type(
+        extension = "solidimagestack",
+        files = image_stack_files,
+        message = message,
+    )
+
+    # Check that there are no .appiconset files, which are not allowed for visionOS apps.
+    bundling_support.ensure_asset_catalog_files_not_in_xcassets(
+        extension = "appiconset",
+        files = xcasset_appicon_files,
+        message = message,
+    )
+
+    if icon_bundle_files:
+        fail("""
+Icon Composer .icon bundles are not supported for visionOS.
+
+Found the following: {icon_bundle_files}
+
+""".format(icon_bundle_files = icon_bundle_files))
+
+def _validate_standard_app_icon_sets(
+        *,
+        icon_bundle_files,
+        icon_files,
+        minimum_os_version,
+        xcode_config):
+    """Validates that the asset files contain only standard app icon sets."""
+
+    min_os_version_26_or_later = (
+        apple_common.dotted_version(minimum_os_version) >=
+        apple_common.dotted_version("26.0")
+    )
+
+    if min_os_version_26_or_later and icon_files:
+        fail("""
+Legacy .appiconset files should not be used on iOS/macOS/watchOS 26+.
+
+These platforms prefer Icon Composer .icon bundles. .appiconset files are only needed for \
+rendering icons in iOS/macOS/watchOS prior to 26.
+
+Found the following legacy .appiconset files: {xcasset_appicon_files}
+""".format(xcasset_appicon_files = icon_files))
+
+    bundling_support.ensure_single_xcassets_type(
+        extension = "appiconset",
+        files = icon_files,
+    )
+
+    if icon_bundle_files:
+        is_xcode_26_or_later = xcode_config.xcode_version() >= apple_common.dotted_version("26.0")
+        if not is_xcode_26_or_later:
+            fail("""
+            Found Icon Composer .icon bundles among the assigned app_icons. These are only \
+            supported on Xcode 26 or later.
+            """)
+
+        if icon_files:
+            fail("""
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """)
+
+        bundling_support.ensure_asset_catalog_files_not_in_xcassets(
+            extension = "icon",
+            files = icon_bundle_files,
+        )
+
+def _icon_info_from_asset_files(
+        *,
+        asset_files,
+        minimum_os_version,
+        platform_type,
+        product_type,
+        xcode_config):
+    """Returns information about the icon files in the asset files."""
+
+    # Check for legacy asset catalog .appiconset files, which used to serve as generic icons for
+    # iOS, macOS and watchOS apps.
+    xcasset_appicon_files = [f for f in asset_files if ".appiconset/" in f.path]
+    icon_bundle_files = [f for f in asset_files if ".icon/" in f.path]
+
+    if product_type == apple_product_type.messages_extension:
+        appicon_extension = "stickersiconset"
+        icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
+        _validate_sticker_icon_sets(
+            icon_bundle_files = icon_bundle_files,
+            stickers_icon_files = icon_files,
+            xcasset_appicon_files = xcasset_appicon_files,
+        )
+    elif platform_type == "tvos":
+        appicon_extension = "brandassets"
+        icon_files = [f for f in asset_files if ".brandassets/" in f.path]
+        _validate_tvos_icon_sets(
+            brandassets_icon_files = icon_files,
+            icon_bundle_files = icon_bundle_files,
+            xcasset_appicon_files = xcasset_appicon_files,
+        )
+    elif platform_type == "visionos":
+        appicon_extension = "solidimagestack"
+        icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
+        _validate_visionos_icon_sets(
+            icon_bundle_files = icon_bundle_files,
+            image_stack_files = icon_files,
+            xcasset_appicon_files = xcasset_appicon_files,
+        )
+    else:
+        appicon_extension = "appiconset"
+        icon_files = xcasset_appicon_files
+        _validate_standard_app_icon_sets(
+            icon_bundle_files = icon_bundle_files,
+            icon_files = icon_files,
+            minimum_os_version = minimum_os_version,
+            xcode_config = xcode_config,
+        )
+    return struct(
+        appicon_extension = appicon_extension,
+        icon_files = icon_files,
+        icon_bundle_files = icon_bundle_files,
+    )
+
+def _unique_icon_names(*, all_icon_dirs):
+    """Returns the unique icon names from the given icon directories."""
+    app_icon_names = sets.make()
+    for icon_dir in all_icon_dirs:
+        sets.insert(app_icon_names, paths.split_extension(paths.basename(icon_dir))[0])
+    return sets.to_list(app_icon_names)
+
+def _verify_icon_dirs(
+        *,
+        appicon_extension,
+        icon_bundle_dirs,
+        icon_dirs,
+        platform_type,
+        primary_icon_name,
+        product_type):
+    """Verifies that the icon directories are valid."""
+
+    has_exactly_one_icon_dir = False
+
+    if len(icon_dirs + icon_bundle_dirs) == 1:
+        has_exactly_one_icon_dir = True
+
+    if not has_exactly_one_icon_dir and not primary_icon_name:
+        formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
+
+        # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
+        # iOS-on-macOS (Catalyst)
+        if (platform_type in ("watchos", "macos") or
+            product_type != apple_product_type.application):
+            if icon_bundle_dirs:
+                fail("""
+The app_icons should contain exactly one directory named *.icon (the Icon Composer .icon bundle), \
+but found the following:
+{formatted_dirs}
+
+""".format(
+                    formatted_dirs = formatted_dirs,
+                ))
+            else:
+                fail("""
+The asset catalogs should contain exactly one directory named *.{appicon_extension} among its \
+asset catalogs, but found the following:
+{formatted_dirs}
+
+""".format(
+                    appicon_extension = appicon_extension,
+                    formatted_dirs = formatted_dirs,
+                ))
+        else:
+            fail("""
+Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
+
+If you intend to assign multiple app icons to this target, please declare which of these is \
+intended to be the primary app icon with the primary_app_icon attribute on the rule itself.
+
+Target was assigned the following app icons:
+{formatted_dirs}
+
+""".format(formatted_dirs = formatted_dirs))
+
+def _args_for_app_icons(
+        *,
+        bundle_id,
+        icon_info,
+        primary_icon_name,
+        platform_type,
+        product_type):
+    """Returns arguments for app icons."""
+    args = []
+    if product_type == apple_product_type.messages_extension:
+        args.extend([
+            "--include-sticker-content",
+            "--stickers-icon-role",
+            "extension",
+            "--sticker-pack-identifier-prefix",
+            bundle_id + ".sticker-pack.",
+        ])
+
+    appicon_extension = icon_info.appicon_extension
+    icon_files = icon_info.icon_files
+    icon_bundle_files = icon_info.icon_bundle_files
+
+    if icon_files or icon_bundle_files:
+        icon_dirs = group_files_by_directory(
+            icon_files,
+            [appicon_extension],
+            attr = appicon_extension,
+        ).keys()
+        icon_bundle_dirs = group_files_by_directory(
+            icon_bundle_files,
+            ["icon"],
+            attr = "icon",
+        ).keys()
+
+        _verify_icon_dirs(
+            appicon_extension = appicon_extension,
+            icon_bundle_dirs = icon_bundle_dirs,
+            icon_dirs = icon_dirs,
+            platform_type = platform_type,
+            primary_icon_name = primary_icon_name,
+            product_type = product_type,
+        )
+
+        if primary_icon_name:
+            # Check that primary_icon_name matches one of the icon sets, then add actool arguments
+            # for `--alternate-app-icon` and `--app_icon` as appropriate. These do NOT overlap.
+            unique_icon_names = _unique_icon_names(all_icon_dirs = icon_dirs + icon_bundle_dirs)
+            found_primary = False
+            for app_icon_name in unique_icon_names:
+                if app_icon_name == primary_icon_name:
+                    found_primary = True
+                    args += ["--app-icon", primary_icon_name]
+                else:
+                    args += ["--alternate-app-icon", app_icon_name]
+            if not found_primary:
+                fail("""
+Could not find the primary icon named "{primary_icon_name}" in the list of app icons provided.
+
+Found the following icon names from those provided: {unique_icon_names}.
+""".format(
+                    primary_icon_name = primary_icon_name,
+                    unique_icon_names = ", ".join(unique_icon_names),
+                ))
+        else:
+            app_icon_name = _unique_icon_names(all_icon_dirs = icon_dirs + icon_bundle_dirs).pop()
+            args += ["--app-icon", app_icon_name]
+
+    return args
+
+def _args_for_launch_images(*, launch_image_files):
+    """Returns arguments for launch images."""
+    launch_image_dirs = group_files_by_directory(
+        launch_image_files,
+        ["launchimage"],
+        attr = "launchimage",
+    ).keys()
+    if len(launch_image_dirs) != 1:
+        formatted_dirs = "[\n  %s\n]" % ",\n  ".join(launch_image_dirs)
+        fail("The asset catalogs should contain exactly one directory named " +
+             "*.launchimage among its asset catalogs, but found the " +
+             "following: " + formatted_dirs, "launch_images")
+
+    launch_image_name = paths.split_extension(
+        paths.basename(launch_image_dirs[0]),
+    )[0]
+    return ["--launch-image", launch_image_name]
+
+def _validate_asset_files_and_generate_args(
         *,
         asset_files,
         bundle_id,
-        platform_prerequisites,
+        minimum_os_version,
+        platform_type,
         primary_icon_name,
-        product_type):
-    """Returns command line arguments needed to compile special assets.
+        product_type,
+        xcode_config):
+    """Validates asset files and returns extra command line arguments needed to compile assets.
 
     This function is called by `actool` to scan for specially recognized asset
     types, such as app icons and launch images, and determine any extra command
@@ -66,195 +396,46 @@ def _actool_args_for_special_file_types(
     Args:
       asset_files: The asset catalog files.
       bundle_id: The bundle ID to configure for this target.
-      platform_prerequisites: Struct containing information on the platform being targeted.
+      minimum_os_version: The minimum OS version for the current platform.
+      platform_type: The platform type identifier used to describe the current platform.
       primary_icon_name: An optional String to identify the name of the primary app icon when
         alternate app icons have been provided for the app.
       product_type: The product type identifier used to describe the current bundle type.
+      xcode_config: The Xcode version config for the current build.
 
     Returns:
       An array of extra arguments to pass to `actool`, which may be empty.
     """
     args = []
 
-    is_xcode_26_or_later = (
-        platform_prerequisites.xcode_version_config.xcode_version() >=
-        apple_common.dotted_version("26.0")
+    icon_info = _icon_info_from_asset_files(
+        asset_files = asset_files,
+        minimum_os_version = minimum_os_version,
+        platform_type = platform_type,
+        product_type = product_type,
+        xcode_config = xcode_config,
     )
-    icon_files = []
-    icon_bundle_files = []
 
-    if product_type in (
-        apple_product_type.messages_extension,
-        apple_product_type.messages_sticker_pack_extension,
-    ):
-        appicon_extension = "stickersiconset"
-        icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
+    args.extend(_args_for_app_icons(
+        bundle_id = bundle_id,
+        icon_info = icon_info,
+        platform_type = platform_type,
+        primary_icon_name = primary_icon_name,
+        product_type = product_type,
+    ))
 
-        args.extend([
-            "--include-sticker-content",
-            "--stickers-icon-role",
-            "extension",
-            "--sticker-pack-identifier-prefix",
-            bundle_id + ".sticker-pack.",
-        ])
-
-        # Fail if the user has included .appiconset folders in their asset catalog;
-        # Message extensions must use .stickersiconset instead.
-        #
-        # NOTE: This is mostly caught via the validation in ios_extension of the
-        # app_icons attribute; however, since different resource attributes from
-        # *_library targets are merged into here, other resources could show up
-        # so until the resource handing is revisited (b/77804841), things could
-        # still show up that don't make sense.
-        appiconset_files = [f for f in asset_files if ".appiconset/" in f.path]
-        if appiconset_files:
-            appiconset_dirs = group_files_by_directory(
-                appiconset_files,
-                ["appiconset"],
-                attr = "app_icons",
-            ).keys()
-            formatted_dirs = "[\n  %s\n]" % ",\n  ".join(appiconset_dirs)
-            fail("Message extensions must use Messages Extensions Icon Sets " +
-                 "(named .stickersiconset), not traditional App Icon Sets " +
-                 "(.appiconset). Found the following: " +
-                 formatted_dirs, "app_icons")
-
-    elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
-        appicon_extension = "brandassets"
-        icon_files = [f for f in asset_files if ".brandassets/" in f.path]
-    elif (_supports_visionos and
-          platform_prerequisites.platform_type == apple_common.platform_type.visionos):
-        appicon_extension = "solidimagestack"
-        icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
-    else:
-        icon_bundle_files = [f for f in asset_files if ".icon/" in f.path]
-        appicon_extension = "appiconset"
-        icon_files = [f for f in asset_files if ".appiconset/" in f.path]
-
-    if not is_xcode_26_or_later and len(icon_bundle_files):
-        fail("""\
-Found Icon Composer .icon bundles among the assigned app_icons. These are only supported \
-on Xcode 26 or later.""")
-
-    # Add arguments for app icons, if there are any.
-    if icon_files or icon_bundle_files:
-        icon_dirs = group_files_by_directory(
-            icon_files,
-            [appicon_extension],
-            attr = "app_icons",
-        ).keys()
-        has_exactly_one_icon_dir = False
-
-        if is_xcode_26_or_later:
-            icon_bundle_dirs = group_files_by_directory(
-                icon_bundle_files,
-                ["icon"],
-                attr = "app_icons",
-            ).keys()
-
-            if len(icon_dirs + icon_bundle_dirs) == 1:
-                has_exactly_one_icon_dir = True
-            elif len(icon_dirs) == 1 and len(icon_bundle_dirs) == 1:
-                # Carve out; the AppIcon and Icon bundles can be used together to support Apple OSes
-                # prior to 26 and the new Apple OS 26 icon features for iOS/macOS/watchOS as long as
-                # their names match perfectly.
-                icon_paths_to_compare = [icon_dirs[0], icon_bundle_dirs[0]]
-                unique_icon_names = dict()
-                for icon_path in icon_paths_to_compare:
-                    unique_icon_names[paths.split_extension(paths.basename(icon_path))[0]] = True
-                if len(unique_icon_names) == 1:
-                    has_exactly_one_icon_dir = True
-            icon_dirs.extend(icon_bundle_dirs)
-
-        elif len(icon_dirs) == 1:
-            has_exactly_one_icon_dir = True
-
-        if not has_exactly_one_icon_dir and not primary_icon_name:
-            formatted_dirs = "[\n  %s\n]" % ",\n  ".join(icon_dirs)
-
-            # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
-            # iOS-on-macOS (Catalyst)
-            if (platform_prerequisites.platform_type == apple_common.platform_type.watchos or
-                platform_prerequisites.platform_type == apple_common.platform_type.macos or
-                product_type != apple_product_type.application):
-                xcode_26_workaround_message = ""
-                if is_xcode_26_or_later:
-                    xcode_26_workaround_message = (
-                        "which can be accompanied by exactly one Icon Composer .icon bundle of " +
-                        "the same name, "
-                    )
-                fail("""
-The asset catalogs should contain exactly one directory named *.{appicon_extension} among its \
-asset catalogs, \
-{xcode_26_workaround_message}\
-but found the following: \
-{formatted_dirs}""".format(
-                    appicon_extension = appicon_extension,
-                    formatted_dirs = formatted_dirs,
-                    xcode_26_workaround_message = xcode_26_workaround_message,
-                ), "app_icons")
-            else:
-                fail("""
-Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
-
-If you intend to assign multiple app icons to this target, please declare which of these is intended
-to be the primary app icon with the primary_app_icon attribute on the rule itself.
-
-app_icons was assigned the following: {formatted_dirs}
-""".format(formatted_dirs = formatted_dirs))
-        elif primary_icon_name:
-            # Check that primary_icon_name matches one of the icon sets, then add actool arguments
-            # for `--alternate-app-icon` and `--app_icon` as appropriate. These do NOT overlap.
-            app_icon_names = sets.make()
-            for icon_dir in icon_dirs:
-                app_icon_names = sets.insert(
-                    app_icon_names,
-                    paths.split_extension(paths.basename(icon_dir))[0],
-                )
-            app_icon_name_list = sets.to_list(app_icon_names)
-            found_primary = False
-            for app_icon_name in app_icon_name_list:
-                if app_icon_name == primary_icon_name:
-                    found_primary = True
-                    args += ["--app-icon", primary_icon_name]
-                else:
-                    args += ["--alternate-app-icon", app_icon_name]
-            if not found_primary:
-                fail("""
-Could not find the primary icon named "{primary_icon_name}" in the list of app_icons provided.
-
-Found the following icon names from those provided: {app_icon_names}.
-""".format(
-                    primary_icon_name = primary_icon_name,
-                    app_icon_names = ", ".join(app_icon_name_list),
-                ))
-        else:
-            app_icon_name = paths.split_extension(paths.basename(icon_dirs[0]))[0]
-            args += ["--app-icon", app_icon_name]
+    launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
+    if launch_image_files:
+        bundling_support.ensure_single_xcassets_type(
+            extension = "launchimage",
+            files = launch_image_files,
+        )
+        args.extend(_args_for_launch_images(launch_image_files = launch_image_files))
 
     # Add arguments for watch extension complication, if there is one.
     complication_files = [f for f in asset_files if ".complicationset/" in f.path]
     if product_type == apple_product_type.watch2_extension and complication_files:
         args += ["--complication", "Complication"]
-
-    # Add arguments for launch images, if there are any.
-    launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
-    if launch_image_files:
-        launch_image_dirs = group_files_by_directory(
-            launch_image_files,
-            ["launchimage"],
-            attr = "launch_images",
-        ).keys()
-        if len(launch_image_dirs) != 1:
-            formatted_dirs = "[\n  %s\n]" % ",\n  ".join(launch_image_dirs)
-            fail("The asset catalogs should contain exactly one directory named " +
-                 "*.launchimage among its asset catalogs, but found the " +
-                 "following: " + formatted_dirs, "launch_images")
-
-        launch_image_name = paths.split_extension(
-            paths.basename(launch_image_dirs[0]),
-        )[0]
-        args += ["--launch-image", launch_image_name]
 
     return args
 
@@ -325,10 +506,13 @@ def compile_asset_catalog(
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
+    xcode_config = platform_prerequisites.xcode_version_config
 
     args = actions.args()
+    args.add("actool")
+
+    # Standard actool options.
     args.add_all([
-        "actool",
         "--compile",
         xctoolrunner_support.prefixed_path(output_dir.path),
         "--errors",
@@ -343,30 +527,29 @@ def compile_asset_catalog(
         "--compress-pngs",
     ])
 
-    xcode_config = platform_prerequisites.xcode_version_config
+    platform_type = platform_prerequisites.platform_type
 
-    if platform_prerequisites.platform_type == "macos" and (
-        xcode_config.xcode_version() >= apple_common.dotted_version("26.0")
-    ):
-        # Required for the Icon Composer .icon bundles to work as inputs, even though it's not
-        # documented. Xcode 26 currently relies on this flag to be set.
-        args.add_all(["--lightweight-asset-runtime-mode", "enabled"])
-
-    args.add_all(_actool_args_for_special_file_types(
+    extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
         bundle_id = bundle_id,
-        platform_prerequisites = platform_prerequisites,
+        minimum_os_version = platform_prerequisites.minimum_os,
+        platform_type = platform_type,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-    ))
+        xcode_config = xcode_config,
+    )
+    args.add_all(extra_actool_args)
+
     args.add_all(
-        platform_prerequisites.device_families,
-        before_each = "--target-device",
+        collections.before_each(
+            "--target-device",
+            platform_prerequisites.device_families,
+        ),
     )
 
     alticons_outputs = []
     actool_output_plist = None
-    actool_outputs = [output_dir]
+    outputs = [output_dir]
     if output_plist:
         if alternate_icons:
             alticons_outputs = [output_plist]
@@ -379,7 +562,7 @@ def compile_asset_catalog(
         else:
             actool_output_plist = output_plist
 
-        actool_outputs.append(actool_output_plist)
+        outputs.append(actool_output_plist)
         args.add_all([
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(actool_output_plist.path),
@@ -401,7 +584,7 @@ def compile_asset_catalog(
         execution_requirements = {"no-sandbox": "1"},
         inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
-        outputs = actool_outputs,
+        outputs = outputs,
         xcode_config = xcode_config,
     )
 
