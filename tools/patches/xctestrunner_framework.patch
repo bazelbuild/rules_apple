@@ -1,0 +1,28 @@
+diff --git a/xctestrunner/test_runner/xctestrun.py b/xctestrunner/test_runner/xctestrun.py
+index e0f2ef5..4dbae1c 100644
+--- a/xctestrunner/test_runner/xctestrun.py
++++ b/xctestrunner/test_runner/xctestrun.py
+@@ -649,11 +649,18 @@ def _GenerateTestRootForXctest(self):
+             os.path.join(platform_path, _LIB_XCTEST_SWIFT_RELATIVE_PATH),
+             app_under_test_frameworks_dir, app_under_test_signing_identity)
+       if xcode_info_util.GetXcodeVersionNumber() >= 1300:
+-        _CopyAndSignFramework(
+-            os.path.join(
+-                platform_path, 'Developer/Library/PrivateFrameworks/'
+-                'XCUIAutomation.framework'),
+-            app_under_test_frameworks_dir, app_under_test_signing_identity)
++        if xcode_info_util.GetXcodeVersionNumber() >= 1640:
++          _CopyAndSignFramework(
++              os.path.join(
++                  platform_path, 'Developer/Library/Frameworks/'
++                  'XCUIAutomation.framework'),
++              app_under_test_frameworks_dir, app_under_test_signing_identity)
++        else:
++          _CopyAndSignFramework(
++              os.path.join(
++                  platform_path, 'Developer/Library/PrivateFrameworks/'
++                  'XCUIAutomation.framework'),
++              app_under_test_frameworks_dir, app_under_test_signing_identity)
+         _CopyAndSignFramework(
+             os.path.join(
+                 platform_path, 'Developer/Library/PrivateFrameworks/'

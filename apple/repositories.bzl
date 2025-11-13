@@ -146,5 +146,12 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         ],
         strip_prefix = "xctestrunner-8710f141dfb0a3efe2744f865f914783259c24b0",
         sha256 = "34d3b9bcb3dcb5b2a0bf2cd4be58c03f6a0f0eb4329f87cd758461aeb00e9326",
+        patch_args = ["-p1"],
+        patches = [
+            # https://github.com/google/xctestrunner/pull/76
+            "//tools/patches:xctestrunner_loads.patch",
+            # https://github.com/google/xctestrunner/pull/71
+            "//tools/patches:xctestrunner_framework.patch",
+        ],
         ignore_version_differences = ignore_version_differences,
     )

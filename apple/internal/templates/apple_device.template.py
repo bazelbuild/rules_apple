@@ -131,11 +131,11 @@ class Device(collections.abc.Mapping):
 
   @property
   def is_booted(self):
-    return self.device_properties["bootState"] == "Booted"
+    return self.device_properties.get("bootState", "unknown") == "Booted"
 
   @property
   def is_paired(self):
-    return self.device_properties["pairingState"] == "paired"
+    return self.device_properties.get("pairingState", "unknown") == "paired"
 
   def __getitem__(self, name):
     return self.device[name]

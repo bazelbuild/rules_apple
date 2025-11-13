@@ -15,6 +15,10 @@
 """macos_application resources Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
@@ -34,40 +38,37 @@ def macos_application_resources_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    # TODO: b/433727264 - Create a new test with archive_contents_test once Xcode 26 beta 4 is
+    # widely used by clients with the following target:
+    # //test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version
+
     # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
         name = "{}_icon_composer_app_icons_plist_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle",
         contains = [
-            "$RESOURCE_ROOT/app_icon.icns",
             "$RESOURCE_ROOT/Assets.car",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
             "CFBundleIconName": "app_icon",
-            "CFBundleIconFile": "app_icon",
         },
         # Skip CI until CI is on Xcode 26
         tags = [name] + common.fixture_tags + common.skip_ci_tags,
     )
 
-    # Tests the new icon composer bundles for Xcode 26, along with a set of asset catalog icons.
-    archive_contents_test(
-        name = "{}_icon_composer_and_asset_catalog_app_icons_plist_test".format(name),
-        build_type = "device",
+    # Test a failure when using new icon composer bundles for Xcode 26 with a set of asset catalog
+    # icons.
+    analysis_failure_message_test(
+        name = "{}_icon_composer_and_asset_catalog_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_and_xcassets_app_icons",
-        contains = [
-            "$RESOURCE_ROOT/app_icon.icns",
-            "$RESOURCE_ROOT/Assets.car",
-        ],
-        plist_test_file = "$CONTENT_ROOT/Info.plist",
-        plist_test_values = {
-            "CFBundleIconName": "app_icon",
-            "CFBundleIconFile": "app_icon",
-        },
+        expected_error = """
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """,
         # Skip CI until CI is on Xcode 26
-        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests that various nonlocalized resource types are bundled correctly with

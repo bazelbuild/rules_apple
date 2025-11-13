@@ -516,18 +516,6 @@ macos_static_framework(
 )
 
 macos_static_framework(
-    name = "static_framework_with_umbrella_header_conflict",
-    hdrs = [
-        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
-        "//test/starlark_tests/resources:shared.h",
-    ],
-    bundle_name = "UmbrellaHeaderConflict",
-    minimum_os_version = common.min_os_macos.baseline,
-    tags = common.fixture_tags,
-    deps = [":shared_lib"],
-)
-
-macos_static_framework(
     name = "static_framework_from_objc_library",
     minimum_os_version = common.min_os_macos.baseline,
     deps = [":objc_library_with_sdk_dylib_and_framework"],
@@ -966,6 +954,20 @@ macos_application(
 
 macos_application(
     name = "app_with_icon_bundle",
+    app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.icon_bundle_required,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_icon_bundle_only_for_low_minimum_os_version",
     app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
     bundle_id = "com.google.example",
     infoplists = [

@@ -629,6 +629,26 @@ filegroup(
 )
 
 filegroup(
+    name = "icon_bundle_assets_alternative",
+    srcs = glob(["app_icon-bazel.icon/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets_mismatched_with_xcassets_alternative",
+    srcs = glob(["app_icon-dupe.icon/**"]),
+)
+
+filegroup(
+    name = "app_icons_ios",
+    srcs = glob(["app_icons_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
+)
+
+filegroup(
     name = "dark_and_tinted_app_icons_ios",
     srcs = glob(["dark_and_tinted_app_icons_ios.xcassets/**"]),
 )

@@ -211,9 +211,10 @@ EOF
   ! do_build ios //app:app || fail "Should fail build"
 
   # Check for the start of the log message
-  expect_log "Message StickerPack extensions use an asset catalog named "
-  # The 9 icons and the Contents.json should all be listed, so 10 hits.
-  expect_log_n "testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/" 10
+  expect_log "Found in app_icons a file that cannot be used as an app icon"
+  expect_log "Valid icon bundles for this target have the following extensions"
+  # Verify the invalid appiconset path is mentioned
+  expect_log "app_icons_ios.xcassets/app_icon.appiconset"
 }
 
 run_suite "imessage bundling resource tests"

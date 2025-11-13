@@ -10,7 +10,6 @@ from lib.logger import Logger
 from lib.shell import shell, cp_r
 from lib.model import Configuration
 from lib.lipo_util import LipoUtil
-from lib.dependencies import FRAMEWORK_DEPS, PRIVATE_FRAMEWORK_DEPS, DYLIB_DEPS
 
 
 class DefaultHelpParser(argparse.ArgumentParser):
@@ -20,6 +19,17 @@ class DefaultHelpParser(argparse.ArgumentParser):
         sys.stderr.write(f"error: {message}\n")
         self.print_help()
         sys.exit(2)
+
+
+def _parse_xcode_version(version_str: str) -> int:
+    """Gets the version number of the given version string."""
+    parts = version_str.split('.')
+    version_number = int(parts[0]) * 100
+    if len(parts) > 1:
+        version_number += int(parts[1]) * 10
+    if len(parts) > 2:
+        version_number += int(parts[2])
+    return version_number
 
 
 def main(argv) -> None:
@@ -45,6 +55,11 @@ def main(argv) -> None:
         required=True,
         action="append",
         help="Path to xctest archive to bundle.",
+    )
+    parser.add_argument(
+        "--xcode-version",
+        required=True,
+        help="Current Xcode version.",
     )
     parser.add_argument(
         "--verbose",
@@ -142,8 +157,32 @@ def main(argv) -> None:
         plist["CFBundleIdentifier"] = config.xctrunner.bundle_identifier
         plistlib.dump(plist, open(config.xctrunner.info_plist_path, "wb"))
 
+
+    framework_deps = [
+        "XCTest.framework",
+        "Testing.framework",  # Xcode 16+
+    ]
+
+    private_framework_deps = [
+        "XCTAutomationSupport.framework",
+        "XCTestCore.framework",
+        "XCTestSupport.framework",
+        "XCUnit.framework",
+    ]
+
+    dylib_deps = [
+        "libXCTestBundleInject.dylib",
+        "libXCTestSwiftSupport.dylib",
+    ]
+
+    xcode_version_int = _parse_xcode_version(args.xcode_version)
+    if xcode_version_int >= 1640:
+        framework_deps.append("XCUIAutomation.framework")
+    else:
+        private_framework_deps.append("XCUIAutomation.framework")
+
     # Copy dependencies to the bundle and remove unwanted architectures
-    for framework in FRAMEWORK_DEPS:
+    for framework in framework_deps:
         log.info("Bundling fwk: %s", framework)
         fwk_path = f"{config.xcode.frameworks_dir}/{framework}"
 
@@ -162,7 +201,7 @@ def main(argv) -> None:
             bin_path, archs_to_keep
         )  # Strip architectures not in test bundles.
 
-    for framework in PRIVATE_FRAMEWORK_DEPS:
+    for framework in private_framework_deps:
         log.info("Bundling fwk: %s", framework)
         cp_r(
             f"{config.xcode.private_frameworks_dir}/{framework}",
@@ -172,7 +211,7 @@ def main(argv) -> None:
         bin_path = f"{config.xctrunner.path}/Frameworks/{framework}/{fwk_binary}"
         lipo.extract_or_thin(bin_path, archs_to_keep)
 
-    for dylib in DYLIB_DEPS:
+    for dylib in dylib_deps:
         log.info("Bundling dylib: %s", dylib)
         shutil.copy(
             f"{config.xcode.dylib_dir}/{dylib}",
