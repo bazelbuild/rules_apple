@@ -291,6 +291,21 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_ios_inner_framework_infoplist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_bundle_id",
+        plist_test_file = "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_with_bundle_id.framework/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.example.static.framework",
+            "CFBundleExecutable": "ios_static_xcframework_with_bundle_id",
+            "CFBundleShortVersionString": "2.1",
+            "CFBundleVersion": "2.1.0",
+            "MinimumOSVersion": common.min_os_ios.baseline,
+        },
+        tags = [name],
+    )
+
     directory_test(
         name = "{}_ios_static_library_xcframework_tree_artifact_test".format(name),
         build_settings = {
