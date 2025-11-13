@@ -339,7 +339,7 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Test that the output binary is identified as visionOS simulator (PLATFORM_XROSSIMULATOR) via
+    # Test that the output binary is identified as visionOS simulator (PLATFORM_VISIONOSSIMULATOR) via
     # the Mach-O load command LC_BUILD_VERSION for an arm64 binary.
     binary_contents_test(
         name = "{}_visionos_binary_contents_arm_simulator_platform_test".format(name),
@@ -350,7 +350,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform XROSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform VISIONOSSIMULATOR"],
         tags = [
             name,
         ],
