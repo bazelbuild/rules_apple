@@ -15,12 +15,20 @@
 """xcframework Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
     ":common.bzl",
@@ -294,6 +302,54 @@ def apple_static_xcframework_test_suite(name):
             "CFBundleShortVersionString": "2.1",
             "CFBundleVersion": "2.1.0",
             "MinimumOSVersion": common.min_os_ios.baseline,
+        },
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_ios_static_library_xcframework_tree_artifact_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
+        expected_directories = {
+            "ios_static_xcframework.xcframework": [
+                "Info.plist",
+                "ios-arm64/ios_static_xcframework.framework/ios_static_xcframework",
+                "ios-arm64/ios_static_xcframework.framework/Headers/ios_static_xcframework.h",
+                "ios-arm64/ios_static_xcframework.framework/Headers/shared.h",
+                "ios-arm64/ios_static_xcframework.framework/Modules/module.modulemap",
+                "ios-arm64_x86_64-simulator/ios_static_xcframework.framework/ios_static_xcframework",
+                "ios-arm64_x86_64-simulator/ios_static_xcframework.framework/Headers/ios_static_xcframework.h",
+                "ios-arm64_x86_64-simulator/ios_static_xcframework.framework/Headers/shared.h",
+                "ios-arm64_x86_64-simulator/ios_static_xcframework.framework/Modules/module.modulemap",
+            ],
+        },
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_ios_static_framework_xcframework_tree_artifact_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_deps_resource_bundle",
+        expected_directories = {
+            "ios_static_framework_xcframework_with_deps_resource_bundle.xcframework": [
+                "Info.plist",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/ios_static_framework_xcframework_with_deps_resource_bundle",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_deps_resource_bundle.h",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Headers/shared.h",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Modules/module.modulemap",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+                "ios-arm64/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/ios_static_framework_xcframework_with_deps_resource_bundle",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_deps_resource_bundle.h",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Headers/shared.h",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/Modules/module.modulemap",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
+                "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
+            ],
         },
         tags = [name],
     )
