@@ -93,8 +93,6 @@ local_path_override(
     path = "$rules_apple_path",
 )
 EOF
-
-  touch WORKSPACE
 }
 
 # Set-up a clean default workspace.
