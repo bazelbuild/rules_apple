@@ -169,11 +169,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "repositories",
-    srcs = ["repositories.bzl"],
-)
-
-bzl_library(
     name = "resources",
     srcs = ["resources.bzl"],
     deps = [

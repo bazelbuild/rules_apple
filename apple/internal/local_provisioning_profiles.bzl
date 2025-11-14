@@ -83,17 +83,6 @@ provisioning_profile_repository.setup(
 )
 ```
 
-### In your `WORKSPACE` file:
-
-```starlark
-load("//apple:apple.bzl", "provisioning_profile_repository")
-
-provisioning_profile_repository(
-    name = "local_provisioning_profiles",
-    fallback_profiles = "//path/to/some:filegroup", # Optional profiles to use if one isn't found locally
-)
-```
-
 ### In your `BUILD` files (see `local_provisioning_profile` for more examples):
 
 ```starlark
