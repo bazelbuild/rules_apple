@@ -553,6 +553,83 @@ else
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
+if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
+  profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+  if [[ "$should_use_xcodebuild" == false ]]; then
+    profdata="$test_tmp_dir/coverage.profdata"
+  fi
+
+  if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
+    cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
+  fi
+
+  if [[ "$should_use_xcodebuild" == false ]]; then
+    xcrun llvm-profdata merge "$profraw" --output "$profdata"
+  fi
+
+  lcov_args=(
+    -instr-profile "$profdata"
+    -ignore-filename-regex='.*external/.+'
+    -path-equivalence=".,$PWD"
+  )
+  has_binary=false
+  IFS=";"
+  arch=$(uname -m)
+  for binary in $TEST_BINARIES_FOR_LLVM_COV; do
+    if [[ "$has_binary" == false ]]; then
+      lcov_args+=("${binary}")
+      has_binary=true
+      if ! file "$binary" | grep -q "$arch"; then
+        arch=x86_64
+      fi
+    else
+      lcov_args+=(-object "${binary}")
+    fi
+
+    lcov_args+=("-arch=$arch")
+  done
+
+  llvm_coverage_manifest="$COVERAGE_MANIFEST"
+  readonly provided_coverage_manifest="%(test_coverage_manifest)s"
+  if [[ -s "${provided_coverage_manifest:-}" ]]; then
+    llvm_coverage_manifest="$provided_coverage_manifest"
+  fi
+
+  readonly error_file="$test_tmp_dir/llvm-cov-error.txt"
+  llvm_cov_status=0
+  xcrun llvm-cov \
+    export \
+    -format lcov \
+    "${lcov_args[@]}" \
+    @"$llvm_coverage_manifest" \
+    > "$COVERAGE_OUTPUT_FILE" \
+    2> "$error_file" \
+    || llvm_cov_status=$?
+
+  # Error ourselves if lcov outputs warnings, such as if we misconfigure
+  # something and the file path of one of the covered files doesn't exist
+  if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
+    echo "error: while exporting coverage report" >&2
+    cat "$error_file" >&2
+  fi
+
+  if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
+    llvm_cov_json_export_status=0
+    xcrun llvm-cov \
+      export \
+      -format text \
+      "${lcov_args[@]}" \
+      @"$llvm_coverage_manifest" \
+      > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json" \
+      2> "$error_file" \
+      || llvm_cov_json_export_status=$?
+    if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
+      echo "error: while exporting json coverage report" >&2
+      cat "$error_file" >&2
+    fi
+  fi
+fi
+
 # Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
 post_action_determines_exit_code="%(post_action_determines_exit_code)s"
@@ -562,6 +639,8 @@ if [[ -n "${result_bundle_path:-}" ]]; then
     TEST_LOG_FILE="$testlog" \
     SIMULATOR_UDID="$simulator_id" \
     TEST_XCRESULT_BUNDLE_PATH="$result_bundle_path" \
+    LLVM_COV_EXIT_CODE="${llvm_cov_status:-0}" \
+    LLVM_COV_JSON_EXPORT_EXIT_CODE="${llvm_cov_json_export_status:-0}" \
     "$post_action_binary" || post_action_exit_code=$?
 else
   TEST_EXIT_CODE=$test_exit_code \
@@ -589,15 +668,6 @@ fi
 if [[ "$reuse_simulator" == false ]]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$simulator_id"
-fi
-
-profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
-if [[ "$should_use_xcodebuild" == false ]]; then
-  profdata="$test_tmp_dir/coverage.profdata"
-fi
-
-if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
-  cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
 if [[ "$post_action_determines_exit_code" == true ]]; then
@@ -666,81 +736,14 @@ then
   exit 1
 fi
 
-if [[ "${COVERAGE:-}" -ne 1 || "${APPLE_COVERAGE:-}" -ne 1 ]]; then
-  # Normal tests run without coverage
-  if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
-    rm -f "$TEST_PREMATURE_EXIT_FILE"
-  fi
-
-  exit 0
+if [[ "${llvm_cov_status:-0}" -ne 0 ]]; then
+  echo "error: exporting coverage report failed" >&2
+  exit "$llvm_cov_status"
 fi
 
-if [[ "$should_use_xcodebuild" == false ]]; then
-  xcrun llvm-profdata merge "$profraw" --output "$profdata"
-fi
-
-lcov_args=(
-  -instr-profile "$profdata"
-  -ignore-filename-regex='.*external/.+'
-  -path-equivalence=".,$PWD"
-)
-has_binary=false
-IFS=";"
-arch=$(uname -m)
-for binary in $TEST_BINARIES_FOR_LLVM_COV; do
-  if [[ "$has_binary" == false ]]; then
-    lcov_args+=("${binary}")
-    has_binary=true
-    if ! file "$binary" | grep -q "$arch"; then
-      arch=x86_64
-    fi
-  else
-    lcov_args+=(-object "${binary}")
-  fi
-
-  lcov_args+=("-arch=$arch")
-done
-
-llvm_coverage_manifest="$COVERAGE_MANIFEST"
-readonly provided_coverage_manifest="%(test_coverage_manifest)s"
-if [[ -s "${provided_coverage_manifest:-}" ]]; then
-  llvm_coverage_manifest="$provided_coverage_manifest"
-fi
-
-readonly error_file="$test_tmp_dir/llvm-cov-error.txt"
-llvm_cov_status=0
-xcrun llvm-cov \
-  export \
-  -format lcov \
-  "${lcov_args[@]}" \
-  @"$llvm_coverage_manifest" \
-  > "$COVERAGE_OUTPUT_FILE" \
-  2> "$error_file" \
-  || llvm_cov_status=$?
-
-# Error ourselves if lcov outputs warnings, such as if we misconfigure
-# something and the file path of one of the covered files doesn't exist
-if [[ -s "$error_file" || "$llvm_cov_status" -ne 0 ]]; then
-  echo "error: while exporting coverage report" >&2
-  cat "$error_file" >&2
-  exit 1
-fi
-
-if [[ -n "${COVERAGE_PRODUCE_JSON:-}" ]]; then
-  llvm_cov_json_export_status=0
-  xcrun llvm-cov \
-    export \
-    -format text \
-    "${lcov_args[@]}" \
-    @"$llvm_coverage_manifest" \
-    > "$TEST_UNDECLARED_OUTPUTS_DIR/coverage.json" \
-    2> "$error_file" \
-    || llvm_cov_json_export_status=$?
-  if [[ -s "$error_file" || "$llvm_cov_json_export_status" -ne 0 ]]; then
-    echo "error: while exporting json coverage report" >&2
-    cat "$error_file" >&2
-    exit 1
-  fi
+if [[ "${llvm_cov_json_export_status:-0}" -ne 0 ]]; then
+  echo "error: exporting json coverage report failed" >&2
+  exit "$llvm_cov_json_export_status"
 fi
 
 if [[ -f "${TEST_PREMATURE_EXIT_FILE:-}" ]]; then
