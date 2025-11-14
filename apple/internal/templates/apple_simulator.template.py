@@ -279,7 +279,7 @@ def discover_best_compatible_simulator(
     max_runtime_version = device_type.get("maxRuntimeVersion")
     if max_runtime_version and max_runtime_version < minimum_runtime_version:
       continue
-    if sim_device and device_type["name"].casefold().find(sim_device) == -1:
+    if sim_device and device_type["name"].casefold() != sim_device:
       continue
     compatible_device_types.append(device_type)
   compatible_device_types.sort()
@@ -651,7 +651,8 @@ def apple_simulator(
   Yields:
     The UDID of the simulator.
   """
-  if sim_device and sim_os_version:
+  prefer_persistent = os.environ.get("BAZEL_APPLE_PREFER_PERSISTENT_SIMS", "0") == "1"
+  if not prefer_persistent and sim_device and sim_os_version:
     with temporary_simulator(
         platform_type=platform_type,
         simctl_path=simctl_path,
@@ -695,12 +696,24 @@ def run_app_in_simulator(
   root_dir = os.path.dirname(application_output_path)
   register_dsyms(root_dir)
   with extracted_app(application_output_path, app_name) as app_path:
-    logger.info("Installing app %s to simulator %s", app_path, simulator_udid)
+    app_bundle_id = bundle_id(app_path)
+    logger.info("Will install app %s to simulator %s", app_path, simulator_udid)
+    # First, quietly kill any existing instances of the app to match Xcode's behavior.
+    # Otherwise we've observed that the simulator gets confused when trying to re-install the app.
+    logger.debug(
+        "Terminating existing instances of %s in %s", app_bundle_id, simulator_udid
+    )
+    subprocess.run(
+        [simctl_path, "terminate", simulator_udid, app_bundle_id],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    # We should now be able to install and run it.
+    logger.debug("Installing...")
     subprocess.run(
         [simctl_path, "install", simulator_udid, app_path],
         check=True,
     )
-    app_bundle_id = bundle_id(app_path)
     launch_args = shlex.split(
       os.environ.get(
         "BAZEL_SIMCTL_LAUNCH_FLAGS",
