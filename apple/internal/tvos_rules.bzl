@@ -1111,9 +1111,11 @@ def _tvos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    entry_point = "_TVExtensionMain" if ctx.attr.legacy_entry_point else "_NSExtensionMain"
+
     extra_linkopts = [
         "-e",
-        "_TVExtensionMain",
+        entry_point,
         "-fapplication-extension",
         "-framework",
         "TVServices",
@@ -1631,6 +1633,13 @@ tvos_extension = rule_factory.create_apple_rule(
 A list of framework targets (see
 [`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
+""",
+            ),
+            "legacy_entry_point": attr.bool(
+                default = True,
+                doc = """
+If `True`, the extension uses the legacy tvOS extension entry point (`TVExtensionMain`).
+If `False`, the extension uses the standard NSExtension entry point (`NSExtensionMain`).
 """,
             ),
         },
