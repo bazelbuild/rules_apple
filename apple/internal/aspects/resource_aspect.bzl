@@ -258,7 +258,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Get the providers from dependencies, referenced by deps, impl_deps and locations for resources.
     inherited_providers = []
-    provider_deps = ["deps"] + ["implementation_deps"] + collect_args.get("res_attrs", [])
+    provider_deps = ["deps", "implementation_deps"] + collect_args.get("res_attrs", [])
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             inherited_providers.extend([

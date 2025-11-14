@@ -252,7 +252,7 @@ EOF
   mkdir -p app/shared_res
   echo shared_res > app/shared_res/foo.txt
 
-    do_build ios //app:app || fail "Should build"
+  do_build ios //app:app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/foo.txt"
