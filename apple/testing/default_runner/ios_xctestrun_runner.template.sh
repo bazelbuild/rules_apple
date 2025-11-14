@@ -553,8 +553,6 @@ else
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
-llvm_cov_status=0
-llvm_cov_json_export_status=0
 if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
   profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
   if [[ "$should_use_xcodebuild" == false ]]; then
@@ -597,6 +595,7 @@ if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
     llvm_coverage_manifest="$provided_coverage_manifest"
   fi
 
+  readonly error_file="$test_tmp_dir/llvm-cov-error.txt"
   llvm_cov_status=0
   xcrun llvm-cov \
     export \
@@ -737,13 +736,13 @@ then
   exit 1
 fi
 
-if [[ "$llvm_cov_status" -ne 0 ]]; then
-  echo "failure: exporting coverage report failed" >&2
+if [[ "${llvm_cov_status:-0}" -ne 0 ]]; then
+  echo "error: exporting coverage report failed" >&2
   exit "$llvm_cov_status"
 fi
 
-if [[ "$llvm_cov_json_export_status" -ne 0 ]]; then
-  echo "failure: exporting json coverage report failed" >&2
+if [[ "${llvm_cov_json_export_status:-0}" -ne 0 ]]; then
+  echo "error: exporting json coverage report failed" >&2
   exit "$llvm_cov_json_export_status"
 fi
 
