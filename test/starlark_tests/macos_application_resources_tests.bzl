@@ -54,8 +54,7 @@ def macos_application_resources_test_suite(name):
         plist_test_values = {
             "CFBundleIconName": "app_icon",
         },
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags,
     )
 
     # Test a failure when using new icon composer bundles for Xcode 26 with a set of asset catalog
@@ -67,8 +66,7 @@ def macos_application_resources_test_suite(name):
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name],
     )
 
     # Tests that various nonlocalized resource types are bundled correctly with
