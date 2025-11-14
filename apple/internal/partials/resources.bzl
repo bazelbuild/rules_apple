@@ -21,45 +21,45 @@ containing resource tuples as described in processor.bzl. Optionally, the struct
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceInfo",
-)
-load(
     "@bazel_skylib//lib:new_sets.bzl",
     "sets",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
+)
+load(
+    "//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleResourceInfo",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "//apple/internal/partials/support:resources_support.bzl",
+    "PROVIDER_TO_FIELD_ACTION",
+)
+load(
+    "//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 
 def _merge_root_infoplists(
@@ -109,7 +109,7 @@ def _merge_root_infoplists(
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _locales_requested(*, config_vars):
+def _locales_requested(*, locales_to_include, config_vars):
     """Determines which locales to include when resource actions.
 
     If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
@@ -117,22 +117,30 @@ def _locales_requested(*, config_vars):
 
     Args:
         config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
+        locales_to_include: A string list of locales to bundle.
 
     Returns:
         A set of locales to include or None if all should be included.
     """
-    requested_locales = config_vars.get("apple.locales_to_include")
+    config_locals_to_include = config_vars.get("apple.locales_to_include")
+    requested_locales = None
+    if locales_to_include:
+        requested_locales = locales_to_include
+    else:
+        config_locals_to_include = config_vars.get("apple.locales_to_include")
+        requested_locales = config_locals_to_include.split(",") if config_locals_to_include else None
+
     if requested_locales != None:
-        return sets.make(["Base"] + [x.strip() for x in requested_locales.split(",")])
+        return sets.make(["Base"] + [x.strip() for x in requested_locales])
     else:
         return None
 
-def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested):
+def _validate_processed_locales(*, label, locales_dropped, locales_included, locales_requested, locales_excluded):
     """Prints a warning if locales were dropped and none of the requested ones were included."""
     if sets.length(locales_dropped):
         # Display a warning if a locale was dropped and there are unfulfilled locale requests; it
         # could mean that the user made a mistake in defining the locales they want to keep.
-        if not sets.is_equal(locales_requested, locales_included):
+        if locales_requested and not sets.is_equal(locales_requested, locales_included):
             unused_locales = sets.difference(locales_requested, locales_included)
 
             # There is no way to issue a warning, so print is the only way
@@ -142,6 +150,30 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
                   sets.str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include is defined properly.")
 
+        if locales_requested and locales_excluded:
+            conflicting_locales = sets.intersection(locales_requested, locales_excluded)
+            if sets.length(conflicting_locales):
+                fail(str(label) + " dropping " +
+                     sets.str(conflicting_locales) + " as they are explicitly excluded but also explicitly included. Please verify " +
+                     "apple.locales_to_include and apple.locales_to_exclude are defined properly.")
+
+def _locales_excluded(*, config_vars):
+    """Determines which locales to exclude when resource actions.
+
+    If the user has specified "apple.locales_to_exclude" we use those.
+
+    Args:
+        config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
+
+    Returns:
+        A set of locales to exclude or None if no locale exclude is requested.
+    """
+    excluded_locales = config_vars.get("apple.locales_to_exclude")
+    if excluded_locales != None:
+        return sets.make([x.strip() for x in excluded_locales.split(",")])
+    else:
+        return None
+
 def _resources_partial_impl(
         *,
         actions,
@@ -150,14 +182,19 @@ def _resources_partial_impl(
         bundle_id,
         bundle_name,
         executable_name,
+        include_executable_name,
         bundle_verification_targets,
         environment_plist,
+        extensionkit_keys_required,
         launch_storyboard,
+        locales_to_include,
         output_discriminator,
         platform_prerequisites,
+        primary_icon_name,
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module,
         top_level_infoplists,
         top_level_resources,
         targets_to_avoid,
@@ -177,6 +214,7 @@ def _resources_partial_impl(
         providers.append(resources.bucketize(
             owner = str(rule_label),
             resources = top_level_resources,
+            swift_module = swift_module,
         ))
 
     if top_level_infoplists:
@@ -204,25 +242,6 @@ def _resources_partial_impl(
         if AppleResourceInfo in x
     ]
 
-    # Map of resource provider fields to a tuple that contains the method to use to process those
-    # resources and a boolean indicating whether the Swift module is required for that processing.
-    provider_field_to_action = {
-        "asset_catalogs": (resources_support.asset_catalogs, False),
-        "datamodels": (resources_support.datamodels, True),
-        "framework": (resources_support.apple_bundle(processor.location.framework), False),
-        "infoplists": (resources_support.infoplists, False),
-        "metals": (resources_support.metals, False),
-        "mlmodels": (resources_support.mlmodels, False),
-        "plists": (resources_support.plists_and_strings, False),
-        "pngs": (resources_support.pngs, False),
-        "processed": (resources_support.noop, False),
-        "storyboards": (resources_support.storyboards, True),
-        "strings": (resources_support.plists_and_strings, False),
-        "texture_atlases": (resources_support.texture_atlases, False),
-        "unprocessed": (resources_support.noop, False),
-        "xibs": (resources_support.xibs, True),
-    }
-
     # List containing all the files that the processor will bundle in their
     # configured location.
     bundle_files = []
@@ -230,18 +249,24 @@ def _resources_partial_impl(
 
     infoplists = []
 
-    locales_requested = _locales_requested(config_vars = platform_prerequisites.config_vars)
+    locales_requested = _locales_requested(locales_to_include = locales_to_include, config_vars = platform_prerequisites.config_vars)
+    locales_excluded = _locales_excluded(config_vars = platform_prerequisites.config_vars)
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
     def _deduplicated_field_handler(field, deduplicated):
-        processing_func, requires_swift_module = provider_field_to_action[field]
-        for parent_dir, swift_module, files in deduplicated:
+        processing_func, requires_swift_module = PROVIDER_TO_FIELD_ACTION[field]
+        for parent_dir, module_name, files in deduplicated:
             if locales_requested:
                 locale = bundle_paths.locale_for_path(parent_dir)
                 if sets.contains(locales_requested, locale):
                     sets.insert(locales_included, locale)
                 elif locale != None:
+                    sets.insert(locales_dropped, locale)
+                    continue
+            if locales_excluded:
+                locale = bundle_paths.locale_for_path(parent_dir)
+                if locale and sets.contains(locales_excluded, locale):
                     sets.insert(locales_dropped, locale)
                     continue
 
@@ -253,6 +278,7 @@ def _resources_partial_impl(
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                "primary_icon_name": primary_icon_name,
                 "product_type": rule_descriptor.product_type,
                 "rule_label": rule_label,
             }
@@ -260,7 +286,7 @@ def _resources_partial_impl(
             # Only pass the Swift module name if the type of resource to process
             # requires it.
             if requires_swift_module:
-                processing_args["swift_module"] = swift_module
+                processing_args["swift_module"] = swift_module or module_name
 
             result = processing_func(**processing_args)
             if hasattr(result, "files"):
@@ -277,12 +303,13 @@ def _resources_partial_impl(
         field_handler = _deduplicated_field_handler,
     )
 
-    if locales_requested:
+    if locales_requested or locales_excluded:
         _validate_processed_locales(
             label = rule_label,
             locales_dropped = locales_dropped,
             locales_included = locales_included,
             locales_requested = locales_requested,
+            locales_excluded = locales_excluded,
         )
 
     if bundle_id:
@@ -314,15 +341,17 @@ def _resources_partial_impl(
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
                 executable_name = executable_name,
+                include_executable_name = include_executable_name,
                 child_plists = bundle_verification_infoplists,
                 child_required_values = bundle_verification_required_values,
                 environment_plist = environment_plist,
+                extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+                plisttool = apple_mac_toolchain_info.plisttool,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
                 version = version,
@@ -344,14 +373,19 @@ def resources_partial(
         bundle_id = None,
         bundle_name,
         executable_name,
+        include_executable_name = True,
         bundle_verification_targets = [],
         environment_plist,
+        extensionkit_keys_required = False,
         launch_storyboard,
+        locales_to_include = [],
         output_discriminator = None,
         platform_prerequisites,
+        primary_icon_name = None,
         resource_deps,
         rule_descriptor,
         rule_label,
+        swift_module = None,
         targets_to_avoid = [],
         top_level_infoplists = [],
         top_level_resources = {},
@@ -371,20 +405,29 @@ def resources_partial(
             occur.
         bundle_name: The name of the output bundle.
         executable_name: The name of the output executable.
+        include_executable_name: If True, the executable name will be added to
+            the plist in the `CFBundleExecutable` key. This is mainly intended for
+            plists embedded in a command line tool which don't need this value.
         bundle_verification_targets: List of structs that reference embedable targets that need to
             be validated. The structs must have a `target` field with the target containing an
             Info.plist file that will be validated. The structs may also have a
             `parent_bundle_id_reference` field that contains the plist path, in list form, to the
             plist entry that must contain this target's bundle ID.
+        extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are
+            correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
             the target is being built for and with.
         launch_storyboard: A file to be used as a launch screen for the application.
+        locales_to_include: List of locales to bundle.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        primary_icon_name: An optional String to identify the name of the primary app icon when
+            alternate app icons have been provided for the app.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+        swift_module: Module name to be used for xibs, storyboards and datamodels compilation.
         targets_to_avoid: List of targets containing resources that should be deduplicated from the
             target being processed.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
@@ -406,14 +449,19 @@ def resources_partial(
         bundle_id = bundle_id,
         bundle_name = bundle_name,
         executable_name = executable_name,
+        include_executable_name = include_executable_name,
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
+        extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
+        locales_to_include = locales_to_include,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        primary_icon_name = primary_icon_name,
         resource_deps = resource_deps,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
+        swift_module = swift_module,
         targets_to_avoid = targets_to_avoid,
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,

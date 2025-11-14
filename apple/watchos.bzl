@@ -15,27 +15,27 @@
 """Bazel rules for creating watchOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
-    "apple_test_assembler",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
-    "apple_build_test_rule",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:watchos_rules.bzl",
-    _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
-    _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
-    _watchos_ui_test = "watchos_ui_test",
-    _watchos_unit_test = "watchos_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:watchos_rules.bzl",
+    "//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
     _watchos_dynamic_framework = "watchos_dynamic_framework",
     _watchos_extension = "watchos_extension",
     _watchos_framework = "watchos_framework",
     _watchos_static_framework = "watchos_static_framework",
+)
+load(
+    "//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
+    "//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
+load(
+    "//apple/internal/testing:watchos_rules.bzl",
+    _watchos_internal_ui_test_bundle = "watchos_internal_ui_test_bundle",
+    _watchos_internal_unit_test_bundle = "watchos_internal_unit_test_bundle",
+    _watchos_ui_test = "watchos_ui_test",
+    _watchos_unit_test = "watchos_unit_test",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
@@ -45,7 +45,7 @@ watchos_framework = _watchos_framework
 watchos_extension = _watchos_extension
 watchos_static_framework = _watchos_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:watchos_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:watchos_default_runner"))
 
 def watchos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)

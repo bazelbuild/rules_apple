@@ -1,7 +1,5 @@
 # Apple Rules for [Bazel](https://bazel.build)
 
-[![Build status](https://badge.buildkite.com/cecd8d6951d939c6814f043af2935158f0556cb6c5fef3cb75.svg?branch=master)](https://buildkite.com/bazel/rules-apple-darwin)
-
 This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms.
 
@@ -13,7 +11,7 @@ in Bazel, and by the
 [`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#swift_library)
 available from [rules_swift](https://github.com/bazelbuild/rules_swift).
 
-If you are looking for an easy way to build mixed language frameworks, check out [rules_ios](https://github.com/bazel-ios/rules_ios).
+If you are looking for an easy way to build mixed language frameworks, check out [rules_swift's `mixed_language_library`](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#mixed_language_library).
 
 ## Reference documentation
 
@@ -23,7 +21,7 @@ repository.
 
 ## Quick setup
 
-Copy the `WORKSPACE` snippet from [the releases
+Copy the latest `MODULE.bazel` or `WORKSPACE` snippet from [the releases
 page](https://github.com/bazelbuild/rules_apple/releases).
 
 ## Examples
@@ -32,16 +30,12 @@ Minimal example:
 
 ```python
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-objc_library(
-    name = "Lib",
-    srcs = glob([
-        "**/*.h",
-        "**/*.m",
-    ]),
-    data = [
-        ":Main.storyboard",
-    ],
+swift_library(
+    name = "MyLibrary",
+    srcs = glob(["**/*.swift"]),
+    data = [":Main.storyboard"],
 )
 
 # Links code from "deps" into an executable, collects and compiles resources
@@ -50,10 +44,13 @@ objc_library(
 ios_application(
     name = "App",
     bundle_id = "com.example.app",
-    families = ["iphone", "ipad"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
     infoplists = [":Info.plist"],
     minimum_os_version = "15.0",
-    deps = [":Lib"],
+    deps = [":MyLibrary"],
 )
 ```
 
@@ -70,13 +67,14 @@ You can also see the supported bazel versions in the notes for each
 release on the [releases
 page](https://github.com/bazelbuild/rules_apple/releases).
 
-Besides these constraint this repo follows [semver](https://semver.org/)
-as best as we can since the 1.0.0 release.
+Besides these constraints this repo follows
+[semver](https://semver.org/) as best as we can since the 1.0.0 release.
 
 | Bazel release | Minimum supported rules version | Final supported rules version | Supporting Branch |
 |:-------------------:|:-------------------:|:-------------------------:|:-------------------------:|
-| 7.x (most recent rolling) | 2.* | current | `master` |
-| 6.x | 2.* | current | `master` |
+| 8.x (most recent rolling) | 2.* | current | `master` |
+| 7.x | 2.* | current | `master` |
+| 6.x | 2.* | 3.13.0 | `master` |
 | 5.x | 0.33.0 | 1.* | `bazel/5.x` |
 | 4.x | 0.30.0 | 0.32.0 | N/A |
 | 3.x | 0.20.0 | 0.21.2 | N/A |

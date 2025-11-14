@@ -16,11 +16,22 @@ bzl_library(
     deps = [
         "//apple:utils",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
         "//apple/internal/utils:xctoolrunner",
-        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_apple_support//lib:xcode_support",
+    ],
+)
+
+bzl_library(
+    name = "app_intents",
+    srcs = ["app_intents.bzl"],
+    visibility = [
+        "//apple/internal/partials:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -44,7 +55,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/utils:xctoolrunner",
-        "@bazel_skylib//lib:collections",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -123,10 +133,22 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcstrings",
+    srcs = ["xcstrings.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/utils:xctoolrunner",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",

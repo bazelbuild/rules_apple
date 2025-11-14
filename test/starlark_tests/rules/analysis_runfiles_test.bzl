@@ -35,12 +35,34 @@ def _analysis_runfiles_test_impl(ctx):
 
     return analysistest.end(env)
 
-analysis_runfiles_test = analysistest.make(
-    _analysis_runfiles_test_impl,
-    attrs = {
-        "expected_runfiles": attr.string_list(
-            mandatory = True,
-            doc = "A list of runfiles expected to be found in the given target.",
-        ),
-    },
-)
+def make_analysis_runfiles_test_rule(
+        *,
+        config_settings = {}):
+    """Returns a new `provider_test`-like rule for a specific provider with custom settings.
+
+    Args:
+        config_settings: A dictionary of configuration settings and their values
+            that should be applied during tests.
+
+    Returns:
+        A rule returned by `analysistest.make` that has the `provider_test` interface with the
+        given attrs, and config settings.
+    """
+    return analysistest.make(
+        _analysis_runfiles_test_impl,
+        attrs = {
+            "expected_runfiles": attr.string_list(
+                mandatory = True,
+                doc = "A list of runfiles expected to be found in the given target.",
+            ),
+        },
+        config_settings = config_settings,
+    )
+
+# A generic analysis_runfiles_test with no custom settings.
+analysis_runfiles_test = make_analysis_runfiles_test_rule()
+
+# An analysis_runfiles_test that generates dsyms.
+analysis_runfiles_dsym_test = make_analysis_runfiles_test_rule(config_settings = {
+    "//command_line_option:apple_generate_dsym": "true",
+})

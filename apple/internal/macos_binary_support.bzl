@@ -15,49 +15,54 @@
 """Internal helper definitions used by macOS command line rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
-    "linking_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "//apple:providers.bzl",
     "AppleBinaryInfoplistInfo",
     "AppleBundleVersionInfo",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
+    "//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:linking_support.bzl",
+    "linking_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "//apple/internal:rule_support.bzl",
+    "rule_support",
 )
 
 def _macos_binary_infoplist_impl(ctx):
@@ -75,13 +80,47 @@ def _macos_binary_infoplist_impl(ctx):
       A `struct` containing the `objc` provider that should be propagated to a
       binary that should have this plist embedded.
     """
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.tool,
+    )
+
     actions = ctx.actions
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    bundle_id = ctx.attr.bundle_id
-    executable_name = bundling_support.executable_name(ctx)
-    rule_descriptor = rule_support.rule_descriptor(ctx)
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    bundle_id = ""
+    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
+
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     rule_label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = False,  # No binary deps to check.
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     infoplists = ctx.files.infoplists
     if ctx.attr.version and AppleBundleVersionInfo in ctx.attr.version:
@@ -105,7 +144,6 @@ def _macos_binary_infoplist_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
-        executable_name = executable_name,
         environment_plist = ctx.file._environment_plist,
         include_executable_name = False,
         input_plists = infoplists,
@@ -114,7 +152,7 @@ def _macos_binary_infoplist_impl(ctx):
         output_pkginfo = None,
         output_plist = merged_infoplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_plisttool,
+        plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].plisttool,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         version = ctx.attr.version,
@@ -130,9 +168,12 @@ def _macos_binary_infoplist_impl(ctx):
 macos_binary_infoplist = rule(
     implementation = _macos_binary_infoplist_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.signing_attrs(
+            supports_capabilities = False,
+            profile_extension = ".provisionprofile",  # Unused, but staying consistent with macOS.
+        ),
         {
-            "bundle_id": attr.string(mandatory = False),
             "infoplists": attr.label_list(
                 allow_files = [".plist"],
                 mandatory = False,
@@ -145,21 +186,47 @@ macos_binary_infoplist = rule(
             ),
             "_environment_plist": attr.label(
                 allow_single_file = True,
-                default = "@build_bazel_rules_apple//apple/internal:environment_plist_macos",
+                default = "//apple/internal:environment_plist_macos",
             ),
             "version": attr.label(providers = [[AppleBundleVersionInfo]]),
-            "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),
     fragments = ["apple", "cpp", "objc"],
 )
 
 def _macos_command_line_launchdplist_impl(ctx):
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = apple_product_type.tool,
+    )
+
     actions = ctx.actions
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     rule_label = ctx.label
     launchdplists = ctx.files.launchdplists
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = rule_descriptor.allowed_device_families,
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = False,  # No binary deps to check.
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     if not launchdplists:
         fail("Internal error: launchdplists should have been provided")
@@ -179,7 +246,7 @@ def _macos_command_line_launchdplist_impl(ctx):
         output_discriminator = None,
         output_plist = merged_launchdplist,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_plisttool,
+        plisttool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].plisttool,
         rule_label = rule_label,
     )
 
@@ -193,7 +260,7 @@ def _macos_command_line_launchdplist_impl(ctx):
 macos_command_line_launchdplist = rule(
     implementation = _macos_command_line_launchdplist_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
         {
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],
@@ -204,7 +271,6 @@ macos_command_line_launchdplist = rule(
             "platform_type": attr.string(
                 default = str(apple_common.platform_type.macos),
             ),
-            "_product_type": attr.string(default = apple_product_type.tool),
         },
     ),
     fragments = ["apple", "cpp", "objc"],

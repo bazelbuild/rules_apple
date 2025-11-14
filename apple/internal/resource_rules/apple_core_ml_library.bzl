@@ -15,27 +15,6 @@
 """Implementation of Apple CoreML library rule."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "apple_toolchain_utils",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -43,10 +22,41 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "//apple/internal:swift_support.bzl",
+    "swift_support",
+)
 
 def _apple_core_ml_library_impl(ctx):
     """Implementation of the apple_core_ml_library."""
     actions = ctx.actions
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     basename = paths.replace_extension(ctx.file.mlmodel.basename, "")
 
     is_swift = ctx.attr.language == "Swift"
@@ -69,18 +79,23 @@ def _apple_core_ml_library_impl(ctx):
         objc_output_src = actions.declare_file("{}.m".format(basename))
         objc_output_hdr = actions.declare_file("{}.h".format(basename))
 
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     # TODO(b/168721966): Consider if an aspect could be used to generate mlmodel sources. This
     # would be similar to how we are planning to use the resource aspect with the
     # apple_resource_bundle and apple_resource_group resource rules. That might allow for more
     # portable platform information.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = uses_swift,
@@ -99,7 +114,7 @@ def _apple_core_ml_library_impl(ctx):
         objc_output_src = objc_output_src,
         objc_output_hdr = objc_output_hdr,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
     if is_swift:
@@ -129,6 +144,7 @@ apple_core_ml_library = rule(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_toolchain_utils.shared_attrs(),
+        rule_attrs.common_tool_attrs(),
         {
             "mlmodel": attr.label(
                 allow_single_file = ["mlmodel", "mlpackage"],
@@ -157,7 +173,6 @@ into mlmodelc files.
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 This rule takes a single mlmodel file or mlpackage bundle and creates a target that can be added

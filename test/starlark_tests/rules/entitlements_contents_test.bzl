@@ -24,12 +24,12 @@ rule.
 """
 
 load(
-    ":rules/apple_verification_test.bzl",
-    "apple_verification_transition",
+    "//apple:providers.bzl",
+    "AppleBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
+    "apple_verification_transition",
 )
 
 def _entitlements_contents_test_impl(ctx):

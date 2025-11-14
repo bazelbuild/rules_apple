@@ -15,24 +15,24 @@
 """Partial implementation for Clang runtime libraries processing."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
 )
 
 def _clang_rt_dylibs_partial_impl(
@@ -55,7 +55,7 @@ def _clang_rt_dylibs_partial_impl(
             file_name = "clang_rt.zip",
         )
 
-        resolved_clangrttool = apple_mac_toolchain_info.resolved_clangrttool
+        clangrttool = apple_mac_toolchain_info.clangrttool
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
@@ -63,11 +63,10 @@ def _clang_rt_dylibs_partial_impl(
                 binary_artifact.path,
                 clang_rt_zip.path,
             ],
-            executable = resolved_clangrttool.files_to_run,
+            executable = clangrttool,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},
-            inputs = depset([binary_artifact] + dylibs, transitive = [resolved_clangrttool.inputs]),
-            input_manifests = resolved_clangrttool.input_manifests,
+            inputs = [binary_artifact] + dylibs,
             outputs = [clang_rt_zip],
             mnemonic = "ClangRuntimeLibsCopy",
             xcode_config = platform_prerequisites.xcode_version_config,

@@ -32,10 +32,6 @@ function create_common_files() {
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application"
     )
-load("@build_bazel_rules_apple//apple:apple.bzl",
-     "apple_dynamic_framework_import",
-     "apple_static_framework_import",
-    )
 load("@build_bazel_rules_apple//apple:resources.bzl",
      "apple_resource_bundle",
     )
@@ -97,81 +93,6 @@ EOF
 EOF
 }
 
-# Creates a minimal iOS application target that depends on an imported
-# framework.
-#
-# This function takes a required parameter denoting whether the framework is
-# static or dynamic (corresponding to the framework's is_dynamic attribute).
-function create_minimal_ios_application_with_framework_import() {
-  readonly framework_type="$1"
-  readonly import_rule="$2"
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [
-        ":frameworkDependingLib",
-        ":lib",
-    ],
-)
-
-objc_library(
-    name = "frameworkDependingLib",
-    deps = [":fmwk"],
-)
-
-$import_rule(
-    name = "fmwk",
-    framework_imports = glob(["fmwk.framework/**"]),
-    features = ["-parse_headers"],
-)
-EOF
-
-  mkdir -p app/fmwk.framework
-  if [[ $framework_type == dynamic ]]; then
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_dylib_lipobin.dylib) \
-        app/fmwk.framework/fmwk
-  else
-    cp $(rlocation build_bazel_rules_apple/test/testdata/binaries/empty_staticlib_lipo.a) \
-        app/fmwk.framework/fmwk
-  fi
-
-  cat > app/fmwk.framework/Info.plist <<EOF
-Dummy plist
-EOF
-
-  cat > app/fmwk.framework/resource.txt <<EOF
-Dummy resource
-EOF
-
-  mkdir -p app/fmwk.framework/fmwk.bundle
-  cat > app/fmwk.framework/fmwk.bundle/Some.plist <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Foo</key>
-    <string>Bar</string>
-  </dict>
-</plist>
-EOF
-
-  mkdir -p app/fmwk.framework/Headers
-  cat > app/fmwk.framework/Headers/fmwk.h <<EOF
-This shouldn't get included
-EOF
-
-  mkdir -p app/fmwk.framework/Modules
-  cat > app/fmwk.framework/Headers/module.modulemap <<EOF
-This shouldn't get included
-EOF
-}
-
 # Test missing the CFBundleVersion fails the build.
 function test_missing_version_fails() {
   create_common_files
@@ -190,7 +111,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -211,7 +132,7 @@ EOF
   ! do_build ios //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.
@@ -253,7 +174,7 @@ ios_application(
     bundle_id = "my.bundle.id",
     families = ["iphone"],
     infoplists = ["Info.plist"],
-    linkopts = ["-alias", "_main", "_linkopts_test_main"],
+    linkopts = ["-alias", "_main", "_linkopts_test_main", "-u", "_linkopts_test_main"],
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
@@ -321,7 +242,7 @@ function verify_debugger_entitlements_with_params() {
 
   create_common_files
 
-  cp $(rlocation build_bazel_rules_apple/test/testdata/provisioning/integration_testing_ios.mobileprovision) \
+  cp $(rlocation rules_apple/test/testdata/provisioning/integration_testing_ios.mobileprovision) \
     app/profile.mobileprovision
   if [[ "${INCLUDE_DEBUGGER}" == "n" ]]; then
     sed -i'.original' -e '/get-task-allow/,+1 d' app/profile.mobileprovision
@@ -367,8 +288,8 @@ EOF
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
     do_build ios "$@" //app:app || fail "Should build"
-    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" | \
-        print_debug_entitlements - > "${TEST_TMPDIR}/dumped_entitlements"
+    unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" > "${TEST_TMPDIR}/binary"
+    print_debug_entitlements "${TEST_TMPDIR}/binary" "${TEST_TMPDIR}/dumped_entitlements"
 
     readonly FILE_TO_CHECK="${TEST_TMPDIR}/dumped_entitlements"
 
@@ -459,9 +380,9 @@ EOF
     do_build ios //app:app-with-hyphen || fail "Should build"
 
     unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
-        "Payload/app-with-hyphen.app/app-with-hyphen" | \
-        print_debug_entitlements - | \
-        grep -sq "<key>test-an-entitlement</key>" || \
+        "Payload/app-with-hyphen.app/app-with-hyphen" > "${TEST_TMPDIR}/binary"
+    print_debug_entitlements "${TEST_TMPDIR}/binary" "${TEST_TMPDIR}/dumped_entitlements"
+    grep -sq "<key>test-an-entitlement</key>" "${TEST_TMPDIR}/dumped_entitlements" || \
         fail "Failed to find custom entitlement"
   fi
 }
@@ -490,7 +411,7 @@ EOF
   ! do_build ios //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "@@\?//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 # Tests that applications can transitively depend on apple_resource_bundle, and
@@ -522,9 +443,9 @@ apple_resource_bundle(
     name = "appResources",
     resources = select({
         "@build_bazel_rules_apple//apple:ios_x86_64": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_i386": ["foo_sim.txt"],
-        "@build_bazel_rules_apple//apple:ios_armv7": ["foo_device.txt"],
         "@build_bazel_rules_apple//apple:ios_arm64": ["foo_device.txt"],
+        "@build_bazel_rules_apple//apple:ios_arm64e": ["foo_device.txt"],
+        "@build_bazel_rules_apple//apple:ios_sim_arm64": ["foo_sim.txt"],
     }),
 )
 EOF
@@ -545,126 +466,6 @@ EOF
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/appResources.bundle/foo_sim.txt"
   fi
-}
-
-# Tests that a prebuilt static framework (i.e., apple_static_framework_import)
-# is not bundled with the application.
-function test_prebuilt_static_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import static apple_static_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that it's not bundled.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Tests that the resources in the bundle of the static framework are copied to
-# the final ipa, and that they are not re-processed
-function test_prebuilt_static_apple_static_framework_import_resources() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import static apple_static_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that it's not converted to binary.
-  assert_plist_is_text "test-bin/app/app.ipa" \
-      "Payload/app.app/fmwk.bundle/Some.plist"
-}
-
-# Tests that a prebuilt dynamic framework (i.e., apple_dynamic_framework_import)
-# is bundled properly with the application.
-function test_prebuilt_dynamic_apple_framework_import_dependency() {
-  create_common_files
-  create_minimal_ios_application_with_framework_import dynamic apple_dynamic_framework_import
-
-  do_build ios //app:app || fail "Should build"
-
-  # Verify that the binary, plist, and resources are included.
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/fmwk"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Info.plist"
-  assert_zip_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/resource.txt"
-
-  # Verify that Headers and Modules directories are excluded.
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Headers/fmwk.h"
-  assert_zip_not_contains "test-bin/app/app.ipa" \
-      "Payload/app.app/Frameworks/fmwk.framework/Modules/module.modulemap"
-}
-
-# Helper for empty segment build id failures.
-function verify_build_fails_bundle_id_empty_segment_with_param() {
-  bundle_id_to_test="$1"; shift
-
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "${bundle_id_to_test}",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "Empty segment in bundle_id: \"${bundle_id_to_test}\""
-}
-
-# Test that invalid bundle ids fail a build.
-
-function test_build_fails_if_bundle_id_empty() {
-  verify_build_fails_bundle_id_empty_segment_with_param ""
-}
-
-function test_build_fails_if_bundle_id_just_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "."
-}
-
-function test_build_fails_if_bundle_id_leading_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param ".my.bundle.id"
-}
-
-function test_build_fails_if_bundle_id_trailing_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "my.bundle.id."
-}
-
-function test_build_fails_if_bundle_id_double_dot() {
-  verify_build_fails_bundle_id_empty_segment_with_param "my..bundle.id"
-}
-
-function test_build_fails_if_bundle_id_has_invalid_character() {
-  create_common_files
-
-  cat >> app/BUILD <<EOF
-ios_application(
-    name = "app",
-    bundle_id = "my#bundle",
-    families = ["iphone"],
-    infoplists = ["Info.plist"],
-    minimum_os_version = "${MIN_OS_IOS}",
-    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    deps = [":lib"],
-)
-EOF
-
-  ! do_build ios //app:app || fail "Should fail"
-  expect_log "Invalid character(s) in bundle_id: \"my#bundle\""
 }
 
 # Tests that the bundle name can be overridden to differ from the target name.

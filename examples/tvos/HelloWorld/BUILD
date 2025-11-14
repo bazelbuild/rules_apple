@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:tvos.bzl",
     "tvos_application",
@@ -20,6 +21,7 @@ objc_library(
     data = [
         "Resources/Main.storyboard",
     ],
+    tags = ["manual"],
 )
 
 apple_bundle_version(
@@ -32,7 +34,7 @@ tvos_application(
     app_icons = ["//examples/resources:TVBrandAssets.xcassets"],
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

@@ -15,17 +15,25 @@
 """tvos_framework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "binary_contents_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def tvos_framework_test_suite(name):
@@ -55,6 +63,49 @@ def tvos_framework_test_suite(name):
             "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    # Tests that the bundled .framework contains the expected files.
+    archive_contents_test(
+        name = "{}_contains_expected_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk",
+        contains = [
+            "$BUNDLE_ROOT/fmwk",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Headers/shared.h",
+        ],
+        tags = [name],
+    )
+
+    # Tests that the correct rpath was added at link-time to the framework's binary.
+    # The rpath should match the framework bundle name.
+    archive_contents_test(
+        name = "{}_binary_has_correct_rpath".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk",
+        contains = [
+            "$BUNDLE_ROOT/fmwk",
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Headers/shared.h",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/fmwk",
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+        ],
+        tags = [name],
+    )
+
+    # Tests that a tvos_framework builds fine without any version info
+    # since it isn't required.
+    infoplist_contents_test(
+        name = "{}_plist_test_with_no_version".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_no_version",
+        not_expected_keys = [
+            "CFBundleVersion",
+            "CFBundleShortVersionString",
+        ],
         tags = [name],
     )
 
@@ -214,6 +265,53 @@ def tvos_framework_test_suite(name):
         tags = [name],
     )
 
+    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
+    # at the top-level tvos_framework rule, and present through the 'dsysms' and 'linkmaps' output
+    # groups.
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Resources/DWARF/fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_arm64.linkmap",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_x86_64.linkmap",
+            "fmwk_with_resource_bundles_arm64.linkmap",
+            "fmwk_with_resource_bundles_x86_64.linkmap",
+            "fmwk_with_structured_resources_arm64.linkmap",
+            "fmwk_with_structured_resources_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
+    apple_dsym_bundle_info_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
+            "dSYMs/fmwk_with_structured_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     # Test that if a tvos_framework target depends on a prebuilt static library (i.e.,
     # apple_static_framework_import), that the static library is defined in the tvos_framework.
     binary_contents_test(
@@ -242,6 +340,15 @@ def tvos_framework_test_suite(name):
             "_OBJC_CLASS_$_SharedClass",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_runtime_framework_using_import_static_lib_dep",
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_base_bundle_id_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.fmwk-with-base-bundle-id-derived-bundle-id",
+        },
         tags = [name],
     )
 

@@ -6,6 +6,7 @@ licenses(["notice"])
 
 exports_files([
     "Launch.storyboard",
+    "Localizable.xcstrings",
 ])
 
 filegroup(
@@ -21,6 +22,11 @@ filegroup(
 filegroup(
     name = "TVBrandAssets.xcassets",
     srcs = glob(["TVBrandAssets.xcassets/**"]),
+)
+
+filegroup(
+    name = "VisionAppIcon.xcassets",
+    srcs = glob(["VisionAppIcon.xcassets/**"]),
 )
 
 filegroup(

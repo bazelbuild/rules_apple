@@ -14,8 +14,14 @@
 
 """apple_core_data_model Starlark tests."""
 
-load(":rules/analysis_target_actions_test.bzl", "analysis_target_actions_test")
-load(":rules/analysis_target_outputs_test.bzl", "analysis_target_outputs_test")
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
+)
 
 def apple_core_data_model_test_suite(name):
     """Test suite for apple_bundle_version.
@@ -52,6 +58,17 @@ def apple_core_data_model_test_suite(name):
         name = "{}_has_no_outputs_no_code_generation_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:no_code_generation_data_model",
         expected_outputs = [],
+        tags = [name],
+    )
+
+    # Test outputs a list of files rather than directories
+    analysis_target_outputs_test(
+        name = "{}_outputs_explicit_swift_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:explicit_outs_data_model",
+        expected_outputs = [
+            "swift_datamodel.explicit_outs_data_model.coredata.sources/swift_datamodel+CoreDataModel.swift",
+            "swift_datamodel.explicit_outs_data_model.coredata.sources/Item+CoreDataProperties.swift",
+        ],
         tags = [name],
     )
 

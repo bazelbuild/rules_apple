@@ -47,7 +47,6 @@ EOF
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
   CFBundleVersion = "1.0";
 }
@@ -81,7 +80,6 @@ function test_missing_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "XPC!";
   CFBundleShortVersionString = "1.0";
 }
 EOF
@@ -89,7 +87,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -102,7 +100,6 @@ function test_missing_short_version_fails() {
 {
   CFBundleIdentifier = "\${PRODUCT_BUNDLE_IDENTIFIER}";
   CFBundleName = "\${PRODUCT_NAME}";
-  CFBundlePackageType = "XPC!";
   CFBundleVersion = "1.0";
 }
 EOF
@@ -110,7 +107,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:ios.bzl",
     "ios_application",
@@ -27,7 +28,7 @@ ios_application(
     bundle_id = "com.example.prenot-calculator",
     families = ["iphone"],
     infoplists = ["PrenotCalculator-Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     deps = [":PrenotCalculator_library"],
 )
 
@@ -50,6 +51,7 @@ objc_library(
         ":PrenotCalculatorResources",
     ],
     sdk_frameworks = ["CoreData"],
+    tags = ["manual"],
 )
 
 apple_resource_bundle(
@@ -59,9 +61,11 @@ apple_resource_bundle(
 
 objc_library(
     name = "PrenotCalculatorTestsLib",
+    testonly = True,
     srcs = [
         "EquationTest.m",
     ],
+    tags = ["manual"],
     deps = [
         ":PrenotCalculator_library",
     ],
@@ -69,7 +73,7 @@ objc_library(
 
 ios_unit_test(
     name = "PrenotCalculatorTests",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     deps = [":PrenotCalculatorTestsLib"],
 )
 

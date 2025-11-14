@@ -1,3 +1,4 @@
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple_static_library.bzl",
     "apple_static_library",
@@ -10,7 +11,7 @@ load(
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -63,4 +64,12 @@ apple_static_library(
     platform_type = "ios",
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:StaticFmwkCcUpperLib"],
+)
+
+apple_static_library(
+    name = "example_vision_library",
+    minimum_os_version = common.min_os_visionos.baseline,
+    platform_type = "visionos",
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
 )

@@ -1,9 +1,11 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("//apple:ios.bzl", "ios_application")
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
 )
+load("//apple:xcarchive.bzl", "xcarchive")
 
 licenses(["notice"])
 
@@ -17,6 +19,7 @@ objc_library(
     data = [
         "Resources/Main.storyboard",
     ],
+    tags = ["manual"],
 )
 
 apple_bundle_version(
@@ -34,7 +37,7 @@ ios_application(
     ],
     infoplists = [":Info.plist"],
     launch_storyboard = "//examples/resources:Launch.storyboard",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )
@@ -44,4 +47,10 @@ ios_application(
 build_test(
     name = "ExamplesBuildTest",
     targets = [":HelloWorld"],
+)
+
+# Example using xcarchive rule to create an .xcarchive bundle.
+xcarchive(
+    name = "HelloWorld.xcarchive",
+    bundle = ":HelloWorld",
 )

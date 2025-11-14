@@ -50,6 +50,7 @@ import errno
 import filecmp
 import json
 import os
+import shlex
 import shutil
 import sys
 import zipfile
@@ -138,6 +139,8 @@ class Bundler(object):
       self._add_files(f['src'], f['dest'], f.get('executable', False),
                       output_path)
 
+    os.chmod(output_path, 0o755)
+
     post_processor = self._control.get('post_processor')
     if post_processor:
       self._post_process_bundle(output_path, post_processor)
@@ -172,7 +175,7 @@ class Bundler(object):
       self._copy_file(src, dest, executable, bundle_root)
 
   def _add_zip_contents(self, src, dest, bundle_root):
-    """Adds the contents of another ZIP file to the bundle.
+    """Adds the contents of another ZIP file/App to the bundle.
 
     Args:
       src: The path to the file or directory that should be added.
@@ -182,19 +185,30 @@ class Bundler(object):
       bundle_root: The bundle root directory into which the files should be
           added.
     """
-    with zipfile.ZipFile(src, 'r') as src_zip:
-      for src_zipinfo in src_zip.infolist():
-        # Normalize the destination path to remove any extraneous internal
-        # slashes or "." segments, but retain the final slash for directory
-        # entries.
-        file_dest = os.path.normpath(os.path.join(dest, src_zipinfo.filename))
-        if src_zipinfo.filename.endswith('/'):
-          continue
+    # Some bundle_zip entries may be bundled apps which are nested
+    # into the current bundle.
+    _, ext = os.path.splitext(src)
+    if ext == ".app":
+        # If so, we can just copy those into the expected location
+        # without any additional processing
+        app_name = os.path.basename(src)
+        shutil.copytree(src, os.path.join(bundle_root, dest, app_name))
+    else:
+        with zipfile.ZipFile(src, "r") as src_zip:
+            for src_zipinfo in src_zip.infolist():
+                # Normalize the destination path to remove any extraneous internal
+                # slashes or "." segments, but retain the final slash for directory
+                # entries.
+                file_dest = os.path.normpath(
+                    os.path.join(dest, src_zipinfo.filename)
+                )
+                if src_zipinfo.filename.endswith("/"):
+                    continue
 
-        # Check for Unix --x--x--x permissions.
-        executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
-        data = src_zip.read(src_zipinfo)
-        self._write_entry(file_dest, data, executable, bundle_root)
+                # Check for Unix --x--x--x permissions.
+                executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
+                data = src_zip.read(src_zipinfo)
+                self._write_entry(file_dest, data, executable, bundle_root)
 
   def _copy_file(self, src, dest, executable, bundle_root):
     """Copies a file into the bundle.
@@ -276,7 +290,7 @@ class Bundler(object):
     # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
-    exit_code = os.system('TREE_ARTIFACT_OUTPUT=%s %s "%s"' %
+    exit_code = os.system('TREE_ARTIFACT_OUTPUT="%s" %s "%s"' %
                           (bundle_root, post_processor, work_dir))
     if exit_code:
       raise PostProcessorError(exit_code)
@@ -287,9 +301,11 @@ class Bundler(object):
     Args:
       bundle_root: The path to the bundle.
       command_lines: A newline-separated list of command lines that should be
-          executed in the bundle to sign it.
+        executed in the bundle to sign it.
     """
-    exit_code = os.system('WORK_DIR=%s\n%s' % (bundle_root, command_lines))
+    exit_code = os.system(
+        'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
+    )
     if exit_code:
       raise CodeSignError(exit_code)
 

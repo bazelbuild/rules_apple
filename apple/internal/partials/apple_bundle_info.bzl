@@ -15,16 +15,16 @@
 """Partial implementation for the AppleBundleInfo provider."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
+)
+load(
+    "//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-)
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "//apple/internal:providers.bzl",
+    "new_applebundleinfo",
 )
 
 def _apple_bundle_info_partial_impl(
@@ -40,15 +40,19 @@ def _apple_bundle_info_partial_impl(
         output_discriminator,
         platform_prerequisites,
         predeclared_outputs,
-        product_type):
+        product_type,
+        rule_descriptor):
     """Implementation for the AppleBundleInfo processing partial."""
 
     archive = outputs.archive(
         actions = actions,
         bundle_name = bundle_name,
         bundle_extension = bundle_extension,
+        label_name = label_name,
+        output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
     archive_root = outputs.root_path_from_archive(archive = archive)
 
@@ -71,7 +75,7 @@ def _apple_bundle_info_partial_impl(
 
     return struct(
         providers = [
-            AppleBundleInfo(
+            new_applebundleinfo(
                 archive = archive,
                 archive_root = archive_root,
                 binary = binary,
@@ -104,7 +108,8 @@ def apple_bundle_info_partial(
         output_discriminator = None,
         platform_prerequisites,
         predeclared_outputs,
-        product_type):
+        product_type,
+        rule_descriptor):
     """Constructor for the AppleBundleInfo processing partial.
 
     This partial propagates the AppleBundleInfo provider for this target.
@@ -125,6 +130,7 @@ def apple_bundle_info_partial(
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       product_type: Product type identifier used to describe the current bundle type.
+      rule_descriptor: The rule descriptor for the given rule.
 
     Returns:
       A partial that returns the AppleBundleInfo provider.
@@ -135,7 +141,7 @@ def apple_bundle_info_partial(
         bundle_id = bundle_id,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        executable_name = executable_name,
+        executable_name = executable_name or bundle_name,
         extension_safe = extension_safe,
         entitlements = entitlements,
         label_name = label_name,
@@ -143,4 +149,5 @@ def apple_bundle_info_partial(
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         product_type = product_type,
+        rule_descriptor = rule_descriptor,
     )

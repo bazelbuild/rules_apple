@@ -15,8 +15,8 @@
 """Dummy test runner rule. Does not actually run tests."""
 
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunnerInfo",
+    "//apple:providers.bzl",
+    "apple_provider",
 )
 
 def _dummy_test_runner_impl(ctx):
@@ -27,7 +27,7 @@ def _dummy_test_runner_impl(ctx):
     )
 
     return [
-        AppleTestRunnerInfo(
+        apple_provider.make_apple_test_runner_info(
             test_runner_template = ctx.outputs.test_runner_template,
         ),
         DefaultInfo(
@@ -39,7 +39,7 @@ dummy_test_runner = rule(
     _dummy_test_runner_impl,
     attrs = {
         "_test_template": attr.label(
-            default = Label("@build_bazel_rules_apple//test/testdata/rules:dummy_test_runner.template"),
+            default = Label("//test/testdata/rules:dummy_test_runner.template"),
             allow_single_file = True,
         ),
     },

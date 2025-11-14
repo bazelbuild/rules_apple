@@ -1,12 +1,12 @@
+matrix:
+  bazel: ["7.x", "rolling"]
+
 tasks:
   verify_targets:
     name: Verify build targets
-    platform: macos
+    platform: macos_arm64
+    bazel: ${{ bazel }}
     test_targets:
-    - '@rules_apple//examples/...'
-    # TODO(balestrapatrick): Re-enable these tests as soon as xctestrunner is bzlmod-compatible.
-    - '-@rules_apple//examples/ios/Squarer:SquarerTests'
-    - '-@rules_apple//examples/ios/PrenotCalculator:PrenotCalculatorTests'
-    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsUITests'
-    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsTests'
-    - '-@rules_apple//examples/multi_platform/Buttons:ButtonsLogicTests'
+      - '@rules_apple//examples/macos/CommandLine:ExamplesBuildTest'
+    test_flags:
+    - "--repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1"

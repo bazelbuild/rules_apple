@@ -15,75 +15,89 @@
 """Helper methods for implementing the test bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
-    "linking_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleExtraOutputsInfo",
-    "AppleTestInfo",
+    "@bazel_skylib//lib:types.bzl",
+    "types",
 )
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
-    "@bazel_skylib//lib:types.bzl",
-    "types",
+    "//apple:providers.bzl",
+    "AppleBundleInfo",
+    "AppleTestInfo",
+)
+load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
+    "//apple/internal:bundling_support.bzl",
+    "bundling_support",
+)
+load(
+    "//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
+    "//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:linking_support.bzl",
+    "linking_support",
+)
+load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
+    "//apple/internal:partials.bzl",
+    "partials",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "AppleExecutableBinaryInfo",
+    "new_appleextraoutputsinfo",
+    "new_appletestinfo",
+)
+load(
+    "//apple/internal:resources.bzl",
+    "resources",
+)
+load(
+    "//apple/internal:rule_support.bzl",
+    "rule_support",
+)
+load(
+    "//apple/internal:swift_support.bzl",
+    "swift_support",
+)
+load(
+    "//apple/internal/utils:clang_rt_dylibs.bzl",
+    "clang_rt_dylibs",
+)
+load(
+    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
+    "main_thread_checker_dylibs",
 )
 
 # Default test bundle ID for tests that don't have a test host or were not given
@@ -173,7 +187,7 @@ def _apple_test_info_aspect_impl(target, ctx):
     non_arc_sources = _collect_files(ctx.rule.attr, ["non_arc_srcs"])
     sources = _collect_files(ctx.rule.attr, ["srcs", "hdrs", "textual_hdrs"])
 
-    return [AppleTestInfo(
+    return [new_appletestinfo(
         includes = depset(transitive = includes),
         module_maps = depset(transitive = module_maps),
         non_arc_sources = non_arc_sources,
@@ -229,7 +243,7 @@ def _apple_test_info_provider(deps, test_bundle, test_host):
         if len(module_names) == 1:
             module_name = module_names[0]
 
-    return AppleTestInfo(
+    return new_appletestinfo(
         deps = depset(dep_labels),
         includes = depset(transitive = transitive_includes),
         module_maps = depset(transitive = transitive_module_maps),
@@ -243,6 +257,7 @@ def _apple_test_info_provider(deps, test_bundle, test_host):
 
 def _computed_test_bundle_id(test_host_bundle_id):
     """Compute a test bundle ID from the test host, or a default if not given."""
+
     if test_host_bundle_id:
         bundle_id = test_host_bundle_id + "Tests"
     else:
@@ -257,12 +272,28 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(ctx):
+def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
-    if ctx.attr.bundle_id:
-        bundle_id = ctx.attr.bundle_id
+
+    rule_descriptor = rule_support.rule_descriptor(
+        platform_type = ctx.attr.platform_type,
+        product_type = product_type,
+    )
+    bundle_name, bundle_extension = bundling_support.bundle_full_name(
+        custom_bundle_name = ctx.attr.bundle_name,
+        label_name = ctx.label.name,
+        rule_descriptor = rule_descriptor,
+    )
+    if ctx.attr.base_bundle_id or ctx.attr.bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
     else:
         bundle_id = _computed_test_bundle_id(test_host_bundle_id)
 
@@ -274,19 +305,32 @@ def _apple_test_bundle_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bundle_name, bundle_extension = bundling_support.bundle_full_name_from_rule_ctx(ctx)
-    executable_name = bundling_support.executable_name(ctx)
-    config_vars = ctx.var
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites_from_rule_ctx(ctx)
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        # iOS test bundles set `families` as a mandatory attr, other Apple OS test bundles do not
+        # have a `families` rule attr.
+        device_families = getattr(ctx.attr, "families", rule_descriptor.allowed_device_families),
+        explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
+        explicit_minimum_os = ctx.attr.minimum_os_version,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        platform_type_string = ctx.attr.platform_type,
+        uses_swift = swift_support.uses_swift(ctx.attr.deps),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
-    rule_descriptor = rule_support.rule_descriptor(ctx)
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
@@ -296,20 +340,36 @@ def _apple_test_bundle_impl(ctx):
         res_attrs = ["resources"],
     )
 
-    # For unit tests, only pass the test host as the bundle's loader if it
-    # propagates `AppleExecutableBinary`, meaning that it's a binary that
-    # *we* built. Test hosts with stub binaries (like a watchOS app) won't
-    # have this. (For UI tests, the test host is never passed as the bundle
-    # loader, because the host application is loaded out-of-process.)
+    # For unit tests, only pass the test host as the bundle's loader if it propagates
+    # `AppleExecutableBinary`, meaning that it's a binary that *we* built. Test hosts with stub
+    # binaries (like a non-single target watchOS app) won't have this. (For UI tests, the test host
+    # is never passed as the bundle loader, because the host application is loaded out-of-process.)
     if (
         rule_descriptor.product_type == apple_product_type.unit_test_bundle and
-        test_host and apple_common.AppleExecutableBinary in test_host
+        test_host and AppleExecutableBinaryInfo in test_host and
+        ctx.attr.test_host_is_bundle_loader
     ):
         bundle_loader = test_host
     else:
         bundle_loader = None
 
-    extra_linkopts = ["-bundle"]
+    extra_linkopts = [
+        "-Xlinker",
+        "-needed_framework",
+        "-Xlinker",
+        "XCTest",
+        "-framework",
+        "XCTest",
+        "-bundle",
+    ]
+
+    if any([_is_swift_target(dep) for dep in ctx.attr.deps]):
+        extra_linkopts.extend([
+            "-Xlinker",
+            "-needed-lXCTestSwiftSupport",
+            "-lXCTestSwiftSupport",
+        ])
+
     extra_link_inputs = []
 
     if "apple.swizzle_absolute_xcttestsourcelocation" in features:
@@ -330,13 +390,16 @@ def _apple_test_bundle_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
-        extra_linkopts = extra_linkopts,
+        exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
@@ -350,9 +413,12 @@ def _apple_test_bundle_impl(ctx):
         debug_dependencies.append(test_host)
 
     if hasattr(ctx.attr, "frameworks"):
-        targets_to_avoid = list(ctx.attr.frameworks)
+        frameworks = list(ctx.attr.frameworks)
+        targets_to_avoid = frameworks
+        debug_dependencies.extend(frameworks)
     else:
         targets_to_avoid = []
+
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 
@@ -369,6 +435,7 @@ def _apple_test_bundle_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_descriptor = rule_descriptor,
         ),
         partials.binary_partial(
             actions = actions,
@@ -386,6 +453,28 @@ def _apple_test_bundle_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
+        partials.codesigning_dossier_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            entitlements = None,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ),
+        partials.main_thread_checker_dylibs_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            binary_artifact = binary_artifact,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
+        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -394,8 +483,12 @@ def _apple_test_bundle_impl(ctx):
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
+            label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
+            plisttool = apple_mac_toolchain_info.plisttool,
+            rule_label = label,
+            version = ctx.attr.version,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -457,7 +550,6 @@ def _apple_test_bundle_impl(ctx):
         bundle_name = bundle_name,
         codesign_inputs = ctx.files.codesign_inputs,
         codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-        executable_name = executable_name,
         features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
@@ -473,9 +565,13 @@ def _apple_test_bundle_impl(ctx):
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        label_name = label.name,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
+
+    dsyms = outputs.dsyms(processor_result = processor_result)
 
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
@@ -497,7 +593,7 @@ def _apple_test_bundle_impl(ctx):
         output = ctx.outputs.test_bundle_output,
     )
 
-    if is_experimental_tree_artifact_enabled(config_vars = config_vars):
+    if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
         test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output
@@ -516,8 +612,13 @@ def _apple_test_bundle_impl(ctx):
             ctx,
             dependency_attributes = ["deps", "test_host"],
         ),
-        AppleExtraOutputsInfo(files = depset(filtered_outputs)),
-        DefaultInfo(files = output_files),
+        new_appleextraoutputsinfo(files = depset(filtered_outputs)),
+        DefaultInfo(
+            files = output_files,
+            runfiles = ctx.runfiles(
+                transitive_files = dsyms,
+            ),
+        ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,

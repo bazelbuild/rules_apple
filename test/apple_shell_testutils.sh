@@ -30,7 +30,7 @@ export MIN_OS_TVOS_NPLUS1="13.0"
 export MIN_OS_MACOS="10.13"
 export MIN_OS_MACOS_NPLUS1="10.14"
 
-export MIN_OS_WATCHOS="4.0"
+export MIN_OS_WATCHOS="7.0"
 
 # Usage: assert_exists <path>
 #
@@ -180,7 +180,7 @@ function create_dump_plist() {
 genrule(
     name = "dump_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = [
 EOF
 
@@ -252,7 +252,7 @@ function create_whole_dump_plist() {
 genrule(
     name = "dump_whole_plist${SUFFIX}",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["dump_whole_plist${SUFFIX}.txt"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
@@ -294,7 +294,7 @@ function create_dump_codesign() {
 genrule(
     name = "dump_codesign",
     srcs = ["${zip_label}"],
-    testonly = 1,
+    testonly = True,
     outs = ["codesign_output"],
     cmd =
         "INPUTS=\"\$(locations ${zip_label})\" ;" +
@@ -315,7 +315,7 @@ EOF
 # Asserts that the given bundle path is properly codesigned.
 function assert_is_codesigned() {
   local bundle="$1"
-  CODESIGN_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
+  CODESIGN_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_output.XXXXXX")"
 
   codesign -vvvv "$bundle" &> "$CODESIGN_OUTPUT" || echo "Should not fail"
 
@@ -343,7 +343,7 @@ function assert_frameworks_not_resigned_given_output() {
   fi
 
   if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
-    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
+    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_fmwks_output.XXXXXX")"
 
     for fmwk in \
         $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
@@ -357,14 +357,21 @@ function assert_frameworks_not_resigned_given_output() {
 }
 
 
-# Usage: current_archs <platform>
+# Usage: current_archs <platform> <keep_sim_string>
 #
 # Prints the architectures for the given platform that were specified in the
 # configuration used to run the current test. For multiple architectures, the
 # values will be printed on separate lines; the output here is typically meant
 # to be captured into an array.
+#
+# `platform` should be a label for an apple platform type we want to get the
+# list of available architectures from, such as "ios".
+#
+# `keep_sim_string` should be a boolean to indicate if we want to keep the
+# "sim_" substrings in the architecture results. This is false by default.
 function current_archs() {
   local platform="$1"
+  local keep_sim_string="${2:-false}"
   if [[ "$platform" == ios ]]; then
     # Fudge the ios platform name to match the expected command line option.
     platform=ios_multi
@@ -373,7 +380,12 @@ function current_archs() {
   for option in "${EXTRA_BUILD_OPTIONS[@]-}"; do
     case "$option" in
       --"${platform}"_cpus=*)
-        value="$(echo "$option" | cut -d= -f2)"
+        if [[ "$keep_sim_string" = true ]]; then
+          value="$(echo "$option" | cut -d= -f2)"
+        else
+          # Eliminate `sim_` prefixes from `cpu`s as it is not part of the arch.
+          value="$(echo "$option" | cut -d= -f2 | sed -e 's/sim_//g' -e 's/device_//g')"
+        fi
         echo "$value" | tr "," "\n"
         return
         ;;
@@ -457,18 +469,9 @@ function do_action() {
       # Used so that if there's a single configuration transition, its output
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
-      # TODO: Fix the tests that fail with this flag and remove this.
-      "--incompatible_unambiguous_label_stringification=false"
-      "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
-      "--crosstool_top=@local_config_apple_cc//:toolchain"
-      "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      "--enable_bzlmod"
+      "--ios_simulator_device=iPhone 16"
   )
-
-  local bazel_version="$(bazel --version)"
-  local bazel_major_version="$(echo "${bazel_version#bazel }" | cut -f1 -d.)"
-  if [[ ( "${bazel_major_version}" != "no_version" ) && ( "${bazel_major_version}" -lt 4 ) ]]; then
-	bazel_options+=("--incompatible_objc_compile_info_migration")
-  fi
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then
     local -a sdk_options=("--xcode_version=$XCODE_VERSION_FOR_TESTS")
@@ -507,29 +510,31 @@ function do_action() {
 # under multiple configurations.
 function is_device_build() {
   local platform="$1"
-  local archs="$(current_archs "$platform")"
+  local archs="$(current_archs "$platform" true)"
 
   # For simplicity, we just test the entire architecture list string and assume
   # users aren't writing tests with multiple incompatible architectures.
+  #
+  # This just happens to work given our current formatting for simulator archs
+  # which are `arm`, as when passed as arguments to Apple multi CPU flags, they
+  # will be of the form `sim_arm64` instead of `arm64`.
   [[ "$platform" == macos ]] || [[ "$archs" == arm* ]]
 }
 
 
-# Usage: print_debug_entitlements <binary_path>
+# Usage: print_debug_entitlements <binary_path> <output>
 #
-# Extracts and prints the debug entitlements from the appropriate Mach-O
-# section of the given binary.
+# Extracts and prints the debug entitlements from the the given binary
+# using segedit.
 function print_debug_entitlements() {
   local binary="$1"
-
-  # This monstrosity uses objdump to dump the hex content of the entitlements
-  # section, strips off the leading addresses (and ignores lines that don't
-  # look like hex), then runs it through `xxd` to turn the hex into ASCII.
-  # The results should be the entitlements plist text, which we can compare
-  # against.
-  xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$binary" | \
-      sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-          -e 'tx' -e 'd' -e ':x' | xxd -r -p
+  local output="$2"
+  local archs=($(lipo -archs "$binary"))
+  local thin_binary="tempdir/thin_binary"
+  mkdir -p tempdir
+  lipo -thin ${archs[0]} "$binary" -output "$thin_binary"
+  xcrun segedit "$thin_binary" -extract __TEXT __entitlements "$output"
+  rm -rf tempdir
 }
 
 
@@ -666,4 +671,44 @@ function assert_strings_is_text() {
   local archive="$1"
   local path_in_archive="$2"
   assert_plist_is_text "$archive" "$path_in_archive"
+}
+
+
+# Usage: assert_permissions_equal <file> <expected_permissions>
+#
+# Asserts a file (numerical) permissions from `file` are equal to an
+# expected (numerical) permissions.
+#
+# This functions allows two types of assertions:
+#
+#   1) Test using 'user', 'group', and 'other' permissions bits.
+#
+#     Example: 755 -> rwxr-xr-x
+#
+#   2) Test using all permissions bits:
+#     - file type bits.
+#     - sticky bit.
+#     - (user, group, and other) permissions bits.
+#
+#     Examples:
+#       120755 -> lrwxr-xr-x (symbolic link)
+#       100755 -> -rwxr-xr-x (regular file)
+#       40755 -> drwxr-xr-x (directory)
+function assert_permissions_equal() {
+  local file="$1"
+  local expected_permissions="$2"
+
+  local actual_permissions
+  # Check if the expected permissions string has 3 digits.
+  # If true, assertion will use user/group/other permissions bits.
+  # Otherwise assertion will use all permissions bits.
+  if [[ ${#expected_permissions} == 3 ]]; then
+    # Test using 'user', 'group', and 'other' permissions bits.
+    actual_permissions=$(stat -f "%Lp" "$file")
+  else
+    # Test using all permissions bits.
+    actual_permissions=$(stat -f "%p" "$file")
+  fi
+
+  assert_equals "$expected_permissions" "$actual_permissions"
 }

@@ -15,68 +15,157 @@
 """Implementation of tvOS test rules."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
-    "apple_test_rule_support",
+    "//apple:providers.bzl",
+    "AppleBundleInfo",
+    "TvosApplicationBundleInfo",
+    "TvosExtensionBundleInfo",
+    "TvosFrameworkBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_bundle_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
+    "//apple/internal:bundling_support.bzl",
+    "bundle_id_suffix_default",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "new_tvosxctestbundleinfo",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "//apple/internal:rule_factory.bzl",
     "rule_factory",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "TvosXcTestBundleInfo",
+    "//apple/internal:transition_support.bzl",
+    "transition_support",
 )
+load(
+    "//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "//apple/internal/aspects:resource_aspect.bzl",
+    "apple_resource_aspect",
+)
+load(
+    "//apple/internal/testing:apple_test_bundle_support.bzl",
+    "apple_test_bundle_support",
+)
+load(
+    "//apple/internal/testing:apple_test_rule_support.bzl",
+    "apple_test_rule_support",
+)
+
+_TVOS_TEST_HOST_PROVIDERS = [
+    [AppleBundleInfo, TvosApplicationBundleInfo],
+    [AppleBundleInfo, TvosExtensionBundleInfo],
+]
 
 def _tvos_ui_test_bundle_impl(ctx):
     """Implementation of tvos_ui_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        TvosXcTestBundleInfo(),
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.ui_test_bundle,
+    ) + [
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_unit_test_bundle_impl(ctx):
     """Implementation of tvos_unit_test."""
-    return apple_test_bundle_support.apple_test_bundle_impl(ctx) + [
-        TvosXcTestBundleInfo(),
+    return apple_test_bundle_support.apple_test_bundle_impl(
+        ctx = ctx,
+        product_type = apple_product_type.unit_test_bundle,
+    ) + [
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_ui_test_impl(ctx):
     """Implementation of tvos_ui_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
-        TvosXcTestBundleInfo(),
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        requires_dossiers = False,
+        test_type = "xcuitest",
+    ) + [
+        new_tvosxctestbundleinfo(),
     ]
 
 def _tvos_unit_test_impl(ctx):
     """Implementation of tvos_unit_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
-        TvosXcTestBundleInfo(),
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        requires_dossiers = False,
+        test_type = "xctest",
+    ) + [
+        new_tvosxctestbundleinfo(),
     ]
 
-# Declare it with an underscore so it shows up that way in queries.
-_tvos_internal_ui_test_bundle = rule_factory.create_apple_bundling_rule(
+# Declare it with an underscore to hint that this is an implementation detail in bazel query-s.
+_tvos_internal_ui_test_bundle = rule_factory.create_apple_rule(
+    doc = "Builds and bundles an tvOS UI Test Bundle. Internal target not to be depended upon.",
     implementation = _tvos_ui_test_bundle_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.ui_test_bundle,
-    doc = "Builds and bundles an tvOS UI Test Bundle.  Internal target not to be depended upon.",
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+            is_mandatory = False,
+        ),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.ipa_post_processor_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+            supports_capabilities = False,
+        ),
+        rule_attrs.test_bundle_attrs(),
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            is_mandatory = True,
+            providers = _TVOS_TEST_HOST_PROVIDERS,
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
 tvos_internal_ui_test_bundle = _tvos_internal_ui_test_bundle
 
 tvos_ui_test = rule_factory.create_apple_test_rule(
-    implementation = _tvos_ui_test_impl,
     doc = """
 Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: tvOS UI tests are not currently supported in the default test runner.
 
@@ -84,27 +173,70 @@ The following is a list of the `tvos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
+    implementation = _tvos_ui_test_impl,
     platform_type = "tvos",
 )
 
 # Declare it with an underscore so it shows up that way in queries.
-_tvos_internal_unit_test_bundle = rule_factory.create_apple_bundling_rule(
-    implementation = _tvos_unit_test_bundle_impl,
-    platform_type = "tvos",
-    product_type = apple_product_type.unit_test_bundle,
+_tvos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     doc = "Builds and bundles an tvOS Unit Test Bundle. Internal target not to be depended upon.",
+    implementation = _tvos_unit_test_bundle_impl,
+    predeclared_outputs = {"archive": "%{name}.zip"},
+    attrs = [
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = True,
+            requires_legacy_cc_toolchain = True,
+        ),
+        rule_attrs.common_bundle_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
+        rule_attrs.common_tool_attrs(),
+        rule_attrs.device_family_attrs(
+            allowed_families = rule_attrs.defaults.allowed_families.tvos,
+            is_mandatory = False,
+        ),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.test_bundle_infoplist,
+        ),
+        rule_attrs.ipa_post_processor_attrs(),
+        rule_attrs.platform_attrs(
+            add_environment_plist = True,
+            platform_type = "tvos",
+        ),
+        rule_attrs.signing_attrs(
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
+            supports_capabilities = False,
+        ),
+        rule_attrs.test_bundle_attrs(),
+        rule_attrs.test_host_attrs(
+            aspects = rule_attrs.aspects.test_host_aspects,
+            providers = _TVOS_TEST_HOST_PROVIDERS,
+        ),
+        {
+            "frameworks": attr.label_list(
+                providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
+                doc = """
+A list of framework targets (see
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+that this target depends on.
+""",
+            ),
+        },
+    ],
 )
 
 # Alias to import it.
 tvos_internal_unit_test_bundle = _tvos_internal_unit_test_bundle
 
 tvos_unit_test = rule_factory.create_apple_test_rule(
-    implementation = _tvos_unit_test_impl,
     doc = """
 Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
-provided test runner when invoked with `bazel test`. When using Tulsi to run
-tests built with this target, `runner` will not be used since Xcode is the test
-runner in that case.
+provided test runner when invoked with `bazel test`.
 
 Note: tvOS unit tests are not currently supported in the default test runner.
 
@@ -120,5 +252,6 @@ The following is a list of the `tvos_unit_test` specific attributes; for a list
 of the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
 """,
+    implementation = _tvos_unit_test_impl,
     platform_type = "tvos",
 )

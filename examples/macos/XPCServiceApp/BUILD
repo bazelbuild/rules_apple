@@ -1,5 +1,9 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_xpc_service",
@@ -7,10 +11,6 @@ load(
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
 )
 
 licenses(["notice"])
@@ -42,7 +42,7 @@ macos_xpc_service(
     name = "XPCService",
     bundle_id = "com.example.xpc-service-app.xpc-service",
     infoplists = ["XPCServiceSources/Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":XPCServiceAppVersion",
     deps = [":XPCServiceLib"],
 )
@@ -52,7 +52,7 @@ macos_application(
     app_icons = ["//examples/resources:MacAppIcon.xcassets"],
     bundle_id = "com.example.xpc-service-app",
     infoplists = ["XPCServiceAppSources/Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":XPCServiceAppVersion",
     xpc_services = [":XPCService"],
     deps = [":XPCServiceAppLib"],

@@ -15,14 +15,6 @@
 """# Bazel rules for working with dtrace."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -30,10 +22,28 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load(
+    "//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
 
 def _dtrace_compile_impl(ctx):
     """Implementation for dtrace_compile."""
+    apple_fragment = ctx.fragments.apple
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
     output_hdrs = []
+    include_dir = None
+
+    dtrace = "/usr/sbin/dtrace"
+    if ctx.executable.dtrace:
+        dtrace = ctx.executable.dtrace
 
     for src in ctx.files.srcs:
         owner_relative_path = bundle_paths.owner_relative_path(src)
@@ -43,27 +53,51 @@ def _dtrace_compile_impl(ctx):
         )
         output_hdrs.append(hdr)
         apple_support.run(
-            ctx,
+            actions = ctx.actions,
+            xcode_config = xcode_config,
+            apple_fragment = apple_fragment,
             inputs = [src],
             outputs = [hdr],
             mnemonic = "dtraceCompile",
-            executable = "/usr/sbin/dtrace",
+            executable = dtrace,
             arguments = ["-h", "-s", src.path, "-o", hdr.path],
             progress_message = ("Compiling dtrace probes %s" % (src.basename)),
         )
 
-    return [DefaultInfo(files = depset(output_hdrs))]
+        if not include_dir:
+            hdr_suffix = paths.replace_extension("/" + owner_relative_path.lstrip("/"), ".h")
+            include_dir = hdr.path.removesuffix(hdr_suffix)
+
+    return [
+        apple_common.new_objc_provider(
+            strict_include = depset([include_dir]),
+        ),
+        CcInfo(
+            compilation_context = cc_common.create_compilation_context(
+                headers = depset(output_hdrs),
+            ),
+        ),
+        DefaultInfo(files = depset(output_hdrs)),
+    ]
 
 dtrace_compile = rule(
     implementation = _dtrace_compile_impl,
     attrs = dicts.add(apple_support.action_required_attrs(), {
+        "dtrace": attr.label(
+            doc = "dtrace binary to use.",
+            mandatory = False,
+            executable = True,
+            cfg = "exec",
+        ),
         "srcs": attr.label_list(
             allow_files = [".d"],
             allow_empty = False,
             doc = "dtrace(.d) source files to be compiled.",
         ),
     }),
-    output_to_genfiles = True,
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
     fragments = ["apple"],
     doc = """
 Compiles

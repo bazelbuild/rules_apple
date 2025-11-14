@@ -19,6 +19,9 @@ import re
 import subprocess
 import sys
 
+# LINT.IfChange
+_DEFAULT_TIMEOUT = 900
+
 
 def execute_and_filter_output(cmd_args,
                               filtering=None,
@@ -27,7 +30,7 @@ def execute_and_filter_output(cmd_args,
                               inputstr=None,
                               print_output=False,
                               raise_on_failure=False,
-                              timeout=900):
+                              timeout=_DEFAULT_TIMEOUT):
   """Execute a command with arguments, and suppress STDERR output.
 
   Args:
@@ -67,10 +70,14 @@ def execute_and_filter_output(cmd_args,
       stderr=subprocess.PIPE,
       env=env)
   try:
-    stdout, stderr = proc.communicate(input=inputstr, timeout=timeout)
+    stdout, stderr = proc.communicate(
+      input=inputstr,
+      timeout=timeout,
+    )
   except subprocess.TimeoutExpired:
-      proc.kill()
-      stdout, stderr = proc.communicate()
+    # Cleanup suggested by https://docs.python.org/3/library/subprocess.html
+    proc.kill()
+    stdout, stderr = proc.communicate()
 
   cmd_result = proc.returncode
 
@@ -104,8 +111,11 @@ def execute_and_filter_output(cmd_args,
     # like curly quotes.
     def _ensure_utf8_encoding(s):
       # Tests might hook sys.stdout/sys.stderr, so be defensive.
-      if (getattr(s, "encoding", "utf8") != "utf8" and
-          callable(getattr(s, "reconfigure", None))):
+      if (
+          getattr(s, "encoding", "utf8") != "utf8"
+          and callable(getattr(s, "reconfigure", None))
+          and isinstance(s, io.TextIOWrapper)
+      ):
         s.reconfigure(encoding="utf8")
 
     if stdout:
@@ -139,3 +149,4 @@ def _trim_paths(stdout):
 
   pattern = r"(/\w+)+/"
   return re.sub(pattern, replace_path, stdout)
+# LINT.ThenChange(../dossier_codesigningtool/dossier_codesigning_reader.py)

@@ -15,16 +15,28 @@
 """ios_framework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def ios_framework_test_suite(name):
@@ -398,7 +410,7 @@ def ios_framework_test_suite(name):
     archive_contents_test(
         name = "{}_static_framework_contains_swiftinterface".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_framework",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_framework_with_swiftinterface",
         contains = [
             "$BUNDLE_ROOT/Headers/swift_framework_lib.h",
             "$BUNDLE_ROOT/Modules/swift_framework_lib.swiftmodule/x86_64.swiftdoc",
@@ -610,6 +622,78 @@ def ios_framework_test_suite(name):
             "name @rpath/fmwk_with_fmwk.framework/fmwk_with_fmwk (offset 24)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_and_ext_with_objc_lib_with_nested_ios_framework",
+        tags = [name],
+    )
+
+    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
+    # at the top-level ios_framework rule, and present through the 'dsysms' and 'linkmaps' output
+    # groups.
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM/Contents/Resources/DWARF/fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle",
+            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
+            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version",
+            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
+            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_arm64.linkmap",
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data_x86_64.linkmap",
+            "fmwk_min_os_baseline_with_bundle_arm64.linkmap",
+            "fmwk_min_os_baseline_with_bundle_x86_64.linkmap",
+            "fmwk_no_version_arm64.linkmap",
+            "fmwk_no_version_x86_64.linkmap",
+            "fmwk_with_resources_arm64.linkmap",
+            "fmwk_with_resources_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
+    apple_dsym_bundle_info_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "dSYMs/fmwk_no_version.framework.dSYM",
+            "dSYMs/fmwk_with_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_base_bundle_id_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.fmwk-with-base-bundle-id-derived-bundle-id",
+        },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_ambiguous_base_bundle_id_derived_bundle_id_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_ambiguous_base_bundle_id_derived_bundle_id",
+        expected_error = """
+Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
+
+Please remove one of the two from your rule definition.
+""",
         tags = [name],
     )
 

@@ -21,19 +21,43 @@ load(
     "analysistest",
     "asserts",
 )
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 def _analysis_failure_message_test_impl(ctx):
     env = analysistest.begin(ctx)
     asserts.expect_failure(env, ctx.attr.expected_error)
     return analysistest.end(env)
 
-analysis_failure_message_test = analysistest.make(
-    _analysis_failure_message_test_impl,
-    expect_failure = True,
-    attrs = {
-        "expected_error": attr.string(
-            mandatory = True,
-            doc = "Text expected to see in the error output.",
-        ),
+def make_analysis_failure_message_test(*, config_settings = {}):
+    """Returns a new `analysis_failure_message_test`-like rule with custom configs.
+
+    Args:
+        config_settings: A dictionary of configuration settings and their values
+            that should be applied during tests.
+
+    Returns:
+        A rule returned by `analysistest.make` that has the
+        `analysis_failure_message_test` interface and the given config settings.
+    """
+    return analysistest.make(
+        _analysis_failure_message_test_impl,
+        expect_failure = True,
+        attrs = {
+            "expected_error": attr.string(
+                mandatory = True,
+                doc = "Text expected to see in the error output.",
+            ),
+        },
+        config_settings = config_settings,
+    )
+
+analysis_failure_message_test = make_analysis_failure_message_test()
+
+analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
     },
 )

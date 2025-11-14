@@ -1,15 +1,15 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
 )
 load(
     "//apple:versioning.bzl",
     "apple_bundle_version",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
 )
 
 licenses(["notice"])
@@ -32,7 +32,7 @@ macos_application(
     app_icons = ["//examples/resources:MacAppIcon.xcassets"],
     bundle_id = "com.example.hello-world-swift",
     infoplists = [":Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloWorldSwiftVersion",
     deps = [":Sources"],
 )

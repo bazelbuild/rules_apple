@@ -10,8 +10,17 @@ filegroup(
 )
 
 filegroup(
-    name = "ios_sim_template",
-    srcs = ["ios_sim.template.py"],
+    name = "apple_simulator_template",
+    srcs = ["apple_simulator.template.py"],
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "apple_device_template",
+    srcs = ["apple_device.template.py"],
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
@@ -27,10 +36,19 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "docc_preview_template",
+    srcs = ["docc_preview.template.sh"],
+    # Used by the rule implementations, so it needs to be public; but
+    # should be considered an implementation detail of the rules and
+    # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",

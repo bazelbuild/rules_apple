@@ -31,7 +31,7 @@ def _linkmap_test_impl(ctx):
     architectures = ctx.attr.architectures
 
     if not architectures:
-        architecture = [ctx.fragments.apple.single_arch_cpu]
+        architectures = ["arm64", "x86_64"]
 
     outputs = {
         x.short_path: None
@@ -72,7 +72,7 @@ linkmap_test = analysistest.make(
             default = [],
             doc = """
 List of architectures to verify for the given dSYM bundles as provided. Defaults to x86_64 for all
-platforms except for watchOS, which has a default of i386.
+platforms.
 """,
         ),
         "expected_linkmap_names": attr.string_list(
@@ -86,6 +86,11 @@ provided.
     },
     config_settings = {
         "//command_line_option:objc_generate_linkmap": "true",
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:visionos_cpus": "sim_arm64",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
     },
     fragments = ["apple"],
 )

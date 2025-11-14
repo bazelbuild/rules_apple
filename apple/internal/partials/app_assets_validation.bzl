@@ -15,17 +15,33 @@
 """Partial implementation for app assets validation."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
-    "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
-    "bundling_support",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
+load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+
+# Standard icon extensions as of Xcode 26 for most Apple platforms (iOS, macOS, watchOS).
+_STANDARD_ICONS = [".appiconset/", ".icon/"]
+
+# Valid icon extensions for specific product types that have exceptional requirements, independent
+# of platform.
+_VALID_ICON_EXTENSIONS_FOR_PRODUCT_TYPE = {
+    apple_product_type.messages_extension: [".stickersiconset/"],
+    apple_product_type.messages_sticker_pack_extension: [".stickersiconset/", ".stickerpack/", ".sticker/", ".stickersequence/"],
+}
+
+# Comprehensive list of all valid icon extensions for each platform. These cover apps, extensions,
+# app clips, and bundle types that can use icons.
+_VALID_ICON_EXTENSIONS_FOR_PLATFORM = {
+    "ios": _STANDARD_ICONS,
+    "macos": _STANDARD_ICONS,
+    "tvos": [".brandassets/"],
+    "watchos": _STANDARD_ICONS,
+    "visionos": [".solidimagestack/"],
+}
 
 def _app_assets_validation_partial_impl(
         *,
@@ -35,56 +51,49 @@ def _app_assets_validation_partial_impl(
         product_type):
     """Implementation for the app assets processing partial."""
 
+    # actool.bzl has the most comprehensive validations since it evaluates the final set of files
+    # before they are sent to actool. We only check here that the user is sending files that look
+    # like they could be app icons via an attribute named `app_icons`, and likewise for launch
+    # images.
+
     if app_icons:
-        if product_type == apple_product_type.messages_extension:
-            message = ("Message extensions must use Messages Extensions Icon Sets " +
-                       "(named .stickersiconset), not traditional App Icon Sets")
-            bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "stickersiconset",
-                message = message,
-            )
-        elif product_type == apple_product_type.messages_sticker_pack_extension:
-            path_fragments = [
-                # Replacement for appiconset.
-                ["xcstickers", "stickersiconset"],
-                # The stickers.
-                ["xcstickers", "stickerpack", "sticker"],
-                ["xcstickers", "stickerpack", "stickersequence"],
-            ]
-            message = (
-                "Message StickerPack extensions use an asset catalog named " +
-                "*.xcstickers. Their main icons use *.stickersiconset; and then " +
-                "under the Sticker Pack (*.stickerpack) goes the Stickers " +
-                "(named *.sticker) and/or Sticker Sequences (named " +
-                "*.stickersequence)"
-            )
-            bundling_support.ensure_path_format(
-                "app_icons",
-                app_icons,
-                path_fragments,
-                message = message,
-            )
-        elif platform_prerequisites.platform_type == apple_common.platform_type.tvos:
-            bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "brandassets",
-            )
-        else:
-            bundling_support.ensure_single_xcassets_type(
-                "app_icons",
-                app_icons,
-                "appiconset",
-            )
+        valid_icon_extensions = (
+            _VALID_ICON_EXTENSIONS_FOR_PRODUCT_TYPE.get(product_type, None) or
+            _VALID_ICON_EXTENSIONS_FOR_PLATFORM[str(platform_prerequisites.platform_type)]
+        )
+        for resource in app_icons:
+            resource_short_path = resource.short_path
+            possible_valid_icon = False
+            for valid_icon_extension in valid_icon_extensions:
+                if valid_icon_extension in resource_short_path:
+                    possible_valid_icon = True
+                    break
+            if (not possible_valid_icon and
+                not resource_short_path.endswith(".xcassets/Contents.json") and
+                not resource_short_path.endswith(".xcstickers/Contents.json")):
+                fail("""
+Found in app_icons a file that cannot be used as an app icon:
+{resource_short_path}
+
+Valid icon bundles for this target have the following extensions: {valid_icon_extensions}
+""".format(
+                    resource_short_path = resource_short_path,
+                    valid_icon_extensions = valid_icon_extensions,
+                ))
 
     if launch_images:
-        bundling_support.ensure_single_xcassets_type(
-            "launch_images",
-            launch_images,
-            "launchimage",
-        )
+        for resource in launch_images:
+            resource_short_path = resource.short_path
+            if (not ".launchimage/" in resource_short_path and
+                not resource_short_path.endswith(".xcassets/Contents.json")):
+                fail("""
+Found in launch_images a file that cannot be used as a launch image:
+{resource_short_path}
+
+All launch images must be in a directory named '*.launchimage' within an '*.xcassets' directory.
+""".format(
+                    resource_short_path = resource_short_path,
+                ))
 
     return struct()
 

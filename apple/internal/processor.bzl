@@ -44,13 +44,14 @@ Location types can be:
   - binary: Files are to be placed in the binary section of the bundle.
   - bundle: Files are to be placed at the root of the bundle.
   - content: Files are to be placed in the contents section of the bundle.
+  - extension: Files are to be placed in the Extensions section of the bundle.
   - framework: Files are to be placed in the Frameworks section of the bundle.
   - plugin: Files are to be placed in the PlugIns section of the bundle.
   - resources: Files are to be placed in the resources section of the bundle.
   - watch: Files are to be placed inside the Watch section of the bundle. Only applicable for iOS
     apps.
 
-For iOS, tvOS and watchOS, binary, content and resources all refer to the same
+For iOS, tvOS, visionOS, and watchOS, binary, content and resources all refer to the same
 location. Only in macOS these paths differ.
 
 All the files given will be symlinked into their expected location in the
@@ -63,40 +64,40 @@ rule.
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
+    "//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
+    "//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
+load(
+    "//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 # Location enum that can be used to tag files into their appropriate location
@@ -107,6 +108,7 @@ _LOCATION_ENUM = struct(
     binary = "binary",
     bundle = "bundle",
     content = "content",
+    extension = "extension",
     framework = "framework",
     plugin = "plugin",
     resource = "resource",
@@ -195,6 +197,10 @@ def _archive_paths(
         ),
         _LOCATION_ENUM.bundle: bundle_path,
         _LOCATION_ENUM.content: contents_path,
+        _LOCATION_ENUM.extension: paths.join(
+            contents_path,
+            rule_descriptor.bundle_locations.contents_relative_extensions,
+        ),
         _LOCATION_ENUM.framework: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_frameworks,
@@ -230,6 +236,7 @@ def _bundle_partial_outputs_files(
         extra_input_files = [],
         ipa_post_processor = None,
         label_name,
+        locales_to_include = [],
         output_discriminator,
         output_file,
         partial_outputs,
@@ -251,6 +258,7 @@ def _bundle_partial_outputs_files(
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: The name of the target being built.
+      locales_to_include: List of locales to bundle.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_file: The file where the final zipped bundle should be created.
@@ -263,7 +271,7 @@ def _bundle_partial_outputs_files(
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
     config_vars = platform_prerequisites.config_vars
-    requested_locales_flag = config_vars.get("apple.locales_to_include")
+    requested_locales_flag = locales_to_include or config_vars.get("apple.locales_to_include")
 
     trim_locales = defines.bool_value(
         config_vars = config_vars,
@@ -288,7 +296,7 @@ def _bundle_partial_outputs_files(
                             base_locales.append(locale)
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
 
     location_to_paths = _archive_paths(
@@ -391,7 +399,7 @@ def _bundle_partial_outputs_files(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     bundletool_inputs = input_files + [control_file] + extra_input_files
@@ -405,13 +413,13 @@ def _bundle_partial_outputs_files(
         # Since the tree artifact bundler also runs the post processor and codesigning, this
         # action needs to run on a macOS machine.
 
-        resolved_bundletool = apple_mac_toolchain_info.resolved_bundletool_experimental
+        bundletool = apple_mac_toolchain_info.bundletool_experimental
 
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
         # the experimental bundle tool script.
-        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
+        codesigningtool = apple_mac_toolchain_info.codesigningtool
 
-        bundling_tools = [resolved_bundletool.executable, resolved_codesigningtool.executable]
+        bundling_tools = [bundletool, codesigningtool]
         if post_processor:
             bundling_tools.append(post_processor)
 
@@ -421,7 +429,9 @@ def _bundle_partial_outputs_files(
             "no-sandbox": "1",
         }
 
-        if platform_prerequisites.platform.is_device and provisioning_profile:
+        if (codesigning_command and
+            platform_prerequisites.platform.is_device and
+            provisioning_profile):
             # Added so that the output of this action is not cached remotely,
             # in case multiple developers sign the same artifact with different
             # identities.
@@ -430,14 +440,9 @@ def _bundle_partial_outputs_files(
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            executable = resolved_bundletool.executable,
+            executable = bundletool,
             execution_requirements = execution_requirements,
-            inputs = depset(bundletool_inputs + codesign_inputs, transitive = [
-                resolved_bundletool.inputs,
-                resolved_codesigningtool.inputs,
-            ]),
-            input_manifests = resolved_bundletool.input_manifests +
-                              resolved_codesigningtool.input_manifests,
+            inputs = bundletool_inputs + codesign_inputs,
             mnemonic = "BundleTreeApp",
             progress_message = "Bundling, processing and signing %s" % label_name,
             tools = bundling_tools,
@@ -445,11 +450,10 @@ def _bundle_partial_outputs_files(
             **action_args
         )
     else:
-        resolved_bundletool = apple_xplat_toolchain_info.resolved_bundletool
+        bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
-            executable = resolved_bundletool.executable,
-            inputs = depset(bundletool_inputs, transitive = [resolved_bundletool.inputs]),
-            input_manifests = resolved_bundletool.input_manifests,
+            executable = bundletool,
+            inputs = bundletool_inputs,
             mnemonic = "BundleApp",
             progress_message = "Bundling %s" % label_name,
             **action_args
@@ -465,9 +469,9 @@ def _bundle_post_process_and_sign(
         codesign_inputs,
         codesignopts,
         entitlements,
-        executable_name,
         features,
         ipa_post_processor,
+        locales_to_include,
         output_archive,
         output_discriminator,
         partial_outputs,
@@ -488,9 +492,9 @@ def _bundle_post_process_and_sign(
         codesign_inputs: Extra inputs needed for the `codesign` tool.
         codesignopts: Extra options to pass to the `codesign` tool.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-        executable_name: The name of the output executable.
         features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+        locales_to_include: List of locales to bundle.
         output_archive: The file representing the final bundled, post-processed and signed archive.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -503,7 +507,7 @@ def _bundle_post_process_and_sign(
         rule_label: The label of the target being analyzed.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        config_vars = platform_prerequisites.config_vars,
+        platform_prerequisites = platform_prerequisites,
     )
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,
@@ -528,7 +532,7 @@ def _bundle_post_process_and_sign(
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
-            codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool.executable,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
             features = features,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
@@ -550,6 +554,7 @@ def _bundle_post_process_and_sign(
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            locales_to_include = locales_to_include,
             output_discriminator = output_discriminator,
             output_file = output_archive,
             partial_outputs = partial_outputs,
@@ -563,8 +568,7 @@ def _bundle_post_process_and_sign(
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
-        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
-        # provider, is used by Tulsi for custom processing logic. (b/120221708)
+        # This output, is an intermediate artifact used for post processing, signing, etc.
         unprocessed_archive = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
@@ -579,6 +583,7 @@ def _bundle_post_process_and_sign(
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            locales_to_include = locales_to_include,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
             partial_outputs = partial_outputs,
@@ -597,6 +602,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
             codesign_inputs = codesign_inputs,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             codesignopts = codesignopts,
             entitlements = entitlements,
             features = features,
@@ -610,7 +616,6 @@ def _bundle_post_process_and_sign(
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
-            resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
@@ -624,7 +629,6 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
-                executable_name = executable_name,
                 label_name = rule_label.name,
                 rule_descriptor = rule_descriptor,
                 platform_prerequisites = platform_prerequisites,
@@ -655,6 +659,7 @@ def _bundle_post_process_and_sign(
                 embedding = True,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
+                locales_to_include = locales_to_include,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
@@ -667,6 +672,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
                 codesign_inputs = codesign_inputs,
+                codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 codesignopts = codesignopts,
                 entitlements = entitlements,
                 features = features,
@@ -680,7 +686,6 @@ def _bundle_post_process_and_sign(
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
-                resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
             )
@@ -696,9 +701,9 @@ def _process(
         codesign_inputs = [],
         codesignopts = [],
         entitlements = None,
-        executable_name,
         features,
-        ipa_post_processor,
+        ipa_post_processor = None,
+        locales_to_include = [],
         output_discriminator = None,
         partials,
         platform_prerequisites,
@@ -720,9 +725,9 @@ def _process(
       codesign_inputs: Extra inputs needed for the `codesign` tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-      executable_name: The name of the output executable.
       features: List of features enabled by the user. Typically from `ctx.features`.
-      ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+      ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
+      locales_to_include: List of locales to explicitly include in the bundle. Defaults tp `[]`.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       partials: The list of partials to process to construct the complete bundle.
@@ -747,8 +752,11 @@ def _process(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            label_name = rule_label.name,
+            output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
+            rule_descriptor = rule_descriptor,
         )
         _bundle_post_process_and_sign(
             actions = actions,
@@ -758,10 +766,10 @@ def _process(
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
             codesignopts = codesignopts,
-            executable_name = executable_name,
             entitlements = entitlements,
             features = features,
             ipa_post_processor = ipa_post_processor,
+            locales_to_include = locales_to_include,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
             partial_outputs = partial_outputs,

@@ -15,11 +15,40 @@
 """Low-level bundling name helpers."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
+    "//apple:providers.bzl",
+    "AppleBaseBundleIdInfo",
+    "AppleSharedCapabilityInfo",
 )
 
-def _bundle_full_name(*, custom_bundle_extension, custom_bundle_name, label_name, rule_descriptor):
+# Predeclared defaults for the suffix of a given bundle ID.
+#
+# These values are used internally for the rules that support the `bundle_id_suffix` attribute to
+# set the desired behavior, allowing for complex scenarios like allowing users to set empty strings
+# as the suffix without tripping over "falsey" values in Starlark, or sourcing the bundle_name
+# attribute.
+#
+# * `bundle_name`: Source the default bundle ID suffix from the evaluated bundle name.
+# * `no_suffix`: Derive the bundle ID entirely from the base bundle ID, omitting the suffix.
+# * `watchos_app`: Predeclared string for watchOS applications. This suffix is required.
+# * `watchos2_app_extension`: Predeclared string for watchOS 2 application extensions. This suffix
+#   is required.
+bundle_id_suffix_default = struct(
+    bundle_name = "bundle_name",  # Predeclared string with invalid bundle ID characters.
+    no_suffix = "_",  # Predeclared string with invalid bundle ID characters.
+    watchos_app = "watchkitapp",
+    watchos2_app_extension = "watchkitapp.watchkitextension",
+)
+
+def _bundle_full_name(
+        *,
+        custom_bundle_extension = None,
+        custom_bundle_name = None,
+        label_name,
+        rule_descriptor):
     """Returns a tuple containing information on the bundle file name.
 
     Args:
@@ -47,51 +76,226 @@ def _bundle_full_name(*, custom_bundle_extension, custom_bundle_name, label_name
 
     return (bundle_name, bundle_extension)
 
-def _bundle_full_name_from_rule_ctx(ctx):
-    """Returns a tuple containing information on the bundle file name based on the rule context."""
-    return _bundle_full_name(
-        custom_bundle_extension = getattr(ctx.attr, "bundle_extension", ""),
-        custom_bundle_name = getattr(ctx.attr, "bundle_name", None),
-        label_name = ctx.label.name,
-        rule_descriptor = rule_support.rule_descriptor(ctx),
-    )
-
-def _executable_name(ctx):
-    """Returns the executable name of the bundle.
-
-    The executable of the bundle is the value of the `executable_name`
-    attribute if it was given; if not, then the name of the `bundle_name`
-    attribute if it was given; if not, then the name of the target will be used
-    instead.
+def _preferred_bundle_suffix(*, bundle_id_suffix, bundle_name, suffix_default):
+    """Returns the preferred bundle_id_suffix from all sources of truth.
 
     Args:
-      ctx: The Starlark context.
+      bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
+      bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
+          suffix_default is `bundle_id_suffix_default.bundle_name`.
+      suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+          the rule attribute by default. This is to allow the user a full degree of customization
+          depending on the value for bundle_id_suffix they wish to specify.
 
     Returns:
-      The executable name.
+      A string representing the bundle ID suffix determined for the target that can be appended to
+      the target's base bundle ID.
     """
-    executable_name = getattr(ctx.attr, "executable_name", None)
-    if not executable_name:
-        (executable_name, _) = _bundle_full_name_from_rule_ctx(ctx)
-    return executable_name
+    if suffix_default == bundle_id_suffix:
+        if suffix_default == bundle_id_suffix_default.bundle_name:
+            return bundle_name
+        elif suffix_default == bundle_id_suffix_default.no_suffix:
+            return ""
+        else:
+            return suffix_default
+    else:
+        return bundle_id_suffix
 
-def _ensure_single_xcassets_type(attr, files, extension, message = None):
-    """Helper for when an xcassets catalog should have a single sub type.
+def _preferred_full_bundle_id(*, base_bundle_id, bundle_id_suffix, bundle_name, suffix_default):
+    """Returns the full bundle ID from a known base_bundle_id and other source of truth.
 
     Args:
-      attr: The attribute to associate with the build failure if the list of
-          files has an element that is not in a directory with the given
-          extension.
+      base_bundle_id: The `apple_base_bundle_id` target to dictate the form that a given bundle
+          rule's bundle ID prefix should take. Use this for rules that don't support capabilities
+          or entitlements. Optional.
+      bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
+      bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
+          suffix_default is `bundle_id_suffix_default.bundle_name`.
+      suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+          the rule attribute by default. This is to allow the user a full degree of customization
+          depending on the value for bundle_id_suffix they wish to specify.
+
+    Returns:
+      A string representing the bundle ID determined for the target.
+    """
+    preferred_bundle_suffix = _preferred_bundle_suffix(
+        bundle_id_suffix = bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = suffix_default,
+    )
+    if preferred_bundle_suffix:
+        return base_bundle_id + "." + preferred_bundle_suffix
+    else:
+        return base_bundle_id
+
+def _base_bundle_id_from_shared_capabilities(shared_capabilities):
+    """Returns the base_bundle_id found from a list of providers from apple_capability_set rules.
+
+    Args:
+      shared_capabilities: A list of shared `apple_capability_set` targets to represent the
+          capabilities that a code sign aware Apple bundle rule output should have. Use this for
+          rules that support capabilities and entitlements. Optional.
+
+    Returns:
+      A string representing the base bundle ID determined for the target.
+    """
+    base_bundle_id = ""
+    for capability_set in shared_capabilities:
+        capability_info = capability_set[AppleSharedCapabilityInfo]
+        if capability_info.base_bundle_id:
+            if not base_bundle_id:
+                base_bundle_id = capability_info.base_bundle_id
+            elif capability_info.base_bundle_id != base_bundle_id:
+                fail("""
+Error: Received conflicting base bundle IDs from more than one assigned Apple shared capability.
+
+Found \"{conflicting_base}\" which does not match previously defined \"{base_bundle_id}\".
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+""".format(
+                    base_bundle_id = base_bundle_id,
+                    conflicting_base = capability_info.base_bundle_id,
+                ))
+
+    return base_bundle_id
+
+def _bundle_full_id(
+        *,
+        base_bundle_id = None,
+        bundle_id,
+        bundle_id_suffix,
+        bundle_name,
+        suffix_default,
+        shared_capabilities = None):
+    """Returns the full bundle ID for a bundle rule output given all possible sources of truth.
+
+    Args:
+        base_bundle_id: The `apple_base_bundle_id` target to dictate the form that a given bundle
+            rule's bundle ID prefix should take. Use this for rules that don't support capabilities
+            or entitlements. Optional.
+        bundle_id: String. The full bundle ID to configure for this target. This will be used if the
+            target does not have a base_bundle_id or shared_capabilities set.
+        bundle_id_suffix: String. A target-provided suffix for the base bundle ID.
+        bundle_name: The preferred name of the bundle. Will be used to determine the suffix, if the
+            suffix_default is `bundle_id_suffix_default.bundle_name`.
+        suffix_default: String. A rule-specified string to indicate what the bundle ID suffix was on
+            the rule attribute by default. This is to allow the user a full degree of customization
+            depending on the value for bundle_id_suffix they wish to specify.
+        shared_capabilities: A list of shared `apple_capability_set` targets to represent the
+            capabilities that a code sign aware Apple bundle rule output should have. Use this for
+            rules that support capabilities and entitlements. Optional.
+
+    Returns:
+        A string representing the full bundle ID that has been determined for the target.
+    """
+    if base_bundle_id and shared_capabilities:
+        fail("""
+Internal Error: base_bundle_id should not be provided with shared_capabilities. Please file an issue
+on the Apple BUILD Rules.
+""")
+
+    if not base_bundle_id and not shared_capabilities:
+        # If there's no base_bundle_id or shared_capabilities, we must rely on bundle_id.
+        if bundle_id:
+            return bundle_id
+
+        fail("""
+Error: There are no attributes set on this target that can be used to determine a bundle ID.
+
+Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
+applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+""")
+
+    if base_bundle_id:
+        if bundle_id:
+            fail("""
+Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
+
+Please remove one of the two from your rule definition.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+""")
+
+        return _preferred_full_bundle_id(
+            base_bundle_id = base_bundle_id[AppleBaseBundleIdInfo].base_bundle_id,
+            bundle_id_suffix = bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = suffix_default,
+        )
+
+    capability_base_bundle_id = _base_bundle_id_from_shared_capabilities(shared_capabilities)
+
+    if not capability_base_bundle_id:
+        fail("""
+Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
+Found none.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+""")
+
+    if bundle_id:
+        fail("""
+Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining a `base_bundle_id`.
+
+This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
+`shared_capabilities` without a `base_bundle_id`.
+
+See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+""")
+
+    return _preferred_full_bundle_id(
+        base_bundle_id = capability_base_bundle_id,
+        bundle_id_suffix = bundle_id_suffix,
+        bundle_name = bundle_name,
+        suffix_default = suffix_default,
+    )
+
+def _ensure_asset_catalog_files_not_in_xcassets(
+        *,
+        extension,
+        files,
+        message = None):
+    """Validates that a subset of asset catalog files are not within an xcassets directory.
+
+    Args:
+      extension: The extension that should be used for the this particular asset that should never
+          be found within the xcassets directory.
       files: An iterable of files to use.
-      extension: The extension that should be used for the different asset
-          type witin the catalog.
+      message: A custom error message to use, the list of found files that were found in xcassets
+          directories will be printed afterwards.
+    """
+    _ensure_path_format(
+        files = files,
+        allowed_path_fragments = [],
+        denied_path_fragments = ["xcassets", extension],
+        message = message,
+    )
+
+def _ensure_single_xcassets_type(
+        *,
+        extension,
+        files,
+        message = None):
+    """Validates that asset catalog files are nested within an xcassets directory.
+
+    Args:
+      extension: The extension that should be used for the this particular asset within the xcassets
+          directory.
+      files: An iterable of files to use.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
     """
     if not message:
         message = ("Expected the xcassets directory to only contain files " +
                    "are in sub-directories with the extension %s") % extension
-    _ensure_path_format(attr, files, [["xcassets", extension]], message = message)
+    _ensure_path_format(
+        files = files,
+        allowed_path_fragments = ["xcassets", extension],
+        denied_path_fragments = [],
+        message = message,
+    )
 
 def _path_is_under_fragments(path, path_fragments):
     """Helper for _ensure_asset_types().
@@ -120,69 +324,85 @@ def _path_is_under_fragments(path, path_fragments):
 
     return True
 
-def _ensure_path_format(attr, files, path_fragments_list, message = None):
+def _ensure_path_format(
+        *,
+        files,
+        allowed_path_fragments,
+        denied_path_fragments,
+        message = None):
     """Ensure the files match the required path fragments.
 
-    TODO(b/77804841): The places calling this should go away and these types of
-    checks should be done during the resource processing. Right now these checks
-    are being wedged in at the attribute collection steps, and they then get
-    combined into a single list of resources; the bundling then resplits them
-    up in groups to process they by type. So the more validation/splitting done
-    here the slower things get (as double work is done). The bug is to revisit
-    all of this and instead pass through individual things in a structured way
-    so they don't have to be resplit. That would allow the validation to be
-    done while processing (in a single pass) instead.
-
     Args:
-      attr: The attribute to associate with the build failure if the list of
-          files has an element that is not in a directory with the given
-          extension.
       files: An iterable of files to use.
-      path_fragments_list: A list of lists, each inner lists is a sequence of
-          extensions that must be on the paths passed in (to ensure proper
-          nesting).
+      allowed_path_fragments: A list representing a sequence of extensions where each file path
+          passed in MUST MATCH the sequence to ensure proper nesting. If this is provided,
+          denied_path_fragments must be empty.
+      denied_path_fragments: A list representing a sequence of extensions where each file path
+          passed in MUST NOT MATCH the sequence to ensure proper nesting. If this is provided,
+          allowed_path_fragments must be empty.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
     """
 
-    formatted_path_fragments_list = []
-    for x in path_fragments_list:
-        formatted_path_fragments_list.append([".%s/" % y for y in x])
+    if allowed_path_fragments and denied_path_fragments:
+        fail("""
+Internal Error: Both allowed_path_fragments and denied_path_fragments were provided, but only one \
+of them should be provided.
 
-    # Just check that the paths include the expected nesting. More complete
-    # checks would likely be the number of outer directories with that suffix,
-    # the number of inner ones, extra directories segments where not expected,
-    # etc.
-    bad_paths = {}
+Please file an issue on the Apple BUILD Rules.
+""")
+
+    formatted_path_fragments = []
+    for x in allowed_path_fragments + denied_path_fragments:
+        formatted_path_fragments.append(".%s/" % x)
+    allow_path_under_fragments = bool(allowed_path_fragments)
+
+    bad_paths = sets.make()
     for f in files:
         path = f.path
+        if _path_is_under_fragments(path, formatted_path_fragments) != allow_path_under_fragments:
+            sets.insert(bad_paths, path)
 
-        was_good = False
-        for path_fragments in formatted_path_fragments_list:
-            if _path_is_under_fragments(path, path_fragments):
-                was_good = True
-                break  # No need to check other fragments
-
-        if not was_good:
-            bad_paths[path] = None
-
-    if len(bad_paths):
+    if sets.length(bad_paths):
         if not message:
-            as_paths = [
-                ("*" + "*".join(x) + "...")
-                for x in formatted_path_fragments_list
-            ]
-            message = "Expected only files inside directories named '*.%s'" % (
-                ", ".join(as_paths)
+            message_prefix = (
+                "Expected only " if allow_path_under_fragments else "Did not expect any "
             )
-        formatted_paths = "[\n  %s\n]" % ",\n  ".join(bad_paths.keys())
-        fail("%s, but found the following: %s" % (message, formatted_paths), attr)
+            as_path = "*" + "*".join(formatted_path_fragments) + "..."
+            message = message_prefix + "files inside directories named '*.%s'" % (as_path)
+
+        formatted_paths = "[\n  %s\n]" % ",\n  ".join(sets.to_list(bad_paths))
+        fail("%s, but found the following: %s" % (message, formatted_paths))
+
+def _validate_bundle_id(bundle_id):
+    """Ensure the value is a valid bundle it or fail the build.
+
+    Args:
+      bundle_id: The string to check.
+    """
+
+    # Make sure the bundle id seems like a valid one. Apple's docs for
+    # CFBundleIdentifier are all we have to go on, which are pretty minimal. The
+    # only they they specifically document is the character set, so the other
+    # two checks here are just added safety to catch likely errors by developers
+    # setting things up.
+    bundle_id_parts = bundle_id.split(".")
+    for part in bundle_id_parts:
+        if part == "":
+            fail("Empty segment in bundle_id: \"%s\"" % bundle_id)
+        if not part.isalnum():
+            # Only non alpha numerics that are allowed are '.' and '-'. '.' was
+            # handled by the split(), so just have to check for '-'.
+            for i in range(len(part)):
+                ch = part[i]
+                if ch not in ["-", "_"] and not ch.isalnum():
+                    fail("Invalid character(s) in bundle_id: \"%s\"" % bundle_id)
 
 # Define the loadable module that lists the exported symbols in this file.
 bundling_support = struct(
     bundle_full_name = _bundle_full_name,
-    bundle_full_name_from_rule_ctx = _bundle_full_name_from_rule_ctx,
-    ensure_path_format = _ensure_path_format,
+    bundle_full_id = _bundle_full_id,
+    ensure_asset_catalog_files_not_in_xcassets = _ensure_asset_catalog_files_not_in_xcassets,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
-    executable_name = _executable_name,
+    validate_bundle_id = _validate_bundle_id,
 )

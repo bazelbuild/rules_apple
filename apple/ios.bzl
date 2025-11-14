@@ -15,22 +15,7 @@
 """Bazel rules for creating iOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
-    "apple_test_assembler",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
-    "apple_build_test_rule",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:ios_rules.bzl",
-    _ios_internal_ui_test_bundle = "ios_internal_ui_test_bundle",
-    _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
-    _ios_ui_test = "ios_ui_test",
-    _ios_unit_test = "ios_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:ios_rules.bzl",
+    "//apple/internal:ios_rules.bzl",
     _ios_app_clip = "ios_app_clip",
     _ios_application = "ios_application",
     _ios_dynamic_framework = "ios_dynamic_framework",
@@ -40,6 +25,21 @@ load(
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
+)
+load(
+    "//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
+    "//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
+load(
+    "//apple/internal/testing:ios_rules.bzl",
+    _ios_internal_ui_test_bundle = "ios_internal_ui_test_bundle",
+    _ios_internal_unit_test_bundle = "ios_internal_unit_test_bundle",
+    _ios_ui_test = "ios_ui_test",
+    _ios_unit_test = "ios_unit_test",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
@@ -53,7 +53,7 @@ ios_sticker_pack_extension = _ios_sticker_pack_extension
 ios_imessage_extension = _ios_imessage_extension
 ios_static_framework = _ios_static_framework
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:ios_default_runner"
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:ios_default_runner"))
 
 def ios_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", None) or _DEFAULT_TEST_RUNNER

@@ -33,8 +33,10 @@ bzl_library(
         "//apple/internal:partials",
         "//apple/internal:platform_support",
         "//apple/internal:processor",
+        "//apple/internal:providers",
         "//apple/internal:resources",
         "//apple/internal:rule_support",
+        "//apple/internal:swift_support",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
         "@build_bazel_rules_swift//swift",
@@ -60,6 +62,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:providers",
         "//apple/internal:transition_support",
     ],
 )
@@ -75,7 +78,13 @@ bzl_library(
         ":apple_test_rule_support",
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
@@ -90,7 +99,13 @@ bzl_library(
         ":apple_test_rule_support",
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
@@ -105,7 +120,34 @@ bzl_library(
         ":apple_test_rule_support",
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
+    ],
+)
+
+bzl_library(
+    name = "visionos_rules",
+    srcs = ["visionos_rules.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_test_bundle_support",
+        ":apple_test_rule_support",
+        "//apple:providers",
+        "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
@@ -120,14 +162,20 @@ bzl_library(
         ":apple_test_rule_support",
         "//apple:providers",
         "//apple/internal:apple_product_type",
+        "//apple/internal:bundling_support",
+        "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:transition_support",
+        "//apple/internal/aspects:framework_provider_aspect",
+        "//apple/internal/aspects:resource_aspect",
     ],
 )
 
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",

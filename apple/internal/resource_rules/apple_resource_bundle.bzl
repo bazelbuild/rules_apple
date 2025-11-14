@@ -14,9 +14,10 @@
 
 """Implementation of apple_resource_bundle rule."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceBundleInfo",
+    "//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
 )
 
 def _apple_resource_bundle_impl(_ctx):
@@ -28,7 +29,7 @@ def _apple_resource_bundle_impl(_ctx):
         # TODO(b/122578556): Remove this ObjC provider instance.
         apple_common.new_objc_provider(),
         CcInfo(),
-        AppleResourceBundleInfo(),
+        new_appleresourcebundleinfo(),
     ]
 
 apple_resource_bundle = rule(
@@ -80,6 +81,19 @@ they will be placed in a directory of the same name in the app bundle.
 
 You can also add other `apple_resource_bundle` and `apple_bundle_import` targets into `resources`,
 and the resource bundle structures will be propagated into the final bundle.
+""",
+        ),
+        "strip_structured_resources_prefixes": attr.string_list(
+            doc = """
+A list of prefixes to strip from the paths of structured resources. For each
+structured resource, if the path starts with one of these prefixes, the first
+matching prefix will be removed from the path when the resource is placed in
+the bundle root. This is useful for removing intermediate directories from the
+resource paths.
+
+For example, if `structured_resources` contains `["intermediate/res/foo.png"]`,
+and `strip_structured_resources_prefixes` contains `["intermediate"]`,
+`res/foo.png` will end up inside the bundle.
 """,
         ),
         "structured_resources": attr.label_list(

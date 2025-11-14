@@ -1,3 +1,4 @@
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:dtrace.bzl",
     "dtrace_compile",
@@ -10,7 +11,7 @@ load(
 licenses(["notice"])
 
 package(
-    default_testonly = 1,
+    default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
 )
 
@@ -21,4 +22,11 @@ dtrace_compile(
         "folder2/probes.d",
     ],
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "dtrace_lib",
+    srcs = ["dtrace_test.m"],
+    tags = common.fixture_tags,
+    deps = [":dtrace"],
 )

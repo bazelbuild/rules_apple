@@ -15,28 +15,28 @@
 """Plist related actions."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 load(
     "@bazel_skylib//lib:shell.bzl",
     "shell",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple:providers.bzl",
+    "AppleBundleVersionInfo",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
 )
 
 def plisttool_action(
@@ -47,7 +47,7 @@ def plisttool_action(
         mnemonic = None,
         outputs,
         platform_prerequisites,
-        resolved_plisttool):
+        plisttool):
     """Registers an action that invokes `plisttool`.
 
     This function is a low-level helper that simply invokes `plisttool` with the given arguments.
@@ -61,15 +61,14 @@ def plisttool_action(
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
     """
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
-        executable = resolved_plisttool.files_to_run,
-        inputs = depset(inputs + [control_file], transitive = [resolved_plisttool.inputs]),
-        input_manifests = resolved_plisttool.input_manifests,
+        executable = plisttool,
+        inputs = inputs + [control_file],
         mnemonic = mnemonic,
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -120,7 +119,7 @@ def merge_resource_infoplists(
         output_discriminator,
         output_plist,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_label):
     """Merges a list of plist files for resource bundles with substitutions.
 
@@ -133,7 +132,7 @@ def merge_resource_infoplists(
           or `None`.
       output_plist: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
       rule_label: The label of the target being analyzed.
     """
     product_name = paths.replace_extension(bundle_name_with_extension, "")
@@ -169,7 +168,7 @@ def merge_resource_infoplists(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     plisttool_action(
@@ -179,7 +178,7 @@ def merge_resource_infoplists(
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = resolved_plisttool,
+        plisttool = plisttool,
     )
 
 def merge_root_infoplists(
@@ -188,10 +187,11 @@ def merge_root_infoplists(
         bundle_name,
         bundle_id = None,
         bundle_extension,
-        executable_name,
+        executable_name = None,
         child_plists = [],
         child_required_values = [],
         environment_plist,
+        extensionkit_keys_required = False,
         include_executable_name = True,
         input_plists,
         launch_storyboard,
@@ -199,7 +199,7 @@ def merge_root_infoplists(
         output_plist,
         output_pkginfo,
         platform_prerequisites,
-        resolved_plisttool,
+        plisttool,
         rule_descriptor,
         rule_label,
         version,
@@ -223,6 +223,8 @@ def merge_root_infoplists(
           pair, see plisttool's `child_plist_required_values`, as this is passed
           straight through to it.
       environment_plist: An executable file referencing the environment_plist tool.
+      extensionkit_keys_required: If True, the merged Info.plist file must include entries for
+          EXAppExtensionAttributes and EXExtensionPointIdentifier, and have no NSExtension key.
       include_executable_name: If True, the executable name will be added to
           the plist in the `CFBundleExecutable` key. This is mainly intended for
           plists embedded in a command line tool which don't need this value.
@@ -231,10 +233,10 @@ def merge_root_infoplists(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_pkginfo: The file reference for the PkgInfo file. Can be None if not
-        required.
+          required.
       output_plist: The file reference for the merged output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      resolved_plisttool: A struct referencing the resolved plist tool.
+      plisttool: A files_to_run for the plist tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
       version: A label referencing AppleBundleVersionInfo, if provided by the rule.
@@ -275,7 +277,8 @@ def merge_root_infoplists(
     # Info.plists out of the box coming from Xcode.
     substitutions["DEVELOPMENT_LANGUAGE"] = "en"
 
-    if include_executable_name and executable_name:
+    executable_name = executable_name or bundle_name
+    if include_executable_name:
         substitutions["EXECUTABLE_NAME"] = executable_name
         forced_plists.append(struct(CFBundleExecutable = executable_name))
 
@@ -297,6 +300,9 @@ def merge_root_infoplists(
         info_plist_options["child_plist_required_values"] = struct(
             **{str(p.owner): v for (p, v) in child_required_values}
         )
+
+    if extensionkit_keys_required:
+        info_plist_options["extensionkit_keys_required"] = True
 
     if (version != None and AppleBundleVersionInfo in version):
         version_info = version[AppleBundleVersionInfo]
@@ -335,19 +341,21 @@ def merge_root_infoplists(
     else:
         plist_key = "MinimumOSVersion"
 
-    input_files.append(environment_plist)
+    if environment_plist:
+        input_files.append(environment_plist)
+        forced_plists.append(environment_plist.path)
+
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     platform_with_version = platform.name_in_plist.lower() + str(sdk_version)
-    forced_plists.extend([
-        environment_plist.path,
+    forced_plists.append(
         struct(
             CFBundleSupportedPlatforms = [platform.name_in_plist],
             DTPlatformName = platform.name_in_plist.lower(),
             DTSDKName = platform_with_version,
             **{plist_key: platform_prerequisites.minimum_deployment_os}
         ),
-    ])
+    )
 
     output_files = [output_plist]
     if output_pkginfo:
@@ -372,7 +380,7 @@ def merge_root_infoplists(
     )
     actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
 
     plisttool_action(
@@ -382,5 +390,5 @@ def merge_root_infoplists(
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
         platform_prerequisites = platform_prerequisites,
-        resolved_plisttool = resolved_plisttool,
+        plisttool = plisttool,
     )

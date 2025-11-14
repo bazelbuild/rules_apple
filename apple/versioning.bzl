@@ -15,17 +15,17 @@
 """# Rules related to Apple bundle versioning."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "//apple/internal:providers.bzl",
+    "new_applebundleversioninfo",
 )
 
 def _collect_group_names(s):
@@ -129,23 +129,24 @@ def _apple_bundle_version_impl(ctx):
     )
     ctx.actions.write(
         output = control_file,
-        content = control.to_json(),
+        content = json.encode(control),
     )
     inputs.append(control_file)
 
-    resolved_versiontool = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].resolved_versiontool
+    versiontool = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].versiontool
 
     ctx.actions.run(
-        executable = resolved_versiontool.executable,
+        executable = versiontool,
         arguments = [control_file.path, bundle_version_file.path],
-        inputs = depset(inputs, transitive = [resolved_versiontool.inputs]),
-        input_manifests = resolved_versiontool.input_manifests,
+        inputs = inputs,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",
     )
 
     return [
-        AppleBundleVersionInfo(version_file = bundle_version_file),
+        new_applebundleversioninfo(
+            version_file = bundle_version_file,
+        ),
         DefaultInfo(files = depset([bundle_version_file])),
     ]
 
@@ -253,8 +254,8 @@ apple_bundle_version(
     build_label_pattern = "MyApp_{version}_build_{build}",
     build_version = "{version}.{build}",
     capture_groups = {
-        "version": "\\d+\\.\\d+",
-        "build": "\\d+",
+        "version": "\\\\d+\\\\.\\\\d+",
+        "build": "\\\\d+",
     },
     short_version_string = "{version}",
     fallback_build_label = "MyApp_99.99_build_99",

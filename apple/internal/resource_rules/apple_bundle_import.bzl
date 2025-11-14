@@ -15,16 +15,16 @@
 """Implementation of apple_bundle_import rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceBundleInfo",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "new_appleresourcebundleinfo",
+)
+load(
+    "//apple/internal:resources.bzl",
+    "resources",
 )
 
 def _apple_bundle_import_impl(ctx):
@@ -39,7 +39,7 @@ def _apple_bundle_import_impl(ctx):
         parent_dir_param = parent_dir_param,
     )
     return [
-        AppleResourceBundleInfo(),
+        new_appleresourcebundleinfo(),
         resource_provider,
     ]
 

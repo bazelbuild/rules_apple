@@ -1,6 +1,7 @@
 load(
     "//apple:resources.bzl",
     "apple_bundle_import",
+    "apple_precompiled_resource_bundle",
     "apple_resource_bundle",
 )
 
@@ -22,6 +23,8 @@ exports_files([
     "sample.png",
     "storyboard_ios.storyboard",
     "view_ios.xib",
+    "storyboard_macos.storyboard",
+    "view_macos.xib",
 ])
 
 filegroup(
@@ -56,8 +59,8 @@ filegroup(
         "view_ios.xib",
         ":app_icons_ios",
         ":app_icons_ios_with_bad_size",
-        ":assets2_ios",
-        ":assets_ios",
+        ":assets",
+        ":assets2",
         ":imageset_missing_child",
         ":imageset_with_invalid_json",
         ":imageset_with_unassigned_child",
@@ -104,13 +107,23 @@ filegroup(
 )
 
 filegroup(
-    name = "assets_ios",
-    srcs = glob(["assets_ios.xcassets/**"]),
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
 )
 
 filegroup(
-    name = "assets2_ios",
-    srcs = glob(["assets2_ios.xcassets/**"]),
+    name = "alternate_icons_ios",
+    srcs = glob(["alticons/**"]),
+)
+
+filegroup(
+    name = "assets",
+    srcs = glob(["assets.xcassets/**"]),
+)
+
+filegroup(
+    name = "assets2",
+    srcs = glob(["assets2.xcassets/**"]),
 )
 
 apple_bundle_import(
@@ -130,9 +143,59 @@ genrule(
 )
 
 genrule(
+    name = "generate_xcstrings",
+    outs = ["generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+)
+
+genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
+)
+
+genrule(
+    name = "generate_structured_xcstrings",
+    outs = ["structured/generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_structured_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles too!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
 )
 
 genrule(
@@ -142,34 +205,11 @@ genrule(
     cmd = "cp $< $@",
 )
 
-apple_resource_bundle(
-    name = "bundle_library_ios",
-    infoplists = [
-        "Info-template.plist",
-    ],
-    resources = [
-        "generated.strings",
-        "nonlocalized.plist",
-        "nonlocalized.strings",
-        "nonlocalized_resource.txt",
-        "sample.png",
-        "storyboard_ios.storyboard",
-        "view_ios.xib",
-        ":assets_ios",
-        ":basic_bundle",
-        ":localized_generic_resources",
-        ":localized_plists",
-        ":localized_storyboards_ios",
-        ":localized_strings",
-        ":localized_xibs_ios",
-        ":mapping_model",
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
-    ],
-    structured_resources = [
-        ":generate_structured_strings",
-        ":structured",
-    ],
+genrule(
+    name = "generate_macos_storyboard_copy",
+    srcs = ["storyboard_macos.storyboard"],
+    outs = ["storyboard_macos_copy.storyboard"],
+    cmd = "cp $< $@",
 )
 
 apple_resource_bundle(
@@ -233,6 +273,30 @@ apple_resource_bundle(
     ],
 )
 
+apple_precompiled_resource_bundle(
+    name = "simple_precompiled_bundle_library",
+    bundle_id = "org.bazel.simple-precompiled-bundle-library",
+    bundle_name = "simple_precompiled_bundle_library",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+)
+
 filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
@@ -250,7 +314,12 @@ filegroup(
 
 filegroup(
     name = "localized_storyboards_ios",
-    srcs = glob(["*.lproj/*.storyboard"]),
+    srcs = glob(["*.lproj/*_ios.storyboard"]),
+)
+
+filegroup(
+    name = "localized_storyboards_macos",
+    srcs = glob(["*.lproj/*_macos.storyboard"]),
 )
 
 filegroup(
@@ -259,8 +328,18 @@ filegroup(
 )
 
 filegroup(
+    name = "localized_xcstrings",
+    srcs = glob(["*.xcstrings"]),
+)
+
+filegroup(
     name = "localized_xibs_ios",
-    srcs = glob(["*.lproj/*.xib"]),
+    srcs = glob(["*.lproj/*_ios.xib"]),
+)
+
+filegroup(
+    name = "localized_xibs_macos",
+    srcs = glob(["*.lproj/*_macos.xib"]),
 )
 
 filegroup(
@@ -326,4 +405,22 @@ filegroup(
 filegroup(
     name = "versioned_datamodel",
     srcs = glob(["versioned_datamodel.xcdatamodeld/**"]),
+)
+
+filegroup(
+    name = "metal_files",
+    srcs = [
+        ":metal_hdrs",
+        ":metal_srcs",
+    ],
+)
+
+filegroup(
+    name = "metal_srcs",
+    srcs = glob(["*.metal"]),
+)
+
+filegroup(
+    name = "metal_hdrs",
+    srcs = ["shader_defines.h"],
 )

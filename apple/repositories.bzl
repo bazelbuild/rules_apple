@@ -114,20 +114,27 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         _maybe(
             http_archive,
             name = "build_bazel_apple_support",
-            sha256 = "9f7bb62c3ae889e0eae8c18458fd8764e2e537687d9a1d85885d6af980e4fc31",
-            urls = [
-                "https://github.com/bazelbuild/apple_support/releases/download/1.6.0/apple_support.1.6.0.tar.gz",
-            ],
+            sha256 = "73c8dc6cdd7cea87956db9279a69c9e68bd2a5ec6a6a507e36d6e2d7da4d71a4",
+            url = "https://github.com/bazelbuild/apple_support/releases/download/1.21.1/apple_support.1.21.1.tar.gz",
             ignore_version_differences = ignore_version_differences,
         )
 
         _maybe(
             http_archive,
             name = "build_bazel_rules_swift",
-            sha256 = "b98bd1ec03c713e2ff5c3aa8c05930d8b6ab85cc82b3ae5d869058da4731f230",
+            sha256 = "28db894977ac51c8f3ab7c6dc9d655a85510366734e900b3c5302ce1ed91256c",
+            url = "https://github.com/bazelbuild/rules_swift/releases/download/2.4.0/rules_swift.2.4.0.tar.gz",
+            ignore_version_differences = ignore_version_differences,
+        )
+
+        _maybe(
+            http_archive,
+            name = "platforms",
             urls = [
-                "https://github.com/bazelbuild/rules_swift/releases/download/1.8.0/rules_swift.1.8.0.tar.gz",
+                "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+                "https://github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
             ],
+            sha256 = "5eda539c841265031c2f82d8ae7a3a6490bd62176e0c038fc469eabf91f6149b",
             ignore_version_differences = ignore_version_differences,
         )
 
@@ -135,9 +142,16 @@ def apple_rules_dependencies(ignore_version_differences = False, include_bzlmod_
         http_archive,
         name = "xctestrunner",
         urls = [
-            "https://github.com/google/xctestrunner/archive/4c5709da9444eae6bba2425734b8654635bed0a6.tar.gz",
+            "https://github.com/google/xctestrunner/archive/8710f141dfb0a3efe2744f865f914783259c24b0.tar.gz",
         ],
-        strip_prefix = "xctestrunner-4c5709da9444eae6bba2425734b8654635bed0a6",
-        sha256 = "e5d4c53c3965ae943fb08ccd7df0efd75590213fce5052388f23fad81a649f5a",
+        strip_prefix = "xctestrunner-8710f141dfb0a3efe2744f865f914783259c24b0",
+        sha256 = "34d3b9bcb3dcb5b2a0bf2cd4be58c03f6a0f0eb4329f87cd758461aeb00e9326",
+        patch_args = ["-p1"],
+        patches = [
+            # https://github.com/google/xctestrunner/pull/76
+            "//tools/patches:xctestrunner_loads.patch",
+            # https://github.com/google/xctestrunner/pull/71
+            "//tools/patches:xctestrunner_framework.patch",
+        ],
         ignore_version_differences = ignore_version_differences,
     )

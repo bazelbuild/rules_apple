@@ -19,6 +19,10 @@ load(
     "analysistest",
     "unittest",
 )
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 _TARGET_CONTAINS_ACTION_WITH_ARGV_FAIL_MSG = """
 Expected argv could not be found on actual action argv list for target mnemonic '{target_mnemonic}'.
@@ -167,3 +171,15 @@ List of action mnemonics not expected to be found on the target under test.""",
 
 # Default analysis_target_actions_test without cfg.
 analysis_target_actions_test = make_analysis_target_actions_test()
+
+# The following test rules are used in more than one test suite and thus they are defined here.
+analysis_contains_xcframework_processor_action_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
+    },
+)
+analysis_target_actions_tree_artifacts_outputs_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
+    },
+)

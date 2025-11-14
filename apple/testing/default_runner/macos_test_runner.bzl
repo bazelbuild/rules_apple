@@ -19,8 +19,8 @@ load(
     "xcode_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunnerInfo",
+    "//apple:providers.bzl",
+    "apple_provider",
 )
 
 def _get_xctestrun_template_substitutions(xcode_config):
@@ -53,10 +53,18 @@ def _get_xctestrun_template_substitutions(xcode_config):
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
-def _get_template_substitutions(xctestrun_template):
+def _get_template_substitutions(
+        *,
+        xctestrun_template,
+        pre_action_binary,
+        post_action_binary,
+        post_action_determines_exit_code):
     """Returns the template substitutions for this runner."""
     subs = {
         "xctestrun_template": xctestrun_template.short_path,
+        "pre_action_binary": pre_action_binary,
+        "post_action_binary": post_action_binary,
+        "post_action_determines_exit_code": post_action_determines_exit_code,
     }
 
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -84,30 +92,68 @@ def _macos_test_runner_impl(ctx):
         substitutions = _get_xctestrun_template_substitutions(xcode_config),
     )
 
+    runfiles = ctx.runfiles(files = [preprocessed_xctestrun_template])
+
+    default_action_binary = "/usr/bin/true"
+
+    pre_action_binary = default_action_binary
+    post_action_binary = default_action_binary
+
+    if ctx.executable.pre_action:
+        pre_action_binary = ctx.executable.pre_action.short_path
+        runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
+
+    post_action_determines_exit_code = False
+    if ctx.executable.post_action:
+        post_action_binary = ctx.executable.post_action.short_path
+        post_action_determines_exit_code = ctx.attr.post_action_determines_exit_code
+        runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
-        substitutions = _get_template_substitutions(preprocessed_xctestrun_template),
+        substitutions = _get_template_substitutions(
+            xctestrun_template = preprocessed_xctestrun_template,
+            pre_action_binary = pre_action_binary,
+            post_action_binary = post_action_binary,
+            post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
+        ),
     )
 
     return [
-        AppleTestRunnerInfo(
+        apple_provider.make_apple_test_runner_info(
             test_runner_template = ctx.outputs.test_runner_template,
             execution_requirements = {"requires-darwin": ""},
             execution_environment = _get_execution_environment(xcode_config),
         ),
-        DefaultInfo(
-            runfiles = ctx.runfiles(
-                files = [preprocessed_xctestrun_template],
-            ),
-        ),
+        DefaultInfo(runfiles = runfiles),
     ]
 
 macos_test_runner = rule(
     _macos_test_runner_impl,
     attrs = {
+        "pre_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run prior to test execution. Sets any environment variables available to the test runner.
+""",
+        ),
+        "post_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$TEST_XCRESULT_BUNDLE_PATH` environment variables, in addition to any other variables available to the test runner.
+""",
+        ),
+        "post_action_determines_exit_code": attr.bool(
+            default = False,
+            doc = """
+When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
+""",
+        ),
         "_test_template": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.sh"),
+            default = Label("//apple/testing/default_runner:macos_test_runner.template.sh"),
             allow_single_file = True,
         ),
         "_xcode_config": attr.label(
@@ -117,7 +163,7 @@ macos_test_runner = rule(
             ),
         ),
         "_xctestrun_template": attr.label(
-            default = Label("@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
+            default = Label("//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
             allow_single_file = True,
         ),
     },

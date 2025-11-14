@@ -32,28 +32,28 @@ All methods in this file follow this convention:
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
+    "//apple:utils.bzl",
     "group_files_by_directory",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 
 def _compile_datamodels(
@@ -64,14 +64,16 @@ def _compile_datamodels(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
-        resolved_xctoolrunner,
-        swift_module):
+        swift_module,
+        xctoolrunner):
     "Compiles datamodels into mom files."
     output_files = []
+    processed_origins = {}
     module_name = swift_module or label_name
     for datamodel_path, files in datamodel_groups.items():
-        datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
+        input_files = files.to_list()
 
+        datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
         datamodel_parent = parent_dir
         if datamodel_path.endswith(".xcdatamodeld"):
             basename = datamodel_name + ".momd"
@@ -90,20 +92,22 @@ def _compile_datamodels(
                 file_name = datamodel_name + ".mom",
             )
 
+        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
+
         resource_actions.compile_datamodels(
             actions = actions,
             datamodel_path = datamodel_path,
-            input_files = files.to_list(),
+            input_files = input_files,
             module_name = module_name,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = resolved_xctoolrunner,
+            xctoolrunner = xctoolrunner,
         )
         output_files.append(
             (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
         )
 
-    return output_files
+    return (output_files, processed_origins)
 
 def _compile_mappingmodels(
         *,
@@ -113,10 +117,13 @@ def _compile_mappingmodels(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
-        resolved_xctoolrunner):
+        xctoolrunner):
     """Compiles mapping models into cdm files."""
     output_files = []
-    for mappingmodel_path, input_files in mappingmodel_groups.items():
+    processed_origins = {}
+    for mappingmodel_path, files in mappingmodel_groups.items():
+        input_files = files.to_list()
+
         compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
         output_file = intermediates.file(
             actions = actions,
@@ -124,21 +131,22 @@ def _compile_mappingmodels(
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir or "", compiled_model_name),
         )
+        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
 
         resource_actions.compile_mappingmodel(
             actions = actions,
-            input_files = input_files.to_list(),
+            input_files = input_files,
             mappingmodel_path = mappingmodel_path,
             output_file = output_file,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = resolved_xctoolrunner,
+            xctoolrunner = xctoolrunner,
         )
 
         output_files.append(
             (processor.location.resource, parent_dir, depset(direct = [output_file])),
         )
 
-    return output_files
+    return (output_files, processed_origins)
 
 def _asset_catalogs(
         *,
@@ -149,17 +157,18 @@ def _asset_catalogs(
         output_discriminator,
         parent_dir,
         platform_prerequisites,
+        primary_icon_name,
         product_type,
         rule_label,
         **_kwargs):
     """Processes asset catalog files."""
+    processed_origins = {}
 
     # Only merge the resulting plist for the top level bundle. For resource
     # bundles, skip generating the plist.
     assets_plist = None
     infoplists = []
     if not parent_dir:
-        # TODO(kaipi): Merge this into the top level Info.plist.
         assets_plist_path = paths.join(parent_dir or "", "xcassets-info.plist")
         assets_plist = intermediates.file(
             actions = actions,
@@ -192,6 +201,7 @@ def _asset_catalogs(
                 output_discriminator = None,
                 target_name = rule_label.name,
             )
+            processed_origins[png_file.short_path] = f.short_path
             resource_actions.copy_png(
                 actions = actions,
                 input_file = f,
@@ -205,20 +215,33 @@ def _asset_catalogs(
     resource_actions.compile_asset_catalog(
         actions = actions,
         alternate_icons = alternate_icons,
+        alticonstool = apple_mac_toolchain_info.alticonstool,
         asset_files = asset_files,
         bundle_id = bundle_id,
         output_dir = assets_dir,
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
+        primary_icon_name = primary_icon_name,
         product_type = product_type,
-        resolved_alticonstool = apple_mac_toolchain_info.resolved_alticonstool,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         rule_label = rule_label,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
+    asset_origin_short_paths = [f.short_path for f in asset_files]
+    processed_origins[assets_dir.short_path] = asset_origin_short_paths
+    if assets_plist:
+        processed_origins[assets_plist.short_path] = asset_origin_short_paths
+
     return struct(
-        files = [(processor.location.resource, parent_dir, depset(direct = [assets_dir] + alternate_icons))],
+        files = [
+            (
+                processor.location.resource,
+                parent_dir,
+                depset(direct = [assets_dir] + alternate_icons),
+            ),
+        ],
         infoplists = infoplists,
+        processed_origins = processed_origins,
     )
 
 def _datamodels(
@@ -269,27 +292,41 @@ def _datamodels(
         attr = "resources",
     )
 
-    output_files = list(_compile_datamodels(
+    output_files = []
+    (
+        compiled_datamodels,
+        datamodels_processed_origins,
+    ) = _compile_datamodels(
         actions = actions,
         datamodel_groups = datamodel_groups,
         label_name = rule_label.name,
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         swift_module = swift_module,
-    ))
-    output_files.extend(_compile_mappingmodels(
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+    )
+    output_files.extend(compiled_datamodels)
+    (
+        compiled_mappingmodels,
+        mappingmodels_processed_origins,
+    ) = _compile_mappingmodels(
         actions = actions,
         label_name = rule_label.name,
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
         mappingmodel_groups = mappingmodel_groups,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
-    ))
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+    )
+    output_files.extend(compiled_mappingmodels)
 
-    return struct(files = output_files)
+    return struct(
+        files = output_files,
+        processed_origins = (
+            datamodels_processed_origins | mappingmodels_processed_origins
+        ),
+    )
 
 def _infoplists(
         *,
@@ -325,9 +362,9 @@ def _infoplists(
         A struct containing a `files` field with tuples as described in processor.bzl, and an
         `infoplists` field with the plists that need to be merged for the root Info.plist
     """
+    processed_origins = {}
     if parent_dir:
         input_files = files.to_list()
-        processed_origins = {}
         out_plist = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
@@ -343,7 +380,7 @@ def _infoplists(
             output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_plisttool = apple_mac_toolchain_info.resolved_plisttool,
+            plisttool = apple_mac_toolchain_info.plisttool,
             rule_label = rule_label,
         )
         return struct(
@@ -353,7 +390,11 @@ def _infoplists(
             processed_origins = processed_origins,
         )
     else:
-        return struct(files = [], infoplists = files.to_list())
+        return struct(
+            files = [],
+            infoplists = files.to_list(),
+            processed_origins = processed_origins,
+        )
 
 def _metals(
         *,
@@ -380,6 +421,8 @@ def _metals(
     Returns:
         A struct containing a `files` field with tuples as described in processor.bzl.
     """
+    input_files = files.to_list()
+    processed_origins = {}
     metallib_path = paths.join(parent_dir or "", output_filename)
     metallib_file = intermediates.file(
         actions = actions,
@@ -387,9 +430,10 @@ def _metals(
         output_discriminator = None,
         target_name = rule_label.name,
     )
+    processed_origins[metallib_file.short_path] = [f.short_path for f in input_files]
     resource_actions.compile_metals(
         actions = actions,
-        input_files = files.to_list(),
+        input_files = input_files,
         output_file = metallib_file,
         platform_prerequisites = platform_prerequisites,
     )
@@ -400,6 +444,7 @@ def _metals(
             parent_dir,
             depset(direct = [metallib_file]),
         )],
+        processed_origins = processed_origins,
     )
 
 def _mlmodels(
@@ -416,6 +461,7 @@ def _mlmodels(
 
     mlmodel_bundles = []
     infoplists = []
+    processed_origins = {}
     for file in files.to_list():
         basename = file.basename
 
@@ -425,12 +471,15 @@ def _mlmodels(
             output_discriminator = output_discriminator,
             dir_name = paths.join(parent_dir or "", paths.replace_extension(basename, ".mlmodelc")),
         )
+        processed_origins[output_bundle.short_path] = [file.short_path]
+
         output_plist = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir or "", paths.replace_extension(basename, ".plist")),
         )
+        processed_origins[output_plist.short_path] = [file.short_path]
 
         resource_actions.compile_mlmodel(
             actions = actions,
@@ -438,7 +487,7 @@ def _mlmodels(
             output_bundle = output_bundle,
             output_plist = output_plist,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
 
         mlmodel_bundles.append(
@@ -453,6 +502,7 @@ def _mlmodels(
     return struct(
         files = mlmodel_bundles,
         infoplists = infoplists,
+        processed_origins = processed_origins,
     )
 
 def _plists_and_strings(
@@ -587,6 +637,7 @@ def _storyboards(
 
     # First, compile all the storyboard files and collect the output folders.
     compiled_storyboardcs = []
+    origin_short_paths = []
     for storyboard in files.to_list():
         storyboardc_path = paths.join(
             # We append something at the end of the name to avoid having X.lproj names in the path.
@@ -603,13 +654,14 @@ def _storyboards(
             output_discriminator = output_discriminator,
             dir_name = storyboardc_path,
         )
+        origin_short_paths.append(storyboard.short_path)
         resource_actions.compile_storyboard(
             actions = actions,
             input_file = storyboard,
             output_dir = storyboardc_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
         compiled_storyboardcs.append(storyboardc_dir)
 
@@ -625,13 +677,16 @@ def _storyboards(
         actions = actions,
         output_dir = linked_storyboard_dir,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
         storyboardc_dirs = compiled_storyboardcs,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
     return struct(
         files = [
             (processor.location.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
         ],
+        processed_origins = {
+            linked_storyboard_dir.short_path: origin_short_paths,
+        },
     )
 
 def _texture_atlases(
@@ -651,7 +706,9 @@ def _texture_atlases(
     )
 
     atlasc_files = []
+    processed_origins = {}
     for atlas_path, files in atlases_groups.items():
+        input_files = files.to_list()
         atlasc_path = paths.join(
             parent_dir or "",
             paths.replace_extension(paths.basename(atlas_path), ".atlasc"),
@@ -662,9 +719,10 @@ def _texture_atlases(
             output_discriminator = output_discriminator,
             dir_name = atlasc_path,
         )
+        processed_origins[atlasc_dir.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_texture_atlas(
             actions = actions,
-            input_files = files,
+            input_files = input_files,
             input_path = atlas_path,
             output_dir = atlasc_dir,
             platform_prerequisites = platform_prerequisites,
@@ -675,6 +733,7 @@ def _texture_atlases(
         files = [
             (processor.location.resource, parent_dir, depset(direct = atlasc_files)),
         ],
+        processed_origins = processed_origins,
     )
 
 def _xibs(
@@ -691,6 +750,7 @@ def _xibs(
     """Processes Xib files."""
     swift_module = swift_module or rule_label.name
     nib_files = []
+    processed_origins = {}
     for file in files.to_list():
         basename = paths.replace_extension(file.basename, "")
         out_path = paths.join("nibs", parent_dir or "", basename)
@@ -700,17 +760,58 @@ def _xibs(
             output_discriminator = output_discriminator,
             dir_name = out_path,
         )
+        processed_origins[out_dir.short_path] = [file.short_path]
         resource_actions.compile_xib(
             actions = actions,
             input_file = file,
             output_dir = out_dir,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_module = swift_module,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
         nib_files.append(out_dir)
 
-    return struct(files = [(processor.location.resource, parent_dir, depset(direct = nib_files))])
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(direct = nib_files))],
+        processed_origins = processed_origins,
+    )
+
+def _xcstrings(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        files,
+        output_discriminator,
+        parent_dir,
+        platform_prerequisites,
+        rule_label,
+        **_kwargs):
+    """Process xcstrings files."""
+    lproj_files = []
+    processed_origins = {}
+    for file in files.to_list():
+        basename = paths.replace_extension(file.basename, "")
+        out_path = paths.join("xcstrings", parent_dir or "", basename)
+        out_dir = intermediates.directory(
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            dir_name = out_path,
+        )
+        processed_origins[out_dir.short_path] = [file.short_path]
+        resource_actions.compile_xcstrings(
+            actions = actions,
+            input_file = file,
+            output_dir = out_dir,
+            platform_prerequisites = platform_prerequisites,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
+        )
+        lproj_files.append(out_dir)
+
+    return struct(
+        files = [(processor.location.resource, parent_dir, depset(lproj_files))],
+        processed_origins = processed_origins,
+    )
 
 def _noop(
         *,
@@ -731,6 +832,7 @@ def _apple_bundle(bundle_type):
 
     Args:
         bundle_type: The Apple bundle type to bundle for.
+
     Returns:
         A function to register bundling of an Apple bundle.
     """
@@ -754,17 +856,23 @@ def _apple_bundle(bundle_type):
 
     return _bundle_at_location
 
-resources_support = struct(
-    apple_bundle = _apple_bundle,
-    asset_catalogs = _asset_catalogs,
-    datamodels = _datamodels,
-    infoplists = _infoplists,
-    metals = _metals,
-    mlmodels = _mlmodels,
-    noop = _noop,
-    plists_and_strings = _plists_and_strings,
-    pngs = _pngs,
-    storyboards = _storyboards,
-    texture_atlases = _texture_atlases,
-    xibs = _xibs,
-)
+# Map of resource provider fields to a tuple that contains the method to use
+# to process those resources and a boolean indicating whether the Swift
+# module is required for that processing.
+PROVIDER_TO_FIELD_ACTION = {
+    "asset_catalogs": (_asset_catalogs, False),
+    "datamodels": (_datamodels, True),
+    "framework": (_apple_bundle(processor.location.framework), False),
+    "infoplists": (_infoplists, False),
+    "metals": (_metals, False),
+    "mlmodels": (_mlmodels, False),
+    "plists": (_plists_and_strings, False),
+    "pngs": (_pngs, False),
+    "processed": (_noop, False),
+    "storyboards": (_storyboards, True),
+    "strings": (_plists_and_strings, False),
+    "texture_atlases": (_texture_atlases, False),
+    "unprocessed": (_noop, False),
+    "xcstrings": (_xcstrings, False),
+    "xibs": (_xibs, True),
+}

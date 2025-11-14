@@ -106,7 +106,7 @@ Similar to what you can find in Xcode, the Address and Thread sanitizers are
 mutually exclusive, i.e. you can only specify one or the other for a particular
 build.
 
-In case you want to have different compiler and linker flags, you can use 
+In case you want to have different compiler and linker flags, you can use
 `--features=include_clang_rt` and specify the required compiler and linker
 flags yourself.
 
@@ -278,6 +278,11 @@ the exact names of the locales to be included.
 
 This can be used to improve compile/debug/test cycles because most developers
 only work/test in one language.
+
+#### Explicitly Excluding Locales
+
+Use `--define "apple.locales_to_exclude=foo,bar,bam"` where `foo,bar,bam` are
+the exact names of the locales to be excluded.
 
 #### Automatically Trimming Locales
 
@@ -478,3 +483,63 @@ have the paths made absolute via swizzling by enabling the
 `"apple.swizzle_absolute_xcttestsourcelocation"` feature. You'll also need to
 set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
+
+### Xcode Version Selection and Invalidation
+
+There are a few steps required to properly make Bazel use the right Xcode version. Moreover, a few tricks are needed to make sure that the Bazel server is restarted and certain caches cleared when changing Xcode version using `xcode-select`.
+
+1. The first thing you should think about is to enforce a single Xcode version for all your builds to ensure remote cache hits. On top of that, enforcing a single Xcode version speeds up repository setup time. You can achieve this by passing a specific Xcode version config via the `--xcode_version_config` flag. More details are available in [Locking Xcode versions in Bazel](https://www.smileykeith.com/2021/03/08/locking-xcode-in-bazel).
+2. If your configuration supports multiple Xcode versions, you should pass `--xcode_version` to specify which version should be used.
+3. In your Bazel wrapper (`tools/bazel` in your repository, read more [here](https://github.com/bazelbuild/bazelisk#ensuring-that-your-developers-use-bazelisk-rather-than-bazel)), you should pass a few flags to every invocation or generate and import a `bazelrc`:
+    * Capture `xcode-select -p` or use the value of `DEVELOPER_DIR` if available and forward it to repository rules for invalidation when changed: `--repo_env=DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
+    * Pass `--repo_env=XCODE_VERSION=$xcode_version` where `xcode_version` should be the value of `xcodebuild -version | tail -1 | cut -d " " -f3` which is unique to each version. This will make sure the `apple_support` toolchain and `xcode_configure` repository rule are re-evaluated when your version changes.
+    * To invalidate the repository rule when Xcode's path changes but the version doesn't, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag. This forwards an argument to the JVM which is ignored except for causing the server to restart when its value changes.
+
+The above flags can be passed either directly to each invocation or by generating a `bazelrc` which is imported from your main `.bazelrc`. This snippet shows the latter option:
+
+```bash
+#!/bin/bash
+
+bazel_real="$BAZEL_REAL"
+bazelrc_lines=()
+
+if [[ $OSTYPE == darwin* ]]; then
+  xcode_path=$(xcode-select -p)
+  xcode_version=$(xcodebuild -version | tail -1 | cut -d " " -f3)
+  xcode_build_number=$(/usr/bin/xcodebuild -version 2>/dev/null | tail -1 | cut -d " " -f3)
+
+  bazelrc_lines+=("startup --host_jvm_args=-Xdock:name=$xcode_path")
+  bazelrc_lines+=("build --xcode_version=$xcode_version")
+  bazelrc_lines+=("build --repo_env=XCODE_VERSION=$xcode_version")
+  bazelrc_lines+=("build --repo_env=DEVELOPER_DIR=$xcode_path")
+fi
+
+printf '%s\n' "${bazelrc_lines[@]}" > xcode.bazelrc
+
+exec "$bazel_real" "$@"
+```
+
+In your main `.bazelrc` add `import xcode.bazelrc` at the very bottom.
+
+## Optimizing remote cache and build execution performance
+
+When using Bazel's remote cache and/or build execution, there are a few flags you can pass to optimize performance. One of those flags is [`--modify_execution_info`](https://bazel.build/reference/command-line-reference#flag--modify_execution_info), which allows adding or removing execution info for specific [mnemonics](https://bazel.build/reference/glossary#mnemonic), which in turn allows you to configure what is cached or built remotely.
+
+We recommend adding the following to your `.bazelrc`:
+
+```shell
+common --modify_execution_info=^(BundleApp|BundleTreeApp|DsymDwarf|DsymLipo|GenerateAppleSymbolsFile|ObjcBinarySymbolStrip|CppArchive|CppLink|ObjcLink|ProcessAndSign|SignBinary|SwiftArchive|SwiftStdlibCopy)$=+no-remote,^(BundleResources|ImportedDynamicFrameworkProcessor)$=+no-remote-exec
+```
+
+The following table provides a rationale for each mnemonic and tag. In general though, the mnemonics that are excluded in `--modify_execution_info` are excluded because they produce or work on large outputs which change frequently and as such are faster when run locally, or they are not generally configured for remote execution (such as signing).
+
+| Mnemonics | Tag | Rationale |
+| --- | --- | --- |
+| `BundleApp`, `BundleTreeApp`, `ProcessAndSign` | `no-remote` | Produces a large bundle, which is inefficient to upload and download |
+| `CppArchive`, `CppLink`, `ObjcLink`, `SwiftArchive` | `no-remote` | Linked binaries have local paths, and it's slower to download them versus linking locally |
+| `SwiftStdlibCopy` | `no-remote` | Processing Swift stdlib is a quick file copy of a locally available resource, so it's not worth uploading or downloading |
+| `DsymDwarf`, `DsymLipo`, `GenerateAppleSymbolsFile`| `no-remote-exec` | Processing dSYMs/Symbols remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
+| `ImportedDynamicFrameworkProcessor` | `no-remote-exec` | Processing dynamic frameworks remotely incurs an upload and download of the same blob |
+| `ObjcBinarySymbolStrip` | `no-remote-exec` | Stripping binaries remotely requires uploading the linked binary; this could go away if you switch to uploading linked binaries |
+| `ProcessAndSign`, `SignBinary` | `no-remote-exec` | RBE is not generally configured for code signing |
+| `BundleApp`, `BundleResources`, `BundleTreeApp`, `ImportedDynamicFrameworkProcessor`, `ProcessAndSign`, `SignBinary` | `no-remote-exec` | These actions are inefficient to do remotely, but in large numbers downloading can be efficient |

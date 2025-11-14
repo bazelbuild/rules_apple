@@ -93,7 +93,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -114,7 +114,7 @@ EOF
   ! do_build macos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the IPA post-processor is executed and can modify the bundle.
@@ -241,6 +241,59 @@ function test_app_builds_with_include_clang_rt_ubsan() {
 
   assert_zip_contains "test-bin/app/app.zip" \
       "app.app/Contents/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib"
+}
+
+# Tests that app builds with include_main_thread_checker
+# and that the libMainThreadChecker.dylib is packaged into the app when enabled.
+function test_app_builds_with_include_main_thread_checker() {
+  create_common_files
+  create_minimal_macos_application
+
+  do_build macos //app:app --features=apple.include_main_thread_checker \
+        || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.zip" \
+      "app.app/Contents/Frameworks/libMainThreadChecker.dylib"
+}
+
+# Tests that an app bundle can be nested inside of another app
+# when tree artifact outputs are turned on.
+function test_nested_app_bundles() {
+  create_common_files
+
+  cat >> app/BUILD <<EOF
+macos_application(
+    name = "first",
+    bundle_id = "my.first.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    deps = [":lib"],
+)
+
+macos_application(
+    name = "second",
+    bundle_id = "my.second.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    deps = [":lib"],
+)
+
+macos_application(
+    name = "app",
+    additional_contents = {
+      ":first": "Library",
+      ":second": "Library"
+    },
+    bundle_id = "my.bundle.id",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_MACOS}",
+    deps = [":lib"],
+)
+EOF
+
+  do_build macos //app:app --@build_bazel_rules_apple//apple/build_settings:use_tree_artifacts_outputs || fail "Should build"
+  assert_exists "test-bin/app/app.app/Contents/Library/first.app/Contents/Info.plist"
+  assert_exists "test-bin/app/app.app/Contents/Library/second.app/Contents/Info.plist"
 }
 
 run_suite "macos_application bundling tests"

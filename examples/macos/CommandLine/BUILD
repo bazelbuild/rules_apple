@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:macos.bzl",
     "macos_command_line_application",
@@ -24,7 +25,7 @@ macos_command_line_application(
     name = "CommandLine",
     bundle_id = "com.example.command-line",
     infoplists = [":Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":CommandLineVersion",
     deps = [":Sources"],
 )

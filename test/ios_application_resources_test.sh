@@ -117,6 +117,37 @@ function test_localized_unprocessed_resources_filter_mixed() {
       "Payload/app.app/it.lproj/localized.txt"
 }
 
+function test_localized_unprocessed_resources_filter_with_attribute() {
+  create_common_files
+  cat >> app/BUILD <<EOF
+objc_library(
+    name = "resources",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_generic_resources"
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    locales_to_include = ["it"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib", ":resources"],
+)
+EOF
+
+  do_build ios //app:app \
+      || fail "Should build"
+  expect_not_log "Please verify apple.locales_to_include is defined properly"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.txt"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/fr.lproj/localized.txt"
+}
+
 # Tests that the localizations in the Settings.bundle that are not in the base
 # of the app are not included in the output when apple.trim_lproj_locales=1.
 function test_settings_bundle_localization_strip() {
@@ -414,6 +445,130 @@ EOF
   do_build ios //app:app && fail "Should fail"
 
   expect_log "error: app_icon.appiconset/app_icon_40pt_3x.png is 120x121 but should be 120x120."
+}
+
+# Tests that the localizations that are explictly excluded via
+# --define "apple.locales_to_exclude=fr" are not included in the output bundle.
+function test_localization_excludes() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app --define "apple.locales_to_exclude=fr" \
+      || fail "Should build"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/it.lproj/localized.strings"
+  assert_zip_not_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/fr.lproj/localized.strings"
+}
+
+# Tests that the localizations that are explictly excluded via
+# --define "apple.locales_to_exclude=fr" overrides the ones explicitly included via "apple.locales_to_include" and are not included in the output bundle.
+function test_localization_excludes_includes_conflict() {
+  create_common_files
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:localized_strings",
+    ],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  ! do_build ios //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
+      || fail "Should fail build"
+  error_message="@\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
+Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly."
+  expect_log "$error_message"
+}
+
+# Tests that the bundled application contains nested resource in private_deps(swift_library) or implementation_deps(objc_library)
+function test_nested_private_andimplementation_deps_bundled_with_app() {
+  create_common_files
+  touch "app/dummy.swift"
+
+  cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+objc_library(
+    name = "res1",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:sample.png",
+    ],
+)
+
+objc_library(
+    name = "res2",
+    data = [
+        "@build_bazel_rules_apple//test/testdata/resources:view_ios.xib",
+    ],
+    deps = [":res1"],
+)
+
+swift_library(
+    name = "swift_lib",
+    srcs = ["dummy.swift"],
+    private_deps = [":res2"],
+)
+
+objc_library(
+    name = "lib",
+    srcs = ["main.m"],
+    implementation_deps = [":swift_lib"],
+)
+
+ios_application(
+    name = "app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [":lib"],
+)
+EOF
+
+  do_build ios //app:app || fail "Should build"
+
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/sample.png"
+  assert_zip_contains "test-bin/app/app.ipa" \
+      "Payload/app.app/view_ios.nib"
 }
 
 run_suite "ios_application bundling with resources tests"

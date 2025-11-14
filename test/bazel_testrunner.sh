@@ -24,6 +24,17 @@
 # test_script: The name of the test script to execute inside the test
 #     directory.
 
+# --- begin runfiles.bash initialization v3 ---
+# Copy-pasted from the Bazel Bash runfiles library v3.
+set -uo pipefail; f=bazel_tools/tools/bash/runfiles/runfiles.bash
+source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
+  source "$0.runfiles/$f" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+  source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+  { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=;
+# --- end runfiles.bash initialization v3 ---
+
 test_script="$1"; shift
 
 # Use the image's default Xcode version when running tests to avoid flakes
@@ -47,6 +58,10 @@ DIR=$(pwd)
 # Load the unit test framework
 source "$DIR/unittest.bash" || print_message_and_exit "unittest.bash not found!"
 
+function resolve_external_repository() {
+  dirname "$(perl -MCwd -e 'print Cwd::abs_path shift' "$(rlocation "$1/BUILD")")"
+}
+
 # Load the test environment
 function create_new_workspace() {
   new_workspace_dir="${1:-$(mktemp -d ${TEST_TMPDIR}/workspace.XXXXXXXX)}"
@@ -54,72 +69,31 @@ function create_new_workspace() {
   mkdir -p "${new_workspace_dir}"
   cd "${new_workspace_dir}"
 
-  # Make a modifiable copy of external, so that we can mock out missing
-  # test resources. This should only be needed for mocking the xctestrunner
-  # BUILD file below; if we can workaround this, we don't need to make this
-  # copy and we should reference it from the original location.
-  cp -rf "$EXTERNAL_DIR" ../external
+  rules_apple_path=$(resolve_external_repository rules_apple)
+
+  touch MODULE.bazel
+  cat > MODULE.bazel <<EOF
+module(name = "build_bazel_rules_apple_integration_tests", version = "0")
+
+# Specify oldest possible bzlmod versions and let rules_apple versions take precedence
+bazel_dep(name = "apple_support", version = "0.11.0", repo_name = "build_bazel_apple_support")
+bazel_dep(name = "rules_swift", version = "2.0.0", repo_name = "build_bazel_rules_swift")
+bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "rules_shell", version = "0.3.0")
+
+xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
+use_repo(xcode_configure, "local_config_xcode")
+
+apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
+use_repo(apple_cc_configure, "local_config_apple_cc")
+
+local_path_override(
+    module_name = "rules_apple",
+    path = "$rules_apple_path",
+)
+EOF
 
   touch WORKSPACE
-  cat > WORKSPACE <<EOF
-workspace(name = 'build_bazel_rules_apple_integration_tests')
-
-# We can't use local_repository as the dependencies won't
-# copy some of the build files or WORKSPACE. new_local_repository
-# will create a new WORKSPACE file and we just need to pass the
-# contents for a top level BUILD file, which can be empty.
-new_local_repository(
-    name = "bazel_skylib",
-    build_file_content = '',
-    path = '$PWD/../external/bazel_skylib',
-)
-
-local_repository(
-    name = 'build_bazel_rules_apple',
-    path = '$(rlocation build_bazel_rules_apple)',
-)
-
-local_repository(
-    name = 'build_bazel_rules_swift',
-    path = '$(rlocation build_bazel_rules_swift)',
-)
-
-local_repository(
-    name = 'build_bazel_apple_support',
-    path = '$(rlocation build_bazel_apple_support)',
-)
-
-local_repository(
-    name = 'xctestrunner',
-    path = '$(rlocation xctestrunner)',
-)
-
-# We load rules_swift dependencies into the WORKSPACE. This is safe to do
-# _for now_ because Swift currently depends on:
-#
-# * skylib - which is already loaded, so it won't be loaded again.
-# * swift_protobuf - which is not used in the integration tests, so it won't be
-#   loaded.
-# * protobuf - which also is not used in the integration tests.
-# * swift_toolchain - which is generated locally, so nothing to download.
-#
-# If these assumptions change over time, we'll need to reassess this way of
-# loading rules_swift dependencies.
-
-load(
-    "@build_bazel_rules_swift//swift:repositories.bzl",
-    "swift_rules_dependencies",
-)
-
-swift_rules_dependencies()
-
-load(
-    "@build_bazel_apple_support//lib:repositories.bzl",
-    "apple_support_dependencies",
-)
-
-apple_support_dependencies()
-EOF
 }
 
 # Set-up a clean default workspace.
@@ -139,11 +113,9 @@ function setup_clean_workspace() {
 # subsequent tests (see `do_build` in apple_shell_testutils.sh).
 export EXTRA_BUILD_OPTIONS=( "$@" ); shift $#
 
-# Disable Swift workers until they work with Bazel@HEAD.
-# TODO(b/133166891): Remove this.
-EXTRA_BUILD_OPTIONS+=( "--strategy=SwiftCompile=local" )
-
 echo "Applying extra options to each build: ${EXTRA_BUILD_OPTIONS[*]:-}" > "$TEST_log"
+
+setup_clean_workspace
 
 # Try to find the desired version of Xcode installed on the system. If it's not
 # present, fallback to the most recent version currently installed and warn the
@@ -169,7 +141,5 @@ if [[ -z "$XCODE_QUERY" ]]; then
   printf "of Xcode.\n" >> "$TEST_log"
 fi
 
-setup_clean_workspace
-
-source "$(rlocation build_bazel_rules_apple/test/apple_shell_testutils.sh)"
-source "$(rlocation build_bazel_rules_apple/test/${test_script})"
+source "$(rlocation rules_apple/test/apple_shell_testutils.sh)"
+source "$(rlocation rules_apple/test/${test_script})"

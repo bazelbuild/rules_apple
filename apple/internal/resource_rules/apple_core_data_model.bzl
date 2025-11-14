@@ -15,26 +15,6 @@
 """Implementation of Apple Core Data Model resource rule."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -43,8 +23,33 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple:utils.bzl",
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple:utils.bzl",
     "group_files_by_directory",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 
 def _apple_core_data_model_impl(ctx):
@@ -52,15 +57,20 @@ def _apple_core_data_model_impl(ctx):
     actions = ctx.actions
     swift_version = getattr(ctx.attr, "swift_version")
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(
             ctx.fragments.apple.single_arch_platform.platform_type,
@@ -76,6 +86,7 @@ def _apple_core_data_model_impl(ctx):
         attr = "datamodels",
     )
 
+    expected_outputs = ctx.attr.outs
     output_files = []
     for datamodel_path, files in datamodel_groups.items():
         datamodel_name = paths.replace_extension(
@@ -87,26 +98,37 @@ def _apple_core_data_model_impl(ctx):
             datamodel_name.lower(),
             ctx.label.name,
         )
-        output_dir = actions.declare_directory(dir_name)
+        output_dir_path = "{}/{}/{}".format(ctx.genfiles_dir.path, ctx.label.package, dir_name)
+        expected_file_names = expected_outputs.get(datamodel_name, [])
+        data_model_outputs = []
+        if len(expected_file_names) > 0:
+            for file_name in expected_file_names:
+                file_path = "{}/{}".format(dir_name, file_name)
+                file = actions.declare_file(file_path)
+                data_model_outputs.append(file)
+        else:
+            output_dir = actions.declare_directory(dir_name)
+            data_model_outputs.append(output_dir)
 
         resource_actions.generate_datamodels(
             actions = actions,
             datamodel_path = datamodel_path,
             input_files = files.to_list(),
-            output_dir = output_dir,
+            output_dir = output_dir_path,
+            outputs = data_model_outputs,
             platform_prerequisites = platform_prerequisites,
-            resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
             swift_version = swift_version,
+            xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
         )
 
-        output_files.append(output_dir)
+        output_files.extend(data_model_outputs)
 
     return [DefaultInfo(files = depset(output_files))]
 
 apple_core_data_model = rule(
     implementation = _apple_core_data_model_impl,
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
         apple_support.action_required_attrs(),
         {
             "srcs": attr.label_list(
@@ -117,12 +139,31 @@ apple_core_data_model = rule(
             "swift_version": attr.string(
                 doc = "Target Swift version for generated classes.",
             ),
+            "outs": attr.string_list_dict(
+                doc = """
+A dictionary where the key is the name of a data model and the value is a
+list of source files expected to be generated from that data model. For
+example, if srcs contains one data model called "Taxonomy.xcdatamodeld" with
+a single entity called "Animal," you might provide this value:
+```
+outs = {
+    "Taxonomy": [
+        "taxonomy+CoreDataModel.swift",
+        "Animal+CoreDataProperties.swift",
+    ],
+},
+```
+If one or more files are provided for a data model, the rule will return these
+files individually as outputs. Otherwise, the rule will return the directory
+containing the sources for the data model.
+""",
+            ),
         },
     ),
     fragments = ["apple"],
     doc = """
-This rule takes a Core Data model definition from a .xcdatamodeld bundle
-and generates Swift or Objective-C source files that can be added as a
-dependency to a swift_library target.
+This rule takes one or more Core Data model definitions from .xcdatamodeld
+bundles and generates Swift or Objective-C source files that can be added
+as srcs of a swift_library target.
 """,
 )

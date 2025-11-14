@@ -15,17 +15,29 @@
 """iOS test runner rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/testing:apple_test_rules.bzl",
-    "AppleTestRunnerInfo",
+    "//apple:providers.bzl",
+    "AppleDeviceTestRunnerInfo",
+    "apple_provider",
 )
 
-def _get_template_substitutions(*, device_type, os_version, simulator_creator, testrunner):
+def _get_template_substitutions(
+        *,
+        device_type,
+        os_version,
+        simulator_creator,
+        testrunner,
+        pre_action_binary,
+        post_action_binary,
+        post_action_determines_exit_code):
     """Returns the template substitutions for this runner."""
     subs = {
         "device_type": device_type,
         "os_version": os_version,
         "simulator_creator": simulator_creator,
         "testrunner_binary": testrunner,
+        "pre_action_binary": pre_action_binary,
+        "post_action_binary": post_action_binary,
+        "post_action_determines_exit_code": post_action_determines_exit_code,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -44,6 +56,24 @@ def _ios_test_runner_impl(ctx):
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
+    runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+    runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
+
+    default_action_binary = "/usr/bin/true"
+
+    pre_action_binary = default_action_binary
+    post_action_binary = default_action_binary
+
+    if ctx.executable.pre_action:
+        pre_action_binary = ctx.executable.pre_action.short_path
+        runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
+
+    post_action_determines_exit_code = False
+    if ctx.executable.post_action:
+        post_action_binary = ctx.executable.post_action.short_path
+        post_action_determines_exit_code = ctx.attr.post_action_determines_exit_code
+        runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
@@ -52,21 +82,25 @@ def _ios_test_runner_impl(ctx):
             os_version = os_version,
             simulator_creator = ctx.executable._simulator_creator.short_path,
             testrunner = ctx.executable._testrunner.short_path,
+            pre_action_binary = pre_action_binary,
+            post_action_binary = post_action_binary,
+            post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
         ),
     )
     return [
-        AppleTestRunnerInfo(
-            test_runner_template = ctx.outputs.test_runner_template,
+        apple_provider.make_apple_test_runner_info(
             execution_requirements = ctx.attr.execution_requirements,
             execution_environment = _get_execution_environment(
                 xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
             ),
             test_environment = ctx.attr.test_environment,
+            test_runner_template = ctx.outputs.test_runner_template,
         ),
-        DefaultInfo(
-            runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
-                .merge(ctx.attr._testrunner[DefaultInfo].default_runfiles),
+        AppleDeviceTestRunnerInfo(
+            device_type = device_type,
+            os_version = os_version,
         ),
+        DefaultInfo(runfiles = runfiles),
     ]
 
 ios_test_runner = rule(
@@ -102,9 +136,29 @@ Optional dictionary with the environment variables that are to be propagated
 into the XCTest invocation.
 """,
         ),
+        "pre_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.
+""",
+        ),
+        "post_action": attr.label(
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
+""",
+        ),
+        "post_action_determines_exit_code": attr.bool(
+            default = False,
+            doc = """
+When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
+""",
+        ),
         "_test_template": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:ios_test_runner.template.sh",
+                "//apple/testing/default_runner:ios_test_runner.template.sh",
             ),
             allow_single_file = True,
         ),
@@ -121,7 +175,7 @@ dependency is the test runner binary.
         ),
         "_simulator_creator": attr.label(
             default = Label(
-                "@build_bazel_rules_apple//apple/testing/default_runner:simulator_creator",
+                "//apple/testing/default_runner:simulator_creator",
             ),
             executable = True,
             cfg = "exec",

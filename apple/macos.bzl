@@ -15,36 +15,39 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_assembler.bzl",
-    "apple_test_assembler",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:build_test_rules.bzl",
-    "apple_build_test_rule",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/testing:macos_rules.bzl",
-    _macos_internal_ui_test_bundle = "macos_internal_ui_test_bundle",
-    _macos_internal_unit_test_bundle = "macos_internal_unit_test_bundle",
-    _macos_ui_test = "macos_ui_test",
-    _macos_unit_test = "macos_unit_test",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:macos_binary_support.bzl",
+    "//apple/internal:macos_binary_support.bzl",
     "macos_binary_infoplist",
     "macos_command_line_launchdplist",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:macos_rules.bzl",
+    "//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
+    _macos_dynamic_framework = "macos_dynamic_framework",
     _macos_extension = "macos_extension",
+    _macos_framework = "macos_framework",
     _macos_kernel_extension = "macos_kernel_extension",
     _macos_quick_look_plugin = "macos_quick_look_plugin",
     _macos_spotlight_importer = "macos_spotlight_importer",
+    _macos_static_framework = "macos_static_framework",
     _macos_xpc_service = "macos_xpc_service",
+)
+load(
+    "//apple/internal/testing:apple_test_assembler.bzl",
+    "apple_test_assembler",
+)
+load(
+    "//apple/internal/testing:build_test_rules.bzl",
+    "apple_build_test_rule",
+)
+load(
+    "//apple/internal/testing:macos_rules.bzl",
+    _macos_internal_ui_test_bundle = "macos_internal_ui_test_bundle",
+    _macos_internal_unit_test_bundle = "macos_internal_unit_test_bundle",
+    _macos_ui_test = "macos_ui_test",
+    _macos_unit_test = "macos_unit_test",
 )
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
@@ -104,17 +107,20 @@ def macos_command_line_application(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     launchdplists = binary_args.get("launchdplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
+            base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
+            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,
@@ -158,16 +164,19 @@ def macos_dylib(name, **kwargs):
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
+    base_bundle_id = binary_args.get("base_bundle_id")
     bundle_id = binary_args.get("bundle_id")
     infoplists = binary_args.get("infoplists")
     version = binary_args.get("version")
 
-    if bundle_id or infoplists or version:
+    if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
 
         macos_binary_infoplist(
             name = merged_infoplist_name,
+            base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
+            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
             infoplists = infoplists,
             minimum_os_version = binary_args.get("minimum_os_version"),
             version = version,
@@ -194,7 +203,46 @@ def macos_extension(name, **kwargs):
         **bundling_args
     )
 
-_DEFAULT_TEST_RUNNER = "@build_bazel_rules_apple//apple/testing/default_runner:macos_default_runner"
+def macos_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_framework(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+def macos_static_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_static_framework(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+def macos_dynamic_framework(name, **kwargs):
+    # buildifier: disable=function-docstring-args
+    """Packages a macOS framework."""
+    bundling_args = dict(kwargs)
+    features = bundling_args.pop("features", [])
+    features.append("link_cocoa")
+
+    _macos_dynamic_framework(
+        name = name,
+        features = features,
+        **bundling_args
+    )
+
+_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:macos_default_runner"))
 
 def macos_unit_test(name, **kwargs):
     runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)

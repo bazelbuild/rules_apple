@@ -25,12 +25,22 @@ STANDALONE_BINARY="%{standalone_binary}s"
 if [[ -n "$ARCHIVE_PATH" ]]; then
 
   # Unzip the archive into a temporary location.
-  ARCHIVE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/bundle_tmp_dir.XXXXXX")"
+  ARCHIVE_ROOT="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/bundle_tmp_dir.XXXXXX")"
 
   trap 'chmod -R u+w "${ARCHIVE_ROOT}"
     rm -rf "${ARCHIVE_ROOT}"' ERR EXIT
 
-  unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
+  # Check if the archive path is a directory, if it is, this means the
+  # build rule output is a tree artifact and not an archive, therefore
+  # copying the directory recursively is enough.
+  if [ -d "$ARCHIVE_PATH/" ];
+  then
+    cp -rf "$ARCHIVE_PATH" "$ARCHIVE_ROOT"
+    # Set write permission to allow for safe file removal in test cleanup.
+    chmod -R +w "$ARCHIVE_ROOT"
+  else
+    unzip -qq "$ARCHIVE_PATH" -d "$ARCHIVE_ROOT"
+  fi
 
   # Define common bundle locations to be used by the verifier scripts.
   BINARY="$ARCHIVE_ROOT/%{archive_relative_binary}s"
@@ -42,6 +52,7 @@ elif [[ -n "$STANDALONE_BINARY" ]]; then
 
   # If only a binary was provided instead of an archive, treat that as the root
   # element for all root "bundle" locations used by the verifier scripts.
+  ARCHIVE_ROOT="$STANDALONE_BINARY"
   BINARY="$STANDALONE_BINARY"
   BUNDLE_ROOT="$STANDALONE_BINARY"
   CONTENT_ROOT="$STANDALONE_BINARY"

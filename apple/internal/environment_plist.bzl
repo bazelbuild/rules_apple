@@ -17,43 +17,52 @@ A rule for generating the environment plist
 """
 
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
+    "//apple/internal:apple_toolchains.bzl",
     "AppleMacToolsToolchainInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
     "platform_support",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
 )
 
 def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = None,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
-    resolved_environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].resolved_environment_plist_tool
+    environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
@@ -61,20 +70,18 @@ def _environment_plist_impl(ctx):
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [
             "--platform",
-            platform.name_in_plist.lower() + str(sdk_version),
+            (platform.name_in_plist + str(sdk_version)).lower(),
             "--output",
             ctx.outputs.plist.path,
         ],
-        executable = resolved_environment_plist_tool.executable,
-        inputs = resolved_environment_plist_tool.inputs,
-        input_manifests = resolved_environment_plist_tool.input_manifests,
+        executable = environment_plist_tool,
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 environment_plist = rule(
     attrs = dicts.add(
-        rule_factory.common_tool_attributes,
+        rule_attrs.common_tool_attrs(),
         {
             "platform_type": attr.string(
                 mandatory = True,

@@ -1,19 +1,24 @@
 load(
-    "//apple:resources.bzl",
-    "apple_bundle_import",
-    "apple_resource_bundle",
-    "apple_resource_group",
-)
-load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
+)
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load(
+    "//apple:resources.bzl",
+    "apple_bundle_import",
+    "apple_precompiled_resource_bundle",
+    "apple_resource_bundle",
+    "apple_resource_group",
 )
 load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
 load(
-    "//test/starlark_tests:rules/dummy_apple_resource_info.bzl",
+    "//test/starlark_tests/rules:dummy_apple_resource_info.bzl",
     "dummy_apple_resource_info",
 )
 
@@ -28,8 +33,13 @@ package(
 # package.
 exports_files(
     glob(["**"]),
-    visibility = ["//test/starlark_tests:__subpackages__"],
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
 )
+
+# --------------------------------------------------------------------------------
+# Objective-C common.h libraries
 
 objc_library(
     name = "objc_common_lib",
@@ -100,6 +110,40 @@ objc_library(
     ],
 )
 
+# --------------------------------------------------------------------------------
+# Objective-C main.m libraries
+
+objc_library(
+    name = "objc_main_lib",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_sdk_dylibs",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_dylibs = ["libz"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_sdk_fmwks",
+    srcs = ["common.m"],
+    hdrs = ["common.h"],
+    sdk_frameworks = ["CoreData"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_resources",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    data = [
+        ":structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "another_objc_shared_lib_with_transitive_resources",
     srcs = ["shared.m"],
@@ -117,7 +161,7 @@ objc_library(
         "shared.m",
     ],
     deps = [":objc_common_lib_with_structured_images"],
-    alwayslink = 1,
+    alwayslink = True,
 )
 
 objc_library(
@@ -132,11 +176,22 @@ objc_library(
     ],
 )
 
+objc_library(
+    name = "objc_shared_lib_with_precompiled_resource_bundles",
+    srcs = [
+        "shared.h",
+        "shared.m",
+    ],
+    data = [
+        "//test/testdata/resources:simple_precompiled_bundle_library",
+    ],
+)
+
 # --------------------------------------------------------------------------------
 # Objective-C main.m libraries
 
 objc_library(
-    name = "objc_main_lib",
+    name = "objc_main_lib_with_common_lib",
     srcs = ["main.m"],
     tags = common.fixture_tags,
     deps = [
@@ -145,19 +200,35 @@ objc_library(
 )
 
 objc_library(
-    name = "objc_lib_with_sdk_dylibs",
-    srcs = ["common.m"],
-    hdrs = ["common.h"],
-    sdk_dylibs = ["libz"],
+    name = "objc_main_lib_with_structured_images",
+    srcs = ["main.m"],
+    data = [":structured_image_resources"],
     tags = common.fixture_tags,
 )
 
 objc_library(
-    name = "objc_lib_with_sdk_fmwks",
-    srcs = ["common.m"],
-    hdrs = ["common.h"],
-    sdk_frameworks = ["CoreData"],
+    name = "objc_main_lib_with_transitive_structured_images",
+    srcs = ["main.m"],
     tags = common.fixture_tags,
+    deps = [":objc_common_lib_with_structured_images"],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_resource_bundles",
+    ],
+)
+
+objc_library(
+    name = "objc_main_lib_with_transitive_precompiled_resource_bundles",
+    srcs = ["main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_shared_lib_with_precompiled_resource_bundles",
+    ],
 )
 
 swift_library(
@@ -177,6 +248,20 @@ swift_library(
     ],
     features = ["swift.no_generated_module_map"],
     module_name = "swift_lib_with_resources",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_lib_with_structured_macos_resources",
+    testonly = True,
+    srcs = [
+        "Shared.swift",
+    ],
+    data = [
+        ":structured_resources",
+    ],
+    features = ["swift.no_generated_module_map"],
+    module_name = "swift_lib_with_macos_resources",
     tags = common.fixture_tags,
 )
 
@@ -235,23 +320,51 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
+swift_library(
+    name = "swift_framework_lib_with_swiftinterface",
+    srcs = ["//test/testdata/sources:main.swift"],
+    features = [
+        "swift.emit_swiftinterface",
+        "swift.enable_library_evolution",
+    ],
+    generates_header = True,
+    module_name = "swift_framework_lib",
+    tags = common.fixture_tags,
+)
+
 swift_library(
     name = "watchkit_ext_main_lib",
     srcs = ["WatchKitExtMain.swift"],
     tags = common.fixture_tags,
 )
 
-objc_library(
-    name = "objc_test_lib",
-    srcs = ["test.m"],
+swift_library(
+    name = "watchkit_single_target_app_main_lib",
+    srcs = ["WatchKitAppMain.swift"],
     tags = common.fixture_tags,
 )
 
 objc_library(
+    name = "objc_test_lib",
+    testonly = True,
+    srcs = ["test.m"],
+    sdk_frameworks = [
+        "XCTest",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+objc_library(
     name = "objc_swift_depending_test_lib",
+    testonly = True,
     srcs = ["test.m"],
     tags = common.fixture_tags,
-    deps = [":swift_uikit_appdelegate"],
+    deps = [
+        ":swift_uikit_appdelegate",
+    ],
 )
 
 swift_library(
@@ -279,9 +392,61 @@ genrule(
 )
 
 genrule(
+    name = "generate_xcstrings",
+    outs = ["generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "generate_structured_xcstrings",
+    outs = ["structured/generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_structured_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles too!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
     tags = common.fixture_tags,
 )
 
@@ -297,8 +462,22 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    infoplists = ["Another.plist"],
+    resources = [":custom_apple_resource_info"],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "resource_bundle_with_structured_resource_group",
+    resources = [":structured_resources"],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_structured_resource_group",
     resources = [":structured_resources"],
     tags = common.fixture_tags,
 )
@@ -314,8 +493,38 @@ apple_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_bundle_id",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    infoplists = ["Info-noversion.plist"],
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_with_bundle_id_no_infoplist",
+    bundle_id = "org.bazel.rules_apple.precompiled_resource_bundle",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "localization",
+    resources = [
+        "en.lproj/files.stringsdict",
+        "en.lproj/greetings.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_resource_bundle_localization",
     resources = [
         "en.lproj/files.stringsdict",
         "en.lproj/greetings.strings",
@@ -369,17 +578,7 @@ apple_resource_group(
 )
 
 objc_library(
-    name = "objc_lib_with_resources",
-    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
-    data = [
-        ":structured_resources",
-    ],
-    tags = common.fixture_tags,
-)
-
-objc_library(
     name = "structured_resources_in_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":structured_resources_in_resources",
     ],
@@ -395,9 +594,22 @@ apple_resource_group(
 
 objc_library(
     name = "processed_resources_in_structured_resources_lib",
-    srcs = ["main.m"],
     data = [
         ":processed_resources_in_structured_resources",
+    ],
+)
+
+apple_resource_group(
+    name = "precompiled_processed_resources_in_structured_resources",
+    structured_resources = [
+        ":precompiled_resource_bundle_localization",
+    ],
+)
+
+objc_library(
+    name = "precompiled_resource_bundle_processed_resources_in_structured_resources_lib",
+    data = [
+        ":precompiled_processed_resources_in_structured_resources",
     ],
 )
 
@@ -407,8 +619,23 @@ filegroup(
 )
 
 filegroup(
-    name = "assets_ios",
-    srcs = glob(["assets_ios.xcassets/**"]),
+    name = "assets",
+    srcs = glob(["assets.xcassets/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets",
+    srcs = glob(["app_icon.icon/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets_alternative",
+    srcs = glob(["app_icon-bazel.icon/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets_mismatched_with_xcassets_alternative",
+    srcs = glob(["app_icon-dupe.icon/**"]),
 )
 
 filegroup(
@@ -417,8 +644,13 @@ filegroup(
 )
 
 filegroup(
-    name = "alternate_icons_ios",
-    srcs = glob(["alticons/**"]),
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "dark_and_tinted_app_icons_ios",
+    srcs = glob(["dark_and_tinted_app_icons_ios.xcassets/**"]),
 )
 
 filegroup(
@@ -448,6 +680,14 @@ filegroup(
 )
 
 filegroup(
+    name = "basic_docc_bundle_files",
+    srcs = glob(
+        ["basic.docc/**"],
+        exclude_directories = 0,
+    ),
+)
+
+filegroup(
     name = "localized_storyboards_ios",
     srcs = glob(["*.lproj/*.storyboard"]),
 )
@@ -458,6 +698,14 @@ filegroup(
 )
 
 filegroup(
+    name = "localized_xcstrings",
+    srcs = [
+        "files.xcstrings",
+        "greetings.xcstrings",
+    ],
+)
+
+filegroup(
     name = "localized_xibs_ios",
     srcs = glob(["*.lproj/*.xib"]),
 )
@@ -465,11 +713,6 @@ filegroup(
 filegroup(
     name = "mapping_model",
     srcs = glob(["mapping_model.xcmappingmodel/**"]),
-)
-
-filegroup(
-    name = "metal_files",
-    srcs = glob(["*.metal"]),
 )
 
 filegroup(
@@ -529,10 +772,16 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_linkopt_lib",
+    srcs = ["@bazel_tools//tools/objc:dummy.c"],
+    linkopts = ["-Wl,-framework,CoreMotion"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "ios_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
-        ":assets_ios",
+        ":assets",
         ":mapping_model",
         ":nonlocalized.plist",
         ":nonlocalized.strings",
@@ -546,8 +795,32 @@ objc_library(
 )
 
 objc_library(
-    name = "ios_localized_assets_lib",
+    name = "ios_non_localized_xcstrings_lib",
+    data = [
+        "nonlocalized.xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "macos_non_localized_assets_lib",
     srcs = ["main.m"],
+    data = [
+        ":assets",
+        ":mapping_model",
+        ":nonlocalized.plist",
+        ":nonlocalized.strings",
+        ":sample.png",
+        ":storyboard_macos.storyboard",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        # ":view_macos.xib",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ios_localized_assets_lib",
     data = [
         ":localized_generic_resources",
         ":localized_plists",
@@ -559,8 +832,15 @@ objc_library(
 )
 
 objc_library(
+    name = "ios_localized_xcstrings_lib",
+    data = [
+        ":localized_xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "apple_non_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":mapping_model",
         ":nonlocalized.plist",
@@ -574,7 +854,6 @@ objc_library(
 
 objc_library(
     name = "apple_localized_assets_lib",
-    srcs = ["main.m"],
     data = [
         ":localized_generic_resources",
         ":localized_plists",
@@ -587,6 +866,14 @@ objc_library(
     name = "empty_strings_file_lib",
     data = [
         "empty.strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "empty_xcstrings_lib",
+    data = [
+        "empty.xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -604,7 +891,7 @@ apple_resource_bundle(
         "sample.png",
         "storyboard_ios.storyboard",
         "view_ios.xib",
-        ":assets_ios",
+        ":assets",
         ":basic_bundle",
         ":localized_generic_resources",
         ":localized_plists",
@@ -612,9 +899,84 @@ apple_resource_bundle(
         ":localized_strings",
         ":localized_xibs_ios",
         ":mapping_model",
-        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "bundle_library_xcstrings",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = ["generated.xcstrings"],
+    structured_resources = [
+        ":generate_structured_xcstrings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_ios",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        "storyboard_ios.storyboard",
+        "view_ios.xib",
+        ":assets",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_storyboards_ios",
+        ":localized_strings",
+        ":localized_xibs_ios",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "bundle_library_macos",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        "storyboard_macos.storyboard",
+        # "view_macos.xib",
+        ":assets",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -627,6 +989,14 @@ objc_library(
     name = "bundle_library_ios_lib",
     data = [
         ":bundle_library_ios",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "precompiled_bundle_library_ios_lib",
+    data = [
+        ":precompiled_bundle_library_ios",
     ],
     tags = common.fixture_tags,
 )
@@ -647,9 +1017,9 @@ apple_resource_bundle(
         ":localized_plists",
         ":localized_strings",
         ":mapping_model",
-        ":metal_files",
         ":unversioned_datamodel",
         ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
     ],
     structured_resources = [
         ":generate_structured_strings",
@@ -666,11 +1036,47 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_library_apple",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = [
+        "generated.strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
+        "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
+        ":localized_generic_resources",
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+        "//test/testdata/resources:metal_files",
+    ],
+    structured_resources = [
+        ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "precompiled_bundle_library_apple_lib",
+    data = [
+        ":precompiled_bundle_library_apple",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_group(
     name = "swift_structured_resources",
     structured_resources = [
         "//test/testdata/resources:structured",
     ],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -678,7 +1084,7 @@ swift_library(
     srcs = ["AppDelegate.swift"],
     data = [
         ":swift_structured_resources",
-        "//test/testdata/resources:assets_ios",
+        "//test/testdata/resources:assets",
         "//test/testdata/resources:localized_generic_resources",
         "//test/testdata/resources:localized_storyboards_ios",
         "//test/testdata/resources:localized_strings",
@@ -695,11 +1101,57 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_lib_with_macos_resources",
+    srcs = ["AppDelegate-macos.swift"],
+    data = [
+        ":swift_structured_resources",
+        "//test/testdata/resources:assets",
+        "//test/testdata/resources:localized_generic_resources",
+        "//test/testdata/resources:localized_storyboards_macos",
+        "//test/testdata/resources:localized_strings",
+        # "//test/testdata/resources:localized_xibs_macos",
+        "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized_resource.txt",
+        "//test/testdata/resources:storyboard_macos.storyboard",
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+        # "//test/testdata/resources:view_macos.xib",
+    ],
+    module_name = "EasyToSearchForModuleName",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "macos_swift_lib_with_resources",
+    srcs = ["main.swift"],
+    data = [
+        ":swift_structured_resources",
+        "//test/testdata/resources:localized_generic_resources",
+        "//test/testdata/resources:localized_strings",
+        "//test/testdata/resources:nonlocalized.strings",
+        "//test/testdata/resources:nonlocalized_resource.txt",
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+    ],
+    module_name = "EasyToSearchForModuleName",
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "swift_lib_with_transitive_resources",
     srcs = ["Dummy.swift"],
     tags = common.fixture_tags,
     deps = [
         ":swift_lib_with_resources",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_transitive_macos_resources",
+    srcs = ["Dummy.swift"],
+    tags = common.fixture_tags,
+    deps = [
+        ":swift_lib_with_macos_resources",
     ],
 )
 
@@ -725,10 +1177,43 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_lib_with_macos_storyboard_a",
+    srcs = ["AppDelegate-macos.swift"],
+    data = [
+        "//test/testdata/resources:localized_storyboards_macos",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":swift_lib_with_macos_storyboard_b",
+    ],
+)
+
+swift_library(
+    name = "swift_lib_with_macos_storyboard_b",
+    srcs = ["Dummy.swift"],
+    data = [
+        "//test/testdata/resources:storyboard_macos.storyboard",
+    ],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "macos_swift_lib_with_asset_catalog_a",
+    srcs = ["AppDelegate-macos.swift"],
+    data = [
+        "//test/testdata/resources:assets",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":swift_lib_with_asset_catalog_b",
+    ],
+)
+
+swift_library(
     name = "swift_lib_with_asset_catalog_a",
     srcs = ["AppDelegate.swift"],
     data = [
-        "//test/testdata/resources:assets_ios",
+        "//test/testdata/resources:assets",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -740,7 +1225,7 @@ swift_library(
     name = "swift_lib_with_asset_catalog_b",
     srcs = ["Dummy.swift"],
     data = [
-        "//test/testdata/resources:assets2_ios",
+        "//test/testdata/resources:assets2",
     ],
     tags = common.fixture_tags,
 )
@@ -755,10 +1240,21 @@ swift_library(
     deps = [":swift_lib_with_resources"],
 )
 
+swift_library(
+    name = "swift_lib_with_macos_storyboard_copy",
+    srcs = ["Dummy.swift"],
+    data = [
+        "//test/testdata/resources:generate_macos_storyboard_copy",
+    ],
+    tags = common.fixture_tags,
+    deps = [":swift_lib_with_macos_resources"],
+)
+
 genrule(
     name = "DummySwiftFile",
     outs = ["Dummy.swift"],
     cmd = "echo 'struct Dummy {}' > $@",
+    tags = common.fixture_tags,
 )
 
 filegroup(
@@ -820,6 +1316,11 @@ filegroup(
 filegroup(
     name = "TVBrandAssets.xcassets",
     srcs = glob(["TVBrandAssets.xcassets/**"]),
+)
+
+filegroup(
+    name = "VisionAppIcon.xcassets",
+    srcs = glob(["VisionAppIcon.xcassets/**"]),
 )
 
 filegroup(
@@ -896,4 +1397,121 @@ objc_library(
     srcs = [":objc_importing_imported_static_xcfw"],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_old"],
+)
+
+swift_library(
+    name = "app_intent",
+    srcs = ["app_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_concurrency_main_lib",
+    srcs = ["concurrency_main.swift"],
+    tags = common.fixture_tags,
+)
+
+# --------------------------------------------------------------------------------
+# C/C++ rules with data
+
+cc_library(
+    name = "cc_library_with_runfile_a",
+    srcs = ["main.cc"],
+    data = [
+        # this file should be placed in nested runfiles-like structure
+        "//test/starlark_tests/resources:cc_lib_resources/runfile_a.txt",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":cc_library_with_runfile_b",
+    ],
+)
+
+cc_library(
+    name = "cc_library_with_runfile_b",
+    srcs = ["main.cc"],
+    data = [
+        # this file should be placed in nested runfiles-like structure
+        "//test/starlark_tests/resources:cc_lib_resources/runfile_b.txt",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_library(
+    name = "cc_library_with_resource_a",
+    srcs = ["main.cc"],
+    aspect_hints = ["//apple:use_resources"],
+    data = [
+        # because of aspect-hint, this file should be placed in /Resources/nested.txt
+        "//test/starlark_tests/resources:cc_lib_resources/resource_a.txt",
+    ],
+    tags = common.fixture_tags,
+)
+
+cc_library(
+    name = "cc_library_with_suppressed_resources",
+    srcs = ["main.cc"],
+    aspect_hints = ["//apple:suppress_resources"],
+    data = [
+        # because of aspect-hint, this file should not be included in the application
+        "//test/starlark_tests/resources:cc_lib_resources/suppressed_resource.txt",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        # dep will follow cc_library_runfileB rules and be included as a runfile
+        ":cc_library_with_runfile_b",
+    ],
+)
+
+# Targets for CcInfo dylib tests
+
+# Generate a .dylib for testing as if it were a precompiled library supplied by a third party
+cc_binary(
+    name = "ccinfo_dylibs_mylib-shared",
+    srcs = ["ccinfo_dylibs/mylib/lib.cpp"],
+    linkshared = True,
+)
+
+# Set up the rpath of the .dylib using install_name_tool. Bazel should probably do this again when packaging
+genrule(
+    name = "ccinfo_dylibs_mylib-shared-with-rpath",
+    srcs = [":ccinfo_dylibs_mylib-shared"],
+    outs = ["libmylib_with_rpath.dylib"],
+    cmd = "install_name_tool -id @rpath/libmylib_with_rpath.dylib $(location :ccinfo_dylibs_mylib-shared) && cp $(location :ccinfo_dylibs_mylib-shared) $@",
+)
+
+# Import our dynamically linked library.
+cc_import(
+    name = "ccinfo_dylibs_mylib-import",
+    hdrs = ["ccinfo_dylibs/mylib/lib.hpp"],
+    shared_library = ":ccinfo_dylibs_mylib-shared-with-rpath",
+)
+
+# Wrap our dylib in a cc_library so we can add data[] to it. This is common practice for adding
+# data or include paths.
+cc_library(
+    name = "ccinfo_dylibs_mylib-import-with-data",
+    data = ["ccinfo_dylibs/mylib/data.txt"],
+    deps = ["ccinfo_dylibs_mylib-import"],
+)
+
+# This is our main executable, except we make it into a cc_library so macos_application can do
+# the actual linking.
+cc_library(
+    name = "ccinfo_dylibs_libapp",
+    srcs = [
+        "ccinfo_dylibs/main.cpp",
+    ],
+    deps = [
+        ":ccinfo_dylibs_mylib-import-with-data",
+    ],
 )

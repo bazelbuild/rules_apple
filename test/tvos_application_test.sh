@@ -89,7 +89,7 @@ EOF
   ! do_build tvos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleVersion.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
 }
 
 # Test missing the CFBundleShortVersionString fails the build.
@@ -109,7 +109,7 @@ EOF
   ! do_build tvos //app:app \
     || fail "Should fail build"
 
-  expect_log 'Target "//app:app" is missing CFBundleShortVersionString.'
+  expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
 }
 
 # Tests that the linkmap outputs are produced when --objc_generate_linkmap is
@@ -148,7 +148,7 @@ EOF
   ! do_build tvos //app:app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
-  expect_log 'While processing target "//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
+  expect_log 'While processing target "@@\?//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
 }
 
 run_suite "tvos_application bundling tests"

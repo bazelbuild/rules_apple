@@ -15,19 +15,19 @@
 """apple_dynamic_xcframework_import and apple_static_xcframework_import Starlark tests."""
 
 load(
-    ":rules/analysis_target_actions_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
 load(
-    ":rules/analysis_target_outputs_test.bzl",
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 
@@ -50,6 +50,70 @@ def apple_xcframework_import_test_suite(name):
         name = "{}_dynamic_xcfw_import_with_lib_ids_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_xcfmwk_with_lib_ids",
         expected_outputs = ["app_with_imported_dynamic_xcfmwk_with_lib_ids.ipa"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_ext_ipa_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_imported_dynamic_xcfmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/PlugIns/ext_with_imported_dynamic_xcfmwk.appex/ext_with_imported_dynamic_xcfmwk",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/PlugIns/ext_with_imported_dynamic_xcfmwk.appex/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_ext_app_bin_rpath_load_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_imported_dynamic_xcfmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_ext_with_imported_dynamic_xcfmwk",
+        macho_load_commands_not_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_ext_app_ext_rpath_load_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_imported_dynamic_xcfmwk",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_with_imported_dynamic_xcfmwk.appex/ext_with_imported_dynamic_xcfmwk",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_imessage_ext_ipa_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imessage_ext_with_imported_dynamic_xcfmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+            "$BUNDLE_ROOT/PlugIns/imessage_ext_imported_dynamic_xcfmwk.appex/imessage_ext_imported_dynamic_xcfmwk",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/PlugIns/imessage_ext_imported_dynamic_xcfmwk.appex/Frameworks/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_imessage_ext_app_bin_rpath_load_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imessage_ext_with_imported_dynamic_xcfmwk",
+        binary_test_file = "$BUNDLE_ROOT/app_with_imessage_ext_with_imported_dynamic_xcfmwk",
+        macho_load_commands_not_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_dynamic_xcfw_import_with_imessage_ext_app_ext_rpath_load_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imessage_ext_with_imported_dynamic_xcfmwk",
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/imessage_ext_imported_dynamic_xcfmwk.appex/imessage_ext_imported_dynamic_xcfmwk",
+        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
         tags = [name],
     )
 

@@ -17,25 +17,24 @@
 load(
     "@bazel_skylib//lib:unittest.bzl",
     "analysistest",
-    "asserts",
 )
 load(
-    "@bazel_skylib//lib:new_sets.bzl",
-    "sets",
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
+    "//test/starlark_tests/rules:assertions.bzl",
+    "assertions",
 )
 
 def _analysis_target_outputs_test_impl(ctx):
     env = analysistest.begin(ctx)
-    expected_outputs = sets.make(ctx.attr.expected_outputs)
-    target_files = analysistest.target_under_test(env).files.to_list()
-    all_outputs = sets.make([file.basename for file in target_files])
+    target_under_test = analysistest.target_under_test(env)
 
-    # Test that the expected outputs are contained within actual outputs
-    asserts.new_set_equals(
-        env,
-        expected_outputs,
-        sets.intersection(all_outputs, expected_outputs),
-        "{} not contained in {}".format(sets.to_list(expected_outputs), sets.to_list(all_outputs)),
+    assertions.contains_files(
+        env = env,
+        expected_files = ctx.attr.expected_outputs,
+        actual_files = target_under_test.files.to_list(),
     )
 
     return analysistest.end(env)
@@ -66,5 +65,11 @@ def make_analysis_target_outputs_test(config_settings = {}):
 analysis_target_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
         "//command_line_option:compilation_mode": "opt",
+    },
+)
+
+analysis_target_tree_artifacts_outputs_test = make_analysis_target_outputs_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
     },
 )

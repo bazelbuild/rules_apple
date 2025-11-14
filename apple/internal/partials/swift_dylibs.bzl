@@ -15,32 +15,28 @@
 """Partial implementation for Swift dylib processing for bundles."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
-    "bitcode_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal/utils:defines.bzl",
+    "defines",
 )
 
 _AppleSwiftDylibsInfo = provider(
@@ -75,6 +71,7 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "ios": apple_common.dotted_version("15.0"),
     "macos": apple_common.dotted_version("12.0"),
     "tvos": apple_common.dotted_version("15.0"),
+    "visionos": apple_common.dotted_version("1.0"),
     "watchos": apple_common.dotted_version("8.0"),
 }
 
@@ -85,31 +82,27 @@ def _swift_dylib_action(
         output_dir,
         platform_name,
         platform_prerequisites,
-        resolved_swift_stdlib_tool,
-        strip_bitcode):
+        strip_bitcode,
+        swift_stdlib_tool):
     """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
-    swift_stdlib_tool_args = [
-        "--platform",
-        platform_name,
-        "--output_path",
-        output_dir.path,
-    ]
-    for x in binary_files:
-        swift_stdlib_tool_args.extend([
-            "--binary",
-            x.path,
-        ])
+
+    swift_stdlib_tool_args = actions.args()
+    swift_stdlib_tool_args.add("--platform", platform_name)
+    swift_stdlib_tool_args.add("--output_path", output_dir.path)
+    swift_stdlib_tool_args.add_all(
+        binary_files,
+        before_each = "--binary",
+    )
 
     if strip_bitcode:
-        swift_stdlib_tool_args.append("--strip_bitcode")
+        swift_stdlib_tool_args.add("--strip_bitcode")
 
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
-        arguments = swift_stdlib_tool_args,
-        executable = resolved_swift_stdlib_tool.files_to_run,
-        inputs = depset(binary_files, transitive = [resolved_swift_stdlib_tool.inputs]),
-        input_manifests = resolved_swift_stdlib_tool.input_manifests,
+        arguments = [swift_stdlib_tool_args],
+        executable = swift_stdlib_tool,
+        inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -155,8 +148,6 @@ def _swift_dylibs_partial_impl(
         transitive = transitive_binary_sets,
     )
 
-    strip_bitcode = bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none"
-
     swift_support_requested = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.package_swift_support",
@@ -182,37 +173,31 @@ def _swift_dylibs_partial_impl(
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
-                strip_bitcode = strip_bitcode,
+                strip_bitcode = True,
+                swift_stdlib_tool = apple_mac_toolchain_info.swift_stdlib_tool,
             )
 
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
 
             if needs_swift_support:
-                if strip_bitcode:
-                    # We're not allowed to modify stdlibs that are used for
-                    # Swift Support, so we register another action for copying
-                    # them without stripping bitcode.
-                    swift_support_output_dir = intermediates.directory(
-                        actions = actions,
-                        target_name = label_name,
-                        output_discriminator = output_discriminator,
-                        dir_name = "swiftlibs_for_swiftsupport",
-                    )
-                    _swift_dylib_action(
-                        actions = actions,
-                        binary_files = binaries_to_check,
-                        output_dir = swift_support_output_dir,
-                        platform_name = platform_name,
-                        platform_prerequisites = platform_prerequisites,
-                        resolved_swift_stdlib_tool = apple_mac_toolchain_info.resolved_swift_stdlib_tool,
-                        strip_bitcode = False,
-                    )
-                else:
-                    # When not building with bitcode, we can reuse Swift dylibs
-                    # for bundling in both SwiftSupport and in the app bundle's
-                    # "Frameworks" directory.
-                    swift_support_output_dir = output_dir
+                # We're not allowed to modify stdlibs that are used for
+                # Swift Support, so we register another action for copying
+                # them without stripping bitcode.
+                swift_support_output_dir = intermediates.directory(
+                    actions = actions,
+                    target_name = label_name,
+                    output_discriminator = output_discriminator,
+                    dir_name = "swiftlibs_for_swiftsupport",
+                )
+                _swift_dylib_action(
+                    actions = actions,
+                    binary_files = binaries_to_check,
+                    output_dir = swift_support_output_dir,
+                    platform_name = platform_name,
+                    platform_prerequisites = platform_prerequisites,
+                    strip_bitcode = False,
+                    swift_stdlib_tool = apple_mac_toolchain_info.swift_stdlib_tool,
+                )
 
                 swift_support_file = (platform_name, swift_support_output_dir)
                 transitive_swift_support_files.append(swift_support_file)

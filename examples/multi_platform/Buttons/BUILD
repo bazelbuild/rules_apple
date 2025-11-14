@@ -1,8 +1,14 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
+    "@build_bazel_rules_swift//swift:swift.bzl",
+    "swift_library",
+)
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_extension",
+    "ios_framework",
     "ios_static_framework",
     "ios_ui_test",
     "ios_unit_test",
@@ -10,6 +16,8 @@ load(
 load(
     "//apple:macos.bzl",
     "macos_application",
+    "macos_framework",
+    "macos_static_framework",
     # Enable when macos_test_runner supports macOS UI Tests.
     # "macos_ui_test",
     "macos_unit_test",
@@ -25,10 +33,6 @@ load(
     "watchos_application",
     "watchos_extension",
 )
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "swift_library",
-)
 
 licenses(["notice"])
 
@@ -42,7 +46,13 @@ swift_library(
         "Buttons/AppDelegate.swift",
         "Buttons/ViewController.swift",
     ],
+    data = ["Buttons/Base.lproj/Main.storyboard"],
     module_name = "Buttons",
+    tags = ["manual"],
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
 )
 
 swift_library(
@@ -51,6 +61,29 @@ swift_library(
         "ButtonsExtension/ActionRequestHandler.swift",
     ],
     module_name = "ButtonsExtension",
+    tags = ["manual"],
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
+)
+
+swift_library(
+    name = "ButtonsSharedLib",
+    srcs = [
+        "ButtonsShared/SomethingShared.swift",
+    ],
+    module_name = "ButtonsShared",
+    tags = ["manual"],
+)
+
+swift_library(
+    name = "ButtonsShared2Lib",
+    srcs = [
+        "ButtonsShared2/SomethingElseShared.swift",
+    ],
+    module_name = "ButtonsShared2",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -60,6 +93,7 @@ swift_library(
         "ButtonsTests/ButtonsTests.swift",
     ],
     module_name = "ButtonsTests",
+    tags = ["manual"],
     deps = [
         ":ButtonsLib",
     ],
@@ -72,16 +106,26 @@ swift_library(
         "ButtonsUITests/ButtonsUITests.swift",
     ],
     module_name = "ButtonsUITests",
-)
-
-## Resources
-
-objc_library(
-    name = "ButtonsResources",
-    data = ["Buttons/Base.lproj/Main.storyboard"],
+    tags = ["manual"],
 )
 
 ## Packaging
+
+ios_framework(
+    name = "ButtonsSharedFramework",
+    bundle_id = "com.google.ButtonsSharedFramework",
+    extension_safe = True,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["ButtonsSharedFramework/Info.plist"],
+    minimum_os_version = "11.0",
+    deps = [
+        ":ButtonsShared2Lib",
+        ":ButtonsSharedLib",
+    ],
+)
 
 ios_application(
     name = "Buttons",
@@ -91,13 +135,11 @@ ios_application(
         "iphone",
         "ipad",
     ],
+    frameworks = [":ButtonsSharedFramework"],
     infoplists = ["Buttons/Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     watch_application = ":ButtonsWatch",
-    deps = [
-        ":ButtonsLib",
-        ":ButtonsResources",
-    ],
+    deps = [":ButtonsLib"],
 )
 
 ios_extension(
@@ -107,36 +149,37 @@ ios_extension(
         "iphone",
         "ipad",
     ],
+    frameworks = [":ButtonsSharedFramework"],
     infoplists = ["ButtonsExtension/Info.plist"],
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     deps = [":ButtonsExtensionLib"],
 )
 
 ios_static_framework(
     name = "ButtonsStaticFramework",
-    bundle_name = "Buttons",
+    bundle_name = "ButtonsShared",
     minimum_os_version = "9.0",
-    deps = [":ButtonsLib"],
+    deps = [":ButtonsSharedLib"],
 )
 
 ## Tests
 
 ios_unit_test(
     name = "ButtonsTests",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     test_host = ":Buttons",
     deps = [":ButtonsTestsLib"],
 )
 
 ios_unit_test(
     name = "ButtonsLogicTests",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     deps = [":ButtonsTestsLib"],
 )
 
 ios_ui_test(
     name = "ButtonsUITests",
-    minimum_os_version = "9.0",
+    minimum_os_version = "11.0",
     test_host = ":Buttons",
     deps = [":ButtonsUITestsLib"],
 )
@@ -163,6 +206,7 @@ swift_library(
         "ButtonsWatchExtension/NotificationController.swift",
     ],
     module_name = "ButtonsWatchExtension",
+    tags = ["manual"],
 )
 
 ## Packaging
@@ -172,7 +216,7 @@ watchos_application(
     bundle_id = "com.google.Buttons.watchkitapp",
     extension = ":ButtonsWatchExtension",
     infoplists = ["ButtonsWatch/Info.plist"],
-    minimum_os_version = "3.0",
+    minimum_os_version = "4.0",
     resources = ["ButtonsWatch/Base.lproj/Interface.storyboard"],
 )
 
@@ -180,7 +224,7 @@ watchos_extension(
     name = "ButtonsWatchExtension",
     bundle_id = "com.google.Buttons.watchkitapp.watchkitextension",
     infoplists = ["ButtonsWatchExtension/Info.plist"],
-    minimum_os_version = "3.0",
+    minimum_os_version = "4.0",
     deps = [
         ":ButtonsWatchExtensionLib",
     ],
@@ -197,6 +241,7 @@ swift_library(
         "ButtonsTV/ViewController.swift",
     ],
     module_name = "ButtonsTV",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -205,20 +250,25 @@ swift_library(
         "ButtonsTVExtension/ServiceProvider.swift",
     ],
     module_name = "ButtonsTVExtension",
+    tags = ["manual"],
 )
 
 swift_library(
     name = "ButtonsTVTestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTVTests/ButtonsTVTests.swift",
     ],
+    tags = ["manual"],
 )
 
 swift_library(
     name = "ButtonsTVUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsTVUITests/ButtonsTVUITests.swift",
     ],
+    tags = ["manual"],
 )
 
 ## Resources
@@ -235,7 +285,7 @@ tvos_application(
     bundle_id = "com.google.ButtonsTV",
     extensions = [":ButtonsTVExtension"],
     infoplists = ["ButtonsTV/Info.plist"],
-    minimum_os_version = "10.2",
+    minimum_os_version = "11.0",
     deps = [
         ":ButtonsTVLib",
         ":ButtonsTVResources",
@@ -246,14 +296,14 @@ tvos_extension(
     name = "ButtonsTVExtension",
     bundle_id = "com.google.ButtonsTV.ButtonsTVExtension",
     infoplists = ["ButtonsTVExtension/Info.plist"],
-    minimum_os_version = "10.2",
+    minimum_os_version = "11.0",
     deps = [":ButtonsTVExtensionLib"],
 )
 
 tvos_static_framework(
     name = "ButtonsTVStaticFramework",
     bundle_name = "ButtonsTV",
-    minimum_os_version = "10.0",
+    minimum_os_version = "11.0",
     deps = [":ButtonsTVLib"],
 )
 
@@ -268,6 +318,7 @@ swift_library(
         "ButtonsMac/ViewController.swift",
     ],
     module_name = "ButtonsMac",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -277,6 +328,7 @@ swift_library(
         "ButtonsMacTests/ButtonsMacTests.swift",
     ],
     module_name = "ButtonsMacTests",
+    tags = ["manual"],
     deps = [
         ":ButtonsMacLib",
     ],
@@ -284,10 +336,19 @@ swift_library(
 
 swift_library(
     name = "ButtonsMacUITestsLib",
+    testonly = True,
     srcs = [
         "ButtonsMacUITests/ButtonsMacUITests.swift",
     ],
     module_name = "ButtonsMacUITests",
+    tags = ["manual"],
+)
+
+macos_static_framework(
+    name = "ButtonsMacStaticFramework",
+    bundle_name = "ButtonsMac",
+    minimum_os_version = "11.11",
+    deps = [":ButtonsMacLib"],
 )
 
 ## Resources
@@ -298,6 +359,15 @@ objc_library(
 )
 
 ## Packaging
+
+macos_framework(
+    name = "ButtonsMacDynamicFramework",
+    bundle_id = "com.google.ButtonsMac",
+    bundle_name = "ButtonsMac",
+    infoplists = ["ButtonsMac/Info.plist"],
+    minimum_os_version = "11.11",
+    deps = [":ButtonsMacLib"],
+)
 
 macos_application(
     name = "ButtonsMac",
@@ -331,7 +401,7 @@ macos_unit_test(
 # Enable when macos_test_runner supports macOS UI Tests.
 # macos_ui_test(
 #     name = "ButtonsMacUITests",
-#     minimum_os_version = "10.11",
+#     minimum_os_version = "10.13",
 #     test_host = ":ButtonsMac",
 #     deps = [":ButtonsMacUITestsLib"],
 # )
@@ -359,6 +429,8 @@ build_test(
         ":ButtonsStaticFramework",
         ":ButtonsExtension",
         ":ButtonsMac",
+        ":ButtonsMacStaticFramework",
+        ":ButtonsMacDynamicFramework",
         ":ButtonsTV",
         ":ButtonsTVExtension",
         ":ButtonsTVStaticFramework",

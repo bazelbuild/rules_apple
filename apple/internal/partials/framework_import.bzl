@@ -15,40 +15,36 @@
 """Partial implementation for framework import file processing."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkImportInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:bitcode_support.bzl",
-    "bitcode_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple:providers.bzl",
+    "AppleFrameworkImportInfo",
+)
+load(
+    "//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
+    "//apple/internal:processor.bzl",
+    "processor",
+)
+load(
+    "//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
 )
 
 def _framework_import_partial_impl(
@@ -154,8 +150,7 @@ def _framework_import_partial_impl(
 
         args.add_all(build_archs_found, before_each = "--slice")
 
-        if bitcode_support.bitcode_mode_string(platform_prerequisites.apple_fragment) == "none":
-            args.add("--strip_bitcode")
+        args.add("--strip_bitcode")
 
         args.add("--output_zip", framework_zip.path)
 
@@ -172,10 +167,15 @@ def _framework_import_partial_impl(
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         )
-        args.add_all(codesign_args)
+        if codesign_args:
+            args.add_all(codesign_args)
+        else:
+            # Add required argument to disable signing because
+            # code sign arguments are mutually exclusive groups.
+            args.add("--disable_signing")
 
-        resolved_codesigningtool = apple_mac_toolchain_info.resolved_codesigningtool
-        resolved_imported_dynamic_framework_processor = apple_mac_toolchain_info.resolved_imported_dynamic_framework_processor
+        codesigningtool = apple_mac_toolchain_info.codesigningtool
+        imported_dynamic_framework_processor = apple_mac_toolchain_info.imported_dynamic_framework_processor
 
         execution_requirements = {}
 
@@ -185,7 +185,7 @@ def _framework_import_partial_impl(
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
-        if provisioning_profile:
+        if codesign_args and provisioning_profile:
             input_files.append(provisioning_profile)
             execution_requirements = {"no-sandbox": "1"}
             if platform_prerequisites.platform.is_device:
@@ -194,25 +194,16 @@ def _framework_import_partial_impl(
                 # with different identities.
                 execution_requirements["no-remote"] = "1"
 
-        transitive_inputs = [
-            resolved_imported_dynamic_framework_processor.inputs,
-            resolved_codesigningtool.inputs,
-        ]
-
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
-            executable = (
-                resolved_imported_dynamic_framework_processor.files_to_run
-            ),
+            executable = imported_dynamic_framework_processor,
             execution_requirements = execution_requirements,
-            inputs = depset(input_files, transitive = transitive_inputs),
-            input_manifests = resolved_imported_dynamic_framework_processor.input_manifests +
-                              resolved_codesigningtool.input_manifests,
+            inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
             outputs = [framework_zip],
-            tools = [resolved_codesigningtool.executable],
+            tools = [codesigningtool],
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 

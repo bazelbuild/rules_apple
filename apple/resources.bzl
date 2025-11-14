@@ -14,38 +14,51 @@
 
 """# Rules related to Apple resources and resource bundles."""
 
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_bundle_import.bzl",
+    "//apple/internal:resources.bzl",
+    _resources_common = "resources",
+)
+load(
+    "//apple/internal/resource_rules:apple_bundle_import.bzl",
     _apple_bundle_import = "apple_bundle_import",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_ml_library.bzl",
-    _apple_core_ml_library = "apple_core_ml_library",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_intent_library.bzl",
-    _apple_intent_library = "apple_intent_library",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
-    _apple_resource_bundle = "apple_resource_bundle",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
-    _apple_resource_group = "apple_resource_group",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_core_data_model.bzl",
+    "//apple/internal/resource_rules:apple_core_data_model.bzl",
     _apple_core_data_model = "apple_core_data_model",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    _resources_common = "resources",
+    "//apple/internal/resource_rules:apple_core_ml_library.bzl",
+    _apple_core_ml_library = "apple_core_ml_library",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load(
+    "//apple/internal/resource_rules:apple_intent_library.bzl",
+    _apple_intent_library = "apple_intent_library",
+)
+load(
+    "//apple/internal/resource_rules:apple_metal_library.bzl",
+    _apple_metal_library = "apple_metal_library",
+)
+load(
+    "//apple/internal/resource_rules:apple_precompiled_resource_bundle.bzl",
+    _apple_precompiled_resource_bundle = "apple_precompiled_resource_bundle",
+)
+load(
+    "//apple/internal/resource_rules:apple_resource_bundle.bzl",
+    _apple_resource_bundle = "apple_resource_bundle",
+)
+load(
+    "//apple/internal/resource_rules:apple_resource_group.bzl",
+    _apple_resource_group = "apple_resource_group",
+)
+
+visibility("public")
 
 apple_bundle_import = _apple_bundle_import
 apple_intent_library = _apple_intent_library
+apple_metal_library = _apple_metal_library
+apple_precompiled_resource_bundle = _apple_precompiled_resource_bundle
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_core_data_model = _apple_core_data_model
@@ -89,7 +102,8 @@ def apple_core_ml_library(name, mlmodel, **kwargs):
         visibility = ["//visibility:private"],
         **core_ml_args
     )
-    native.objc_library(
+
+    objc_library(
         name = name,
         srcs = [objc_source],
         hdrs = [objc_header],
@@ -171,7 +185,7 @@ def objc_intent_library(
         tags = ["manual"],
         testonly = testonly,
     )
-    native.objc_library(
+    objc_library(
         name = name,
         srcs = [intent_srcs],
         hdrs = [intent_hdrs],

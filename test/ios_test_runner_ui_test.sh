@@ -41,7 +41,7 @@ load(
 
 ios_test_runner(
     name = "ios_x86_64_sim_runner",
-    device_type = "iPhone 8",
+    device_type = "iPhone 12",
 )
 EOF
 }
@@ -303,7 +303,7 @@ EOF
 }
 
 function do_ios_test() {
-  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=9.0" "$@"
+  do_test ios "--test_output=all" "--spawn_strategy=local" "--ios_minimum_os=11.0" "$@"
 }
 
 function test_ios_ui_test_pass() {

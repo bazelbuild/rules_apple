@@ -24,10 +24,16 @@ load(
 
 def _analysis_incoming_watchos_platform_mismatch_test_impl(ctx):
     env = analysistest.begin(ctx)
-    asserts.expect_failure(env, """
+    asserts.expect_failure(
+        env,
+        """
 ERROR: Unexpected resolved platform:
-Expected Apple platform type of \"{0}\", but that was not found in //buildenv/platforms/apple/simulator:watchos_i386.
-""".format(ctx.attr.expected_platform_type))
+Expected Apple platform type of \"{expected}\", but that was not found in {platform}.
+""".format(
+            expected = ctx.attr.expected_platform_type,
+            platform = Label("@build_bazel_apple_support//platforms:watchos_x86_64"),
+        ),
+    )
     return analysistest.end(env)
 
 analysis_incoming_watchos_platform_mismatch_test = analysistest.make(
@@ -41,16 +47,24 @@ analysis_incoming_watchos_platform_mismatch_test = analysistest.make(
     },
     config_settings = {
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": True,
-        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:watchos_i386"],
+        "//command_line_option:platforms": [
+            str(Label("@build_bazel_apple_support//platforms:watchos_x86_64")),
+        ],
     },
 )
 
 def _analysis_incoming_ios_platform_mismatch_test_impl(ctx):
     env = analysistest.begin(ctx)
-    asserts.expect_failure(env, """
+    asserts.expect_failure(
+        env,
+        """
 ERROR: Unexpected resolved platform:
-Expected Apple platform type of \"{0}\", but that was not found in //buildenv/platforms/apple/simulator:ios_i386.
-""".format(ctx.attr.expected_platform_type))
+Expected Apple platform type of \"{expected}\", but that was not found in {platform}.
+""".format(
+            expected = ctx.attr.expected_platform_type,
+            platform = Label("@build_bazel_apple_support//platforms:ios_sim_arm64"),
+        ),
+    )
     return analysistest.end(env)
 
 analysis_incoming_ios_platform_mismatch_test = analysistest.make(
@@ -64,6 +78,8 @@ analysis_incoming_ios_platform_mismatch_test = analysistest.make(
     },
     config_settings = {
         "//command_line_option:incompatible_enable_apple_toolchain_resolution": True,
-        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:ios_i386"],
+        "//command_line_option:platforms": [
+            str(Label("@build_bazel_apple_support//platforms:ios_sim_arm64")),
+        ],
     },
 )

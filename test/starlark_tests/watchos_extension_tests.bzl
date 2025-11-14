@@ -15,37 +15,41 @@
 """watchos_extension Starlark tests."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
+    "//apple/internal:apple_product_type.bzl",  # buildifier: disable=bzl-visibility
     "apple_product_type",
 )  # buildifier: disable=bzl-visibility
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/product_type_test.bzl",
-    "product_type_test",
-)
-load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "entry_point_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
-)
-load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
-    ":rules/linkmap_test.bzl",
+    "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    "//test/starlark_tests/rules:product_type_test.bzl",
+    "product_type_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def watchos_extension_test_suite(name):
@@ -120,11 +124,21 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
-        expected_direct_dsyms = ["ext.appex"],
-        expected_transitive_dsyms = ["ext.appex"],
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ext.appex.dSYM/Contents/Info.plist",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        expected_direct_dsyms = ["dSYMs/ext.appex.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/ext.appex.dSYM"],
         tags = [name],
     )
 
@@ -169,6 +183,16 @@ def watchos_extension_test_suite(name):
     linkmap_test(
         name = "{}_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ext_x86_64.linkmap",
+            "ext_arm64.linkmap",
+        ],
         tags = [name],
     )
 
@@ -250,6 +274,15 @@ def watchos_extension_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.watchkitapp.watchkitextension",
+        },
         tags = [name],
     )
 

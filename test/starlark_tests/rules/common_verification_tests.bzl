@@ -15,9 +15,32 @@
 """Macros for common verification test tests."""
 
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
+
+def _dict_to_space_separated_string_array(dict_to_transform, separator = " "):
+    """Returns an array of formatted strings suitable for apple_verification_test env variables.
+
+    Args:
+        dict_to_transform: String dictionary; keys must not contain spaces.
+        separator: Character to use as separator for the formatted string. This character must be
+            used as Bash's $IFS value to split the string back to a key, value pair on the
+            apple_verification_test's verifier_script.
+            Defaults to ' '.
+    Returns:
+        An array containing each key, value pair formatted as "{key}{separator}{value}".
+    """
+    char_separated_string_array = []
+    for key, value in dict_to_transform.items():
+        if separator in key:
+            fail(
+                "Dictionary contains a key/value pair containing separator '%s':\n" % separator,
+                "Key: %s\n" % key,
+                "Value: %s" % value,
+            )
+        char_separated_string_array.append(separator.join([key, value]))
+    return char_separated_string_array
 
 def archive_contents_test(
         name,
@@ -34,16 +57,17 @@ def archive_contents_test(
         asset_catalog_test_not_contains = [],
         text_test_file = "",
         text_test_values = [],
+        text_file_not_contains = [],
         binary_test_file = "",
         binary_test_architecture = "",
         binary_contains_symbols = [],
-        binary_contains_regex_symbols = [],
         binary_not_contains_architectures = [],
         binary_not_contains_symbols = [],
         codesign_info_contains = [],
         codesign_info_not_contains = [],
         macho_load_commands_contain = [],
         macho_load_commands_not_contain = [],
+        assert_file_permissions = {},
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -80,14 +104,14 @@ def archive_contents_test(
         text_test_values: Optional, A list of regular expressions that should be tested against
             the contents of `text_test_file`. Regular expressions must follow POSIX Basic Regular
             Expression (BRE) syntax.
+        text_file_not_contains: Optional, A list of regular expressions that should not match
+            against the contents of `text_test_file`. Regular expressions must follow POSIX Basic
+            Regular Expression (BRE) syntax.
         binary_test_file: Optional, The binary file to test (see next three Args).
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
             symbol tests (see next two Args).
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
-        binary_contains_regex_symbols: Optional, a list of regular expressions to match symbols
-            that should appear in the binary file specified in `binary_test_file`. Regular
-            expressions must follow POSIX Basic Regular Expression (BRE) syntax.
         binary_not_contains_architectures: Optional. A list of architectures to verify do not exist
             within `binary_test_file`.
         binary_not_contains_symbols: Optional, A list of symbols that should not appear in the
@@ -100,6 +124,9 @@ def archive_contents_test(
             the binary file specified in `binary_test_file`.
         macho_load_commands_not_contain: Optional, A list of Mach-O load commands that should not
             appear in the binary file specified in `binary_test_file`.
+        assert_file_permissions: Optional; key/value pairs to test file permissions.
+            Keys are paths within the bundle, values are the expected numerical file permissions.
+            See `assert_permissions_equal` to see supported file permissions types.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
     if any([plist_test_file, plist_test_values]) and not all([plist_test_file, plist_test_values]):
@@ -113,31 +140,30 @@ def archive_contents_test(
         fail("Need asset_catalog_test_file along with " +
              "asset_catalog_test_contains and/or asset_catalog_test_not_contains")
 
-    if any([text_test_file, text_test_values]) and not all([text_test_file, text_test_values]):
-        fail("Need both text_test_file and text_test_values")
+    if (any([text_test_file, text_test_values, text_file_not_contains]) and
+        not (text_test_file and (text_test_values or text_file_not_contains))):
+        fail("Need either both text_test_file and text_test_values" +
+             " or text_test_file and text_file_not_contains")
 
     if binary_test_file:
         if any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
         ]) and not binary_test_architecture:
             fail("Need binary_test_architecture when checking symbols")
         elif binary_test_architecture and not any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
             macho_load_commands_contain,
             macho_load_commands_not_contain,
         ]):
             fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
-                 "binary_contains_regex_symbols, macho_load_commands_contain, " +
-                 "macho_load_commands_not_contain) when specifying binary_test_architecture")
+                 "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
+                 "binary_test_architecture")
     else:
         if any([
             binary_contains_symbols,
             binary_not_contains_symbols,
-            binary_contains_regex_symbols,
             binary_test_architecture,
         ]):
             fail("Need binary_test_file to check the binary for symbols")
@@ -157,44 +183,45 @@ def archive_contents_test(
         asset_catalog_test_file,
         text_test_file,
         binary_test_file,
+        assert_file_permissions,
     ]):
         fail("There are no tests for the archive")
 
-    # Concatenate the keys and values of the test values so they can be passed as env vars.
-    plist_test_values_list = []
-    for key, value in plist_test_values.items():
-        if " " in key:
-            fail("Plist key has a space: \"{}\"".format(key))
-        plist_test_values_list.append("{} {}".format(key, value))
+    plist_test_values_list = _dict_to_space_separated_string_array(plist_test_values)
+    assert_file_permissions_list = _dict_to_space_separated_string_array(
+        assert_file_permissions,
+        separator = ":",
+    )
 
     apple_verification_test(
         name = name,
         build_type = build_type,
         env = {
-            "CONTAINS": contains,
-            "NOT_CONTAINS": not_contains,
-            "IS_BINARY_PLIST": is_binary_plist,
-            "IS_NOT_BINARY_PLIST": is_not_binary_plist,
-            "PLIST_TEST_FILE": [plist_test_file],
-            "PLIST_TEST_VALUES": plist_test_values_list,
-            "ASSET_CATALOG_FILE": [asset_catalog_test_file],
+            "ASSERT_FILE_PERMISSIONS": assert_file_permissions_list,
             "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
+            "ASSET_CATALOG_FILE": [asset_catalog_test_file],
             "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,
-            "TEXT_TEST_FILE": [text_test_file],
-            "TEXT_TEST_VALUES": text_test_values,
-            "BINARY_TEST_FILE": [binary_test_file],
-            "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
-            "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_CONTAINS_SYMBOLS": binary_contains_symbols,
+            "BINARY_NOT_CONTAINS_ARCHITECTURES": binary_not_contains_architectures,
             "BINARY_NOT_CONTAINS_SYMBOLS": binary_not_contains_symbols,
-            "BINARY_CONTAINS_REGEX_SYMBOLS": binary_contains_regex_symbols,
+            "BINARY_TEST_ARCHITECTURE": [binary_test_architecture],
+            "BINARY_TEST_FILE": [binary_test_file],
             "CODESIGN_INFO_CONTAINS": codesign_info_contains,
             "CODESIGN_INFO_NOT_CONTAINS": codesign_info_not_contains,
+            "CONTAINS": contains,
+            "IS_BINARY_PLIST": is_binary_plist,
+            "IS_NOT_BINARY_PLIST": is_not_binary_plist,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
             "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
+            "NOT_CONTAINS": not_contains,
+            "PLIST_TEST_FILE": [plist_test_file],
+            "PLIST_TEST_VALUES": plist_test_values_list,
+            "TEXT_TEST_FILE": [text_test_file],
+            "TEXT_TEST_VALUES": text_test_values,
+            "TEXT_FILE_NOT_CONTAINS": text_file_not_contains,
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/archive_contents_test.sh",
+        verifier_script = Label("//test/starlark_tests:verifier_scripts/archive_contents_test.sh"),
         **kwargs
     )
 
@@ -273,13 +300,6 @@ def binary_contents_test(
     if not any([binary_test_file, embedded_plist_test_values]):
         fail("There are no tests for the binary")
 
-    # Concatenate the keys and values of the test values so they can be passed as env vars.
-    plist_test_values_list = []
-    for key, value in embedded_plist_test_values.items():
-        if " " in key:
-            fail("Plist key has a space: \"{}\"".format(key))
-        plist_test_values_list.append("{} {}".format(key, value))
-
     apple_verification_test(
         name = name,
         build_type = build_type,
@@ -293,10 +313,10 @@ def binary_contents_test(
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
             "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
             "PLIST_SECTION_NAME": [plist_section_name],
-            "PLIST_TEST_VALUES": plist_test_values_list,
+            "PLIST_TEST_VALUES": _dict_to_space_separated_string_array(embedded_plist_test_values),
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/binary_contents_test.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/binary_contents_test.sh",
         **kwargs
     )
 
@@ -305,8 +325,7 @@ def apple_symbols_file_test(
         binary_paths,
         build_type,
         tags,
-        target_under_test,
-        **kwargs):
+        target_under_test):
     """Macro to call `apple_verification_test` with `apple-symbols_file_verifier.sh`.
 
     This simplifies .symbols file verification tests by forcing
@@ -321,7 +340,6 @@ def apple_symbols_file_test(
             `simulator` and `device`.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **kwargs: Other arguments passed directly to `apple_verification_test`.
 
     """
     apple_verification_test(
@@ -332,9 +350,8 @@ def apple_symbols_file_test(
         },
         target_under_test = target_under_test,
         apple_generate_dsym = True,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/apple_symbols_file_verifier.sh",
         tags = tags,
-        **kwargs
     )
 
 def entry_point_test(
@@ -342,8 +359,7 @@ def entry_point_test(
         build_type,
         entry_point,
         tags,
-        target_under_test,
-        **kwargs):
+        target_under_test):
     """Macro to call `apple_verification_test` with `entry_point_verifier.sh`.
 
     Args:
@@ -354,7 +370,6 @@ def entry_point_test(
             point of the binary.
         tags: Tags to be applied to the test target.
         target_under_test: The archive target whose contents are to be verified.
-        **kwargs: Other arguments passed directly to `apple_verification_test`.
     """
     apple_verification_test(
         name = name,
@@ -363,7 +378,6 @@ def entry_point_test(
             "ENTRY_POINT": [entry_point],
         },
         target_under_test = target_under_test,
-        verifier_script = "@build_bazel_rules_apple//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
+        verifier_script = "//test/starlark_tests:verifier_scripts/entry_point_verifier.sh",
         tags = tags,
-        **kwargs
     )

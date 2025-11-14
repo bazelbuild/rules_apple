@@ -80,7 +80,7 @@ objc_library(
     name = "shared_lib",
     deps = [":resource_only_lib"],
     data = [
-        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:assets",
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
         "gen_file.txt",
         "@build_bazel_rules_apple//test/testdata/resources:nonlocalized.plist",
@@ -99,7 +99,7 @@ objc_library(
     srcs = ["main.m"],
     deps = [":shared_lib", ":resource_only_lib"],
     data = [
-        "@build_bazel_rules_apple//test/testdata/resources:assets_ios",
+        "@build_bazel_rules_apple//test/testdata/resources:assets",
         "@build_bazel_rules_apple//test/testdata/resources:basic_bundle",
         "@build_bazel_rules_apple//test/testdata/resources:sample.png",
     ],

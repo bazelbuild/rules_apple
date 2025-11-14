@@ -15,20 +15,28 @@
 """macos_bundle Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
 )
 load(
-    ":rules/apple_verification_test.bzl",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
+    "infoplist_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def macos_bundle_test_suite(name):
@@ -145,11 +153,30 @@ def macos_bundle_test_suite(name):
         tags = [name],
     )
 
-    dsyms_test(
-        name = "{}_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        expected_direct_dsyms = ["bundle.bundle"],
-        expected_transitive_dsyms = ["bundle.bundle"],
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "bundle.bundle.dSYM/Contents/Info.plist",
+            "bundle.bundle.dSYM/Contents/Resources/DWARF/bundle",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
+        expected_direct_dsyms = ["dSYMs/bundle.bundle.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/bundle.bundle.dSYM"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_with_capability_set_derived_bundle_id",
+        expected_values = {
+            "CFBundleIdentifier": "com.bazel.app.example.bundle-with-capability-set-derived-bundle-id",
+        },
         tags = [name],
     )
 

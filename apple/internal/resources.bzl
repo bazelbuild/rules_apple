@@ -64,19 +64,6 @@ This file provides methods to easily:
 """
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkBundleInfo",
-    "AppleResourceInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
-    "resources_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
-    "bundle_paths",
-)
-load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
@@ -88,15 +75,29 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+load(
+    "//apple:providers.bzl",
+    "AppleFrameworkBundleInfo",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "new_appleresourceinfo",
+)
+load(
+    "//apple/internal/partials/support:resources_support.bzl",
+    "PROVIDER_TO_FIELD_ACTION",
+)
+load(
+    "//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
 
-_CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
-    "infoplists": (resources_support.infoplists, False),
-    "plists": (resources_support.plists_and_strings, False),
-    "pngs": (resources_support.pngs, False),
-    "strings": (resources_support.plists_and_strings, False),
-}
-
-_PROCESSED_FIELDS = _CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
+_CACHEABLE_PROVIDER_FIELDS = [
+    "infoplists",
+    "plists",
+    "pngs",
+    "strings",
+]
 
 def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
     """Helper method to always get an attribute as a list within an existing list.
@@ -243,13 +244,14 @@ def _bucketize_data(
             # For each type of resource, place in the appropriate bucket.
             if AppleFrameworkBundleInfo in target:
                 if "framework.dSYM/" in resource_short_path or resource.extension == "linkmap":
-                    # TODO(b/271168739): Propagate AppleDebugSymbolsInfo and _AppleDebugInfo providers.
                     # Ignore dSYM bundle and linkmap since the debug symbols partial is
                     # responsible for propagating this up the dependency graph.
                     continue
                 bucket_name = "framework"
             elif resource_short_path.endswith(".strings") or resource_short_path.endswith(".stringsdict"):
                 bucket_name = "strings"
+            elif resource_short_path.endswith(".xcstrings"):
+                bucket_name = "xcstrings"
             elif resource_short_path.endswith(".storyboard"):
                 bucket_name = "storyboards"
                 resource_swift_module = swift_module
@@ -258,7 +260,9 @@ def _bucketize_data(
                 resource_swift_module = swift_module
             elif ".alticon/" in resource_short_path:
                 bucket_name = "asset_catalogs"
-            elif ".xcassets/" in resource_short_path or ".xcstickers/" in resource_short_path:
+            elif (".icon/" in resource_short_path or
+                  ".xcassets/" in resource_short_path or
+                  ".xcstickers/" in resource_short_path):
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"
@@ -271,7 +275,12 @@ def _bucketize_data(
                 bucket_name = "pngs"
             elif resource_short_path.endswith(".plist"):
                 bucket_name = "plists"
-            elif resource_short_path.endswith(".metal"):
+
+            elif resource_short_path.endswith(".metal") or resource_short_path.endswith(".h"):
+                # Assume that any bundled headers are Metal headers for now.
+                # Although this will break if anyone wants to bundle headers
+                # files as is, it's unlikely that there is such a use case at
+                # all.
                 bucket_name = "metals"
             elif resource_short_path.endswith(".mlmodel") or resource_short_path.endswith(".mlpackage"):
                 bucket_name = "mlmodels"
@@ -328,7 +337,7 @@ def _bucketize(
         parent_dir_param = parent_dir_param,
         allowed_buckets = allowed_buckets,
     )
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -380,7 +389,7 @@ def _bucketize_typed_data(*, bucket_type, owner = None, parent_dir_param = None,
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
         else:
-            parent = partial.call(parent_dir_param, resource)
+            parent = partial.call(partial = parent_dir_param, resource = resource)
 
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
             lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
@@ -422,7 +431,7 @@ def _bucketize_typed(resources, bucket_type, *, owner = None, parent_dir_param =
         resources = resources,
     )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
         **buckets
@@ -439,38 +448,54 @@ def _process_bucketized_data(
         platform_prerequisites,
         processing_owner = None,
         product_type,
+        resource_types_to_process = _CACHEABLE_PROVIDER_FIELDS,
         rule_label,
         unowned_resources = []):
-    """Registers actions for cacheable resource types, given bucketized groupings of data.
+    """Registers actions for select resource types, given bucketized groupings of data.
 
-    This method performs the same actions as bucketize_data, and further iterates through a subset
-    of supported resource types to register actions to process them as necessary before returning an
-    AppleResourceInfo. This AppleResourceInfo has an additional field, called "processed", featuring
-    the expected outputs for each of the actions declared in this method.
+    This method performs the same actions as bucketize_data, and further
+    iterates through a subset of resource types to register actions to process
+    them as necessary before returning an AppleResourceInfo. This
+    AppleResourceInfo has an additional field, called "processed", featuring the
+    expected outputs for each of the actions declared in this method.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-        bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
-        buckets: A dictionary with bucketized resources organized by resource type.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple
+            toolchain.
+        bucketized_owners: A list of tuples indicating the owner of each
+            bucketized resource.
+        buckets: A dictionary with bucketized resources organized by resource
+            type.
         bundle_id: The bundle ID to configure for this target.
-        output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        processing_owner: An optional string that has a unique identifier to the target that should
-            own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        product_type: The product type identifier used to describe the current bundle type.
+        output_discriminator: A string to differentiate between different target
+            intermediate files or `None`.
+        platform_prerequisites: Struct containing information on the platform
+            being targeted.
+        processing_owner: An optional string that has a unique identifier to the
+            target that should own the resources. If an owner should be passed,
+            it's usually equal to `str(ctx.label)`.
+        product_type: The product type identifier used to describe the current
+            bundle type.
+        resource_types_to_process: A list of bucket types to process.
         rule_label: The label of the target being analyzed.
         unowned_resources: A list of "unowned" resources.
 
     Returns:
-        An AppleResourceInfo provider with resources bucketized according to type.
+        An AppleResourceInfo provider with resources bucketized according to
+        type.
     """
 
     # Keep a list to reference what the processed files are based from.
     processed_origins = []
 
-    for bucket_name, bucket_action in _CACHEABLE_PROVIDER_FIELD_TO_ACTION.items():
+    field_to_action_map = {}
+    for field in resource_types_to_process:
+        action = PROVIDER_TO_FIELD_ACTION.get(field)
+        if action:
+            field_to_action_map[field] = action
+
+    for bucket_name, bucket_action in field_to_action_map.items():
         processed_field = buckets.pop(bucket_name, default = None)
         if not processed_field:
             continue
@@ -485,6 +510,9 @@ def _process_bucketized_data(
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
+                # If asset catalogs are being processed, it's not the top-level
+                # target, so we don't support setting the primary icon name.
+                "primary_icon_name": None,
                 "product_type": product_type,
                 "rule_label": rule_label,
             }
@@ -502,19 +530,19 @@ def _process_bucketized_data(
                 processed_origins.append((processed_resource, tuple(processed_origin)))
 
             processed_field = {}
-            for _, _, processed_file in result.files:
+            for _, processed_parent_dir, processed_files in result.files:
                 processed_field.setdefault(
-                    parent_dir if parent_dir else "",
+                    processed_parent_dir or "",
                     [],
-                ).append(processed_file)
+                ).append(processed_files)
 
             # Save files to the "processed" field for copying in the bundling phase.
-            for _, processed_files in processed_field.items():
+            for processed_parent_dir, processed_files in processed_field.items():
                 buckets.setdefault(
                     "processed",
                     default = [],
                 ).append((
-                    parent_dir,
+                    processed_parent_dir,
                     swift_module,
                     depset(transitive = processed_files),
                 ))
@@ -527,7 +555,7 @@ def _process_bucketized_data(
                     else:
                         unowned_resources.append(processed_file.short_path)
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(bucketized_owners),
         unowned_resources = depset(unowned_resources),
         processed_origins = depset(processed_origins),
@@ -665,7 +693,7 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
                 "rules_apple, please file a bug with reproduction steps.",
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
         processed_origins = processed_origins,
@@ -693,16 +721,23 @@ def _minimize(*, bucket):
     swift_module_by_key = {}
 
     for parent_dir, swift_module, resources in bucket:
-        key = "_".join([parent_dir or "@root", swift_module or "@root"])
+        # TODO(b/275385433): Audit Starlark performance of different string interpolation methods.
+        # Particularly for the resource aspect, using the '%' operator yielded better results than
+        # using `str.format` and string concatenation.
+        key = "%s_%s" % (parent_dir or "@root", swift_module or "@root")
+
         if parent_dir:
             parent_dir_by_key[key] = parent_dir
         if swift_module:
             swift_module_by_key[key] = swift_module
 
-        resources_by_key.setdefault(
-            key,
-            [],
-        ).append(resources)
+        # TODO(b/275385433): Audit Starlark performance of `dict.setdefault` vs. if/else statements.
+        # Particularly for the resource aspect, using if/else statements yielded better results than
+        # using `dict.setdefault` (from apple/internal/resources.bzl).
+        if key in resources_by_key:
+            resources_by_key[key].append(resources)
+        else:
+            resources_by_key[key] = [resources]
 
     return [
         (parent_dir_by_key.get(k, None), swift_module_by_key.get(k, None), depset(transitive = r))
@@ -738,7 +773,7 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
                 (nested_parent_dir, swift_module, files),
             )
 
-    return AppleResourceInfo(
+    return new_appleresourceinfo(
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
         processed_origins = getattr(provider_to_nest, "processed_origins", None),
@@ -755,12 +790,18 @@ def _populated_resource_fields(provider):
         if f not in ["owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
     ]
 
-def _structured_resources_parent_dir(*, parent_dir = None, resource):
+def _structured_resources_parent_dir(
+        *,
+        parent_dir = None,
+        resource,
+        strip_prefixes = []):
     """Returns the package relative path for the parent directory of a resource.
 
     Args:
         parent_dir: Parent directory to prepend to the package relative path.
         resource: The resource for which to calculate the package relative path.
+        strip_prefixes: A list of prefixes to strip from the package relative
+            path. The first prefix that matches will be used.
 
     Returns:
         The package relative path to the parent directory of the resource.
@@ -770,7 +811,24 @@ def _structured_resources_parent_dir(*, parent_dir = None, resource):
         path = package_relative
     else:
         path = paths.dirname(package_relative).rstrip("/")
+
+    for prefix in strip_prefixes:
+        if path.startswith(prefix):
+            path = path[(len(prefix) + 1):]
+            break
+
     return paths.join(parent_dir or "", path or "") or None
+
+def _runfiles_resources_parent_dir(*, resource):
+    """Returns the parent directory of the file.
+
+    Args:
+        resource: The resource for which to calculate the package relative path.
+
+    Returns:
+        The package relative path to the parent directory of the resource.
+    """
+    return paths.dirname(resource.path)
 
 def _expand_owners(*, owners):
     """Converts a depset of (path, owner) to a dict of paths to dict of owners.
@@ -885,7 +943,7 @@ def _deduplicate_field(
                 if path_origins in processed_deduplication_list:
                     continue
                 processed_deduplication_list.append(path_origins)
-            elif field in _PROCESSED_FIELDS:
+            elif field in _CACHEABLE_PROVIDER_FIELDS:
                 # Check for duplicates across fields that can be processed by a resource aspect, to
                 # avoid dupes between top-level fields and fields processed by the resource aspect.
                 all_path_origins = [
@@ -960,5 +1018,6 @@ resources = struct(
     nest_in_bundle = _nest_in_bundle,
     populated_resource_fields = _populated_resource_fields,
     process_bucketized_data = _process_bucketized_data,
+    runfiles_resources_parent_dir = _runfiles_resources_parent_dir,
     structured_resources_parent_dir = _structured_resources_parent_dir,
 )

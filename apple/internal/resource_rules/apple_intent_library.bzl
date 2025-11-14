@@ -15,25 +15,30 @@
 """Implementation of ObjC/Swift Intent library rule."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "apple_toolchain_utils",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleMacToolsToolchainInfo",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 
 def _apple_intent_library_impl(ctx):
@@ -56,14 +61,20 @@ def _apple_intent_library_impl(ctx):
         objc_output_hdrs = ctx.actions.declare_directory("{}.hdrs.h".format(ctx.attr.name))
         objc_public_header = ctx.actions.declare_file("{}.h".format(ctx.attr.header_name))
 
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         device_families = None,
-        disabled_features = ctx.disabled_features,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = ctx.features,
+        features = features,
         objc_fragment = None,
         platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
@@ -83,7 +94,7 @@ def _apple_intent_library_impl(ctx):
         swift_version = ctx.attr.swift_version,
         class_visibility = ctx.attr.class_visibility,
         platform_prerequisites = platform_prerequisites,
-        resolved_xctoolrunner = apple_mac_toolchain_info.resolved_xctoolrunner,
+        xctoolrunner = apple_mac_toolchain_info.xctoolrunner,
     )
 
     if is_swift:
@@ -135,7 +146,6 @@ Label to a single `.intentdefinition` files from which to generate sources files
             ),
         },
     ),
-    output_to_genfiles = True,
     fragments = ["apple"],
     doc = """
 This rule supports the integration of Intents `.intentdefinition` files into Apple rules.

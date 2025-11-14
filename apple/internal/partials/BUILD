@@ -15,7 +15,21 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:apple_product_type",
-        "//apple/internal:bundling_support",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
+    name = "app_intents_metadata_bundle",
+    srcs = ["app_intents_metadata_bundle.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:linking_support",
+        "//apple/internal:processor",
+        "//apple/internal/providers:app_intents_info",
+        "//apple/internal/resource_actions:app_intents",
         "@bazel_skylib//lib:partial",
     ],
 )
@@ -27,8 +41,8 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:outputs",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
     ],
 )
@@ -62,6 +76,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_info_dylibs",
+    srcs = ["cc_info_dylibs.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
     visibility = [
@@ -77,6 +105,21 @@ bzl_library(
 )
 
 bzl_library(
+    name = "main_thread_checker_dylibs",
+    srcs = ["main_thread_checker_dylibs.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "//apple/internal/utils:main_thread_checker_dylibs",
+        "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "codesigning_dossier",
     srcs = ["codesigning_dossier.bzl"],
     visibility = [
@@ -84,7 +127,12 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:codesigning_support",
+        "//apple/internal:experimental",
+        "//apple/internal:intermediates",
+        "//apple/internal:outputs",
         "//apple/internal:processor",
+        "//apple/internal:providers",
+        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:new_sets",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -99,6 +147,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:intermediates",
+        "//apple/internal:providers",
+        "//apple/internal:resource_actions",
+        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",
@@ -164,7 +216,6 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "//apple/internal:bitcode_support",
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
@@ -182,6 +233,8 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:framework_import_support",
+        "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
@@ -323,7 +376,7 @@ bzl_library(
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
-    testonly = 1,
+    testonly = True,
     srcs = glob(["**"]) + [
         "//apple/internal/partials/support:for_bazel_tests",
     ],

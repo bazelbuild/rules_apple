@@ -1,18 +1,22 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("//apple:ios.bzl", "ios_application", "ios_ui_test", "ios_unit_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//apple:docc.bzl", "docc_archive")
+load("//apple:ios.bzl", "ios_application", "ios_ui_test", "ios_unit_test")
+load("//apple:xctrunner.bzl", "xctrunner")
 
 licenses(["notice"])
 
 swift_library(
     name = "Sources",
     srcs = [
-        "Sources/AppDelegate.swift",
+        "Sources/BazelApp.swift",
     ],
     data = [
-        "Resources/Main.storyboard",
+        "Resources/HelloWorldSwift.docc",
+        "//examples/resources:Localizable.xcstrings",
     ],
     module_name = "Sources",
+    tags = ["manual"],
 )
 
 swift_library(
@@ -21,6 +25,7 @@ swift_library(
     srcs = [
         "Tests/Tests.swift",
     ],
+    tags = ["manual"],
     deps = [
         ":Sources",
     ],
@@ -34,6 +39,7 @@ swift_library(
         "Tests/UITests.swift",
     ],
     module_name = "HelloWorldSwiftUITests",
+    tags = ["manual"],
 )
 
 ios_unit_test(
@@ -44,7 +50,7 @@ ios_unit_test(
 
 genrule(
     name = "CreateTestCoverageManifest",
-    srcs = ["Sources/AppDelegate.swift"],
+    srcs = ["Sources/BazelApp.swift"],
     outs = [
         "CoverageManifest.instrumented_files",
     ],
@@ -67,7 +73,6 @@ ios_application(
         "ipad",
     ],
     infoplists = [":Info.plist"],
-    launch_storyboard = "//examples/resources:Launch.storyboard",
     minimum_os_version = "15.0",
     deps = [":Sources"],
 )
@@ -82,7 +87,27 @@ build_test(
 ios_ui_test(
     name = "HelloWorldSwiftUITests",
     minimum_os_version = "15.0",
-    runner = "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
     test_host = ":HelloWorldSwift",
     deps = [":UITests"],
+)
+
+# Example using docc_archive to generate documentation
+docc_archive(
+    name = "HelloWorldSwift.doccarchive",
+    default_code_listing_language = "en",
+    dep = ":HelloWorldSwift",
+    diagnostic_level = "information",
+    emit_extension_block_symbols = "1",
+    enable_inherited_docs = True,
+    fallback_bundle_identifier = "com.example.hello-world-swift",
+    fallback_bundle_version = "1.0.0",
+    fallback_display_name = "HelloWorldSwift",
+    minimum_access_level = "internal",
+)
+
+xctrunner(
+    name = "HelloWorldSwiftXCTRunner",
+    testonly = True,
+    tests = [":HelloWorldSwiftUITests"],
 )

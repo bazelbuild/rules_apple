@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:macos.bzl",
     "macos_application",
@@ -52,7 +53,7 @@ macos_application(
         ":TodayExtension",
     ],
     infoplists = [":App-Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloTodayVersion",
     deps = [":AppSources"],
 )
@@ -62,7 +63,7 @@ macos_extension(
     bundle_id = "com.example.hello-today.today-extension",
     entitlements = ":Ext-Entitlements.entitlements",
     infoplists = [":Ext-Info.plist"],
-    minimum_os_version = "10.11",
+    minimum_os_version = "10.13",
     version = ":HelloTodayVersion",
     deps = [":ExtSources"],
 )

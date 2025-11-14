@@ -3,6 +3,6 @@ import XCTest
 
 final class HelloWorldSwiftTests: XCTestCase {
     func testInit() {
-        XCTAssertNotNil(AppDelegate())
+        XCTAssertNotNil(BazelApp())
     }
 }

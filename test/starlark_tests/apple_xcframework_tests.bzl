@@ -15,28 +15,36 @@
 """xcframework Starlark tests."""
 
 load(
-    ":common.bzl",
-    "common",
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 load(
-    ":rules/analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
 )
 load(
-    ":rules/common_verification_tests.bzl",
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
 load(
-    ":rules/dsyms_test.bzl",
-    "dsyms_test",
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
-    ":rules/infoplist_contents_test.bzl",
+    "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
 load(
-    ":rules/linkmap_test.bzl",
+    "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 def apple_xcframework_test_suite(name):
@@ -85,6 +93,35 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_tvos_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
+            "AvailableLibraries:0:LibraryPath": "tvos_dynamic_xcframework.framework",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedPlatform": "ios",
+            "AvailableLibraries:1:LibraryIdentifier": "ios-x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "tvos_dynamic_xcframework.framework",
+            "AvailableLibraries:1:SupportedArchitectures:0": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "ios",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "AvailableLibraries:2:LibraryIdentifier": "tvos-arm64",
+            "AvailableLibraries:2:LibraryPath": "tvos_dynamic_xcframework.framework",
+            "AvailableLibraries:2:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:2:SupportedPlatform": "tvos",
+            "AvailableLibraries:3:LibraryIdentifier": "tvos-arm64_x86_64-simulator",
+            "AvailableLibraries:3:LibraryPath": "tvos_dynamic_xcframework.framework",
+            "AvailableLibraries:3:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:3:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:3:SupportedPlatform": "tvos",
+            "AvailableLibraries:3:SupportedPlatformVariant": "simulator",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_ios_generated_modulemap_file_content_test".format(name),
         build_type = "device",
@@ -102,7 +139,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
@@ -119,7 +160,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)"],
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
@@ -136,7 +181,11 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/Headers/ios_dynamic_lipoed_xcframework.h",
@@ -153,13 +202,37 @@ def apple_xcframework_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
-        macho_load_commands_contain = ["name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)"],
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/ios_dynamic_lipoed_xcframework.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_tvos_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/Headers/tvos_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+            "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/Headers/tvos_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+            "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
         tags = [name],
@@ -176,43 +249,28 @@ def apple_xcframework_test_suite(name):
     #         debugging experience, and would not be effectively represented through this particular
     #         public provider interface.
     #
-    dsyms_test(
-        name = "{}_device_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_device.framework"],
-        architectures = ["arm64"],
-        check_public_provider = False,
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_device",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_xcframework_dsyms/ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_simulator",
+        ],
         tags = [name],
     )
-
-    dsyms_test(
-        name = "{}_simulator_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_xcframework_ios_simulator.framework"],
-        architectures = ["x86_64"],
-        check_public_provider = False,
-        tags = [name],
-    )
-
-    dsyms_test(
-        name = "{}_fat_device_dsyms_test".format(name),
+    analysis_output_group_info_files_test(
+        name = "{}_fat_frameworks_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_device.framework"],
-        architectures = ["arm64", "arm64e"],
-        check_public_provider = False,
-        tags = [name],
-    )
-
-    dsyms_test(
-        name = "{}_fat_simulator_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        expected_direct_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
-        expected_transitive_dsyms = ["ios_dynamic_lipoed_xcframework_ios_simulator.framework"],
-        architectures = ["x86_64", "arm64"],
-        check_public_provider = False,
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_device",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
+            "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator",
+        ],
         tags = [name],
     )
 
@@ -223,12 +281,21 @@ def apple_xcframework_test_suite(name):
         architectures = ["arm64"],
         tags = [name],
     )
-
     linkmap_test(
         name = "{}_simulator_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         expected_linkmap_names = ["ios_dynamic_xcframework_ios_simulator"],
         architectures = ["x86_64"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ios_dynamic_xcframework_ios_simulator_x86_64.linkmap",
+            "ios_dynamic_xcframework_ios_device_arm64.linkmap",
+        ],
         tags = [name],
     )
 
@@ -239,12 +306,23 @@ def apple_xcframework_test_suite(name):
         architectures = ["arm64", "arm64e"],
         tags = [name],
     )
-
     linkmap_test(
         name = "{}_fat_simulator_linkmap_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         expected_linkmap_names = ["ios_dynamic_lipoed_xcframework_ios_simulator"],
         architectures = ["x86_64", "arm64"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_multiple_architectures_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_ios_device_arm64.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_device_arm64e.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_simulator_arm64.linkmap",
+            "ios_dynamic_lipoed_xcframework_ios_simulator_x86_64.linkmap",
+        ],
         tags = [name],
     )
 
@@ -382,7 +460,8 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Tests that generated swift interfaces work for XCFrameworks when a swift_library is included.
+    # Tests that generated swift interfaces work for XCFrameworks when a swift_library is included that
+    # enable swift interface/library evolution.
     archive_contents_test(
         name = "{}_swift_interface_generation_test".format(name),
         build_type = "device",
@@ -414,13 +493,10 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Headers/SwiftFmwkWithGenHeader.h",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/module.modulemap",
             "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
-            "$BUNDLE_ROOT/ios-arm64/SwiftFmwkWithGenHeader.framework/Modules/SwiftFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
         ],
         tags = [name],
     )
@@ -462,12 +538,107 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Test that an actionable error is produced for the user when a header to
-    # bundle conflicts with the generated umbrella header.
-    analysis_failure_message_test(
-        name = "{}_umbrella_header_conflict_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_umbrella_header_conflict",
-        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
+    # Test tvOS XCFramework binaries contain Mach-O load commands for device or simulator.
+    archive_contents_test(
+        name = "{}_tvos_simulator_binary_contains_macho_load_cmd_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_device_binary_contains_macho_load_cmd_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOS"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
+        tags = [name],
+    )
+
+    # Test tvOS XCFramework binaries have the correct rpaths.
+    archive_contents_test(
+        name = "{}_tvos_simulator_binary_contains_arm64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_simulator_binary_contains_x86_64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64_x86_64-simulator/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_tvos_device_binary_contains_rpaths_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:tvos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/tvos-arm64/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+
+    action_command_line_test(
+        name = "{}_xcframework_with_extension_safe".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-fapplication-extension",
+        ],
+        tags = [name],
+    )
+
+    action_command_line_test(
+        name = "{}_xcframework_without_extension_safe".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_umbrella_header",
+        mnemonic = "ObjcLink",
+        not_expected_argv = [
+            "-fapplication-extension",
+        ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_ios_dynamic_xcframework_tree_artifact_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_directories = {
+            "ios_dynamic_xcframework.xcframework": [
+                "Info.plist",
+                "ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+                "ios-arm64/ios_dynamic_xcframework.framework/Info.plist",
+                "ios-arm64/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+                "ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
+                "ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+            ],
+        },
         tags = [name],
     )
 

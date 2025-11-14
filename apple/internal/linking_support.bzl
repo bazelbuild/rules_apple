@@ -14,15 +14,333 @@
 
 """Support for linking related actions."""
 
-load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
-    "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
-    "rule_support",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
+load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
-    "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
+    "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
+load(
+    "//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
+)
+load(
+    "//apple/internal:multi_arch_binary_support.bzl",
+    "subtract_linking_contexts",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "AppleDynamicFrameworkInfo",
+    "AppleExecutableBinaryInfo",
+    "ApplePlatformInfo",
+    "new_appledebugoutputsinfo",
+)
+
+ObjcInfo = apple_common.Objc
+
+def _archive_multi_arch_static_library(
+        *,
+        ctx,
+        cc_toolchains):
+    """Generates a (potentially multi-architecture) static library archive for Apple platforms.
+
+    Rule context is a required parameter due to usage of the cc_common.configure_features API.
+
+    Args:
+        ctx: The Starlark rule context.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information for related deps.
+
+    Returns:
+        A Starlark struct containing the following attributes:
+            - output_groups: OutputGroupInfo provider from transitive CcInfo validation_artifacts.
+            - outputs: List of structs containing the following attributes:
+                - library: Artifact representing a linked static library.
+                - architecture: Static library archive architecture (e.g. 'arm64', 'x86_64').
+                - platform: Static library archive target Apple platform (e.g. 'ios', 'macos').
+                - environment: Static library archive environment (e.g. 'device', 'simulator').
+    """
+
+    # TODO: Delete when we drop bazel 7.x
+    legacy_linking_function = getattr(apple_common, "link_multi_arch_static_library", None)
+    if legacy_linking_function:
+        return legacy_linking_function(ctx = ctx)
+
+    split_deps = ctx.split_attr.deps
+    split_avoid_deps = ctx.split_attr.avoid_deps
+
+    outputs = []
+
+    for split_transition_key, child_toolchain in cc_toolchains.items():
+        cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
+        common_variables = apple_common.compilation_support.build_common_variables(
+            ctx = ctx,
+            toolchain = cc_toolchain,
+            use_pch = True,
+            deps = split_deps[split_transition_key],
+        )
+
+        avoid_objc_providers = []
+        avoid_cc_providers = []
+        avoid_cc_linking_contexts = []
+
+        if len(split_avoid_deps.keys()):
+            for dep in split_avoid_deps[split_transition_key]:
+                if ObjcInfo in dep:
+                    avoid_objc_providers.append(dep[ObjcInfo])
+                if CcInfo in dep:
+                    avoid_cc_providers.append(dep[CcInfo])
+                    avoid_cc_linking_contexts.append(dep[CcInfo].linking_context)
+
+        name = ctx.label.name + "-" + cc_toolchain.target_gnu_system_name + "-fl"
+
+        cc_linking_context = subtract_linking_contexts(
+            owner = ctx.label,
+            linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
+            avoid_dep_linking_contexts = avoid_cc_linking_contexts,
+        )
+        linking_outputs = apple_common.compilation_support.register_fully_link_action(
+            name = name,
+            common_variables = common_variables,
+            cc_linking_context = cc_linking_context,
+        )
+
+        output = {
+            "library": linking_outputs.library_to_link.static_library,
+        }
+
+        platform_info = child_toolchain[ApplePlatformInfo]
+        output["platform"] = platform_info.target_os
+        output["architecture"] = platform_info.target_arch
+        output["environment"] = platform_info.target_environment
+
+        outputs.append(struct(**output))
+
+    header_tokens = []
+    for _, deps in split_deps.items():
+        for dep in deps:
+            if CcInfo in dep:
+                header_tokens.append(dep[CcInfo].compilation_context.validation_artifacts)
+
+    output_groups = {"_validation": depset(transitive = header_tokens)}
+
+    return struct(
+        outputs = outputs,
+        output_groups = OutputGroupInfo(**output_groups),
+    )
+
+def _link_multi_arch_binary(
+        *,
+        ctx,
+        avoid_deps = [],
+        cc_toolchains,
+        extra_linkopts = [],
+        extra_link_inputs = [],
+        extra_requested_features = [],
+        extra_disabled_features = [],
+        stamp = -1,
+        variables_extension = {}):
+    """Links a (potentially multi-architecture) binary targeting Apple platforms.
+
+    This method comprises a bulk of the logic of the Starlark `apple_binary`
+    rule in the rules_apple domain and exists to aid in the migration of its
+    linking logic to Starlark in rules_apple.
+
+    This API is **highly experimental** and subject to change at any time. Do
+    not depend on the stability of this function at this time.
+
+    Args:
+        ctx: The Starlark rule context.
+        avoid_deps: A list of `Target`s representing dependencies of the binary but
+            whose libraries should not be linked into the binary. This is the case for
+            dependencies that will be found at runtime in another image, such as the
+            bundle loader or any dynamic libraries/frameworks that will be loaded by
+            this binary.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information for related deps.
+        extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
+        extra_link_inputs: A list of strings: Extra files to pass to the linker action.
+        extra_requested_features: A list of strings: Extra requested features to be passed
+            to the linker action.
+        extra_disabled_features: A list of strings: Extra disabled features to be passed
+            to the linker action.
+        stamp: Whether to include build information in the linked binary. If 1, build
+            information is always included. If 0, build information is always excluded.
+            If -1 (the default), then the behavior is determined by the --[no]stamp
+            flag. This should be set to 0 when generating the executable output for
+            test rules.
+        variables_extension: A dictionary of user-defined variables to be added to the
+            toolchain configuration when create link command line.
+
+    Returns:
+        A `struct` which contains the following fields:
+        *   `cc_info`: The CcInfo provider containing information about the targets that were
+            linked.
+        *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
+            debug outputs, with identifying information about the target platform, architecture,
+            and environment that each was built for.
+        *   `output_groups`: A `dict` with the single key `_validation` and as valuea depset
+            containing the validation artifacts from the compilation contexts of the CcInfo
+            providers of the targets that were linked.
+        *   `debug_outputs_provider`: An AppleDebugOutputs provider
+    """
+
+    # TODO: Delete when we drop bazel 7.x
+    legacy_linking_function = getattr(apple_common, "link_multi_arch_binary", None)
+    if legacy_linking_function:
+        return legacy_linking_function(
+            ctx = ctx,
+            avoid_deps = avoid_deps,
+            extra_linkopts = extra_linkopts,
+            extra_link_inputs = extra_link_inputs,
+            extra_requested_features = extra_requested_features,
+            extra_disabled_features = extra_disabled_features,
+            variables_extension = variables_extension,
+            stamp = stamp,
+        )
+
+    split_build_configs = apple_common.get_split_build_configs(ctx)
+    split_deps = ctx.split_attr.deps
+
+    if split_deps and split_deps.keys() != cc_toolchains.keys():
+        fail(("Split transition keys are different between 'deps' [%s] and " +
+              "'_cc_toolchain_forwarder' [%s]") % (
+            split_deps.keys(),
+            cc_toolchains.keys(),
+        ))
+
+    avoid_cc_infos = [
+        dep[AppleDynamicFrameworkInfo].cc_info
+        for dep in avoid_deps
+        if AppleDynamicFrameworkInfo in dep
+    ]
+    avoid_cc_infos.extend([
+        dep[AppleExecutableBinaryInfo].cc_info
+        for dep in avoid_deps
+        if AppleExecutableBinaryInfo in dep
+    ])
+    avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
+    avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
+
+    outputs = []
+    cc_infos = []
+    legacy_debug_outputs = {}
+
+    cc_infos.extend(avoid_cc_infos)
+
+    # $(location...) is only used in one test, and tokenize only affects linkopts in one target
+    additional_linker_inputs = getattr(ctx.attr, "additional_linker_inputs", [])
+    attr_linkopts = [
+        ctx.expand_location(opt, targets = additional_linker_inputs)
+        for opt in getattr(ctx.attr, "linkopts", [])
+    ]
+    attr_linkopts = [token for opt in attr_linkopts for token in ctx.tokenize(opt)]
+
+    for split_transition_key, child_toolchain in cc_toolchains.items():
+        cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
+        deps = split_deps.get(split_transition_key, [])
+        platform_info = child_toolchain[ApplePlatformInfo]
+
+        common_variables = apple_common.compilation_support.build_common_variables(
+            ctx = ctx,
+            toolchain = cc_toolchain,
+            deps = deps,
+            extra_disabled_features = extra_disabled_features,
+            extra_enabled_features = extra_requested_features,
+            attr_linkopts = attr_linkopts,
+        )
+
+        cc_infos.append(CcInfo(
+            compilation_context = cc_common.merge_compilation_contexts(
+                compilation_contexts =
+                    common_variables.objc_compilation_context.cc_compilation_contexts,
+            ),
+            linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
+            ),
+        ))
+
+        cc_linking_context = subtract_linking_contexts(
+            owner = ctx.label,
+            linking_contexts = common_variables.objc_linking_context.cc_linking_contexts +
+                               avoid_cc_linking_contexts,
+            avoid_dep_linking_contexts = avoid_cc_linking_contexts,
+        )
+
+        child_config = split_build_configs.get(split_transition_key)
+
+        additional_outputs = []
+        extensions = {}
+
+        dsym_binary = None
+        if ctx.fragments.cpp.apple_generate_dsym:
+            if ctx.fragments.cpp.objc_should_strip_binary:
+                suffix = "_bin_unstripped.dwarf"
+            else:
+                suffix = "_bin.dwarf"
+            dsym_binary = ctx.actions.declare_shareable_artifact(
+                paths.join(ctx.label.package, ctx.label.name + suffix),
+                child_config.bin_dir,
+            )
+            extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
+            additional_outputs.append(dsym_binary)
+            legacy_debug_outputs.setdefault(platform_info.target_arch, {})["dsym_binary"] = dsym_binary
+
+        linkmap = None
+        if ctx.fragments.cpp.objc_generate_linkmap:
+            linkmap = ctx.actions.declare_shareable_artifact(
+                paths.join(ctx.label.package, ctx.label.name + ".linkmap"),
+                child_config.bin_dir,
+            )
+            extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
+            additional_outputs.append(linkmap)
+            legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
+
+        name = ctx.label.name + "_bin"
+        executable = apple_common.compilation_support.register_configuration_specific_link_actions(
+            name = name,
+            common_variables = common_variables,
+            cc_linking_context = cc_linking_context,
+            build_config = child_config,
+            extra_link_args = extra_linkopts,
+            stamp = stamp,
+            user_variable_extensions = variables_extension | extensions,
+            additional_outputs = additional_outputs,
+            deps = deps,
+            extra_link_inputs = extra_link_inputs,
+            attr_linkopts = attr_linkopts,
+        )
+
+        output = {
+            "binary": executable,
+            "platform": platform_info.target_os,
+            "architecture": platform_info.target_arch,
+            "environment": platform_info.target_environment,
+            "dsym_binary": dsym_binary,
+            "linkmap": linkmap,
+        }
+
+        outputs.append(struct(**output))
+
+    header_tokens = []
+    for _, deps in split_deps.items():
+        for dep in deps:
+            if CcInfo in dep:
+                header_tokens.append(dep[CcInfo].compilation_context.validation_artifacts)
+
+    output_groups = {"_validation": depset(transitive = header_tokens)}
+
+    return struct(
+        cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
+        output_groups = output_groups,
+        outputs = outputs,
+        debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
+    )
 
 def _debug_outputs_by_architecture(link_outputs):
     """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
@@ -76,10 +394,6 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
     # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
     return [
-        apple_common.new_objc_provider(
-            linkopt = depset(linkopts, order = "topological"),
-            link_inputs = depset([file]),
-        ),
         CcInfo(
             linking_context = cc_common.create_linking_context(
                 linker_inputs = depset([
@@ -98,11 +412,16 @@ def _register_binary_linking_action(
         *,
         avoid_deps = [],
         bundle_loader = None,
+        cc_toolchains,
         entitlements = None,
+        exported_symbols_lists,
         extra_linkopts = [],
         extra_link_inputs = [],
-        platform_prerequisites,
-        stamp):
+        extra_requested_features = [],
+        extra_disabled_features = [],
+        platform_prerequisites = None,
+        rule_descriptor = None,
+        stamp = -1):
     """Registers linking actions using the Starlark Apple binary linking API.
 
     This method will add the linkopts as added on the rule descriptor, in addition to any extra
@@ -113,19 +432,34 @@ def _register_binary_linking_action(
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
-            This target must propagate the `apple_common.AppleExecutableBinary` provider.
+            This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
             path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
-            provider of its dependencies (obtained from the `AppleExecutableBinary` provider)
+            provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information for related deps.
         entitlements: An optional `File` that provides the processed entitlements for the
-            binary or bundle being built. The entitlements will be embedded in a special section
-            of the binary.
+            binary or bundle being built. If the build is targeting a simulator environment,
+            the entitlements will be embedded in a special section of the binary; when
+            targeting non-simulator environments, this file is ignored (it is assumed that
+            the entitlements will be provided during code signing).
+        exported_symbols_lists: List of `File`s containing exported symbols lists for the linker
+            to control symbol resolution.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
-        platform_prerequisites: The platform prerequisites.
+        extra_requested_features: Extra features as Strings requested of the underlying linker
+            action.
+        extra_disabled_features: Extra features as Strings requeted to be disabled from the
+            underlying linker action.
+        platform_prerequisites: The platform prerequisites if one exists for the given rule. This
+            will define additional linking sections for entitlements. If `None`, entitlements
+            sections are not included.
+        rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
+            will define additional parameters required for linking, such as `rpaths`. If `None`,
+            these additional parameters will not be set on the linked binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, the default build information is always
             excluded. If -1, the default behavior is used, which may be overridden by the
@@ -133,8 +467,7 @@ def _register_binary_linking_action(
             for test rules.
 
     Returns:
-        A `struct` which contains the following fields, which are a superset of the fields
-        returned by `apple_common.link_multi_arch_binary`:
+        A `struct` which contains the following fields:
 
         *   `binary`: The final binary `File` that was linked. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
@@ -148,12 +481,13 @@ def _register_binary_linking_action(
             and environment that each was built for.
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
+        *   `debug_outputs_provider`: An AppleDebugOutputs provider
     """
     linkopts = []
     link_inputs = []
 
     # Add linkopts/linker inputs that are common to all the rules.
-    for exported_symbols_list in ctx.files.exported_symbols_lists:
+    for exported_symbols_list in exported_symbols_lists:
         linkopts.append(
             "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
         )
@@ -162,6 +496,9 @@ def _register_binary_linking_action(
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device:
             fail("entitlements should be None when targeting a device")
+
+        # Add an entitlements and a DER entitlements section, required of all Simulator builds that
+        # define entitlements. This is never addressed by /usr/bin/codesign and must be done here.
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(
                 segment = "__TEXT",
@@ -171,27 +508,47 @@ def _register_binary_linking_action(
         )
         link_inputs.append(entitlements)
 
-    # Compatibility path for `apple_binary`, which does not have a product type.
-    if hasattr(ctx.attr, "_product_type"):
-        rule_descriptor = rule_support.rule_descriptor(ctx)
+        der_entitlements = entitlements_support.generate_der_entitlements(
+            actions = ctx.actions,
+            apple_fragment = platform_prerequisites.apple_fragment,
+            entitlements = entitlements,
+            label_name = ctx.label.name,
+            xcode_version_config = platform_prerequisites.xcode_version_config,
+        )
+        linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__ents_der",
+                file = der_entitlements.path,
+            ),
+        )
+        link_inputs.append(der_entitlements)
+
+    # TODO(b/248317958): Migrate rule_descriptor.rpaths as direct inputs of the extra_linkopts arg
+    # on this method.
+    if rule_descriptor:
         linkopts.extend(["-Wl,-rpath,{}".format(rpath) for rpath in rule_descriptor.rpaths])
-        linkopts.extend(rule_descriptor.extra_linkopts)
 
     linkopts.extend(extra_linkopts)
     link_inputs.extend(extra_link_inputs)
 
     all_avoid_deps = list(avoid_deps)
     if bundle_loader:
-        bundle_loader_file = bundle_loader[apple_common.AppleExecutableBinary].binary
+        bundle_loader_file = bundle_loader[AppleExecutableBinaryInfo].binary
         all_avoid_deps.append(bundle_loader)
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
-    linking_outputs = apple_common.link_multi_arch_binary(
+    linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
+        cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
+        extra_requested_features = extra_requested_features,
+        # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
+        # being routed to the wrong exec platform.
+        extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
         stamp = stamp,
     )
 
@@ -200,6 +557,10 @@ def _register_binary_linking_action(
         file_ending += ".dylib"
 
     fat_binary = ctx.actions.declare_file("{}{}".format(ctx.label.name, file_ending))
+
+    # TODO(b/382331215): Add an optional verification check to make sure all requested architectures
+    # are device or simulator. This means at constraints resolved by the cc toolchain forwarder,
+    # passed down as `cc_toolchains`.
 
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
@@ -213,39 +574,44 @@ def _register_binary_linking_action(
         binary = fat_binary,
         cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
-        objc = linking_outputs.objc,
+        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
 
-def _register_static_library_linking_action(ctx):
-    """Registers linking actions using the Starlark Apple static library linking API.
+def _register_static_library_archive_action(
+        *,
+        ctx,
+        cc_toolchains):
+    """Registers library archive actions using the Starlark Apple static library archive API.
 
     Args:
         ctx: The rule context.
+        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
+            transition to relay target platform information for related deps.
 
     Returns:
-        A `struct` which contains the following fields, which are a superset of the fields
-        returned by `apple_common.link_multi_arch_static_library`:
+        A `struct` which contains the following fields:
 
-        *   `library`: The final library `File` that was linked. If only one architecture was
+        *   `library`: The final library `File` that was archived. If only one architecture was
             requested, then it is a symlink to that single architecture binary. Otherwise, it
-            is a new universal (fat) library obtained by invoking `lipo`.
-        *   `objc`: The `apple_common.Objc` provider containing information about the targets
-            that were linked.
+            is a new universal (fat) library archive obtained by invoking `lipo`.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
     """
-    linking_outputs = apple_common.link_multi_arch_static_library(ctx = ctx)
+    archive_outputs = _archive_multi_arch_static_library(
+        ctx = ctx,
+        cc_toolchains = cc_toolchains,
+    )
 
     fat_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
 
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
-        inputs = [output.library for output in linking_outputs.outputs],
+        inputs = [output.library for output in archive_outputs.outputs],
         output = fat_library,
         apple_fragment = ctx.fragments.apple,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
@@ -253,17 +619,17 @@ def _register_static_library_linking_action(ctx):
 
     return struct(
         library = fat_library,
-        objc = linking_outputs.objc,
-        outputs = linking_outputs.outputs,
-        output_groups = linking_outputs.output_groups,
+        objc = getattr(archive_outputs, "objc", None),
+        outputs = archive_outputs.outputs,
+        output_groups = archive_outputs.output_groups,
     )
 
-def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_config):
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
     """Creates a fat binary with `lipo` if inputs > 1, symlinks otherwise.
 
     Args:
       actions: The rule context actions.
-      inputs: Binary inputs to use for lipo action.
+      inputs: Binary inputs to use for the lipo action.
       output: Binary output for universal binary or symlink.
       apple_fragment: The `apple` configuration fragment used to configure
                       the action environment.
@@ -282,7 +648,8 @@ def _lipo_or_symlink_inputs(actions, inputs, output, apple_fragment, xcode_confi
         # Symlink if there was only a single architecture created; it's faster.
         actions.symlink(target_file = inputs[0], output = output)
 
-def _link_multi_arch_binary(
+# TODO: Delete when we take https://github.com/bazelbuild/rules_apple/commit/29eb94cbc9b1a898582e1e238cc2551ddbeaa58b
+def _legacy_link_multi_arch_binary(
         *,
         actions,
         additional_inputs = [],
@@ -291,7 +658,6 @@ def _link_multi_arch_binary(
         deps,
         disabled_features,
         features,
-        grep_includes = None,
         label,
         stamp = -1,
         user_link_flags = []):
@@ -316,7 +682,6 @@ def _link_multi_arch_binary(
             to retrieve transitive CcInfo providers for C++ linking action.
         disabled_features: List of features to be disabled for C++ actions.
         features: List of features to be enabled for C++ actions.
-        grep_includes: File reference to grep_includes binary required by cc_common APIs.
         label: Label for the current target (`ctx.label`).
         stamp: Boolean to indicate whether to include build information in the linked binary.
             If 1, build information is always included.
@@ -381,7 +746,6 @@ def _link_multi_arch_binary(
             additional_inputs = additional_inputs,
             cc_toolchain = cc_toolchain,
             feature_configuration = feature_configuration,
-            grep_includes = grep_includes,
             linking_contexts = cc_linking_contexts,
             name = output_name,
             stamp = stamp,
@@ -416,9 +780,10 @@ def _link_multi_arch_binary(
 
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
+    legacy_link_multi_arch_binary = _legacy_link_multi_arch_binary,
     link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,
-    register_static_library_linking_action = _register_static_library_linking_action,
+    register_static_library_archive_action = _register_static_library_archive_action,
     sectcreate_objc_provider = _sectcreate_objc_provider,
 )
