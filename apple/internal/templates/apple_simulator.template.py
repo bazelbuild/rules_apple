@@ -695,12 +695,24 @@ def run_app_in_simulator(
   root_dir = os.path.dirname(application_output_path)
   register_dsyms(root_dir)
   with extracted_app(application_output_path, app_name) as app_path:
-    logger.info("Installing app %s to simulator %s", app_path, simulator_udid)
+    app_bundle_id = bundle_id(app_path)
+    logger.info("Will install app %s to simulator %s", app_path, simulator_udid)
+    # First, quietly kill any existing instances of the app to match Xcode's behavior.
+    # Otherwise we've observed that the simulator gets confused when trying to re-install the app.
+    logger.debug(
+        "Terminating existing instances of %s in %s", app_bundle_id, simulator_udid
+    )
+    subprocess.run(
+        [simctl_path, "terminate", simulator_udid, app_bundle_id],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    # We should now be able to install and run it.
+    logger.debug("Installing...")
     subprocess.run(
         [simctl_path, "install", simulator_udid, app_path],
         check=True,
     )
-    app_bundle_id = bundle_id(app_path)
     launch_args = shlex.split(
       os.environ.get(
         "BAZEL_SIMCTL_LAUNCH_FLAGS",
