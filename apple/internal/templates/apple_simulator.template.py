@@ -279,7 +279,7 @@ def discover_best_compatible_simulator(
     max_runtime_version = device_type.get("maxRuntimeVersion")
     if max_runtime_version and max_runtime_version < minimum_runtime_version:
       continue
-    if sim_device and device_type["name"].casefold().find(sim_device) == -1:
+    if sim_device and device_type["name"].casefold() != sim_device:
       continue
     compatible_device_types.append(device_type)
   compatible_device_types.sort()
