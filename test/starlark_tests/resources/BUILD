@@ -392,9 +392,61 @@ genrule(
 )
 
 genrule(
+    name = "generate_xcstrings",
+    outs = ["generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+genrule(
     name = "generate_structured_strings",
     outs = ["structured/generated.strings"],
     cmd = "echo '\"generated_structured_string\" = \"I like turtles too!\";' > $@",
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "generate_structured_xcstrings",
+    outs = ["structured/generated.xcstrings"],
+    cmd = """
+    cat <<EOF > $@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "generated_structured_string": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like turtles too!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+EOF
+""",
     tags = common.fixture_tags,
 )
 
@@ -572,6 +624,36 @@ filegroup(
 )
 
 filegroup(
+    name = "icon_bundle_assets",
+    srcs = glob(["app_icon.icon/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets_alternative",
+    srcs = glob(["app_icon-bazel.icon/**"]),
+)
+
+filegroup(
+    name = "icon_bundle_assets_mismatched_with_xcassets_alternative",
+    srcs = glob(["app_icon-dupe.icon/**"]),
+)
+
+filegroup(
+    name = "app_icons_ios",
+    srcs = glob(["app_icons_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "app_icons_with_alts_ios",
+    srcs = glob(["app_icons_with_alts_ios.xcassets/**"]),
+)
+
+filegroup(
+    name = "dark_and_tinted_app_icons_ios",
+    srcs = glob(["dark_and_tinted_app_icons_ios.xcassets/**"]),
+)
+
+filegroup(
     name = "launch_images_ios",
     srcs = glob(["launch_images_ios.xcassets/**"]),
 )
@@ -613,6 +695,14 @@ filegroup(
 filegroup(
     name = "localized_strings",
     srcs = glob(["*.lproj/*.strings"]),
+)
+
+filegroup(
+    name = "localized_xcstrings",
+    srcs = [
+        "files.xcstrings",
+        "greetings.xcstrings",
+    ],
 )
 
 filegroup(
@@ -705,6 +795,14 @@ objc_library(
 )
 
 objc_library(
+    name = "ios_non_localized_xcstrings_lib",
+    data = [
+        "nonlocalized.xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "macos_non_localized_assets_lib",
     srcs = ["main.m"],
     data = [
@@ -729,6 +827,14 @@ objc_library(
         ":localized_storyboards_ios",
         ":localized_strings",
         ":localized_xibs_ios",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ios_localized_xcstrings_lib",
+    data = [
+        ":localized_xcstrings",
     ],
     tags = common.fixture_tags,
 )
@@ -764,6 +870,14 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "empty_xcstrings_lib",
+    data = [
+        "empty.xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "bundle_library_ios",
     infoplists = [
@@ -791,6 +905,19 @@ apple_resource_bundle(
     ],
     structured_resources = [
         ":generate_structured_strings",
+        ":structured",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "bundle_library_xcstrings",
+    infoplists = [
+        "Info-template.plist",
+    ],
+    resources = ["generated.xcstrings"],
+    structured_resources = [
+        ":generate_structured_xcstrings",
         ":structured",
     ],
     tags = common.fixture_tags,
@@ -1284,6 +1411,12 @@ swift_library(
     srcs = ["widget_configuration_intent.swift"],
     linkopts = ["-Wl,-framework,AppIntents"],
     module_name = "WidgetConfigurationIntent",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_concurrency_main_lib",
+    srcs = ["concurrency_main.swift"],
     tags = common.fixture_tags,
 )
 

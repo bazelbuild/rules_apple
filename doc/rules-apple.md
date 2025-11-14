@@ -183,9 +183,9 @@ implementation of `apple_static_library` in Bazel core so that it can be removed
 <pre>
 load("@rules_apple//apple:apple.bzl", "apple_static_xcframework")
 
-apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a href="#apple_static_xcframework-deps">deps</a>, <a href="#apple_static_xcframework-avoid_deps">avoid_deps</a>, <a href="#apple_static_xcframework-bundle_name">bundle_name</a>, <a href="#apple_static_xcframework-executable_name">executable_name</a>, <a href="#apple_static_xcframework-families_required">families_required</a>,
-                         <a href="#apple_static_xcframework-ios">ios</a>, <a href="#apple_static_xcframework-macos">macos</a>, <a href="#apple_static_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>, <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>,
-                         <a href="#apple_static_xcframework-umbrella_header">umbrella_header</a>)
+apple_static_xcframework(<a href="#apple_static_xcframework-name">name</a>, <a href="#apple_static_xcframework-deps">deps</a>, <a href="#apple_static_xcframework-avoid_deps">avoid_deps</a>, <a href="#apple_static_xcframework-bundle_id">bundle_id</a>, <a href="#apple_static_xcframework-bundle_name">bundle_name</a>, <a href="#apple_static_xcframework-executable_name">executable_name</a>,
+                         <a href="#apple_static_xcframework-families_required">families_required</a>, <a href="#apple_static_xcframework-infoplists">infoplists</a>, <a href="#apple_static_xcframework-ios">ios</a>, <a href="#apple_static_xcframework-macos">macos</a>, <a href="#apple_static_xcframework-minimum_deployment_os_versions">minimum_deployment_os_versions</a>,
+                         <a href="#apple_static_xcframework-minimum_os_versions">minimum_os_versions</a>, <a href="#apple_static_xcframework-public_hdrs">public_hdrs</a>, <a href="#apple_static_xcframework-umbrella_header">umbrella_header</a>, <a href="#apple_static_xcframework-version">version</a>)
 </pre>
 
 Generates an XCFramework with static libraries for third-party distribution.
@@ -198,15 +198,18 @@ Generates an XCFramework with static libraries for third-party distribution.
 | <a id="apple_static_xcframework-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_static_xcframework-deps"></a>deps |  A list of files directly referencing libraries to be represented for each given platform split in the XCFramework. These libraries will be embedded within each platform split.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="apple_static_xcframework-avoid_deps"></a>avoid_deps |  A list of library targets on which this framework depends in order to compile, but the transitive closure of which will not be linked into the framework's binary, nor bundled into final XCFramework.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="apple_static_xcframework-bundle_id"></a>bundle_id |  Optional bundle ID (reverse-DNS path followed by framework name) for each of the embedded frameworks. If present, this value will be embedded in an Info.plist within each framework bundle, similar to apple_xcframework (dynamic frameworks).   | String | optional |  `""`  |
 | <a id="apple_static_xcframework-bundle_name"></a>bundle_name |  The desired name of the XCFramework bundle (without the extension) and the binaries for all embedded static libraries. If this attribute is not set, then the name of the target will be used instead.   | String | optional |  `""`  |
 | <a id="apple_static_xcframework-executable_name"></a>executable_name |  The desired name of the executable, if the bundle has an executable. If this attribute is not set, then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of the target will be used instead.   | String | optional |  `""`  |
 | <a id="apple_static_xcframework-families_required"></a>families_required |  A list of device families supported by this extension, with platforms such as `ios` as keys. Valid values are `iphone` and `ipad` for `ios`; at least one must be specified if a platform is defined. Currently, this only affects processing of `ios` resources.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
+| <a id="apple_static_xcframework-infoplists"></a>infoplists |  A list of .plist files that will be merged to form the Info.plist for each of the embedded frameworks. Only used if bundle_id is provided.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="apple_static_xcframework-ios"></a>ios |  A dictionary of strings indicating which platform variants should be built for the `ios` platform ( `device` or `simulator`) as keys, and arrays of strings listing which architectures should be built for those platform variants (for example, `x86_64`, `arm64`) as their values.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 | <a id="apple_static_xcframework-macos"></a>macos |  A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).   | List of strings | optional |  `[]`  |
 | <a id="apple_static_xcframework-minimum_deployment_os_versions"></a>minimum_deployment_os_versions |  A dictionary of strings indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0") as values, with their respective platforms such as `ios` as keys. This is different from `minimum_os_versions`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="apple_static_xcframework-minimum_os_versions"></a>minimum_os_versions |  A dictionary of strings indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "8.0") as values, with their respective platforms such as `ios` as keys.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | required |  |
 | <a id="apple_static_xcframework-public_hdrs"></a>public_hdrs |  A list of files directly referencing header files to be used as the publicly visible interface for each of these embedded libraries. These header files will be embedded within each platform split, typically in a subdirectory such as `Headers`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="apple_static_xcframework-umbrella_header"></a>umbrella_header |  An optional single .h file to use as the umbrella header for this framework. Usually, this header will have the same name as this target, so that clients can load the header using the #import <MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an umbrella header will be generated under the same name as this target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="apple_static_xcframework-version"></a>version |  An `apple_bundle_version` target that represents the version for this target. See [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 
 
 <a id="apple_static_xcframework_import"></a>
@@ -402,7 +405,7 @@ ios_application(
 <pre>
 load("@rules_apple//apple:apple.bzl", "provisioning_profile_repository")
 
-provisioning_profile_repository(<a href="#provisioning_profile_repository-name">name</a>, <a href="#provisioning_profile_repository-fallback_profiles">fallback_profiles</a>, <a href="#provisioning_profile_repository-repo_mapping">repo_mapping</a>)
+provisioning_profile_repository(<a href="#provisioning_profile_repository-name">name</a>, <a href="#provisioning_profile_repository-fallback_profiles">fallback_profiles</a>)
 </pre>
 
 This rule declares an external repository for discovering locally installed
@@ -462,7 +465,6 @@ ios_application(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="provisioning_profile_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="provisioning_profile_repository-fallback_profiles"></a>fallback_profiles |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="provisioning_profile_repository-repo_mapping"></a>repo_mapping |  In `WORKSPACE` context only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`), it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` context (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
 
 **ENVIRONMENT VARIABLES**
 

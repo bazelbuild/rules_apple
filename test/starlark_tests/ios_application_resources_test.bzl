@@ -92,6 +92,18 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_empty_xcstrings_files_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        # xcstringstool produces no strings for empty catalogs
+        not_contains = [
+            "$BUNDLE_ROOT/empty.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
     # Tests bundling a Resources folder as top level should fail with a nice message.
     analysis_failure_message_test(
         name = "{}_invalid_top_level_directory_fail_test".format(name),
@@ -150,6 +162,19 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_localized_resources_with_xcstrings_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/greetings.strings",
+            "$BUNDLE_ROOT/fr.lproj/greetings.strings",
+            "$BUNDLE_ROOT/it.lproj/greetings.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
     # Tests that the app icons and launch images are bundled with the application
     # and that the partial Info.plist produced by actool is merged into the final
     # plist.
@@ -170,6 +195,93 @@ def ios_application_resources_test_suite(name):
             "UILaunchImages:0:UILaunchImageSize": "{320, 480}",
         },
         tags = [name],
+    )
+
+    # Tests the new icon composer bundles for Xcode 26.
+    archive_contents_test(
+        name = "{}_icon_composer_app_icons_plist_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle",
+        contains = [
+            "$BUNDLE_ROOT/Assets.car",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
+        },
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+    )
+
+    # Test a failure when the new icon composer bundles for Xcode 26 are mixed with a set of asset \
+    # catalog icons.
+    analysis_failure_message_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_and_xcassets_app_icons",
+        expected_error = """
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """,
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
+    )
+
+    # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
+    # than 26.0.
+    archive_contents_test(
+        name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
+        contains = [
+            "$BUNDLE_ROOT/Assets.car",
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
+        },
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+    )
+
+    # Tests that icon composer icons must be provided when the minimum_os_version is 26.0 or higher.
+    analysis_failure_message_test(
+        name = "{}_legacy_app_icons_for_minimum_os_version_26_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcassets_for_ios_26",
+        expected_error = """
+Legacy .appiconset files should not be used on iOS/macOS/watchOS 26+.
+
+These platforms prefer Icon Composer .icon bundles. .appiconset files are only needed for rendering icons in iOS/macOS/watchOS prior to 26.
+
+Found the following legacy .appiconset files: """,
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
+    )
+
+    # Test a failure when new icon composer bundles for Xcode 26 are mixed with a set of asset
+    # catalog icons in an iOS app that provides alternate app icons.
+    analysis_failure_message_test(
+        name = "{}_icon_composer_and_asset_catalog_app_icons_with_alternate_app_icons_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_alternate_app_icons_with_full_icon_bundle_coverage",
+        expected_error = """
+            Found .appiconset files among the assigned app_icons, which are ignored when Icon \
+            Composer .icon bundles are present.
+            """,
+        # Skip CI until CI is on Xcode 26
+        tags = [name] + common.skip_ci_tags,
+    )
+
+    # Tests that icon composer icons will be flagged when building against Xcode 16 instead of 26.
+    analysis_failure_message_test(
+        name = "{}_test_xcode_16_with_icon_composer_icons_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
+        expected_error = """
+Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.""",
+        tags = [
+            name,
+        ] + common.skip_ci_tags,
     )
 
     # Tests that the launch storyboard is bundled with the application and that
@@ -218,15 +330,38 @@ def ios_application_resources_test_suite(name):
         expected_error = """
 Found multiple app icons among the asset catalogs with no primary_app_icon assigned.
 
-If you intend to assign multiple app icons to this target, please declare which of these is intended
-to be the primary app icon with the primary_app_icon attribute on the rule itself.
-
-app_icons was assigned the following: [
-  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon-bazel.appiconset,
-  test/testdata/resources/app_icons_with_alts_ios.xcassets/app_icon.appiconset
-]
-""",
+If you intend to assign multiple app icons to this target, please declare which of these is \
+intended to be the primary app icon with the primary_app_icon attribute on the rule itself.""",
         tags = [name],
+    )
+
+    # Test that when the primary app icon has dark mode and tinted variants, that the legacy icons
+    # are still bundled in expected locations with the app, that the legacy icons are embedded
+    # within the plist referencing their file names, and that they are also bundled within the asset
+    # catalog for the application.
+    archive_contents_test(
+        name = "{}_dark_and_tinted_app_icons_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_dark_and_tinted_app_icons",
+        contains = [
+            "$BUNDLE_ROOT/app_icon60x60@2x.png",
+            "$BUNDLE_ROOT/app_icon76x76@2x~ipad.png",
+        ],
+        plist_test_file = "$CONTENT_ROOT/Info.plist",
+        plist_test_values = {
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon",
+        },
+        text_test_file = "$BUNDLE_ROOT/Assets.car",
+        text_test_values = [
+            "Bazel_logo.png",
+            "Bazel_dark_logo.png",
+            "Bazel_tinted_logo.png",
+            "UIAppearanceDark",
+            "ISAppearanceTintable",
+        ],
+        tags = [
+            name,
+        ],
     )
 
     # Tests that apple_bundle_import files are bundled correctly with the application.
@@ -419,6 +554,17 @@ app_icons was assigned the following: [
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_generated_xcstrings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_xcstrings.bundle/structured/en.lproj/generated.strings",
+        plist_test_values = {
+            "generated_structured_string": "I like turtles too!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
     # Tests that structured processed generated strings have correct values.
     archive_contents_test(
         name = "{}_precompiled_resource_bundle_generated_strings_test".format(name),
@@ -458,6 +604,17 @@ app_icons was assigned the following: [
             "generated_string": "I like turtles!",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_deduplicate_generated_xcstrings_test".format(name),
+        build_type = "simulator",
+        plist_test_file = "$CONTENT_ROOT/bundle_library_xcstrings.bundle/en.lproj/generated.strings",
+        plist_test_values = {
+            "generated_string": "I like turtles!",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
         tags = [name],
     )
 

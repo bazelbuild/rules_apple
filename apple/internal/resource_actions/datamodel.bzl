@@ -86,15 +86,14 @@ def compile_mappingmodel(
         platform_prerequisites: Struct containing information on the platform being targeted.
         xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
     """
-    args = [
-        "mapc",
-        xctoolrunner_support.prefixed_path(mappingmodel_path),
-        xctoolrunner_support.prefixed_path(output_file.path),
-    ]
+    args = actions.args()
+    args.add("mapc")
+    args.add(xctoolrunner_support.prefixed_path(mappingmodel_path))
+    args.add(xctoolrunner_support.prefixed_path(output_file.path))
 
     apple_support.run(
         actions = actions,
-        arguments = args,
+        arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         executable = xctoolrunner,
         inputs = input_files,

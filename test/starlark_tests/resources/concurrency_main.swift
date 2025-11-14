@@ -1,4 +1,4 @@
-// Copyright 2022 The Bazel Authors. All rights reserved.
+// Copyright 2025 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
 
-//! Project version number for UmbrellaHeaderConflict.
-FOUNDATION_EXPORT double UmbrellaHeaderConflictVersionNumber;
-
-//! Project version string for UmbrellaHeaderConflict.
-FOUNDATION_EXPORT const unsigned char UmbrellaHeaderConflictVersionString[];
+@main
+struct App {
+    static func main() async throws {
+        try await Task.sleep(nanoseconds: 1)
+    }
+}

@@ -907,28 +907,6 @@ apple_xcframework(
     deps = [":Swift3PFmwkWithGenHeader"],
 )
 
-apple_xcframework(
-    name = "ios_dynamic_xcframework_with_umbrella_header_conflict",
-    bundle_id = "com.google.example",
-    bundle_name = "UmbrellaHeaderConflict",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    ios = {
-        "simulator": ["x86_64"],
-        "device": ["arm64"],
-    },
-    minimum_os_versions = {
-        "ios": common.min_os_ios.baseline,
-    },
-    public_hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-        "//test/starlark_tests/resources:UmbrellaHeaderConflict.h",
-    ],
-    tags = common.fixture_tags,
-    deps = [":fmwk_lib"],
-)
-
 apple_static_xcframework(
     name = "ios_static_xcframework_oldest_supported",
     ios = {
@@ -1225,6 +1203,25 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":swift_lib_for_static_xcfmwk"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_framework_xcframework_with_deps_resource_bundle",
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":fmwk_lib",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
 )
 
 genrule(
@@ -1655,5 +1652,29 @@ apple_static_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_bundle_version(
+    name = "static_xcframework_version",
+    build_version = "2.1.0",
+    short_version_string = "2.1",
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_bundle_id",
+    bundle_id = "com.example.static.framework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = ["//test/starlark_tests/resources:shared.h"],
+    tags = common.fixture_tags,
+    version = ":static_xcframework_version",
     deps = [":fmwk_lib"],
 )

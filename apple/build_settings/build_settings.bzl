@@ -14,8 +14,11 @@
 
 """List of Bazel's rules_apple build settings."""
 
-# List of all registered build settings at `rules_apple/apple/build_settings/BUILD`.
-build_settings = {
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+
+# List of all registered build settings with command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_flags = {
     "parse_xcframework_info_plist": struct(
         doc = """
 Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
@@ -42,20 +45,42 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
         doc = """
 The identifier, ECID, serial number, UDID, user-provided name, or DNS name
 of the device for running an iOS application.
-You can get a list of devices by running 'xcrun devicectl list devices`.
+
+You can get a list of devices by running `xcrun devicectl list devices` (for
+physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),
 }
 
-_BUILD_SETTING_LABELS = {
-    build_setting_name: str(Label("//apple/build_settings:{target_name}".format(
-        target_name = build_setting_name,
-    )))
-    for build_setting_name in build_settings
+# List of all registered build settings without command line flags at
+# `rules_apple/apple/build_settings/BUILD`.
+build_settings = {
+    "enable_wip_features": struct(
+        doc = """
+Enables functionality that is still a work in progress, with interfaces and output that can change
+at any time, that is only ready for automated testing now.
+
+This could indicate functionality intended for a future release of the Apple BUILD rules, or
+functionality that is never intended to be production-ready but is required of automated testing.
+""",
+        default = False,
+    ),
 }
 
+_all_build_settings = dicts.add(build_settings, build_flags)
+
 build_settings_labels = struct(
-    all_labels = _BUILD_SETTING_LABELS.values(),
-    **_BUILD_SETTING_LABELS
+    all_labels = [
+        str(Label("//apple/build_settings:{target_name}".format(
+            target_name = build_setting_name,
+        )))
+        for build_setting_name in _all_build_settings
+    ],
+    **{
+        build_setting_name: str(Label("//apple/build_settings:{target_name}".format(
+            target_name = build_setting_name,
+        )))
+        for build_setting_name in _all_build_settings
+    }
 )

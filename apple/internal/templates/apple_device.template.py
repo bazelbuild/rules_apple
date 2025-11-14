@@ -39,11 +39,13 @@ import os.path
 import pathlib
 import platform
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 from typing import Any, Dict, Optional
+from uuid import uuid4
 import zipfile
 
 
@@ -93,15 +95,15 @@ class Device(collections.abc.Mapping):
 
   @property
   def udid(self) -> str:
-    return self.hardware_properties["udid"]
+    return self.hardware_properties.get("udid", "unknown")
 
   @property
   def device_type(self) -> str:
-    return self.hardware_properties["deviceType"]
+    return self.hardware_properties.get("deviceType", "unknown")
 
   @property
   def os_version_number(self) -> str:
-    return self.device_properties["osVersionNumber"]
+    return self.device_properties.get("osVersionNumber", "unknown")
 
   @property
   def is_apple_tv(self) -> bool:
@@ -129,11 +131,11 @@ class Device(collections.abc.Mapping):
 
   @property
   def is_booted(self):
-    return self.device_properties["bootState"] == "Booted"
+    return self.device_properties.get("bootState", "unknown") == "Booted"
 
   @property
   def is_paired(self):
-    return self.device_properties["pairingState"] == "paired"
+    return self.device_properties.get("pairingState", "unknown") == "paired"
 
   def __getitem__(self, name):
     return self.device[name]
@@ -404,25 +406,112 @@ def run_app(
           device_identifier,
           app_path
         ],
-        check=True
+        check=True,
     )
     app_bundle_id = bundle_id(app_path)
+    launch_args = shlex.split(
+      os.environ.get(
+        "BAZEL_DEVICECTL_LAUNCH_FLAGS",
+        # Attaches the application to the console and waits for it to exit.
+        "--console",
+      ),
+    )
     logger.info(
         "Launching app %s on %s", app_bundle_id, device_identifier
     )
-    args = [
+    launch_args = [
         devicectl_path,
         "device",
         "process",
         "launch",
-        "--console",  # Attaches the application to the console and waits for it to exit.
+        *launch_args,
         "--device",
         device_identifier,
-        app_bundle_id,
     ]
     # Append optional launch arguments.
-    args.extend(sys.argv[1:])
-    subprocess.run(args, env=devicectl_launch_environ(), check=False)
+    app_args = [app_bundle_id] + sys.argv[1:]
+    launch_app(
+        launch_args=launch_args,
+        app_args=app_args,
+        env=devicectl_launch_environ(),
+        device_identifier=device_identifier,
+    )
+
+
+def launch_app(
+    *,
+    launch_args: list[str],
+    app_args: list[str],
+    env: Dict[str, str],
+    device_identifier: str,
+) -> None:
+  """Launches an app in a simulator.
+
+  Args:
+    launch_args: The arguments to pass to simctl to launch the app, excluding
+      the bundle id and app arguments.
+    app_args: The bundle id and app arguments to pass to simctl to launch the
+      app.
+    env: The environment variables to pass to simctl.
+    device_identifier: The identifier of the device.
+  """
+  launch_info_path = os.environ.get("BAZEL_APPLE_LAUNCH_INFO_PATH")
+  if not launch_info_path:
+    subprocess.run(launch_args + app_args, env=env, check=True)
+    return
+
+  if "--json-output" in launch_args:
+    idx = launch_args.index("--json-output")
+    json_output_path = launch_args[idx + 1]
+    delete_json_output = False
+  else:
+    json_output_path = os.path.join(
+        tempfile.gettempdir(), f"devicectl_launch_{uuid4().hex}.json",
+    )
+    launch_args = launch_args + ["--json-output", json_output_path]
+    delete_json_output = True
+  args = launch_args + app_args
+
+  proc = subprocess.Popen(
+      args,
+      env=env,
+  )
+
+  exit_code = proc.wait()
+
+  # `devicectl` only writes to `--json-output` after the process has exited. We
+  # use `subprocess.Popen()` instead of `subprocess.run()` to allow us to write
+  # the launch info before reporting process exit.
+  try:
+    with open(json_output_path, "r", encoding="utf-8") as f:
+      data = json.load(f)
+      pid = (
+          data.get("result", {}).get("process", {}).get("processIdentifier")
+      )
+      if pid:
+        os.makedirs(os.path.dirname(launch_info_path), exist_ok=True)
+        with open(launch_info_path, "w", encoding="utf-8") as f:
+          f.write(json.dumps(
+              {
+                  "platform": "device",
+                  "udid": device_identifier,
+                  "pid": pid,
+              },
+              indent=2,
+          ))
+      else:
+          logger.error("Failed to find PID in JSON output")
+  except Exception as e:
+    logger.error("Failed to write launch info to file: %s", e)
+
+  if delete_json_output:
+    try:
+      os.remove(json_output_path)
+    except Exception:
+      pass
+
+  if exit_code != 0:
+    raise subprocess.CalledProcessError(exit_code, args)
 
 
 def main(
@@ -498,5 +587,6 @@ if __name__ == "__main__":
     )
   except subprocess.CalledProcessError as e:
     logger.error("%s exited with error code %d", e.cmd, e.returncode)
+    sys.exit(e.returncode)
   except KeyboardInterrupt:
-    pass
+    sys.exit(1)

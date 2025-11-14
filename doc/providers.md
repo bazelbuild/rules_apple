@@ -494,12 +494,13 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-metals"></a>metals |  Metal Shading Language source files to be compiled into a single .metallib file and bundled at the top level.    |
 | <a id="AppleResourceInfo-mlmodels"></a>mlmodels |  Core ML model files that should be processed and bundled at the top level.    |
 | <a id="AppleResourceInfo-plists"></a>plists |  Resource Plist files that should not be merged into Info.plist    |
-| <a id="AppleResourceInfo-pngs"></a>pngs |  PNG images which are not bundled in an .xcassets folder.    |
+| <a id="AppleResourceInfo-pngs"></a>pngs |  PNG images which are not bundled in an .xcassets folder or an .icon folder in Xcode 26+.    |
 | <a id="AppleResourceInfo-processed"></a>processed |  Typed resources that have already been processed.    |
 | <a id="AppleResourceInfo-storyboards"></a>storyboards |  Storyboard files.    |
 | <a id="AppleResourceInfo-strings"></a>strings |  Localization strings files.    |
 | <a id="AppleResourceInfo-texture_atlases"></a>texture_atlases |  Texture atlas files.    |
 | <a id="AppleResourceInfo-unprocessed"></a>unprocessed |  Generic resources not mapped to the other types.    |
+| <a id="AppleResourceInfo-xcstrings"></a>xcstrings |  String catalog files.    |
 | <a id="AppleResourceInfo-xibs"></a>xibs |  XIB Interface files.    |
 | <a id="AppleResourceInfo-owners"></a>owners |  `depset` of (resource, owner) pairs.    |
 | <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  `depset` of (processed resource, resource list) pairs.    |

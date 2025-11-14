@@ -15,6 +15,10 @@
 """Low-level bundling name helpers."""
 
 load(
+    "@bazel_skylib//lib:new_sets.bzl",
+    "sets",
+)
+load(
     "//apple:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
@@ -248,15 +252,37 @@ See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilitie
         suffix_default = suffix_default,
     )
 
-def _ensure_single_xcassets_type(*, attr, extension, files, message = None):
-    """Helper for when an xcassets catalog should have a single sub type.
+def _ensure_asset_catalog_files_not_in_xcassets(
+        *,
+        extension,
+        files,
+        message = None):
+    """Validates that a subset of asset catalog files are not within an xcassets directory.
 
     Args:
-      attr: The attribute to associate with the build failure if the list of
-          files has an element that is not in a directory with the given
-          extension.
-      extension: The extension that should be used for the different asset
-          type witin the catalog.
+      extension: The extension that should be used for the this particular asset that should never
+          be found within the xcassets directory.
+      files: An iterable of files to use.
+      message: A custom error message to use, the list of found files that were found in xcassets
+          directories will be printed afterwards.
+    """
+    _ensure_path_format(
+        files = files,
+        allowed_path_fragments = [],
+        denied_path_fragments = ["xcassets", extension],
+        message = message,
+    )
+
+def _ensure_single_xcassets_type(
+        *,
+        extension,
+        files,
+        message = None):
+    """Validates that asset catalog files are nested within an xcassets directory.
+
+    Args:
+      extension: The extension that should be used for the this particular asset within the xcassets
+          directory.
       files: An iterable of files to use.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
@@ -265,9 +291,9 @@ def _ensure_single_xcassets_type(*, attr, extension, files, message = None):
         message = ("Expected the xcassets directory to only contain files " +
                    "are in sub-directories with the extension %s") % extension
     _ensure_path_format(
-        attr = attr,
         files = files,
-        path_fragments_list = [["xcassets", extension]],
+        allowed_path_fragments = ["xcassets", extension],
+        denied_path_fragments = [],
         message = message,
     )
 
@@ -298,63 +324,55 @@ def _path_is_under_fragments(path, path_fragments):
 
     return True
 
-def _ensure_path_format(*, attr, files, path_fragments_list, message = None):
+def _ensure_path_format(
+        *,
+        files,
+        allowed_path_fragments,
+        denied_path_fragments,
+        message = None):
     """Ensure the files match the required path fragments.
 
-    TODO(b/77804841): The places calling this should go away and these types of
-    checks should be done during the resource processing. Right now these checks
-    are being wedged in at the attribute collection steps, and they then get
-    combined into a single list of resources; the bundling then resplits them
-    up in groups to process they by type. So the more validation/splitting done
-    here the slower things get (as double work is done). The bug is to revisit
-    all of this and instead pass through individual things in a structured way
-    so they don't have to be resplit. That would allow the validation to be
-    done while processing (in a single pass) instead.
-
     Args:
-      attr: The attribute to associate with the build failure if the list of
-          files has an element that is not in a directory with the given
-          extension.
       files: An iterable of files to use.
-      path_fragments_list: A list of lists, each inner lists is a sequence of
-          extensions that must be on the paths passed in (to ensure proper
-          nesting).
+      allowed_path_fragments: A list representing a sequence of extensions where each file path
+          passed in MUST MATCH the sequence to ensure proper nesting. If this is provided,
+          denied_path_fragments must be empty.
+      denied_path_fragments: A list representing a sequence of extensions where each file path
+          passed in MUST NOT MATCH the sequence to ensure proper nesting. If this is provided,
+          allowed_path_fragments must be empty.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
     """
 
-    formatted_path_fragments_list = []
-    for x in path_fragments_list:
-        formatted_path_fragments_list.append([".%s/" % y for y in x])
+    if allowed_path_fragments and denied_path_fragments:
+        fail("""
+Internal Error: Both allowed_path_fragments and denied_path_fragments were provided, but only one \
+of them should be provided.
 
-    # Just check that the paths include the expected nesting. More complete
-    # checks would likely be the number of outer directories with that suffix,
-    # the number of inner ones, extra directories segments where not expected,
-    # etc.
-    bad_paths = {}
+Please file an issue on the Apple BUILD Rules.
+""")
+
+    formatted_path_fragments = []
+    for x in allowed_path_fragments + denied_path_fragments:
+        formatted_path_fragments.append(".%s/" % x)
+    allow_path_under_fragments = bool(allowed_path_fragments)
+
+    bad_paths = sets.make()
     for f in files:
         path = f.path
+        if _path_is_under_fragments(path, formatted_path_fragments) != allow_path_under_fragments:
+            sets.insert(bad_paths, path)
 
-        was_good = False
-        for path_fragments in formatted_path_fragments_list:
-            if _path_is_under_fragments(path, path_fragments):
-                was_good = True
-                break  # No need to check other fragments
-
-        if not was_good:
-            bad_paths[path] = None
-
-    if len(bad_paths):
+    if sets.length(bad_paths):
         if not message:
-            as_paths = [
-                ("*" + "*".join(x) + "...")
-                for x in formatted_path_fragments_list
-            ]
-            message = "Expected only files inside directories named '*.%s'" % (
-                ", ".join(as_paths)
+            message_prefix = (
+                "Expected only " if allow_path_under_fragments else "Did not expect any "
             )
-        formatted_paths = "[\n  %s\n]" % ",\n  ".join(bad_paths.keys())
-        fail("%s, but found the following: %s" % (message, formatted_paths), attr)
+            as_path = "*" + "*".join(formatted_path_fragments) + "..."
+            message = message_prefix + "files inside directories named '*.%s'" % (as_path)
+
+        formatted_paths = "[\n  %s\n]" % ",\n  ".join(sets.to_list(bad_paths))
+        fail("%s, but found the following: %s" % (message, formatted_paths))
 
 def _validate_bundle_id(bundle_id):
     """Ensure the value is a valid bundle it or fail the build.
@@ -384,7 +402,7 @@ def _validate_bundle_id(bundle_id):
 bundling_support = struct(
     bundle_full_name = _bundle_full_name,
     bundle_full_id = _bundle_full_id,
-    ensure_path_format = _ensure_path_format,
+    ensure_asset_catalog_files_not_in_xcassets = _ensure_asset_catalog_files_not_in_xcassets,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
     validate_bundle_id = _validate_bundle_id,
 )

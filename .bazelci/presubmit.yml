@@ -5,15 +5,11 @@ x_defaults:
   common: &common
     platform: macos_arm64
     shell_commands:
-    - xcrun simctl runtime list
-    - xcrun simctl runtime delete 22D8075 || true
-    - xcrun simctl runtime delete 21F79 || true
+    - xcodebuild -downloadComponent metalToolchain
     - xcrun simctl runtime list
     - xcrun simctl runtime match list
-    - xcrun simctl runtime match set xros2.2 22N895
-    - xcrun simctl runtime match list
+    - xcrun simctl runtime dyld_shared_cache update --all
     post_shell_commands:
-    - xcrun simctl runtime match set xros2.2 --default
     - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
@@ -36,24 +32,32 @@ x_defaults:
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
-  macos_latest:
-    name: "Current LTS"
-    bazel: latest
+  macos_7.x:
+    name: "7.x"
+    bazel: 7.x
     <<: *common
 
-  macos_last_rc:
-    name: "Last RC Bazel"
-    bazel: last_rc
+  macos_8.x:
+    name: "8.x"
+    bazel: 8.x
     <<: *common
+
+  # TODO: Re-enable when we fix bazel 9.x
+  # macos_last_rc:
+  #   name: "Last RC Bazel"
+  #   bazel: last_rc
+  #   <<: *common
 
   macos_last_green:
     name: "Last Green Bazel"
-    bazel: last_green
+    # TODO: Move back to last_green ASAP
+    bazel: 5409637c4e2d5c010b7264172b1004a2afd46bfe
     <<: *common
 
   doc_tests:
     name: "Doc tests"
-    bazel: last_green
+    # TODO: Move back to last_green once rules_cc is fixed
+    bazel: 48555196ef92f54d0a331a01dac9db0a6aabc8b4
     platform: ubuntu2004
     test_targets:
     - "doc/..."

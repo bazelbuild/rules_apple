@@ -15,13 +15,12 @@
 """xcframework Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:action_command_line_test.bzl",
-    "action_command_line_test",
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -30,6 +29,10 @@ load(
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -535,15 +538,6 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    # Test that an actionable error is produced for the user when a header to
-    # bundle conflicts with the generated umbrella header.
-    analysis_failure_message_test(
-        name = "{}_umbrella_header_conflict_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_umbrella_header_conflict",
-        expected_error = "Found imported header file(s) which conflict(s) with the name \"UmbrellaHeaderConflict.h\" of the generated umbrella header for this target. Check input files:\ntest/starlark_tests/resources/UmbrellaHeaderConflict.h\n\nPlease remove the references to these files from your rule's list of headers to import or rename the headers if necessary.",
-        tags = [name],
-    )
-
     # Test tvOS XCFramework binaries contain Mach-O load commands for device or simulator.
     archive_contents_test(
         name = "{}_tvos_simulator_binary_contains_macho_load_cmd_test".format(name),
@@ -604,13 +598,6 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
-    analysis_failure_message_with_tree_artifact_outputs_test(
-        name = "{}_fails_with_tree_artifact_outputs".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        expected_error = "The apple_xcframework rule does not yet support the experimental tree artifact.",
-        tags = [name],
-    )
-
     action_command_line_test(
         name = "{}_xcframework_with_extension_safe".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
@@ -628,6 +615,30 @@ def apple_xcframework_test_suite(name):
         not_expected_argv = [
             "-fapplication-extension",
         ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_ios_dynamic_xcframework_tree_artifact_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        expected_directories = {
+            "ios_dynamic_xcframework.xcframework": [
+                "Info.plist",
+                "ios-arm64/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+                "ios-arm64/ios_dynamic_xcframework.framework/Info.plist",
+                "ios-arm64/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+                "ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
+                "ios-arm64/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/ios_dynamic_xcframework",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/ios_dynamic_xcframework.h",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
+                "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Modules/module.modulemap",
+            ],
+        },
         tags = [name],
     )
 

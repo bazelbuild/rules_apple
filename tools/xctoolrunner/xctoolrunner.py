@@ -32,6 +32,8 @@ Subcommands:
   mapc [<args>...]
 
   momc [<args>...]
+
+  xcstringstool [<args>...]
 """
 
 import argparse
@@ -148,10 +150,7 @@ def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
 def ibtool(_, toolargs):
   """Assemble the call to "xcrun ibtool"."""
-  xcrunargs = [
-      "xcrun", "ibtool", "--errors", "--warnings", "--notices",
-      "--auto-activate-custom-fonts", "--output-format", "human-readable-text"
-  ]
+  xcrunargs = ["xcrun", "ibtool"]
 
   _apply_realpath(toolargs)
 
@@ -202,21 +201,79 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   def is_warning_or_notice_an_error(line):
     """Returns True if the warning/notice should be treated as an error."""
 
-    # Current things staying as warnings are launch image deprecations,
-    # requiring a 1024x1024 for appstore (b/246165573) and "foo" is used by
-    # multiple imagesets (b/139094648)
+    # List of warnings that should continue to be treated as warnings.
     warnings = [
-        "is used by multiple", "1024x1024",
+        # Requiring a 1024x1024 PNG for App Store distribution. (b/246165573)
+        "1024x1024",
+        # "foo" is used by multiple imagesets. (b/139094648)
+        "is used by multiple",
+        # Launch image deprecations.
         "Launch images are deprecated in iOS 13.0",
-        "Launch images are deprecated in tvOS 13.0"
+        "Launch images are deprecated in tvOS 13.0",
+        # Xcode 26 watchOS "failed to generate flattened icon stack" errors
+        # when building Icon Composer icon bundles without legacy xcassets App
+        # Icons that define a "universal" 1024x1024 PNG icon. (b/430862638)
+        "Failed to generate flattened icon stack for icon named ",
     ]
     for warning in warnings:
       if warning in line:
         return False
     return True
 
+  def is_warning_muted_by_xcode(line):
+    """Returns True if the warning is nonsense and it is ignored by Xcode."""
+    warning_substrings_to_ignore = [
+        # Xcode 26's actool attempts to parse PNG files as XML and fails; these
+        # are predictably consistent and should be ignored. All of these are
+        # prepended by whitespace.
+        "Failure Reason: The data is not in the correct format.",
+        "Underlying Errors:",
+        "Debug Description: Garbage at end around line ",
+        "Description: The data couldn’t be read because it isn’t in the " +
+        "correct format.",
+        "Failed to parse icontool JSON output.",
+    ]
+    for muted_warning in warning_substrings_to_ignore:
+      if muted_warning in line:
+        return True
+    return False
+
+  def is_error_muted_by_xcode(line):
+    """Returns True if the error is nonsense and it is ignored by Xcode."""
+    error_substrings_to_ignore = [
+        # Sometimes we get CoreImage errors that are harmless, referencing SDK
+        # artifacts that are not provided by any Xcode.
+        "CIPortraitEffectSpillCorrection",
+        "RuntimeRoot/System/Library/CoreImage/PortraitFilters.cifilter",
+    ]
+    exact_errors_to_ignore = [
+        # Xcode 26's actool attempts to parse PNG files as XML and fails; these
+        # are predictably consistent and should be ignored.
+        "Entity: line 1: parser error : Start tag expected, '<' not found",
+        "�PNG",
+        "^",
+    ]
+    for muted_error in error_substrings_to_ignore:
+      if muted_error in line:
+        return True
+    if line in exact_errors_to_ignore:
+      return True
+    return False
+
   output = set()
+  errors_collected = []
   current_section = None
+
+  for line in raw_stderr.splitlines():
+    if is_error_muted_by_xcode(line):
+      continue
+    errors_collected.append(line + "\n")
+
+  if not errors_collected:
+    # If the errors reported were all muted, then the tool_exit_status should
+    # be 0 at this point, allowing for the possibility that the output might
+    # still have warnings we want to upgrade as errors.
+    tool_exit_status = 0
 
   for line in raw_stdout.splitlines():
     header_match = section_header.search(line)
@@ -228,7 +285,7 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
     if not current_section:
       output.add(line + "\n")
     elif current_section not in excluded_sections:
-      if is_spurious_message(line):
+      if is_spurious_message(line) or is_warning_muted_by_xcode(line):
         continue
 
       if is_warning_or_notice_an_error(line):
@@ -238,23 +295,20 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
       output.add(line + "\n")
 
-  # Some of the time, in a successful run, actool reports on stderr some
-  # internal assertions and ask "Please file a bug report with Apple", but
-  # it isn't clear that there is really a problem. Since everything else
-  # (warnings about assets, etc.) is reported on stdout, just drop stderr
-  # on successful runs.
   if tool_exit_status == 0:
-    raw_stderr = None
+    # Some of the time, in a successful run, actool reports on stderr some
+    # internal assertions and ask "Please file a bug report with Apple", but
+    # it isn't clear that there is really a problem. Since everything else
+    # (warnings about assets, etc.) is reported on stdout, just drop stderr
+    # on successful runs.
+    errors_collected = []
 
-  return (tool_exit_status, "".join(output), raw_stderr)
+  return (tool_exit_status, "".join(output), "".join(errors_collected))
 
 
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
-  xcrunargs = [
-      "xcrun", "actool", "--errors", "--warnings", "--notices",
-      "--output-format", "human-readable-text"
-  ]
+  xcrunargs = ["xcrun", "actool"]
 
   _apply_realpath(toolargs)
 
@@ -422,6 +476,16 @@ def mapc(_, toolargs):
   return return_code
 
 
+def xcstringstool(_, toolargs):
+  xcrunargs = ["xcrun", "xcstringstool"]
+  _apply_realpath(toolargs)
+  xcrunargs += toolargs
+
+  return_code, _, _ = execute.execute_and_filter_output(
+      xcrunargs, print_output=True)
+  return return_code
+
+
 def main(argv):
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers()
@@ -457,6 +521,9 @@ def main(argv):
   # MAPC Argument Parser
   mapc_parser = subparsers.add_parser("mapc")
   mapc_parser.set_defaults(func=mapc)
+
+  xcstringstool_parser = subparsers.add_parser("xcstringstool")
+  xcstringstool_parser.set_defaults(func=xcstringstool)
 
   # Parse the command line and execute subcommand
   args, toolargs = parser.parse_known_args(argv)

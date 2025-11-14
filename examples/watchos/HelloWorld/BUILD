@@ -53,6 +53,7 @@ objc_library(
         "WatchApp2Sources/ExtensionDelegate.h",
         "WatchApp2Sources/ExtensionDelegate.m",
     ],
+    tags = ["manual"],
     deps = [":WatchSharedSources"],
 )
 
@@ -63,6 +64,7 @@ objc_library(
         "SingleTargetWatchSources/AppDelegate.m",
         "SingleTargetWatchSources/main.m",
     ],
+    tags = ["manual"],
     deps = [":WatchSharedSources"],
 )
 

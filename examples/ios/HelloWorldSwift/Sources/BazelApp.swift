@@ -22,6 +22,7 @@ public struct BazelApp: App {
     WindowGroup {
       Text("Hello World")
         .accessibility(identifier: "HELLO_WORLD")
+      Text("Example", comment: "Example text")
     }
   }
 
