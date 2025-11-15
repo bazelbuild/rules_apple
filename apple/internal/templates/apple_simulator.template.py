@@ -636,6 +636,7 @@ def apple_simulator(
     sim_device: str,
     sim_identifier: str,
     sim_os_version: str,
+    sim_persistent: bool = False,
 ) -> AppleSimulatorUDID:
   """Finds or creates a persistent compatible Apple simulator.
 
@@ -647,11 +648,12 @@ def apple_simulator(
     sim_identifier: The identifier of the simulator (<uuid>).
     sim_os_version: Optional version of the Apple platform runtime (e.g.
       "13.2").
+    sim_persistent: If True, always use persistent simulator mode.
 
   Yields:
     The UDID of the simulator.
   """
-  if sim_device and sim_os_version:
+  if sim_device and sim_os_version and not sim_persistent:
     with temporary_simulator(
         platform_type=platform_type,
         simctl_path=simctl_path,
@@ -796,6 +798,7 @@ def main(
     sim_device: str,
     sim_identifier: str,
     sim_os_version: str,
+    sim_persistent: bool,
 ):
   """Main entry point to `bazel run` for *_application() targets.
 
@@ -824,6 +827,7 @@ def main(
       sim_device=sim_device,
       sim_identifier=sim_identifier,
       sim_os_version=sim_os_version,
+      sim_persistent = sim_persistent,
   ) as simulator_udid:
     run_app_in_simulator(
         simulator_udid=simulator_udid,
@@ -835,6 +839,7 @@ def main(
 
 
 if __name__ == "__main__":
+  sim_persistent = "--persistent" in sys.argv
   try:
     # Template values filled in by rules_apple/apple/internal/run_support.bzl.
     main(
@@ -845,6 +850,7 @@ if __name__ == "__main__":
         sim_device="%sim_device%",
         sim_identifier="%sim_identifier%",
         sim_os_version="%sim_os_version%",
+        sim_persistent=sim_persistent,
     )
   except subprocess.CalledProcessError as e:
     logger.error("%s exited with error code %d", e.cmd, e.returncode)
