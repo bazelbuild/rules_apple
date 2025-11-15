@@ -275,7 +275,7 @@ Contains the executable binary output that was built using
     fields = {
         # TODO: Remove when we drop 7.x
         "objc": """\
-apple_common.Objc provider used for legacy linking behavior.
+ObjcInfo provider used for legacy linking behavior.
 """,
         "binary": """\
 The executable binary artifact output by `link_multi_arch_binary`.
