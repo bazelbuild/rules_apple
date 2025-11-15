@@ -651,7 +651,8 @@ def apple_simulator(
   Yields:
     The UDID of the simulator.
   """
-  if sim_device and sim_os_version:
+  prefer_persistent = os.environ.get("BAZEL_APPLE_PREFER_PERSISTENT_SIMS", "0") == "1"
+  if not prefer_persistent and sim_device and sim_os_version:
     with temporary_simulator(
         platform_type=platform_type,
         simctl_path=simctl_path,
