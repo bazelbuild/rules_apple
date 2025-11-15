@@ -207,21 +207,21 @@ def tvos_extension_test_suite(name):
         tags = [name],
     )
 
-    # Test that the default entry point is _TVExtensionMain for legacy_entry_point=True.
+    # Test that the default entry point is _NSExtensionMain (modern behavior).
     entry_point_test(
-        name = "{}_legacy_entry_point_test".format(name),
+        name = "{}_default_entry_point_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
-        entry_point = "_TVExtensionMain",
+        entry_point = "_NSExtensionMain",
         tags = [name],
     )
 
-    # Test that the entry point is _NSExtensionMain when legacy_entry_point=False.
+    # Test that the entry point is _TVExtensionMain when legacy_entry_point=True.
     entry_point_test(
-        name = "{}_non_legacy_entry_point_test".format(name),
+        name = "{}_legacy_entry_point_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_non_legacy_entry_point",
-        entry_point = "_NSExtensionMain",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_legacy_entry_point",
+        entry_point = "_TVExtensionMain",
         tags = [name],
     )
 

@@ -160,11 +160,11 @@ tvos_extension(
 )
 
 tvos_extension(
-    name = "ext_with_non_legacy_entry_point",
+    name = "ext_with_legacy_entry_point",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    legacy_entry_point = False,
+    legacy_entry_point = True,
     minimum_os_version = common.min_os_tvos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,

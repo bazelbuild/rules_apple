@@ -1111,6 +1111,9 @@ def _tvos_extension_impl(ctx):
         validation_mode = ctx.attr.entitlements_validation,
     )
 
+    # Modern tvOS extensions use the NSExtensionMain entry point. Extensions prior to
+    # tvOS 13 used the TVExtensionMain entry point, which can be enabled by setting
+    # legacy_entry_point=True.
     entry_point = "_TVExtensionMain" if ctx.attr.legacy_entry_point else "_NSExtensionMain"
 
     extra_linkopts = [
@@ -1636,10 +1639,11 @@ that this target depends on.
 """,
             ),
             "legacy_entry_point": attr.bool(
-                default = True,
+                default = False,
                 doc = """
-If `True`, the extension uses the legacy tvOS extension entry point (`TVExtensionMain`).
-If `False`, the extension uses the standard NSExtension entry point (`NSExtensionMain`).
+If `True`, the extension uses the legacy tvOS extension entry point (`_TVExtensionMain`) used
+by extensions prior to tvOS 13. If `False` (the default), the extension uses the modern
+NSExtension entry point (`_NSExtensionMain`).
 """,
             ),
         },
