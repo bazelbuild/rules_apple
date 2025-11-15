@@ -380,8 +380,8 @@ EOF
   expect_log "While processing target \"@@\?//app:app\"; the CFBundleVersion of the child target \"@@\?//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
-# Tests that an extension with legacy_entry_point=False builds successfully.
-function test_non_legacy_entry_point_extension_builds() {
+# Tests that an extension with legacy_entry_point=True builds successfully.
+function test_legacy_entry_point_extension_builds() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
@@ -407,7 +407,7 @@ tvos_extension(
     name = "ext",
     bundle_id = "my.bundle.id.extension",
     infoplists = ["Info-Ext.plist"],
-    legacy_entry_point = False,
+    legacy_entry_point = True,
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
