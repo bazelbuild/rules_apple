@@ -164,7 +164,7 @@ def _asset_catalogs(
     """Processes asset catalog files."""
     processed_origins = {}
 
-    asset_files = files.to_list()
+    all_asset_files = files.to_list()
 
     # A list of all known asset catalog types besides Icon Composer icons can be found at this link
     # within the Apple legacy documentation archive:
@@ -172,7 +172,7 @@ def _asset_catalogs(
     #
     # Check for empty asset catalogs; these will waste time and resources executing actool.
     contains_assets_to_compile = False
-    for file in asset_files:
+    for file in all_asset_files:
         # Skip directories and Contents.json files outside of .colorset folders.
         #
         # Contents.json files *inside* of .colorset folders are transformed into compiled asset
@@ -216,7 +216,7 @@ was declared. Skipping asset catalog compilation.
     # Separate alternate icons from regular assets
     alternate_icons = []
     asset_files = []
-    for f in files.to_list():
+    for f in all_asset_files:
         if ".alticon/" in f.path:
             if f.extension != "png":
                 fail("Alternate icons must be .png files packaged in a .alticon folder. Not: {}".format(f.path))
