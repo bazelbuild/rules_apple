@@ -162,8 +162,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         plist_test_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags,
     )
 
     # Test for a failure when the new icon composer bundles for Xcode 26 are assigned  with a set
@@ -175,8 +174,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name],
     )
 
     # Tests xcasset tool is passed the correct arguments.

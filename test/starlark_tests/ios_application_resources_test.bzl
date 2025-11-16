@@ -209,8 +209,7 @@ def ios_application_resources_test_suite(name):
         plist_test_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags,
     )
 
     # Test a failure when the new icon composer bundles for Xcode 26 are mixed with a set of asset \
@@ -222,8 +221,7 @@ def ios_application_resources_test_suite(name):
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name],
     )
 
     # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
@@ -242,8 +240,7 @@ def ios_application_resources_test_suite(name):
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "app_icon",
         },
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.fixture_tags + common.skip_ci_tags,
+        tags = [name] + common.fixture_tags,
     )
 
     # Tests that icon composer icons must be provided when the minimum_os_version is 26.0 or higher.
@@ -256,8 +253,7 @@ Legacy .appiconset files should not be used on iOS/macOS/watchOS 26+.
 These platforms prefer Icon Composer .icon bundles. .appiconset files are only needed for rendering icons in iOS/macOS/watchOS prior to 26.
 
 Found the following legacy .appiconset files: """,
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name],
     )
 
     # Test a failure when new icon composer bundles for Xcode 26 are mixed with a set of asset
@@ -269,8 +265,7 @@ Found the following legacy .appiconset files: """,
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
             Composer .icon bundles are present.
             """,
-        # Skip CI until CI is on Xcode 26
-        tags = [name] + common.skip_ci_tags,
+        tags = [name],
     )
 
     # Tests that icon composer icons will be flagged when building against Xcode 16 instead of 26.
@@ -279,9 +274,8 @@ Found the following legacy .appiconset files: """,
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
         expected_error = """
 Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.""",
-        tags = [
-            name,
-        ] + common.skip_ci_tags,
+        # Skip on CI since we no longer run tests using Xcode 16.
+        tags = [name] + common.skip_ci_tags,
     )
 
     # Tests that the launch storyboard is bundled with the application and that
