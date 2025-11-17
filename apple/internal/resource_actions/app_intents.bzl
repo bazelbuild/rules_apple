@@ -68,6 +68,19 @@ def _generate_intermediate_file_list(
     )
     return file_list
 
+def _xcode_build_version(*, xcode_version_config):
+    """Read the build version from the fourth component of the Xcode version."""
+    xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
+    if len(xcode_version_split) < 4:
+        fail("""\
+Internal Error: Expected xcode_config to report the Xcode version with the build version as the \
+fourth component of the full version string, but instead found {xcode_version_string}. Please file \
+an issue with the Apple BUILD rules with repro steps.
+""".format(
+            xcode_version_string = str(xcode_version_config.xcode_version()),
+        ))
+    return xcode_version_split[3]
+
 def generate_app_intents_metadata_bundle(
         *,
         actions,
@@ -120,13 +133,23 @@ def generate_app_intents_metadata_bundle(
     args.add("appintentsmetadataprocessor")
 
     # Standard appintentsmetadataprocessor options.
-    if xcode_version_config.xcode_version() < apple_common.dotted_version("16.3"):
-        # FB347041279: Though this is not required for --compile-time-extraction, which is the only
-        # valid mode for extracting app intents metadata in Xcode 15.3, a string value is still
-        # required by the appintentsmetadataprocessor up until Xcode 16.3.
-        args.add("--binary-file", "/bazel_rules_apple/fakepath")
+    args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
+        xcode_path = apple_support.path_placeholders.xcode(),
+    ))
     args.add("--module-name", intents_module_name)
+    args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
+    args.add("--xcode-version", _xcode_build_version(xcode_version_config = xcode_version_config))
+    args.add(
+        "--platform-family",
+        _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_prerequisites.platform_type],
+    )
+    args.add("--deployment-target", platform_prerequisites.minimum_os)
+    args.add("--bundle-identifier", bundle_id)
     args.add("--output", output.dirname)
+    args.add_all(target_triples, before_each = "--target-triple")
+
+    # Absent but not needed; --binary-file, --dependency-file, --stringsdata-file.
+
     source_file_list = _generate_intermediate_file_list(
         actions = actions,
         file_extension = "SwiftFileList",
@@ -137,14 +160,28 @@ def generate_app_intents_metadata_bundle(
     direct_inputs.append(source_file_list)
     args.add("--source-file-list", source_file_list.path)
     transitive_inputs = [depset(source_files)]
-    args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
-    platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_prerequisites.platform_type]
-    args.add("--platform-family", platform_family)
-    args.add("--deployment-target", platform_prerequisites.minimum_os)
-    args.add_all(target_triples, before_each = "--target-triple")
-    args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
-        xcode_path = apple_support.path_placeholders.xcode(),
-    ))
+
+    if owned_metadata_bundles:
+        owned_metadata_bundle_files = [
+            p.bundle
+            for x in owned_metadata_bundles
+            for p in x.to_list()
+        ]
+        direct_inputs.extend(owned_metadata_bundle_files)
+
+        dependency_metadata_file_list = _generate_intermediate_file_list(
+            actions = actions,
+            file_extension = "DependencyMetadataFileList",
+            input_paths = [
+                paths.join(x.path, "extract.actionsdata")
+                for x in owned_metadata_bundle_files
+            ],
+            intents_module_name = intents_module_name,
+            label = label,
+        )
+        direct_inputs.append(dependency_metadata_file_list)
+        args.add("--metadata-file-list", dependency_metadata_file_list.path)
+
     swift_const_vals_file_list = _generate_intermediate_file_list(
         actions = actions,
         file_extension = "SwiftConstValuesFileList",
@@ -155,45 +192,16 @@ def generate_app_intents_metadata_bundle(
     direct_inputs.append(swift_const_vals_file_list)
     args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
     transitive_inputs.append(depset(constvalues_files))
+
+    # Absent but seemingly not needed (b/449684440); --force.
+
     args.add("--compile-time-extraction")
 
-    # Read the build version from the fourth component of the Xcode version.
-    xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
-    if len(xcode_version_split) < 4:
-        fail("""\
-Internal Error: Expected xcode_config to report the Xcode version with the build version as the \
-fourth component of the full version string, but instead found {xcode_version_string}. Please file \
-an issue with the Apple BUILD rules with repro steps.
-""".format(
-            xcode_version_string = str(xcode_version_config.xcode_version()),
-        ))
-    args.add("--xcode-version", xcode_version_split[3])
-    if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.0"):
-        args.add("--validate-assistant-intents")
+    # Absent but not needed; --deployment-aware-processing.
 
-        if owned_metadata_bundles:
-            owned_metadata_bundle_files = [
-                p.bundle
-                for x in owned_metadata_bundles
-                for p in x.to_list()
-            ]
-            direct_inputs.extend(owned_metadata_bundle_files)
+    args.add("--validate-assistant-intents")
 
-            dependency_metadata_file_list = _generate_intermediate_file_list(
-                actions = actions,
-                file_extension = "DependencyMetadataFileList",
-                input_paths = [
-                    paths.join(x.path, "extract.actionsdata")
-                    for x in owned_metadata_bundle_files
-                ],
-                intents_module_name = intents_module_name,
-                label = label,
-            )
-            direct_inputs.append(dependency_metadata_file_list)
-            args.add("--metadata-file-list", dependency_metadata_file_list.path)
-
-    if xcode_version_config.xcode_version() >= apple_common.dotted_version("16.1"):
-        args.add("--bundle-identifier", bundle_id)
+    # Absent but seemingly not needed (b/460769318); --no-app-shortcuts-localization.
 
     apple_support.run(
         actions = actions,

@@ -40,15 +40,6 @@ load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 visibility("public")
 
 def _apple_static_library_impl(ctx):
-    if ctx.attr.platform_type == "visionos":
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-        if xcode_version_config.xcode_version() < apple_common.dotted_version("15.2"):
-            fail("""
-visionOS static libraries require a visionOS SDK provided by Xcode 15.2 or later.
-
-Resolved Xcode is version {xcode_version}.
-""".format(xcode_version = str(xcode_version_config.xcode_version())))
-
     # Most validation of the platform type and minimum version OS currently happens in
     # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.

@@ -65,15 +65,6 @@ def _linker_flag_for_sdk_dylib(dylib):
     return "-l{}".format(dylib)
 
 def _apple_binary_impl(ctx):
-    if ctx.attr.platform_type == "visionos":
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-        if xcode_version_config.xcode_version() < apple_common.dotted_version("15.2"):
-            fail("""
-visionOS binaries require a visionOS SDK provided by Xcode 15.2 or later.
-
-Resolved Xcode is version {xcode_version}.
-""".format(xcode_version = str(xcode_version_config.xcode_version())))
-
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
