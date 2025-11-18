@@ -637,7 +637,6 @@ def _tvos_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,

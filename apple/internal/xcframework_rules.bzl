@@ -921,7 +921,6 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 partials.framework_provider_partial(
                     actions = actions,
                     binary_artifact = binary_artifact,
-                    bundle_name = bundle_name,
                     cc_configured_features_init = cc_configured_features_init,
                     cc_linking_contexts = link_output.linking_contexts.values(),
                     cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],

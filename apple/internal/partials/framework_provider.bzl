@@ -30,7 +30,6 @@ def _framework_provider_partial_impl(
         *,
         actions,
         binary_artifact,
-        bundle_name,  # @unused - TODO: b/461806943: remove this from all callers?
         cc_configured_features_init,
         cc_linking_contexts,
         cc_toolchain,
@@ -75,7 +74,6 @@ def framework_provider_partial(
         *,
         actions,
         binary_artifact,
-        bundle_name,
         cc_configured_features_init,
         cc_linking_contexts,
         cc_toolchain,
@@ -92,7 +90,6 @@ def framework_provider_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       binary_artifact: The linked dynamic framework binary.
-      bundle_name: The name of the output bundle.
       cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
           without the need for a `ctx`.
       cc_linking_contexts: A list of CcLinkingContext providers containing information about the
@@ -111,7 +108,6 @@ def framework_provider_partial(
         _framework_provider_partial_impl,
         actions = actions,
         binary_artifact = binary_artifact,
-        bundle_name = bundle_name,
         cc_configured_features_init = cc_configured_features_init,
         cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
