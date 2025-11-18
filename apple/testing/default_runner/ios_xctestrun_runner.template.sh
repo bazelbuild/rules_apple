@@ -558,7 +558,7 @@ else
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
-if [[ "${COVERAGE:-}" -eq 1 || "${APPLE_COVERAGE:-}" -eq 1 ]]; then
+if [[ "${COVERAGE:-}" -eq 1 && "${APPLE_COVERAGE:-}" -eq 1 ]]; then
   profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
   if [[ "$should_use_xcodebuild" == false ]]; then
     profdata="$test_tmp_dir/coverage.profdata"
