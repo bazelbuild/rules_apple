@@ -207,13 +207,13 @@ def _get_simulator_test_environment(
     # 2. Test Rule test-env
     # 3. Test Runner test-env
     insert_libraries_values = []
-    command_line_values = command_line_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    command_line_values = command_line_test_env_copy.pop(_INSERT_LIBRARIES_KEY, None)
     if command_line_values:
         insert_libraries_values.append(command_line_values)
-    rule_values = rule_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    rule_values = rule_test_env_copy.pop(_INSERT_LIBRARIES_KEY, None)
     if rule_values:
         insert_libraries_values.append(rule_values)
-    runner_values = runner_test_env_copy.pop(_INSERT_LIBRARIES_KEY, default = None)
+    runner_values = runner_test_env_copy.pop(_INSERT_LIBRARIES_KEY, None)
     if runner_values:
         insert_libraries_values.append(runner_values)
 
