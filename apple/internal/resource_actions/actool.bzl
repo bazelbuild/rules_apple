@@ -230,8 +230,7 @@ def _verify_icon_dirs(
         icon_dirs,
         platform_type,
         primary_icon_name,
-        product_type,
-        xcode_config):
+        product_type):
     """Verifies that the icon directories are valid."""
 
     has_exactly_one_icon_dir = False
@@ -283,8 +282,7 @@ def _args_for_app_icons(
         icon_info,
         primary_icon_name,
         platform_type,
-        product_type,
-        xcode_config):
+        product_type):
     """Returns arguments for app icons."""
     args = []
     if product_type == apple_product_type.messages_extension:
@@ -319,7 +317,6 @@ def _args_for_app_icons(
             platform_type = platform_type,
             primary_icon_name = primary_icon_name,
             product_type = product_type,
-            xcode_config = xcode_config,
         )
 
         if primary_icon_name:
@@ -412,7 +409,6 @@ def _validate_asset_files_and_generate_args(
         platform_type = platform_type,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-        xcode_config = xcode_config,
     ))
 
     launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
