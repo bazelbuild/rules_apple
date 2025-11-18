@@ -207,6 +207,7 @@ apple_shell_test(
     name = "ios_coverage_test",
     size = "large",
     src = "ios_coverage_test.sh",
+    tags = ["exclusive"],
 )
 
 apple_shell_test(
