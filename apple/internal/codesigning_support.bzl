@@ -70,7 +70,6 @@ def _preferred_codesigning_identity(
 
     Args:
       build_settings: The build settings from apple_xplat_toolchain_info or platform_prerequisites.
-      objc_fragment: The objc fragment interface from ctx.fragments.objc.
       requires_adhoc_signing: Whether this signing operation requires adhoc signing with the adhoc
           pseudo identity. i.e. if this is a simulator build.
     """

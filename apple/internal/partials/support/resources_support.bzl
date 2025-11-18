@@ -343,8 +343,10 @@ def _infoplists(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of mac tools from the shared Apple toolchain.
         apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
         files: The infoplist files to process.
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         parent_dir: The path under which the merged Info.plist should be placed for resource bundles.

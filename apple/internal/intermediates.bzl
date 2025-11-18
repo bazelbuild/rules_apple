@@ -63,6 +63,7 @@ def _file(*, actions, target_name, output_discriminator, file_name, no_intermedi
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       file_name: Name of the file to declare.
+      no_intermediates: Whether to omit the "-intermediates" component of the path.
 
     Returns:
       A new File object that represents an intermediate file.
