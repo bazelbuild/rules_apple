@@ -357,14 +357,16 @@ def bundle_id(bundle_path: str) -> str:
     return plist["CFBundleIdentifier"]
 
 
-def devicectl_launch_environ() -> Dict[str, str]:
+def devicectl_launch_environ(device_identifier: str) -> Dict[str, str]:
   """Calculates an environment dictionary for running `devicectl device process launch`."""
   # Pass environment variables prefixed with "IOS_" to the device, replace
   # the prefix with "DEVICECTL_CHILD_". bazel adds "IOS_" to the env vars which
   # will be passed to the app as prefix to differentiate from other env vars. We
   # replace the prefix "IOS_" with "DEVICECTL_CHILD_" here, because "devicectl" only
   # pass the env vars prefixed with "DEVICECTL_CHILD_" to the app.
-  result = {}
+  result = {
+    "DEVICECTL_CHILD_BAZEL_DEVICE_UDID": device_identifier,
+  }
   for k, v in os.environ.items():
     if not k.startswith("IOS_"):
       continue
@@ -433,7 +435,7 @@ def run_app(
     launch_app(
         launch_args=launch_args,
         app_args=app_args,
-        env=devicectl_launch_environ(),
+        env=devicectl_launch_environ(device_identifier=device_identifier),
         device_identifier=device_identifier,
     )
 

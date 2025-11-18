@@ -146,6 +146,11 @@ for env_var in "${env_inherit[@]:-}"; do
     fi
   fi
 done
+
+if [[ -n "$device_id" ]]; then
+  default_test_env="$default_test_env,BAZEL_DEVICE_UDID=$device_id"
+fi
+
 if [[ -n "$test_env" ]]; then
   test_env="$test_env,$default_test_env"
 else
