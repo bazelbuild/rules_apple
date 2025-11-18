@@ -147,7 +147,6 @@ def _create_combined_zip_artifact(
         label_name,
         output_combined_zip,
         output_discriminator,
-        platform_prerequisites,  # @unused - TODO: b/461806943: remove this from all callers?
         bundletool,
         xplat_exec_group):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
@@ -160,7 +159,6 @@ def _create_combined_zip_artifact(
       output_combined_zip: A File referencing where the combined dossier zip should be written to.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      platform_prerequisites: Struct containing information on the platform being targeted.
       bundletool: A bundle tool from xplat toolchain.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
@@ -322,7 +320,6 @@ def _codesigning_dossier_partial_impl(
             label_name = label_name,
             output_combined_zip = output_combined_zip,
             output_discriminator = output_discriminator,
-            platform_prerequisites = platform_prerequisites,
             bundletool = apple_xplat_toolchain_info.bundletool,
             xplat_exec_group = xplat_exec_group,
         )
