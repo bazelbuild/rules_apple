@@ -30,7 +30,7 @@ def _framework_provider_partial_impl(
         *,
         actions,
         binary_artifact,
-        bundle_name,
+        bundle_name,  # @unused - TODO: b/461806943: remove this from all callers?
         cc_configured_features_init,
         cc_linking_contexts,
         cc_toolchain,

@@ -147,7 +147,7 @@ def _create_combined_zip_artifact(
         label_name,
         output_combined_zip,
         output_discriminator,
-        platform_prerequisites,
+        platform_prerequisites,  # @unused - TODO: b/461806943: remove this from all callers?
         bundletool,
         xplat_exec_group):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.

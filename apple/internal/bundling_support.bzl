@@ -308,7 +308,7 @@ def _generate_tree_artifact_bundle_action(
         additional_bundling_tools,
         apple_fragment,
         apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
+        apple_xplat_toolchain_info,  # @unused - TODO: b/461806943: remove this from all callers?
         bundletool_control_file,
         bundletool_inputs,
         mac_exec_group,

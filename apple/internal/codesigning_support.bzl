@@ -435,7 +435,7 @@ def _generate_codesigning_dossier_action(
         dossier_codesigningtool,
         embedded_dossiers,
         entitlements,
-        output_discriminator,
+        output_discriminator,  # @unused - TODO: b/461806943: remove this from all callers?
         output_dossier,
         label_name,
         mac_exec_group,
