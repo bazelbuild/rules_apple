@@ -67,10 +67,6 @@ visibility([
 # This defines an _enum_ to identify an imported XCFramework bundle type.
 _BUNDLE_TYPE = struct(frameworks = 1, libraries = 2)
 
-# The name of the execution group that houses the Swift toolchain and is used to
-# run Swift actions.
-_SWIFT_EXEC_GROUP = "swift"
-
 def _anticipated_framework_root_info_plist_path(
         *,
         bundle_name,

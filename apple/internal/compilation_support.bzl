@@ -268,7 +268,6 @@ def _register_configuration_specific_link_actions(
     )
     cc_linking_context = _create_deduped_linkopts_linking_context(
         cc_linking_context = cc_linking_context,
-        owner = ctx.label,
         seen_flags = seen_flags,
     )
 
@@ -347,7 +346,7 @@ def _dedup_link_flags(*, flags, seen_flags = {}):
 
     return (same, new_flags, seen_flags)
 
-def _create_deduped_linkopts_linking_context(*, cc_linking_context, owner, seen_flags):
+def _create_deduped_linkopts_linking_context(*, cc_linking_context, seen_flags):
     linker_inputs = []
     for linker_input in cc_linking_context.linker_inputs.to_list():
         (same, new_flags, seen_flags) = _dedup_link_flags(
