@@ -308,7 +308,6 @@ def _generate_tree_artifact_bundle_action(
         additional_bundling_tools,
         apple_fragment,
         apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,  # @unused - TODO: b/461806943: remove this from all callers?
         bundletool_control_file,
         bundletool_inputs,
         mac_exec_group,
@@ -323,7 +322,6 @@ def _generate_tree_artifact_bundle_action(
       additional_bundling_tools: A list of additional tools to make available to the action.
       apple_fragment: An Apple fragment (ctx.fragments.apple).
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
-      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundletool_control_file: A File referencing the control file for the bundletool.
       bundletool_inputs: A depset of files to pass to the bundletool.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.

@@ -1184,7 +1184,6 @@ def _create_xcframework_bundle(
             additional_bundling_tools = [],
             apple_fragment = apple_fragment,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_control_file = bundletool_control_file,
             bundletool_inputs = depset(
                 direct = [bundletool_control_file, root_info_plist],

@@ -396,7 +396,6 @@ Please file a bug against the Apple BUILD rules with repro steps.
             additional_bundling_tools = additional_bundling_tools,
             apple_fragment = platform_prerequisites.apple_fragment,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_control_file = control_file,
             bundletool_inputs = depset(bundletool_inputs),
             mac_exec_group = mac_exec_group,
