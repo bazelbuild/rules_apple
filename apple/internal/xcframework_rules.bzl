@@ -1263,7 +1263,6 @@ def _create_xcframework_codesigning_dossier(
         entitlements = None,
         label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
-        output_discriminator = None,
         output_dossier = output_dossier,
         provisioning_profile = None,
         target_signs_with_entitlements = False,  # Frameworks are never signed with entitlements.

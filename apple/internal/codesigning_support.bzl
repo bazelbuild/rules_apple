@@ -435,7 +435,6 @@ def _generate_codesigning_dossier_action(
         dossier_codesigningtool,
         embedded_dossiers,
         entitlements,
-        output_discriminator,  # @unused - TODO: b/461806943: remove this from all callers?
         output_dossier,
         label_name,
         mac_exec_group,
@@ -455,8 +454,6 @@ def _generate_codesigning_dossier_action(
       entitlements: Optional file representing the entitlements to sign with. May be `None`.
       label_name: Name of the target being built.
       mac_exec_group: Th exec_group associated with dossier_codesigningtool.
-      output_discriminator: A string to differentiate between different target intermediate files
-          or `None`.
       output_dossier: The `File` representing the output dossier file - the zipped dossier will be
           placed here.
       provisioning_profile: The provisioning profile file. May be `None`.

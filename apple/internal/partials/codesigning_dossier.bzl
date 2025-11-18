@@ -264,7 +264,6 @@ def _codesigning_dossier_partial_impl(
         entitlements = entitlements,
         label_name = label_name,
         mac_exec_group = mac_exec_group,
-        output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         provisioning_profile = provisioning_profile,
         target_signs_with_entitlements = platform_prerequisites.platform.is_device,
