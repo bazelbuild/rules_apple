@@ -303,6 +303,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "generated_macos_dynamic_fmwk",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     include_versioned_frameworks = False,
     libtype = "dynamic",
@@ -340,6 +341,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "generated_macos_dynamic_versioned_fmwk",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     libtype = "dynamic",
     minimum_os_version = common.min_os_macos.baseline,

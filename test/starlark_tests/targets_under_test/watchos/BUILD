@@ -449,6 +449,7 @@ apple_dynamic_framework_import(
 
 generate_import_framework(
     name = "generated_watchos_dynamic_fmwk",
+    # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     include_resource_bundle = True,
     libtype = "dynamic",
