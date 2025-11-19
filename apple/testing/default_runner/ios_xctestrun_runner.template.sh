@@ -558,16 +558,16 @@ else
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
+profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
+if [[ "$should_use_xcodebuild" == false ]]; then
+  profdata="$test_tmp_dir/coverage.profdata"
+fi
+
+if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
+  cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
+fi
+
 if [[ "${COVERAGE:-}" -eq 1 && "${APPLE_COVERAGE:-}" -eq 1 ]]; then
-  profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
-  if [[ "$should_use_xcodebuild" == false ]]; then
-    profdata="$test_tmp_dir/coverage.profdata"
-  fi
-
-  if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
-    cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
-  fi
-
   if [[ "$should_use_xcodebuild" == false ]]; then
     xcrun llvm-profdata merge "$profraw" --output "$profdata"
   fi
