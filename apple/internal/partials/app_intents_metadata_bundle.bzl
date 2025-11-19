@@ -89,11 +89,17 @@ swift_library target from the deprecated app_intents attribute found at {label}.
                 app_intents_infos.append(target[AppIntentsInfo])
     return app_intents_infos
 
-def _find_exclusively_owned_metadata_bundle_input(*, app_intents_infos, label, targets_to_avoid):
+def _find_exclusively_owned_metadata_bundle_inputs(
+        *,
+        app_intents_infos,
+        enable_wip_features,
+        label,
+        targets_to_avoid):
     """Find the expected metadata bundle owned by the current rule that isn't in targets to avoid.
 
     Args:
         app_intents_infos: A list of AppIntentsInfo providers.
+        enable_wip_features: Whether to enable WIP features.
         label: The label of the current rule.
         targets_to_avoid: A list of targets that should be ignored when collecting metadata bundle
             inputs.
@@ -112,10 +118,13 @@ def _find_exclusively_owned_metadata_bundle_input(*, app_intents_infos, label, t
     avoid_owners = [p.owner for x in avoid_owned_metadata_bundles for p in x.to_list()]
 
     # Use a transitive depset to remove incoming duplicates.
-    metadata_bundle_inputs = depset(transitive = [
-        app_intents_info.metadata_bundle_inputs
-        for app_intents_info in app_intents_infos
-    ])
+    metadata_bundle_inputs = depset(
+        transitive = [
+            app_intents_info.metadata_bundle_inputs
+            for app_intents_info in app_intents_infos
+        ],
+        order = "topological",
+    )
 
     for metadata_bundle_input in metadata_bundle_inputs.to_list():
         owner = metadata_bundle_input.owner
@@ -143,7 +152,7 @@ exclusively to the given top level Apple target via the "aspect_hints" attribute
             label = str(label),
             number_of_inputs = len(avoid_owners),
         ))
-    elif len(owned_metadata_bundle_inputs) != 1:
+    elif len(owned_metadata_bundle_inputs) != 1 and not enable_wip_features:
         fail("""
 Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but found {number_of_inputs} targets defining App Intents instead.
@@ -168,13 +177,14 @@ for more information: https://developer.apple.com/documentation/appintents/appin
             number_of_inputs = len(owned_metadata_bundle_inputs),
         ))
 
-    return owned_metadata_bundle_inputs[0]
+    return owned_metadata_bundle_inputs
 
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
         app_intents,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
@@ -190,10 +200,14 @@ def _app_intents_metadata_bundle_partial_impl(
         if AppIntentsBundleInfo in x
     ]
 
-    # Mirroring Xcode 15+ behavior, the metadata tool only looks at the first split for a given arch
-    # rather than every possible set of source files and inputs. Oddly, this only applies to the
-    # swift source files and the swiftconstvalues files; the triples and other files do cover all
-    # available architectures.
+    # Mirroring Xcode 15.x behavior, the metadata tool only looks at the first split for a given
+    # arch rather than every possible set of source files and inputs. Oddly, this only applies to
+    # the Swift source files and the swiftconstvalues files; the triples and other files do cover
+    # all available architectures.
+    #
+    # This was changed in Xcode 16.x to consider every architecture, effectively doubling or
+    # tripling the number of files that must be processed and validated. but the utility is unclear
+    # at this time.
     first_cc_toolchain_key = cc_toolchains.keys()[0]
 
     app_intents_infos = _find_app_intents_info(
@@ -210,6 +224,7 @@ def _app_intents_metadata_bundle_partial_impl(
                 providers = [AppIntentsBundleInfo(
                     owned_metadata_bundles = depset(
                         transitive = owned_metadata_bundles,
+                        order = "topological",
                     ),
                 )],
             )
@@ -218,33 +233,76 @@ def _app_intents_metadata_bundle_partial_impl(
     # Remove deps found from dependent bundle deps before determining if we have the right number of
     # AppIntentsInfo providers. Reusing the concept of "owners" from resources, where the owner is
     # a String based on the label of the swift_library target that provided the metadata bundle.
-    metadata_bundle_input = _find_exclusively_owned_metadata_bundle_input(
+    metadata_bundle_inputs = _find_exclusively_owned_metadata_bundle_inputs(
         app_intents_infos = app_intents_infos,
+        enable_wip_features = apple_xplat_toolchain_info.build_settings.enable_wip_features,
         label = label,
         targets_to_avoid = targets_to_avoid,
     )
 
-    metadata_bundle = generate_app_intents_metadata_bundle(
+    target_triples = [
+        cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
+        for cc_toolchain in cc_toolchains.values()
+    ]
+
+    static_library_metadata_bundle_outputs = []
+    metadata_bundle_output = None
+    if len(metadata_bundle_inputs) > 1:
+        # Generate bundles for static libraries with the same bundle identifier.
+        static_library_metadata_bundle_outputs = [
+            generate_app_intents_metadata_bundle(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                bundle_id = bundle_id,
+                constvalues_files = [
+                    swiftconstvalues_file
+                    for swiftconstvalues_file in metadata_bundle_input.swiftconstvalues_files
+                ],
+                embedded_metadata_bundles = owned_metadata_bundles,
+                intents_module_name = metadata_bundle_input.module_name,
+                label = label,
+                mac_exec_group = mac_exec_group,
+                main_bundle_output = False,
+                platform_prerequisites = platform_prerequisites,
+                # TODO: b/449684440 - This approach doesn't verify direct dependencies and
+                # assumes every bundle depends on another. We can address this with information
+                # from metadata_bundle_input.direct_app_intents_modules combined with
+                # the "bundle" and "module_name" from each struct in
+                # static_library_metadata_bundle_outputs; this may require refactoring away this
+                # list comprehension and leaning on a helper.
+                static_library_metadata_bundles = [],
+                source_files = [
+                    swift_source_file
+                    for swift_source_file in metadata_bundle_input.swift_source_files
+                ],
+                target_triples = target_triples,
+            )
+            for metadata_bundle_input in metadata_bundle_inputs[:-1]
+        ]
+
+    # The last one found - and "nearest" to the top level target - will be our "main" metadata
+    # bundle.
+    main_metadata_bundle_input = metadata_bundle_inputs[-1]
+    metadata_bundle_output = generate_app_intents_metadata_bundle(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
         constvalues_files = [
             swiftconstvalues_file
-            for swiftconstvalues_file in metadata_bundle_input.swiftconstvalues_files
+            for swiftconstvalues_file in main_metadata_bundle_input.swiftconstvalues_files
         ],
-        intents_module_name = metadata_bundle_input.module_name,
+        embedded_metadata_bundles = owned_metadata_bundles,
+        intents_module_name = main_metadata_bundle_input.module_name,
         label = label,
         mac_exec_group = mac_exec_group,
-        owned_metadata_bundles = owned_metadata_bundles,
+        main_bundle_output = True,
         platform_prerequisites = platform_prerequisites,
+        static_library_metadata_bundles = static_library_metadata_bundle_outputs,
         source_files = [
             swift_source_file
-            for swift_source_file in metadata_bundle_input.swift_source_files
+            for swift_source_file in main_metadata_bundle_input.swift_source_files
         ],
-        target_triples = [
-            cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
-            for cc_toolchain in cc_toolchains.values()
-        ],
+        target_triples = target_triples,
     )
 
     bundle_location = processor.location.bundle
@@ -254,10 +312,13 @@ def _app_intents_metadata_bundle_partial_impl(
     providers = [AppIntentsBundleInfo(
         owned_metadata_bundles = depset(
             direct = [struct(
-                bundle = metadata_bundle,
-                owner = metadata_bundle_input.owner,
+                app_intents_package_typename = metadata_bundle_output.app_intents_package_typename,
+                bundle = metadata_bundle_output.bundle,
+                module_name = metadata_bundle_output.module_name,
+                owner = main_metadata_bundle_input.owner,
             )],
             transitive = owned_metadata_bundles,
+            order = "topological",
         ),
     )]
 
@@ -265,7 +326,7 @@ def _app_intents_metadata_bundle_partial_impl(
         bundle_files = [(
             bundle_location,
             "Metadata.appintents",
-            depset(direct = [metadata_bundle]),
+            depset(direct = [metadata_bundle_output.bundle]),
         )],
         providers = providers,
     )
@@ -275,6 +336,7 @@ def app_intents_metadata_bundle_partial(
         actions,
         app_intents,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
@@ -290,7 +352,8 @@ def app_intents_metadata_bundle_partial(
         actions: The actions provider from ctx.actions.
         app_intents: A list of dictionaries for targets under a split transition providing
             AppIntentsInfo.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+        apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
+        apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
         bundle_id: The bundle ID to configure for this target.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
@@ -308,6 +371,7 @@ def app_intents_metadata_bundle_partial(
         actions = actions,
         app_intents = app_intents,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         embedded_bundles = embedded_bundles,
         cc_toolchains = cc_toolchains,

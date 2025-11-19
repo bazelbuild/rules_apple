@@ -87,12 +87,14 @@ def generate_app_intents_metadata_bundle(
         apple_mac_toolchain_info,
         bundle_id,
         constvalues_files,
+        embedded_metadata_bundles,
         intents_module_name,
         label,
         mac_exec_group,
-        owned_metadata_bundles,
+        main_bundle_output,
         platform_prerequisites,
         source_files,
+        static_library_metadata_bundles,
         target_triples):
     """Process and generate AppIntents metadata bundle (Metadata.appintents).
 
@@ -102,29 +104,40 @@ def generate_app_intents_metadata_bundle(
         bundle_id: The bundle ID to configure for this target.
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
+        embedded_metadata_bundles: List of depsets of (bundle, owner) pairs collected from the
+            AppIntentsBundleInfo providers found from embedded targets.
         intents_module_name: A String with the module name corresponding to the module found which
             defines a set of compiled App Intents.
         label: Label for the current target (`ctx.label`).
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
-        owned_metadata_bundles: List of depsets of (bundle, owner) pairs collected from the
-            AppIntentsBundleInfo providers found from embedded targets.
+        main_bundle_output: Boolean indicating if this is the "main" bundle output for the top level
+            target or if it is an "intermediate" bundle for a static library.
         platform_prerequisites: Struct containing information on the platform being targeted.
         source_files: List of Swift source files implementing the AppIntents protocol.
+        static_library_metadata_bundles: List of File objects representing the "intermediate"
+            Metadata.appintents bundles for static libraries.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
     Returns:
-        File referencing the Metadata.appintents bundle.
+        A struct containing the following:
+        app_intents_package_typename: A File containing the typename of the AppIntentsPackage for
+            the App Intents module.
+        bundle: A File referencing the generated Metadata.appintents bundle.
+        module_name: A String with the module name corresponding to the module found which defines a
+            set of compiled App Intents.
     """
 
     xcode_version_config = platform_prerequisites.xcode_version_config
 
-    output = intermediates.directory(
+    static_metadata_dir = "" if main_bundle_output else "{}.appintents/".format(intents_module_name)
+    output_metadata_bundle = intermediates.directory(
         actions = actions,
         target_name = label.name,
         output_discriminator = None,
-        dir_name = "Metadata.appintents",
+        dir_name = "{}Metadata.appintents".format(static_metadata_dir),
     )
 
     direct_inputs = []
+    output_files = [output_metadata_bundle]
 
     args = actions.args()
 
@@ -132,7 +145,28 @@ def generate_app_intents_metadata_bundle(
     args.add("passthrough-commands")
     args.add("appintentsmetadataprocessor")
 
+    # TODO: b/449684440 - Pass through an intermediate text file containing the AppIntentsPackage
+    # typename for multi-module validation. This is required to check that AppIntentsPackage-s are
+    # declared with the required relationships based on direct deps between swift_library targets
+    # declaring App Intents.
+    app_intents_package_typename = None
+
     # Standard appintentsmetadataprocessor options.
+    #
+    # TODO: b/449684440 - Remove "passthrough-commands" so that we can do additional validation on
+    # the files prior to running the appintentsmetadataprocessor tool in the same wrapper.
+    # Alternatively, set up a separate validation action via a Python script.
+    swift_const_vals_file_list = _generate_intermediate_file_list(
+        actions = actions,
+        file_extension = "SwiftConstValuesFileList",
+        input_paths = constvalues_files,
+        intents_module_name = intents_module_name,
+        label = label,
+    )
+    direct_inputs.append(swift_const_vals_file_list)
+    args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
+    direct_inputs.extend(constvalues_files)
+
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
@@ -145,7 +179,7 @@ def generate_app_intents_metadata_bundle(
     )
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add("--bundle-identifier", bundle_id)
-    args.add("--output", output.dirname)
+    args.add("--output", output_metadata_bundle.dirname)
     args.add_all(target_triples, before_each = "--target-triple")
 
     # Absent but not needed; --binary-file, --dependency-file, --stringsdata-file.
@@ -159,22 +193,27 @@ def generate_app_intents_metadata_bundle(
     )
     direct_inputs.append(source_file_list)
     args.add("--source-file-list", source_file_list.path)
-    transitive_inputs = [depset(source_files)]
+    direct_inputs.extend(source_files)
 
-    if owned_metadata_bundles:
-        owned_metadata_bundle_files = [
+    if embedded_metadata_bundles:
+        embedded_metadata_bundle_files = [
             p.bundle
-            for x in owned_metadata_bundles
+            for x in embedded_metadata_bundles
             for p in x.to_list()
         ]
-        direct_inputs.extend(owned_metadata_bundle_files)
+        direct_inputs.extend(embedded_metadata_bundle_files)
 
+        # These reference the "extract.actionsdata" instances from App Intents metadata bundles
+        # within the embedded targets, such as frameworks and extensions. Curiously Xcode uses this
+        # to reference App Intents metadata bundles for SwiftPM resource bundles even though these
+        # don't appear in the final bundle for static library SwiftPM resource bundles and the paths
+        # it uses are to non-existent resource bundles; we avoid imitating that behavior for Bazel.
         dependency_metadata_file_list = _generate_intermediate_file_list(
             actions = actions,
             file_extension = "DependencyMetadataFileList",
             input_paths = [
                 paths.join(x.path, "extract.actionsdata")
-                for x in owned_metadata_bundle_files
+                for x in embedded_metadata_bundle_files
             ],
             intents_module_name = intents_module_name,
             label = label,
@@ -182,16 +221,29 @@ def generate_app_intents_metadata_bundle(
         direct_inputs.append(dependency_metadata_file_list)
         args.add("--metadata-file-list", dependency_metadata_file_list.path)
 
-    swift_const_vals_file_list = _generate_intermediate_file_list(
-        actions = actions,
-        file_extension = "SwiftConstValuesFileList",
-        input_paths = constvalues_files,
-        intents_module_name = intents_module_name,
-        label = label,
-    )
-    direct_inputs.append(swift_const_vals_file_list)
-    args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
-    transitive_inputs.append(depset(constvalues_files))
+    if static_library_metadata_bundles:
+        static_library_metadata_bundle_files = [
+            x.bundle
+            for x in static_library_metadata_bundles
+        ]
+        direct_inputs.extend(static_library_metadata_bundle_files)
+
+        # These reference the "extract.actionsdata" instances from App Intents metadata bundles
+        # that are intermediately generated for SwiftPM static libraries which are never placed into
+        # the final bundle. In Bazel, we use this facility to reference intermediate App Intents
+        # metadata bundles for the Swift modules generated by those swift_library targets.
+        static_library_metadata_file_list = _generate_intermediate_file_list(
+            actions = actions,
+            file_extension = "StaticMetadataFileList",
+            input_paths = [
+                paths.join(x.path, "extract.actionsdata")
+                for x in static_library_metadata_bundle_files
+            ],
+            intents_module_name = intents_module_name,
+            label = label,
+        )
+        direct_inputs.append(static_library_metadata_file_list)
+        args.add("--static-metadata-file-list", static_library_metadata_file_list.path)
 
     # Absent but seemingly not needed (b/449684440); --force.
 
@@ -209,11 +261,15 @@ def generate_app_intents_metadata_bundle(
         arguments = [args],
         executable = apple_mac_toolchain_info.xctoolrunner_alternative,
         exec_group = mac_exec_group,
-        inputs = depset(direct_inputs, transitive = transitive_inputs),
+        inputs = depset(direct_inputs),
         mnemonic = "AppIntentsMetadataProcessor",
-        outputs = [output],
+        outputs = output_files,
         xcode_config = xcode_version_config,
         xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
     )
 
-    return output
+    return struct(
+        app_intents_package_typename = app_intents_package_typename,
+        bundle = output_metadata_bundle,
+        module_name = intents_module_name,
+    )

@@ -32,6 +32,9 @@ A depset of structs with the following fields, which represent providers from ta
 providers that must be processed at the top level bundling rule through the
 `app_intents_metadata_bundle` partial:
 
+*   `direct_app_intents_modules`: A list of String-based module_name-s that must be included as
+    dependencies in the generated App Intents metadata bundle.
+
 *   `module_name`: A String representing the module name that these files belong to.
 
 *   `owner`: A String based on the label of the target that provided this metadata bundle input.
@@ -49,7 +52,13 @@ AppIntentsBundleInfo = provider(
         "owned_metadata_bundles": """
 A depset of structs defined as the following:
 
+*   `app_intents_package_typename`: A File that contains the app intents package typename for
+    this particular App Intents metadata bundle, if one was defined. This is only mandatory for
+    multi-module App Intents execution-time validation of AppIntentsPackage-s to work.
+
 *   `bundle`: A File representing the metadata bundle file.
+
+*   `module_name`: A String representing the module name that this bundle was generated from.
 
 *   `owner`: A String based on the label of the target that provided this metadata bundle.
 """,
