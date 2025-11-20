@@ -256,7 +256,8 @@ def _ensure_asset_catalog_files_not_in_xcassets(
         *,
         extension,
         files,
-        message = None):
+        message = None,
+        xcassets_extension = "xcassets"):
     """Validates that a subset of asset catalog files are not within an xcassets directory.
 
     Args:
@@ -265,11 +266,13 @@ def _ensure_asset_catalog_files_not_in_xcassets(
       files: An iterable of files to use.
       message: A custom error message to use, the list of found files that were found in xcassets
           directories will be printed afterwards.
+      xcassets_extension: The extension of the xcassets directory. Normally `xcassets`, but other
+          variations exist (e.g. `xcstickers`).
     """
     _ensure_path_format(
         files = files,
         allowed_path_fragments = [],
-        denied_path_fragments = ["xcassets", extension],
+        denied_path_fragments = [xcassets_extension, extension],
         message = message,
     )
 
@@ -277,7 +280,8 @@ def _ensure_single_xcassets_type(
         *,
         extension,
         files,
-        message = None):
+        message = None,
+        xcassets_extension = "xcassets"):
     """Validates that asset catalog files are nested within an xcassets directory.
 
     Args:
@@ -286,13 +290,15 @@ def _ensure_single_xcassets_type(
       files: An iterable of files to use.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
+      xcassets_extension: The extension of the xcassets directory. Normally `xcassets`, but other
+          variations exist (e.g. `xcstickers`).
     """
     if not message:
-        message = ("Expected the xcassets directory to only contain files " +
-                   "are in sub-directories with the extension %s") % extension
+        message = ("Expected the %s directory to only contain files " +
+                   "are in sub-directories with the extension %s") % (xcassets_extension, extension)
     _ensure_path_format(
         files = files,
-        allowed_path_fragments = ["xcassets", extension],
+        allowed_path_fragments = [xcassets_extension, extension],
         denied_path_fragments = [],
         message = message,
     )
