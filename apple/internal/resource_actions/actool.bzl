@@ -79,6 +79,33 @@ Found the following: {icon_bundle_files}
 
 """.format(icon_bundle_files = icon_bundle_files))
 
+def _validate_sticker_pack_icon_sets(*, icon_bundle_files, stickers_icon_files, xcasset_appicon_files):
+    """Validates that the asset files contain only sticker icon sets."""
+    message = ("Sticker pack extensions must use Sticker Icon Sets " +
+               "(named .stickersiconset), not traditional App Icon Sets")
+    bundling_support.ensure_single_xcassets_type(
+        extension = "stickersiconset",
+        files = stickers_icon_files,
+        message = message,
+        xcassets_extension = "xcstickers",
+    )
+
+    # Check that there are no .appiconset files, which are not allowed for messages extensions.
+    bundling_support.ensure_asset_catalog_files_not_in_xcassets(
+        extension = "appiconset",
+        files = xcasset_appicon_files,
+        message = message,
+        xcassets_extension = "xcstickers",
+    )
+
+    if icon_bundle_files:
+        fail("""
+Icon Composer .icon bundles are not supported for Messages Extensions.
+
+Found the following: {icon_bundle_files}
+
+""".format(icon_bundle_files = icon_bundle_files))
+
 def _validate_tvos_icon_sets(*, brandassets_icon_files, icon_bundle_files, xcasset_appicon_files):
     """Validates that the asset files contain only tvOS brand assets."""
     message = ("tvOS apps must use tvOS brand assets (named .brandassets), " +
@@ -198,6 +225,15 @@ def _icon_info_from_asset_files(
             stickers_icon_files = icon_files,
             xcasset_appicon_files = xcasset_appicon_files,
         )
+    elif product_type == apple_product_type.messages_sticker_pack_extension:
+        appicon_extension = "stickersiconset"
+        icon_files = [f for f in asset_files if ".stickersiconset/" in f.path]
+        _validate_sticker_pack_icon_sets(
+            icon_bundle_files = icon_bundle_files,
+            stickers_icon_files = icon_files,
+            xcasset_appicon_files = xcasset_appicon_files,
+        )
+
     elif platform_type == "tvos":
         appicon_extension = "brandassets"
         icon_files = [f for f in asset_files if ".brandassets/" in f.path]
@@ -298,7 +334,10 @@ def _args_for_app_icons(
         product_type):
     """Returns arguments for app icons."""
     args = []
-    if product_type == apple_product_type.messages_extension:
+    if product_type in [
+        apple_product_type.messages_extension,
+        apple_product_type.messages_sticker_pack_extension,
+    ]:
         args.extend([
             "--include-sticker-content",
             "--stickers-icon-role",
