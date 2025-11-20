@@ -3475,6 +3475,38 @@ ios_sticker_pack_extension(
     tags = common.fixture_tags,
 )
 
+ios_sticker_pack_extension(
+    name = "sticker_ext_with_sticker_assets",
+    bundle_id = "com.google.example.stickerext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:StickerPackInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    sticker_assets = ["//test/starlark_tests/resources:sticker_pack_ios"],
+    tags = common.fixture_tags,
+)
+
+ios_sticker_pack_extension(
+    name = "sticker_ext_with_wrong_appicons",
+    bundle_id = "com.google.example.stickerext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:StickerPackInfo.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    sticker_assets = ["//test/testdata/resources:app_icons_ios"],
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_ui_test(
