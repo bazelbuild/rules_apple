@@ -15,6 +15,14 @@
 """ios_sticker_pack_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -86,6 +94,44 @@ def ios_sticker_pack_extension_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.sticker-ext-with-capability-set-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_actool_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_sticker_assets",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "xctoolrunner actool --compile",
+            "--include-sticker-content",
+            "--stickers-icon-role",
+            "extension",
+            "--minimum-deployment-target " + common.min_os_ios.baseline,
+            "--platform iphonesimulator",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_sticker_icons_in_bundle_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/app_icon27x20@2x.png",
+            "$BUNDLE_ROOT/app_icon32x24@2x.png",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_sticker_assets",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_sticker_wrong_icons_in_app_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_wrong_appicons",
+        expected_error = """
+Found in app_icons a file that cannot be used as an app icon:
+test/testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/Contents.json
+
+Valid icon bundles for this target have the following extensions: [".stickersiconset/", ".stickerpack/", ".sticker/", ".stickersequence/"]
+""",
         tags = [name],
     )
 
