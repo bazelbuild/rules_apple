@@ -145,7 +145,7 @@ _visionos_internal_ui_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),
@@ -218,7 +218,7 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),

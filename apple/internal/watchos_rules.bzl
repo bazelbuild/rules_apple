@@ -1870,7 +1870,7 @@ which case it will be placed under a directory with the same name in the bundle.
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),
@@ -1935,7 +1935,7 @@ A list of watchOS application extensions to include in the final watch extension
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),
@@ -1997,7 +1997,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),
@@ -2060,7 +2060,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),

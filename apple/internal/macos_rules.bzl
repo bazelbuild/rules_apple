@@ -2311,7 +2311,7 @@ desired Contents subdirectory.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),
@@ -2457,7 +2457,7 @@ desired Contents subdirectory.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),
@@ -2693,7 +2693,7 @@ Targets created with `macos_command_line_application` can be executed using
                 doc = """
 A list of .plist files that will be merged to form the Info.plist that represents the application
 and is embedded into the binary. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
             ),
@@ -2712,7 +2712,7 @@ linked binary.
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
             ),
         },
@@ -2748,7 +2748,7 @@ macos_dylib = rule_factory.create_apple_rule(
                 doc = """
 A list of .plist files that will be merged to form the Info.plist that represents the application
 and is embedded into the binary. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
             ),
@@ -2756,7 +2756,7 @@ for what is supported.
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
             ),
         },
@@ -3526,7 +3526,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),
@@ -3589,7 +3589,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),

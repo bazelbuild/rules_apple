@@ -151,7 +151,7 @@ Error: Received conflicting base bundle IDs from more than one assigned Apple sh
 
 Found \"{conflicting_base}\" which does not match previously defined \"{base_bundle_id}\".
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """.format(
                     base_bundle_id = base_bundle_id,
                     conflicting_base = capability_info.base_bundle_id,
@@ -205,7 +205,7 @@ Error: There are no attributes set on this target that can be used to determine 
 Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
 applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     if base_bundle_id:
@@ -215,7 +215,7 @@ Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
 
 Please remove one of the two from your rule definition.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
         return _preferred_full_bundle_id(
@@ -232,7 +232,7 @@ See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilitie
 Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
 Found none.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     if bundle_id:
@@ -242,7 +242,7 @@ Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining
 This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
 `shared_capabilities` without a `base_bundle_id`.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     return _preferred_full_bundle_id(

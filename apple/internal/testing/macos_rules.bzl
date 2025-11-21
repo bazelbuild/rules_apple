@@ -161,7 +161,7 @@ desired Contents subdirectory.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),
@@ -240,7 +240,7 @@ desired Contents subdirectory.
                 providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-macos.md#macos_framework))
+[`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
 that this target depends on.
 """,
             ),
