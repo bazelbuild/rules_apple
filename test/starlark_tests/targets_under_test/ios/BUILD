@@ -1501,153 +1501,6 @@ ios_extension(
     ],
 )
 
-ios_extension(
-    name = "ext_with_app_intents",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:hinted_app_intent",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_with_framework_app_intents",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    frameworks = [":framework_with_app_intents"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-    ],
-)
-
-ios_application(
-    name = "app_with_no_exclusive_framework_app_intents",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    frameworks = [":framework_with_app_intents"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_with_load_deferred_framework_app_intents",
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    frameworks = [":framework_with_app_intents"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        ":load_deferred_framework_app_intents",
-        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-    ],
-)
-
-ios_extension(
-    name = "ext_with_framework_app_intents",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    frameworks = [":framework_with_app_intents"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-    ],
-)
-
-ios_application(
-    name = "app_with_ext_and_framework_app_intents",
-    bundle_id = "com.google.example",
-    extensions = [":ext_with_framework_app_intents"],
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    frameworks = [":framework_with_app_intents"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-    ],
-)
-
-objc_library(
-    name = "load_deferred_framework_app_intents",
-    data = [":framework_with_app_intents"],
-)
-
-ios_framework(
-    name = "framework_with_app_intents",
-    bundle_id = "com.google.example.framework",
-    extension_safe = 1,
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.app_intents_package_support,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:framework_defined_app_intent",
-        "//test/starlark_tests/resources:objc_shared_lib",
-    ],
-)
 # ---------------------------------------------------------------------------------------
 
 ios_application(
@@ -4091,6 +3944,196 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:swift_uikit_appdelegate",
         "//test/starlark_tests/resources:widget_configuration_intent",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_app_intents",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:hinted_app_intent",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+ios_application(
+    name = "app_with_no_exclusive_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_load_deferred_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":load_deferred_framework_app_intents",
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_framework_app_intents",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+ios_application(
+    name = "app_with_ext_and_framework_app_intents",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_framework_app_intents"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+objc_library(
+    name = "load_deferred_framework_app_intents",
+    data = [":framework_with_app_intents"],
+)
+
+ios_framework(
+    name = "framework_with_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# TODO: b/449684440 - Add more targets for App Intents, covering extension flows.
+
+ios_application(
+    name = "app_with_multi_module_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_multi_module_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main_with_dependency",
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+    ],
+)
+
+ios_framework(
+    name = "framework_with_multi_module_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 

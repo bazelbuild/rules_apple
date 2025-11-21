@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AppIntents
 import Foundation
 import SwiftUI
-import FrameworkDefinedHelloWorldIntents
 
 struct ContentView: View {
     var body: some View {
@@ -27,11 +25,7 @@ struct ContentView: View {
 }
 
 @main
-struct HelloWorldApp: App, AppIntentsPackage {
-  static var includedPackages: [any AppIntentsPackage.Type] = [
-    FrameworkDefinedHelloWorldIntents.self,
-  ]
-
+struct HelloWorldApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()

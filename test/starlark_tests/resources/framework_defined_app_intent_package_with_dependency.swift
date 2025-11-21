@@ -1,4 +1,4 @@
-// Copyright 2024 The Bazel Authors. All rights reserved.
+// Copyright 2025 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,15 +13,10 @@
 // limitations under the License.
 
 import AppIntents
-import Foundation
+import StaticLibraryAppIntentsPackageWithDependency
 
-
-struct FrameworkDefinedHelloWorldIntent: AppIntent {
-  static var title: LocalizedStringResource = "Hello world intent"
-
-  static var description = IntentDescription("Says hello to the world.")
-
-  func perform() async throws -> some IntentResult & ReturnsValue<String> {
-    return .result(value: "Hello world")
-  }
+public struct FrameworkDefinedHelloWorldIntents: AppIntentsPackage {
+  public static var includedPackages: [any AppIntentsPackage.Type] = [
+    StaticLibraryAppIntentsPackageWithDependency.self,
+  ]
 }

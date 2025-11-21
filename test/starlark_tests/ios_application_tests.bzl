@@ -853,6 +853,22 @@ App Intents bundles were defined by the following targets:
         tags = [name],
     )
 
+    # Test that an app with multi-module app intents sharing modules with a framework generates a
+    # Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multi_module_framework_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_no_exclusive_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_exclusive_framework_app_intents",

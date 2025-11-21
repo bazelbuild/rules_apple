@@ -58,6 +58,10 @@ A depset of structs defined as the following:
 
 *   `bundle`: A File representing the metadata bundle file.
 
+*   `should_include_in_bundle`: A Bool indicating if this metadata bundle should be included in the
+    final bundle. This is used to exclude "static metadata" bundles that are intermediate
+    outputs in the build.
+
 *   `module_name`: A String representing the module name that this bundle was generated from.
 
 *   `owner`: A String based on the label of the target that provided this metadata bundle.

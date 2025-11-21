@@ -1530,6 +1530,8 @@ tvos_application(
     ],
 )
 
+# TODO: b/449684440 - Add targets for App Intents, mirroring iOS targets.
+
 # ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 

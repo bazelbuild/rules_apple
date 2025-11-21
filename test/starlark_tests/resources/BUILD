@@ -995,7 +995,10 @@ swift_library(
 
 swift_library(
     name = "framework_defined_app_intent",
-    srcs = ["framework_defined_app_intent.swift"],
+    srcs = [
+        "framework_defined_app_intent.swift",
+        "framework_defined_app_intent_package_without_dependencies.swift",
+    ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
@@ -1003,11 +1006,61 @@ swift_library(
 
 swift_library(
     name = "framework_app_intent_dependent_main",
-    srcs = ["framework_app_intent_dependent_main.swift"],
+    srcs = [
+        "framework_app_intent_dependent_main.swift",
+        "framework_app_intent_dependent_main_package.swift",
+    ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
     tags = common.fixture_tags,
     deps = [
         ":framework_defined_app_intent",
+    ],
+)
+
+swift_library(
+    name = "StaticLibraryAppIntentsPackage",
+    srcs = ["StaticLibraryAppIntentsPackage.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    module_name = "StaticLibraryAppIntentsPackage",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "StaticLibraryAppIntentsPackageWithDependency",
+    srcs = ["StaticLibraryAppIntentsPackageWithDependency.swift"],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    module_name = "StaticLibraryAppIntentsPackageWithDependency",
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticLibraryAppIntentsPackage",
+    ],
+)
+
+swift_library(
+    name = "framework_defined_app_intent_with_dependency",
+    srcs = [
+        "framework_defined_app_intent.swift",
+        "framework_defined_app_intent_package_with_dependency.swift",
+    ],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    module_name = "FrameworkDefinedHelloWorldIntents",
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticLibraryAppIntentsPackageWithDependency",
+    ],
+)
+
+swift_library(
+    name = "framework_app_intent_dependent_main_with_dependency",
+    srcs = [
+        "framework_app_intent_dependent_main.swift",
+        "framework_app_intent_dependent_main_package_with_shared_library_dependency.swift",
+    ],
+    aspect_hints = ["//apple/hints:app_intents_hint"],
+    tags = common.fixture_tags,
+    deps = [
+        ":StaticLibraryAppIntentsPackageWithDependency",
+        ":framework_defined_app_intent_with_dependency",
     ],
 )
 

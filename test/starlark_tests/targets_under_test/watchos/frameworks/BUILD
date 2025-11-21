@@ -738,6 +738,8 @@ watchos_framework(
     ],
 )
 
+# TODO: b/449684440 - Add targets for App Intents, mirroring iOS targets.
+
 watchos_framework(
     name = "fmwk_with_base_bundle_id_derived_bundle_id",
     base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
