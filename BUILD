@@ -8,7 +8,6 @@ filegroup(
     testonly = True,
     srcs = [
         "BUILD",
-        "WORKSPACE",
         "//apple:for_bazel_tests",
         "//tools:for_bazel_tests",
     ],
