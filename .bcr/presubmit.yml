@@ -1,5 +1,5 @@
 matrix:
-  bazel: ["7.x", "rolling"]
+  bazel: ["7.x", "8.x"]
 
 tasks:
   verify_targets:
