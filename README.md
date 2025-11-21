@@ -8,14 +8,14 @@ These rules handle the linking and bundling of applications and extensions
 archived in an `.ipa`). Compilation is still performed by the existing
 [`objc_library` rule](https://bazel.build/reference/be/objective-c#objc_library)
 in Bazel, and by the
-[`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#swift_library)
+[`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/main/doc/rules.md#swift_library)
 available from [rules_swift](https://github.com/bazelbuild/rules_swift).
 
-If you are looking for an easy way to build mixed language frameworks, check out [rules_swift's `mixed_language_library`](https://github.com/bazelbuild/rules_swift/blob/master/doc/rules.md#mixed_language_library).
+If you are looking for an easy way to build mixed language frameworks, check out [rules_swift's `mixed_language_library`](https://github.com/bazelbuild/rules_swift/blob/main/doc/rules.md#mixed_language_library).
 
 ## Reference documentation
 
-[Click here](https://github.com/bazelbuild/rules_apple/tree/master/doc)
+[Click here](https://github.com/bazelbuild/rules_apple/tree/main/doc)
 for the reference documentation for the rules and other definitions in this
 repository.
 
@@ -54,7 +54,7 @@ ios_application(
 )
 ```
 
-See the [examples](https://github.com/bazelbuild/rules_apple/tree/master/examples)
+See the [examples](https://github.com/bazelbuild/rules_apple/tree/main/examples)
 directory for sample applications.
 
 ## Supported bazel versions
@@ -72,9 +72,9 @@ Besides these constraints this repo follows
 
 | Bazel release | Minimum supported rules version | Final supported rules version | Supporting Branch |
 |:-------------------:|:-------------------:|:-------------------------:|:-------------------------:|
-| 8.x (most recent rolling) | 2.* | current | `master` |
-| 7.x | 2.* | current | `master` |
-| 6.x | 2.* | 3.13.0 | `master` |
+| 8.x (most recent rolling) | 2.* | current | `main` |
+| 7.x | 2.* | current | `main` |
+| 6.x | 2.* | 3.13.0 | `main` |
 | 5.x | 0.33.0 | 1.* | `bazel/5.x` |
 | 4.x | 0.30.0 | 0.32.0 | N/A |
 | 3.x | 0.20.0 | 0.21.2 | N/A |

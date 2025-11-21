@@ -499,7 +499,7 @@ def _infoplist_attrs(*, default_infoplist = None):
             doc = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
             **attr_args
@@ -546,7 +546,7 @@ appropriate resources location within the bundle.
             providers = [[AppleBundleVersionInfo]],
             doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-general.md?cl=head#apple_bundle_version).
 """,
         ),
     }

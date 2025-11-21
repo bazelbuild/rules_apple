@@ -1508,7 +1508,7 @@ tvos_application = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
 """,
             ),
@@ -1580,7 +1580,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
 """,
             ),
@@ -1629,7 +1629,7 @@ tvos_extension = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
 """,
             ),
@@ -1691,7 +1691,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, TvosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-tvos.md#tvos_framework))
+[`tvos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-tvos.md#tvos_framework))
 that this target depends on.
 """,
             ),

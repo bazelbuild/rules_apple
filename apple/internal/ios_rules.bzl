@@ -2626,7 +2626,7 @@ A list of iOS application extensions to include in the final application bundle.
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -2720,7 +2720,7 @@ ios_app_clip = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -2795,7 +2795,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -2865,7 +2865,7 @@ to manually dlopen the framework at runtime.
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -2936,7 +2936,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -3136,7 +3136,7 @@ ios_imessage_extension = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),

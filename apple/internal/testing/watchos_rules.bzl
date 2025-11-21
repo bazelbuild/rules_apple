@@ -147,7 +147,7 @@ _watchos_internal_ui_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),
@@ -209,7 +209,7 @@ _watchos_internal_unit_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-watchos.md#watchos_framework))
+[`watchos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-watchos.md#watchos_framework))
 that this target depends on.
 """,
             ),

@@ -940,7 +940,7 @@ Currently, this only affects processing of `ios` resources.
                 doc = """
 A list of .plist files that will be merged to form the Info.plist for each of the embedded
 frameworks. At least one file must be specified. Please see
-[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#infoplist-handling)
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
 """,
                 mandatory = True,
@@ -998,7 +998,7 @@ typically in a subdirectory such as `Headers`.
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-versioning.md#apple_bundle_version).
 """,
             ),
             "umbrella_header": attr.label(
@@ -1383,7 +1383,7 @@ umbrella header will be generated under the same name as this target.
                 providers = [[AppleBundleVersionInfo]],
                 doc = """
 An `apple_bundle_version` target that represents the version for this target. See
-[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-versioning.md#apple_bundle_version).
+[`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-versioning.md#apple_bundle_version).
 """,
             ),
         },

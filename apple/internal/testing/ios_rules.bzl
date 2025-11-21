@@ -149,7 +149,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
@@ -225,7 +225,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
+[`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
             ),
