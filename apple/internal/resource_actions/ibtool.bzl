@@ -58,7 +58,16 @@ def compile_storyboard(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+
+    # Keep warnings as non-errors as storyboard issues such as "This file is set to build for a
+    # version older than the deployment target. Functionality may be limited." are not fatal errors
+    # and should not fail the build. Furthermore, all storyboards are deprecated in watchOS 7.0+, so
+    # there should be always be an exception made for watchOS specifically if nothing else...
+    #
+    # TODO: b/447391969 - See if exceptions can be made like in actool.bzl to "--downgrade-error"
+    # to start escalating client-facing compatibility warnings as errors. This requires small
+    # wrapper changes to relay that option.
+    args.add("--treat-warnings-as-errors", "false")
     args.add(
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
@@ -123,7 +132,9 @@ def link_storyboards(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
+    # causes no issues for a period of three or four weeks.
+    args.add("--treat-warnings-as-errors", "true")
     args.add("--link", xctoolrunner_support.prefixed_path(output_dir.path))
 
     # Standard ibtool options.
@@ -178,7 +189,9 @@ def compile_xib(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    args.add("--mute-warning", "substring=WARNING: Unhandled destination metrics: (null)")
+    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
+    # causes no issues for a period of three or four weeks.
+    args.add("--treat-warnings-as-errors", "true")
     args.add(
         "--compile",
         xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
