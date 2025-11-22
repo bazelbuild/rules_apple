@@ -42,22 +42,19 @@ tasks:
     bazel: 8.x
     <<: *common
 
-  # TODO: Re-enable when we fix bazel 9.x
-  # macos_last_rc:
-  #   name: "Last RC Bazel"
-  #   bazel: last_rc
-  #   <<: *common
+  macos_last_rc:
+    name: "Last RC Bazel"
+    bazel: last_rc
+    <<: *common
 
   macos_last_green:
     name: "Last Green Bazel"
-    # TODO: Move back to last_green ASAP
-    bazel: 5409637c4e2d5c010b7264172b1004a2afd46bfe
+    bazel: last_green
     <<: *common
 
   doc_tests:
     name: "Doc tests"
-    # TODO: Move back to last_green once rules_cc is fixed
-    bazel: 48555196ef92f54d0a331a01dac9db0a6aabc8b4
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."
