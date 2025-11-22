@@ -29,6 +29,7 @@ load(
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+    "entry_point_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -203,6 +204,24 @@ def tvos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_extensionkit_ext",
         contains = ["$BUNDLE_ROOT/Extensions/extensionkit_ext.appex/extensionkit_ext"],
         not_contains = ["$BUNDLE_ROOT/PlugIns/extensionkit_ext.appex/extensionkit_ext"],
+        tags = [name],
+    )
+
+    # Test that the default entry point is _NSExtensionMain (modern behavior).
+    entry_point_test(
+        name = "{}_default_entry_point_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext",
+        entry_point = "_NSExtensionMain",
+        tags = [name],
+    )
+
+    # Test that the entry point is _TVExtensionMain when legacy_entry_point=True.
+    entry_point_test(
+        name = "{}_legacy_entry_point_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_legacy_entry_point",
+        entry_point = "_TVExtensionMain",
         tags = [name],
     )
 
