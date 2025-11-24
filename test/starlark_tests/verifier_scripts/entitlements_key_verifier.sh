@@ -19,31 +19,55 @@ set -euo pipefail
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
 TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
 
+if [[ -n "${BINARY_TEST_FILE-}" ]]; then
+  export BINARY="$BINARY_TEST_FILE"
+fi
+
+if [[ -n "${BUNDLE_TEST_ROOT-}"]]; then
+  export BUNDLE_ROOT="$BUNDLE_TEST_ROOT"
+fi
+
 if [[ "$BUILD_TYPE" == "simulator" ]]; then
   # First check the legacy xml plist section.
   xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
 
-  assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  if [[ -z "$CHECK_FOR_ABSENT_ENTITLEMENTS" ]]; then
+    assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  else
+    assert_not_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  fi
 
   # Then check the DER encoded section.
   xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
 
-  assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  if [[ -z "$CHECK_FOR_ABSENT_ENTITLEMENTS" ]]; then
+    assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  else
+    assert_not_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  fi
 
 elif [[ "$BUILD_TYPE" == "device" ]]; then
   # First check the legacy xml plist section.
   codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  if [[ -z "$CHECK_FOR_ABSENT_ENTITLEMENTS" ]]; then
+    assert_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  else
+    assert_not_contains "<key>$ENTITLEMENTS_KEY</key>" "$TEMP_OUTPUT"
+  fi
 
   # Then check the DER encoded section.
   codesign --display --der --entitlements "$TEMP_DER_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  if [[ -z "$CHECK_FOR_ABSENT_ENTITLEMENTS" ]]; then
+    assert_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  else
+    assert_not_contains "$ENTITLEMENTS_KEY" "$TEMP_DER_OUTPUT"
+  fi
 else
   fail "Unsupported BUILD_TYPE = $BUILD_TYPE for this test"
 fi

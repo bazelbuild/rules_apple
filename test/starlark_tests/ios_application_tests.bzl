@@ -1278,15 +1278,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         ],
     )
 
-    # TODO: b/449684779 - Check how entitlements propagate from the app to frameworks, from
-    # extensions to frameworks, from the app to app clips, from the app to the extension, from the
-    # app to the watchOS app. Use that to validate that the features are getting propagated
-    # correctly for entitlements.
-
-    # TODO: b/449684779 - Use arm64e support to test crosstool features and verify how they
-    # propagate. It is the easiest thing for us to verify that the features are getting propagated
-    # correctly. Could be handled alongside the entitlements check above since enable_wip_features
-    # will cover both at this time.
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_app_test".format(name),
         build_settings = {
@@ -1302,6 +1293,38 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
     )
 
     archive_contents_test(
@@ -1338,6 +1361,42 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
     )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
@@ -1354,6 +1413,40 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
     )
 
     archive_contents_test(
@@ -1389,6 +1482,40 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
     )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_framework_in_app_and_extension_test".format(name),
@@ -1406,6 +1533,9 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
     )
+
+    # TODO: b/449684779 - Add more entitlements + arm64e tests for app clips and watchOS apps within
+    # the same iOS app bundle.
 
     # Test that an app with a compiled binary resource coming from a resource attribute will fail to
     # build and present a user-actionable error message.
