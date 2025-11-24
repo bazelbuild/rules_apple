@@ -154,7 +154,9 @@ def _app_intents_aspect_impl(target, ctx):
     """Implementation of the App Intents aspect for transitive App Intents processing."""
 
     # TODO: b/449684440 - Check for SwiftInfo instead of hardcoding the rule kind.
-    is_swift_library = ctx.rule.kind == "swift_library"
+    is_app_intents_swift_library = ctx.rule.kind == "swift_library" and _has_app_intents_hint(
+        ctx.rule.attr.aspect_hints,
+    )
 
     transitive_metadata_bundle_inputs = []
 
@@ -162,27 +164,35 @@ def _app_intents_aspect_impl(target, ctx):
 
     # Identify all of the transitive App IntentsInfo providers from the expected attributes.
     for attr in _APP_INTENTS_ATTR_ASPECTS:
-        for found_target in getattr(ctx.rule.attr, attr, []):
-            if AppIntentsInfo not in found_target:
+        for deps_target in getattr(ctx.rule.attr, attr, []):
+            if AppIntentsInfo not in deps_target:
                 continue
-            app_intents_info = found_target[AppIntentsInfo]
+            app_intents_info = deps_target[AppIntentsInfo]
 
             # Collect all of the transitive dependencies to forward in the provider.
             transitive_metadata_bundle_inputs.append(
                 app_intents_info.metadata_bundle_inputs,
             )
+            if not is_app_intents_swift_library:
+                continue
 
             # Collect all of the direct module dependencies to establish dependencies for bundles.
-            if is_swift_library:
-                direct_app_intents_modules.extend([
-                    metadata_bundle_input.module_name
-                    for metadata_bundle_input in app_intents_info.metadata_bundle_inputs.to_list()
-                    if metadata_bundle_input.module_name in target[SwiftInfo].direct_modules
-                ])
+            if SwiftInfo not in deps_target:
+                continue
+            direct_swift_module_names = [
+                x.name
+                for x in deps_target[SwiftInfo].direct_modules
+                if x.swift
+            ]
+            direct_app_intents_modules.extend([
+                metadata_bundle_input.module_name
+                for metadata_bundle_input in app_intents_info.metadata_bundle_inputs.to_list()
+                if metadata_bundle_input.module_name in direct_swift_module_names
+            ])
 
     # If this target is a swift_library with the App Intents hint, verify it's correct and generate
     # a provider to define required dependencies to generate a metadata bundle for this target.
-    if is_swift_library and _has_app_intents_hint(ctx.rule.attr.aspect_hints):
+    if is_app_intents_swift_library:
         _verify_app_intents_dependency(target = target)
         label = ctx.label
         module_name = _find_valid_module_name(label = label, target = target)

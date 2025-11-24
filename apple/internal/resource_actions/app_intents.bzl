@@ -89,6 +89,7 @@ def generate_app_intents_metadata_bundle(
         constvalues_files,
         direct_app_intents_modules,
         embedded_metadata_bundles,
+        enable_package_validation,
         intents_module_name,
         label,
         mac_exec_group,
@@ -110,6 +111,8 @@ def generate_app_intents_metadata_bundle(
             dependencies of the current target that implement the AppIntents protocol.
         embedded_metadata_bundles: List of depsets of (bundle, owner) pairs collected from the
             AppIntentsBundleInfo providers found from embedded targets.
+        enable_package_validation: Boolean indicating if AppIntentsPackage validation should be
+            enabled.
         intents_module_name: A String with the module name corresponding to the module found which
             defines a set of compiled App Intents.
         label: Label for the current target (`ctx.label`).
@@ -146,20 +149,44 @@ def generate_app_intents_metadata_bundle(
     args = actions.args()
 
     # Custom xctoolrunner options.
-    args.add("passthrough-commands")
+    if not enable_package_validation:
+        # Relying on the "appintentsmetadataprocessor" subcommand to have AppIntentsPackage
+        # validation features.
+        args.add("passthrough-commands")
+
     args.add("appintentsmetadataprocessor")
 
-    # TODO: b/449684440 - Pass through an intermediate text file containing the AppIntentsPackage
-    # typename for multi-module validation. This is required to check that AppIntentsPackage-s are
-    # declared with the required relationships based on direct deps between swift_library targets
-    # declaring App Intents.
+    # Only pass the validation args if this is a static metadata bundle OR this is the "main"
+    # metadata bundle for the top level target and there are direct app intents modules to verify
+    # the AppIntentsPackage conformances against, and the feature has been explicitly enabled.
     app_intents_package_typename = None
+    if enable_package_validation and not (main_bundle_output and not direct_app_intents_modules):
+        # Pass through an intermediate text file containing the AppIntentsPackage typename for
+        # multi-module validation. This is required to check that AppIntentsPackage-s are declared
+        # with the required relationships based on direct deps between swift_library targets
+        # declaring App Intents.
+        app_intents_package_typename = intermediates.file(
+            actions = actions,
+            target_name = label.name,
+            output_discriminator = None,
+            file_name = "{}AppIntentsPackageTypeName.txt".format(static_metadata_dir),
+        )
+        args.add("--app-intents-package-typename-path", app_intents_package_typename.path)
+        output_files.append(app_intents_package_typename)
 
-    # Standard appintentsmetadataprocessor options.
-    #
-    # TODO: b/449684440 - Remove "passthrough-commands" so that we can do additional validation on
-    # the files prior to running the appintentsmetadataprocessor tool in the same wrapper.
-    # Alternatively, set up a separate validation action via a Python script.
+        expected_included_package_typenames = [
+            x.app_intents_package_typename
+            for x in direct_app_intents_modules
+        ]
+        args.add_all(
+            expected_included_package_typenames,
+            before_each = "--expected-included-package-typename-path",
+        )
+        direct_inputs.extend(expected_included_package_typenames)
+
+    # Eventually passed through to the appintentsmetadataprocessor tool as a list of files with the
+    # same arg name, but handed to xctoolrunner up front as a named arg to identify type names of
+    # interest in sources and required relationships between modules declaring App Intents.
     swift_const_vals_file_list = _generate_intermediate_file_list(
         actions = actions,
         file_extension = "SwiftConstValuesFileList",
@@ -171,10 +198,12 @@ def generate_app_intents_metadata_bundle(
     args.add("--swift-const-vals-list", swift_const_vals_file_list.path)
     direct_inputs.extend(constvalues_files)
 
+    args.add("--module-name", intents_module_name)
+
+    # Standard appintentsmetadataprocessor options.
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
-    args.add("--module-name", intents_module_name)
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     args.add("--xcode-version", _xcode_build_version(xcode_version_config = xcode_version_config))
     args.add(
@@ -234,11 +263,7 @@ def generate_app_intents_metadata_bundle(
         for x in direct_app_intents_modules
     ]
     if static_library_metadata_bundles:
-        static_library_metadata_bundle_files = [
-            x.bundle
-            for x in static_library_metadata_bundles
-        ]
-        direct_inputs.extend(static_library_metadata_bundle_files)
+        direct_inputs.extend(static_library_metadata_bundles)
 
         # These reference the "extract.actionsdata" instances from App Intents metadata bundles
         # that are intermediately generated for SwiftPM static libraries which are never placed into
@@ -249,7 +274,7 @@ def generate_app_intents_metadata_bundle(
             file_extension = "DependencyStaticMetadataFileList",
             input_paths = [
                 paths.join(x.path, "extract.actionsdata")
-                for x in static_library_metadata_bundle_files
+                for x in static_library_metadata_bundles
             ],
             intents_module_name = intents_module_name,
             label = label,
