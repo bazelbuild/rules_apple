@@ -1423,7 +1423,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
             "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
         },
         tags = [
@@ -1440,7 +1440,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
             "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
         },
         tags = [
@@ -1534,8 +1534,215 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
-    # TODO: b/449684779 - Add more entitlements + arm64e tests for app clips and watchOS apps within
-    # the same iOS app bundle.
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/AppClips/app_clip.app/app_clip",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/app_clip_with_pointer_authentication",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["device_arm64", "device_arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/single_target_app_with_generic_ext",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["device_arm64", "device_arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/simple_pointer_authentication_app",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ],
+    )
 
     # Test that an app with a compiled binary resource coming from a resource attribute will fail to
     # build and present a user-actionable error message.

@@ -19,13 +19,8 @@ set -euo pipefail
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
 TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
 
-if [[ -n "${BINARY_TEST_FILE-}" ]]; then
-  export BINARY="$BINARY_TEST_FILE"
-fi
-
-if [[ -n "${BUNDLE_TEST_ROOT-}"]]; then
-  export BUNDLE_ROOT="$BUNDLE_TEST_ROOT"
-fi
+BINARY=$(eval echo ${BINARY_TEST_FILE:-$BINARY})
+BUNDLE_ROOT=$(eval echo ${BUNDLE_TEST_ROOT:-$BUNDLE_ROOT})
 
 if [[ "$BUILD_TYPE" == "simulator" ]]; then
   # First check the legacy xml plist section.

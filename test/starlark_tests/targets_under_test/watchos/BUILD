@@ -902,6 +902,34 @@ watchos_application(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+watchos_application(
+    name = "simple_pointer_authentication_app",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 
 watchos_application(

@@ -4661,7 +4661,105 @@ ios_extension(
     ],
 )
 
-# TODO: b/449684779 - Add app clip, watchOS bundling variants.
+ios_application(
+    name = "simple_pointer_authentication_app_with_app_clip",
+    app_clips = [":app_clip"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_pointer_authentication",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+    app_clips = [":app_clip_with_pointer_authentication"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_watchos_app",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    watch_application = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_generic_ext",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    watch_application = "//test/starlark_tests/targets_under_test/watchos:simple_pointer_authentication_app",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
 
 # ---------------------------------------------------------------------------------------
 # Targets for testing unexpected binary resources in transitive dependencies.
