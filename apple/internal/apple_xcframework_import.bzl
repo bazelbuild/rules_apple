@@ -24,6 +24,7 @@ load(
     "swift_common",
 )
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
     "//apple/internal:apple_toolchains.bzl",
@@ -655,9 +656,9 @@ def _apple_static_xcframework_import_impl(ctx):
 
     # Create Objc provider
     additional_objc_providers.extend([
-        dep[apple_common.Objc]
+        dep[ObjcInfo]
         for dep in deps
-        if apple_common.Objc in dep
+        if ObjcInfo in dep
     ])
 
     sdk_linkopts = []

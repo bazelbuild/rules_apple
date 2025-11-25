@@ -23,6 +23,7 @@ load(
     "SwiftInfo",
 )
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
@@ -150,8 +151,8 @@ def _apple_test_info_aspect_impl(target, ctx):
         module_maps.append(test_info.module_maps)
         swift_modules.append(test_info.swift_modules)
 
-    if apple_common.Objc in target:
-        objc_provider = target[apple_common.Objc]
+    if ObjcInfo in target:
+        objc_provider = target[ObjcInfo]
         includes.append(objc_provider.strict_include)
 
     if CcInfo in target:
