@@ -14,6 +14,8 @@
 
 """Enhanced security feature support methods."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+
 visibility([
     "@build_bazel_rules_apple//apple/internal/...",
 ])
@@ -63,9 +65,15 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
 # All of the possible values for `--features` reserved for Apple Enhanced Security.
 _SUPPORTED_SECURE_FEATURES = set(list(_ENTITLEMENTS_FROM_SECURE_FEATURES.keys()))
 
+# User-disabled versions of the above.
+_POSSIBLE_DISABLED_SECURE_FEATURES = set([
+    "-{}".format(x)
+    for x in list(_ENTITLEMENTS_FROM_SECURE_FEATURES.keys())
+])
+
 _NONE_TYPE = type(None)
 
-def _crosstool_features_from_secure_features(*, features, secure_features):
+def _crosstool_features_from_secure_features(*, features, name, secure_features):
     # If this rule does not allow for enhanced security features to be specified as an attribute,
     # which is interpreted as "secure_features" being exactly "None", return the features as-is,
     # allowing any secure features that might be in "features" to remain as-is.
@@ -94,12 +102,6 @@ The full list of supported secure_features is:
     # requested by the user.
     requested_features = set(features)
 
-    # TODO: b/449684779 - See if we can do anything to account for `-` prefixed features here before
-    # the entitlements check because those are supposed to be features disabled by the bazel
-    # invocation. One approach is to consider fail(...)-ing if any `-` prefixed features are
-    # requested with `secure_features`, because that incoming configuration on the bazel invocation
-    # would invalidate what is requested from the target definition.
-
     # Remove any secure features from "features" that were not explicitly requested at the top level
     # from "secure_features". This is what prevents a command line --features or raw features on the
     # rule or package from applying to top level targets that can have "secure_features" specified.
@@ -111,6 +113,24 @@ The full list of supported secure_features is:
     # no-op if they're already present.
     requested_features |= requested_secure_features
 
+    # Check that no disabled secure features are present in the list of requested features, since
+    # that would confilict with the top level target's declaration of "secure_features".
+    for disabled_secure_feature in _POSSIBLE_DISABLED_SECURE_FEATURES:
+        if (disabled_secure_feature in requested_features and
+            disabled_secure_feature.removeprefix("-") in requested_secure_features):
+            fail(
+                """
+Attempted to disable the secure feature `{disabled_secure_feature}` but it is explicitly enabled \
+in the target's "secure_features" attribute at `{name}`.
+
+Either remove the secure feature from the "secure_features" attribute to disable it, or remove the \
+`--features=-{disabled_secure_feature}` from the command line to keep it enabled.
+""".format(
+                    disabled_secure_feature = disabled_secure_feature.removeprefix("-"),
+                    name = name,
+                ),
+            )
+
     # If we don't need to make any changes, return the features as-is.
     if requested_features == set(features):
         return features
@@ -118,25 +138,49 @@ The full list of supported secure_features is:
     # Return the full, sorted list of requested crosstool-relevant features.
     return sorted(list(requested_features))
 
-def _entitlements_from_secure_features(*, secure_features, xcode_version):
+def _entitlements_from_secure_features(
+        *,
+        feature_configuration,
+        rule_label,
+        secure_features,
+        xcode_version):
     if not secure_features:
         return {}
+
+    for feature_name in secure_features:
+        if not feature_name.startswith("apple."):
+            # If the feature is an Apple crosstool feature (i.e. NOT prefixed with "apple."), check
+            # that the feature is explicitly enabled in the current configuration.
+            if not (
+                cc_common.is_enabled(
+                    feature_configuration = feature_configuration,
+                    feature_name = feature_name,
+                )
+            ):
+                fail(
+                    """
+Attempted to enable the secure feature `{feature_name}` for the target at `{rule_label}`, but it \
+appears to be disabled.
+
+Check that the selected toolchain supports `{feature_name}` and that your invocation is not \
+attempting to explicitly disable the feature via minus prefixed feature names, such as \
+`--features=-{feature_name}`, and that the rule is not attempting to disable the feature via the \
+`features` attribute by assigning a `-{feature_name}` value.
+                    """.format(
+                        feature_name = feature_name,
+                        rule_label = str(rule_label),
+                    ),
+                )
 
     # Check that we're building with Xcode 26.0 or later. If not, return an empty list to signal
     # that no entitlements are supported or needed for this build.
     if not xcode_version >= apple_common.dotted_version("26.0"):
         return {}
 
-    # TODO: b/449684779 - Check via cc_common.is_enabled(...) for each of the crosstool features to
-    # see if they're set via the build configuration, assuming that they might be set outside of the
-    # configuration as seen by the transition. As I understand it, this should be able to determine
-    # if the features are actually enabled for the build, or if there was an effort made to
-    # explicitly disable them, which can't be fully determined at transition time.
-
     # Build a set of all of the entitlements that are required by the requested secure features.
     required_entitlements = dict()
-    for feature in secure_features:
-        required_entitlements |= _ENTITLEMENTS_FROM_SECURE_FEATURES[feature]
+    for feature_name in secure_features:
+        required_entitlements |= _ENTITLEMENTS_FROM_SECURE_FEATURES[feature_name]
 
     # TODO: b/449684779 - Add a mandatory check for the Xcode 26 opt-in feature, since that should
     # always be set if any entitlements are required.

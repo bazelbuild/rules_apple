@@ -81,6 +81,11 @@ visibility("private")
 analysis_failure_message_with_mismatched_universal_architechtures_test = make_analysis_failure_message_test(
     config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
 )
+analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.enable_wip_features: True,
+    },
+)
 
 def ios_application_test_suite(name):
     """Test suite for ios_application.
@@ -1531,6 +1536,17 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    analysis_failure_message_with_wip_features_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features",
+        expected_error = ("""
+Attempted to enable the secure feature `trivial_auto_var_init` for the target at `//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features`, but it appears to be disabled.
+
+Check that the selected toolchain supports `trivial_auto_var_init` and that your invocation is not attempting to explicitly disable the feature via minus prefixed feature names, such as `--features=-trivial_auto_var_init`, and that the rule is not attempting to disable the feature via the `features` attribute by assigning a `-trivial_auto_var_init` value.
+        """),
         tags = [name],
     )
 

@@ -4601,6 +4601,29 @@ ios_application(
 )
 
 ios_application(
+    name = "simple_enhanced_security_app_with_rule_level_disabled_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    features = [
+        "-apple.xcode_26_minimum_opt_in",
+        "-trivial_auto_var_init",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "simple_pointer_authentication_app_with_fmwk_and_standard_extension",
     bundle_id = "com.google.example",
     extensions = [":ext"],

@@ -14,6 +14,7 @@
 
 """Implementation of macOS rules."""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
@@ -166,6 +167,7 @@ def _macos_application_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -207,6 +209,10 @@ def _macos_application_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -476,6 +482,7 @@ def _macos_bundle_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -517,6 +524,10 @@ def _macos_bundle_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -722,6 +733,7 @@ def _macos_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -763,6 +775,10 @@ def _macos_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -1001,6 +1017,7 @@ def _macos_kernel_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1038,6 +1055,10 @@ def _macos_kernel_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -1254,6 +1275,7 @@ def _macos_spotlight_importer_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1285,6 +1307,10 @@ def _macos_spotlight_importer_impl(ctx):
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -1491,6 +1517,7 @@ def _macos_xpc_service_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1523,6 +1550,10 @@ def _macos_xpc_service_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -1731,6 +1762,7 @@ def _macos_command_line_application_impl(ctx):
             suffix_default = ctx.attr._bundle_id_suffix_default,
             shared_capabilities = ctx.attr.shared_capabilities,
         )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1835,6 +1867,10 @@ def _macos_command_line_application_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_toolchain = cc_toolchain,
+            disabled_features = ctx.disabled_features,
+            enabled_features = ctx.features,
             entitlements_file = ctx.file.entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
