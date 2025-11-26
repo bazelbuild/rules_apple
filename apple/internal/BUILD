@@ -641,6 +641,9 @@ bzl_library(
     visibility = [
         "//apple/internal:__subpackages__",
     ],
+    deps = [
+        "@rules_cc//cc/common",
+    ],
 )
 
 bzl_library(

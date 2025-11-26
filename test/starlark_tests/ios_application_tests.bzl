@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -101,6 +102,12 @@ _analysis_ios_strip_disabled_dbg_test = make_analysis_target_actions_test(
         "//command_line_option:compilation_mode": "dbg",
         "//command_line_option:ios_multi_cpus": "x86_64",
         "//command_line_option:objc_enable_binary_stripping": True,
+    },
+)
+
+analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.enable_wip_features: True,
     },
 )
 
@@ -1401,6 +1408,19 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
             name,
             # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
+    )
+
+    analysis_failure_message_with_wip_features_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features",
+        expected_error = ("""
+Attempted to enable the secure feature `trivial_auto_var_init` for the target at `{target}`, but it appears to be disabled.
+
+Check that the selected toolchain supports `trivial_auto_var_init` and that your invocation is not attempting to explicitly disable the feature via minus prefixed feature names, such as `--features=-trivial_auto_var_init`, and that the rule is not attempting to disable the feature via the `features` attribute by assigning a `-trivial_auto_var_init` value.
+        """.format(
+            target = Label("//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features"),
+        )),
+        tags = [name],
     )
 
     native.test_suite(
