@@ -200,6 +200,10 @@ def _process_entitlements(
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
+        cc_configured_features_init,
+        cc_toolchain,
+        disabled_features,
+        enabled_features,
         entitlements_file,
         platform_prerequisites,
         product_type,
@@ -232,6 +236,11 @@ def _process_entitlements(
         apple_xplat_toolchain_info: The `struct` of tools from the shared Apple
             cross platform toolchain.
         bundle_id: The bundle identifier.
+        cc_configured_features_init: The function to initialize the feature configuration for a
+            given cc_toolchain.
+        cc_toolchain: A cc_toolchain as found from the rule context's toolchains.
+        disabled_features: The features requested to be disabled for the target.
+        enabled_features: The features requested for the target.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
         platform_prerequisites: The platform prerequisites.
@@ -276,7 +285,19 @@ def _process_entitlements(
     if secure_features:
         if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
             fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+        # Calculate the effective set of Crosstool features for this target, as we do want to double
+        # check that the secure features are supported and enabled.
+        feature_configuration = cc_configured_features_init(
+            cc_toolchain = cc_toolchain,
+            requested_features = enabled_features,
+            unsupported_features = disabled_features,
+        )
+
+        # Retrieve the entitlements required by the requested secure features, if there are any.
         secure_features_entitlements = secure_features_support.entitlements_from_secure_features(
+            feature_configuration = feature_configuration,
+            rule_label = rule_label,
             secure_features = secure_features,
             xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
         )

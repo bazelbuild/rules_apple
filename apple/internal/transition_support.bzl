@@ -467,6 +467,7 @@ def _apple_rule_base_transition_impl(settings, attr):
 
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
     return _command_line_options(
@@ -540,6 +541,7 @@ def _apple_platforms_rule_base_transition_impl(settings, attr):
 
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
     return _command_line_options(
@@ -574,6 +576,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
 
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
     return _command_line_options(
@@ -655,6 +658,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for Apple platform-aware rules"""
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
 
@@ -764,11 +768,12 @@ _apple_platform_split_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
-def _xcframework_base_transition_impl(settings, _):
+def _xcframework_base_transition_impl(settings, attr):
     """Rule transition for XCFramework rules producing SDK-adjacent artifacts."""
 
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
 
@@ -796,6 +801,7 @@ def _xcframework_split_transition_impl(settings, attr):
 
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
+        name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
 

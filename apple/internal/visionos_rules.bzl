@@ -178,6 +178,7 @@ Resolved Xcode is version {xcode_version}.
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
     executable_name = ctx.attr.executable_name
@@ -224,6 +225,10 @@ Resolved Xcode is version {xcode_version}.
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
@@ -1084,6 +1089,7 @@ def _visionos_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
@@ -1128,6 +1134,10 @@ def _visionos_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
