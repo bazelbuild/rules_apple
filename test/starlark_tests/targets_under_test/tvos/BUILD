@@ -159,6 +159,20 @@ tvos_extension(
     ],
 )
 
+tvos_extension(
+    name = "ext_with_legacy_entry_point",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    legacy_entry_point = True,
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 tvos_application(
     name = "app_with_ext_with_fmwk_not_extension_safe",
     bundle_id = "com.google.example",

@@ -39,7 +39,7 @@ diverge less.
 When a new commit is pushed to the `upstream` branch there are a few
 things to do.
 
-- Cherry-pick the commit onto the `master` branch with `git cherry-pick -x
+- Cherry-pick the commit onto the `main` branch with `git cherry-pick -x
   SHA`. Including `-x` makes it easier to trace back to the upstream
   commit.
 - Submit a PR with this change.
@@ -112,7 +112,7 @@ is the recommended process:
 - Update the `apple/repositories.bzl` and `MODULE.bazel` files in `rules_apple` with the new
   `apple_support` and `rules_swift` releases.
 - Repeat the steps above to create a release on `rules_apple`.
-- Update the `url` and `sha256` values in the [ios-app tutorial](https://github.com/bazelbuild/rules_apple/blob/master/doc/tutorials/ios-app.md#update-the-workspace-file) to match the latest release.
+- Update the `url` and `sha256` values in the [ios-app tutorial](https://github.com/bazelbuild/rules_apple/blob/main/doc/tutorials/ios-app.md#update-the-workspace-file) to match the latest release.
 
 ### Notes
 

@@ -210,7 +210,7 @@ Building an iOS application to run on iOS devices requires some additional setup
 bazel build //:iOSApp --ios_multi_cpus=arm64
 ```
 
-The [`--ios_multi_cpus`](https://bazel.build/reference/command-line-reference#flag--ios_multi_cpus) flag controls the architecture(s) of the built application. The default unspecified value for `ios_application` is `ios_sim_arm64` (or `ios_x86_64` if your host is an Intel Mac). A full list of possible options can be found [here](https://github.com/bazelbuild/apple_support/blob/master/configs/platforms.bzl).
+The [`--ios_multi_cpus`](https://bazel.build/reference/command-line-reference#flag--ios_multi_cpus) flag controls the architecture(s) of the built application. The default unspecified value for `ios_application` is `ios_sim_arm64` (or `ios_x86_64` if your host is an Intel Mac). A full list of possible options can be found [here](https://github.com/bazelbuild/apple_support/blob/main/configs/platforms.bzl).
 
 > [!TIP]
 > rules_apple provides a pair of more advanced integrations for exposing provisioning profiles to Bazel, with the [`provisioning_profile_repository`](/doc/rules-apple.md#provisioning_profile_repository) and [`local_provisioning_profile`](/doc/rules-apple.md#local_provisioning_profile) rules.
@@ -230,8 +230,8 @@ Another method to install the app on a connected device is using Xcode. Launch X
 
 ## Further Reading
 
-Check out the [examples/](/examples) we have in rules_apple, as well as those in [rules_swift](https://github.com/bazelbuild/rules_swift/tree/master/examples) and [rules_xcodeproj](https://github.com/MobileNativeFoundation/rules_xcodeproj/tree/main/examples).
+Check out the [examples/](/examples) we have in rules_apple, as well as those in [rules_swift](https://github.com/bazelbuild/rules_swift/tree/main/examples) and [rules_xcodeproj](https://github.com/MobileNativeFoundation/rules_xcodeproj/tree/main/examples).
 
 Make sure to also check out the other articles we have under [doc/](/doc) – in particular [common_info](/doc/common_info.md).
 
-Finally, check out [How to migrate an iOS app to Bazel](https://brentley.dev/how-to-migrate-an-ios-app-to-bazel/), written by @brentleyjones. 
+Finally, check out [How to migrate an iOS app to Bazel](https://brentley.dev/how-to-migrate-an-ios-app-to-bazel/), written by @brentleyjones.

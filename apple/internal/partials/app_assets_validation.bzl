@@ -30,7 +30,15 @@ _STANDARD_ICONS = [".appiconset/", ".icon/"]
 # of platform.
 _VALID_ICON_EXTENSIONS_FOR_PRODUCT_TYPE = {
     apple_product_type.messages_extension: [".stickersiconset/"],
-    apple_product_type.messages_sticker_pack_extension: [".stickersiconset/", ".stickerpack/", ".sticker/", ".stickersequence/"],
+    apple_product_type.messages_sticker_pack_extension: [
+        # Replacement for appiconset.
+        ".stickersiconset/",
+        # The stickers. Ideally we wouldn't list these here, but `app_assets_validation_partial`
+        # is called with `sticker_assets` instead of just the app icons.
+        ".stickerpack/",
+        ".sticker/",
+        ".stickersequence/",
+    ],
 }
 
 # Comprehensive list of all valid icon extensions for each platform. These cover apps, extensions,

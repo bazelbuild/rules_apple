@@ -1514,7 +1514,7 @@ visionos_application = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),
@@ -1586,7 +1586,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),
@@ -1634,7 +1634,7 @@ visionos_extension = rule_factory.create_apple_rule(
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),
@@ -1696,7 +1696,7 @@ use only extension-safe APIs.
                 providers = [[AppleBundleInfo, VisionosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
-[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-visionos.md#visionos_framework))
+[`visionos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-visionos.md#visionos_framework))
 that this target depends on.
 """,
             ),

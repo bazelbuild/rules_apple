@@ -151,7 +151,7 @@ Error: Received conflicting base bundle IDs from more than one assigned Apple sh
 
 Found \"{conflicting_base}\" which does not match previously defined \"{base_bundle_id}\".
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """.format(
                     base_bundle_id = base_bundle_id,
                     conflicting_base = capability_info.base_bundle_id,
@@ -205,7 +205,7 @@ Error: There are no attributes set on this target that can be used to determine 
 Need a `bundle_id` or a reference to an `apple_base_bundle_id` target coming from the rule or (when
 applicable) exactly one of the `apple_capability_set` targets found within `shared_capabilities`.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     if base_bundle_id:
@@ -215,7 +215,7 @@ Error: Found a `bundle_id` provided with `base_bundle_id`. This is ambiguous.
 
 Please remove one of the two from your rule definition.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
         return _preferred_full_bundle_id(
@@ -232,7 +232,7 @@ See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilitie
 Error: Expected to find a base_bundle_id from exactly one of the assigned shared_capabilities.
 Found none.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     if bundle_id:
@@ -242,7 +242,7 @@ Error: Found a `bundle_id` on the rule along with `shared_capabilities` defining
 This is ambiguous. Please remove the `bundle_id` from your rule definition, or reference
 `shared_capabilities` without a `base_bundle_id`.
 
-See https://github.com/bazelbuild/rules_apple/blob/master/doc/shared_capabilities.md for more information.
+See https://github.com/bazelbuild/rules_apple/blob/main/doc/shared_capabilities.md for more information.
 """)
 
     return _preferred_full_bundle_id(
@@ -256,7 +256,8 @@ def _ensure_asset_catalog_files_not_in_xcassets(
         *,
         extension,
         files,
-        message = None):
+        message = None,
+        xcassets_extension = "xcassets"):
     """Validates that a subset of asset catalog files are not within an xcassets directory.
 
     Args:
@@ -265,11 +266,13 @@ def _ensure_asset_catalog_files_not_in_xcassets(
       files: An iterable of files to use.
       message: A custom error message to use, the list of found files that were found in xcassets
           directories will be printed afterwards.
+      xcassets_extension: The extension of the xcassets directory. Normally `xcassets`, but other
+          variations exist (e.g. `xcstickers`).
     """
     _ensure_path_format(
         files = files,
         allowed_path_fragments = [],
-        denied_path_fragments = ["xcassets", extension],
+        denied_path_fragments = [xcassets_extension, extension],
         message = message,
     )
 
@@ -277,7 +280,8 @@ def _ensure_single_xcassets_type(
         *,
         extension,
         files,
-        message = None):
+        message = None,
+        xcassets_extension = "xcassets"):
     """Validates that asset catalog files are nested within an xcassets directory.
 
     Args:
@@ -286,13 +290,15 @@ def _ensure_single_xcassets_type(
       files: An iterable of files to use.
       message: A custom error message to use, the list of found files that
           didn't match will be printed afterwards.
+      xcassets_extension: The extension of the xcassets directory. Normally `xcassets`, but other
+          variations exist (e.g. `xcstickers`).
     """
     if not message:
-        message = ("Expected the xcassets directory to only contain files " +
-                   "are in sub-directories with the extension %s") % extension
+        message = ("Expected the %s directory to only contain files " +
+                   "are in sub-directories with the extension %s") % (xcassets_extension, extension)
     _ensure_path_format(
         files = files,
-        allowed_path_fragments = ["xcassets", extension],
+        allowed_path_fragments = [xcassets_extension, extension],
         denied_path_fragments = [],
         message = message,
     )
