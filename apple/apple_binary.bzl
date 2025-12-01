@@ -69,6 +69,13 @@ def _apple_binary_impl(ctx):
     bundle_loader = ctx.attr.bundle_loader
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+
+    secure_features = ctx.attr.secure_features
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
     extra_linkopts = []
     extra_requested_features = []
 
@@ -90,8 +97,6 @@ def _apple_binary_impl(ctx):
         "-Wl,-weak_framework,{}".format(framework)
         for framework in ctx.attr.weak_sdk_frameworks
     ])
-
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -193,6 +198,12 @@ linking as if it were one of the dynamic libraries the bundle was linked with.
                 providers = [AppleExecutableBinaryInfo],
             ),
             "data": attr.label_list(allow_files = True),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
+""",
+            ),
             "sdk_dylibs": attr.string_list(
                 allow_empty = True,
                 doc = """

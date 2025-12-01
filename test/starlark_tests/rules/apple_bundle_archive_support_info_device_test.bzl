@@ -98,6 +98,7 @@ List of archive-relative bundle zip paths expected as outputs of AppleBundleArch
     },
     config_settings = {
         build_settings_labels.use_tree_artifacts_outputs: True,
+        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "arm64",
         "//command_line_option:tvos_cpus": "arm64",

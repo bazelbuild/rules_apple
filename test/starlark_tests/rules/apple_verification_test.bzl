@@ -102,6 +102,7 @@ def _apple_verification_transition_impl(settings, attr):
 
     # Build settings
     test_build_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: "true",
         build_settings_labels.signing_certificate_name: "-",
     }
     test_build_settings.update(getattr(attr, "build_settings", {}))

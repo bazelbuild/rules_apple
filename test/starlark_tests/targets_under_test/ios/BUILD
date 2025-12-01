@@ -2220,6 +2220,10 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         ":dynamic_xcframework_depending_lib",
@@ -2326,6 +2330,10 @@ apple_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources/frameworks:SharedClass.h",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -2522,6 +2530,10 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         ":static_xcframework_depending_objc_lib",

@@ -35,6 +35,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -46,6 +50,7 @@ load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -213,9 +218,7 @@ def _process_entitlements(
         apple_xplat_toolchain_info,
         bundle_id,
         cc_configured_features_init,
-        cc_toolchain,
-        disabled_features,
-        enabled_features,
+        cc_toolchains,
         entitlements_file,
         mac_exec_group,
         platform_prerequisites,
@@ -252,9 +255,7 @@ def _process_entitlements(
         bundle_id: The bundle identifier.
         cc_configured_features_init: The function to initialize the feature configuration for a
             given cc_toolchain.
-        cc_toolchain: A cc_toolchain as found from the rule context's toolchains.
-        disabled_features: The features requested to be disabled for the target.
-        enabled_features: The features requested for the target.
+        cc_toolchains: The cc_toolchain_forwarder target with its providers.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
         mac_exec_group: The exec group associated with apple_mac_toolchain.
@@ -313,22 +314,36 @@ def _process_entitlements(
         if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
             fail("secure_features are still a work in progress and not yet supported in the rules.")
 
-        # Calculate the effective set of Crosstool features for this target, as we do want to double
-        # check that the secure features are supported and enabled.
-        feature_configuration = cc_configured_features_init(
-            cc_toolchain = cc_toolchain,
-            requested_features = enabled_features,
-            unsupported_features = disabled_features,
-        )
+        all_secure_features_entitlements = dict()
+        for cc_toolchain in cc_toolchains.values():
+            cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
 
-        # Retrieve the entitlements required by the requested secure features, if there are any.
-        secure_features_entitlements = secure_features_support.entitlements_from_secure_features(
-            feature_configuration = feature_configuration,
-            rule_label = rule_label,
-            secure_features = secure_features,
-            xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
-        )
-        forced_plists.append(struct(**secure_features_entitlements))
+            # Calculate the effective set of Crosstool features for this toolchain, as we do want to
+            # double check that the secure features are supported and enabled.
+            feature_configuration = cc_configured_features_init(
+                cc_toolchain = cc_toolchain_info,
+                language = "objc",
+            )
+
+            # Check that the requested secure features are supported and enabled for the toolchain.
+            secure_features_support.validate_secure_features_support(
+                cc_toolchain_info = cc_toolchain_info,
+                feature_configuration = feature_configuration,
+                platform_info = cc_toolchain[ApplePlatformInfo],
+                rule_label = rule_label,
+                secure_features = secure_features,
+            )
+
+            # Retrieve the entitlements required by the requested secure features, if there are any.
+            secure_features_entitlements = (
+                secure_features_support.entitlements_from_secure_features(
+                    secure_features = secure_features,
+                    xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
+                )
+            )
+            all_secure_features_entitlements.update(secure_features_entitlements)
+        if all_secure_features_entitlements:
+            forced_plists.append(struct(**all_secure_features_entitlements))
 
     inputs = list(plists)
 

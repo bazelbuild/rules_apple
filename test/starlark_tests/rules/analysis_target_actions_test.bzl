@@ -174,6 +174,7 @@ List of action mnemonics not expected to be found on the target under test.""",
 # Default analysis_target_actions_test without cfg.
 analysis_target_actions_test = make_analysis_target_actions_test(
     config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64",
     },
 )
@@ -181,6 +182,7 @@ analysis_target_actions_test = make_analysis_target_actions_test(
 # The folowing test rules are used in more than one test suite and thus they are defined here.
 analysis_target_actions_tree_artifacts_outputs_test = make_analysis_target_actions_test(
     config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:macos_cpus": "arm64",
     },

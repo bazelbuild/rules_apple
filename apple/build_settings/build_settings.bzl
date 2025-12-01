@@ -80,6 +80,14 @@ These require extra options to be set, and must be embedded within a watchOS 2 a
 """,
         default = False,
     ),
+    "require_pointer_authentication_attribute": struct(
+        doc = """
+Enables functionality that requires pointer authentication, where any reference to arm64e will be
+dropped by top level Apple BUILD rules if the "pointer_authentication" is not requested via the
+"secure_features" attribute.
+""",
+        default = False,
+    ),
 }
 
 _local_build_settings_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build_settings.keys()}

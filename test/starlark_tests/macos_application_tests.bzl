@@ -15,10 +15,6 @@
 """macos_application Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
@@ -105,9 +101,6 @@ def macos_application_test_suite(name):
 
     apple_verification_test(
         name = "{}_imported_versioned_static_framework_xcframework_codesign_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
@@ -258,9 +251,6 @@ def macos_application_test_suite(name):
 
     archive_contents_test(
         name = "{}_prebuilt_static_versioned_xcframework_dependency_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
         contains = [

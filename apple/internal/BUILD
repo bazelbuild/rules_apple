@@ -190,6 +190,7 @@ bzl_library(
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -372,7 +373,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
     ],
@@ -710,7 +710,6 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
     ],

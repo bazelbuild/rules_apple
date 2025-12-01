@@ -309,7 +309,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 def _command_line_options(
         *,
         building_apple_bundle,
-        environment_arch = None,
+        environment_arch,
         features,
         force_bundle_outputs = False,
         minimum_os_version,
@@ -351,7 +351,12 @@ def _command_line_options(
         # are identical between platforms.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
-        "//command_line_option:features": features,
+        "//command_line_option:features": (
+            secure_features_support.environment_arch_specific_features(
+                environment_arch = environment_arch,
+                features = features,
+            )
+        ),
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
         "//command_line_option:platforms": [_CPU_TO_PLATFORM[cpu]],
@@ -403,9 +408,11 @@ def _xcframework_split_attr_key(*, arch, environment, platform_type):
         platform_type = platform_type,
     ) + "_" + environment
 
-def _resolved_environment_arch_for_arch(*, arch, environment):
-    if arch == "arm64" and environment == "simulator":
-        return "sim_arm64"
+def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
+    if arch.startswith("arm64") and environment == "simulator" and platform_type != "watchos":
+        return "sim_{}".format(arch)
+    if arch.startswith("arm64") and environment == "device" and platform_type == "watchos":
+        return "device_{}".format(arch)
     return arch
 
 def _command_line_options_for_xcframework_platform(
@@ -413,8 +420,10 @@ def _command_line_options_for_xcframework_platform(
         building_apple_bundle,
         features,
         minimum_os_version,
+        name,
         platform_attr,
         platform_type,
+        require_pointer_authentication_attribute,
         settings,
         target_environments):
     """Generates a dictionary of command line options keyed by 1:2+ transition for this platform.
@@ -425,10 +434,13 @@ def _command_line_options_for_xcframework_platform(
         features: A list of features to enable for this target.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
+        name: The name for the target that is being built.
         platform_attr: The attribute for the apple platform specifying in dictionary form which
             architectures to build for given a target environment as the key for this platform.
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
             `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
+        require_pointer_authentication_attribute: Indicates if the build requires pointer
+            authentication to be enabled for arm64e builds.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -445,15 +457,26 @@ def _command_line_options_for_xcframework_platform(
             continue
         sorted_target_archs = sorted(platform_attr[target_environment])
         for arch in sorted_target_archs:
+            arch_features = list(features)
+            if require_pointer_authentication_attribute and arch == "arm64e":
+                # This is the one place where we explicitly error if pointer_authentication isn't
+                # requested alongside arm64e, as other instances (i.e. from an ios_release config)
+                # should be silently dropped and only escalated as an error in single arch builds.
+                if "pointer_authentication" not in arch_features:
+                    fail("""
+ERROR: Target "{target}" is configured to build for arm64e, but the target does not declare \
+"pointer_authentication" in its `secure_features` attribute. This is required to use arm64e for \
+apps shipping with Xcode 26 and later.
+
+Please add "pointer_authentication" to the `secure_features` attribute of target "{target}" to \
+allow it to build for arm64e with the required Apple capabilities for pointer authentication.
+""".format(target = str(name)))
+
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
                 environment = target_environment,
+                platform_type = platform_type,
             )
-
-            # TODO: b/449684779 - Check if the arch is arm64e, and if so, check that the
-            # secure_features attribute is set to pointer_authentication. If not, warn, then later
-            # "fail(...)" after clients have been onboarded to secure_features for
-            # pointer_authentication. Only in the XCFramework case will this be a failure.
 
             found_cpu = {
                 _xcframework_split_attr_key(
@@ -484,14 +507,31 @@ def _apple_rule_base_transition_impl(settings, attr):
         secure_features = getattr(attr, "secure_features", None),
     )
     environment_archs = secure_features_support.environment_archs_from_secure_features(
-        enable_wip_features = settings[build_settings_labels.enable_wip_features],
         environment_archs = _environment_archs(
             platform_type = platform_type,
             minimum_os_version = minimum_os_version,
             settings = settings,
         ),
+        require_pointer_authentication_attribute = (
+            settings[build_settings_labels.require_pointer_authentication_attribute]
+        ),
         secure_features = requested_features,
     )
+    if not environment_archs:
+        fail("""
+ERROR: Target {target} requested to build for {platform_type}, but no architectures were \
+requested for that platform.
+
+Set of environment architectures found: {environment_archs}
+""".format(
+            target = str(attr.name),
+            environment_archs = str(_environment_archs(
+                platform_type = platform_type,
+                minimum_os_version = minimum_os_version,
+                settings = settings,
+            )),
+            platform_type = platform_type,
+        ))
 
     # Rule-level transition always gets the first architecture, which needs to match exactly one of
     # the attribute level split transition's architectures in order to take advantage of caching.
@@ -509,7 +549,7 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/apple/AppleCommandLineOptions.java
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
-    build_settings_labels.enable_wip_features,
+    build_settings_labels.require_pointer_authentication_attribute,
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:features",
 ]
@@ -561,14 +601,31 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
         secure_features = getattr(attr, "secure_features", None),
     )
     environment_archs = secure_features_support.environment_archs_from_secure_features(
-        enable_wip_features = settings[build_settings_labels.enable_wip_features],
         environment_archs = _environment_archs(
             platform_type = platform_type,
             minimum_os_version = minimum_os_version,
             settings = settings,
         ),
+        require_pointer_authentication_attribute = (
+            settings[build_settings_labels.require_pointer_authentication_attribute]
+        ),
         secure_features = requested_features,
     )
+    if not environment_archs:
+        fail("""
+ERROR: Target {target} requested to build for {platform_type}, but no architectures were \
+requested for that platform.
+
+Set of environment architectures found: {environment_archs}
+""".format(
+            target = str(attr.name),
+            environment_archs = str(_environment_archs(
+                platform_type = platform_type,
+                minimum_os_version = minimum_os_version,
+                settings = settings,
+            )),
+            platform_type = platform_type,
+        ))
 
     # Rule-level transition always gets the first architecture, which needs to match exactly one of
     # the attribute level split transition's architectures in order to take advantage of caching.
@@ -667,11 +724,13 @@ def _apple_platform_split_transition_impl(settings, attr):
         secure_features = getattr(attr, "secure_features", None),
     )
     environment_archs = secure_features_support.environment_archs_from_secure_features(
-        enable_wip_features = settings[build_settings_labels.enable_wip_features],
         environment_archs = _environment_archs(
             platform_type = platform_type,
             minimum_os_version = minimum_os_version,
             settings = settings,
+        ),
+        require_pointer_authentication_attribute = (
+            settings[build_settings_labels.require_pointer_authentication_attribute]
         ),
         secure_features = requested_features,
     )
@@ -770,7 +829,7 @@ def _xcframework_base_transition_impl(settings, attr):
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
         name = attr.name,
-        secure_features = getattr(attr, "secure_features", None),
+        secure_features = attr.secure_features,
     )
 
     # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
@@ -798,7 +857,10 @@ def _xcframework_split_transition_impl(settings, attr):
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
         name = attr.name,
-        secure_features = getattr(attr, "secure_features", None),
+        secure_features = attr.secure_features,
+    )
+    require_pointer_authentication_attribute = (
+        settings[build_settings_labels.require_pointer_authentication_attribute]
     )
 
     for platform_type in ["ios", "tvos", "watchos", "visionos", "macos"]:
@@ -812,8 +874,10 @@ def _xcframework_split_transition_impl(settings, attr):
             building_apple_bundle = getattr(attr, "_building_apple_bundle", True),
             features = requested_features,
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
+            name = attr.name,
             platform_attr = getattr(attr, platform_type),
             platform_type = platform_type,
+            require_pointer_authentication_attribute = require_pointer_authentication_attribute,
             settings = settings,
             target_environments = sorted(target_environments),
         )

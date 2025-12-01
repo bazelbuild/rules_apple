@@ -178,7 +178,6 @@ def _ios_application_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
     features = features_support.compute_enabled_features(
@@ -232,9 +231,7 @@ def _ios_application_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -580,7 +577,6 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks
     features = features_support.compute_enabled_features(
@@ -626,9 +622,7 @@ def _ios_app_clip_impl(ctx):
         mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
@@ -899,7 +893,6 @@ def _ios_framework_impl(ctx):
         bundle_name = bundle_name,
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1043,9 +1036,7 @@ def _ios_framework_impl(ctx):
             binary_artifact = binary_artifact,
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_linking_contexts = linking_contexts,
-            cc_toolchain = cc_toolchain,
-            features = features,
-            disabled_features = ctx.disabled_features,
+            cc_toolchain = find_cpp_toolchain(ctx),
             rule_label = label,
         ),
         partials.resources_partial(
@@ -1149,7 +1140,6 @@ def _ios_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1192,9 +1182,7 @@ def _ios_extension_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -1583,6 +1571,22 @@ def _ios_static_framework_impl(ctx):
 
 def _ios_imessage_application_impl(ctx):
     """Experimental implementation of ios_imessage_application."""
+
+    # Using "deps" to compute binary architectures, entitlements and features, but we're using a
+    # stub binary to handle the actual binary, just like a rule for a watchOS 2 app bundle.
+    if ctx.attr.deps:
+        fail("""
+ios_imessage_application does not support `deps`.
+
+This rule is merely a container for an iMessage extension with limited functionality. If this \
+iMessage extension requires a hosting binary, it should be assigned as one of the `extensions` \
+of an `ios_application` rather than an `ios_imessage_application`.
+
+If you mean to use this for packaging an iMessage extension and nothing more, please assign a \
+reference to an ios_imessage_extension target to the `extension` attribute instead, to give this \
+app an implementation.
+""")
+
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.messages_application,
@@ -1610,7 +1614,7 @@ def _ios_imessage_application_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = [ctx.attr.extension]
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -1650,9 +1654,7 @@ def _ios_imessage_application_impl(ctx):
         mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
@@ -1681,7 +1683,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = dict(),
+            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
@@ -1825,7 +1827,6 @@ def _ios_imessage_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1868,9 +1869,7 @@ def _ios_imessage_extension_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
@@ -2446,6 +2445,15 @@ ios_imessage_application = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
+        ),
+        rule_attrs.binary_linking_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+            extra_deps_aspects = [
+                app_intents_aspect,
+                apple_resource_aspect,
+                framework_provider_aspect,
+            ],
+            is_test_supporting_rule = False,
         ),
         rule_attrs.common_bundle_attrs(),
         rule_attrs.common_tool_attrs(),
