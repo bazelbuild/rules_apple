@@ -20,6 +20,10 @@ load(
     "ApplePlatformInfo",
 )
 load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -41,6 +45,8 @@ load(
 )
 
 def _apple_static_library_impl(ctx):
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+
     if ctx.attr.platform_type == "visionos":
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
         if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
@@ -53,6 +59,11 @@ Resolved Xcode is version {xcode_version}.
     # Most validation of the platform type and minimum version OS currently happens in
     # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
+
+    secure_features = ctx.attr.secure_features
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
 
     # Validate that the resolved platform matches the platform_type attr.
     for toolchain_key, resolved_toolchain in ctx.split_attr._cc_toolchain_forwarder.items():
@@ -94,7 +105,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
     return providers
 
 apple_static_library = rule_factory.create_apple_rule(
-    cfg = None,
+    cfg = transition_support.apple_rule_transition,
     doc = """
 This rule produces single- or multi-architecture ("fat") static libraries targeting
 Apple platforms.
@@ -175,6 +186,12 @@ binaries/libraries will be created combining all architectures specified by
 *   `tvos`: architectures gathered from `--tvos_cpus`.
 *   `visionos`: architectures gathered from `--visionos_cpus`.
 *   `watchos`: architectures gathered from `--watchos_cpus`.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
             "sdk_frameworks": attr.string_list(

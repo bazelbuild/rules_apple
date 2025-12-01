@@ -46,7 +46,13 @@ def _make_cc_configured_features_init(ctx):
         context as the `ctx` argument of `cc_common.configure_features(...)` and will forward any
         arguments it is given to `cc_common.configure_features(...)`.
     """
-    return lambda *args, **kwargs: cc_common.configure_features(ctx = ctx, *args, **kwargs)
+    return lambda *args, **kwargs: cc_common.configure_features(
+        ctx = ctx,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+        *args,
+        **kwargs
+    )
 
 features_support = struct(
     compute_enabled_features = _compute_enabled_features,

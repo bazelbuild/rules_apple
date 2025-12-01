@@ -2255,6 +2255,11 @@ macos_application(
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.baseline,
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.xcode_26_minimum_opt_in",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":dynamic_versioned_xcframework_depending_lib",
@@ -2526,6 +2531,10 @@ macos_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources/kext_resources:kext_lib",
@@ -2543,6 +2552,10 @@ macos_kernel_extension(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -2893,6 +2906,10 @@ macos_kernel_extension(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],

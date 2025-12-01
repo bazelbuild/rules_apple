@@ -162,6 +162,18 @@ Resolved Xcode is version {xcode_version}.
         product_type = apple_product_type.application,
     )
 
+    # Add the disable_legacy_signing feature to the list of features, forcing dossier signing as a
+    # requirement of this rule.
+    #
+    # TODO - b/463682069: Move this ctx.features/features.append(...) to be rolled into the
+    # make_cc_configured_features_init call below, and make it so that "features" isn't an argument
+    # passed to the processor partial, we can just query the features configuration directly.
+    # Right now we have too many sources of truth for ctx.features, some of which disagree.
+    #
+    # TODO - b/72148898: Remove disable_legacy_signing when dossier based signing is the default.
+    requested_features = ctx.features
+    requested_features.append("disable_legacy_signing")
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
@@ -178,7 +190,6 @@ Resolved Xcode is version {xcode_version}.
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
     executable_name = ctx.attr.executable_name
@@ -226,9 +237,7 @@ Resolved Xcode is version {xcode_version}.
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
@@ -698,8 +707,6 @@ def _visionos_dynamic_framework_impl(ctx):
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
-            features = features,
-            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -821,7 +828,6 @@ def _visionos_framework_impl(ctx):
         bundle_name = bundle_name,
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
@@ -986,9 +992,7 @@ def _visionos_framework_impl(ctx):
             bundle_only = ctx.attr.bundle_only,
             cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_linking_contexts = linking_contexts,
-            cc_toolchain = cc_toolchain,
-            features = features,
-            disabled_features = ctx.disabled_features,
+            cc_toolchain = find_cpp_toolchain(ctx),
             rule_label = label,
         ),
         partials.resources_partial(
@@ -1089,7 +1093,6 @@ def _visionos_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
@@ -1135,9 +1138,7 @@ def _visionos_extension_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain = cc_toolchain,
-        disabled_features = ctx.disabled_features,
-        enabled_features = ctx.features,
+        cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,

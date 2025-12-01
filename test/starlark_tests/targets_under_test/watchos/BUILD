@@ -379,6 +379,10 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
@@ -399,6 +403,10 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",

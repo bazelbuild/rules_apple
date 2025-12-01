@@ -15,6 +15,10 @@
 """apple_static_library Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_test",
 )
@@ -38,6 +42,7 @@ load(
 
 analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test(
     config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
@@ -77,7 +82,7 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         target_mnemonic = "AppleLipo",
         expected_env = {
-            "APPLE_SDK_PLATFORM": "MacOSX",
+            "APPLE_SDK_PLATFORM": "iPhoneSimulator",
         },
         tags = [name],
     )
@@ -89,7 +94,7 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         target_mnemonic = "AppleLipo",
         expected_env = {
-            "APPLE_SDK_PLATFORM": "MacOSX",
+            "APPLE_SDK_PLATFORM": "WatchSimulator",
         },
         tags = [name],
     )

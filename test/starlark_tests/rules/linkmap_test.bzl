@@ -23,6 +23,10 @@ load(
     "analysistest",
     "asserts",
 )
+load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
 
 def _linkmap_test_impl(ctx):
     """Implementation of the linkmap_test rule."""
@@ -85,6 +89,7 @@ provided.
         ),
     },
     config_settings = {
+        build_settings_labels.enable_wip_features: True,
         "//command_line_option:objc_generate_linkmap": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",

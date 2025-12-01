@@ -726,6 +726,10 @@ apple_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
@@ -1028,6 +1032,10 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib_with_resources"],
 )
@@ -1153,6 +1161,10 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],

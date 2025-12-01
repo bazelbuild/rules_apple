@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_wip_features_test",
     "make_analysis_failure_message_test",
 )
 load(
@@ -78,12 +79,6 @@ load(
 load(
     ":common.bzl",
     "common",
-)
-
-analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
-    config_settings = {
-        build_settings_labels.enable_wip_features: True,
-    },
 )
 
 def ios_application_test_suite(name):
@@ -1306,9 +1301,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_enhanced_security_features_entitlements_device_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1322,9 +1314,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1338,9 +1327,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         cpus = {
@@ -1358,9 +1344,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1374,9 +1357,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1390,9 +1370,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_device_archs_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         cpus = {
@@ -1410,9 +1387,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_no_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         cpus = {
@@ -1431,9 +1405,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1449,9 +1420,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1467,9 +1435,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
@@ -1487,9 +1452,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1504,9 +1466,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1521,9 +1480,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
@@ -1541,9 +1497,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_framework_in_app_and_extension_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         cpus = {
@@ -1561,9 +1514,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1578,9 +1528,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_xcode_26_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1595,9 +1542,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_framework_in_app_and_extension_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
         cpus = {
@@ -1615,9 +1559,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_no_pointer_authentication_arm64_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
         cpus = {
@@ -1636,9 +1577,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1654,9 +1592,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1672,9 +1607,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
         cpus = {
@@ -1692,9 +1624,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1709,9 +1638,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1726,9 +1652,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_no_pointer_authentication_arm64_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
         cpus = {
@@ -1747,9 +1670,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1765,9 +1685,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_no_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1783,9 +1700,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
 
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
         cpus = {
@@ -1803,9 +1717,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {
@@ -1820,9 +1731,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     apple_verification_test(
         name = "{}_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
         verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
         env = {

@@ -2709,6 +2709,11 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.xcode_26_minimum_opt_in",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":dynamic_xcframework_depending_lib",
@@ -3040,6 +3045,11 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.xcode_26_minimum_opt_in",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":static_xcframework_depending_objc_lib",
