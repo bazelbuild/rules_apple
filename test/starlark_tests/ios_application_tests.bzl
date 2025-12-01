@@ -870,6 +870,28 @@ App Intents bundles were defined by the following targets:
         tags = [name],
     )
 
+    # Test that an app with multi-module app intents, one of which defines a Widget Configuration
+    # Intent with a computed property, generates and bundles Metadata.appintents bundle with a
+    # reference to the Widget Configuration intent's module name.
+    archive_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
+        build_settings = {
+            build_settings_labels.enable_wip_features: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*FavoriteSoup.*",
+        ],
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_no_exclusive_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_exclusive_framework_app_intents",

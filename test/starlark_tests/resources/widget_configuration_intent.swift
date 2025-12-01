@@ -25,8 +25,8 @@ enum RefreshInterval: String, AppEnum {
   ]
 }
 
-struct FavoriteSoup: WidgetConfigurationIntent {
-  static var title: LocalizedStringResource = "Favorite Soup"
+public struct FavoriteSoup: WidgetConfigurationIntent, AppIntentsPackage {
+  public static var title: LocalizedStringResource = "Favorite Soup"
   static var description = IntentDescription("Shows a picture of your favorite soup!")
 
   @Parameter(title: "Soup")
@@ -38,7 +38,7 @@ struct FavoriteSoup: WidgetConfigurationIntent {
   @Parameter(title: "Refresh", default: .daily)
   var interval: RefreshInterval
 
-  static var parameterSummary: some ParameterSummary {
+  public static var parameterSummary: some ParameterSummary {
     When(\.$shuffle, .equalTo, true) {
       Summary {
         \.$name
@@ -53,7 +53,9 @@ struct FavoriteSoup: WidgetConfigurationIntent {
     }
   }
 
-  func perform() async throws -> some IntentResult & ProvidesDialog {
+  public init() {}
+
+  public func perform() async throws -> some IntentResult & ProvidesDialog {
     return .result(dialog: "This is an intent with a computed property!")
   }
 }

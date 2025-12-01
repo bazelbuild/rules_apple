@@ -4149,6 +4149,25 @@ ios_framework(
     ],
 )
 
+ios_application(
+    name = "app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 
