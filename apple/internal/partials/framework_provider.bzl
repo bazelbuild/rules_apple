@@ -29,16 +29,12 @@ def _framework_provider_partial_impl(
         cc_configured_features_init,
         cc_linking_contexts,
         cc_toolchain,
-        disabled_features,
-        features,
         rule_label):
     """Implementation for the framework provider partial."""
 
     feature_configuration = cc_configured_features_init(
         cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = features,
-        unsupported_features = disabled_features,
     )
     library_to_link = cc_common.create_library_to_link(
         actions = actions,
@@ -74,8 +70,6 @@ def framework_provider_partial(
         cc_configured_features_init,
         cc_linking_contexts,
         cc_toolchain,
-        disabled_features,
-        features,
         rule_label):
     """Constructor for the framework provider partial.
 
@@ -93,8 +87,6 @@ def framework_provider_partial(
       cc_linking_contexts: A list of CcLinkingContext providers containing information about the
           targets linked into the dynamic framework.
       cc_toolchain: The C++ toolchain to use.
-      disabled_features: List of features to be disabled for C++ actions.
-      features: List of features to be enabled for C++ actions.
       rule_label: The label of the target being analyzed.
 
     Returns:
@@ -110,7 +102,5 @@ def framework_provider_partial(
         cc_configured_features_init = cc_configured_features_init,
         cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
-        disabled_features = disabled_features,
-        features = features,
         rule_label = rule_label,
     )

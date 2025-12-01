@@ -617,7 +617,6 @@ def _create_framework_outputs(
         cc_toolchain_forwarder,
         config_vars,
         cpp_fragment,
-        disabled_features,
         environment_plist_files,
         executable_name,
         families_required,
@@ -650,8 +649,6 @@ def _create_framework_outputs(
             providers from through the split_attrs interface.
         config_vars: A reference to configuration variables, typically from `ctx.var`.
         cpp_fragment: A cpp fragment (ctx.fragments.cpp), if it is present. Optional.
-        disabled_features: A list of features disabled by the user. Typically from
-            `ctx.disabled_features`.
         environment_plist_files: A list of Files referencing all supported platform-specific plists
             with predefined supporting variables.
         executable_name: The name of the executable for the nested framework.
@@ -899,8 +896,6 @@ bundle_id on the target.
                     cc_configured_features_init = cc_configured_features_init,
                     cc_linking_contexts = link_output.linking_contexts.values(),
                     cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],
-                    disabled_features = disabled_features,
-                    features = features,
                     rule_label = rule_label,
                 ),
                 partials.swift_dylibs_partial(
@@ -1261,10 +1256,19 @@ def _apple_xcframework_impl(ctx):
     build_settings = apple_xplat_toolchain_info.build_settings
 
     # Add the disable_legacy_signing feature to the list of features
-    # TODO(b/72148898): Remove this when dossier based signing becomes the default.
+    # TODO - b/463682069: Move this ctx.features/features.append(...) to be rolled into the
+    # make_cc_configured_features_init call below, and make it so that "features" isn't an argument
+    # passed to the processor partial, we can just query the features configuration directly.
+    # Right now we have too many sources of truth for ctx.features, some of which disagree.
+    #
+    # TODO - b/72148898: Remove disable_legacy_signing when dossier based signing is the default.
     features = ctx.features
     features.append("disable_legacy_signing")
-    disabled_features = ctx.disabled_features
+
+    secure_features = ctx.attr.secure_features
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
 
     _validate_resource_attrs(
         all_attrs = ctx.attr,
@@ -1350,7 +1354,6 @@ def _apple_xcframework_impl(ctx):
         cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
-        disabled_features = disabled_features,
         environment_plist_files = environment_plist_files,
         executable_name = executable_name,
         families_required = families_required,
@@ -1466,6 +1469,12 @@ frameworks. If this attribute is not set, then the name of the target will be us
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded frameworks. These header files will be embedded within each bundle,
 typically in a subdirectory such as `Headers`.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
         },
@@ -1693,7 +1702,11 @@ def _apple_static_xcframework_impl(ctx):
     # TODO(b/72148898): Remove this when dossier based signing becomes the default.
     features = ctx.features
     features.append("disable_legacy_signing")
-    disabled_features = ctx.disabled_features
+
+    secure_features = ctx.attr.secure_features
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
@@ -1731,7 +1744,6 @@ def _apple_static_xcframework_impl(ctx):
             cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
             config_vars = config_vars,
             cpp_fragment = cpp_fragment,
-            disabled_features = disabled_features,
             environment_plist_files = environment_plist_files,
             executable_name = executable_name,
             families_required = families_required,
@@ -1878,6 +1890,12 @@ the XCFramework. These libraries will be embedded within each platform split.
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded libraries. These header files will be embedded within each platform split,
 typically in a subdirectory such as `Headers`.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
         },

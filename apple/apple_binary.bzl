@@ -78,6 +78,11 @@ Resolved Xcode is version {xcode_version}.
     bundle_loader = ctx.attr.bundle_loader
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
+    secure_features = ctx.attr.secure_features
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
     extra_linkopts = []
 
     if binary_type == "dylib":
@@ -197,6 +202,12 @@ linking as if it were one of the dynamic libraries the bundle was linked with.
                 providers = [AppleExecutableBinaryInfo],
             ),
             "data": attr.label_list(allow_files = True),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
+""",
+            ),
             "sdk_dylibs": attr.string_list(
                 allow_empty = True,
                 doc = """

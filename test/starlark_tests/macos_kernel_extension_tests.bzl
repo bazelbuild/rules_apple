@@ -15,6 +15,10 @@
 """macos_kernel_extension Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
     "make_analysis_target_actions_test",
@@ -37,10 +41,16 @@ load(
 )
 
 _analysis_arm64_macos_cpu_test = make_analysis_target_actions_test(
-    config_settings = {"//command_line_option:macos_cpus": "arm64"},
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
 )
 _analysis_x86_64_macos_cpu_test = make_analysis_target_actions_test(
-    config_settings = {"//command_line_option:macos_cpus": "x86_64"},
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:macos_cpus": "x86_64",
+    },
 )
 
 def macos_kernel_extension_test_suite(name):

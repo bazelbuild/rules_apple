@@ -224,6 +224,7 @@ bzl_library(
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
