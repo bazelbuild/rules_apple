@@ -83,7 +83,7 @@ def _visionos_unit_test_impl(ctx):
 
 # Declare it with an underscore so it shows up that way in queries.
 _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_bundle_output_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a visionOS Unit Test Bundle. Internal target not to be depended on.",
     implementation = _visionos_unit_test_bundle_impl,
     # TODO(b/288582842): Currently needed to supply a "dummy archive" for the tree artifact
@@ -120,6 +120,15 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
             aspects = rule_attrs.aspects.test_host_aspects,
             providers = _VISIONOS_TEST_HOST_PROVIDERS,
         ),
+        {
+            "_force_bundle_outputs": attr.bool(
+                default = True,
+                doc = """
+Internal attribute read by Apple rule transitions to set the
+`force_bundle_outputs` build setting.
+""",
+            ),
+        },
     ],
 )
 

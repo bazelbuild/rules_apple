@@ -730,34 +730,6 @@ provider to describe that requirement.
     init = make_banned_init(provider_name = "MacosExtensionBundleInfo"),
 )
 
-MacosKernelExtensionBundleInfo, new_macoskernelextensionbundleinfo = provider(
-    doc = """
-Denotes that a target is a macOS kernel extension.
-
-This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically a macOS kernel extension
-(and not some other Apple bundle). Rule authors who wish to require that a
-dependency is a macOS kernel extension should use this provider to describe that
-requirement.
-""",
-    fields = {},
-    init = make_banned_init(provider_name = "MacosKernelExtensionBundleInfo"),
-)
-
-MacosSpotlightImporterBundleInfo, new_macosspotlightimporterbundleinfo = provider(
-    doc = """
-Denotes that a target is a macOS Spotlight Importer bundle.
-
-This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically a macOS Spotlight importer
-(and not some other Apple bundle). Rule authors who wish to require that a
-dependency is a macOS Spotlight importer should use this provider to describe that
-requirement.
-""",
-    fields = {},
-    init = make_banned_init(provider_name = "MacosSpotlightImporterBundleInfo"),
-)
-
 MacosXPCServiceBundleInfo, new_macosxpcservicebundleinfo = provider(
     doc = """
 Denotes that a target is a macOS XPC Service bundle.

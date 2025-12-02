@@ -52,9 +52,6 @@ visibility([
 #   plists on macOS.
 # * `framework`: A basic dynamic framework. This is the default product type for
 #   those targets; it does not need to be set explicitly (and cannot be changed).
-# * `kernel_extension`: A macOS kernel extension. This product type should be used
-#   with a `macos_bundle` target to create such a plug-in; the built bundle will
-#   have the extension `.kext`.
 # * `messages_application`: An application that integrates with the Messages
 #   app (iOS 10 and above). This application must include an `ios_extension`
 #   with the `messages_extension` product type. This product type does not contain
@@ -62,12 +59,11 @@ visibility([
 # * `messages_extension`: An extension that integrates custom code/behavior into
 #   a Messages application. This product type should contain a user-provided
 #   binary.
-# * `spotlight_importer`: A macOS Spotlight importer plug-in. This product type
-#   should be used with a `macos_bundle` target to create such a plug-in; the
-#   built bundle will have the extension `.mdimporter`.
-# * `static_framework`: An iOS static framework, which is a `.framework` bundle
-#   that contains resources and headers but a static library instead of a dynamic
-#   library.
+# * `static_framework`: A pre-Xcode 15.0 static framework for Cocoapods, which is
+#   a `.framework` bundle that contains headers, a specific resource bundle and a
+#   static library instead of a dynamic library. Unlike the other product type
+#   identifiers, this is not actually based on any string in Xcode and is only
+#   used to generate legacy, pre-Xcode 15.0 static frameworks.
 # * `tool`: A command-line tool. This is the default product type for
 #   `macos_command_line_application`; it does not need to be set explicitly (and
 #   cannot be changed).
@@ -94,10 +90,8 @@ apple_product_type = struct(
     dylib = "com.apple.product-type.library.dynamic",
     extensionkit_extension = "com.apple.product-type.extensionkit-extension",
     framework = "com.apple.product-type.framework",
-    kernel_extension = "com.apple.product-type.kernel-extension",
     messages_application = "com.apple.product-type.application.messages",
     messages_extension = "com.apple.product-type.app-extension.messages",
-    spotlight_importer = "com.apple.product-type.spotlight-importer",
     static_framework = "com.apple.product-type.framework.static",
     tool = "com.apple.product-type.tool",
     ui_test_bundle = "com.apple.product-type.bundle.ui-testing",

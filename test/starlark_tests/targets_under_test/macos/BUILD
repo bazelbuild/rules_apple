@@ -12,7 +12,6 @@ load(
     "macos_command_line_application",
     "macos_dylib",
     "macos_extension",
-    "macos_kernel_extension",
     "macos_ui_test",
     "macos_unit_test",
 )
@@ -769,47 +768,6 @@ macos_dylib(
 
 # ---------------------------------------------------------------------------------------
 
-macos_kernel_extension(
-    name = "kext",
-    bundle_id = "com.google.kext",
-    infoplists = [
-        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    secure_features = [
-        "apple.xcode_26_minimum_opt_in",
-        "pointer_authentication",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources/kext_resources:kext_lib",
-    ],
-)
-
-macos_kernel_extension(
-    name = "kext_dead_stripped",
-    bundle_id = "com.google.kext",
-    exported_symbols_lists = [
-        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
-    ],
-    linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
-    secure_features = [
-        "apple.xcode_26_minimum_opt_in",
-        "pointer_authentication",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_shared_lib",
-        "//test/starlark_tests/resources/kext_resources:kext_lib",
-    ],
-)
-
-# ---------------------------------------------------------------------------------------
-
 macos_ui_test(
     name = "ui_test",
     additional_contents = {
@@ -1098,26 +1056,6 @@ macos_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-macos_kernel_extension(
-    name = "kext_with_capability_set_derived_bundle_id",
-    bundle_name = "kext-with-capability-set-derived-bundle-id",
-    infoplists = [
-        "//test/starlark_tests/resources:Info-nopackage.plist",
-    ],
-    minimum_os_version = common.min_os_macos.baseline,
-    secure_features = [
-        "apple.xcode_26_minimum_opt_in",
-        "pointer_authentication",
-    ],
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
 

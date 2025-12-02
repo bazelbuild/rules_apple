@@ -396,7 +396,7 @@ def _visionos_application_impl(ctx):
     ] + processor_result.providers
 
 visionos_application = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_bundle_output_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a visionOS Application.",
     implementation = _visionos_application_impl,
     is_executable = True,
@@ -428,5 +428,14 @@ visionos_application = rule_factory.create_apple_rule(
             default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),
         rule_attrs.simulator_runner_template_attr(),
+        {
+            "_force_bundle_outputs": attr.bool(
+                default = True,
+                doc = """
+Internal attribute read by Apple rule transitions to set the
+`force_bundle_outputs` build setting.
+""",
+            ),
+        },
     ],
 )

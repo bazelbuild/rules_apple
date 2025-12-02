@@ -311,7 +311,7 @@ def _command_line_options(
         building_apple_bundle,
         environment_arch,
         features,
-        force_bundle_outputs = False,
+        force_bundle_outputs,
         minimum_os_version,
         platform_type,
         settings):
@@ -325,8 +325,7 @@ def _command_line_options(
             None to infer a value from command line options passed through settings.
         features: A list of features to enable for this target.
         force_bundle_outputs: Indicates if the rule should always emit tree artifact outputs, which
-            are effectively bundles that aren't enclosed within a zip file (ipa). If not `True`,
-            this will be set to the incoming value instead. Defaults to `False`.
+            are effectively bundles that aren't enclosed within a zip file (ipa).
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
@@ -419,6 +418,7 @@ def _command_line_options_for_xcframework_platform(
         *,
         building_apple_bundle,
         features,
+        force_bundle_outputs,
         minimum_os_version,
         name,
         platform_attr,
@@ -432,6 +432,8 @@ def _command_line_options_for_xcframework_platform(
         building_apple_bundle: Indicates if the rule is building a bundle (rather than a
             standalone executable or library).
         features: A list of features to enable for this target.
+        force_bundle_outputs: Indicates if the rule should always emit tree artifact outputs, which
+            are effectively bundles that aren't enclosed within a zip file.
         minimum_os_version: A string representing the minimum OS version specified for this
             platform, represented as a dotted version number (for example, `"9.0"`).
         name: The name for the target that is being built.
@@ -487,6 +489,7 @@ allow it to build for arm64e with the required Apple capabilities for pointer au
                     building_apple_bundle = building_apple_bundle,
                     environment_arch = resolved_environment_arch,
                     features = features,
+                    force_bundle_outputs = force_bundle_outputs,
                     minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
                     settings = settings,
@@ -501,6 +504,7 @@ def _apple_rule_base_transition_impl(settings, attr):
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
     building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
+    force_bundle_outputs = getattr(attr, "_force_bundle_outputs", False)
     requested_features = secure_features_support.crosstool_features_from_secure_features(
         features = settings["//command_line_option:features"],
         name = attr.name,
@@ -539,6 +543,7 @@ Set of environment architectures found: {environment_archs}
         building_apple_bundle = building_apple_bundle,
         environment_arch = environment_archs[0],
         features = requested_features,
+        force_bundle_outputs = force_bundle_outputs,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         settings = settings,
@@ -590,61 +595,6 @@ _apple_rule_base_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
-def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules using Bazel platforms which force bundle outputs."""
-    minimum_os_version = attr.minimum_os_version
-    platform_type = attr.platform_type
-    building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
-    requested_features = secure_features_support.crosstool_features_from_secure_features(
-        features = settings["//command_line_option:features"],
-        name = attr.name,
-        secure_features = getattr(attr, "secure_features", None),
-    )
-    environment_archs = secure_features_support.environment_archs_from_secure_features(
-        environment_archs = _environment_archs(
-            platform_type = platform_type,
-            minimum_os_version = minimum_os_version,
-            settings = settings,
-        ),
-        require_pointer_authentication_attribute = (
-            settings[build_settings_labels.require_pointer_authentication_attribute]
-        ),
-        secure_features = requested_features,
-    )
-    if not environment_archs:
-        fail("""
-ERROR: Target {target} requested to build for {platform_type}, but no architectures were \
-requested for that platform.
-
-Set of environment architectures found: {environment_archs}
-""".format(
-            target = str(attr.name),
-            environment_archs = str(_environment_archs(
-                platform_type = platform_type,
-                minimum_os_version = minimum_os_version,
-                settings = settings,
-            )),
-            platform_type = platform_type,
-        ))
-
-    # Rule-level transition always gets the first architecture, which needs to match exactly one of
-    # the attribute level split transition's architectures in order to take advantage of caching.
-    return _command_line_options(
-        building_apple_bundle = building_apple_bundle,
-        environment_arch = environment_archs[0],
-        features = requested_features,
-        force_bundle_outputs = True,
-        minimum_os_version = minimum_os_version,
-        platform_type = platform_type,
-        settings = settings,
-    )
-
-_apple_platforms_rule_bundle_output_base_transition = transition(
-    implementation = _apple_platforms_rule_bundle_output_base_transition_impl,
-    inputs = _apple_rule_base_transition_inputs,
-    outputs = _apple_rule_base_transition_outputs,
-)
-
 def _apple_rule_bundle_output_transition_impl(_, __):
     """Rule transition for Apple rules that always sets the "tree artifact" bundle outputs."""
     return {
@@ -655,23 +605,6 @@ _apple_rule_bundle_output_transition = transition(
     implementation = _apple_rule_bundle_output_transition_impl,
     inputs = [],
     outputs = [build_settings_labels.use_tree_artifacts_outputs],
-)
-
-def _apple_rule_arm64_as_arm64e_transition_impl(settings, attr):
-    """Rule transition for Apple rules that map arm64 to arm64e."""
-    key = "//command_line_option:macos_cpus"
-
-    # These additional settings are sent to both the base implementation and the final transition.
-    additional_settings = {key: [arch if arch != "arm64" else "arm64e" for arch in settings[key]]}
-    return (
-        _apple_rule_base_transition_impl(settings | additional_settings, attr) |
-        additional_settings,
-    )
-
-_apple_rule_arm64_as_arm64e_transition = transition(
-    implementation = _apple_rule_arm64_as_arm64e_transition_impl,
-    inputs = _apple_rule_base_transition_inputs,
-    outputs = _apple_rule_base_transition_outputs + ["//command_line_option:macos_cpus"],
 )
 
 def _apple_universal_binary_rule_transition_impl(settings, attr):
@@ -740,6 +673,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     invalid_requested_archs = []
 
     building_apple_bundle = getattr(attr, "_building_apple_bundle", True)
+    force_bundle_outputs = getattr(attr, "_force_bundle_outputs", False)
     for environment_arch in environment_archs:
         found_cpu = _cpu_string(
             environment_arch = environment_arch,
@@ -782,6 +716,7 @@ WARNING: The architecture {environment_arch} is not valid for {platform_type} wi
             building_apple_bundle = building_apple_bundle,
             environment_arch = environment_arch,
             features = requested_features,
+            force_bundle_outputs = force_bundle_outputs,
             minimum_os_version = minimum_os_version,
             platform_type = platform_type,
             settings = settings,
@@ -839,6 +774,7 @@ def _xcframework_base_transition_impl(settings, attr):
         building_apple_bundle = False,
         environment_arch = _DEFAULT_ARCH,
         features = requested_features,
+        force_bundle_outputs = False,
         minimum_os_version = None,
         platform_type = "macos",
         settings = settings,
@@ -873,6 +809,7 @@ def _xcframework_split_transition_impl(settings, attr):
         command_line_options = _command_line_options_for_xcframework_platform(
             building_apple_bundle = getattr(attr, "_building_apple_bundle", True),
             features = requested_features,
+            force_bundle_outputs = getattr(attr, "_force_bundle_outputs", False),
             minimum_os_version = attr.minimum_os_versions.get(platform_type),
             name = attr.name,
             platform_attr = getattr(attr, platform_type),
@@ -892,8 +829,6 @@ _xcframework_split_transition = transition(
 
 transition_support = struct(
     apple_platform_split_transition = _apple_platform_split_transition,
-    apple_platforms_rule_bundle_output_base_transition = _apple_platforms_rule_bundle_output_base_transition,
-    apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_rule_bundle_output_transition = _apple_rule_bundle_output_transition,
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,

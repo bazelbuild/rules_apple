@@ -26,7 +26,6 @@ load(":macos_bundle_tests.bzl", "macos_bundle_test_suite")
 load(":macos_command_line_application_tests.bzl", "macos_command_line_application_test_suite")
 load(":macos_dylib_tests.bzl", "macos_dylib_test_suite")
 load(":macos_extension_tests.bzl", "macos_extension_test_suite")
-load(":macos_kernel_extension_tests.bzl", "macos_kernel_extension_test_suite")
 load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
 load(":order_file_tests.bzl", "order_file_test_suite")
@@ -103,8 +102,6 @@ macos_command_line_application_test_suite(name = "macos_command_line_application
 macos_dylib_test_suite(name = "macos_dylib")
 
 macos_extension_test_suite(name = "macos_extension")
-
-macos_kernel_extension_test_suite(name = "macos_kernel_extension")
 
 macos_ui_test_test_suite(name = "macos_ui_test")
 

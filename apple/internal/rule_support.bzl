@@ -352,25 +352,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../Frameworks",
             ],
         ),
-        # macos_kernel_extension
-        apple_product_type.kernel_extension: _describe_rule_type(
-            allowed_device_families = ["mac"],
-            binary_infoplist = False,
-            bundle_extension = ".kext",
-            bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            bundle_package_type = bundle_package_type.kernel_extension,
-            product_type = apple_product_type.kernel_extension,
-            requires_signing_for_device = False,
-        ),
-        # macos_spotlight_importer
-        apple_product_type.spotlight_importer: _describe_rule_type(
-            allowed_device_families = ["mac"],
-            bundle_extension = ".mdimporter",
-            bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
-            bundle_package_type = bundle_package_type.extension_or_xpc,
-            product_type = apple_product_type.spotlight_importer,
-            requires_signing_for_device = False,
-        ),
         # macos_xpc_service
         apple_product_type.xpc_service: _describe_rule_type(
             allowed_device_families = ["mac"],

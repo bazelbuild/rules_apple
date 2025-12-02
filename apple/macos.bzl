@@ -21,8 +21,6 @@ load(
     _macos_command_line_application = "macos_command_line_application",
     _macos_dylib = "macos_dylib",
     _macos_extension = "macos_extension",
-    _macos_kernel_extension = "macos_kernel_extension",
-    _macos_spotlight_importer = "macos_spotlight_importer",
     _macos_xpc_service = "macos_xpc_service",
 )
 load(
@@ -43,7 +41,6 @@ load(
 
 visibility("public")
 
-macos_spotlight_importer = _macos_spotlight_importer
 macos_xpc_service = _macos_xpc_service
 
 def macos_application(name, **kwargs):
@@ -67,19 +64,6 @@ def macos_bundle(name, **kwargs):
     features.append("link_cocoa")
 
     _macos_bundle(
-        name = name,
-        features = features,
-        **bundling_args
-    )
-
-def macos_kernel_extension(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS Kernel Extension."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.extend(["kernel_extension", "-lld_compatible"])
-
-    _macos_kernel_extension(
         name = name,
         features = features,
         **bundling_args
