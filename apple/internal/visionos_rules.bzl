@@ -21,6 +21,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 load(
     "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
@@ -746,7 +747,7 @@ def _visionos_dynamic_framework_impl(ctx):
                 libraries = provider.framework_files.to_list(),
             )
             additional_providers.extend([
-                apple_common.new_objc_provider(
+                ObjcInfo(
                     dynamic_framework_file = provider.framework_files,
                 ),
                 CcInfo(
