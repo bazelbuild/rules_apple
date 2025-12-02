@@ -153,9 +153,12 @@ def _has_app_intents_hint(aspect_hints):
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the App Intents aspect for transitive App Intents processing."""
 
-    # TODO: b/449684440 - Check for SwiftInfo instead of hardcoding the rule kind.
-    is_app_intents_swift_library = ctx.rule.kind == "swift_library" and _has_app_intents_hint(
-        ctx.rule.attr.aspect_hints,
+    is_app_intents_swift_target = (
+        SwiftInfo in target
+    ) and (
+        _has_app_intents_hint(
+            ctx.rule.attr.aspect_hints,
+        )
     )
 
     transitive_metadata_bundle_inputs = []
@@ -173,7 +176,7 @@ def _app_intents_aspect_impl(target, ctx):
             transitive_metadata_bundle_inputs.append(
                 app_intents_info.metadata_bundle_inputs,
             )
-            if not is_app_intents_swift_library:
+            if not is_app_intents_swift_target:
                 continue
 
             # Collect all of the direct module dependencies to establish dependencies for bundles.
@@ -192,7 +195,7 @@ def _app_intents_aspect_impl(target, ctx):
 
     # If this target is a swift_library with the App Intents hint, verify it's correct and generate
     # a provider to define required dependencies to generate a metadata bundle for this target.
-    if is_app_intents_swift_library:
+    if is_app_intents_swift_target:
         _verify_app_intents_dependency(target = target)
         label = ctx.label
         module_name = _find_valid_module_name(label = label, target = target)
