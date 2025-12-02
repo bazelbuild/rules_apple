@@ -23,6 +23,10 @@ load(
     "analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_bundle_archive_support_info_device_test.bzl",
+    "apple_bundle_archive_support_info_device_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -129,6 +133,15 @@ def watchos_application_test_suite(name):
         binary_test_architecture = "arm64",
         binary_not_contains_architectures = ["i386", "arm64e"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Tests that the WatchKit stub executable is referenced via the provider if we're building the
+    # iOS companion app as a tree artifact.
+    apple_bundle_archive_support_info_device_test(
+        name = "{}_bundle_archive_support_contains_stub_executable_device_test".format(name),
+        expected_archive_bundle_files = ["WatchKitSupport2/WK"],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
         tags = [name],
     )
 
