@@ -21,7 +21,15 @@ visibility([
 
 AppIntentsHintInfo = provider(
     doc = "Private provider to mark targets that are hinted to define AppIntents processing.",
-    fields = {},
+    fields = {
+        "static_metadata": """
+If `True`, the hinted target is expected to only provide "static metadata" for App Intents, which
+are explicitly used by the appintentsmetadataprocessor tool to declare a set of App Intents that
+will be inherited by a "main" "app_intents" hinted target in the build graph for a given top level
+target. This allows for sharing App Intents via swift_library targets without creating an ambiguous
+main source of truth for the App Intents metadata.
+""",
+    },
 )
 
 AppIntentsInfo = provider(
@@ -34,6 +42,10 @@ providers that must be processed at the top level bundling rule through the
 
 *   `direct_app_intents_modules`: A list of String-based module_name-s that must be included as
     dependencies in the generated App Intents metadata bundle.
+
+*   `is_static_metadata`: A Bool indicating if this metadata bundle input is a "static metadata"
+    bundle, which are intermediate outputs in the build expected to be referenced by a "main"
+    metadata bundle target with the `app_intents` hint in the build graph.
 
 *   `module_name`: A String representing the module name that these files belong to.
 

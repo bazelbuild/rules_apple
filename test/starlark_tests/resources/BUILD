@@ -994,13 +994,21 @@ swift_library(
 )
 
 swift_library(
+    name = "shared_library_widget_configuration_intent",
+    srcs = ["widget_configuration_intent.swift"],
+    aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
+    module_name = "FavoriteSoup",
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency",
     srcs = ["StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency.swift"],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
     module_name = "StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
-        ":widget_configuration_intent",
+        ":shared_library_widget_configuration_intent",
     ],
 )
 
@@ -1042,7 +1050,7 @@ swift_library(
 swift_library(
     name = "StaticLibraryAppIntentsPackage",
     srcs = ["StaticLibraryAppIntentsPackage.swift"],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
     module_name = "StaticLibraryAppIntentsPackage",
     tags = common.fixture_tags,
 )
@@ -1050,7 +1058,7 @@ swift_library(
 swift_library(
     name = "StaticLibraryAppIntentsPackageWithDependency",
     srcs = ["StaticLibraryAppIntentsPackageWithDependency.swift"],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
     module_name = "StaticLibraryAppIntentsPackageWithDependency",
     tags = common.fixture_tags,
     deps = [

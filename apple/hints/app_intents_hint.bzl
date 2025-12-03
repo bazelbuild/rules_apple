@@ -21,12 +21,25 @@ load(
 
 visibility("public")
 
-def _app_intents_hint_impl(_):
-    return [AppIntentsHintInfo()]
+def _app_intents_hint_impl(ctx):
+    return [AppIntentsHintInfo(static_metadata = ctx.attr.static_metadata)]
 
 app_intents_hint = rule(
     doc = """
 Rule to declare aspect hints appropriate for controlling App Intents processing for Apple rules.
 """,
+    attrs = {
+        "static_metadata": attr.bool(
+            default = False,
+            doc = """\
+If `True`, the hinted target is expected to only provide "static metadata" for App Intents, which
+are explicitly used by the appintentsmetadataprocessor tool to declare a set of App Intents that
+will be inherited by a "main" "app_intents" hinted target in the build graph for a given top level
+target. This allows for sharing App Intents via swift_library targets without creating an ambiguous
+main source of truth for the App Intents metadata.
+""",
+            mandatory = False,
+        ),
+    },
     implementation = _app_intents_hint_impl,
 )

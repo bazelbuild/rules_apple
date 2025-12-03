@@ -83,6 +83,7 @@ def _generate_metadata_bundle_inputs(
         *,
         direct_app_intents_modules,
         files,
+        is_static_metadata,
         label,
         module_name,
         target):
@@ -92,6 +93,8 @@ def _generate_metadata_bundle_inputs(
         direct_app_intents_modules: The direct module dependencies with other App Intents hinted
             modules that were found on this target.
         files: The files from the rule being evaluated by the aspect.
+        is_static_metadata: Whether the target provides static metadata App Intents, rather than act
+            as a "main" metadata App Intents target owned exclusively by a single bundle rule.
         label: The label of the target.
         module_name: The module name of the target.
         target: The target to generate the metadata bundle inputs for.
@@ -103,6 +106,7 @@ def _generate_metadata_bundle_inputs(
     return struct(
         direct_app_intents_modules = direct_app_intents_modules,
         module_name = module_name,
+        is_static_metadata = is_static_metadata,
         owner = str(label),
         swift_source_files = [f for f in files.srcs if f.extension == "swift"],
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
@@ -126,12 +130,13 @@ def _legacy_app_intents_aspect_impl(target, ctx):
                     _generate_metadata_bundle_inputs(
                         direct_app_intents_modules = [],
                         files = ctx.rule.files,
+                        is_static_metadata = False,
                         label = label,
                         module_name = module_name,
                         target = target,
                     ),
                 ],
-                order = "topological",
+                order = "postorder",
             ),
         ),
     ]
@@ -143,23 +148,26 @@ legacy_app_intents_aspect = aspect(
 
 _APP_INTENTS_ATTR_ASPECTS = ["deps", "private_deps"]
 
-def _has_app_intents_hint(aspect_hints):
-    """Returns True if the target has an AppIntentsHintInfo provider."""
+def _app_intents_hint_info(aspect_hints):
+    """Returns the AppIntentsHintInfo if the target has an AppIntentsHintInfo provider."""
+    app_intents_hint_target = None
     for hint in aspect_hints:
         if AppIntentsHintInfo in hint:
-            return True
-    return False
+            if app_intents_hint_target:
+                fail(("Conflicting App Intents hint info from aspect hints " +
+                      "'{hint1}' and '{hint2}'. Only one is allowed.").format(
+                    hint1 = str(app_intents_hint_target.label),
+                    hint2 = str(hint.label),
+                ))
+            app_intents_hint_target = hint
+    return app_intents_hint_target[AppIntentsHintInfo] if app_intents_hint_target else None
 
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the App Intents aspect for transitive App Intents processing."""
 
-    is_app_intents_swift_target = (
-        SwiftInfo in target
-    ) and (
-        _has_app_intents_hint(
-            ctx.rule.attr.aspect_hints,
-        )
-    )
+    app_intents_hint_info = None
+    if SwiftInfo in target:
+        app_intents_hint_info = _app_intents_hint_info(ctx.rule.attr.aspect_hints)
 
     transitive_metadata_bundle_inputs = []
 
@@ -176,7 +184,9 @@ def _app_intents_aspect_impl(target, ctx):
             transitive_metadata_bundle_inputs.append(
                 app_intents_info.metadata_bundle_inputs,
             )
-            if not is_app_intents_swift_target:
+
+            # Don't collect direct module dependencies if this target doesn't define App Intents.
+            if not app_intents_hint_info:
                 continue
 
             # Collect all of the direct module dependencies to establish dependencies for bundles.
@@ -195,13 +205,14 @@ def _app_intents_aspect_impl(target, ctx):
 
     # If this target is a swift_library with the App Intents hint, verify it's correct and generate
     # a provider to define required dependencies to generate a metadata bundle for this target.
-    if is_app_intents_swift_target:
+    if app_intents_hint_info:
         _verify_app_intents_dependency(target = target)
         label = ctx.label
         module_name = _find_valid_module_name(label = label, target = target)
         direct_metadata_bundle_input = _generate_metadata_bundle_inputs(
             direct_app_intents_modules = direct_app_intents_modules,
             files = ctx.rule.files,
+            is_static_metadata = app_intents_hint_info.static_metadata,
             label = label,
             module_name = module_name,
             target = target,
@@ -210,7 +221,7 @@ def _app_intents_aspect_impl(target, ctx):
             metadata_bundle_inputs = depset(
                 [direct_metadata_bundle_input],
                 transitive = transitive_metadata_bundle_inputs,
-                order = "topological",
+                order = "postorder",
             ),
         )]
 
@@ -219,7 +230,7 @@ def _app_intents_aspect_impl(target, ctx):
         return [AppIntentsInfo(
             metadata_bundle_inputs = depset(
                 transitive = transitive_metadata_bundle_inputs,
-                order = "topological",
+                order = "postorder",
             ),
         )]
 

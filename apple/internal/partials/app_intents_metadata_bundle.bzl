@@ -104,11 +104,18 @@ def _find_exclusively_owned_metadata_bundle_inputs(
         metadata_bundles_to_avoid: A list of metadata bundles that should be ignored, typically
             because they are owned by frameworks.
     Returns:
-        A single metadata bundle input that is exclusively owned by dependencies of the current
-        rule if it exists. If more than one exclusively owned metadata bundle input was found, or
-        if no exclusively owned metadata bundle input was found, a failure is reported to the user.
+        A tuple of:
+
+        *   A single "main" metadata bundle input that is exclusively owned by dependencies of the
+            current rule if it exists.
+
+        *   A list of all "static" metadata bundle inputs that were found on the current rule.
+
+        If more than one exclusively owned "main" metadata bundle input was found, or if no
+        exclusively owned metadata bundle input was found, a failure is reported to the user.
     """
-    owned_metadata_bundle_inputs = []
+    main_owned_metadata_bundle_inputs = []
+    static_metadata_owned_bundle_inputs = []
 
     avoid_owners = [x.owner for x in metadata_bundles_to_avoid]
 
@@ -118,15 +125,21 @@ def _find_exclusively_owned_metadata_bundle_inputs(
             app_intents_info.metadata_bundle_inputs
             for app_intents_info in app_intents_infos
         ],
-        order = "topological",
+        order = "postorder",
     )
 
     for metadata_bundle_input in metadata_bundle_inputs.to_list():
         owner = metadata_bundle_input.owner
-        if owner not in avoid_owners:
-            owned_metadata_bundle_inputs.append(metadata_bundle_input)
+        if owner in avoid_owners:
+            continue
+        if metadata_bundle_input.is_static_metadata:
+            if not enable_wip_features:
+                continue
+            static_metadata_owned_bundle_inputs.append(metadata_bundle_input)
+        else:
+            main_owned_metadata_bundle_inputs.append(metadata_bundle_input)
 
-    if len(owned_metadata_bundle_inputs) == 0:
+    if len(main_owned_metadata_bundle_inputs) == 0:
         fail("""
 Error: Expected one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but only found {number_of_inputs} targets defining App Intents owned by \
@@ -147,7 +160,7 @@ exclusively to the given top level Apple target via the "aspect_hints" attribute
             label = str(label),
             number_of_inputs = len(avoid_owners),
         ))
-    elif len(owned_metadata_bundle_inputs) != 1 and not enable_wip_features:
+    if len(main_owned_metadata_bundle_inputs) != 1:
         fail("""
 Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but found {number_of_inputs} targets defining App Intents instead.
@@ -163,16 +176,19 @@ App Intents can also be shared via AppIntentsPackage APIs from a dynamic framewo
 extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
 for more information: https://developer.apple.com/documentation/appintents/appintentspackage
 
+AppIntentsPackage APIs can also be used to declare App Intents for shared swift_library targets,
+using the "shared_library_app_intents" aspect hint attribute.
+
 {app_intents_hint_docs}
 """.format(
             app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
             app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
-            bundle_owners = "\n- ".join([x.owner for x in owned_metadata_bundle_inputs]),
+            bundle_owners = "\n- ".join([x.owner for x in main_owned_metadata_bundle_inputs]),
             label = str(label),
-            number_of_inputs = len(owned_metadata_bundle_inputs),
+            number_of_inputs = len(main_owned_metadata_bundle_inputs),
         ))
 
-    return owned_metadata_bundle_inputs
+    return main_owned_metadata_bundle_inputs[0], static_metadata_owned_bundle_inputs
 
 def _app_intents_metadata_bundle_partial_impl(
         *,
@@ -219,7 +235,7 @@ def _app_intents_metadata_bundle_partial_impl(
                 providers = [AppIntentsBundleInfo(
                     owned_metadata_bundles = depset(
                         transitive = owned_embedded_metadata_bundles,
-                        order = "topological",
+                        order = "postorder",
                     ),
                 )],
             )
@@ -230,16 +246,18 @@ def _app_intents_metadata_bundle_partial_impl(
     # Remove deps found from dependent bundle deps before determining if we have the right number of
     # AppIntentsInfo providers. Reusing the concept of "owners" from resources, where the owner is
     # a String based on the label of the swift_library target that provided the metadata bundle.
-    metadata_bundle_inputs = _find_exclusively_owned_metadata_bundle_inputs(
-        app_intents_infos = app_intents_infos,
-        enable_wip_features = enable_wip_features,
-        label = label,
-        metadata_bundles_to_avoid = [
-            p
-            for x in frameworks
-            if AppIntentsBundleInfo in x
-            for p in x[AppIntentsBundleInfo].owned_metadata_bundles.to_list()
-        ],
+    main_metadata_bundle_input, static_metadata_bundle_inputs = (
+        _find_exclusively_owned_metadata_bundle_inputs(
+            app_intents_infos = app_intents_infos,
+            enable_wip_features = enable_wip_features,
+            label = label,
+            metadata_bundles_to_avoid = [
+                p
+                for x in frameworks
+                if AppIntentsBundleInfo in x
+                for p in x[AppIntentsBundleInfo].owned_metadata_bundles.to_list()
+            ],
+        )
     )
 
     target_triples = [
@@ -248,7 +266,7 @@ def _app_intents_metadata_bundle_partial_impl(
     ]
 
     static_library_metadata_bundle_outputs = []
-    for metadata_bundle_input in metadata_bundle_inputs[:-1]:
+    for metadata_bundle_input in static_metadata_bundle_inputs:
         # Generate bundles for static libraries with the same bundle identifier as the main bundle.
         static_library_metadata_bundle_outputs.append(
             generate_app_intents_metadata_bundle(
@@ -274,10 +292,9 @@ def _app_intents_metadata_bundle_partial_impl(
             ),
         )
 
-    # The last one found - and "nearest" to the top level target - will be our "main" metadata
-    # bundle. This will also be the metadata bundle that other top level bundles will have to
-    # declare dependencies on whether this is an extension or a framework per Xcode 16+ behavior.
-    main_metadata_bundle_input = metadata_bundle_inputs[-1]
+    # The sole exclusively owned metadata bundle input will always be our "main" metadata bundle.
+    # This will also be the metadata bundle that other top level bundles will have to declare
+    # dependencies on whether this is an extension or a framework per Xcode 16+ behavior.
     metadata_bundle_output = generate_app_intents_metadata_bundle(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -308,7 +325,7 @@ def _app_intents_metadata_bundle_partial_impl(
         owned_metadata_bundles = depset(
             direct = static_library_metadata_bundle_outputs + [metadata_bundle_output],
             transitive = owned_embedded_metadata_bundles,
-            order = "topological",
+            order = "postorder",
         ),
     )]
 

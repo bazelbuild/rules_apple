@@ -28,6 +28,11 @@ app_intents_hint(
     name = "app_intents_hint",
 )
 
+app_intents_hint(
+    name = "shared_library_app_intents_hint",
+    static_metadata = True,
+)
+
 apple_resource_hint(
     name = "realitykit_library_hint",
     needs_swift_srcs = True,
