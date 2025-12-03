@@ -18,7 +18,6 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load(
     "//apple:common.bzl",
     "entitlements_validation_mode",
@@ -30,10 +29,6 @@ load(
 load(
     "//apple/internal:bundling_support.bzl",
     "bundling_support",
-)
-load(
-    "//apple/internal:providers.bzl",
-    "ApplePlatformInfo",
 )
 load(
     "//apple/internal:resource_actions.bzl",
@@ -203,7 +198,6 @@ def _extract_signing_info(
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_id,
         cc_configured_features_init,
         cc_toolchains,
@@ -236,8 +230,6 @@ def _process_entitlements(
         actions: The object used to register actions.
         apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
-        apple_xplat_toolchain_info: The `struct` of tools from the shared Apple
-            cross platform toolchain.
         bundle_id: The bundle identifier.
         cc_configured_features_init: The function to initialize the feature configuration for a
             given cc_toolchain.
@@ -284,36 +276,23 @@ def _process_entitlements(
         app_clip = {"com.apple.developer.on-demand-install-capable": True}
         forced_plists.append(struct(**app_clip))
     if secure_features:
-        all_secure_features_entitlements = dict()
-        for cc_toolchain in cc_toolchains.values():
-            cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
+        # Check that the requested secure features are supported and enabled for the toolchain.
+        secure_features_support.validate_secure_features_support(
+            cc_configured_features_init = cc_configured_features_init,
+            cc_toolchain_forwarder = cc_toolchains,
+            rule_label = rule_label,
+            secure_features = secure_features,
+        )
 
-            # Calculate the effective set of Crosstool features for this toolchain, as we do want to
-            # double check that the secure features are supported and enabled.
-            feature_configuration = cc_configured_features_init(
-                cc_toolchain = cc_toolchain_info,
-                language = "objc",
-            )
-
-            # Check that the requested secure features are supported and enabled for the toolchain.
-            secure_features_support.validate_secure_features_support(
-                cc_toolchain_info = cc_toolchain_info,
-                feature_configuration = feature_configuration,
-                platform_info = cc_toolchain[ApplePlatformInfo],
-                rule_label = rule_label,
+        # Retrieve the entitlements required by the requested secure features, if there are any.
+        secure_features_entitlements = (
+            secure_features_support.entitlements_from_secure_features(
                 secure_features = secure_features,
+                xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
             )
-
-            # Retrieve the entitlements required by the requested secure features, if there are any.
-            secure_features_entitlements = (
-                secure_features_support.entitlements_from_secure_features(
-                    secure_features = secure_features,
-                    xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
-                )
-            )
-            all_secure_features_entitlements.update(secure_features_entitlements)
-        if all_secure_features_entitlements:
-            forced_plists.append(struct(**all_secure_features_entitlements))
+        )
+        if secure_features_entitlements:
+            forced_plists.append(struct(**secure_features_entitlements))
 
     inputs = list(plists)
 

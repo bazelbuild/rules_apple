@@ -1504,6 +1504,45 @@ tvos_application(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+tvos_static_framework(
+    name = "enhanced_security_static_fmwk_with_rule_level_disabled_features",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    features = [
+        "-apple.xcode_26_minimum_opt_in",
+        "-trivial_auto_var_init",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_static_framework(
+    name = "pointer_authentication_static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 
 tvos_application(

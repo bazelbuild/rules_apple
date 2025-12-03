@@ -3062,6 +3062,41 @@ apple_static_xcframework(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+macos_dylib(
+    name = "simple_enhanced_security_dylib_with_rule_level_disabled_features",
+    features = [
+        "-apple.xcode_26_minimum_opt_in",
+        "-trivial_auto_var_init",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_dylib(
+    name = "pointer_authentication_dylib",
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
 # Tests for the `building_apple_bundle` build setting.
 
 config_setting(

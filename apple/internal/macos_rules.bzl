@@ -125,6 +125,10 @@ load(
     "run_support",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -230,7 +234,6 @@ def _macos_application_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -547,7 +550,6 @@ def _macos_bundle_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -799,7 +801,6 @@ def _macos_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1085,7 +1086,6 @@ def _macos_quick_look_plugin_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1336,7 +1336,6 @@ def _macos_kernel_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1591,7 +1590,6 @@ def _macos_spotlight_importer_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1836,7 +1834,6 @@ def _macos_xpc_service_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -2195,6 +2192,7 @@ def _macos_dylib_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -2217,6 +2215,15 @@ def _macos_dylib_impl(ctx):
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
+    secure_features = ctx.attr.secure_features
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = label,
+        secure_features = secure_features,
+    )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -2795,7 +2802,7 @@ An `apple_bundle_version` target that represents the version for this target. Se
 )
 
 macos_dylib = rule_factory.create_apple_rule(
-    doc = "Builds a macOS Dylib binary.",
+    doc = "Builds a macOS dynamic library.",
     implementation = _macos_dylib_impl,
     attrs = [
         apple_support.platform_constraint_attrs(),
@@ -2826,6 +2833,12 @@ A list of .plist files that will be merged to form the Info.plist that represent
 and is embedded into the binary. Please see
 [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
             "version": attr.label(
@@ -3772,6 +3785,12 @@ An optional single .h file to use as the umbrella header for this framework. Usu
 will have the same name as this target, so that clients can load the header using the #import
 <MyFramework/MyFramework.h> format. If this attribute is not specified (the common use case), an
 umbrella header will be generated under the same name as this target.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
         },

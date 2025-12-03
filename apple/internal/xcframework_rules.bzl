@@ -97,6 +97,10 @@ load(
     "rule_support",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -613,7 +617,7 @@ def _create_framework_outputs(
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_name,
-        cc_configured_features_init = None,
+        cc_configured_features_init,
         cc_toolchain_forwarder,
         config_vars,
         cpp_fragment,
@@ -1225,6 +1229,7 @@ def _apple_xcframework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
@@ -1266,9 +1271,14 @@ def _apple_xcframework_impl(ctx):
     features.append("disable_legacy_signing")
 
     secure_features = ctx.attr.secure_features
-    if secure_features:
-        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
 
     _validate_resource_attrs(
         all_attrs = ctx.attr,
@@ -1350,8 +1360,8 @@ def _apple_xcframework_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
-        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         environment_plist_files = environment_plist_files,
@@ -1368,8 +1378,8 @@ def _apple_xcframework_impl(ctx):
         objc_fragment = objc_fragment,
         public_hdr_files = public_hdr_files,
         umbrella_header = umbrella_header,
-        version = version,
         tree_artifact_is_enabled = tree_artifact_is_enabled,
+        version = version,
         xcode_version_config = xcode_version_config,
     )
 
@@ -1657,6 +1667,7 @@ def _apple_static_xcframework_impl(ctx):
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_format = ctx.attr.bundle_format
     bundle_name = ctx.attr.bundle_name or ctx.label.name
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
@@ -1704,9 +1715,14 @@ def _apple_static_xcframework_impl(ctx):
     features.append("disable_legacy_signing")
 
     secure_features = ctx.attr.secure_features
-    if secure_features:
-        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
@@ -1741,7 +1757,8 @@ def _apple_static_xcframework_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_name = bundle_name,
-            cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+            cc_configured_features_init = cc_configured_features_init,
+            cc_toolchain_forwarder = cc_toolchain_forwarder,
             config_vars = config_vars,
             cpp_fragment = cpp_fragment,
             environment_plist_files = environment_plist_files,

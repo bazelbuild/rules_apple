@@ -116,6 +116,10 @@ load(
     "run_support",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -214,7 +218,6 @@ def _tvos_application_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1079,7 +1082,6 @@ def _tvos_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1316,6 +1318,7 @@ def _tvos_static_framework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     avoid_deps = ctx.attr.avoid_deps
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.attr.deps
     label = ctx.label
@@ -1346,6 +1349,16 @@ def _tvos_static_framework_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     resource_deps = ctx.attr.deps + ctx.attr.resources
+
+    secure_features = ctx.attr.secure_features
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = label,
+        secure_features = secure_features,
+    )
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
@@ -1793,6 +1806,12 @@ fashion, such as a Cocoapod.
 A list of `.h` files that will be publicly exposed by this framework. These headers should have
 framework-relative imports, and if non-empty, an umbrella header named `%{bundle_name}.h` will also
 be generated that imports all of the headers listed here.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
             "umbrella_header": attr.label(

@@ -234,7 +234,6 @@ Resolved Xcode is version {xcode_version}.
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,
@@ -1135,7 +1134,6 @@ def _visionos_extension_impl(ctx):
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
         cc_toolchains = cc_toolchain_forwarder,

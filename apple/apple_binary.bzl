@@ -25,6 +25,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -40,6 +44,10 @@ load(
 load(
     "//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "//apple/internal:transition_support.bzl",
@@ -76,12 +84,19 @@ Resolved Xcode is version {xcode_version}.
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
+    rule_label = ctx.label
     secure_features = ctx.attr.secure_features
-    if secure_features:
-        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
 
     extra_linkopts = []
 
@@ -111,7 +126,7 @@ Resolved Xcode is version {xcode_version}.
         cc_toolchains = cc_toolchain_forwarder,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
-        bundle_name = ctx.label.name,
+        bundle_name = rule_label.name,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
