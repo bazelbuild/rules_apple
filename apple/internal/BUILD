@@ -224,7 +224,6 @@ bzl_library(
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
-        "@rules_cc//cc/common",
     ],
 )
 
@@ -326,6 +325,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":secure_features_support",
         ":stub_support",
         ":swift_support",
         ":transition_support",
@@ -413,6 +413,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":secure_features_support",
         ":swift_support",
         ":transition_support",
         "//apple:providers",
@@ -640,9 +641,10 @@ bzl_library(
     name = "secure_features_support",
     srcs = ["secure_features_support.bzl"],
     visibility = [
-        "//apple/internal:__subpackages__",
+        "//apple:__subpackages__",
     ],
     deps = [
+        ":providers",
         "@rules_cc//cc/common",
     ],
 )
@@ -729,6 +731,7 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
+        ":secure_features_support",
         ":swift_support",
         ":transition_support",
         "//apple:providers",
@@ -843,6 +846,7 @@ bzl_library(
         ":rule_attrs",
         ":rule_factory",
         ":rule_support",
+        ":secure_features_support",
         ":swift_support",
         ":transition_support",
         "//apple:providers",

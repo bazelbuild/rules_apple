@@ -15,6 +15,10 @@
 """ios_static_framework Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -286,6 +290,49 @@ def ios_static_framework_test_suite(name):
         not_contains = ["$BUNDLE_ROOT/Info.plist"],
         asset_catalog_test_file = "$BUNDLE_ROOT/Assets.car",
         asset_catalog_test_contains = ["star"],
+        tags = [name],
+    )
+
+    # Tests secure features support for pointer authentication retains both the arm64 and arm64e
+    # slices.
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:pointer_authentication_static_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/pointer_authentication_static_fmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:pointer_authentication_static_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/pointer_authentication_static_fmwk",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    # Tests secure features support for validating features at the rule level.
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:enhanced_security_static_fmwk_with_rule_level_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `{target}`".format(
+            target = Label("//test/starlark_tests/targets_under_test/ios:enhanced_security_static_fmwk_with_rule_level_disabled_features"),
+        ),
         tags = [name],
     )
 
