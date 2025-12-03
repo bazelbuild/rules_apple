@@ -15,6 +15,10 @@
 """apple_static_library Starlark implementation"""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -32,6 +36,10 @@ load(
     "rule_factory",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
@@ -40,18 +48,14 @@ load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 visibility("public")
 
 def _apple_static_library_impl(ctx):
-    # Most validation of the platform type and minimum version OS currently happens in
-    # `transition_support.apple_platform_split_transition`, either implicitly through native
-    # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
-
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    rule_label = ctx.label
     secure_features = ctx.attr.secure_features
-    if secure_features:
-        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-            fail("secure_features are still a work in progress and not yet supported in the rules.")
 
-    # Validate that the resolved platform matches the platform_type attr.
-    for toolchain_key, resolved_toolchain in ctx.split_attr._cc_toolchain_forwarder.items():
-        if resolved_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
+    for toolchain_key, cc_toolchain in cc_toolchain_forwarder.items():
+        # Validate that the resolved platform matches the platform_type attr.
+        if cc_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
             fail("""
 ERROR: Unexpected resolved platform:
 Expected Apple platform type of "{platform_type}", but that was not found in {toolchain_key}.
@@ -60,7 +64,14 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
                 toolchain_key = toolchain_key,
             ))
 
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
+
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
         cc_toolchains = cc_toolchain_forwarder,

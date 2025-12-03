@@ -450,6 +450,40 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "ios_dynamic_lipoed_xcframework_with_disabled_features",
+    bundle_id = "com.google.example",
+    features = [
+        "-apple.xcode_26_minimum_opt_in",
+        "-trivial_auto_var_init",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
     name = "ios_dynamic_lipoed_swift_xcframework",
     bundle_id = "com.google.example",
     infoplists = [
@@ -1603,6 +1637,61 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_pointer_authentication",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "secure_features_ios_static_xcframework_with_rule_level_disabled_features",
+    features = [
+        "-apple.xcode_26_minimum_opt_in",
+        "-trivial_auto_var_init",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],

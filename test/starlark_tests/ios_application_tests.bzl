@@ -21,7 +21,6 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
-    "analysis_failure_message_with_wip_features_test",
     "make_analysis_failure_message_test",
 )
 load(
@@ -1506,7 +1505,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
-    analysis_failure_message_with_wip_features_test(
+    analysis_failure_message_test(
         name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features",
         expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_rule_level_disabled_features`",

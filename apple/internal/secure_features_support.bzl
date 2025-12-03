@@ -14,10 +14,14 @@
 
 """Enhanced security feature support methods."""
 
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "ApplePlatformInfo",
+)
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility([
-    "@build_bazel_rules_apple//apple/internal/...",
+    "@build_bazel_rules_apple//apple/...",
 ])
 
 # The name of the secure feature that's required for opting into any set of enhanced security
@@ -200,32 +204,49 @@ def _environment_archs_from_secure_features(
 
 def _validate_secure_features_support(
         *,
-        cc_toolchain_info,
-        feature_configuration,
-        platform_info,
+        cc_configured_features_init,
+        cc_toolchain_forwarder,
         rule_label,
         secure_features):
-    # If the feature is an Apple crosstool feature (i.e. NOT prefixed with "apple."), check that the
-    # feature is explicitly enabled in the current configuration.
-    crosstool_secure_features = [
-        feature_name
-        for feature_name in secure_features
-        if not feature_name.startswith("apple.")
-    ]
-    for feature_name in crosstool_secure_features:
-        if feature_name == "pointer_authentication" and platform_info.target_arch != "arm64e":
-            # Pointer authentication is only applied to arm64e, so the check will fail for any other
-            # architecture since we're dropping that feature for non-arm64e at this time.
-            continue
+    if not secure_features:
+        return
 
-        if not (
-            cc_common.is_enabled(
-                feature_configuration = feature_configuration,
-                feature_name = feature_name,
-            )
-        ):
-            fail(
-                """
+    if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+        fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+    for cc_toolchain in cc_toolchain_forwarder.values():
+        cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
+
+        # Calculate the effective set of Crosstool features for this toolchain, as we do want to
+        # double check that the secure features are supported and enabled.
+        feature_configuration = cc_configured_features_init(
+            cc_toolchain = cc_toolchain_info,
+            language = "objc",
+        )
+
+        # If the feature is an Apple crosstool feature (i.e. NOT prefixed with "apple."), check that
+        # the feature is explicitly enabled in the current configuration.
+        crosstool_secure_features = [
+            feature_name
+            for feature_name in secure_features
+            if not feature_name.startswith("apple.")
+        ]
+        for feature_name in crosstool_secure_features:
+            if feature_name == "pointer_authentication" and (
+                cc_toolchain[ApplePlatformInfo].target_arch != "arm64e"
+            ):
+                # Pointer authentication is only applied to arm64e, so the check will fail for any
+                # other architecture since we're dropping that feature for non-arm64e at this time.
+                continue
+
+            if not (
+                cc_common.is_enabled(
+                    feature_configuration = feature_configuration,
+                    feature_name = feature_name,
+                )
+            ):
+                fail(
+                    """
 Attempted to enable the secure feature `{feature_name}` for the target at `{rule_label}` with the \
 target triple '{target_triple}', but it appears to be disabled.
 
@@ -233,12 +254,12 @@ Check that the selected toolchain supports `{feature_name}` and that your invoca
 attempting to explicitly disable the feature via minus prefixed feature names, such as \
 `--features=-{feature_name}`, and that the rule is not attempting to disable the feature via the \
 `features` attribute by assigning a `-{feature_name}` value.
-                """.format(
-                    target_triple = cc_toolchain_info.target_gnu_system_name,
-                    feature_name = feature_name,
-                    rule_label = str(rule_label),
-                ),
-            )
+                    """.format(
+                        target_triple = cc_toolchain_info.target_gnu_system_name,
+                        feature_name = feature_name,
+                        rule_label = str(rule_label),
+                    ),
+                )
 
 secure_features_support = struct(
     crosstool_features_from_secure_features = _crosstool_features_from_secure_features,

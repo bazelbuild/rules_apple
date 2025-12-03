@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -34,6 +38,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
@@ -67,14 +75,21 @@ def _linker_flag_for_sdk_dylib(dylib):
 def _apple_binary_impl(ctx):
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
+    rule_label = ctx.label
     secure_features = ctx.attr.secure_features
-    if secure_features:
-        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
 
     extra_linkopts = []
     extra_requested_features = []
@@ -102,7 +117,7 @@ def _apple_binary_impl(ctx):
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
-        bundle_name = ctx.label.name,
+        bundle_name = rule_label.name,
         cc_toolchains = cc_toolchain_forwarder,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,

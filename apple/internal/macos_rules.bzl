@@ -103,6 +103,10 @@ load(
     "run_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -1494,6 +1498,7 @@ def _macos_dylib_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -1514,6 +1519,15 @@ def _macos_dylib_impl(ctx):
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
+    secure_features = ctx.attr.secure_features
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = label,
+        secure_features = secure_features,
+    )
 
     extra_link_inputs = []
     extra_linkopts = []
@@ -1897,7 +1911,7 @@ An `apple_bundle_version` target that represents the version for this target. Se
 
 macos_dylib = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,
-    doc = "Builds a macOS Dylib binary.",
+    doc = "Builds a macOS dynamic library.",
     implementation = _macos_dylib_impl,
     attrs = [
         apple_support.platform_constraint_attrs(),
@@ -1922,6 +1936,12 @@ macos_dylib = rule_factory.create_apple_rule(
 The provisioning profile (`.provisionprofile` file) to use when creating the bundle. This value is
 optional for simulator builds as the simulator doesn't fully enforce entitlements, but is
 required for device builds.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
         },

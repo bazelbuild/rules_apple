@@ -1121,6 +1121,35 @@ Check the rule definition for each of the dependencies to ensure that they have 
         tags = [name],
     )
 
+    # Tests secure features support for pointer authentication retains both the arm64 and arm64e
+    # slices.
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    # Tests secure features support for validating features at the rule level.
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework_with_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework_with_disabled_features`",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
