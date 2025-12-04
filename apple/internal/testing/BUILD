@@ -62,7 +62,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:features_support",
         "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
     ],
 )
