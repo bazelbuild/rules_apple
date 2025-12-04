@@ -340,6 +340,12 @@ binaries/libraries will be created combining all architectures specified by
 def _test_bundle_attrs():
     """Attributes required for rules that are built to support test rules like ios_unit_test."""
     return {
+        "secure_features": attr.string_list(
+            doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this test bundle, independent of the test host (if any).
+""",
+        ),
         # We need to add an explicit output attribute so that the output file name from the test
         # bundle target matches the test name, otherwise, it we'd be breaking the assumption that
         # ios_unit_test(name = "Foo") creates a :Foo.zip target.
