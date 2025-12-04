@@ -34,6 +34,7 @@ bzl_library(
         "//apple/internal:providers",
         "//apple/internal:resources",
         "//apple/internal:rule_support",
+        "//apple/internal:secure_features_support",
         "//apple/internal:swift_support",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",

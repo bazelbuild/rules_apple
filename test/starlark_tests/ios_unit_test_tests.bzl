@@ -275,9 +275,39 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
-    # TODO: b/449684779 - Check how enhanced security entitlements propagate from test to test host.
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_with_pointer_authentication_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_unit_test",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_with_pointer_authentication_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_unit_test",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
 
-    # TODO: b/449684779 - Use arm64e support to test binary contents and how they propagate.
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_unit_test_with_rule_level_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_unit_test_with_rule_level_disabled_features.__internal__.__test_bundle`",
+        tags = [name],
+    )
 
     native.test_suite(
         name = name,

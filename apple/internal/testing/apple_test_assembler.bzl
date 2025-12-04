@@ -36,6 +36,7 @@ _BUNDLE_ATTRS = {
         "provisioning_profile",
         "resources",
         "resource_locales",
+        "secure_features",
         "stamp",
     ]
 }

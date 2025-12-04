@@ -71,6 +71,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -368,6 +372,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -393,6 +398,14 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         label = label,
         platform_prerequisites = platform_prerequisites,
         test_host = test_host,
+    )
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = label,
+        secure_features = ctx.attr.secure_features,
     )
 
     predeclared_outputs = ctx.outputs
