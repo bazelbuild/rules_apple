@@ -62,11 +62,13 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:apple_product_type",
+        "//apple/internal:features_support",
         "//apple/internal:partials",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_support",
+        "//apple/internal:secure_features_support",
         "//apple/internal:swift_support",
         "//apple/internal:transition_support",
         "//apple/internal/aspects:resource_aspect",

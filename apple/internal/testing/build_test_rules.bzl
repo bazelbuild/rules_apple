@@ -27,6 +27,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:partials.bzl",
     "partials",
 )
@@ -46,6 +50,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:rule_support.bzl",
     "rule_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
@@ -85,6 +93,17 @@ def _apple_build_test_rule_impl(ctx):
             "The 'platform_type' attribute of '{}' is an implementation " +
             "detail and will be removed in the future; do not change it."
         ).format(ctx.attr._platform_type + "_build_test"))
+
+    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features_init = cc_configured_features_init,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = ctx.label,
+        secure_features = ctx.attr.secure_features,
+    )
 
     targets = ctx.attr.targets
     for target in targets:
@@ -170,16 +189,23 @@ def apple_build_test_rule(doc, platform_type):
     return rule(
         attrs = apple_support.platform_constraint_attrs() |
                 rule_attrs.common_attrs() |
+                rule_attrs.static_library_archive_attrs(
+                    # Matching "targets" below.
+                    deps_cfg = transition_support.apple_platform_split_transition,
+                ) |
                 rule_attrs.platform_attrs(
                     platform_type = platform_type,
                     add_environment_plist = True,
                 ) | {
-            # TODO: b/449684779 - Add a "secure_features" attribute to set required Clang features
-            # for the purposes of build testing. Don't concern ourselves with setting entitlements
-            # as they should not be necessary for validating compile time behavior.
             "_platform_type": attr.string(
                 default = platform_type,
                 doc = "The platform type for which the test should build its targets.",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
+""",
             ),
             "targets": attr.label_list(
                 allow_empty = False,
