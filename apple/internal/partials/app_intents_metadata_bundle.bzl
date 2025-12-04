@@ -32,6 +32,7 @@ visibility("@build_bazel_rules_apple//apple/...")
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
 _APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."
 _LEGACY_APP_INTENTS_ALLOWLIST = []
+_SHARED_LIBRARY_APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:shared_library_app_intents_hint"
 
 def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
     """Finds the AppIntentsInfo providers from the given app_intents.
@@ -92,14 +93,12 @@ swift_library target from the deprecated app_intents attribute found at {label}.
 def _find_exclusively_owned_metadata_bundle_inputs(
         *,
         app_intents_infos,
-        enable_wip_features,
         label,
         metadata_bundles_to_avoid):
     """Find the expected metadata bundle owned by the current rule that isn't in targets to avoid.
 
     Args:
         app_intents_infos: A list of AppIntentsInfo providers.
-        enable_wip_features: Whether to enable WIP features.
         label: The label of the current rule.
         metadata_bundles_to_avoid: A list of metadata bundles that should be ignored, typically
             because they are owned by frameworks.
@@ -133,13 +132,12 @@ def _find_exclusively_owned_metadata_bundle_inputs(
         if owner in avoid_owners:
             continue
         if metadata_bundle_input.is_static_metadata:
-            if not enable_wip_features:
-                continue
             static_metadata_owned_bundle_inputs.append(metadata_bundle_input)
         else:
             main_owned_metadata_bundle_inputs.append(metadata_bundle_input)
 
-    if len(main_owned_metadata_bundle_inputs) == 0:
+    if (len(main_owned_metadata_bundle_inputs) == 0 and
+        len(static_metadata_owned_bundle_inputs) == 0):
         fail("""
 Error: Expected one swift_library defining App Intents exclusive to the given top level Apple \
 target at {label}, but only found {number_of_inputs} targets defining App Intents owned by \
@@ -148,7 +146,7 @@ frameworks.
 App Intents bundles were defined by the following framework-referenced targets:
 - {bundle_owners}
 
-Please ensure that a single "swift_library" target is marked as providing App Intents metadata \
+Please ensure that one "swift_library" target is marked as providing App Intents metadata \
 exclusively to the given top level Apple target via the "aspect_hints" attribute with \
 {app_intents_hint_target}.
 
@@ -160,6 +158,36 @@ exclusively to the given top level Apple target via the "aspect_hints" attribute
             label = str(label),
             number_of_inputs = len(avoid_owners),
         ))
+
+    if (len(main_owned_metadata_bundle_inputs) == 0 and
+        len(static_metadata_owned_bundle_inputs) > 0):
+        shared_library_metadata_owners = [x.owner for x in static_metadata_owned_bundle_inputs]
+        fail("""
+Error: Expected one swift_library defining App Intents exclusive to the given top level Apple \
+target at {label}, but only found {number_of_inputs} targets defining App Intents owned by \
+shared libraries.
+
+Shared library App Intents were defined by the following targets:
+- {shared_library_metadata_owners}
+
+Please ensure that one "swift_library" target is marked as providing App Intents metadata \
+exclusively to the given top level Apple target via the "aspect_hints" attribute with \
+{app_intents_hint_target} to indicate that it is the main target for App Intents.
+
+That target should have direct references to all the other App Intents defined by shared libraries \
+with {shared_library_app_intents_hint_target} that it depends on via "deps" and the \
+"includedPackages" within the Swift sources defining the AppIntentsPackage conformances.
+
+{app_intents_hint_docs}
+""".format(
+            app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
+            app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
+            shared_library_metadata_owners = "\n- ".join(shared_library_metadata_owners),
+            label = str(label),
+            number_of_inputs = len(static_metadata_owned_bundle_inputs),
+            shared_library_app_intents_hint_target = _SHARED_LIBRARY_APP_INTENTS_HINT_TARGET,
+        ))
+
     if len(main_owned_metadata_bundle_inputs) != 1:
         fail("""
 Error: Expected only one swift_library defining App Intents exclusive to the given top level Apple \
@@ -177,7 +205,7 @@ extensions and other frameworks in Xcode 16+. Please refer to the Apple App Inte
 for more information: https://developer.apple.com/documentation/appintents/appintentspackage
 
 AppIntentsPackage APIs can also be used to declare App Intents for shared swift_library targets,
-using the "shared_library_app_intents" aspect hint attribute.
+using the {shared_library_app_intents_hint_target} aspect hint.
 
 {app_intents_hint_docs}
 """.format(
@@ -186,6 +214,7 @@ using the "shared_library_app_intents" aspect hint attribute.
             bundle_owners = "\n- ".join([x.owner for x in main_owned_metadata_bundle_inputs]),
             label = str(label),
             number_of_inputs = len(main_owned_metadata_bundle_inputs),
+            shared_library_app_intents_hint_target = _SHARED_LIBRARY_APP_INTENTS_HINT_TARGET,
         ))
 
     return main_owned_metadata_bundle_inputs[0], static_metadata_owned_bundle_inputs
@@ -195,7 +224,6 @@ def _app_intents_metadata_bundle_partial_impl(
         actions,
         app_intents,
         apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
         frameworks,
@@ -241,15 +269,12 @@ def _app_intents_metadata_bundle_partial_impl(
             )
         return struct()
 
-    enable_wip_features = apple_xplat_toolchain_info.build_settings.enable_wip_features
-
     # Remove deps found from dependent bundle deps before determining if we have the right number of
     # AppIntentsInfo providers. Reusing the concept of "owners" from resources, where the owner is
     # a String based on the label of the swift_library target that provided the metadata bundle.
     main_metadata_bundle_input, static_metadata_bundle_inputs = (
         _find_exclusively_owned_metadata_bundle_inputs(
             app_intents_infos = app_intents_infos,
-            enable_wip_features = enable_wip_features,
             label = label,
             metadata_bundles_to_avoid = [
                 p
@@ -280,7 +305,7 @@ def _app_intents_metadata_bundle_partial_impl(
                     if x.module_name in metadata_bundle_input.direct_app_intents_modules
                 ],
                 embedded_metadata_bundles = owned_embedded_metadata_bundles,
-                enable_package_validation = enable_wip_features,
+                enable_package_validation = True,
                 intents_module_name = metadata_bundle_input.module_name,
                 label = label,
                 mac_exec_group = mac_exec_group,
@@ -306,7 +331,7 @@ def _app_intents_metadata_bundle_partial_impl(
             if x.module_name in main_metadata_bundle_input.direct_app_intents_modules
         ],
         embedded_metadata_bundles = owned_embedded_metadata_bundles,
-        enable_package_validation = enable_wip_features,
+        enable_package_validation = True,
         intents_module_name = main_metadata_bundle_input.module_name,
         label = label,
         mac_exec_group = mac_exec_group,
@@ -343,7 +368,6 @@ def app_intents_metadata_bundle_partial(
         actions,
         app_intents,
         apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
@@ -360,7 +384,6 @@ def app_intents_metadata_bundle_partial(
         app_intents: A list of dictionaries for targets under a split transition providing
             AppIntentsInfo.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
-        apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
         bundle_id: The bundle ID to configure for this target.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
@@ -378,7 +401,6 @@ def app_intents_metadata_bundle_partial(
         actions = actions,
         app_intents = app_intents,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
         embedded_bundles = embedded_bundles,
         frameworks = frameworks,

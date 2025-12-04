@@ -839,7 +839,8 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
-    # Test that an app with transitive and direct App Intents fails to build (at present time).
+    # Test that an app with transitive and direct App Intents that aren't distinguished by the
+    # shared_library_app_intents_hint fails to build.
     analysis_failure_message_test(
         name = "{}_too_many_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_and_direct_app_intents",
@@ -857,9 +858,6 @@ App Intents bundles were defined by the following targets:
     # Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_with_multi_module_framework_app_intents_contains_app_intents_metadata_bundle_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multi_module_framework_app_intents",
         contains = [
@@ -874,9 +872,6 @@ App Intents bundles were defined by the following targets:
     # reference to the Widget Configuration intent's module name.
     archive_contents_test(
         name = "{}_with_multi_module_framework_app_intents_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
-        build_settings = {
-            build_settings_labels.enable_wip_features: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
         contains = [
@@ -891,6 +886,7 @@ App Intents bundles were defined by the following targets:
         tags = [name],
     )
 
+    # Test that an app with no exclusive hinted App Intents fails to build.
     analysis_failure_message_test(
         name = "{}_no_exclusive_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_exclusive_framework_app_intents",

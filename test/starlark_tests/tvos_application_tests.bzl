@@ -767,7 +767,8 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
-    # Test that an app with transitive and direct App Intents fails to build (at present time).
+    # Test that an app with transitive and direct App Intents that aren't distinguished by the
+    # shared_library_app_intents_hint fails to build.
     analysis_failure_message_test(
         name = "{}_too_many_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_transitive_and_direct_app_intents",
@@ -781,6 +782,7 @@ App Intents bundles were defined by the following targets:
         tags = [name],
     )
 
+    # Test that an app with no exclusive hinted App Intents fails to build.
     analysis_failure_message_test(
         name = "{}_no_exclusive_app_intents_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_no_exclusive_framework_app_intents",
