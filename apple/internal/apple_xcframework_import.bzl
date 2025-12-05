@@ -36,6 +36,10 @@ load(
 )
 load("@build_bazel_rules_apple//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
+    "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
@@ -702,6 +706,13 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
+
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
     xcframework = _classify_xcframework_imports(
@@ -819,6 +830,13 @@ def _apple_static_xcframework_import_impl(ctx):
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
 
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
@@ -956,9 +974,6 @@ through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = rule_attrs.common_tool_attrs() | {
-        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
-        # are expected to be present in the precompiled framework, so the rules can validate against
-        # that and set required entitlements if necessary.
         "codesigned_xcframework_imports": attr.label_list(
             allow_files = True,
             doc = """
@@ -977,6 +992,17 @@ linked into that target.
                 [CcInfo, AppleFrameworkImportInfo],
             ],
             aspects = [swift_clang_module_aspect],
+        ),
+        "expected_secure_features": attr.string_list(
+            doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled XCFramework. This is used to validate that the XCFramework was built with Enhanced
+Security features matching those of its consumers on Apple platforms, through a "scout's honor"
+system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
+""",
         ),
         "xcframework_imports": attr.label_list(
             allow_empty = False,
@@ -1006,9 +1032,6 @@ to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = rule_attrs.common_tool_attrs() | {
-        # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what features
-        # are expected to be present in the precompiled framework, so the rules can validate against
-        # that and set required entitlements if necessary.
         "alwayslink": attr.bool(
             default = False,
             doc = """
@@ -1036,6 +1059,17 @@ linked into that target.
                 [CcInfo],
                 [CcInfo, AppleFrameworkImportInfo],
             ],
+        ),
+        "expected_secure_features": attr.string_list(
+            doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled XCFramework. This is used to validate that the XCFramework was built with Enhanced
+Security features matching those of its consumers on Apple platforms, through a "scout's honor"
+system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
+""",
         ),
         "has_swift": attr.bool(
             doc = """

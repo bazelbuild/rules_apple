@@ -427,6 +427,10 @@ objc_library(
 
 apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
+    expected_secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
 )
@@ -477,6 +481,10 @@ objc_library(
 
 apple_static_xcframework_import(
     name = "imported_static_unversioned_xcframework",
+    expected_secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_macos_unversioned_xcframework"],
 )
@@ -529,6 +537,10 @@ objc_library(
 
 apple_static_xcframework_import(
     name = "imported_static_versioned_xcframework",
+    expected_secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_macos_versioned_xcframework"],
 )
