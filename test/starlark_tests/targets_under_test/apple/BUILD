@@ -760,7 +760,7 @@ apple_xcframework(
     ],
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -771,7 +771,7 @@ apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework_with_disabled_features",
     bundle_id = "com.google.example",
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -794,7 +794,7 @@ apple_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -1101,7 +1101,7 @@ apple_static_xcframework(
     ],
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -1232,7 +1232,7 @@ apple_static_xcframework(
     ],
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -1385,7 +1385,7 @@ apple_static_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -1395,7 +1395,7 @@ apple_static_xcframework(
 apple_static_xcframework(
     name = "secure_features_ios_static_xcframework_with_rule_level_disabled_features",
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     ios = {
@@ -1414,7 +1414,7 @@ apple_static_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

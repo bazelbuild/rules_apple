@@ -2729,7 +2729,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -2831,7 +2831,7 @@ func swift_with_framework_function() {
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     features = ["-swift.layering_check"],
@@ -3069,7 +3069,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -3237,7 +3237,7 @@ func static_xcframework_depending_swift_lib_function_function() {
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     features = ["-swift.layering_check"],
@@ -3687,7 +3687,7 @@ ios_ui_test(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -3703,7 +3703,7 @@ ios_ui_test(
         "iphone",
     ],
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -3717,7 +3717,7 @@ ios_ui_test(
     ],
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -4023,7 +4023,7 @@ ios_unit_test(
     ],
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -4039,7 +4039,7 @@ ios_unit_test(
         "iphone",
     ],
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -4053,7 +4053,7 @@ ios_unit_test(
     ],
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -5900,7 +5900,25 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_enhanced_security_app_without_required_opt_in",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -5921,7 +5939,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -5942,7 +5960,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -5961,7 +5979,7 @@ ios_extension(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -5981,7 +5999,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6001,7 +6019,7 @@ ios_app_clip(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6021,7 +6039,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6040,7 +6058,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6060,7 +6078,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6076,12 +6094,12 @@ ios_static_framework(
         "//test/starlark_tests/resources:shared.h",
     ],
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -6097,7 +6115,7 @@ ios_static_framework(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6116,7 +6134,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6150,7 +6168,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -6170,7 +6188,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -6204,7 +6222,7 @@ ios_application(
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

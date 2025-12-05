@@ -2257,7 +2257,7 @@ macos_application(
     minimum_os_version = common.min_os_macos.baseline,
     # TODO: enable secure_features in existing tests when CI has Xcode 26+
     # secure_features = [
-    #     "apple.xcode_26_minimum_opt_in",
+    #     "apple.enable_enhanced_security",
     #     "pointer_authentication",
     # ],
     tags = common.fixture_tags,
@@ -2278,7 +2278,7 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -2536,7 +2536,7 @@ macos_kernel_extension(
     ],
     minimum_os_version = common.min_os_macos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -2557,7 +2557,7 @@ macos_kernel_extension(
     linkopts = ["-dead_strip"],
     minimum_os_version = common.min_os_macos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -2928,7 +2928,7 @@ macos_kernel_extension(
     ],
     minimum_os_version = common.min_os_macos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     shared_capabilities = [
@@ -3088,13 +3088,13 @@ apple_static_xcframework(
 macos_dylib(
     name = "simple_enhanced_security_dylib_with_rule_level_disabled_features",
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -3108,7 +3108,7 @@ macos_dylib(
     minimum_os_version = common.min_os_macos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
