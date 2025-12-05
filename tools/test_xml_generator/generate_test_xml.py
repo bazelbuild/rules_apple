@@ -76,15 +76,28 @@ class TestLogParser:
         r"Test Suite '([^']+)' (passed|failed) at (.+)"
     )
     
-    # Alternative pattern for Swift Testing (Xcode 16+)
-    SWIFT_TEST_START_PATTERN = re.compile(
-        r"Test ([^\s/]+)/([^\s]+) started"
+    # Patterns for Swift Testing (Xcode 16+)
+    # Format: ◇ Test test_methodName() started.
+    # Format: ✔ Test test_methodName() passed after 6.500 seconds.
+    # Format: ✘ Test test_methodName() failed after 6.500 seconds with 1 issue.
+    # Format: ✘ Test test_methodName() recorded an issue at File.swift:81:17: Issue recorded
+    SWIFT_TESTING_START_PATTERN = re.compile(
+        r"^[◇◆] Test ([^\s\(]+)\(\) started\."
     )
-    SWIFT_TEST_PASS_PATTERN = re.compile(
-        r"Test ([^\s/]+)/([^\s]+) passed after ([\d\.]+) seconds\."
+    SWIFT_TESTING_PASS_PATTERN = re.compile(
+        r"^✔ Test ([^\s\(]+)\(\) passed after ([\d\.]+) seconds\."
     )
-    SWIFT_TEST_FAIL_PATTERN = re.compile(
-        r"Test ([^\s/]+)/([^\s]+) failed after ([\d\.]+) seconds\."
+    SWIFT_TESTING_FAIL_PATTERN = re.compile(
+        r"^[✘✗×] Test ([^\s\(]+)\(\) failed after ([\d\.]+) seconds"
+    )
+    SWIFT_TESTING_ISSUE_PATTERN = re.compile(
+        r"^[✘✗×] Test ([^\s\(]+)\(\) recorded an issue at ([^:]+):(\d+):(\d+): (.+)"
+    )
+    
+    # Pattern for suite information (to extract class names)
+    # Format: ◇ Suite ClassName started.
+    SWIFT_TESTING_SUITE_PATTERN = re.compile(
+        r"^◇ Suite ([^\s]+) started\."
     )
     
     def __init__(self, log_content: str):
@@ -95,103 +108,156 @@ class TestLogParser:
     def parse(self) -> List[TestCase]:
         """Parse the log content and extract test cases."""
         test_cases = []
-        current_test = None
-        failure_context = []
+        current_suite = None  # Track current suite for SwiftTesting
+        
+        # For Swift Testing, tests run in parallel so we need to track multiple tests
+        # Dictionary: method_name -> TestCase
+        active_tests = {}
+        # Dictionary: method_name -> list of issues
+        test_issues = {}
+        # Dictionary: method_name -> list of context lines
+        test_contexts = {}
+        
+        # For XCTest, tests run sequentially
+        current_xctest = None
+        xctest_context = []
         
         # Pre-compile pattern checks for faster iteration
         for line in self.lines:
-            # Quick check to skip most lines that don't match any pattern
-            # Most lines are output, not test case markers
-            if 'Test Case' not in line and 'Test ' not in line:
-                if current_test:
-                    failure_context.append(line)
-                    # Keep only last 20 lines for context
-                    if len(failure_context) > 20:
-                        failure_context.pop(0)
+            # Check for Swift Testing suite marker
+            if line.startswith('◇ Suite'):
+                suite_match = self.SWIFT_TESTING_SUITE_PATTERN.search(line)
+                if suite_match:
+                    current_suite = suite_match.group(1)
                 continue
+            
+            # Check for Swift Testing issue recording (happens before the final failure line)
+            if line.startswith('✘') or line.startswith('✗') or line.startswith('×'):
+                issue_match = self.SWIFT_TESTING_ISSUE_PATTERN.search(line)
+                if issue_match:
+                    method, file, line_num, col_num, message = issue_match.groups()
+                    if method not in test_issues:
+                        test_issues[method] = []
+                    test_issues[method].append({
+                        'file': file,
+                        'line': line_num,
+                        'column': col_num,
+                        'message': message.strip()
+                    })
+                    # Also add to context
+                    if method in test_contexts:
+                        test_contexts[method].append(line)
+                    continue
             
             # Check for test start (XCTest format)
             if "Test Case '-[" in line and 'started' in line:
                 start_match = self.TEST_START_PATTERN.search(line)
                 if start_match:
                     classname, method = start_match.groups()
-                    current_test = TestCase(classname, method)
-                    failure_context = []
+                    current_xctest = TestCase(classname, method)
+                    xctest_context = []
                     continue
             
             # Check for test start (Swift Testing format)
-            if 'Test ' in line and 'started' in line and 'Test Case' not in line:
-                swift_start_match = self.SWIFT_TEST_START_PATTERN.search(line)
+            if line.startswith('◇') and 'Test ' in line and 'started' in line:
+                swift_start_match = self.SWIFT_TESTING_START_PATTERN.search(line)
                 if swift_start_match:
-                    classname, method = swift_start_match.groups()
-                    current_test = TestCase(classname, method)
-                    failure_context = []
+                    method = swift_start_match.group(1)
+                    # Use current suite as class name, or default if not available
+                    classname = current_suite if current_suite else 'SwiftTestingSuite'
+                    test = TestCase(classname, method)
+                    active_tests[method] = test
+                    test_contexts[method] = []
+                    if method not in test_issues:
+                        test_issues[method] = []
                     continue
             
             # Check for test pass (XCTest)
-            if current_test and 'passed' in line:
+            if "Test Case '-[" in line and 'passed' in line:
                 pass_match = self.TEST_PASS_PATTERN.search(line)
                 if pass_match:
                     classname, method, time = pass_match.groups()
-                    if current_test.classname == classname and current_test.name == method:
-                        current_test.time = float(time)
-                        current_test.status = 'passed'
-                        test_cases.append(current_test)
-                        current_test = None
-                        failure_context = []
+                    if current_xctest and current_xctest.classname == classname and current_xctest.name == method:
+                        current_xctest.time = float(time)
+                        current_xctest.status = 'passed'
+                        test_cases.append(current_xctest)
+                        current_xctest = None
+                        xctest_context = []
                     continue
-                
-                # Check for test pass (Swift Testing)
-                swift_pass_match = self.SWIFT_TEST_PASS_PATTERN.search(line)
+            
+            # Check for test pass (Swift Testing)
+            if line.startswith('✔'):
+                swift_pass_match = self.SWIFT_TESTING_PASS_PATTERN.search(line)
                 if swift_pass_match:
-                    classname, method, time = swift_pass_match.groups()
-                    if current_test.classname == classname and current_test.name == method:
-                        current_test.time = float(time)
-                        current_test.status = 'passed'
-                        test_cases.append(current_test)
-                        current_test = None
-                        failure_context = []
+                    method, time = swift_pass_match.groups()
+                    if method in active_tests:
+                        test = active_tests[method]
+                        test.time = float(time)
+                        test.status = 'passed'
+                        test_cases.append(test)
+                        # Clean up
+                        del active_tests[method]
+                        if method in test_contexts:
+                            del test_contexts[method]
+                        if method in test_issues:
+                            del test_issues[method]
                     continue
             
             # Check for test failure (XCTest)
-            if current_test and 'failed' in line:
+            if "Test Case '-[" in line and 'failed' in line:
                 fail_match = self.TEST_FAIL_PATTERN.search(line)
                 if fail_match:
                     classname, method, time = fail_match.groups()
-                    if current_test.classname == classname and current_test.name == method:
-                        current_test.time = float(time)
-                        current_test.status = 'failed'
+                    if current_xctest and current_xctest.classname == classname and current_xctest.name == method:
+                        current_xctest.time = float(time)
+                        current_xctest.status = 'failed'
                         
                         # Look for failure details in context
-                        self._extract_failure_details(current_test, failure_context)
+                        self._extract_failure_details(current_xctest, xctest_context)
                         
-                        test_cases.append(current_test)
-                        current_test = None
-                        failure_context = []
-                    continue
-                
-                # Check for test failure (Swift Testing)
-                swift_fail_match = self.SWIFT_TEST_FAIL_PATTERN.search(line)
-                if swift_fail_match:
-                    classname, method, time = swift_fail_match.groups()
-                    if current_test.classname == classname and current_test.name == method:
-                        current_test.time = float(time)
-                        current_test.status = 'failed'
-                        
-                        # Look for failure details in context
-                        self._extract_failure_details(current_test, failure_context)
-                        
-                        test_cases.append(current_test)
-                        current_test = None
-                        failure_context = []
+                        test_cases.append(current_xctest)
+                        current_xctest = None
+                        xctest_context = []
                     continue
             
-            # Collect context for potential failures
-            if current_test:
-                failure_context.append(line)
-                # Keep only last 20 lines for context
-                if len(failure_context) > 20:
-                    failure_context.pop(0)
+            # Check for test failure (Swift Testing)
+            if line.startswith('✘') or line.startswith('✗') or line.startswith('×'):
+                swift_fail_match = self.SWIFT_TESTING_FAIL_PATTERN.search(line)
+                if swift_fail_match:
+                    method, time = swift_fail_match.groups()
+                    if method in active_tests:
+                        test = active_tests[method]
+                        test.time = float(time)
+                        test.status = 'failed'
+                        
+                        # Extract failure details from Swift Testing issues
+                        issues = test_issues.get(method, [])
+                        context = test_contexts.get(method, [])
+                        self._extract_swift_testing_failure_details(test, issues, context)
+                        
+                        test_cases.append(test)
+                        # Clean up
+                        del active_tests[method]
+                        if method in test_contexts:
+                            del test_contexts[method]
+                        if method in test_issues:
+                            del test_issues[method]
+                    continue
+            
+            # Collect context for all active Swift Testing tests and current XCTest
+            # Add to all active test contexts (for Swift Testing)
+            for method in list(active_tests.keys()):
+                if method in test_contexts:
+                    test_contexts[method].append(line)
+                    # Keep only last 30 lines for context
+                    if len(test_contexts[method]) > 30:
+                        test_contexts[method].pop(0)
+            
+            # Add to XCTest context
+            if current_xctest:
+                xctest_context.append(line)
+                if len(xctest_context) > 30:
+                    xctest_context.pop(0)
         
         return test_cases
     
@@ -247,6 +313,49 @@ class TestLogParser:
         if not test_case.failure_message:
             test_case.failure_message = "Test failed (see system-err for details)"
             test_case.failure_type = 'TestFailure'
+            test_case.failure_details = '\n'.join(context_lines[-10:])
+            test_case.system_err = context_lines[-10:]
+    
+    def _extract_swift_testing_failure_details(
+        self, test_case: TestCase, issues: List[Dict], context_lines: List[str]
+    ):
+        """Extract failure details from Swift Testing issues and context.
+        
+        Args:
+            test_case: The TestCase to populate with failure details
+            issues: List of recorded issues from Swift Testing
+            context_lines: Context lines surrounding the failure
+        """
+        if issues:
+            # Use the first issue as the primary failure message
+            first_issue = issues[0]
+            clean_path = self._clean_file_path(first_issue['file'])
+            
+            # Build failure message from all issues
+            message_parts = []
+            for issue in issues:
+                message_parts.append(f"{issue['message']}")
+            
+            # Look for additional context in the context lines
+            # Swift Testing often provides detailed error information after the issue line
+            for line in context_lines:
+                stripped = line.strip()
+                # Look for lines that start with special markers (↳ indicates continuation)
+                if stripped.startswith('↳'):
+                    message_parts.append(stripped[2:].strip())
+            
+            full_message = '\n'.join(message_parts)
+            
+            test_case.failure_message = full_message
+            test_case.failure_type = 'SwiftTestingIssue'
+            test_case.failure_details = f"{clean_path}:{first_issue['line']}: {full_message}"
+            
+            # Include context in system-err
+            test_case.system_err = context_lines[-20:] if context_lines else []
+        else:
+            # No specific issues found, use generic failure
+            test_case.failure_message = "Test failed (see system-err for details)"
+            test_case.failure_type = 'SwiftTestingFailure'
             test_case.failure_details = '\n'.join(context_lines[-10:])
             test_case.system_err = context_lines[-10:]
     
