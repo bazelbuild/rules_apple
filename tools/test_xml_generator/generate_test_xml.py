@@ -32,7 +32,6 @@ import os
 import sys
 import re
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
@@ -57,6 +56,7 @@ class TestLogParser:
     
     # Regex patterns for parsing XCTest output
     # Updated to handle method names with underscores and complex characters
+    # Precompile all patterns once at class level
     TEST_START_PATTERN = re.compile(
         r"Test Case '-\[([^\s]+) ([^\]]+)\]' started"
     )
@@ -89,7 +89,8 @@ class TestLogParser:
     
     def __init__(self, log_content: str):
         self.log_content = log_content
-        self.lines = log_content.split('\n')
+        # Store lines as a list for efficient iteration
+        self.lines = log_content.split('\n') if log_content else []
     
     def parse(self) -> List[TestCase]:
         """Parse the log content and extract test cases."""
@@ -97,78 +98,93 @@ class TestLogParser:
         current_test = None
         failure_context = []
         
-        for i, line in enumerate(self.lines):
-            # Check for test start (XCTest format)
-            start_match = self.TEST_START_PATTERN.search(line)
-            if start_match:
-                classname, method = start_match.groups()
-                current_test = TestCase(classname, method)
-                failure_context = []
+        # Pre-compile pattern checks for faster iteration
+        for line in self.lines:
+            # Quick check to skip most lines that don't match any pattern
+            # Most lines are output, not test case markers
+            if 'Test Case' not in line and 'Test ' not in line:
+                if current_test:
+                    failure_context.append(line)
+                    # Keep only last 20 lines for context
+                    if len(failure_context) > 20:
+                        failure_context.pop(0)
                 continue
+            
+            # Check for test start (XCTest format)
+            if "Test Case '-[" in line and 'started' in line:
+                start_match = self.TEST_START_PATTERN.search(line)
+                if start_match:
+                    classname, method = start_match.groups()
+                    current_test = TestCase(classname, method)
+                    failure_context = []
+                    continue
             
             # Check for test start (Swift Testing format)
-            swift_start_match = self.SWIFT_TEST_START_PATTERN.search(line)
-            if swift_start_match:
-                classname, method = swift_start_match.groups()
-                current_test = TestCase(classname, method)
-                failure_context = []
-                continue
+            if 'Test ' in line and 'started' in line and 'Test Case' not in line:
+                swift_start_match = self.SWIFT_TEST_START_PATTERN.search(line)
+                if swift_start_match:
+                    classname, method = swift_start_match.groups()
+                    current_test = TestCase(classname, method)
+                    failure_context = []
+                    continue
             
             # Check for test pass (XCTest)
-            pass_match = self.TEST_PASS_PATTERN.search(line)
-            if pass_match and current_test:
-                classname, method, time = pass_match.groups()
-                if current_test.classname == classname and current_test.name == method:
-                    current_test.time = float(time)
-                    current_test.status = 'passed'
-                    test_cases.append(current_test)
-                    current_test = None
-                    failure_context = []
-                continue
-            
-            # Check for test pass (Swift Testing)
-            swift_pass_match = self.SWIFT_TEST_PASS_PATTERN.search(line)
-            if swift_pass_match and current_test:
-                classname, method, time = swift_pass_match.groups()
-                if current_test.classname == classname and current_test.name == method:
-                    current_test.time = float(time)
-                    current_test.status = 'passed'
-                    test_cases.append(current_test)
-                    current_test = None
-                    failure_context = []
-                continue
+            if current_test and 'passed' in line:
+                pass_match = self.TEST_PASS_PATTERN.search(line)
+                if pass_match:
+                    classname, method, time = pass_match.groups()
+                    if current_test.classname == classname and current_test.name == method:
+                        current_test.time = float(time)
+                        current_test.status = 'passed'
+                        test_cases.append(current_test)
+                        current_test = None
+                        failure_context = []
+                    continue
+                
+                # Check for test pass (Swift Testing)
+                swift_pass_match = self.SWIFT_TEST_PASS_PATTERN.search(line)
+                if swift_pass_match:
+                    classname, method, time = swift_pass_match.groups()
+                    if current_test.classname == classname and current_test.name == method:
+                        current_test.time = float(time)
+                        current_test.status = 'passed'
+                        test_cases.append(current_test)
+                        current_test = None
+                        failure_context = []
+                    continue
             
             # Check for test failure (XCTest)
-            fail_match = self.TEST_FAIL_PATTERN.search(line)
-            if fail_match and current_test:
-                classname, method, time = fail_match.groups()
-                if current_test.classname == classname and current_test.name == method:
-                    current_test.time = float(time)
-                    current_test.status = 'failed'
-                    
-                    # Look for failure details in context
-                    self._extract_failure_details(current_test, failure_context)
-                    
-                    test_cases.append(current_test)
-                    current_test = None
-                    failure_context = []
-                continue
-            
-            # Check for test failure (Swift Testing)
-            swift_fail_match = self.SWIFT_TEST_FAIL_PATTERN.search(line)
-            if swift_fail_match and current_test:
-                classname, method, time = swift_fail_match.groups()
-                if current_test.classname == classname and current_test.name == method:
-                    current_test.time = float(time)
-                    current_test.status = 'failed'
-                    
-                    # Look for failure details in context
-                    self._extract_failure_details(current_test, failure_context)
-                    
-                    test_cases.append(current_test)
-                    current_test = None
-                    failure_context = []
-                continue
+            if current_test and 'failed' in line:
+                fail_match = self.TEST_FAIL_PATTERN.search(line)
+                if fail_match:
+                    classname, method, time = fail_match.groups()
+                    if current_test.classname == classname and current_test.name == method:
+                        current_test.time = float(time)
+                        current_test.status = 'failed'
+                        
+                        # Look for failure details in context
+                        self._extract_failure_details(current_test, failure_context)
+                        
+                        test_cases.append(current_test)
+                        current_test = None
+                        failure_context = []
+                    continue
+                
+                # Check for test failure (Swift Testing)
+                swift_fail_match = self.SWIFT_TEST_FAIL_PATTERN.search(line)
+                if swift_fail_match:
+                    classname, method, time = swift_fail_match.groups()
+                    if current_test.classname == classname and current_test.name == method:
+                        current_test.time = float(time)
+                        current_test.status = 'failed'
+                        
+                        # Look for failure details in context
+                        self._extract_failure_details(current_test, failure_context)
+                        
+                        test_cases.append(current_test)
+                        current_test = None
+                        failure_context = []
+                    continue
             
             # Collect context for potential failures
             if current_test:
@@ -280,15 +296,18 @@ class JUnitXMLGenerator:
         # Group tests by class
         test_suites = self._group_by_class()
         
+        # Calculate totals once
+        total_tests = len(self.test_cases)
+        total_failures = sum(1 for t in self.test_cases if t.status == 'failed')
+        total_time = sum(t.time for t in self.test_cases)
+        
         # Create XML structure
         testsuites = ET.Element('testsuites')
         testsuites.set('name', self.suite_name)
-        testsuites.set('tests', str(len(self.test_cases)))
-        
-        failures = sum(1 for t in self.test_cases if t.status == 'failed')
-        testsuites.set('failures', str(failures))
+        testsuites.set('tests', str(total_tests))
+        testsuites.set('failures', str(total_failures))
         testsuites.set('errors', '0')
-        testsuites.set('time', str(sum(t.time for t in self.test_cases)))
+        testsuites.set('time', str(total_time))
         testsuites.set('timestamp', datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'))
         
         # Create test suites
@@ -305,12 +324,58 @@ class JUnitXMLGenerator:
             for test in tests:
                 self._add_test_case(testsuite, test)
         
-        # Pretty print XML
-        xml_str = minidom.parseString(ET.tostring(testsuites, encoding='unicode')).toprettyxml(indent="  ")
+        # Use faster XML serialization - avoid minidom pretty printing
+        # which is very slow for large XML documents
+        xml_str = ET.tostring(testsuites, encoding='unicode')
         
-        # Remove extra blank lines
-        xml_lines = [line for line in xml_str.split('\n') if line.strip()]
-        return '\n'.join(xml_lines)
+        # Use simple string formatting for indentation (much faster than minidom)
+        return self._pretty_print_fast(xml_str)
+    
+    def _pretty_print_fast(self, xml_str: str) -> str:
+        """Fast pretty-print using simple string manipulation."""
+        # Add newlines and indentation
+        result = ['<?xml version="1.0" ?>']
+        depth = 0
+        i = 0
+        
+        while i < len(xml_str):
+            # Find next tag
+            if xml_str[i] == '<':
+                # Find end of tag
+                end = xml_str.find('>', i)
+                if end == -1:
+                    break
+                
+                tag = xml_str[i:end+1]
+                
+                # Adjust depth for closing tags before adding indentation
+                if tag.startswith('</'):
+                    depth -= 1
+                
+                # Add indented line
+                if tag.startswith('</') or not tag.endswith('/>'):
+                    result.append('  ' * depth + tag)
+                else:
+                    result.append('  ' * depth + tag)
+                
+                # Adjust depth for opening tags
+                if not tag.startswith('</') and not tag.endswith('/>') and not tag.startswith('<?'):
+                    depth += 1
+                
+                i = end + 1
+            else:
+                # Text content
+                text_end = xml_str.find('<', i)
+                if text_end == -1:
+                    break
+                text = xml_str[i:text_end].strip()
+                if text:
+                    # Text content on same line as tag
+                    if result:
+                        result[-1] += text
+                i = text_end
+        
+        return '\n'.join(result)
     
     def _group_by_class(self) -> Dict[str, List[TestCase]]:
         """Group test cases by class name."""
@@ -399,7 +464,7 @@ def main():
         testsuites.set('tests', '0')
         testsuites.set('failures', '0')
         testsuites.set('errors', '0')
-        xml_content = minidom.parseString(ET.tostring(testsuites, encoding='unicode')).toprettyxml(indent="  ")
+        xml_content = '<?xml version="1.0" ?>\n' + ET.tostring(testsuites, encoding='unicode')
     else:
         print(f"Found {len(test_cases)} test cases")
         
