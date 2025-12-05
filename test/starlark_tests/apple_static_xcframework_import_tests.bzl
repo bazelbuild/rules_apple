@@ -450,7 +450,7 @@ There must be one root Info.plist in the framework bundle at \
         name = "{}_secure_features_app_fails_importing_xcframework_with_no_expected_secure_features_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:secure_features_app_with_imported_static_xcframework_and_no_expected_secure_features",
         expected_error = """The precompiled artifact at `//test/starlark_tests/targets_under_test/ios:ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features` was expected to be compatible with the following secure features requested from the build, but they were not indicated as supported by the target's `expected_secure_features` attribute:
-- apple.xcode_26_minimum_opt_in
+- apple.enable_enhanced_security
 
 Please contact the owner of this target to supply a precompiled artifact (likely a framework or XCFramework) that is built with the required Enhanced Security features enabled, and update the "expected_secure_features" attribute to match.""",
         tags = [name],

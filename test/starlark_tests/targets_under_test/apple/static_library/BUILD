@@ -45,7 +45,7 @@ apple_static_library(
     minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -91,7 +91,7 @@ apple_static_library(
     minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -101,13 +101,13 @@ apple_static_library(
 apple_static_library(
     name = "example_ios_library_with_rule_level_disabled_features",
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

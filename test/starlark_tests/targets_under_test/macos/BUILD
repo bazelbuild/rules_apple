@@ -407,7 +407,7 @@ macos_application(
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -428,7 +428,7 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -461,7 +461,7 @@ macos_application(
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.arm64_support_plus1,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -482,7 +482,7 @@ objc_library(
 apple_static_xcframework_import(
     name = "imported_static_unversioned_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -517,7 +517,7 @@ macos_application(
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.arm64_support_plus1,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -538,7 +538,7 @@ objc_library(
 apple_static_xcframework_import(
     name = "imported_static_versioned_xcframework",
     expected_secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
@@ -1129,13 +1129,13 @@ macos_application(
 macos_dylib(
     name = "simple_enhanced_security_dylib_with_rule_level_disabled_features",
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_macos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -1149,7 +1149,7 @@ macos_dylib(
     minimum_os_version = common.min_os_macos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,

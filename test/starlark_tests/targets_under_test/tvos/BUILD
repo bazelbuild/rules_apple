@@ -1541,12 +1541,12 @@ tvos_static_framework(
         "//test/starlark_tests/resources:shared.h",
     ],
     features = [
-        "-apple.xcode_26_minimum_opt_in",
+        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -1562,7 +1562,7 @@ tvos_static_framework(
     ],
     minimum_os_version = common.min_os_tvos.baseline,
     secure_features = [
-        "apple.xcode_26_minimum_opt_in",
+        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     tags = common.fixture_tags,

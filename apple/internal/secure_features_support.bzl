@@ -26,10 +26,7 @@ visibility([
 
 # The name of the secure feature that's required for opting into any set of enhanced security
 # features on Xcode 26.0 or later.
-#
-# TODO: b/449684779 - Use this for a mandatory check for the Xcode 26 opt-in feature, since that
-# should always be set if any entitlements are required.
-_REQUIRED_XCODE_26_OPT_IN = "apple.xcode_26_minimum_opt_in"
+_REQUIRED_XCODE_26_OPT_IN = "apple.enable_enhanced_security"
 
 # A map of all of the secure features that requires crosstool support and the entitlements that they
 # enable. If a secure feature does not enable any entitlements, it should be mapped to an empty
@@ -157,6 +154,7 @@ Either remove the secure feature from the "secure_features" attribute to disable
 
 def _entitlements_from_secure_features(
         *,
+        rule_label,
         secure_features,
         xcode_version):
     if not secure_features:
@@ -169,11 +167,23 @@ def _entitlements_from_secure_features(
 
     # Build a set of all of the entitlements that are required by the requested secure features.
     required_entitlements = dict()
+    has_mandatory_xcode_26_opt_in = False
     for feature_name in secure_features:
+        if feature_name == _REQUIRED_XCODE_26_OPT_IN:
+            has_mandatory_xcode_26_opt_in = True
+            continue
         required_entitlements |= _ENTITLEMENTS_FROM_SECURE_FEATURES[feature_name]
 
-    # TODO: b/449684779 - Add a mandatory check for the Xcode 26 opt-in feature, since that should
-    # always be set if any entitlements are required.
+    if not has_mandatory_xcode_26_opt_in:
+        fail("""
+Apple enhanced security features were requested, but the build is missing the required feature \
+"{required_xcode_26_opt_in}" that is needed to enable required entitlements in Xcode 26.0 or later.
+
+Please add it to the "secure_features" rule attribute at `{rule_label}`.
+        """.format(
+            required_xcode_26_opt_in = _REQUIRED_XCODE_26_OPT_IN,
+            rule_label = str(rule_label),
+        ))
 
     return required_entitlements
 
@@ -182,7 +192,7 @@ def _environment_archs_from_secure_features(
         environment_archs,
         require_pointer_authentication_attribute,
         secure_features):
-    # TODO: b/449684779 - Migrate users to secure_features behind an allowlist when it's ready for
+    # TODO: b/466363339 - Migrate users to secure_features behind an allowlist when it's ready for
     # onboarding. Remove this "require_pointer_authentication_attribute" check once
     # pointer_authentication is onboarded.
     if not require_pointer_authentication_attribute:
