@@ -186,7 +186,7 @@ def macos_dylib_test_suite(name):
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     binary_contents_test(
@@ -201,7 +201,7 @@ def macos_dylib_test_suite(name):
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 

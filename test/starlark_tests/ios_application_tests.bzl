@@ -1306,7 +1306,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1319,7 +1319,22 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    # Tests that the rules report a user-actionable error when enhanced security features are
+    # requested without the required Xcode 26 opt-in feature assigned to a target.
+    analysis_failure_message_test(
+        name = "{}_enhanced_security_features_missing_xcode_26_opt_in_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_without_required_opt_in",
+        expected_error = """
+Apple enhanced security features were requested, but the build is missing the required feature \
+"apple.enable_enhanced_security" that is needed to enable required entitlements in Xcode 26.0 or later.
+""",
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1336,7 +1351,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1349,7 +1364,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1362,7 +1377,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1379,7 +1394,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1397,7 +1412,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1412,7 +1427,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1427,7 +1442,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1444,7 +1459,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1458,7 +1473,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1472,7 +1487,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1489,7 +1504,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1506,7 +1521,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1520,7 +1535,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1534,7 +1549,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1551,7 +1566,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1569,7 +1584,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1584,7 +1599,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1599,7 +1614,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1616,7 +1631,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1630,7 +1645,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1644,7 +1659,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1662,7 +1677,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1677,7 +1692,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1692,7 +1707,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
@@ -1709,7 +1724,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1723,7 +1738,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
     apple_verification_test(
@@ -1737,7 +1752,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/449684779 - Remove this tag once Xcode 26+ is the default Xcode.
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ] + common.skip_ci_tags,
     )
 
