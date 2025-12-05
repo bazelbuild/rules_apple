@@ -168,6 +168,8 @@ def _app_intents_aspect_impl(target, ctx):
     app_intents_hint_info = None
     if SwiftInfo in target:
         app_intents_hint_info = _app_intents_hint_info(ctx.rule.attr.aspect_hints)
+        if app_intents_hint_info:
+            _verify_app_intents_dependency(target = target)
 
     transitive_metadata_bundle_inputs = []
 
@@ -206,7 +208,6 @@ def _app_intents_aspect_impl(target, ctx):
     # If this target is a swift_library with the App Intents hint, verify it's correct and generate
     # a provider to define required dependencies to generate a metadata bundle for this target.
     if app_intents_hint_info:
-        _verify_app_intents_dependency(target = target)
         label = ctx.label
         module_name = _find_valid_module_name(label = label, target = target)
         direct_metadata_bundle_input = _generate_metadata_bundle_inputs(
