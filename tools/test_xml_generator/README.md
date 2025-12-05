@@ -189,39 +189,3 @@ ios_xctestrun_runner(
     post_action_determines_exit_code = True,  # Fail build if XML generation fails
 )
 ```
-
-## CI Integration
-
-The generated XML files work with popular CI systems:
-
-- **Jenkins**: Automatically picks up JUnit XML from test results
-- **GitHub Actions**: Use with test reporting actions
-- **CircleCI**: Store as test results artifact
-- **GitLab CI**: Use with junit report artifacts
-
-Example for GitHub Actions:
-
-```yaml
-- name: Run iOS Tests
-  run: bazel test //path/to:test --runner=//tools/test_xml_generator:ios_xctestrun_runner_with_xml
-
-- name: Publish Test Results
-  uses: EnricoMi/publish-unit-test-result-action@v2
-  if: always()
-  with:
-    files: bazel-testlogs/**/test.xml
-```
-
-## Contributing
-
-To extend the parser for additional test formats:
-
-1. Add regex patterns to `TestLogParser` class
-2. Update `parse()` method to handle new patterns
-3. Test with sample log output
-4. Update this documentation
-
-## License
-
-Copyright 2024 The Bazel Authors. Licensed under Apache 2.0.
-
