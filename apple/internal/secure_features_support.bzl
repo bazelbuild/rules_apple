@@ -202,6 +202,39 @@ def _environment_archs_from_secure_features(
         return other_archs
     return arm64e_archs + other_archs
 
+def _validate_expected_secure_features(
+        *,
+        disabled_features,
+        expected_secure_features,
+        features,
+        rule_label):
+    # Ignoring cc_common verification against the cc_toolchain this time as this method is expected
+    # to be used exclusively by library-level dependencies of an Apple rule; ctx.features and
+    # ctx.disabled_features are the best proxies at this point.
+    requested_features = set(features) - set(disabled_features)
+    requested_secure_features = requested_features & _SUPPORTED_SECURE_FEATURES
+    if not requested_secure_features:
+        return
+
+    missing_expected_secure_features = requested_secure_features - set(expected_secure_features)
+
+    if missing_expected_secure_features:
+        fail(
+            """
+The precompiled artifact at `{rule_label}` was expected to be compatible with the following secure \
+features requested from the build, but they were not indicated as supported by the target's \
+`expected_secure_features` attribute:
+- {missing_secure_features}
+
+Please contact the owner of this target to supply a precompiled artifact (likely a framework or \
+XCFramework) that is built with the required Enhanced Security features enabled, and update the \
+"expected_secure_features" attribute to match.
+""".format(
+                rule_label = str(rule_label),
+                missing_secure_features = "\n- ".join(list(missing_expected_secure_features)),
+            ),
+        )
+
 def _validate_secure_features_support(
         *,
         cc_configured_features_init,
@@ -263,5 +296,6 @@ secure_features_support = struct(
     entitlements_from_secure_features = _entitlements_from_secure_features,
     environment_arch_specific_features = _environment_arch_specific_features,
     environment_archs_from_secure_features = _environment_archs_from_secure_features,
+    validate_expected_secure_features = _validate_expected_secure_features,
     validate_secure_features_support = _validate_secure_features_support,
 )

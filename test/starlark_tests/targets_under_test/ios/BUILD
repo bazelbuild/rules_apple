@@ -2812,6 +2812,10 @@ func swift_with_framework_function() {
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
+    expected_secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
@@ -3214,6 +3218,10 @@ func static_xcframework_depending_swift_lib_function_function() {
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
+    expected_secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
@@ -6077,5 +6085,113 @@ ios_static_framework(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_dynamic_xcframework_and_no_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    srcs = [":dynamic_xcframework_depending_lib_file"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_dynamic_xcframework_and_mismatched_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_static_xcframework_and_no_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    srcs = [":objc_with_static_xcframework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_static_xcframework_and_mismatched_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.xcode_26_minimum_opt_in",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_depending_objc_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

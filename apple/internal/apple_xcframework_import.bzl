@@ -50,6 +50,10 @@ load(
 )
 load("//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
@@ -490,6 +494,13 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
+
     # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
@@ -603,6 +614,13 @@ def _apple_static_xcframework_import_impl(ctx):
     linkopts = ctx.attr.linkopts
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
 
     xcframework = _classify_xcframework_imports(ctx.var, xcframework_imports)
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
@@ -753,9 +771,6 @@ objc_library(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -775,6 +790,17 @@ linked into that target.
                     [CcInfo, AppleFrameworkImportInfo],
                 ],
                 aspects = [swift_clang_module_aspect],
+            ),
+            "expected_secure_features": attr.string_list(
+                doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled XCFramework. This is used to validate that the XCFramework was built with Enhanced
+Security features matching those of its consumers on Apple platforms, through a "scout's honor"
+system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
+""",
             ),
             "bundle_only": attr.bool(
                 default = False,
@@ -829,9 +855,6 @@ objc_library(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
             "alwayslink": attr.bool(
                 default = False,
                 doc = """
@@ -861,6 +884,17 @@ List of files needed by this target at runtime.
 Files and targets named in the `data` attribute will appear in the `*.runfiles`
 area of this target, if it has one. This may include data files needed by a
 binary or library, or other programs needed by it.
+""",
+            ),
+            "expected_secure_features": attr.string_list(
+                doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled XCFramework. This is used to validate that the XCFramework was built with Enhanced
+Security features matching those of its consumers on Apple platforms, through a "scout's honor"
+system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
 """,
             ),
             "has_swift": attr.bool(

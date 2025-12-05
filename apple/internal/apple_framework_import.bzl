@@ -66,6 +66,10 @@ load(
     "rule_attrs",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
@@ -162,6 +166,13 @@ def _apple_dynamic_framework_import_impl(ctx):
     features = ctx.features
     framework_imports = ctx.files.framework_imports
     label = ctx.label
+
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
 
     # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
@@ -279,6 +290,13 @@ def _apple_static_framework_import_impl(ctx):
     sdk_dylibs = ctx.attr.sdk_dylibs
     sdk_frameworks = ctx.attr.sdk_frameworks
     weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
+
+    secure_features_support.validate_expected_secure_features(
+        disabled_features = disabled_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        features = features,
+        rule_label = label,
+    )
 
     providers = [
         DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data)),
@@ -413,9 +431,16 @@ apple_dynamic_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
+            "expected_secure_features": attr.string_list(
+                doc = """
+    A list of strings representing the secure features that are expected to be present in the
+    precompiled framework. This is used to validate that the framework was built with Enhanced Security
+    features matching those of its consumers on Apple platforms, through a "scout's honor" system.
+
+    This does not actually set the features on the precompiled artifacts, this merely acts as a
+    "checklist" for the consuming targets to verify what they are expecting to be present.
+    """,
+            ),
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -485,9 +510,16 @@ apple_static_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
-            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
-            # features are expected to be present in the precompiled framework, so the rules can
-            # validate against that and set required entitlements if necessary.
+            "expected_secure_features": attr.string_list(
+                doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled framework. This is used to validate that the framework was built with Enhanced Security
+features matching those of its consumers on Apple platforms, through a "scout's honor" system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
+""",
+            ),
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
