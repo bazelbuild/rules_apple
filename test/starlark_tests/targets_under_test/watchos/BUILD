@@ -260,6 +260,21 @@ watchos_extension(
 )
 
 watchos_extension(
+    name = "ext_arm64_support",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.arm64_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_ext_main_lib",
+    ],
+)
+
+watchos_extension(
     name = "ext_with_fmwk",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
