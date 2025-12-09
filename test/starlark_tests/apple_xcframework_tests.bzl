@@ -669,31 +669,7 @@ def apple_xcframework_test_suite(name):
 
     # Test visionOS XCFramework binaries contain Mach-O load commands for device or simulator.
     archive_contents_test(
-        name = "{}_visionos_simulator_binary_contains_macho_load_cmd_pre_xcode26_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:visionos_dynamic_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/xros-arm64-simulator/visionos_dynamic_xcframework.framework/visionos_dynamic_xcframework",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform XROSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_XROS"],
-        tags = [
-            name,
-        ],
-    )
-    archive_contents_test(
-        name = "{}_visionos_device_binary_contains_macho_load_cmd_pre_xcode26_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:visionos_dynamic_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/xros-arm64/visionos_dynamic_xcframework.framework/visionos_dynamic_xcframework",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform XROS"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_XROS"],
-        tags = [
-            name,
-        ],
-    )
-    archive_contents_test(
-        name = "{}_visionos_simulator_binary_contains_macho_load_cmd_post_xcode26_test".format(name),
+        name = "{}_visionos_simulator_binary_contains_macho_load_cmd_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:visionos_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/xros-arm64-simulator/visionos_dynamic_xcframework.framework/visionos_dynamic_xcframework",
@@ -705,7 +681,7 @@ def apple_xcframework_test_suite(name):
         ],
     )
     archive_contents_test(
-        name = "{}_visionos_device_binary_contains_macho_load_cmd_post_xcode26_test".format(name),
+        name = "{}_visionos_device_binary_contains_macho_load_cmd_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:visionos_dynamic_xcframework",
         binary_test_file = "$BUNDLE_ROOT/xros-arm64/visionos_dynamic_xcframework.framework/visionos_dynamic_xcframework",
