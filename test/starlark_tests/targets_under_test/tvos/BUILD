@@ -1530,7 +1530,45 @@ tvos_application(
     ],
 )
 
-# TODO: b/449684440 - Add targets for App Intents, mirroring iOS targets.
+tvos_application(
+    name = "app_with_multi_module_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_multi_module_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main_with_dependency",
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+    ],
+)
+
+tvos_framework(
+    name = "framework_with_multi_module_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
 
 # ---------------------------------------------------------------------------------------
 # Targets for secure_features testing.

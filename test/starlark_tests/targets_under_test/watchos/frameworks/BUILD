@@ -738,7 +738,64 @@ watchos_framework(
     ],
 )
 
-# TODO: b/449684440 - Add targets for App Intents, mirroring iOS targets.
+watchos_application(
+    name = "app_with_multi_module_framework_app_intents",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":framework_with_multi_module_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main_with_dependency",
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+    ],
+)
+
+watchos_framework(
+    name = "framework_with_multi_module_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+watchos_application(
+    name = "app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.app_intents_package_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
 
 watchos_framework(
     name = "fmwk_with_base_bundle_id_derived_bundle_id",

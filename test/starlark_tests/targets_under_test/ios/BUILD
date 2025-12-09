@@ -4223,8 +4223,6 @@ ios_framework(
     ],
 )
 
-# TODO: b/449684440 - Add more targets for App Intents, covering extension flows.
-
 ios_application(
     name = "app_with_multi_module_framework_app_intents",
     bundle_id = "com.google.example",

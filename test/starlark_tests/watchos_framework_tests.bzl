@@ -183,6 +183,40 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
         tags = [name],
     )
 
+    # Test that an app with multi-module app intents sharing modules with a framework generates a
+    # Metadata.appintents bundle.
+    archive_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:app_with_multi_module_framework_app_intents",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    # Test that an app with multi-module app intents, one of which defines a Widget Configuration
+    # Intent with a computed property, generates and bundles Metadata.appintents bundle with a
+    # reference to the Widget Configuration intent's module name.
+    archive_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_with_widget_configuration_intent_contains_app_intents_metadata_bundle_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
+        ],
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*FavoriteSoup.*",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
