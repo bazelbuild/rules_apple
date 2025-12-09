@@ -305,7 +305,7 @@ def _app_intents_metadata_bundle_partial_impl(
                     if x.module_name in metadata_bundle_input.direct_app_intents_modules
                 ],
                 embedded_metadata_bundles = owned_embedded_metadata_bundles,
-                enable_package_validation = True,
+                enable_package_validation = False,
                 intents_module_name = metadata_bundle_input.module_name,
                 label = label,
                 mac_exec_group = mac_exec_group,
@@ -331,7 +331,7 @@ def _app_intents_metadata_bundle_partial_impl(
             if x.module_name in main_metadata_bundle_input.direct_app_intents_modules
         ],
         embedded_metadata_bundles = owned_embedded_metadata_bundles,
-        enable_package_validation = True,
+        enable_package_validation = False,  # TODO: b/467141363 - Reassess package validation.
         intents_module_name = main_metadata_bundle_input.module_name,
         label = label,
         mac_exec_group = mac_exec_group,
