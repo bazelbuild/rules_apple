@@ -4279,7 +4279,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        "//test/starlark_tests/resources:StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency",
+        "//test/starlark_tests/resources:StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

@@ -876,8 +876,10 @@ App Intents bundles were defined by the following targets:
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-            "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.packagedata",
         ],
         text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [

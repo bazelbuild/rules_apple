@@ -14,11 +14,16 @@
 
 import AppIntents
 import FrameworkDefinedHelloWorldIntents
-import StaticLibraryAppIntentsPackageWithDependency
+import StaticLibraryAppIntents
+import StaticLibraryAppIntentsWithDependency
 
 public struct HelloWorldAppIntentsPackage: AppIntentsPackage {
   public static var includedPackages: [any AppIntentsPackage.Type] = [
     FrameworkDefinedHelloWorldIntents.self,
-    StaticLibraryAppIntentsPackageWithDependency.self,
   ]
+}
+
+extension OrderSoupIntent {
+   @Parameter(title: "Customer")
+   static var customer: String?
 }

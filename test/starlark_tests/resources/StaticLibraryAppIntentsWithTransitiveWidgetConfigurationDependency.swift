@@ -13,10 +13,9 @@
 // limitations under the License.
 
 import AppIntents
-import FavoriteSoup
+import Foundation
+import StaticLibraryAppIntentsWithWidgetConfigurationDependency
 
-public struct StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency: AppIntentsPackage {
-  public static var includedPackages: [any AppIntentsPackage.Type] = [
-    FavoriteSoup.self,
-  ]
+extension SimpleStruct {
+  static var title: String?
 }

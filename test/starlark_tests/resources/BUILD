@@ -1002,10 +1002,10 @@ swift_library(
 )
 
 swift_library(
-    name = "StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency",
-    srcs = ["StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency.swift"],
+    name = "StaticLibraryAppIntentsWithWidgetConfigurationDependency",
+    srcs = ["StaticLibraryAppIntentsWithWidgetConfigurationDependency.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
-    module_name = "StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency",
+    module_name = "StaticLibraryAppIntentsWithWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
         ":shared_library_widget_configuration_intent",
@@ -1013,13 +1013,13 @@ swift_library(
 )
 
 swift_library(
-    name = "StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency",
-    srcs = ["StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency.swift"],
+    name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
+    srcs = ["StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency.swift"],
     aspect_hints = ["//apple/hints:app_intents_hint"],
-    module_name = "StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency",
+    module_name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
-        ":StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency",
+        ":StaticLibraryAppIntentsWithWidgetConfigurationDependency",
     ],
 )
 
@@ -1048,21 +1048,21 @@ swift_library(
 )
 
 swift_library(
-    name = "StaticLibraryAppIntentsPackage",
-    srcs = ["StaticLibraryAppIntentsPackage.swift"],
+    name = "StaticLibraryAppIntents",
+    srcs = ["StaticLibraryAppIntents.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
-    module_name = "StaticLibraryAppIntentsPackage",
+    module_name = "StaticLibraryAppIntents",
     tags = common.fixture_tags,
 )
 
 swift_library(
-    name = "StaticLibraryAppIntentsPackageWithDependency",
-    srcs = ["StaticLibraryAppIntentsPackageWithDependency.swift"],
+    name = "StaticLibraryAppIntentsWithDependency",
+    srcs = ["StaticLibraryAppIntentsWithDependency.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
-    module_name = "StaticLibraryAppIntentsPackageWithDependency",
+    module_name = "StaticLibraryAppIntentsWithDependency",
     tags = common.fixture_tags,
     deps = [
-        ":StaticLibraryAppIntentsPackage",
+        ":StaticLibraryAppIntents",
     ],
 )
 
@@ -1076,7 +1076,8 @@ swift_library(
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
     deps = [
-        ":StaticLibraryAppIntentsPackageWithDependency",
+        ":StaticLibraryAppIntents",
+        ":StaticLibraryAppIntentsWithDependency",
     ],
 )
 
@@ -1089,7 +1090,8 @@ swift_library(
     aspect_hints = ["//apple/hints:app_intents_hint"],
     tags = common.fixture_tags,
     deps = [
-        ":StaticLibraryAppIntentsPackageWithDependency",
+        ":StaticLibraryAppIntents",
+        ":StaticLibraryAppIntentsWithDependency",
         ":framework_defined_app_intent_with_dependency",
     ],
 )

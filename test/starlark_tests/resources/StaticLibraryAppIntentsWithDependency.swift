@@ -13,10 +13,9 @@
 // limitations under the License.
 
 import AppIntents
-import StaticLibraryAppIntentsPackage
+import StaticLibraryAppIntents
 
-public struct StaticLibraryAppIntentsPackageWithDependency: AppIntentsPackage {
-  public static var includedPackages: [any AppIntentsPackage.Type] = [
-    StaticLibraryAppIntentsPackage.self,
-  ]
+extension OrderSoupIntent {
+  @Parameter(title: "Quantity")
+  static var quantity: Int?
 }

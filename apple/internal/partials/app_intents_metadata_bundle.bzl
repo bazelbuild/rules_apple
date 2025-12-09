@@ -175,8 +175,8 @@ exclusively to the given top level Apple target via the "aspect_hints" attribute
 {app_intents_hint_target} to indicate that it is the main target for App Intents.
 
 That target should have direct references to all the other App Intents defined by shared libraries \
-with {shared_library_app_intents_hint_target} that it depends on via "deps" and the \
-"includedPackages" within the Swift sources defining the AppIntentsPackage conformances.
+with {shared_library_app_intents_hint_target} that it depends on via "deps". No AppIntentsPackage \
+APIs should be used for these references.
 
 {app_intents_hint_docs}
 """.format(
@@ -200,11 +200,11 @@ Please ensure that only a single "swift_library" target is marked as providing A
 metadata exclusively to the given top level Apple target via the "aspect_hints" attribute with \
 {app_intents_hint_target}.
 
-App Intents can also be shared via AppIntentsPackage APIs from a dynamic framework to apps, \
-extensions and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation \
-for more information: https://developer.apple.com/documentation/appintents/appintentspackage
+App Intents can be shared via AppIntentsPackage APIs from a dynamic framework to apps, extensions \
+and other frameworks in Xcode 16+. Please refer to the Apple App Intents documentation for more
+information: https://developer.apple.com/documentation/appintents/appintentspackage
 
-AppIntentsPackage APIs can also be used to declare App Intents for shared swift_library targets,
+App Intents can also be shared by individual swift_library targets WITHOUT AppIntentsPackage APIs \
 using the {shared_library_app_intents_hint_target} aspect hint.
 
 {app_intents_hint_docs}
@@ -331,7 +331,10 @@ def _app_intents_metadata_bundle_partial_impl(
             if x.module_name in main_metadata_bundle_input.direct_app_intents_modules
         ],
         embedded_metadata_bundles = owned_embedded_metadata_bundles,
-        enable_package_validation = False,  # TODO: b/467141363 - Reassess package validation.
+        # TODO: b/467141363 - Reassess execution time package validation to focus on top level
+        # bundles and frameworks, and treat references to shared library "static metadata bundles"
+        # as an error. Effectively the inverse of what it is doing right now.
+        enable_package_validation = False,
         intents_module_name = main_metadata_bundle_input.module_name,
         label = label,
         mac_exec_group = mac_exec_group,

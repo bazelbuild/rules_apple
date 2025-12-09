@@ -13,5 +13,11 @@
 // limitations under the License.
 
 import AppIntents
+import FavoriteSoup
 
-public struct StaticLibraryAppIntentsPackage: AppIntentsPackage {}
+extension FavoriteSoup {
+  @Parameter(title: "StarsRated")
+  static var starsRated: Int?
+}
+
+public struct SimpleStruct {}

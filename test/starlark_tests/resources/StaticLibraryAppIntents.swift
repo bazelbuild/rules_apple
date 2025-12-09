@@ -13,10 +13,23 @@
 // limitations under the License.
 
 import AppIntents
-import StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency
 
-public struct StaticLibraryAppIntentsPackageWithTransitiveWidgetConfigurationDependency: AppIntentsPackage {
-  public static var includedPackages: [any AppIntentsPackage.Type] = [
-    StaticLibraryAppIntentsPackageWithWidgetConfigurationDependency.self,
-  ]
+public struct OrderSoupIntent: AppIntent {
+  public static var title = LocalizedStringResource("Order Soup")
+  public static var description = IntentDescription("Orders a soup from your favorite restaurant.")
+
+  @Parameter(title: "Quantity")
+  var quantity: Int?
+
+  public init() {}
+
+  public static var parameterSummary: some ParameterSummary {
+    Summary("Order \(\.$quantity)") {
+      \.$quantity
+    }
+  }
+
+  public func perform() async throws -> some IntentResult {
+    return .result()
+  }
 }

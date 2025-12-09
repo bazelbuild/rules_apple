@@ -13,10 +13,12 @@
 // limitations under the License.
 
 import AppIntents
-import StaticLibraryAppIntentsPackageWithDependency
+import StaticLibraryAppIntents
+import StaticLibraryAppIntentsWithDependency
 
-public struct FrameworkDefinedHelloWorldIntents: AppIntentsPackage {
-  public static var includedPackages: [any AppIntentsPackage.Type] = [
-    StaticLibraryAppIntentsPackageWithDependency.self,
-  ]
+public struct FrameworkDefinedHelloWorldIntents: AppIntentsPackage {}
+
+extension OrderSoupIntent {
+   @Parameter(title: "Customer")
+   static var customer: String?
 }

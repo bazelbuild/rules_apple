@@ -15,7 +15,6 @@
 import AppIntents
 import Foundation
 
-
 struct FrameworkDefinedHelloWorldIntent: AppIntent {
   static var title: LocalizedStringResource = "Hello world intent"
 
