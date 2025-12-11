@@ -26,13 +26,13 @@ def _framework_provider_partial_impl(
         actions,
         binary_artifact,
         bundle_only,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_linking_contexts,
         cc_toolchain,
         rule_label):
     """Implementation for the framework provider partial."""
 
-    feature_configuration = cc_configured_features_init(
+    feature_configuration = cc_configured_features.configure_features(
         cc_toolchain = cc_toolchain,
         language = "objc",
     )
@@ -67,7 +67,7 @@ def framework_provider_partial(
         actions,
         binary_artifact,
         bundle_only,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_linking_contexts,
         cc_toolchain,
         rule_label):
@@ -82,8 +82,8 @@ def framework_provider_partial(
       actions: The actions provider from `ctx.actions`.
       binary_artifact: The linked dynamic framework binary.
       bundle_only: Only include the bundle but do not link the framework
-      cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
-          without the need for a `ctx`.
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       cc_linking_contexts: A list of CcLinkingContext providers containing information about the
           targets linked into the dynamic framework.
       cc_toolchain: The C++ toolchain to use.
@@ -99,7 +99,7 @@ def framework_provider_partial(
         actions = actions,
         binary_artifact = binary_artifact,
         bundle_only = bundle_only,
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
         rule_label = rule_label,

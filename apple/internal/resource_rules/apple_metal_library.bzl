@@ -67,6 +67,11 @@ def _metal_apple_target_triple(platform_prerequisites):
 def _apple_metal_library_impl(ctx):
     """Implementation of the apple_metal_library rule."""
 
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
+    features = cc_configured_features.enabled_features
+
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -75,10 +80,7 @@ def _apple_metal_library_impl(ctx):
         device_families = None,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = features_support.compute_enabled_features(
-            requested_features = ctx.features,
-            unsupported_features = ctx.disabled_features,
-        ),
+        features = features,
         objc_fragment = None,
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],

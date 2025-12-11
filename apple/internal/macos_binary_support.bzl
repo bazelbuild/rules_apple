@@ -109,10 +109,10 @@ def _macos_binary_infoplist_impl(ctx):
             suffix_default = ctx.attr._bundle_id_suffix_default,
         )
 
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
     rule_label = ctx.label
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -217,10 +217,10 @@ def _macos_command_line_launchdplist_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
     rule_label = ctx.label
     launchdplists = ctx.files.launchdplists
 

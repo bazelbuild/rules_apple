@@ -78,10 +78,10 @@ def _apple_core_ml_library_impl(ctx):
         objc_output_src = actions.declare_file("{}.m".format(basename))
         objc_output_hdr = actions.declare_file("{}.h".format(basename))
 
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
 
     # TODO(b/168721966): Consider if an aspect could be used to generate mlmodel sources. This
     # would be similar to how we are planning to use the resource aspect with the

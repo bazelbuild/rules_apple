@@ -617,14 +617,13 @@ def _create_framework_outputs(
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_name,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_toolchain_forwarder,
         config_vars,
         cpp_fragment,
         environment_plist_files,
         executable_name,
         families_required,
-        features,
         library_type,
         link_outputs_by_library_identifier,
         minimum_deployment_os_versions,
@@ -647,8 +646,7 @@ def _create_framework_outputs(
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_name: The name of the XCFramework bundle.
-        cc_configured_features_init: A lambda that is the same as cc_common.configure_features(...)
-            without the need for a `ctx`.
+        cc_configured_features: A struct from `features_support.cc_configured_features(...)`.
         cc_toolchain_forwarder: The instance of cc_toolchain_forwarder to retrieve CcToolchainInfo
             providers from through the split_attrs interface.
         config_vars: A reference to configuration variables, typically from `ctx.var`.
@@ -657,7 +655,6 @@ def _create_framework_outputs(
             with predefined supporting variables.
         executable_name: The name of the executable for the nested framework.
         families_required: A list of device families supported by the embedded framework.
-        features: List of features enabled by the user. Typically from `ctx.features`.
         library_type: struct, based on a value defined by `_LIBRARY_TYPE`. Indicates whether the
             library embedded within the framework bundle is "static" (a static library archive) or
             "dynamic" (a dynamically linked library).
@@ -754,7 +751,7 @@ bundle_id on the target.
                 link_output.platform,
             ),
             explicit_minimum_os = minimum_os_versions.get(link_output.platform),
-            features = features,
+            features = cc_configured_features.enabled_features,
             objc_fragment = objc_fragment,
             uses_swift = link_output.uses_swift,
             xcode_version_config = xcode_version_config,
@@ -897,7 +894,7 @@ bundle_id on the target.
                     actions = actions,
                     binary_artifact = binary_artifact,
                     bundle_only = False,
-                    cc_configured_features_init = cc_configured_features_init,
+                    cc_configured_features = cc_configured_features,
                     cc_linking_contexts = link_output.linking_contexts.values(),
                     cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],
                     rule_label = rule_label,
@@ -917,8 +914,8 @@ bundle_id on the target.
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
+            cc_configured_features = cc_configured_features,
             entitlements = None,
-            features = features,
             ipa_post_processor = None,
             output_discriminator = library_identifier,
             partials = processor_partials,
@@ -1229,7 +1226,11 @@ def _apple_xcframework_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
+        extra_requested_features = ["disable_legacy_signing"],
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
@@ -1260,21 +1261,11 @@ def _apple_xcframework_impl(ctx):
 
     build_settings = apple_xplat_toolchain_info.build_settings
 
-    # Add the disable_legacy_signing feature to the list of features
-    # TODO - b/463682069: Move this ctx.features/features.append(...) to be rolled into the
-    # make_cc_configured_features_init call below, and make it so that "features" isn't an argument
-    # passed to the processor partial, we can just query the features configuration directly.
-    # Right now we have too many sources of truth for ctx.features, some of which disagree.
-    #
-    # TODO - b/72148898: Remove disable_legacy_signing when dossier based signing is the default.
-    features = ctx.features
-    features.append("disable_legacy_signing")
-
     secure_features = ctx.attr.secure_features
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = rule_label,
         secure_features = secure_features,
@@ -1335,6 +1326,7 @@ def _apple_xcframework_impl(ctx):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
         extra_requested_features = ["link_dylib"],
         # platform_prerequisites only contains knowledge for a specific platform; as we can have
         # multiple set, we supply the platform-specific values through extra_linkopts instead.
@@ -1360,14 +1352,13 @@ def _apple_xcframework_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         environment_plist_files = environment_plist_files,
         executable_name = executable_name,
         families_required = families_required,
-        features = features,
         library_type = _LIBRARY_TYPE.dynamic,
         link_outputs_by_library_identifier = link_outputs_by_library_identifier,
         minimum_deployment_os_versions = minimum_deployment_os_versions,
@@ -1667,7 +1658,11 @@ def _apple_static_xcframework_impl(ctx):
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     bundle_format = ctx.attr.bundle_format
     bundle_name = ctx.attr.bundle_name or ctx.label.name
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
+        extra_requested_features = ["disable_legacy_signing"],
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
@@ -1709,16 +1704,11 @@ def _apple_static_xcframework_impl(ctx):
         rule_label = rule_label,
     )
 
-    # Add the disable_legacy_signing feature to the list of features
-    # TODO(b/72148898): Remove this when dossier based signing becomes the default.
-    features = ctx.features
-    features.append("disable_legacy_signing")
-
     secure_features = ctx.attr.secure_features
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = rule_label,
         secure_features = secure_features,
@@ -1757,14 +1747,13 @@ def _apple_static_xcframework_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_name = bundle_name,
-            cc_configured_features_init = cc_configured_features_init,
+            cc_configured_features = cc_configured_features,
             cc_toolchain_forwarder = cc_toolchain_forwarder,
             config_vars = config_vars,
             cpp_fragment = cpp_fragment,
             environment_plist_files = environment_plist_files,
             executable_name = executable_name,
             families_required = families_required,
-            features = features,
             library_type = _LIBRARY_TYPE.static,
             link_outputs_by_library_identifier = link_outputs_by_library_identifier,
             minimum_deployment_os_versions = minimum_deployment_os_versions,
