@@ -199,7 +199,7 @@ def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
         bundle_id,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_toolchains,
         entitlements_file,
         platform_prerequisites,
@@ -231,8 +231,7 @@ def _process_entitlements(
         apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
-        cc_configured_features_init: The function to initialize the feature configuration for a
-            given cc_toolchain.
+        cc_configured_features: The cc_configured_features struct for the current target.
         cc_toolchains: The cc_toolchain_forwarder target with its providers.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
@@ -278,7 +277,7 @@ def _process_entitlements(
     if secure_features:
         # Check that the requested secure features are supported and enabled for the toolchain.
         secure_features_support.validate_secure_features_support(
-            cc_configured_features_init = cc_configured_features_init,
+            cc_configured_features = cc_configured_features,
             cc_toolchain_forwarder = cc_toolchains,
             rule_label = rule_label,
             secure_features = secure_features,

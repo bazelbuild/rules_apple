@@ -82,10 +82,10 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]

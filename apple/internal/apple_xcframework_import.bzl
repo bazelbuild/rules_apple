@@ -39,6 +39,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
@@ -486,18 +490,19 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
-    features = ctx.features
+    features = cc_configured_features.enabled_features
     label = ctx.label
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     secure_features_support.validate_expected_secure_features(
-        disabled_features = disabled_features,
+        cc_configured_features = cc_configured_features,
         expected_secure_features = ctx.attr.expected_secure_features,
-        features = features,
         rule_label = label,
     )
 
@@ -550,11 +555,9 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
+        cc_configured_features = cc_configured_features,
         cc_toolchain = cc_toolchain,
-        ctx = ctx,
         deps = deps,
-        disabled_features = disabled_features,
-        features = features,
         framework_includes = xcframework_library.framework_includes,
         header_imports = xcframework_library.headers,
         kind = "dynamic",
@@ -579,8 +582,8 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,
@@ -605,10 +608,12 @@ def _apple_static_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
-    features = ctx.features
+    features = cc_configured_features.enabled_features
     has_swift = ctx.attr.has_swift
     label = ctx.label
     linkopts = ctx.attr.linkopts
@@ -616,9 +621,8 @@ def _apple_static_xcframework_import_impl(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     secure_features_support.validate_expected_secure_features(
-        disabled_features = disabled_features,
+        cc_configured_features = cc_configured_features,
         expected_secure_features = ctx.attr.expected_secure_features,
-        features = features,
         rule_label = label,
     )
 
@@ -695,11 +699,9 @@ def _apple_static_xcframework_import_impl(ctx):
         actions = actions,
         additional_cc_infos = additional_cc_infos,
         alwayslink = alwayslink,
+        cc_configured_features = cc_configured_features,
         cc_toolchain = cc_toolchain,
-        ctx = ctx,
         deps = deps,
-        disabled_features = disabled_features,
-        features = features,
         header_imports = xcframework_library.headers,
         kind = "static",
         label = label,
@@ -720,8 +722,8 @@ def _apple_static_xcframework_import_impl(ctx):
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = xcframework_library.swift_module_interface,

@@ -274,15 +274,16 @@ def _signing_command_lines(
 
 def _should_sign_simulator_frameworks(
         *,
-        features):
+        cc_configured_features):
     """Check if simulator bound framework bundles should be codesigned.
 
     Args:
+      cc_configured_features: The cc_configured_features struct for the current target.
 
     Returns:
       True/False for if the framework should be signed.
     """
-    if "apple.skip_codesign_simulator_bundles" in features:
+    if "apple.skip_codesign_simulator_bundles" in cc_configured_features.enabled_features:
         return False
 
     # To preserve existing functionality, where Frameworks/* bundles are always
@@ -292,14 +293,14 @@ def _should_sign_simulator_frameworks(
 
 def _should_sign_simulator_bundles(
         *,
+        cc_configured_features,
         config_vars,
-        features,
         rule_descriptor):
     """Check if a main bundle should be codesigned.
 
     Args:
+      cc_configured_features: The cc_configured_features struct for the current target.
       config_vars: The config_vars from `ctx.var`.
-      features: List of features enabled by the user. Typically from `ctx.features`.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
 
     Returns:
@@ -309,7 +310,7 @@ def _should_sign_simulator_bundles(
         # buildifier: disable=print
         print("warning: --define apple.codesign_simulator_bundles is deprecated, please switch to --features=apple.skip_codesign_simulator_bundles")
 
-    if "apple.skip_codesign_simulator_bundles" in features:
+    if "apple.skip_codesign_simulator_bundles" in cc_configured_features.enabled_features:
         return False
 
     if not rule_descriptor.skip_simulator_signing_allowed:
@@ -322,18 +323,18 @@ def _should_sign_simulator_bundles(
         default = True,
     )
 
-def _should_sign_bundles(*, provisioning_profile, rule_descriptor, features):
+def _should_sign_bundles(*, cc_configured_features, provisioning_profile, rule_descriptor):
     should_sign_bundles = True
 
     codesigning_exceptions = rule_descriptor.codesigning_exceptions
-    if "disable_legacy_signing" in features:
+    if "disable_legacy_signing" in cc_configured_features.enabled_features:
         should_sign_bundles = False
     elif (codesigning_exceptions ==
           rule_support.codesigning_exceptions.sign_with_provisioning_profile):
         # If the rule doesn't have a provisioning profile, do not sign the binary or its
         # frameworks.
         if (not provisioning_profile and
-            "apple.codesign_frameworks_without_provisioning_profile" not in features):
+            "apple.codesign_frameworks_without_provisioning_profile" not in cc_configured_features.enabled_features):
             should_sign_bundles = False
     elif codesigning_exceptions == rule_support.codesigning_exceptions.skip_signing:
         should_sign_bundles = False
@@ -344,8 +345,8 @@ def _should_sign_bundles(*, provisioning_profile, rule_descriptor, features):
 
 def _codesigning_args(
         *,
+        cc_configured_features,
         entitlements,
-        features,
         full_archive_path,
         is_framework = False,
         platform_prerequisites,
@@ -354,8 +355,9 @@ def _codesigning_args(
     """Returns a set of codesigning arguments to be passed to the codesigning tool.
 
     Args:
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+        to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       entitlements: The entitlements file to sign with. Can be None.
-      features: List of features enabled by the user. Typically from `ctx.features`.
       full_archive_path: The full path to the codesigning target.
       is_framework: If the target is a framework. False by default.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -366,17 +368,17 @@ def _codesigning_args(
       A list containing the arguments to pass to the codesigning tool.
     """
     should_sign_bundles = _should_sign_bundles(
+        cc_configured_features = cc_configured_features,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
-        features = features,
     )
     if not should_sign_bundles:
         return []
 
     is_device = platform_prerequisites.platform.is_device
     should_sign_sim_bundles = _should_sign_simulator_bundles(
+        cc_configured_features = cc_configured_features,
         config_vars = platform_prerequisites.config_vars,
-        features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
 
@@ -402,10 +404,10 @@ def _codesigning_args(
 def _codesigning_command(
         *,
         bundle_path = "",
+        cc_configured_features,
         codesigningtool,
         codesignopts,
         entitlements,
-        features,
         frameworks_path,
         platform_prerequisites,
         provisioning_profile,
@@ -415,10 +417,11 @@ def _codesigning_command(
 
     Args:
         bundle_path: The location of the bundle, relative to the archive.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         codesigningtool: The executable `File` representing the code signing tool.
         codesignopts: Extra options to pass to the `codesign` tool
         entitlements: The entitlements file to sign with. Can be None.
-        features: List of features enabled by the user. Typically from `ctx.features`.
         frameworks_path: The location of the Frameworks directory, relative to the archive.
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
@@ -429,9 +432,9 @@ def _codesigning_command(
         A string containing the codesigning commands.
     """
     should_sign_bundles = _should_sign_bundles(
+        cc_configured_features = cc_configured_features,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
-        features = features,
     )
     if not should_sign_bundles:
         return ""
@@ -448,7 +451,7 @@ def _codesigning_command(
     # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
     # script that contains the path to the directory where the bundle is being built.
     should_sign_sim_frameworks = _should_sign_simulator_frameworks(
-        features = platform_prerequisites.features,
+        cc_configured_features = cc_configured_features,
     )
     if (frameworks_path and should_sign_sim_frameworks) or is_device:
         framework_root = paths.join("$WORK_DIR", frameworks_path) + "/"
@@ -466,8 +469,8 @@ def _codesigning_command(
             ),
         )
     should_sign_sim_bundles = _should_sign_simulator_bundles(
+        cc_configured_features = cc_configured_features,
         config_vars = platform_prerequisites.config_vars,
-        features = platform_prerequisites.features,
         rule_descriptor = rule_descriptor,
     )
     if is_device or should_sign_sim_bundles:
@@ -587,11 +590,11 @@ def _post_process_and_sign_archive_action(
         *,
         actions,
         archive_codesigning_path,
+        cc_configured_features,
         codesign_inputs,
         codesigningtool,
         codesignopts,
         entitlements = None,
-        features,
         frameworks_path,
         input_archive,
         ipa_post_processor,
@@ -609,11 +612,12 @@ def _post_process_and_sign_archive_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       archive_codesigning_path: The codesigning path relative to the archive.
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       codesign_inputs: Extra inputs needed for the `codesign` tool.
       codesigningtool: The files_to_run for the code signing tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       entitlements: Optional file representing the entitlements to sign with.
-      features: List of features enabled by the user. Typically from `ctx.features`.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
           that has not yet been processed or signed.
@@ -641,10 +645,10 @@ def _post_process_and_sign_archive_action(
 
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
+        cc_configured_features = cc_configured_features,
         codesigningtool = codesigningtool.executable,
         codesignopts = codesignopts,
         entitlements = entitlements,
-        features = features,
         frameworks_path = frameworks_path,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,

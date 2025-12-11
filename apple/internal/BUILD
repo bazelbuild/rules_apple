@@ -60,6 +60,7 @@ bzl_library(
     ],
     deps = [
         ":cc_toolchain_info_support",
+        ":features_support",
         ":framework_import_support",
         ":resources",
         ":rule_attrs",
@@ -118,6 +119,7 @@ bzl_library(
     deps = [
         ":apple_toolchains",
         ":cc_toolchain_info_support",
+        ":features_support",
         ":framework_import_support",
         ":intermediates",
         ":rule_attrs",

@@ -35,11 +35,9 @@ def _cc_info_with_dependencies(
         actions,
         additional_cc_infos = [],
         alwayslink = False,
+        cc_configured_features,
         cc_toolchain,
-        ctx,
         deps,
-        disabled_features,
-        features,
         framework_includes = [],
         header_imports,
         kind,
@@ -56,11 +54,10 @@ def _cc_info_with_dependencies(
         actions: The actions provider from `ctx.actions`.
         additional_cc_infos: List of additinal CcInfo providers to use for a merged compilation contexts.
         alwayslink: Boolean to indicate if force_load_library should be set for static frameworks.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchain: CcToolchainInfo provider for current target.
-        ctx: The Starlark context for a rule target being built.
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
-        disabled_features: List of features to be disabled for cc_common.compile
-        features: List of features to be enabled for cc_common.compile.
         framework_includes: List of Apple framework search paths (defaults to: []).
         header_imports: List of imported header files.
         includes: List of included headers search paths (defaults to: []).
@@ -79,12 +76,9 @@ def _cc_info_with_dependencies(
     all_cc_infos = [dep[CcInfo] for dep in deps] + additional_cc_infos
     dep_compilation_contexts = [cc_info.compilation_context for cc_info in all_cc_infos]
 
-    feature_configuration = cc_common.configure_features(
-        ctx = ctx,
+    feature_configuration = cc_configured_features.configure_features(
         cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = features,
-        unsupported_features = disabled_features,
     )
 
     public_hdrs = []

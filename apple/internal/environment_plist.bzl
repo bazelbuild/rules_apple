@@ -44,9 +44,8 @@ load(
 def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -57,7 +56,7 @@ def _environment_plist_impl(ctx):
         device_families = None,
         explicit_minimum_deployment_os = None,
         explicit_minimum_os = None,
-        features = features,
+        features = cc_configured_features.enabled_features,
         objc_fragment = None,
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],

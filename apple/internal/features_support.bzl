@@ -14,47 +14,60 @@
 
 """Support macros to assist in detecting build features."""
 
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
-def _compute_enabled_features(*, requested_features, unsupported_features):
-    """Returns a list of features for the given build.
-
-    Args:
-      requested_features: A list of features requested. Typically from `ctx.features`.
-      unsupported_features: A list of features to ignore. Typically from `ctx.disabled_features`.
-
-    Returns:
-      A list containing the subset of features that should be used.
-    """
-    enabled_features_set = sets.make(requested_features)
-    enabled_features_set = sets.difference(
-        enabled_features_set,
-        sets.make(unsupported_features),
-    )
-    return sets.to_list(enabled_features_set)
-
-def _make_cc_configured_features_init(ctx):
+def _cc_configured_features(
+        *,
+        ctx,
+        extra_requested_features = None,
+        extra_disabled_features = None):
     """Captures the rule ctx for a deferred `cc_common.configure_features(...)` call.
 
     Args:
       ctx: The rule context, expected to be captured directly in the rule context and NOT within a
         partial or helper method.
+      extra_requested_features: An optional list of additional features requested.
+      extra_disabled_features: An optional list of additional features to disable.
 
     Returns:
-      A lambda that has the captured instance of the rule context, which will always set that rule
-        context as the `ctx` argument of `cc_common.configure_features(...)` and will forward any
-        arguments it is given to `cc_common.configure_features(...)`.
+      A struct with the following fields:
+
+        * configure_features: A lambda that has the captured instance of the rule context, which
+            will always set that rule context as the `ctx` argument of
+            `cc_common.configure_features(...)` and will forward any arguments additional it is
+            given to `cc_common.configure_features(...)`.
+        * enabled_features: The set of features that are enabled after taking into account the
+            requested and disabled features. This is not taking the cc_toolchain's supported
+            features into account; use `cc_common.is_enabled(...)` for that instead.
+        * requested_features: The value computed for `cc_common.configure_features(...)`'s
+            `requested_features` from args above.
+        * unsupported_features: The value computed for `cc_common.configure_features(...)`'s
+            `unsupported_features` from args above.
     """
-    return lambda *args, **kwargs: cc_common.configure_features(
-        ctx = ctx,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-        *args,
-        **kwargs
+    features = ctx.features
+    if extra_requested_features:
+        features += extra_requested_features
+
+    disabled_features = ctx.disabled_features
+    if extra_disabled_features:
+        disabled_features += extra_disabled_features
+
+    enabled_features_set = set(features)
+    enabled_features_set.difference_update(disabled_features)
+
+    return struct(
+        configure_features = lambda *args, **kwargs: cc_common.configure_features(
+            ctx = ctx,
+            requested_features = features,
+            unsupported_features = disabled_features,
+            *args,
+            **kwargs
+        ),
+        enabled_features = enabled_features_set,
+        requested_features = features,
+        unsupported_features = disabled_features,
     )
 
 features_support = struct(
-    compute_enabled_features = _compute_enabled_features,
-    make_cc_configured_features_init = _make_cc_configured_features_init,
+    cc_configured_features = _cc_configured_features,
 )

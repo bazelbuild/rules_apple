@@ -49,7 +49,9 @@ load(
 )
 
 def _apple_static_library_impl(ctx):
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     rule_label = ctx.label
 
@@ -81,7 +83,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = rule_label,
         secure_features = secure_features,
