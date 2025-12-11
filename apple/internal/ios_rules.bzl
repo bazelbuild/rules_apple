@@ -182,12 +182,11 @@ def _ios_application_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -234,7 +233,7 @@ def _ios_application_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -248,6 +247,8 @@ def _ios_application_impl(ctx):
     )
 
     extra_linkopts = []
+
+    # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
     extra_requested_features = []
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
@@ -356,11 +357,11 @@ def _ios_application_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
-            features = features,
+            cc_configured_features = cc_configured_features,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -386,7 +387,7 @@ def _ios_application_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            features = features,
+            cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -485,7 +486,7 @@ def _ios_application_impl(ctx):
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         entitlements = entitlements,
-        features = features,
+        cc_configured_features = cc_configured_features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
@@ -580,12 +581,11 @@ def _ios_app_clip_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -624,7 +624,7 @@ def _ios_app_clip_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -719,12 +719,12 @@ def _ios_app_clip_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
-            features = features,
+            cc_configured_features = cc_configured_features,
+            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            mac_exec_group = mac_exec_group,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -751,7 +751,7 @@ def _ios_app_clip_impl(ctx):
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            features = features,
+            cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -808,8 +808,8 @@ def _ios_app_clip_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements,
-        features = features,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -896,11 +896,10 @@ def _ios_framework_impl(ctx):
         bundle_name = bundle_name,
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -949,6 +948,7 @@ def _ios_framework_impl(ctx):
                 name = bundle_name,
             ),
         ],
+        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
         extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -1036,7 +1036,7 @@ def _ios_framework_impl(ctx):
         partials.framework_provider_partial(
             actions = actions,
             binary_artifact = binary_artifact,
-            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_configured_features = cc_configured_features,
             cc_linking_contexts = linking_contexts,
             cc_toolchain = find_cpp_toolchain(ctx),
             rule_label = label,
@@ -1088,7 +1088,7 @@ def _ios_framework_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        features = features,
+        cc_configured_features = cc_configured_features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
@@ -1142,11 +1142,10 @@ def _ios_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
 
     platform_prerequisites = platform_support.platform_prerequisites(
@@ -1183,7 +1182,7 @@ def _ios_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -1307,12 +1306,12 @@ def _ios_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
+            cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            label_name = label.name,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -1396,8 +1395,8 @@ def _ios_extension_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements,
-        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
@@ -1436,7 +1435,9 @@ def _ios_static_framework_impl(ctx):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
     avoid_deps = ctx.attr.avoid_deps
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.attr.deps
     label = ctx.label
@@ -1446,10 +1447,6 @@ def _ios_static_framework_impl(ctx):
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
-    )
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
     )
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -1468,7 +1465,7 @@ def _ios_static_framework_impl(ctx):
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = label,
         secure_features = secure_features,
@@ -1563,7 +1560,7 @@ def _ios_static_framework_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        features = features,
+        cc_configured_features = cc_configured_features,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1620,11 +1617,10 @@ app an implementation.
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     bundle_verification_targets = [struct(target = ctx.attr.extension)]
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = [ctx.attr.extension]
     label = ctx.label
@@ -1664,7 +1660,7 @@ app an implementation.
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         mac_exec_group = mac_exec_group,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
@@ -1730,7 +1726,7 @@ app an implementation.
         partials.framework_import_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            features = features,
+            cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1793,8 +1789,8 @@ app an implementation.
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements,
-        features = features,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
@@ -1838,11 +1834,10 @@ def _ios_imessage_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -1879,7 +1874,7 @@ def _ios_imessage_extension_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -1976,12 +1971,12 @@ def _ios_imessage_extension_impl(ctx):
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
-            features = features,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
+            cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            label_name = label.name,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
         ),
         partials.debug_symbols_partial(
             actions = actions,
@@ -2057,8 +2052,8 @@ def _ios_imessage_extension_impl(ctx):
         xplat_exec_group = xplat_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements,
-        features = features,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,

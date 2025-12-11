@@ -94,12 +94,14 @@ def _apple_build_test_rule_impl(ctx):
             "detail and will be removed in the future; do not change it."
         ).format(ctx.attr._platform_type + "_build_test"))
 
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = ctx.label,
         secure_features = ctx.attr.secure_features,

@@ -41,6 +41,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
@@ -108,17 +112,17 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
-    features = ctx.features
     framework_imports = ctx.files.framework_imports
     label = ctx.label
 
     secure_features_support.validate_expected_secure_features(
-        disabled_features = disabled_features,
+        cc_configured_features = cc_configured_features,
         expected_secure_features = ctx.attr.expected_secure_features,
-        features = features,
         rule_label = label,
     )
 
@@ -173,11 +177,9 @@ There should only be one valid framework binary, given a name that matches its f
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
+        cc_configured_features = cc_configured_features,
         cc_toolchain = cc_toolchain,
-        ctx = ctx,
         deps = deps,
-        disabled_features = disabled_features,
-        features = features,
         framework_includes = _framework_search_paths(framework.header_imports),
         header_imports = framework.header_imports,
         kind = "dynamic",
@@ -203,8 +205,8 @@ There should only be one valid framework binary, given a name that matches its f
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = framework.bundle_name,
                 swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
@@ -226,10 +228,11 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
-    features = ctx.features
     framework_imports = ctx.files.framework_imports
     has_swift = ctx.attr.has_swift
     label = ctx.label
@@ -238,9 +241,8 @@ def _apple_static_framework_import_impl(ctx):
     weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
 
     secure_features_support.validate_expected_secure_features(
-        disabled_features = disabled_features,
+        cc_configured_features = cc_configured_features,
         expected_secure_features = ctx.attr.expected_secure_features,
-        features = features,
         rule_label = label,
     )
 
@@ -313,11 +315,9 @@ There should only be one valid framework binary, given a name that matches its f
             actions = actions,
             additional_cc_infos = additional_cc_infos,
             alwayslink = alwayslink,
+            cc_configured_features = cc_configured_features,
             cc_toolchain = cc_toolchain,
-            ctx = ctx,
             deps = deps,
-            disabled_features = disabled_features,
-            features = features,
             framework_includes = _framework_search_paths(
                 framework.header_imports,
             ),
@@ -341,8 +341,8 @@ There should only be one valid framework binary, given a name that matches its f
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = framework.bundle_name,
                 swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],

@@ -212,7 +212,7 @@ def _process_entitlements(
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_toolchains,
         entitlements_file,
         mac_exec_group,
@@ -248,8 +248,7 @@ def _process_entitlements(
         apple_xplat_toolchain_info: `AppleXplatToolchainInfo` from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
-        cc_configured_features_init: The function to initialize the feature configuration for a
-            given cc_toolchain.
+        cc_configured_features: The cc_configured_features struct for the current target.
         cc_toolchains: The cc_toolchain_forwarder target with its providers.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
@@ -277,7 +276,8 @@ def _process_entitlements(
     # support it anyway for completeness.
     if validation_mode != entitlements_validation_mode.error:
         # Entitlements validation doesn't rule level `features` to the mode, be that infrastructure
-        # is reused to to allowlist some of the modes.
+        # is reused to to allowlist some of the modes. Intentionally avoiding cc_configured_features
+        # because the actual list of computed features does not matter at all here.
         validation_as_feature = "entitlements_validation:{mode}".format(mode = validation_mode)
         features_support.validate_feature_usage(
             label = rule_label,
@@ -308,7 +308,7 @@ def _process_entitlements(
     if secure_features:
         # Check that the requested secure features are supported and enabled for each toolchain.
         secure_features_support.validate_secure_features_support(
-            cc_configured_features_init = cc_configured_features_init,
+            cc_configured_features = cc_configured_features,
             cc_toolchain_forwarder = cc_toolchains,
             rule_label = rule_label,
             secure_features = secure_features,

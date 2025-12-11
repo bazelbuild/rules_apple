@@ -423,8 +423,8 @@ def _bundle_post_process_and_sign(
         apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
+        cc_configured_features,
         entitlements,
-        features,
         ipa_post_processor,
         mac_exec_group,
         output_archive,
@@ -445,8 +445,9 @@ def _bundle_post_process_and_sign(
         apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            from the rule implementation function.
         entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-        features: List of features enabled by the user. Typically from `ctx.features`.
         ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         output_archive: The file representing the final bundled, post-processed and signed archive.
@@ -510,9 +511,9 @@ def _bundle_post_process_and_sign(
 
         # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
+            cc_configured_features = cc_configured_features,
             codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
-            features = features,
             frameworks_path = archive_paths[_LOCATION_ENUM.framework],
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -577,8 +578,8 @@ def _bundle_post_process_and_sign(
         codesigning_support.post_process_and_sign_archive_action(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
+            cc_configured_features = cc_configured_features,
             entitlements = entitlements,
-            features = features,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
             ipa_post_processor = ipa_post_processor,
@@ -649,8 +650,8 @@ def _bundle_post_process_and_sign(
             codesigning_support.post_process_and_sign_archive_action(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
+                cc_configured_features = cc_configured_features,
                 entitlements = entitlements,
-                features = features,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
                 ipa_post_processor = ipa_post_processor,
@@ -678,8 +679,8 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
+        cc_configured_features,
         entitlements = None,
-        features,
         ipa_post_processor = None,
         mac_exec_group,
         output_discriminator = None,
@@ -701,8 +702,9 @@ def _process(
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
           calling the implementation of every partial. Defaults to True.
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-      features: List of features enabled by the user. Typically from `ctx.features`.
       ipa_post_processor: A file that acts as a bundle post processing tool. Defaults to `None`.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -741,8 +743,8 @@ def _process(
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
+            cc_configured_features = cc_configured_features,
             entitlements = entitlements,
-            features = features,
             ipa_post_processor = ipa_post_processor,
             mac_exec_group = mac_exec_group,
             output_archive = output_archive,

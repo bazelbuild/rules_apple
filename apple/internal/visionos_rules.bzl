@@ -115,18 +115,6 @@ def _visionos_application_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    # Add the disable_legacy_signing feature to the list of features, forcing dossier signing as a
-    # requirement of this rule.
-    #
-    # TODO - b/463682069: Move this ctx.features/features.append(...) to be rolled into the
-    # make_cc_configured_features_init call below, and make it so that "features" isn't an argument
-    # passed to the processor partial, we can just query the features configuration directly.
-    # Right now we have too many sources of truth for ctx.features, some of which disagree.
-    #
-    # TODO - b/72148898: Remove disable_legacy_signing when dossier based signing is the default.
-    requested_features = ctx.features
-    requested_features.append("disable_legacy_signing")
-
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
@@ -144,11 +132,12 @@ def _visionos_application_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    features = features_support.compute_enabled_features(
-        requested_features = requested_features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
+        extra_requested_features = ["disable_legacy_signing"],
     )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -185,7 +174,7 @@ def _visionos_application_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements_file = ctx.file.entitlements,
         mac_exec_group = mac_exec_group,
@@ -209,6 +198,7 @@ def _visionos_application_impl(ctx):
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
         extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -246,7 +236,7 @@ def _visionos_application_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
-            features = features,
+            cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -330,8 +320,8 @@ def _visionos_application_impl(ctx):
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements,
-        features = features,
         mac_exec_group = mac_exec_group,
         partials = processor_partials,
         platform_prerequisites = platform_prerequisites,

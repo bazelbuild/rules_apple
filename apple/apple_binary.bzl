@@ -75,7 +75,9 @@ def _linker_flag_for_sdk_dylib(dylib):
 def _apple_binary_impl(ctx):
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
-    cc_configured_features_init = features_support.make_cc_configured_features_init(ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
@@ -85,13 +87,15 @@ def _apple_binary_impl(ctx):
 
     # Check that the requested secure features are supported and enabled for the toolchain.
     secure_features_support.validate_secure_features_support(
-        cc_configured_features_init = cc_configured_features_init,
+        cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
         rule_label = rule_label,
         secure_features = secure_features,
     )
 
     extra_linkopts = []
+
+    # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
     extra_requested_features = []
 
     if binary_type == "dylib":

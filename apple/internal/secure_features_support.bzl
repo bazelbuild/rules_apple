@@ -214,15 +214,10 @@ def _environment_archs_from_secure_features(
 
 def _validate_expected_secure_features(
         *,
-        disabled_features,
+        cc_configured_features,
         expected_secure_features,
-        features,
         rule_label):
-    # Ignoring cc_common verification against the cc_toolchain this time as this method is expected
-    # to be used exclusively by library-level dependencies of an Apple rule; ctx.features and
-    # ctx.disabled_features are the best proxies at this point.
-    requested_features = set(features) - set(disabled_features)
-    requested_secure_features = requested_features & _SUPPORTED_SECURE_FEATURES
+    requested_secure_features = cc_configured_features.enabled_features & _SUPPORTED_SECURE_FEATURES
     if not requested_secure_features:
         return
 
@@ -250,7 +245,7 @@ XCFramework) that is built with the required Enhanced Security features enabled,
 
 def _validate_secure_features_support(
         *,
-        cc_configured_features_init,
+        cc_configured_features,
         cc_toolchain_forwarder,
         rule_label,
         secure_features):
@@ -265,7 +260,7 @@ def _validate_secure_features_support(
 
         # Calculate the effective set of Crosstool features for this toolchain, as we do want to
         # double check that the secure features are supported and enabled.
-        feature_configuration = cc_configured_features_init(
+        feature_configuration = cc_configured_features.configure_features(
             cc_toolchain = cc_toolchain_info,
             language = "objc",
         )

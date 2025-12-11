@@ -15,6 +15,7 @@ bzl_library(
     deps = [
         ":cc_toolchain_info_support",
         ":experimental",
+        ":features_support",
         ":framework_import_support",
         ":providers",
         ":resources",
@@ -68,6 +69,7 @@ bzl_library(
     deps = [
         ":cc_toolchain_info_support",
         ":experimental",
+        ":features_support",
         ":framework_import_support",
         ":intermediates",
         ":providers",
