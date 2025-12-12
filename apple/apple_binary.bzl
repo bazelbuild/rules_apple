@@ -84,8 +84,22 @@ Resolved Xcode is version {xcode_version}.
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
+
+    extra_linkopts = []
+    extra_requested_features = []
+
+    if binary_type == "dylib":
+        extra_linkopts.append("-dynamiclib")
+    elif binary_type == "loadable_bundle":
+        extra_linkopts.extend([
+            "-bundle",
+            "-Wl,-rpath,@loader_path/Frameworks",
+        ])
+        extra_requested_features.append("link_bundle")
+
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
@@ -99,16 +113,6 @@ Resolved Xcode is version {xcode_version}.
         rule_label = rule_label,
         secure_features = secure_features,
     )
-
-    extra_linkopts = []
-
-    if binary_type == "dylib":
-        extra_linkopts.append("-dynamiclib")
-    elif binary_type == "loadable_bundle":
-        extra_linkopts.extend([
-            "-bundle",
-            "-Wl,-rpath,@loader_path/Frameworks",
-        ])
 
     extra_linkopts.extend([
         _linker_flag_for_sdk_dylib(dylib)
@@ -129,6 +133,7 @@ Resolved Xcode is version {xcode_version}.
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         bundle_name = rule_label.name,
+        cc_configured_features = cc_configured_features,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
