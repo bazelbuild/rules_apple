@@ -31,10 +31,9 @@ visibility("@build_bazel_rules_apple//apple/...")
 
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
 _APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."
-_LEGACY_APP_INTENTS_ALLOWLIST = []
 _SHARED_LIBRARY_APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:shared_library_app_intents_hint"
 
-def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
+def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
     """Finds the AppIntentsInfo providers from the given app_intents.
 
     Args:
@@ -42,7 +41,6 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
             AppIntentsInfo. The only supported targets are targets provided by a label list and
             targets provided by labels from the bundle rule.
         first_cc_toolchain_key: The key for the first cc_toolchain found in the split transition.
-        label: The label of the current rule.
     Returns:
         A list of all AppIntentsInfo providers that were found.
     """
@@ -52,39 +50,7 @@ def _find_app_intents_info(*, app_intents, first_cc_toolchain_key, label):
             continue
         if not first_cc_toolchain_key in split_target:
             continue
-        split_values = split_target[first_cc_toolchain_key]
-        if type(split_values) != "list":
-            # TODO(b/377974185): Remove this messaging once the legacy app_intents attribute is
-            # cleaned up.
-            #
-            # Emit a warning if the legacy app_intents attribute is used; we currently fall on the
-            # assumption that if the input was not a list (i.e. from "deps"), it's "app_intents",
-            # which takes in only a single label referencing a BUILD target.
-
-            legacy_app_intents_message = """Found app intents defined through the legacy \
-app_intents attribute on the target at {label}.
-
-Please define app intents by assigning {app_intents_hint_target} via the referenced \
-swift_library's "aspect_hints" attribute instead, and remove the existing reference to the \
-swift_library target from the deprecated app_intents attribute found at {label}.
-
-{app_intents_hint_docs}
-"""
-            if str(label) not in _LEGACY_APP_INTENTS_ALLOWLIST:
-                fail("\nERROR: " + legacy_app_intents_message.format(
-                    app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
-                    app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
-                    label = str(label),
-                ))
-            else:
-                # buildifier: disable=print
-                print("\nWARNING: " + legacy_app_intents_message.format(
-                    app_intents_hint_docs = _APP_INTENTS_HINT_DOCS,
-                    app_intents_hint_target = _APP_INTENTS_HINT_TARGET,
-                    label = str(label),
-                ))
-
-        targets = split_values if type(split_values) == "list" else [split_values]
+        targets = split_target[first_cc_toolchain_key]
         for target in targets:
             if AppIntentsInfo in target:
                 app_intents_infos.append(target[AppIntentsInfo])
@@ -252,7 +218,6 @@ def _app_intents_metadata_bundle_partial_impl(
     app_intents_infos = _find_app_intents_info(
         app_intents = app_intents,
         first_cc_toolchain_key = first_cc_toolchain_key,
-        label = label,
     )
 
     if not app_intents_infos:

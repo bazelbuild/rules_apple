@@ -112,40 +112,6 @@ def _generate_metadata_bundle_inputs(
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
     )
 
-def _legacy_app_intents_aspect_impl(target, ctx):
-    """Legacy implementation of the App Intents aspect to support `app_intents` bundle attrs."""
-
-    if ctx.rule.kind != "swift_library":
-        return []
-
-    _verify_app_intents_dependency(target = target)
-
-    label = ctx.label
-    module_name = _find_valid_module_name(label = label, target = target)
-
-    return [
-        AppIntentsInfo(
-            metadata_bundle_inputs = depset(
-                [
-                    _generate_metadata_bundle_inputs(
-                        direct_app_intents_modules = [],
-                        files = ctx.rule.files,
-                        is_static_metadata = False,
-                        label = label,
-                        module_name = module_name,
-                        target = target,
-                    ),
-                ],
-                order = "postorder",
-            ),
-        ),
-    ]
-
-legacy_app_intents_aspect = aspect(
-    implementation = _legacy_app_intents_aspect_impl,
-    doc = "Collects App Intents metadata dependencies from a single swift_library target.",
-)
-
 _APP_INTENTS_ATTR_ASPECTS = ["deps", "private_deps"]
 
 def _app_intents_hint_info(aspect_hints):

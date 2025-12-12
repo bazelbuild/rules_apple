@@ -303,7 +303,7 @@ def _ios_application_impl(ctx):
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
@@ -1253,7 +1253,7 @@ def _ios_extension_impl(ctx):
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
-            app_intents = [ctx.split_attr.app_intents, ctx.split_attr.deps],
+            app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
@@ -2096,9 +2096,6 @@ ios_application = rule_factory.create_apple_rule(
             icon_parent_extension = ".xcassets",
             supports_alternate_icons = True,
         ),
-        rule_attrs.app_intents_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
@@ -2272,9 +2269,6 @@ ios_extension = rule_factory.create_apple_rule(
         rule_attrs.app_icon_attrs(
             icon_extension = ".appiconset",
             icon_parent_extension = ".xcassets",
-        ),
-        rule_attrs.app_intents_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
         ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,

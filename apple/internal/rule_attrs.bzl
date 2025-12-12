@@ -36,10 +36,6 @@ load(
     "AppleSharedCapabilityInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
-    "legacy_app_intents_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
@@ -58,10 +54,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
-)
-load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
-    "SwiftInfo",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -83,23 +75,6 @@ def _common_tool_attrs():
 def _common_exec_groups():
     """Returns a set of exec_groups"""
     return apple_toolchain_utils.use_apple_exec_group_toolchain()
-
-def _app_intents_attrs(*, deps_cfg):
-    """Returns a dictionary with the attribute for Apple platform rules supporting AppIntents.
-
-    Args:
-        deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
-            To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
-            use the same transition.
-    """
-    return {
-        "app_intents": attr.label(
-            doc = "Label for the swift_library implementing the AppIntents protocol.",
-            cfg = deps_cfg,
-            aspects = [legacy_app_intents_aspect],
-            providers = [SwiftInfo],
-        ),
-    }
 
 def _common_linking_api_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for Bazel Apple linking APIs.
@@ -668,7 +643,6 @@ _test_bundle_infoplist = "@build_bazel_rules_apple//apple/testing:DefaultTestBun
 
 rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,
-    app_intents_attrs = _app_intents_attrs,
     aspects = struct(test_host_aspects = _TEST_HOST_ASPECTS),
     binary_linking_attrs = _binary_linking_attrs,
     common_attrs = _common_attrs,
