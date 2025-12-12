@@ -234,7 +234,7 @@ def _icon_info_from_asset_files(
             xcasset_appicon_files = xcasset_appicon_files,
         )
 
-    elif platform_type == "tvos":
+    elif platform_type == apple_common.platform_type.tvos:
         appicon_extension = "brandassets"
         icon_files = [f for f in asset_files if ".brandassets/" in f.path]
         _validate_tvos_icon_sets(
@@ -242,7 +242,7 @@ def _icon_info_from_asset_files(
             icon_bundle_files = icon_bundle_files,
             xcasset_appicon_files = xcasset_appicon_files,
         )
-    elif platform_type == "visionos":
+    elif platform_type == apple_common.platform_type.visionos:
         appicon_extension = "solidimagestack"
         icon_files = [f for f in asset_files if ".solidimagestack/" in f.path]
         _validate_visionos_icon_sets(
@@ -292,7 +292,7 @@ def _verify_icon_dirs(
 
         # Alternate icons are only supported for UIKit applications on iOS, tvOS, visionOS and
         # iOS-on-macOS (Catalyst)
-        if (platform_type in ("watchos", "macos") or
+        if (platform_type in (apple_common.platform_type.watchos, apple_common.platform_type.macos) or
             product_type != apple_product_type.application):
             if icon_bundle_dirs:
                 fail("""
