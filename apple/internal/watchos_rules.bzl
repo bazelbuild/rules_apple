@@ -617,6 +617,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -935,6 +936,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1179,6 +1181,7 @@ def _watchos_framework_impl(ctx):
     )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_dylib"],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -1218,6 +1221,7 @@ def _watchos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -1229,8 +1233,6 @@ def _watchos_framework_impl(ctx):
                 name = bundle_name,
             ),
         ],
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

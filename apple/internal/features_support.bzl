@@ -99,7 +99,19 @@ def _cc_configured_features(
     if extra_requested_features:
         features += extra_requested_features
 
-    disabled_features = ctx.disabled_features
+    disabled_features = ctx.disabled_features + [
+        # Disabled include scanning (b/321109350) to work around issues with GrepIncludes actions
+        # being routed to the wrong exec platform.
+        "cc_include_scanning",
+        # Disabled parse_headers (b/174937981) to avoid validating headers from top-level Apple
+        # rules (i.e. legacy uses of ios_framework). Those headers are expected to be as public API
+        # i.e. a "swiftinterface" equivalent for (Objective-)C(++) frameworks and are not expected
+        # to build in any given Bazel WORKSPACE.
+        #
+        # TODO: b/251214758 - Re-enable parse_headers once 3P framework users establish interfaces
+        # via a more stable means, as was done for generated interfaces in Swift.
+        "parse_headers",
+    ]
     if extra_disabled_features:
         disabled_features += extra_disabled_features
 

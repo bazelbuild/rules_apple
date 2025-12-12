@@ -149,6 +149,9 @@ def _macos_application_impl(ctx):
     )
 
     embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
@@ -170,6 +173,7 @@ def _macos_application_impl(ctx):
     bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -221,19 +225,14 @@ def _macos_application_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
 
-    # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-    extra_requested_features = []
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
-
     link_result = linking_support.register_binary_linking_action(
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -481,6 +480,7 @@ def _macos_bundle_impl(ctx):
     )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_bundle"],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -537,11 +537,10 @@ def _macos_bundle_impl(ctx):
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = ctx.attr.bundle_loader,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -790,6 +789,7 @@ def _macos_extension_impl(ctx):
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1055,6 +1055,7 @@ def _macos_xpc_service_impl(ctx):
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1370,6 +1371,7 @@ def _macos_command_line_application_impl(ctx):
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1496,6 +1498,7 @@ def _macos_dylib_impl(ctx):
     )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_dylib"],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -1530,6 +1533,7 @@ def _macos_dylib_impl(ctx):
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         # dylibs do not need entitlements, as the entitlements are instead declared by the
         # executable that loads the dylib.
@@ -1537,8 +1541,6 @@ def _macos_dylib_impl(ctx):
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

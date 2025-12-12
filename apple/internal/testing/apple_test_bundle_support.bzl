@@ -374,6 +374,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_bundle"],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -443,13 +444,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_bundle"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,

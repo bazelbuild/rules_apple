@@ -169,6 +169,10 @@ def _ios_application_impl(ctx):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -184,6 +188,7 @@ def _ios_application_impl(ctx):
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
@@ -248,25 +253,21 @@ def _ios_application_impl(ctx):
 
     extra_linkopts = []
 
-    # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-    extra_requested_features = []
     if ctx.attr.sdk_frameworks:
         extra_linkopts.extend(
             collections.before_each("-framework", ctx.attr.sdk_frameworks),
         )
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
-        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -641,6 +642,7 @@ def _ios_app_clip_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -898,6 +900,7 @@ def _ios_framework_impl(ctx):
     )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_dylib"],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -937,6 +940,7 @@ def _ios_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -948,8 +952,6 @@ def _ios_framework_impl(ctx):
                 name = bundle_name,
             ),
         ],
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_dylib"],
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -1210,6 +1212,7 @@ def _ios_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1473,6 +1476,7 @@ def _ios_static_framework_impl(ctx):
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
     binary_artifact = archive_result.library
@@ -1898,6 +1902,7 @@ def _ios_imessage_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,

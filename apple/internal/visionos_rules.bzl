@@ -115,6 +115,10 @@ def _visionos_application_impl(ctx):
         product_type = apple_product_type.application,
     )
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
@@ -134,8 +138,9 @@ def _visionos_application_impl(ctx):
     )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
-        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
-        extra_requested_features = ["disable_legacy_signing"],
+        extra_requested_features = [
+            "disable_legacy_signing",  # TODO: b/72148898 - Remove when dossier signing by default.
+        ] + extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
@@ -187,19 +192,14 @@ def _visionos_application_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
 
-    extra_requested_features = []
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
-
     link_result = linking_support.register_binary_linking_action(
         ctx,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         entitlements = entitlements,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = extra_requested_features,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
