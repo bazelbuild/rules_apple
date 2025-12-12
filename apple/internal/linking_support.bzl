@@ -51,6 +51,7 @@ load(
 def _archive_multi_arch_static_library(
         *,
         ctx,
+        cc_configured_features,
         cc_toolchains):
     """Generates a (potentially multi-architecture) static library archive for Apple platforms.
 
@@ -58,6 +59,8 @@ def _archive_multi_arch_static_library(
 
     Args:
         ctx: The Starlark rule context.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
 
@@ -105,6 +108,7 @@ def _archive_multi_arch_static_library(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
         linking_outputs = compilation_support.register_fully_link_action(
+            cc_configured_features = cc_configured_features,
             cc_linking_context = cc_linking_context,
             common_variables = common_variables,
             name = name,
@@ -140,11 +144,10 @@ def _link_multi_arch_binary(
         avoid_deps = [],
         build_settings,
         bundle_name,
+        cc_configured_features,
         cc_toolchains,
         extra_linkopts = [],
         extra_link_inputs = [],
-        extra_requested_features = [],
-        extra_disabled_features = [],
         rule_descriptor,
         stamp = -1,
         variables_extension = {}):
@@ -159,14 +162,12 @@ def _link_multi_arch_binary(
             this binary.
         build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
         bundle_name: The name of the bundle name that the linked binary will be a part of, if any.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
         extra_link_inputs: A list of strings: Extra files to pass to the linker action.
-        extra_requested_features: A list of strings: Extra requested features to be passed
-            to the linker action.
-        extra_disabled_features: A list of strings: Extra disabled features to be passed
-            to the linker action.
         rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
             will define additional parameters required for linking, such as the dSYM bundle name. If
             `None`, these additional parameters will not be set on the linked binary.
@@ -196,8 +197,6 @@ def _link_multi_arch_binary(
             avoid_deps = avoid_deps,
             extra_linkopts = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
-            extra_requested_features = extra_requested_features,
-            extra_disabled_features = extra_disabled_features,
             variables_extension = variables_extension,
             stamp = stamp,
         )
@@ -246,8 +245,6 @@ def _link_multi_arch_binary(
             ctx = ctx,
             toolchain = cc_toolchain,
             deps = deps,
-            extra_disabled_features = extra_disabled_features,
-            extra_enabled_features = extra_requested_features,
             attr_linkopts = attr_linkopts,
         )
 
@@ -338,6 +335,7 @@ Please report this as a bug to the Apple BUILD Rules team.
             apple_platform_info = platform_info,
             attr_linkopts = attr_linkopts,
             bundle_name = bundle_name,
+            cc_configured_features = cc_configured_features,
             cc_linking_context = subtracted_cc_linking_context,
             common_variables = common_variables,
             extra_link_args = extra_linkopts,
@@ -446,13 +444,12 @@ def _register_binary_linking_action(
         build_settings,
         bundle_name,
         bundle_loader = None,
+        cc_configured_features,
         cc_toolchains,
         entitlements = None,
         exported_symbols_lists,
         extra_linkopts = [],
         extra_link_inputs = [],
-        extra_requested_features = [],
-        extra_disabled_features = [],
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1):
@@ -475,6 +472,8 @@ def _register_binary_linking_action(
             provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         entitlements: An optional `File` that provides the processed entitlements for the
@@ -486,10 +485,6 @@ def _register_binary_linking_action(
             to control symbol resolution.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
-        extra_requested_features: Extra features as Strings requested of the underlying linker
-            action.
-        extra_disabled_features: Extra features as Strings requeted to be disabled from the
-            underlying linker action.
         platform_prerequisites: The platform prerequisites if one exists for the given rule. This
             will define additional linking sections for entitlements. If `None`, entitlements
             sections are not included.
@@ -579,13 +574,10 @@ def _register_binary_linking_action(
         avoid_deps = all_avoid_deps,
         build_settings = build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
-        extra_requested_features = extra_requested_features,
-        # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
-        # being routed to the wrong exec platform.
-        extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
         rule_descriptor = rule_descriptor,
         stamp = stamp,
     )
@@ -618,11 +610,14 @@ def _register_binary_linking_action(
 def _register_static_library_archive_action(
         *,
         ctx,
+        cc_configured_features,
         cc_toolchains):
     """Registers library archive actions using the Starlark Apple static library archive API.
 
     Args:
         ctx: The rule context.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
 
@@ -640,6 +635,7 @@ def _register_static_library_archive_action(
     """
     archive_outputs = _archive_multi_arch_static_library(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchains,
     )
 

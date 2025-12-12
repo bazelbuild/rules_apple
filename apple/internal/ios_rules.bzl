@@ -171,6 +171,10 @@ def _ios_application_impl(ctx):
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -186,6 +190,7 @@ def _ios_application_impl(ctx):
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = extra_requested_features,
     )
     features = cc_configured_features.enabled_features
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
@@ -260,6 +265,7 @@ def _ios_application_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -649,6 +655,7 @@ def _ios_app_clip_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -909,7 +916,10 @@ def _ios_framework_impl(ctx):
         bundle_name = bundle_name,
         suffix_default = ctx.attr._bundle_id_suffix_default,
     )
-    cc_configured_features = features_support.cc_configured_features(ctx = ctx)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+        extra_requested_features = ["link_dylib"],
+    )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = cc_configured_features.enabled_features
@@ -965,6 +975,7 @@ def _ios_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1230,6 +1241,7 @@ def _ios_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -1541,6 +1553,7 @@ def _ios_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1783,6 +1796,7 @@ def _ios_static_framework_impl(ctx):
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
     binary_artifact = archive_result.library
@@ -2198,6 +2212,7 @@ def _ios_imessage_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,

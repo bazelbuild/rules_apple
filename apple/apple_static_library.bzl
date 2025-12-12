@@ -91,6 +91,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
 

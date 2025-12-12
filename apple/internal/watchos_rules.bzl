@@ -176,6 +176,7 @@ def _watchos_framework_impl(ctx):
     executable_name = ctx.attr.executable_name
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = ["link_dylib"],
     )
     cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
@@ -232,6 +233,7 @@ def _watchos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -495,6 +497,7 @@ def _watchos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1119,6 +1122,7 @@ def _watchos_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -1378,6 +1382,7 @@ def _watchos_static_framework_impl(ctx):
     predeclared_outputs = ctx.outputs
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
     binary_artifact = archive_result.library
@@ -1600,6 +1605,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [],

@@ -1228,8 +1228,10 @@ def _apple_xcframework_impl(ctx):
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
-        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
-        extra_requested_features = ["disable_legacy_signing"],
+        extra_requested_features = [
+            "disable_legacy_signing",  # TODO: b/72148898 - Remove when dossier signing by default.
+            "link_dylib",
+        ],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
@@ -1321,13 +1323,12 @@ def _apple_xcframework_impl(ctx):
         ctx,
         build_settings = build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
-        # TODO: b/463682069 - Roll this into features_support.cc_configured_features(...).
-        extra_requested_features = ["link_dylib"],
         # platform_prerequisites only contains knowledge for a specific platform; as we can have
         # multiple set, we supply the platform-specific values through extra_linkopts instead.
         platform_prerequisites = None,
@@ -1660,8 +1661,9 @@ def _apple_static_xcframework_impl(ctx):
     bundle_name = ctx.attr.bundle_name or ctx.label.name
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
-        # TODO: b/72148898 - Remove this when dossier based signing becomes the default.
-        extra_requested_features = ["disable_legacy_signing"],
+        extra_requested_features = [
+            "disable_legacy_signing",  # TODO: b/72148898 - Remove when dossier signing by default.
+        ],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     config_vars = ctx.var
@@ -1716,6 +1718,7 @@ def _apple_static_xcframework_impl(ctx):
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(

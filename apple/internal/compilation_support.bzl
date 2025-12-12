@@ -40,24 +40,10 @@ visibility([
     "//apple/...",
 ])
 
-def _build_feature_configuration(common_variables):
-    ctx = common_variables.ctx
-
-    enabled_features = []
-    enabled_features.extend(ctx.features)
-    enabled_features.extend(common_variables.extra_enabled_features)
-
-    disabled_features = []
-    disabled_features.extend(ctx.disabled_features)
-    disabled_features.extend(common_variables.extra_disabled_features)
-    disabled_features.append("parse_headers")
-
-    return cc_common.configure_features(
-        ctx = common_variables.ctx,
-        cc_toolchain = common_variables.toolchain,
+def _build_feature_configuration(*, cc_configured_features, cc_toolchain):
+    return cc_configured_features.configure_features(
+        cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = enabled_features,
-        unsupported_features = disabled_features,
     )
 
 def _build_fully_linked_variable_extensions(*, archive, libs):
@@ -144,13 +130,21 @@ def _get_libraries_for_linking(libraries_to_link):
         libraries.append(_get_library_for_linking(library_to_link))
     return libraries
 
-def _register_fully_link_action(*, cc_linking_context, common_variables, name):
-    ctx = common_variables.ctx
-    feature_configuration = _build_feature_configuration(common_variables)
+def _register_fully_link_action(
+        *,
+        cc_configured_features,
+        cc_linking_context,
+        common_variables,
+        name):
+    feature_configuration = _build_feature_configuration(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain = common_variables.toolchain,
+    )
 
     libraries_to_link = _libraries_from_linking_context(cc_linking_context).to_list()
     libraries = _get_libraries_for_linking(libraries_to_link)
 
+    ctx = common_variables.ctx
     output_archive = ctx.actions.declare_file(name + ".a")
     extensions = _build_fully_linked_variable_extensions(
         archive = output_archive,
@@ -307,6 +301,7 @@ def _register_configuration_specific_link_actions(
         attr_linkopts,
         bundle_name,
         common_variables,
+        cc_configured_features,
         cc_linking_context,
         extra_link_args,
         extra_link_inputs,
@@ -323,8 +318,12 @@ def _register_configuration_specific_link_actions(
     Returns:
         (File) the linked binary
     """
+    feature_configuration = _build_feature_configuration(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain = common_variables.toolchain,
+    )
+
     ctx = common_variables.ctx
-    feature_configuration = _build_feature_configuration(common_variables)
 
     # TODO: Remove when we drop Bazel 8
     if bazel_features.cc.objc_fragment_has_builtin_objc_strip_action:
@@ -606,7 +605,6 @@ def _register_configuration_specific_link_actions_with_objc_variables(
     return binary
 
 compilation_support = struct(
-    # TODO(b/331163513): Move apple_common.compliation_support.build_common_variables here, too.
     register_fully_link_action = _register_fully_link_action,
     register_configuration_specific_link_actions = _register_configuration_specific_link_actions,
     subtract_linking_contexts = _subtract_linking_contexts,

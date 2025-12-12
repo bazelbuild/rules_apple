@@ -162,6 +162,10 @@ Resolved Xcode is version {xcode_version}.
         product_type = apple_product_type.application,
     )
 
+    extra_requested_features = []
+    if ctx.attr.testonly:
+        extra_requested_features.append("exported_symbols")
+
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
@@ -180,6 +184,9 @@ Resolved Xcode is version {xcode_version}.
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
+        extra_requested_features = [
+            "disable_legacy_signing",  # TODO: b/72148898 - Remove when dossier signing by default.
+        ] + extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
@@ -240,6 +247,7 @@ Resolved Xcode is version {xcode_version}.
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -573,6 +581,7 @@ def _visionos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -856,6 +865,7 @@ def _visionos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -1133,6 +1143,7 @@ def _visionos_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
+        cc_configured_features = cc_configured_features,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
@@ -1377,6 +1388,7 @@ def _visionos_static_framework_impl(ctx):
 
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
     binary_artifact = archive_result.library
