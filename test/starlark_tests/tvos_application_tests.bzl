@@ -673,6 +673,15 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that tvOS apps include the --app-icon argument in actool command.
+    analysis_target_actions_test(
+        name = "{}_includes_app_icon_in_actool_command".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = ["--app-icon TVBrandAssets"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
