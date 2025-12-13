@@ -19,6 +19,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
 )
@@ -324,6 +328,15 @@ def visionos_application_test_suite(name):
         tags = [
             name,
         ],
+    )
+
+    # Test that visionOS apps include the --app-icon argument in actool command.
+    analysis_target_actions_test(
+        name = "{}_includes_app_icon_in_actool_command".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = ["--app-icon AppIcon"],
+        tags = [name],
     )
 
     # TODO(b/288582842): Support an IPA output via this output group. This will require some changes
