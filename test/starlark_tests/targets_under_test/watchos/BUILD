@@ -414,6 +414,10 @@ apple_archive(
     name = "ipa_app_companion",
     bundle = ":app_companion",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
 )
 
 ios_application(
