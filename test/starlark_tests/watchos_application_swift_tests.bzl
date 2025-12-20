@@ -45,7 +45,7 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/Frameworks/libswiftCore.dylib",
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_no_swift",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_with_swift_watchos_no_swift",
         tags = [name],
     )
 
@@ -65,7 +65,7 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_no_swift_watchos_with_swift",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_no_swift_watchos_with_swift",
         tags = [name],
     )
 
@@ -85,7 +85,7 @@ def watchos_application_swift_test_suite(name):
         not_contains = [
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_with_swift_watchos_with_swift",
         tags = [name],
     )
 
@@ -109,9 +109,9 @@ def watchos_application_swift_test_suite(name):
     output_group_zip_contents_test(
         name = "{}_has_combined_zip_output_group".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_with_swift_watchos_with_swift",
         output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/watchos/ios_with_swift_watchos_with_swift_dossier_with_bundle.zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/watchos/companion_dossier_with_bundle.zip",
         contains = [
             "bundle/Payload/companion.app/Info.plist",
             "bundle/Payload/companion.app/companion",

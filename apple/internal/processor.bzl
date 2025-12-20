@@ -297,6 +297,7 @@ def _bundle_partial_outputs_files(
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
 
     location_to_paths = _archive_paths(
@@ -508,6 +509,7 @@ def _bundle_post_process_and_sign(
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,

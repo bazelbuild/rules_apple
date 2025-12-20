@@ -412,7 +412,7 @@ def _ios_application_impl(ctx):
             dependency_targets = embeddable_targets + ctx.attr.deps,
             dsym_binaries = debug_outputs.dsym_binaries,
             label_name = label.name,
-            include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
+            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -2634,15 +2634,6 @@ A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-ios.md#ios_framework))
 that this target depends on.
 """,
-            ),
-            "include_symbols_in_bundle": attr.bool(
-                default = False,
-                doc = """
-    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
-    files from all `{binary: .dSYM, ...}` pairs for the application and its
-    dependencies, then packages them under the `Symbols/` directory in the
-    final application bundle.
-    """,
             ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],

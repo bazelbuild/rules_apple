@@ -164,7 +164,7 @@ def ios_app_clip_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_dylibs_present".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_clip_with_swift_support",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_app_clip_with_swift_support",
         contains = [
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
             "$BUNDLE_ROOT/AppClips/app_clip_with_swift_support.app/Frameworks/libswift_Concurrency.dylib",

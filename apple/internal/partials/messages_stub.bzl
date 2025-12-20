@@ -26,10 +26,15 @@ load(
     "//apple/internal:processor.bzl",
     "processor",
 )
+load(
+    "//apple/internal/providers:apple_messages_stub_info.bzl",
+    "AppleMessagesStubInfo",
+)
 
-_AppleMessagesStubInfo = provider(
+# Private provider for internal propagation from extensions to parent app.
+_AppleMessagesPrivateStubInfo = provider(
     doc = """
-Private provider to propagate the messages stub that needs to be package in the iOS archive.
+Private provider to propagate the messages stub that needs to be packaged in the iOS archive.
 """,
     fields = {
         "binary": """
@@ -54,20 +59,23 @@ def _messages_stub_partial_impl(
 
     if package_messages_support:
         extension_binaries = [
-            x[_AppleMessagesStubInfo].binary
+            x[_AppleMessagesPrivateStubInfo].binary
             for x in extensions
-            if _AppleMessagesStubInfo in x
+            if _AppleMessagesPrivateStubInfo in x
         ]
 
+        extension_support_file = None
         if extension_binaries:
+            extension_support_file = extension_binaries[0]
             bundle_files.append(
                 (
                     processor.location.archive,
                     "MessagesApplicationExtensionSupport",
-                    depset([extension_binaries[0]]),
+                    depset([extension_support_file]),
                 ),
             )
 
+        app_support_file = None
         if binary_artifact:
             intermediate_file = intermediates.file(
                 actions = actions,
@@ -79,6 +87,7 @@ def _messages_stub_partial_impl(
                 target_file = binary_artifact,
                 output = intermediate_file,
             )
+            app_support_file = intermediate_file
 
             bundle_files.append(
                 (
@@ -87,6 +96,13 @@ def _messages_stub_partial_impl(
                     depset([intermediate_file]),
                 ),
             )
+
+        # We propagate the public provider for ipa rule access
+        if app_support_file or extension_support_file:
+            providers.append(AppleMessagesStubInfo(
+                messages_application_support = app_support_file,
+                messages_extension_support = extension_support_file,
+            ))
 
     elif binary_artifact:
         intermediate_file = intermediates.file(
@@ -99,7 +115,7 @@ def _messages_stub_partial_impl(
             target_file = binary_artifact,
             output = intermediate_file,
         )
-        providers.append(_AppleMessagesStubInfo(binary = intermediate_file))
+        providers.append(_AppleMessagesPrivateStubInfo(binary = intermediate_file))
 
     return struct(
         bundle_files = bundle_files,
