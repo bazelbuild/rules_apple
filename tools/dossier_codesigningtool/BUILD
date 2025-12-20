@@ -56,7 +56,7 @@ py_library(
 filegroup(
     name = "watchos_dossier_zip",
     testonly = True,
-    srcs = ["//test/starlark_tests/targets_under_test/watchos:app_companion"],
+    srcs = ["//test/starlark_tests/targets_under_test/watchos:ipa_app_companion"],
     output_group = "combined_dossier_zip",
 )
 
@@ -66,7 +66,7 @@ py_test(
     data = [
         ":watchos_dossier_zip",
         "//test/starlark_tests/targets_under_test/ios:app",
-        "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
     ],
     python_version = "PY3",
     tags = ["requires-darwin"],
