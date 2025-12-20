@@ -85,7 +85,7 @@ def ios_imessage_application_test_suite(name):
         contains = [
             "$ARCHIVE_ROOT/MessagesApplicationSupport/MessagesApplicationSupportStub",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_imessage_app",
         tags = [name],
     )
 

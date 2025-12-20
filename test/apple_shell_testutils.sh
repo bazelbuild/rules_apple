@@ -335,14 +335,14 @@ function assert_frameworks_not_resigned_given_output() {
 
   WORKDIR="$1"
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
-    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
+    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle.codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$bundle/Frameworks"
   else
-    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/Contents/Resources/codesign_v_fmwks_output.txt"
+    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle.codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$bundle/Contents/Frameworks"
   fi
 
-  if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
+  if [[ -f "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
     CODESIGN_FMWKS_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_fmwks_output.XXXXXX")"
 
     for fmwk in \

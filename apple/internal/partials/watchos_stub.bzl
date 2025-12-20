@@ -26,17 +26,9 @@ load(
     "//apple/internal:processor.bzl",
     "processor",
 )
-
-_AppleWatchosStubInfo = provider(
-    doc = """
-Private provider to propagate the watchOS stub that needs to be package in the iOS archive.
-""",
-    fields = {
-        "binary": """
-File artifact that contains a reference to the stub binary that needs to be packaged in the iOS
-archive.
-""",
-    },
+load(
+    "//apple/internal/providers:apple_watchos_stub_info.bzl",
+    "AppleWatchosStubInfo",
 )
 
 def _watchos_stub_partial_impl(
@@ -65,13 +57,14 @@ def _watchos_stub_partial_impl(
         bundle_files.append(
             (processor.location.bundle, "_WatchKitStub", depset([intermediate_file])),
         )
-        providers.append(_AppleWatchosStubInfo(binary = intermediate_file))
+        providers.append(AppleWatchosStubInfo(binary = intermediate_file))
 
     if watch_application:
-        binary_artifact = watch_application[_AppleWatchosStubInfo].binary
+        binary_artifact = watch_application[AppleWatchosStubInfo].binary
         bundle_files.append(
             (processor.location.archive, "WatchKitSupport2", depset([binary_artifact])),
         )
+        providers.append(AppleWatchosStubInfo(binary = binary_artifact))
 
     return struct(
         bundle_files = bundle_files,

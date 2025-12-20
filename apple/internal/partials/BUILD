@@ -55,6 +55,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal/providers:apple_symbols_file_info",
         "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",
@@ -265,6 +266,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal/providers:apple_messages_stub_info",
         "@bazel_skylib//lib:partial",
     ],
 )
@@ -327,6 +329,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "//apple/internal:shared_environment",
+        "//apple/internal/providers:apple_swift_dylibs_info",
         "//apple/internal/utils:defines",
         "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
@@ -371,6 +374,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal/providers:apple_watchos_stub_info",
         "@bazel_skylib//lib:partial",
     ],
 )

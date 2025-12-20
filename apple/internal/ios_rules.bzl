@@ -2905,11 +2905,10 @@ that this target depends on.
             "include_symbols_in_bundle": attr.bool(
                 default = False,
                 doc = """
-    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
-    files from all `{binary: .dSYM, ...}` pairs for the application and its
-    dependencies, then packages them under the `Symbols/` directory in the
-    final application bundle.
-    """,
+If true and --output_groups=+dsyms is specified, generates `$UUID.symbols` files from all
+`{binary: .dSYM, ...}` pairs for the application and its dependencies, then packages them under the
+`Symbols/` directory in the final application bundle.
+""",
             ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],

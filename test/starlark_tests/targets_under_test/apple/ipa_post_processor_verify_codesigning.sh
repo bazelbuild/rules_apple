@@ -17,32 +17,27 @@
 set -eu
 
 WORKDIR="$1"
-case "$APPLE_SDK_PLATFORM" in
-  "MacOSX"|"WatchSimulator"|"WatchOS")
-    APPDIR="$WORKDIR"
-    ;;
-  *)
-    APPDIR="$WORKDIR/Payload"
-    ;;
-esac
 
 # Save all codesigning output for each framework to verify later that they are
 # not being re-signed.
 for app in \
-    $(find "$APPDIR" -type d -maxdepth 1 -mindepth 1); do
-
-
+    $(find "$WORKDIR" -type d \
+        \( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.qlgenerator" -o -name "*.xpc" \)); do
+  CODESIGN_FMWKS_OUTPUT="$app.codesign_v_fmwks_output.txt"
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
-    CODESIGN_FMWKS_OUTPUT="$app/codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$app/Frameworks"
   else
     # macOS has a different bundle structure, and will fail codesigning if files
     # such as text files are not placed in the Resources directory. Create a
     # Resources directory in Contents if one does not exist.
-    mkdir -p "$app/Contents/Resources"
-    CODESIGN_FMWKS_OUTPUT="$app/Contents/Resources/codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$app/Contents/Frameworks"
   fi
+
+  if [ ! -d "$FRAMEWORK_DIR" ]; then
+    continue
+  fi
+
+  : > "$CODESIGN_FMWKS_OUTPUT"
 
   for fmwk in \
       $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
