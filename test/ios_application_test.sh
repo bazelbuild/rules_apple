@@ -72,6 +72,8 @@ function create_minimal_ios_application() {
   product_type="${1:-}"
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -89,6 +91,11 @@ EOF
   cat >> app/BUILD <<EOF
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 }
@@ -140,6 +147,8 @@ function test_ipa_post_processor() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -150,16 +159,21 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
   cat > app/post_processor.sh <<EOF
 #!/bin/bash
-WORKDIR="\$1"
-echo "foo" > "\$WORKDIR/Payload/app.app/inserted_by_post_processor.txt"
+WORKDIR="\$TREE_ARTIFACT_OUTPUT"
+echo "foo" > "\$WORKDIR/inserted_by_post_processor.txt"
 EOF
   chmod +x app/post_processor.sh
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
   assert_equals "foo" "$(unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/inserted_by_post_processor.txt")"
 }
@@ -169,6 +183,8 @@ function test_linkopts_passed_to_binary() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -179,9 +195,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" |
       nm -j - | grep _linkopts_test_main  > /dev/null \
@@ -194,6 +215,8 @@ function test_additional_linker_inputs_expansion() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 genrule(name = "linker_input", cmd="touch \$@", outs=["a.lds"])
 
 ios_application(
@@ -214,9 +237,14 @@ EOF
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 }
 
 # Tests that the PkgInfo file exists in the bundle and has the expected
@@ -224,7 +252,7 @@ EOF
 function test_pkginfo_contents() {
   create_common_files
   create_minimal_ios_application
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   assert_equals "APPL????" "$(unzip_single_file "test-bin/app/app.ipa" \
       "Payload/app.app/PkgInfo")"
@@ -249,6 +277,8 @@ function verify_debugger_entitlements_with_params() {
   fi
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -258,6 +288,11 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "profile.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -276,7 +311,7 @@ EOF
 </plist>
 EOF
 
-  create_dump_codesign "//app:app" "Payload/app.app" -d --entitlements :-
+  create_dump_codesign "//app:ipa_app" "Payload/app.app" -d --entitlements :-
   readonly CODESIGN_OUTPUT="test-bin/app/codesign_output"
 
   if is_device_build ios ; then
@@ -287,7 +322,7 @@ EOF
   else
     # For simulator builds, entitlements are added as a Mach-O section in
     # the binary.
-    do_build ios "$@" //app:app || fail "Should build"
+    do_build ios "$@" //app:ipa_app || fail "Should build"
     unzip_single_file "test-bin/app/app.ipa" "Payload/app.app/app" > "${TEST_TMPDIR}/binary"
     print_debug_entitlements "${TEST_TMPDIR}/binary" "${TEST_TMPDIR}/dumped_entitlements"
 
@@ -353,6 +388,8 @@ function test_target_name_sanitized_for_entitlements() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app-with-hyphen",
     bundle_id = "my.bundle.id",
@@ -362,6 +399,11 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app-with-hyphen",
 )
 EOF
 
@@ -377,7 +419,7 @@ EOF
 EOF
 
   if ! is_device_build ios ; then
-    do_build ios //app:app-with-hyphen || fail "Should build"
+    do_build ios //app:ipa_app || fail "Should build"
 
     unzip_single_file "test-bin/app/app-with-hyphen.ipa" \
         "Payload/app-with-hyphen.app/app-with-hyphen" > "${TEST_TMPDIR}/binary"
@@ -421,6 +463,8 @@ function test_bundle_library_dependency() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -432,6 +476,11 @@ ios_application(
         ":lib",
         ":resLib",
     ],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 
 objc_library(
@@ -457,7 +506,7 @@ EOF
 foo_device
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   if is_device_build ios ; then
     assert_zip_contains "test-bin/app/app.ipa" \
@@ -473,6 +522,8 @@ function test_bundle_name_can_differ_from_target() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
+
 ios_application(
     name = "app",
     bundle_id = "my.bundle.id",
@@ -483,9 +534,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # Both the bundle name and the executable name should correspond to
   # bundle_name.
@@ -499,6 +555,7 @@ function test_version_attr_overrides_plist_contents() {
   create_common_files
 
   cat >> app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:versioning.bzl",
      "apple_bundle_version",
     )
@@ -514,6 +571,11 @@ ios_application(
     deps = [":lib"],
 )
 
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
+
 apple_bundle_version(
     name = "app_version",
     build_version = "9.8.7",
@@ -521,7 +583,7 @@ apple_bundle_version(
 )
 EOF
 
-  create_dump_plist "//app:app" "Payload/app.app/Info.plist" \
+  create_dump_plist "//app:ipa_app" "Payload/app.app/Info.plist" \
       CFBundleVersion \
       CFBundleShortVersionString
   do_build ios //app:dump_plist || fail "Should build"

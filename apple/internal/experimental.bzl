@@ -49,10 +49,10 @@ def is_experimental_tree_artifact_enabled(
     # These will produce .app bundles that can be wrapped into .ipa files
     if rule_descriptor and platform_prerequisites:
         if (platform_prerequisites.platform.platform_type, rule_descriptor.product_type) in [
-            (str(apple_common.platform_type.ios), apple_product_type.application),
-            (str(apple_common.platform_type.ios), apple_product_type.messages_application),
-            (str(apple_common.platform_type.tvos), apple_product_type.application),
-            (str(apple_common.platform_type.visionos), apple_product_type.application),
+            (apple_common.platform_type.ios, apple_product_type.application),
+            (apple_common.platform_type.ios, apple_product_type.messages_application),
+            (apple_common.platform_type.tvos, apple_product_type.application),
+            (apple_common.platform_type.visionos, apple_product_type.application),
         ]:
             return True
 

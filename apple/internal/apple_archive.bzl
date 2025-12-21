@@ -151,15 +151,15 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
         bundle_info: The AppleBundleInfo provider.
         bundletool: The bundletool executable.
         should_compress: Whether to compress the archive.
-        all_inputs: Tuple of (bundle_merge_files, symbols_inputs, swift_support_inputs,
-                    watchos_stub_inputs, messages_stub_inputs).
+        all_inputs: Tuple of (bundle_merge_files, symbols_inputs,
+                    swift_support_inputs, watchos_stub_inputs, messages_stub_inputs).
 
     Returns:
         The declared archive file.
     """
     bundle_merge_files, symbols_inputs, swift_support_inputs, watchos_stub_inputs, messages_stub_inputs = all_inputs
 
-    archive = ctx.actions.declare_file("%s.ipa" % bundle_info.bundle_name)
+    archive = ctx.actions.declare_file("%s.ipa" % ctx.attr.bundle.label.name)
 
     control = struct(
         bundle_merge_files = bundle_merge_files,
@@ -266,6 +266,7 @@ def _apple_archive_impl(ctx):
 
     should_compress = _should_compress_archive(ctx)
 
+    # Package the bundle tree artifact into an IPA
     bundle_merge_files = [
         struct(
             src = bundle_info.archive.path,
