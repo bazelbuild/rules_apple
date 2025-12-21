@@ -5605,6 +5605,10 @@ apple_archive(
     name = "ipa_with_app",
     bundle = ":app",
     tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
 )
 
 apple_archive(

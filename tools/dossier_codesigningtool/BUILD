@@ -65,7 +65,7 @@ py_test(
     srcs = ["dossier_codesigning_reader_test.py"],
     data = [
         ":watchos_dossier_zip",
-        "//test/starlark_tests/targets_under_test/ios:app",
+        "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
         "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
     ],
     python_version = "PY3",

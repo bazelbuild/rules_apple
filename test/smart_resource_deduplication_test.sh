@@ -61,6 +61,7 @@ I am referenced by a resource only objc_library;
 EOF
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application", "ios_framework")
 
@@ -136,9 +137,14 @@ ios_application(
     strings = ["app.strings"],
     deps = [":app_lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # Verify framework has resources
   assert_assets_contains "test-bin/app/app.ipa" \
@@ -213,9 +219,14 @@ ios_application(
     strings = ["app.strings"],
     deps = [":app_lib_with_no_direct_resources"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # This is a tricky corner case, in which a resource only lib is depended by
   # dependency chains that contain no other resources. In this very specific
@@ -251,9 +262,14 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     deps = [":resource_only_lib", ":shared_lib", ":only_main_lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # Verify that the resource is in the framework.
   assert_zip_contains "test-bin/app/app.ipa" \
