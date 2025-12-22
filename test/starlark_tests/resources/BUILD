@@ -34,6 +34,7 @@ package(
     default_visibility = [
         "//test/starlark_tests:__subpackages__",
     ],
+    features = ["swift.enable_v6"],
 )
 
 # Exports all files in this package as targets to make it easier to depend on them.
@@ -973,6 +974,7 @@ swift_library(
     name = "hinted_app_intent",
     srcs = ["app_intent.swift"],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     tags = common.fixture_tags,
 )
 
@@ -989,6 +991,7 @@ swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "FavoriteSoup",
     tags = common.fixture_tags,
 )
@@ -997,6 +1000,7 @@ swift_library(
     name = "shared_library_widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "FavoriteSoup",
     tags = common.fixture_tags,
 )
@@ -1005,6 +1009,7 @@ swift_library(
     name = "StaticLibraryAppIntentsWithWidgetConfigurationDependency",
     srcs = ["StaticLibraryAppIntentsWithWidgetConfigurationDependency.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "StaticLibraryAppIntentsWithWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
@@ -1016,6 +1021,7 @@ swift_library(
     name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
     srcs = ["StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency.swift"],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
@@ -1030,6 +1036,7 @@ swift_library(
         "framework_defined_app_intent_package_without_dependencies.swift",
     ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
 )
@@ -1041,6 +1048,7 @@ swift_library(
         "framework_app_intent_dependent_main_package.swift",
     ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     tags = common.fixture_tags,
     deps = [
         ":framework_defined_app_intent",
@@ -1051,6 +1059,7 @@ swift_library(
     name = "StaticLibraryAppIntents",
     srcs = ["StaticLibraryAppIntents.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "StaticLibraryAppIntents",
     tags = common.fixture_tags,
 )
@@ -1059,6 +1068,7 @@ swift_library(
     name = "StaticLibraryAppIntentsWithDependency",
     srcs = ["StaticLibraryAppIntentsWithDependency.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "StaticLibraryAppIntentsWithDependency",
     tags = common.fixture_tags,
     deps = [
@@ -1073,6 +1083,7 @@ swift_library(
         "framework_defined_app_intent_package_with_dependency.swift",
     ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
     deps = [
@@ -1088,6 +1099,7 @@ swift_library(
         "framework_app_intent_dependent_main_package_with_shared_library_dependency.swift",
     ],
     aspect_hints = ["//apple/hints:app_intents_hint"],
+    features = ["-swift.enable_v6"],
     tags = common.fixture_tags,
     deps = [
         ":StaticLibraryAppIntents",

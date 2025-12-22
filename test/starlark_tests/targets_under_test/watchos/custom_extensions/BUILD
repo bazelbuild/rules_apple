@@ -18,6 +18,7 @@ package(
     default_applicable_licenses = ["//:license"],
     default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
+    features = ["swift.enable_v6"],
 )
 
 # ---------------------------------------------------------------------------------------

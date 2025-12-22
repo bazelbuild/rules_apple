@@ -3,6 +3,7 @@ load("//test/starlark_tests:common.bzl", "common")
 
 package(
     default_visibility = ["//test/starlark_tests:__subpackages__"],
+    features = ["swift.enable_v6"],
 )
 
 licenses(["notice"])

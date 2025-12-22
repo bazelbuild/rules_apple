@@ -51,6 +51,7 @@ licenses(["notice"])
 package(
     default_testonly = 1,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
+    features = ["swift.enable_v6"],
 )
 
 # This is a list of iOS targets to be used for Starlark unit tests. These may not build correctly

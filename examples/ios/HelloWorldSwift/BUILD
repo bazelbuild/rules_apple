@@ -2,6 +2,10 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 load("//apple:ios.bzl", "ios_application")
 
+package(
+    features = ["swift.enable_v6"],
+)
+
 licenses(["notice"])
 
 swift_library(
