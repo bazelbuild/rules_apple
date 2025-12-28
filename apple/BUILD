@@ -96,7 +96,6 @@ bzl_library(
         "//apple/internal:platform_support",
         "//apple/internal:providers",
         "@bazel_skylib//lib:dicts",
-        "@bazel_tools//tools/cpp:toolchain_utils",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
         "@build_bazel_apple_support//lib:apple_support",
     ],

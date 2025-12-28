@@ -30,10 +30,6 @@ load(
     "apple_support",
 )
 load(
-    "//apple:providers.bzl",
-    "ApplePlatformInfo",
-)
-load(
     "//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -63,7 +59,6 @@ ctx.target_platform_has_constraint(...) that covers all Apple cpu, platform, env
 for the purposes of understanding what constraints the results of each Apple split transition
 resolve to from the perspective of any bundling and binary rules that generate "fat" Apple binaries.
 """,
-    provides = [cc_common.CcToolchainInfo, ApplePlatformInfo],
     # Anticipated "new" toolchain assignment.
     toolchains = use_cpp_toolchain(),
 )

@@ -429,7 +429,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
+    attr_aspects = ["data", "deps", "implementation_deps", "private_deps", "resources", "structured_resources"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support.platform_constraint_attrs(),
