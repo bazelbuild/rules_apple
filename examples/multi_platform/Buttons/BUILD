@@ -25,10 +25,6 @@ load(
     "watchos_extension",
 )
 
-package(
-    features = ["swift.enable_v6"],
-)
-
 licenses(["notice"])
 
 # iOS

@@ -12,10 +12,6 @@ load(
     "apple_bundle_version",
 )
 
-package(
-    features = ["swift.enable_v6"],
-)
-
 licenses(["notice"])
 
 swift_library(

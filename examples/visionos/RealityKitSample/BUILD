@@ -9,10 +9,6 @@ load(
 )
 load("//apple:visionos.bzl", "visionos_application")
 
-package(
-    features = ["swift.enable_v6"],
-)
-
 licenses(["notice"])
 
 swift_library(
