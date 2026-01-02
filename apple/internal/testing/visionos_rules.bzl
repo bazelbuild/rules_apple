@@ -15,6 +15,10 @@
 """Implementation of visionOS test rules."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "VisionosApplicationBundleInfo",
@@ -179,6 +183,7 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     # processor. See if we can avoid needing to declare this hack for a new rule type.
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

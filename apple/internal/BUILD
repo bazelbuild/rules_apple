@@ -311,7 +311,9 @@ bzl_library(
         "//apple/internal/utils:main_thread_checker_dylibs",
         "@bazel_skylib//lib:collections",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -351,8 +353,10 @@ bzl_library(
         ":resource_actions",
         ":rule_attrs",
         ":rule_support",
+        ":transition_support",
         "//apple:providers",
         "@bazel_skylib//lib:dicts",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -389,6 +393,7 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect_hint",
         "//apple/internal/utils:clang_rt_dylibs",
         "//apple/internal/utils:main_thread_checker_dylibs",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -446,6 +451,9 @@ bzl_library(
     srcs = ["platform_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:providers",
     ],
 )
 
@@ -668,7 +676,9 @@ bzl_library(
         "//apple/internal/utils:clang_rt_dylibs",
         "//apple/internal/utils:main_thread_checker_dylibs",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
+        "@build_bazel_rules_swift//swift:providers",
     ],
 )
 
@@ -706,6 +716,7 @@ bzl_library(
         "//apple/internal/utils:main_thread_checker_dylibs",
         "@bazel_skylib//lib:sets",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -742,6 +753,7 @@ bzl_library(
         "//apple/internal/utils:main_thread_checker_dylibs",
         "@bazel_skylib//lib:sets",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
