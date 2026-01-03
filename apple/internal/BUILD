@@ -454,6 +454,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:providers",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
