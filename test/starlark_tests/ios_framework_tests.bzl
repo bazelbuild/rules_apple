@@ -85,7 +85,11 @@ def ios_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk",
         binary_test_file = "$BUNDLE_ROOT/fmwk",
-        macho_load_commands_contain = ["name @rpath/fmwk.framework/fmwk (offset 24)"],
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
         contains = [
             "$BUNDLE_ROOT/fmwk",
             "$BUNDLE_ROOT/Headers/common.h",
