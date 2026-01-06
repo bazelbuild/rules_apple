@@ -1280,6 +1280,49 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         tags = [name],
     )
 
+    # Tests that get-task-allow is not added to the entitlements if no provisioning profile is
+    # assigned.
+    apple_verification_test(
+        name = "{}_no_get_task_allow_entitlements_by_default_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_provisioning_profile",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that get-task-allow is added to the entitlements if a provisioning profile is assigned
+    # that declares get-task-allow.
+    apple_verification_test(
+        name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
     # Test that an app with a compiled binary resource coming from a resource attribute will fail to
     # build and present a user-actionable error message.
     analysis_failure_message_test(
