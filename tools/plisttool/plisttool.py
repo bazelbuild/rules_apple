@@ -311,6 +311,7 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'com.apple.developer.carplay-messaging',
     'com.apple.developer.carplay-parking',
     'com.apple.developer.carplay-quick-ordering',
+    'com.apple.developer.declared-age-range',
     'com.apple.developer.playable-content',
     'com.apple.developer.networking.wifi-info',
     'com.apple.developer.passkit.pass-presentation-suppression',
