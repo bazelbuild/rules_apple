@@ -306,6 +306,7 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
 
 _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     'aps-environment',
+    'com.apple.developer.declared-age-range',
     'com.apple.developer.networking.wifi-info',
     'com.apple.developer.passkit.pass-presentation-suppression',
     'com.apple.developer.payment-pass-provisioning',
