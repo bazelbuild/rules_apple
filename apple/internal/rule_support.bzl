@@ -212,6 +212,8 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Frameworks/Framework.framework/Framework
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
+                # Xcode also adds this path when building frameworks.
+                "@loader_path/Frameworks",
             ],
         ),
         # ios_imessage_application
@@ -454,6 +456,8 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Frameworks/Framework.framework/Framework
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
+                # Xcode also adds this path when building frameworks.
+                "@loader_path/Frameworks",
             ],
         ),
         # tvos_static_framework
@@ -522,6 +526,8 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Frameworks/Framework.framework/Framework
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
+                # Xcode also adds this path when building frameworks.
+                "@loader_path/Frameworks",
             ],
         ),
         # visionos_unit_test
@@ -614,6 +620,8 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Frameworks/Framework.framework/Framework
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",
+                # Xcode also adds this path when building frameworks.
+                "@loader_path/Frameworks",
             ],
         ),
         # watchos_ui_test
