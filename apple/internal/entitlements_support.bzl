@@ -113,8 +113,6 @@ def _include_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
-    if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
-        return False
     return True
 
 def _include_app_clip_entitlements(*, product_type):
