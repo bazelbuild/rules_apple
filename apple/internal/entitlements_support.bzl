@@ -81,19 +81,28 @@ def _new_entitlements_artifact(*, actions, extension, label_name):
         "entitlements/%s%s" % (label_name, extension),
     )
 
-def _include_debug_entitlements(*, platform_prerequisites):
-    """Returns a value indicating whether debug entitlements should be used.
+def _force_debug_entitlements(*, platform_prerequisites):
+    """Returns a value indicating whether the `get-task-allow` debug entitlements should be forced.
 
-    Debug entitlements are used if the --device_debug_entitlements command-line
-    option indicates that they should be included.
+    Debug entitlements are not forced on macOS at this level, regardless of the
+    apple.add_debugger_entitlement define.
 
-    Debug entitlements are also not used on macOS.
+    Debug entitlements are forced if the apple.add_debugger_entitlement define indicates that they
+    should be included, and if it is not present, they are not.
+
+    Note however that if `get-task-allow` is in the provisioning profile, `get-task-allow` will
+    still be included in the evaluated entitlements file for code signing even if this function
+    returns False, on account of plisttool's behavior.
+
+    Therefore, the ONLY practical effect of this function is to allow for debugging simulator
+    targets that don't have provisioning profiles assigned if apple.add_debugger_entitlement is set
+    to True.
 
     Args:
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
-      True if the debug entitlements should be included, otherwise False.
+      True if the `get-task-allow` debug entitlements should be forced, otherwise False.
     """
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         return False
@@ -104,9 +113,13 @@ def _include_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
-    if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
-        return False
-    return True
+
+    # TODO: b/473768498 - Consider if this should return True for the simulator with no provisioning
+    # profile case that needs to be handled here, and if we can entirely drop the
+    # apple.add_debugger_entitlement define support above in favor of that simplification. One means
+    # would be to have an explicit "if not device -> return True else False" as the entire
+    # implementation of this function.
+    return False
 
 def _include_app_clip_entitlements(*, product_type):
     """Returns a value indicating whether app clip entitlements should be used.
@@ -268,7 +281,7 @@ def _process_entitlements(
     forced_plists = []
     if signing_info.entitlements:
         plists.append(signing_info.entitlements)
-    if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
+    if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
         get_task_allow = {"get-task-allow": True}
         forced_plists.append(struct(**get_task_allow))
     if _include_app_clip_entitlements(product_type = product_type):
@@ -351,7 +364,7 @@ def _process_entitlements(
         )
 
     simulator_entitlements = None
-    if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
+    if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
         simulator_entitlements = actions.declare_file(
             "%s_entitlements.simulator.entitlements" % rule_label.name,
         )
