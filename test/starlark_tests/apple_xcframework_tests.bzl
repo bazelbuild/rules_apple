@@ -143,6 +143,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework.framework/Headers/shared.h",
@@ -164,6 +165,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/ios_dynamic_xcframework.framework/ios_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         contains = [
             "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Headers/shared.h",
@@ -185,6 +187,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_arm64e/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
@@ -206,6 +209,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/ios_dynamic_lipoed_xcframework.framework/ios_dynamic_lipoed_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         contains = [
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Headers/shared.h",
@@ -570,6 +574,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         tags = [name],
     )
@@ -582,6 +587,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         tags = [name],
     )
@@ -594,6 +600,7 @@ def apple_xcframework_test_suite(name):
         macho_load_commands_contain = [
             "name @rpath/tvos_dynamic_xcframework.framework/tvos_dynamic_xcframework (offset 24)",
             "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         tags = [name],
     )
