@@ -580,8 +580,8 @@ def macos_application_test_suite(name):
         name = "{}_fails_with_imported_versioned_framework_and_tree_artifact_outputs".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
         expected_error = (
-            "The apple_dynamic_framework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
+            "Error: \"imported_dynamic_versioned_fmwk\" does not currently support versioned " +
+            "frameworks with the bundle outputs feature/build setting."
         ),
         tags = [name],
     )

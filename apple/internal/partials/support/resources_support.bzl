@@ -40,10 +40,6 @@ load(
     "group_files_by_directory",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -822,7 +818,7 @@ def _apple_bundle(bundle_type):
 
         # If tree artifacts are enabled, iterate each bundle and set the bundle name
         # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
-        if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
+        if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
             bundle_files = []
             for bundle in files.to_list():
                 # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.

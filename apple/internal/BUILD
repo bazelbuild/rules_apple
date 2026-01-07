@@ -14,7 +14,6 @@ bzl_library(
     ],
     deps = [
         ":cc_toolchain_info_support",
-        ":experimental",
         ":features_support",
         ":framework_import_support",
         ":providers",
@@ -68,7 +67,6 @@ bzl_library(
     ],
     deps = [
         ":cc_toolchain_info_support",
-        ":experimental",
         ":features_support",
         ":framework_import_support",
         ":intermediates",
@@ -208,17 +206,6 @@ bzl_library(
         ":rule_attrs",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
-    name = "experimental",
-    srcs = ["experimental.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
-    deps = [
-        "//apple/internal/utils:defines",
     ],
 )
 
@@ -397,7 +384,6 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":experimental",
         ":fragment_support",
         ":intermediates",
         "@bazel_skylib//lib:paths",
@@ -460,7 +446,6 @@ bzl_library(
     deps = [
         ":bundling_support",
         ":codesigning_support",
-        ":experimental",
         ":intermediates",
         ":outputs",
         ":providers",
@@ -766,7 +751,6 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":cc_info_support",
-        ":experimental",
         ":features_support",
         ":intermediates",
         ":linking_support",

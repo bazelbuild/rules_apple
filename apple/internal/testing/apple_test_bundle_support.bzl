@@ -27,10 +27,6 @@ load(
     "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -637,7 +633,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         output = ctx.outputs.test_bundle_output,
     )
 
-    if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
+    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
         test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output

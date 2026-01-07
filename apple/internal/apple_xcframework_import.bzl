@@ -22,10 +22,6 @@ load(
     "cc_toolchain_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -135,18 +131,20 @@ def _classify_xcframework_imports(
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         xcframework_imports,
     )
-    tree_artifact_enabled = (
-        apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = config_vars)
-    )
+    tree_artifact_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
     if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
         # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
         # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
-        fail("""
-Error: "{label_name}" does not currently support versioned frameworks with the tree artifact \
-feature/build setting. Please ensure that the `apple.experimental.tree_artifact_outputs` variable \
-is not set to 1 on the command line or in your active build configuration.
-""".format(label_name = label_name))
+        fail(
+            """
+Error: "{label_name}" does not currently support versioned frameworks with the bundle outputs \
+feature/build setting.
+""".format(label_name = label_name) +
+            """
+            Check that the following build setting is not set:
+              --@build_bazel_rules_apple//apple/build_settings:use_tree_artifacts_outputs=true
+            """,
+        )
 
     info_plist = None
     bundle_name = None

@@ -27,10 +27,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -292,9 +288,7 @@ def _codesigning_dossier_partial_impl(
         ),
     )
 
-    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
+    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
 
     combined_zip_files = []
 

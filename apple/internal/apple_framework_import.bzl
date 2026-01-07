@@ -37,10 +37,6 @@ load(
     "cc_toolchain_info_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -132,15 +128,18 @@ def _apple_dynamic_framework_import_impl(ctx):
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         framework_imports,
     )
-    tree_artifact_enabled = (
-        ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value or
-        is_experimental_tree_artifact_enabled(config_vars = ctx.var)
-    )
+    tree_artifact_enabled = ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value
     if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
-        fail("The apple_dynamic_framework_import rule does not yet support versioned " +
-             "frameworks with the experimental tree artifact feature/build setting. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
+        fail(
+            """
+Error: "{label_name}" does not currently support versioned frameworks with the bundle outputs \
+feature/build setting.
+""".format(label_name = ctx.label.name) +
+            """
+            Check that the following build setting is not set:
+              --@build_bazel_rules_apple//apple/build_settings:use_tree_artifacts_outputs=true
+            """,
+        )
 
     providers = []
     framework = framework_import_support.classify_framework_imports(

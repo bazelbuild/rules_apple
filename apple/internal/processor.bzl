@@ -80,10 +80,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -163,8 +159,7 @@ def _archive_paths(
         tree_artifact_is_enabled):
     """Returns the map of location type to final archive path."""
     if tree_artifact_is_enabled:
-        # If experimental tree artifacts are enabled, base all the outputs to be relative to the
-        # bundle path.
+        # If tree artifact outputs are enabled, all outputs will be relative to the bundle path.
         bundle_path = ""
     else:
         bundle_name_with_extension = bundle_name + bundle_extension
@@ -268,9 +263,7 @@ def _bundle_partial_outputs_files(
     control_zips = []
     input_files = []
 
-    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
+    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
 
     location_to_paths = _archive_paths(
         bundle_extension = bundle_extension,
@@ -384,7 +377,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
 
     if tree_artifact_is_enabled:
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
-        # the experimental bundle tool script.
+        # the mac-only bundle tool script.
         codesigningtool = apple_mac_toolchain_info.codesigningtool
 
         additional_bundling_tools = [codesigningtool]
@@ -465,9 +458,7 @@ def _bundle_post_process_and_sign(
     Returns:
         A List of providers if any were created during bundling. Can be an empty List.
     """
-    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
+    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,

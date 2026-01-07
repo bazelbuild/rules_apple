@@ -24,7 +24,6 @@ bzl_library(
     deps = [
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
-        "//apple/internal:experimental",
         "//apple/internal:features_support",
         "//apple/internal:linking_support",
         "//apple/internal:outputs",

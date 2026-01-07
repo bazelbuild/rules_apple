@@ -33,10 +33,6 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -1307,8 +1303,7 @@ def _apple_xcframework_impl(ctx):
 
     tree_artifact_is_enabled = False
     outputs_archive = ctx.outputs.archive
-    if (build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = config_vars)):
+    if build_settings.use_tree_artifacts_outputs:
         actions.write(
             output = ctx.outputs.archive,
             content = "This is a dummy file because tree artifacts are enabled",
@@ -1774,8 +1769,7 @@ def _apple_static_xcframework_impl(ctx):
 
     tree_artifact_is_enabled = False
     outputs_archive = ctx.outputs.archive
-    if (build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = config_vars)):
+    if build_settings.use_tree_artifacts_outputs:
         actions.write(
             output = ctx.outputs.archive,
             content = "This is a dummy file because tree artifacts are enabled",

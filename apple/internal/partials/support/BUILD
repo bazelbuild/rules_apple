@@ -15,7 +15,6 @@ bzl_library(
     ],
     deps = [
         "//apple:utils",
-        "//apple/internal:experimental",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "//apple/internal:resource_actions",

@@ -23,10 +23,6 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:fragment_support.bzl",
     "fragment_support",
 )
@@ -51,10 +47,7 @@ def _archive(
     """Returns a file reference for this target's archive."""
     bundle_name_with_extension = bundle_name + bundle_extension
 
-    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
-    if tree_artifact_enabled:
+    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
         if output_discriminator:
             return actions.declare_directory(paths.join(
                 output_discriminator,
@@ -177,10 +170,7 @@ def _main_binary_basename(
 
 def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""
-    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
-    if tree_artifact_enabled:
+    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
         return False
     return (
         rule_descriptor.bundle_locations.archive_relative != "" and

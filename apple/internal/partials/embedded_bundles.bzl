@@ -19,10 +19,6 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
@@ -63,9 +59,7 @@ def _embedded_bundles_partial_impl(
     bundles_to_embed = []
     embeddedable_info_fields = {}
 
-    tree_artifact_enabled = is_experimental_tree_artifact_enabled(
-        platform_prerequisites = platform_prerequisites,
-    )
+    tree_artifact_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
 
     for bundle_type, bundle_location in bundle_type_to_location.items():
         for provider in embeddable_providers:

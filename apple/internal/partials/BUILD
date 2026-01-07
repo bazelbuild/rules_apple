@@ -112,7 +112,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:codesigning_support",
-        "//apple/internal:experimental",
         "//apple/internal:intermediates",
         "//apple/internal:outputs",
         "//apple/internal:processor",
@@ -150,7 +149,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:experimental",
         "//apple/internal:processor",
         "//apple/internal/providers:embeddable_info",
         "@bazel_skylib//lib:partial",
