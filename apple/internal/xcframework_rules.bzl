@@ -1358,6 +1358,7 @@ def _apple_xcframework_impl(ctx):
         # While different, these resolve to the same paths relative to their respective
         # executables. Only macOS (which is not yet supported) is an outlier.
         "-Wl,-rpath,@executable_path/Frameworks",
+        "-Wl,-rpath,@loader_path/Frameworks",
         "-install_name",
         "@rpath/{name}.framework/{name}".format(
             name = bundle_name,
