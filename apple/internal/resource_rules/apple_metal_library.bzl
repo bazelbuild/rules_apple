@@ -127,11 +127,6 @@ A list of compiler options passed to the `metal` compiler for each source.
 A list of headers to make importable when compiling the metal library.
 """,
             ),
-            "includes": attr.string_list(
-                doc = """\
-A list of header search paths.
-""",
-            ),
             "out": attr.string(
                 default = "default.metallib",
                 doc = """\
