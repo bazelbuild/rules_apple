@@ -319,6 +319,7 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = [
     # Keys which have a list of potential values in the profile, but only one in
     # the entitlements that must be in the profile's list of values
     'com.apple.developer.devicecheck.appattest-environment',
+    'com.apple.developer.nfc.readersession.formats',
 ]
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
@@ -1266,11 +1267,12 @@ class EntitlementsTask(PlistToolTask):
       self._sanity_check_profile()
 
       if self._validation_mode != 'skip':
+        # TODO: b/474331541 - Remove the fallback once its values are always set
+        # at analysis time in entitlements_support.bzl.
         extra_keys_to_match = self.options.get(
             'extra_keys_to_match_profile',
+            _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE,
         )
-        if not extra_keys_to_match:
-          extra_keys_to_match = _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE
         self._validate_entitlements_against_profile(
             plist,
             extra_keys_to_match,
@@ -1338,7 +1340,8 @@ class EntitlementsTask(PlistToolTask):
     Args:
       entitlements: The entitlements.
       extra_keys_to_match: A list of additional entitlements keys to validate
-          that their values match those of the provisioning profile exactly.
+          that their values match those of the provisioning profile exactly if
+          the value is not a list, and a subset if the value is a list.
 
     Raises:
       PlistToolError: For any issues found.
@@ -1407,6 +1410,11 @@ class EntitlementsTask(PlistToolTask):
         supports_wildcards=True,
     )
 
+    # TODO: b/474331541 - Remove this specific check once extra_keys_to_match is
+    # configured exclusively at analysis time, allowing us to add the
+    # com.apple.security.application-groups entitlement check for all Apple
+    # platforms except macOS.
+    #
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
     if self._profile_metadata.get('Platform', []) != ['OSX']:
@@ -1425,14 +1433,6 @@ class EntitlementsTask(PlistToolTask):
         self.target,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True,
-    )
-
-    # com.apple.developer.nfc.readersession.formats
-    self._check_entitlements_array(
-        entitlements,
-        profile_entitlements,
-        'com.apple.developer.nfc.readersession.formats',
-        self.target,
     )
 
   def _check_entitlement_matches_profile_value(

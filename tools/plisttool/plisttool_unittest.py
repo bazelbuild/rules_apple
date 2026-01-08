@@ -2147,6 +2147,22 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_entitlements_wifi_info_active_mismatch_with_no_extra_keys_to_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist = {'com.apple.developer.networking.wifi-info': False}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'extra_keys_to_match_profile': [],
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.networking.wifi-info': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
   def test_entitlements_profile_missing_wifi_info_active_default_validation(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
