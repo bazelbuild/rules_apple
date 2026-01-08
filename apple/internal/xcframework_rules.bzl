@@ -899,13 +899,6 @@ bundle_id on the target.
                     cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],
                     rule_label = rule_label,
                 ),
-                partials.swift_dylibs_partial(
-                    actions = actions,
-                    apple_mac_toolchain_info = apple_mac_toolchain_info,
-                    binary_artifact = binary_artifact,
-                    label_name = rule_label.name,
-                    platform_prerequisites = platform_prerequisites,
-                ),
             ])
 
         processor_result = processor.process(
