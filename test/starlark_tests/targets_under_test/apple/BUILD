@@ -641,6 +641,70 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "visionos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "multiplatform_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "ios": common.min_os_ios.baseline,
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework",
     bundle_id = "com.google.example",
     infoplists = [
