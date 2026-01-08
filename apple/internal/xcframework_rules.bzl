@@ -920,14 +920,6 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                     cc_toolchain = cc_toolchain[cc_common.CcToolchainInfo],
                     rule_label = rule_label,
                 ),
-                partials.swift_dylibs_partial(
-                    actions = actions,
-                    apple_mac_toolchain_info = apple_mac_toolchain_info,
-                    binary_artifact = binary_artifact,
-                    label_name = rule_label.name,
-                    mac_exec_group = mac_exec_group,
-                    platform_prerequisites = platform_prerequisites,
-                ),
             ])
 
         processor_result = processor.process(
