@@ -558,7 +558,7 @@ def _ios_application_impl(ctx):
     ] + processor_result.providers
 
 def _ios_app_clip_impl(ctx):
-    """Experimental implementation of ios_app_clip."""
+    """Implementation of ios_app_clip."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.app_clip,
@@ -875,7 +875,7 @@ def _ios_app_clip_impl(ctx):
     ] + processor_result.providers
 
 def _ios_framework_impl(ctx):
-    """Experimental implementation of ios_framework."""
+    """Implementation of ios_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
@@ -1582,7 +1582,7 @@ def _ios_static_framework_impl(ctx):
     ] + processor_result.providers
 
 def _ios_imessage_application_impl(ctx):
-    """Experimental implementation of ios_imessage_application."""
+    """Implementation of ios_imessage_application."""
 
     # Using "deps" to compute binary architectures, entitlements and features, but we're using a
     # stub binary to handle the actual binary, just like a rule for a watchOS 2 app bundle.
@@ -1815,7 +1815,7 @@ app an implementation.
     ] + processor_result.providers
 
 def _ios_imessage_extension_impl(ctx):
-    """Experimental implementation of ios_imessage_extension."""
+    """Implementation of ios_imessage_extension."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.messages_extension,

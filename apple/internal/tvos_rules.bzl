@@ -149,7 +149,7 @@ visibility([
 ])
 
 def _tvos_application_impl(ctx):
-    """Experimental implementation of tvos_application."""
+    """Implementation of tvos_application."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -481,7 +481,7 @@ def _tvos_application_impl(ctx):
     ] + processor_result.providers
 
 def _tvos_framework_impl(ctx):
-    """Experimental implementation of tvos_framework."""
+    """Implementation of tvos_framework."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
