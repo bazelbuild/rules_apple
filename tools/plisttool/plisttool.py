@@ -81,6 +81,8 @@ The info_plist_options dictionary can contain the following keys:
       `child_plists`), and the valures are a list of key/value pairs. The
       key/value pairs are encoded as a list of exactly two items, the key is
       actually an array of keys, so it can walk into the child plist.
+  entitlements_to_validate_with_profile: If present, a list of entitlements keys
+      that should be validated as being present in the provisioning profile.
 
 If info_plist_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not
@@ -304,7 +306,9 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
     ' the list in the profile or update the profile to support this value.'
 )
 
-_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
+# TODO: b/474331541 - Remove this hard coded list and rely on values set at
+# analysis time in entitlements_support.bzl.
+_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = [
     'aps-environment',
     'com.apple.developer.declared-age-range',
     'com.apple.developer.networking.wifi-info',
@@ -315,7 +319,7 @@ _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
     # Keys which have a list of potential values in the profile, but only one in
     # the entitlements that must be in the profile's list of values
     'com.apple.developer.devicecheck.appattest-environment',
-)
+]
 
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not'
@@ -368,6 +372,7 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
     'bundle_id',
+    'extra_keys_to_match_profile',
     'profile_metadata_file',
     'validation_mode',
 ])
@@ -1261,7 +1266,15 @@ class EntitlementsTask(PlistToolTask):
       self._sanity_check_profile()
 
       if self._validation_mode != 'skip':
-        self._validate_entitlements_against_profile(plist)
+        extra_keys_to_match = self.options.get(
+            'extra_keys_to_match_profile',
+        )
+        if not extra_keys_to_match:
+          extra_keys_to_match = _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE
+        self._validate_entitlements_against_profile(
+            plist,
+            extra_keys_to_match,
+        )
 
   def _validate_bundle_id_covered(self, bundle_id, entitlements):
     """Checks that the bundle id is covered by the entitlements.
@@ -1317,11 +1330,15 @@ class EntitlementsTask(PlistToolTask):
     # for setting up substitutions. At the moment no validation between them
     # is being done.
 
-  def _validate_entitlements_against_profile(self, entitlements):
+  def _validate_entitlements_against_profile(
+      self, entitlements, extra_keys_to_match
+  ):
     """Checks that the given entitlements are valid for the current profile.
 
     Args:
       entitlements: The entitlements.
+      extra_keys_to_match: A list of additional entitlements keys to validate
+          that their values match those of the provisioning profile exactly.
 
     Raises:
       PlistToolError: For any issues found.
@@ -1357,7 +1374,7 @@ class EntitlementsTask(PlistToolTask):
             % (self.target, src_app_id, profile_app_id)
         )
 
-    for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
+    for entitlement in extra_keys_to_match:
       self._check_entitlement_matches_profile_value(
           entitlement=entitlement,
           entitlements=entitlements,

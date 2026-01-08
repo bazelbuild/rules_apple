@@ -1904,7 +1904,7 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
-  def test_entitlements_aps_environment_mismatch(self):
+  def test_entitlements_aps_environment_mismatch_default_validation(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
@@ -1922,7 +1922,28 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
-  def test_attest_valid(self):
+  def test_entitlements_aps_environment_mismatch(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'aps-environment', 'production', 'development'))):
+      plist = {'aps-environment': 'production'}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'aps-environment',
+              ],
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'aps-environment': 'development',
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_attest_valid_default_validation(self):
     plist = {
         'com.apple.developer.devicecheck.appattest-environment': 'development'}
     self._assert_plisttool_result(
@@ -1939,6 +1960,48 @@ class PlistToolTest(unittest.TestCase):
             },
         }, plist)
 
+  def test_attest_valid(self):
+    plist = {
+        'com.apple.developer.devicecheck.appattest-environment': 'development'}
+    self._assert_plisttool_result(
+        {
+            'plists': [plist],
+            'entitlements_options': {
+                'extra_keys_to_match_profile': [
+                    'com.apple.developer.devicecheck.appattest-environment',
+                ],
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'com.apple.developer.devicecheck.appattest-environment':
+                            ['development', 'production'],
+                    },
+                    'Version': 1,
+                },
+            },
+        }, plist)
+
+  def test_attest_mismatch_default_validation(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_NOT_IN_LIST %
+                  (_testing_target,
+                   'com.apple.developer.devicecheck.appattest-environment',
+                   'foo', ['development']))):
+      plist = {'com.apple.developer.devicecheck.appattest-environment': 'foo'}
+      self._assert_plisttool_result(
+          {
+              'plists': [plist],
+              'entitlements_options': {
+                  'profile_metadata_file': {
+                      'Entitlements': {
+                          'com.apple.developer.devicecheck.appattest-environment':
+                              ['development'],
+                      },
+                      'Version': 1,
+                  },
+              },
+          }, plist)
+
   def test_attest_mismatch(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
@@ -1951,6 +2014,9 @@ class PlistToolTest(unittest.TestCase):
           {
               'plists': [plist],
               'entitlements_options': {
+                  'extra_keys_to_match_profile': [
+                      'com.apple.developer.devicecheck.appattest-environment',
+                  ],
                   'profile_metadata_file': {
                       'Entitlements': {
                           'com.apple.developer.devicecheck.appattest-environment':
@@ -2009,7 +2075,7 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
-  def test_entitlements_missing_wifi_info_active(self):
+  def test_entitlements_missing_wifi_info_active_default_validation(self):
     plist = {}
     self._assert_plisttool_result({
         'plists': [plist],
@@ -2023,7 +2089,24 @@ class PlistToolTest(unittest.TestCase):
         },
     }, plist)
 
-  def test_entitlements_wifi_info_active_mismatch(self):
+  def test_entitlements_missing_wifi_info_active(self):
+    plist = {}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'extra_keys_to_match_profile': [
+                'com.apple.developer.networking.wifi-info',
+            ],
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.networking.wifi-info': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
+
+  def test_entitlements_wifi_info_active_mismatch_default_validation(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
         re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
@@ -2042,6 +2125,48 @@ class PlistToolTest(unittest.TestCase):
           },
       }, plist)
 
+  def test_entitlements_wifi_info_active_mismatch(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_VALUE_MISMATCH % (
+            _testing_target, 'com.apple.developer.networking.wifi-info',
+            'False', 'True'))):
+      plist = {'com.apple.developer.networking.wifi-info': False}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'com.apple.developer.networking.wifi-info',
+              ],
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.developer.networking.wifi-info': True,
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
+  def test_entitlements_profile_missing_wifi_info_active_default_validation(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(
+            plisttool.ENTITLEMENTS_MISSING %
+            (_testing_target, 'com.apple.developer.networking.wifi-info'))):
+      plist = {'com.apple.developer.networking.wifi-info': True}
+      self._assert_plisttool_result({
+          'plists': [plist],
+          'entitlements_options': {
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'application-identifier': 'QWERTY.*',
+                      # No wifi-info
+                  },
+                  'Version': 1,
+              },
+          },
+      }, plist)
+
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
@@ -2052,6 +2177,9 @@ class PlistToolTest(unittest.TestCase):
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'com.apple.developer.networking.wifi-info',
+              ],
               'profile_metadata_file': {
                   'Entitlements': {
                       'application-identifier': 'QWERTY.*',
