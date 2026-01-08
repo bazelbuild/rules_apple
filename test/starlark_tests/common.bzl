@@ -75,6 +75,7 @@ _min_os_watchos = struct(
     icon_bundle_required = "26.0",
     requires_single_target_app = "9.0",
     single_target_app = "7.0",
+    requires_single_target_app_nplus1 = "10.0",
     stable_swift_abi = "6.0",
     test_runner_support = "7.4",
 )
