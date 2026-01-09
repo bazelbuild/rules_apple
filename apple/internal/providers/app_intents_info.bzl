@@ -53,7 +53,7 @@ providers that must be processed at the top level bundling rule through the
 
 *   `swift_source_files`: A List of the Swift source files for this module.
 
-*   `swiftconstvalues_files`:  A List of the swiftconstvalues files for this module.
+*   `swiftconstvalues_files`: A List of the swiftconstvalues files for this module.
 """,
     },
 )
@@ -63,10 +63,6 @@ AppIntentsBundleInfo = provider(
     fields = {
         "owned_metadata_bundles": """
 A depset of structs defined as the following:
-
-*   `app_intents_package_typename`: A File that contains the app intents package typename for
-    this particular App Intents metadata bundle, if one was defined. This is only mandatory for
-    multi-module App Intents execution-time validation of AppIntentsPackage-s to work.
 
 *   `bundle`: A File representing the metadata bundle file.
 
