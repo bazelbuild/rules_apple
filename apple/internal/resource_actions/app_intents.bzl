@@ -27,7 +27,8 @@ def generate_app_intents_metadata_bundle(
         label,
         source_files,
         target_triples,
-        xcode_version_config):
+        xcode_version_config,
+        json_tool):
     """Process and generate AppIntents metadata bundle (Metadata.appintents).
 
     Args:
@@ -42,6 +43,9 @@ def generate_app_intents_metadata_bundle(
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
+        json_tool: A `files_to_run` wrapping Python's `json.tool` module
+            (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
+            JSON handling.
     Returns:
         File referencing the Metadata.appintents bundle.
     """
@@ -102,6 +106,8 @@ an issue with the Apple BUILD rules with repro steps.
             ))
         args.add("--xcode-version", xcode_version_split[3])
 
+    json_tool_path = json_tool.executable.path
+
     apple_support.run_shell(
         actions = actions,
         apple_fragment = apple_fragment,
@@ -115,7 +121,7 @@ sort_json_file() {{
     local temp_file="${{original_file}}.sorted"
 
     # Sort the JSON file keys
-    "$DEVELOPER_DIR/usr/bin/python3" -m json.tool --compact --sort-keys "$original_file" > "$temp_file"
+    "{json_tool_path}" --compact --sort-keys "$original_file" > "$temp_file"
     # Replace original with sorted version
     mv "$temp_file" "$original_file"
 }}
@@ -130,15 +136,15 @@ output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/Xco
 actionsdata_file="{output_dir}/extract.actionsdata"
 version_file="{output_dir}/version.json"
 
-# Set write permission to allow rewriting files
-chmod -R +w "{output_dir}"
-
 # Sort both JSON files to ensure deterministic output
 sort_json_file "$version_file"
 sort_json_file "$actionsdata_file"
 
+# Set write permission to allow rewriting files
+chmod +w "$version_file" "$actionsdata_file"
+
 # Restore read-only permission
-chmod -R -w "{output_dir}"
+chmod -w "$version_file" "$actionsdata_file"
 
 if [[ "$exit_status" -ne 0 ]]; then
   echo "$output" >&2
@@ -150,8 +156,12 @@ elif [[ "$output" == *"skipping writing output"* ]]; then
   echo "$output" >&2
   exit 1
 fi
-'''.format(output_dir = output.path),
+'''.format(
+            output_dir = output.path,
+            json_tool_path = json_tool_path,
+        ),
         inputs = depset([bundle_binary], transitive = transitive_inputs),
+        tools = [json_tool],
         outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
         xcode_config = xcode_version_config,
