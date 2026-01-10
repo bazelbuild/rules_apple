@@ -97,6 +97,9 @@ def _swift_dylib_action(
     if strip_bitcode:
         swift_stdlib_tool_args.add("--strip_bitcode")
 
+    if platform_prerequisites.build_settings.disable_swift_stdlib_binary_thinning:
+        swift_stdlib_tool_args.add("--disable_binary_thinning")
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,

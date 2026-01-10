@@ -26,6 +26,13 @@ parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframewo
 """,
         default = False,
     ),
+    "disable_swift_stdlib_binary_thinning": struct(
+        doc = """
+Disables binary thinning for Swift stdlib binaries, matching the most recent Xcode handling for
+Swift support dylibs.
+""",
+        default = False,
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(
