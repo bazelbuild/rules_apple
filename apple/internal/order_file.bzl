@@ -179,4 +179,27 @@ order_file = rule(
             doc = "Indicate whether to log stats about how the linker used the order file.",
         ),
     },
+    doc = """\
+Injects the provided `.order` files into Apple link lines, concatenating and deduplicating them before supplying the appropriate linker flags.
+The rule short-circuits in non-optimized compilations because generating order files is intended for release/deployment builds where they improve runtime locality.
+
+Example:
+
+```starlark
+apple_order_file(
+    name = "app_order_file",
+    deps = [
+        "my_file.order",
+        "my_second_order_file.order",
+    ],
+)
+
+ios_application(
+    name = "app",
+    deps = [":app_order_file"],
+)
+```
+
+Set `stats = True` if you want the linker to emit information about how it used the order file.
+""",
 )
