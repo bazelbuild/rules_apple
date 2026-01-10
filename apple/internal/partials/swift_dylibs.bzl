@@ -119,6 +119,9 @@ def _swift_dylib_action(
     if minimum_os < _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING[platform_prerequisites.platform_type]:
         swift_stdlib_tool_args.add("--requires_bundled_swift_runtime")
 
+    if platform_prerequisites.build_settings.disable_swift_stdlib_binary_thinning:
+        swift_stdlib_tool_args.add("--disable_binary_thinning")
+
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
