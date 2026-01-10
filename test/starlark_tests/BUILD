@@ -200,7 +200,6 @@ bzl_library(
         "//apple:linker",
         "//apple/build_settings",
         "//test/starlark_tests/rules:test_rules",
-        "//tools/build_defs/write_file:bzl_lib",
     ],
 )
 
