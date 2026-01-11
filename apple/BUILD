@@ -143,6 +143,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "linker",
+    srcs = ["linker.bzl"],
+    deps = [
+        "//apple/internal:order_file",
+    ],
+)
+
+bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [

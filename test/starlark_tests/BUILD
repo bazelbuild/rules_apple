@@ -39,6 +39,7 @@ load(":macos_quick_look_plugin_tests.bzl", "macos_quick_look_plugin_test_suite")
 load(":macos_static_framework_tests.bzl", "macos_static_framework_test_suite")
 load(":macos_ui_test_tests.bzl", "macos_ui_test_test_suite")
 load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
+load(":order_file_tests.bzl", "order_file_test_suite")
 load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
 load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
@@ -144,6 +145,8 @@ macos_ui_test_test_suite(name = "macos_ui_test")
 
 macos_unit_test_test_suite(name = "macos_unit_test")
 
+order_file_test_suite(name = "order_file")
+
 tvos_application_swift_test_suite(name = "tvos_application_swift")
 
 tvos_application_test_suite(name = "tvos_application")
@@ -194,6 +197,8 @@ bzl_library(
     name = "starlark_tests_bzls",
     srcs = glob(["**/*.bzl"]),
     deps = [
+        "//apple:linker",
+        "//apple/build_settings",
         "//test/starlark_tests/rules:test_rules",
     ],
 )
