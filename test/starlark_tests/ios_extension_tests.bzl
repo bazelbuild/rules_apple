@@ -197,7 +197,7 @@ def ios_extension_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_dylibs_present".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_swift_ext",
         not_contains = ["$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib"],
         contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",

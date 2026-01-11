@@ -32,6 +32,38 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_symbols_file_info",
+    srcs = ["apple_symbols_file_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "apple_swift_dylibs_info",
+    srcs = ["apple_swift_dylibs_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "apple_watchos_stub_info",
+    srcs = ["apple_watchos_stub_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "apple_messages_stub_info",
+    srcs = ["apple_messages_stub_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "embeddable_info",
     srcs = ["embeddable_info.bzl"],
     visibility = [
