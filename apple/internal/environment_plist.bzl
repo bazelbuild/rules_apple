@@ -26,7 +26,7 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:features_support.bzl",
@@ -62,7 +62,7 @@ def _environment_plist_impl(ctx):
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
-    environment_plist_tool = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo].environment_plist_tool
+    environment_plist_tool = apple_toolchain_utils.get_mac_toolchain(ctx).environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
@@ -92,6 +92,7 @@ The platform for which the plist is being generated
             ),
         },
     ),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = """
 This rule generates the plist containing the required variables about the versions the target is
 being built for and with. This is used by Apple when submitting to the App Store. This reduces the
