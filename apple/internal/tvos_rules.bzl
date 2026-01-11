@@ -250,6 +250,7 @@ def _tvos_application_impl(ctx):
             features = features,
             label = label,
             platform_prerequisites = platform_prerequisites,
+            json_tool = apple_xplat_toolchain_info.json_tool,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,

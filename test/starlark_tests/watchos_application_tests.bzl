@@ -273,6 +273,21 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_app_intents_metadata_json_keys_sorted_test".format(name),
+        build_type = "simulator",
+        cpus = {"watchos_cpus": ["arm64"]},
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intents",
+        verifier_script = "verifier_scripts/app_intents_metadata_json_sorted.sh",
+        env = {
+            "JSON_FILES": [
+                "$BUNDLE_ROOT/Metadata.appintents/version.json",
+                "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            ],
+        },
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_capability_set_derived_bundle_id",

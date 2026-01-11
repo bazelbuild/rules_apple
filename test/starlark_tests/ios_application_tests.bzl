@@ -860,6 +860,20 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_app_intents_metadata_json_keys_sorted_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        verifier_script = "verifier_scripts/app_intents_metadata_json_sorted.sh",
+        env = {
+            "JSON_FILES": [
+                "$BUNDLE_ROOT/Metadata.appintents/version.json",
+                "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            ],
+        },
+        tags = [name],
+    )
+
     # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
     # at the top-level ios_application rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.

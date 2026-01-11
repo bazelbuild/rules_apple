@@ -113,6 +113,10 @@ files/ZIPs and destinations paths to build the directory structure for those fil
         "versiontool": """\
 A files_to_run for a tool that acts as a wrapper for xcrun actions.
 """,
+        "json_tool": """\
+A `files_to_run` wrapping Python's `json.tool` module (https://docs.python.org/3.5/library/json.html#module-json.tool)
+for deterministic JSON handling.
+""",
     },
 )
 
@@ -268,6 +272,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
             ),
             bundletool = ctx.attr.bundletool.files_to_run,
             versiontool = ctx.attr.versiontool.files_to_run,
+            json_tool = ctx.attr.json_tool.files_to_run,
         ),
         DefaultInfo(),
     ]
@@ -294,6 +299,14 @@ paths to build the directory structure for those files.
             executable = True,
             doc = """
 A `File` referencing a tool for extracting version info from builds.
+""",
+        ),
+        "json_tool": attr.label(
+            cfg = "target",
+            executable = True,
+            doc = """
+A `files_to_run` wrapping Python's `json.tool` module (https://docs.python.org/3.5/library/json.html#module-json.tool)
+for deterministic JSON handling.
 """,
         ),
     },

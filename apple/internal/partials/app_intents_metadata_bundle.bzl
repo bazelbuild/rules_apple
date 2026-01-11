@@ -37,7 +37,8 @@ def _app_intents_metadata_bundle_partial_impl(
         disabled_features,
         features,
         label,
-        platform_prerequisites):
+        platform_prerequisites,
+        json_tool):
     """Implementation of the AppIntents metadata bundle partial."""
     if not deps:
         # No `app_intents` were set by the rule calling this partial.
@@ -120,6 +121,7 @@ def _app_intents_metadata_bundle_partial_impl(
             for cc_toolchain in cc_toolchains.values()
         ],
         xcode_version_config = platform_prerequisites.xcode_version_config,
+        json_tool = json_tool,
     )
 
     bundle_location = processor.location.bundle
@@ -143,7 +145,8 @@ def app_intents_metadata_bundle_partial(
         disabled_features,
         features,
         label,
-        platform_prerequisites):
+        platform_prerequisites,
+        json_tool):
     """Constructor for the AppIntents metadata bundle processing partial.
 
     This partial generates the Metadata.appintents bundle required for AppIntents functionality.
@@ -158,6 +161,9 @@ def app_intents_metadata_bundle_partial(
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        json_tool: A `files_to_run` wrapping Python's `json.tool` module
+            (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
+            JSON handling.
     Returns:
         A partial that generates the Metadata.appintents bundle.
     """
@@ -171,4 +177,5 @@ def app_intents_metadata_bundle_partial(
         features = features,
         label = label,
         platform_prerequisites = platform_prerequisites,
+        json_tool = json_tool,
     )
