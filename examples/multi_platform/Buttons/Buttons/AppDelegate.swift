@@ -14,6 +14,9 @@
 
 import UIKit
 
+/// TODO: b/473865964 - Remove the UIApplication bits. Make this a SwiftUI example. Be able to build
+/// and run under Swift v6.
+
 // Shim to compile with older Xcodes.
 #if !swift(>=4.2)
   extension UIApplication {

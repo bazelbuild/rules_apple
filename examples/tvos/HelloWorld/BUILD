@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
 load(
     "//apple:tvos.bzl",
     "tvos_application",
@@ -11,15 +11,11 @@ load(
 
 licenses(["notice"])
 
-objc_library(
+swift_library(
     name = "Sources",
     srcs = [
-        "Sources/AppDelegate.h",
-        "Sources/AppDelegate.m",
-        "Sources/main.m",
-    ],
-    data = [
-        "Resources/Main.storyboard",
+        "Sources/ContentView.swift",
+        "Sources/HelloWorld.swift",
     ],
 )
 
@@ -33,7 +29,7 @@ tvos_application(
     app_icons = ["//examples/resources:TVBrandAssets.xcassets"],
     bundle_id = "com.example.hello-world",
     infoplists = [":Info.plist"],
-    minimum_os_version = "12.0",
+    minimum_os_version = "15.0",
     version = ":HelloWorldVersion",
     deps = [":Sources"],
 )

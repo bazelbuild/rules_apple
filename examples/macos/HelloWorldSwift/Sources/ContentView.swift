@@ -1,4 +1,4 @@
-// Copyright 2022 The Bazel Authors. All rights reserved.
+// Copyright 2026 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import <Foundation/Foundation.h>
-#import <WatchKit/WatchKit.h>
+import SwiftUI
 
-@interface InterfaceController : WKInterfaceController
-
-@property (nonatomic, weak) IBOutlet WKInterfaceLabel *statusLabel;
-@property (nonatomic, weak) IBOutlet WKInterfaceLabel *greetingLabel;
-
-@end
+struct ContentView: View {
+    var body: some View {
+        VStack {
+            Image(systemName: "globe")
+                .imageScale(.large)
+                .foregroundStyle(.tint)
+            Text("Hello, world!")
+        }
+        .padding()
+    }
+}

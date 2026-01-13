@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// TODO: b/473865964 - Make this a single target watch application. Make this a SwiftUI example. Be
+/// able to build and run under Swift v6.
+
 import WatchKit
 
 class ExtensionDelegate: NSObject, WKExtensionDelegate {

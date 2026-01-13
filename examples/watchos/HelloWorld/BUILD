@@ -1,5 +1,8 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_cc//cc:objc_library.bzl", "objc_library")
+load(
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
+    "swift_library",
+)
 load(
     "//apple:ios.bzl",
     "ios_application",
@@ -11,57 +14,24 @@ load(
 load(
     "//apple:watchos.bzl",
     "watchos_application",
-    "watchos_extension",
 )
 
 licenses(["notice"])
 
-objc_library(
+swift_library(
     name = "PhoneSources",
     srcs = [
-        "PhoneSources/AppDelegate.h",
-        "PhoneSources/AppDelegate.m",
-        "PhoneSources/ViewController.h",
-        "PhoneSources/ViewController.m",
-        "PhoneSources/main.m",
-    ],
-    data = [
-        "PhoneResources/Main.storyboard",
-    ],
-    sdk_frameworks = [
-        "WatchConnectivity",
+        "PhoneSources/ContentView.swift",
+        "PhoneSources/HelloWorld.swift",
     ],
 )
 
-objc_library(
-    name = "WatchSharedSources",
+swift_library(
+    name = "WatchSources",
     srcs = [
-        "WatchSharedSources/InterfaceController.h",
-        "WatchSharedSources/InterfaceController.m",
+        "WatchSources/ContentView.swift",
+        "WatchSources/HelloWorld.swift",
     ],
-    sdk_frameworks = [
-        "WatchConnectivity",
-        "WatchKit",
-    ],
-)
-
-objc_library(
-    name = "WatchApp2Sources",
-    srcs = [
-        "WatchApp2Sources/ExtensionDelegate.h",
-        "WatchApp2Sources/ExtensionDelegate.m",
-    ],
-    deps = [":WatchSharedSources"],
-)
-
-objc_library(
-    name = "SingleTargetWatchSources",
-    srcs = [
-        "SingleTargetWatchSources/AppDelegate.h",
-        "SingleTargetWatchSources/AppDelegate.m",
-        "SingleTargetWatchSources/main.m",
-    ],
-    deps = [":WatchSharedSources"],
 )
 
 apple_bundle_version(
@@ -70,7 +40,7 @@ apple_bundle_version(
 )
 
 ios_application(
-    name = "HelloWorld",
+    name = "HelloWorld-WatchHost",
     app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
     bundle_id = "com.example.hello-world",
     families = [
@@ -89,51 +59,10 @@ watchos_application(
     name = "HelloWorld-WatchApplication",
     app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.example.hello-world.watch",
-    extension = ":HelloWorld-WatchExtension",
     infoplists = [":WatchApp-Info.plist"],
-    minimum_os_version = "8.0",
-    storyboards = [
-        "WatchResources/Interface.storyboard",
-    ],
+    minimum_os_version = "9.0",
     version = ":HelloWorldVersion",
-)
-
-watchos_extension(
-    name = "HelloWorld-WatchExtension",
-    bundle_id = "com.example.hello-world.watch.extension",
-    infoplists = [":WatchExt-Info.plist"],
-    minimum_os_version = "8.0",
-    version = ":HelloWorldVersion",
-    deps = [":WatchApp2Sources"],
-)
-
-ios_application(
-    name = "HelloWorld-SingleTargetWatchHost",
-    app_icons = ["//examples/resources:PhoneAppIcon.xcassets"],
-    bundle_id = "com.example.hello-world",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [":Phone-Info.plist"],
-    launch_storyboard = "//examples/resources:Launch.storyboard",
-    minimum_os_version = "15.0",
-    version = ":HelloWorldVersion",
-    watch_application = ":HelloWorld-SingleTargetWatchApplication",
-    deps = [":PhoneSources"],
-)
-
-watchos_application(
-    name = "HelloWorld-SingleTargetWatchApplication",
-    app_icons = ["//examples/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.example.hello-world.watch",
-    infoplists = [":WatchApp-Info.plist"],
-    minimum_os_version = "8.0",
-    storyboards = [
-        "WatchResources/Interface.storyboard",
-    ],
-    version = ":HelloWorldVersion",
-    deps = [":SingleTargetWatchSources"],
+    deps = [":WatchSources"],
 )
 
 # Not normally needed, just done for rules_apple's examples so a
@@ -141,10 +70,7 @@ watchos_application(
 build_test(
     name = "ExamplesBuildTest",
     targets = [
-        ":HelloWorld",
-        ":HelloWorld-SingleTargetWatchHost",
-        ":HelloWorld-SingleTargetWatchApplication",
+        ":HelloWorld-WatchHost",
         ":HelloWorld-WatchApplication",
-        ":HelloWorld-WatchExtension",
     ],
 )

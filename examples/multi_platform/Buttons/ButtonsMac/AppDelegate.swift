@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// TODO: nglevin - Remove the UIApplication bits. Make this a SwiftUI example. Be able to build
+/// and run under Swift v6.
+
 import Cocoa
 
 @main
