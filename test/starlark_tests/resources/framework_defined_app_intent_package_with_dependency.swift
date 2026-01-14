@@ -19,6 +19,9 @@ import StaticLibraryAppIntentsWithDependency
 public struct FrameworkDefinedHelloWorldIntents: AppIntentsPackage {}
 
 extension OrderSoupIntent {
-   @Parameter(title: "Customer")
-   static var customer: String?
+  public static var parameterSummary: some ParameterSummary {
+    Summary("Order \(\.$quantity)") {
+      \.$quantity
+    }
+  }
 }

@@ -16,9 +16,9 @@ import AppIntents
 import Foundation
 
 struct FrameworkDefinedHelloWorldIntent: AppIntent {
-  static var title: LocalizedStringResource = "Hello world intent"
+  static let title: LocalizedStringResource = "Hello world intent"
 
-  static var description = IntentDescription("Says hello to the world.")
+  static let description = IntentDescription("Says hello to the world.")
 
   func perform() async throws -> some IntentResult & ReturnsValue<String> {
     return .result(value: "Hello world")

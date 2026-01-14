@@ -17,5 +17,7 @@ import Foundation
 import StaticLibraryAppIntentsWithWidgetConfigurationDependency
 
 extension SimpleStruct {
-  static var title: String?
+  public var allCapsName: String {
+    return name.uppercased()
+  }
 }

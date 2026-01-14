@@ -14,11 +14,11 @@
 
 import AppIntents
 
-enum RefreshInterval: String, AppEnum {
+public enum RefreshInterval: String, AppEnum {
   case hourly, daily, weekly
 
-  static var typeDisplayRepresentation: TypeDisplayRepresentation = "Refresh Interval"
-  static var caseDisplayRepresentations: [RefreshInterval: DisplayRepresentation] = [
+  public static let typeDisplayRepresentation: TypeDisplayRepresentation = "Refresh Interval"
+  public static let caseDisplayRepresentations: [RefreshInterval: DisplayRepresentation] = [
     .hourly: "Every Hour",
     .daily: "Every Day",
     .weekly: "Every Week",
@@ -26,32 +26,17 @@ enum RefreshInterval: String, AppEnum {
 }
 
 public struct FavoriteSoup: WidgetConfigurationIntent, AppIntentsPackage {
-  public static var title: LocalizedStringResource = "Favorite Soup"
-  static var description = IntentDescription("Shows a picture of your favorite soup!")
+  public static let title: LocalizedStringResource = "Favorite Soup"
+  static let description = IntentDescription("Shows a picture of your favorite soup!")
 
   @Parameter(title: "Soup")
-  var name: String?
+  public var name: String?
 
   @Parameter(title: "Shuffle", default: true)
-  var shuffle: Bool
+  public var shuffle: Bool
 
   @Parameter(title: "Refresh", default: .daily)
-  var interval: RefreshInterval
-
-  public static var parameterSummary: some ParameterSummary {
-    When(\.$shuffle, .equalTo, true) {
-      Summary {
-        \.$name
-        \.$shuffle
-        \.$interval
-      }
-    } otherwise: {
-      Summary {
-        \.$name
-        \.$shuffle
-      }
-    }
-  }
+  public var interval: RefreshInterval
 
   public init() {}
 

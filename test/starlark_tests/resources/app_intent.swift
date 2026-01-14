@@ -16,9 +16,9 @@ import AppIntents
 import Foundation
 
 struct HelloWorldIntent: AppIntent {
-  static var title: LocalizedStringResource = "Hello world intent"
+  static let title: LocalizedStringResource = "Hello world intent"
 
-  static var description = IntentDescription("Says hello the world.")
+  static let description = IntentDescription("Says hello the world.")
 
   func perform() async throws -> some ProvidesDialog {
     return .result(dialog: "Hello world")
@@ -27,9 +27,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if (arch(x86_64))
   struct IntelIntent: AppIntent {
-    static var title: LocalizedStringResource = "Intel"
+    static let title: LocalizedStringResource = "Intel"
 
-    static var description = IntentDescription("Intel x86_64 intent")
+    static let description = IntentDescription("Intel x86_64 intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "I'm running on x86_64")
@@ -39,9 +39,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if (arch(arm64))
   struct ArmIntent: AppIntent {
-    static var title: LocalizedStringResource = "ARM64"
+    static let title: LocalizedStringResource = "ARM64"
 
-    static var description = IntentDescription("ARM64 intent")
+    static let description = IntentDescription("ARM64 intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "I'm running on arm64")
@@ -51,9 +51,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if os(iOS)
   struct iOSIntent: AppIntent {
-    static var title: LocalizedStringResource = "iOS"
+    static let title: LocalizedStringResource = "iOS"
 
-    static var description = IntentDescription("iOS intent")
+    static let description = IntentDescription("iOS intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "This is an iOS intent")
@@ -63,9 +63,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if os(macOS)
   struct macOSIntent: AppIntent {
-    static var title: LocalizedStringResource = "macOS"
+    static let title: LocalizedStringResource = "macOS"
 
-    static var description = IntentDescription("macOS intent")
+    static let description = IntentDescription("macOS intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "This is a macOS intent")
@@ -75,9 +75,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if os(tvOS)
   struct tvOSIntent: AppIntent {
-    static var title: LocalizedStringResource = "tvOS"
+    static let title: LocalizedStringResource = "tvOS"
 
-    static var description = IntentDescription("tvOS intent")
+    static let description = IntentDescription("tvOS intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "This is a tvOS intent")
@@ -87,9 +87,9 @@ struct HelloWorldIntent: AppIntent {
 
 #if os(watchOS)
   struct watchOSIntent: AppIntent {
-    static var title: LocalizedStringResource = "watchOS"
+    static let title: LocalizedStringResource = "watchOS"
 
-    static var description = IntentDescription("watchOS intent")
+    static let description = IntentDescription("watchOS intent")
 
     func perform() async throws -> some ProvidesDialog {
       return .result(dialog: "This is a watchOS intent")

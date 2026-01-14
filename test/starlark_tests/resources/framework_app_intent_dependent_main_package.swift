@@ -16,7 +16,9 @@ import AppIntents
 import FrameworkDefinedHelloWorldIntents
 
 struct HelloWorldAppIntentsPackage: AppIntentsPackage {
-  static var includedPackages: [any AppIntentsPackage.Type] = [
-    FrameworkDefinedHelloWorldIntents.self,
-  ]
+  static var includedPackages: [any AppIntentsPackage.Type] {
+    return [
+      FrameworkDefinedHelloWorldIntents.self,
+    ]
+  }
 }

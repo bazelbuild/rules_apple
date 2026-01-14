@@ -17,13 +17,18 @@ import FrameworkDefinedHelloWorldIntents
 import StaticLibraryAppIntents
 import StaticLibraryAppIntentsWithDependency
 
-public struct HelloWorldAppIntentsPackage: AppIntentsPackage {
-  public static var includedPackages: [any AppIntentsPackage.Type] = [
-    FrameworkDefinedHelloWorldIntents.self,
-  ]
+struct HelloWorldAppIntentsPackage: AppIntentsPackage {
+  static var includedPackages: [any AppIntentsPackage.Type] {
+    return [
+      FrameworkDefinedHelloWorldIntents.self,
+    ]
+  }
 }
 
 extension OrderSoupIntent {
-   @Parameter(title: "Customer")
-   static var customer: String?
+  public static var parameterSummary: some ParameterSummary {
+    Summary("Order \(\.$quantity)") {
+      \.$quantity
+    }
+  }
 }

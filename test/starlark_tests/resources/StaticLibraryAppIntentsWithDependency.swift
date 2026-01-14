@@ -16,6 +16,9 @@ import AppIntents
 import StaticLibraryAppIntents
 
 extension OrderSoupIntent {
-  @Parameter(title: "Quantity")
-  static var quantity: Int?
+  public static var parameterSummary: some ParameterSummary {
+    Summary("Order \(\.$quantity)") {
+      \.$quantity
+    }
+  }
 }

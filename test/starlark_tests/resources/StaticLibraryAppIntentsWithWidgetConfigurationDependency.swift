@@ -16,8 +16,22 @@ import AppIntents
 import FavoriteSoup
 
 extension FavoriteSoup {
-  @Parameter(title: "StarsRated")
-  static var starsRated: Int?
+  public static var parameterSummary: some ParameterSummary {
+    When(\.$shuffle, .equalTo, true) {
+      Summary {
+        \.$name
+        \.$shuffle
+        \.$interval
+      }
+    } otherwise: {
+      Summary {
+        \.$name
+        \.$shuffle
+      }
+    }
+  }
 }
 
-public struct SimpleStruct {}
+public struct SimpleStruct {
+  public var name: String
+}
