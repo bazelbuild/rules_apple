@@ -12,6 +12,7 @@ py_binary(
 py_library(
     name = "dossier_codesigning_reader_lib",
     srcs = ["dossier_codesigning_reader.py"],
+    strict_deps = False,
 )
 
 filegroup(

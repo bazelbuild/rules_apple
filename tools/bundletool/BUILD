@@ -12,6 +12,7 @@ py_binary(
 py_library(
     name = "bundletool_lib",
     srcs = ["bundletool.py"],
+    strict_deps = False,
 )
 
 py_test(

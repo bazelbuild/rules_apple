@@ -12,6 +12,7 @@ py_binary(
 py_library(
     name = "versiontool_lib",
     srcs = ["versiontool.py"],
+    strict_deps = False,
 )
 
 py_test(
