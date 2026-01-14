@@ -75,8 +75,10 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     owner = str(label)
     bucketize_args = {}
 
+    platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx)
+
     rule_descriptor = rule_support.rule_descriptor(
-        platform_type = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        platform_type = platform_info.target_os,
         product_type = apple_product_type.application,
     )
 

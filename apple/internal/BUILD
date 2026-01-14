@@ -850,6 +850,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:apple_toolchains",
+        "//apple/internal:features_support",
+        "//apple/internal:platform_support",
+        "//apple/internal:swift_support",
         "//apple/internal/aspects:docc_archive_aspect",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
