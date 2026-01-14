@@ -28,8 +28,25 @@ load(
     "DocCSymbolGraphsInfo",
 )
 load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
+    "//apple/internal:platform_support.bzl",
+    "platform_support",
+)
+load(
     "//apple/internal:providers.bzl",
     "new_applebinaryinfo",
+)
+load(
+    "//apple/internal:swift_support.bzl",
+    "swift_support",
 )
 load(
     "//apple/internal/aspects:docc_archive_aspect.bzl",
@@ -42,6 +59,7 @@ def _docc_archive_impl(ctx):
     """
 
     apple_fragment = ctx.fragments.apple
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     default_code_listing_language = ctx.attr.default_code_listing_language
     diagnostic_level = ctx.attr.diagnostic_level
     enable_inherited_docs = ctx.attr.enable_inherited_docs
@@ -49,15 +67,35 @@ def _docc_archive_impl(ctx):
     fallback_bundle_identifier = ctx.attr.fallback_bundle_identifier
     fallback_bundle_version = ctx.attr.fallback_bundle_version
     fallback_display_name = ctx.attr.fallback_display_name
+    features = features_support.compute_enabled_features(
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     hosting_base_path = ctx.attr.hosting_base_path
     kinds = ctx.attr.kinds
-    platform = ctx.fragments.apple.single_arch_platform
     transform_for_static_hosting = ctx.attr.transform_for_static_hosting
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     dep = ctx.attr.dep
     symbol_graphs_info = None
     docc_bundle_info = None
     docc_build_inputs = []
+
+    platform_prerequisites = platform_support.platform_prerequisites(
+        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        config_vars = ctx.var,
+        cpp_fragment = ctx.fragments.cpp,
+        device_families = None,
+        explicit_minimum_deployment_os = None,
+        explicit_minimum_os = None,
+        features = features,
+        objc_fragment = ctx.fragments.objc,
+        uses_swift = swift_support.uses_swift([ctx.attr.dep]),
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
+
+    platform = platform_prerequisites.platform
 
     if DocCSymbolGraphsInfo in dep:
         symbol_graphs_info = dep[DocCSymbolGraphsInfo]
@@ -167,7 +205,11 @@ def _docc_archive_impl(ctx):
 
 docc_archive = rule(
     implementation = _docc_archive_impl,
-    fragments = ["apple"],
+    fragments = [
+        "apple",
+        "cpp",
+        "objc",
+    ],
     doc = """
 Builds a .doccarchive for the given dependency.
 The target created by this rule can also be `run` to preview the generated documentation in Xcode.
@@ -189,6 +231,8 @@ docc_archive(
 ```""",
     attrs = dicts.add(
         apple_support.action_required_attrs(),
+        apple_support.platform_constraint_attrs(),
+        apple_toolchain_utils.shared_attrs(),
         {
             "dep": attr.label(
                 aspects = [
