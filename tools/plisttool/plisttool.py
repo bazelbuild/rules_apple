@@ -306,22 +306,6 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
     ' the list in the profile or update the profile to support this value.'
 )
 
-# TODO: b/474331541 - Remove this hard coded list and rely on values set at
-# analysis time in entitlements_support.bzl.
-_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = [
-    'aps-environment',
-    'com.apple.developer.declared-age-range',
-    'com.apple.developer.networking.wifi-info',
-    'com.apple.developer.passkit.pass-presentation-suppression',
-    'com.apple.developer.payment-pass-provisioning',
-    'com.apple.developer.siri',
-    'com.apple.developer.usernotifications.time-sensitive',
-    # Keys which have a list of potential values in the profile, but only one in
-    # the entitlements that must be in the profile's list of values
-    'com.apple.developer.devicecheck.appattest-environment',
-    'com.apple.developer.nfc.readersession.formats',
-]
-
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not'
     ' match the value in the provisioning profile ("%s"). Either update the'
@@ -1271,7 +1255,7 @@ class EntitlementsTask(PlistToolTask):
         # at analysis time in entitlements_support.bzl.
         extra_keys_to_match = self.options.get(
             'extra_keys_to_match_profile',
-            _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE,
+            [],
         )
         self._validate_entitlements_against_profile(
             plist,
@@ -1409,21 +1393,6 @@ class EntitlementsTask(PlistToolTask):
         self.target,
         supports_wildcards=True,
     )
-
-    # TODO: b/474331541 - Remove this specific check once extra_keys_to_match is
-    # configured exclusively at analysis time, allowing us to add the
-    # com.apple.security.application-groups entitlement check for all Apple
-    # platforms except macOS.
-    #
-    # com.apple.security.application-groups
-    # (This check does not apply to macOS-only provisioning profiles.)
-    if self._profile_metadata.get('Platform', []) != ['OSX']:
-      self._check_entitlements_array(
-          entitlements,
-          profile_entitlements,
-          'com.apple.security.application-groups',
-          self.target,
-      )
 
     # com.apple.developer.associated-domains
     self._check_entitlements_array(

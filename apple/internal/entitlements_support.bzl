@@ -348,8 +348,27 @@ def _process_entitlements(
         "%s_entitlements.entitlements" % rule_label.name,
     )
 
+    extra_keys_to_match_profile = [
+        # Keys for values that are not lists, which must be in the profile if they are defined
+        # in the entitlements.
+        "aps-environment",
+        "com.apple.developer.declared-age-range",
+        "com.apple.developer.networking.wifi-info",
+        "com.apple.developer.passkit.pass-presentation-suppression",
+        "com.apple.developer.payment-pass-provisioning",
+        "com.apple.developer.siri",
+        "com.apple.developer.usernotifications.time-sensitive",
+        # Keys which have a list of potential values in the profile, but only one in
+        # the entitlements that must be in the profile's list of values
+        "com.apple.developer.devicecheck.appattest-environment",
+        "com.apple.developer.nfc.readersession.formats",
+    ]
+    if platform_prerequisites.platform_type != "macos":
+        extra_keys_to_match_profile.append("com.apple.security.application-groups")
+
     entitlements_options = {
         "bundle_id": bundle_id,
+        "extra_keys_to_match_profile": extra_keys_to_match_profile,
     }
     if signing_info.profile_metadata:
         inputs.append(signing_info.profile_metadata)
