@@ -36,7 +36,10 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
     # provide required entitlements for Xcode 26 and later. These are prefixed with "apple." to
     # separate them from the crosstool namespace.
     "apple.additional_runtime_platform_restrictions": {
-        "com.apple.security.hardened-process.platform-restrictions": True,
+        # The value 2 declares that the entitlement "instructs the system to protect against
+        # particular attacks that target the dynamic loader and Mach messaging." as of Xcode 26.0:
+        # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.platform-restrictions
+        "com.apple.security.hardened-process.platform-restrictions": 2,
     },
     "apple.read_only_platform_memory": {
         "com.apple.security.hardened-process.dyld-ro": True,
