@@ -1,4 +1,4 @@
-// Copyright 2018 The Bazel Authors. All rights reserved.
+// Copyright 2026 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import UIKit
+import SwiftUI
 
-class ViewController: UIViewController {
+struct ContentView: View {
+    @State private var buttonCount: Int = 0
 
-  @IBOutlet weak var label: UILabel?
-
-  override func viewDidLoad() {
-    super.viewDidLoad()
-  }
-
-  @IBAction func pressedButton(sender: UIButton) {
-    incrementLabel(label: label!)
-  }
-
-  func incrementLabel(label: UILabel) {
-    let number = Int((label.text)!)
-    label.text = String(number! + 1)
-  }
-
+    var body: some View {
+        VStack {
+            Spacer()
+            Button("Tap me!") {
+              buttonCount += 1
+            }
+            Spacer()
+            Text("Pressed the button \(buttonCount) times").font(.largeTitle)
+            Spacer()
+        }
+        .padding()
+    }
 }
-

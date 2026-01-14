@@ -27,7 +27,5 @@
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>com.google.Buttons</string>
-	<key>WKWatchKitApp</key>
-	<true/>
 </dict>
 </plist>

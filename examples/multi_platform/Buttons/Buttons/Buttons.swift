@@ -1,4 +1,4 @@
-// Copyright 2018 The Bazel Authors. All rights reserved.
+// Copyright 2026 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-import TVServices
+import SwiftUI
 
-class ServiceProvider: NSObject, TVTopShelfProvider {
-
-  override init() {
-      super.init()
+@main
+struct Buttons: App {
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
   }
-
-  // MARK: - TVTopShelfProvider protocol
-
-  var topShelfStyle: TVTopShelfContentStyle {
-      // Return desired Top Shelf style.
-      return .sectioned
-  }
-
-  var topShelfItems: [TVContentItem] {
-      // Create an array of TVContentItems.
-      return []
-  }
-
 }
-
