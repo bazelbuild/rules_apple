@@ -102,7 +102,7 @@ def tvos_application_test_suite(name):
     archive_contents_test(
         name = "{}_swift_support_codesign_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_direct_swift_dep",
         binary_test_file = "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
         codesign_info_contains = [
             "Identifier=com.apple.dt.runtime.swiftCore",

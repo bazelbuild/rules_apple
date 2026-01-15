@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source, targets, and basic plist for tvOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl", "tvos_application")
 
 objc_library(
@@ -69,6 +70,11 @@ tvos_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 }
 
@@ -86,7 +92,7 @@ function test_missing_version_fails() {
 }
 EOF
 
-  ! do_build tvos //app:app \
+  ! do_build tvos //app:ipa_app \
     || fail "Should fail build"
 
   expect_log 'Target "@@\?//app:app" is missing CFBundleVersion.'
@@ -106,7 +112,7 @@ function test_missing_short_version_fails() {
 }
 EOF
 
-  ! do_build tvos //app:app \
+  ! do_build tvos //app:ipa_app \
     || fail "Should fail build"
 
   expect_log 'Target "@@\?//app:app" is missing CFBundleShortVersionString.'
@@ -139,13 +145,18 @@ tvos_application(
     provisioning_profile = "bogus.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
   cat > app/bogus.mobileprovision <<EOF
 BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS BOGUS
 EOF
 
-  ! do_build tvos //app:app || fail "Should fail"
+  ! do_build tvos //app:ipa_app || fail "Should fail"
   # The fact that multiple things are tried is left as an impl detail and
   # only the final message is looked for.
   expect_log 'While processing target "@@\?//app:app", failed to extract from the provisioning profile "app/bogus.mobileprovision".'
