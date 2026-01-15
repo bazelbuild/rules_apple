@@ -23,7 +23,7 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "@rules_cc//cc/private/rules_impl:objc_compilation_support.bzl",
-    objc_compilation_support = "compilation_support"
+    objc_compilation_support = "compilation_support",
 )  # buildifier: disable=bzl-visibility
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
