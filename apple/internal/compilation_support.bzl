@@ -249,7 +249,8 @@ def _register_configuration_specific_link_actions(
         apple_platform_info = apple_platform_info,
         cpp_fragment = ctx.fragments.cpp,
         label = ctx.label,
-        unstripped = ctx.fragments.objc.builtin_objc_strip_action,
+        # TODO: Available in Bazel 9+
+        unstripped = getattr(ctx.fragments.objc, "builtin_objc_strip_action", None),
     )
 
     prefixed_attr_linkopts = [
@@ -288,9 +289,10 @@ def _register_configuration_specific_link_actions(
         variables_extension = user_variable_extensions,
     )
 
+    # TODO: Available in Bazel 9+
     if fragment_support.is_objc_strip_action_enabled(
         cpp_fragment = ctx.fragments.cpp,
-    ) and ctx.fragments.objc.builtin_objc_strip_action:
+    ) and getattr(ctx.fragments.objc, "builtin_objc_strip_action", None):
         return _register_binary_strip_action(
             ctx = ctx,
             apple_platform_info = apple_platform_info,
