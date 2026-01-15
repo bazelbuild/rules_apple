@@ -307,7 +307,6 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
-        "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",

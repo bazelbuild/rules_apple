@@ -34,10 +34,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
-    "defines",
-)
 
 visibility("@build_bazel_rules_apple//apple/...")
 
@@ -202,13 +198,7 @@ def _swift_dylibs_partial_impl(
             swift_support_file = (platform_name, output_dir)
             transitive_swift_support_files.append(swift_support_file)
 
-        swift_support_requested = defines.bool_value(
-            config_vars = platform_prerequisites.config_vars,
-            define_name = "apple.package_swift_support",
-            default = True,
-        )
-        needs_swift_support = platform_prerequisites.platform.is_device and swift_support_requested
-        if package_swift_support_if_needed and needs_swift_support:
+        if package_swift_support_if_needed and platform_prerequisites.platform.is_device:
             # Package all the transitive SwiftSupport dylibs into the archive for this target.
             bundle_files.extend([
                 (
