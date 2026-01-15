@@ -72,6 +72,12 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "arm64": "arm64_32",
 }
 
+# Set the default architecture for all platforms as 64-bit Intel.
+# TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
+# Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
+# dispatched the invocation.
+_DEFAULT_ARCH = "x86_64"
+
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
@@ -433,7 +439,8 @@ def _command_line_options_for_xcframework_platform(
     for target_environment in target_environments:
         if not platform_attr.get(target_environment):
             continue
-        for arch in platform_attr[target_environment]:
+        sorted_target_archs = sorted(platform_attr[target_environment])
+        for arch in sorted_target_archs:
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
                 environment = target_environment,
@@ -727,12 +734,30 @@ _apple_platform_split_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
-def _xcframework_transition_impl(settings, attr):
+def _xcframework_base_transition_impl(settings, _):
+    """Rule transition for XCFramework rules producing SDK-adjacent artifacts."""
+
+    # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
+    # incoming settings meant for other platforms overriding the settings for the xcframework rule's
+    # underlying actions, and allow for toolchain resolution in the future.
+    return _command_line_options(
+        environment_arch = _DEFAULT_ARCH,
+        minimum_os_version = None,
+        platform_type = "macos",
+        settings = settings,
+    )
+
+_xcframework_base_transition = transition(
+    implementation = _xcframework_base_transition_impl,
+    inputs = _apple_rule_common_transition_inputs,
+    outputs = _apple_rule_base_transition_outputs,
+)
+
+def _xcframework_split_transition_impl(settings, attr):
     """Starlark 1:2+ transition for generation of multiple frameworks for the current target."""
     output_dictionary = {}
 
-    # TODO(b/288582842): Update for visionOS when we're ready to support it in XCFramework rules.
-    for platform_type in ["ios", "tvos", "visionos", "watchos", "macos"]:
+    for platform_type in ["ios", "tvos", "watchos", "visionos", "macos"]:
         platform_attr = getattr(attr, platform_type, None)
         if not platform_attr:
             continue
@@ -751,7 +776,7 @@ def _xcframework_transition_impl(settings, attr):
             platform_attr = platform_attr,
             platform_type = platform_type,
             settings = settings,
-            target_environments = target_environments,
+            target_environments = sorted(target_environments),
         )
         output_dictionary = dicts.add(command_line_options, output_dictionary)
 
@@ -761,8 +786,8 @@ def _xcframework_transition_impl(settings, attr):
 
     return output_dictionary
 
-_xcframework_transition = transition(
-    implementation = _xcframework_transition_impl,
+_xcframework_split_transition = transition(
+    implementation = _xcframework_split_transition_impl,
     inputs = _apple_rule_common_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
@@ -775,5 +800,6 @@ transition_support = struct(
     apple_rule_transition = _apple_rule_base_transition,
     apple_universal_binary_rule_transition = _apple_universal_binary_rule_transition,
     xcframework_split_attr_key = _xcframework_split_attr_key,
-    xcframework_transition = _xcframework_transition,
+    xcframework_base_transition = _xcframework_base_transition,
+    xcframework_split_transition = _xcframework_split_transition,
 )
