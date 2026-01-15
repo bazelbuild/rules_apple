@@ -4,6 +4,8 @@ load("//apple:repositories.bzl", "apple_rules_dependencies")
 
 apple_rules_dependencies()
 
+register_toolchains("//apple/internal:apple_xplat_toolchain")
+
 load(
     "@build_bazel_rules_swift//swift:repositories.bzl",
     "swift_rules_dependencies",
