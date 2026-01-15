@@ -55,8 +55,6 @@ ios_application(
 
 # watchOS
 
-## Code
-
 ## Packaging
 
 watchos_application(
