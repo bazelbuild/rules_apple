@@ -23,10 +23,13 @@ load(
     "paths",
 )
 load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
     "//apple:providers.bzl",
     "AppleBundleVersionInfo",
@@ -53,6 +56,8 @@ load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
+
+visibility("//apple/...")
 
 def _declare_linkmap(
         *,
@@ -107,13 +112,12 @@ def _collect_linkmaps(
 
     return outputs
 
-def _generate_dsym_binaries(
+def _copy_dsyms_into_declared_bundle(
         *,
         actions,
         debug_output_filename,
         dsym_bundle_name,
-        found_binaries_by_arch,
-        platform_prerequisites):
+        found_binaries_by_arch):
     """Declares the dSYM binary file and copies it into the preferred .dSYM bundle location.
 
     Args:
@@ -124,22 +128,25 @@ def _generate_dsym_binaries(
       dsym_bundle_name: The full name of the dSYM bundle, including its extension.
       found_binaries_by_arch: A mapping of architectures to Files representing dsym binary outputs
         for each architecture.
-      platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
       A list of Files representing the copied dSYM binary which is located in the preferred .dSYM
       bundle locations.
     """
-    output_binary = actions.declare_file(
-        "%s/Contents/Resources/DWARF/%s" % (
-            dsym_bundle_name,
-            debug_output_filename,
-        ),
-    )
+    output_binaries = []
 
-    # Copy the binary over if there's only a single arch.
-    if len(found_binaries_by_arch) == 1:
-        dsym_binary = found_binaries_by_arch.values()[0]
+    for arch, dsym_binary in found_binaries_by_arch.items():
+        output_relpath = "Contents/Resources/DWARF/%s_%s" % (
+            debug_output_filename,
+            arch,
+        )
+
+        output_binary = actions.declare_file(
+            "%s/%s" % (
+                dsym_bundle_name,
+                output_relpath,
+            ),
+        )
 
         # cp instead of symlink here because a dSYM with a symlink to the DWARF data will not be
         # recognized by spotlight which is key for lldb on mac to find a dSYM for a binary.
@@ -159,21 +166,49 @@ fi
 cp $flags "{src}" "{dst}"
 """.format(src = dsym_binary.path, dst = output_binary.path),
         )
-    else:
-        lipo.create(
-            actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            inputs = found_binaries_by_arch.values(),
-            output = output_binary,
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
 
-    return [output_binary]
+        output_binaries.append(output_binary)
+
+    return output_binaries
+
+def _lipo_command_for_dsyms(
+        *,
+        debug_output_filename,
+        found_binaries_by_arch):
+    """Returns a shell command to invoke lipo against all provided dSYMs for a given bundle.
+
+    Args:
+      debug_output_filename: The base file name to use for this debug output, which will be followed
+        by the architecture with an underscore to make the dSYM binary file name or with the bundle
+        extension following it for the dSYM bundle file name.
+      found_binaries_by_arch: A mapping of architectures to Files representing dsym binary outputs
+        for each architecture.
+
+    Returns:
+      A String representing the shell command to invoke lipo, referencing an OUTPUT_DIR shell
+      variable that is expected to represent the dSYM bundle root.
+    """
+    found_binary_paths = []
+
+    for dsym_binary in found_binaries_by_arch.values():
+        found_binary_paths.append(dsym_binary.path)
+
+    lipo_command = (
+        "/usr/bin/lipo " +
+        "-create {found_binary_inputs} " +
+        "-output \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{debug_output_filename}\""
+    ).format(
+        found_binary_inputs = " ".join([shell.quote(path) for path in found_binary_paths]),
+        debug_output_filename = debug_output_filename,
+    )
+
+    return lipo_command
 
 def _generate_dsym_info_plist(
         actions,
         dsym_bundle_name,
         dsym_info_plist_template,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         plisttool,
@@ -185,6 +220,7 @@ def _generate_dsym_info_plist(
       actions: The actions provider from `ctx.actions`.
       dsym_bundle_name: The full name of the dSYM bundle, including its extension.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+      mac_exec_group: The exec_group associated with plisttool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -237,6 +273,7 @@ def _generate_dsym_info_plist(
         actions = actions,
         control_file = control_file,
         inputs = plisttool_input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileDSYMInfoPlist",
         outputs = [dsym_plist],
         platform_prerequisites = platform_prerequisites,
@@ -251,7 +288,7 @@ def _bundle_dsym_files(
         debug_output_filename,
         dsym_binaries = {},
         dsym_info_plist_template,
-        dsym_output_filename,
+        mac_exec_group,
         label_name,
         output_discriminator,
         platform_prerequisites,
@@ -276,7 +313,7 @@ def _bundle_dsym_files(
       dsym_binaries: A mapping of architectures to Files representing dSYM binary outputs for each
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
-      dsym_output_filename: The dSYM binary file name.
+      mac_exec_group: The exec_group associated with plisttool.
       label_name: The name of the target.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -305,21 +342,16 @@ def _bundle_dsym_files(
         found_binaries_by_arch.update(dsym_binaries)
 
     if found_binaries_by_arch:
-        generated_dsym_binaries = _generate_dsym_binaries(
+        output_files = _copy_dsyms_into_declared_bundle(
             actions = actions,
-            debug_output_filename = dsym_output_filename,
+            debug_output_filename = debug_output_filename,
             dsym_bundle_name = dsym_bundle_name,
             found_binaries_by_arch = found_binaries_by_arch,
-            platform_prerequisites = platform_prerequisites,
         )
-        output_files.extend(generated_dsym_binaries)
-        dsyms_command = (" && ".join([
-            "cp \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
-                dsym_path = dsym_binary.path,
-                dsym_bundle_name = dsym_output_filename,
-            )
-            for dsym_binary in generated_dsym_binaries
-        ]))
+        lipo_command = _lipo_command_for_dsyms(
+            debug_output_filename = debug_output_filename,
+            found_binaries_by_arch = found_binaries_by_arch,
+        )
 
         # If we found any binaries, create the Info.plist for the bundle as well.
         dsym_plist = _generate_dsym_info_plist(
@@ -327,6 +359,7 @@ def _bundle_dsym_files(
             dsym_bundle_name = dsym_bundle_name,
             dsym_info_plist_template = dsym_info_plist_template,
             output_discriminator = output_discriminator,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             plisttool = plisttool,
             rule_label = rule_label,
@@ -344,9 +377,10 @@ def _bundle_dsym_files(
         apple_support.run_shell(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            inputs = generated_dsym_binaries + [dsym_plist] + found_binaries_by_arch.values(),
+            inputs = [dsym_plist] + found_binaries_by_arch.values(),
             outputs = [dsym_bundle_dir],
-            command = ("mkdir -p \"${OUTPUT_DIR}/Contents/Resources/DWARF\" && " + dsyms_command + " && " + plist_command),
+            command = ("mkdir -p \"${OUTPUT_DIR}/Contents/Resources/DWARF\" && " + lipo_command +
+                       " && " + plist_command),
             env = {
                 "OUTPUT_DIR": dsym_bundle_dir.path,
             },
@@ -365,9 +399,9 @@ def _debug_symbols_partial_impl(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name = None,
         label_name,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         plisttool,
@@ -408,16 +442,13 @@ def _debug_symbols_partial_impl(
 
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
-            dsym_output_filename = executable_name or bundle_name
-            if debug_discriminator:
-                dsym_output_filename += "_" + debug_discriminator
             dsym_files, dsym_bundle_dir = _bundle_dsym_files(
                 actions = actions,
                 bundle_extension = bundle_extension,
                 debug_output_filename = debug_output_filename,
                 dsym_binaries = dsym_binaries,
                 dsym_info_plist_template = dsym_info_plist_template,
-                dsym_output_filename = dsym_output_filename,
+                mac_exec_group = mac_exec_group,
                 label_name = label_name,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
@@ -495,9 +526,9 @@ def debug_symbols_partial(
         debug_discriminator = None,
         dsym_binaries = {},
         dsym_info_plist_template,
-        executable_name = None,
         label_name,
         linkmaps = {},
+        mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         plisttool,
@@ -523,9 +554,9 @@ def debug_symbols_partial(
       dsym_binaries: A mapping of architectures to Files representing dsym binary outputs for each
         architecture.
       dsym_info_plist_template: File referencing a plist template for dSYM bundles.
-      executable_name: The name of the output DWARF executable.
       label_name: The name of the target.
       linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
+      mac_exec_group: The exec_group associated with plisttool.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -545,9 +576,9 @@ def debug_symbols_partial(
         debug_discriminator = debug_discriminator,
         dsym_binaries = dsym_binaries,
         dsym_info_plist_template = dsym_info_plist_template,
-        executable_name = executable_name or bundle_name,
         label_name = label_name,
         linkmaps = linkmaps,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         plisttool = plisttool,
