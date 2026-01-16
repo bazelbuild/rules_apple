@@ -211,7 +211,7 @@ def _ios_application_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
-        rule_label = ctx.label,
+        rule_label = label,
     )
 
     top_level_resources = resources.collect(
@@ -225,13 +225,6 @@ def _ios_application_impl(ctx):
         ],
         rule_label = ctx.label,
     )
-
-    default_launch_screen = True
-    if ctx.attr.default_launch_screen == False and ctx.attr.testonly:
-        # If we're at the current default of "False", set it to "True" unless we're an app declared
-        # as `testonly`. This change does require manual migration of iOS UI tests due to the change
-        # shifting default rendering from scaled to native when a launch_storyboard isn't set.
-        default_launch_screen = False
 
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
@@ -275,6 +268,13 @@ def _ios_application_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
     linking_contexts = [output.linking_context for output in link_result.outputs]
+
+    default_launch_screen = True
+    if ctx.attr.default_launch_screen == False and ctx.attr.testonly:
+        # If we're at the current default of "False", set it to "True" unless we're an app declared
+        # as `testonly`. This change does require manual migration of iOS UI tests due to the change
+        # shifting default rendering from scaled to native when a launch_storyboard isn't set.
+        default_launch_screen = False
 
     launch_screen_values = infoplist_support.launch_screen_values(
         default_launch_screen = default_launch_screen,
