@@ -290,7 +290,7 @@ class Bundler(object):
     # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
-    exit_code = os.system('TREE_ARTIFACT_OUTPUT="%s" %s "%s"' %
+    exit_code = os.system('unset RUNFILES_MANIFEST_FILE; TREE_ARTIFACT_OUTPUT="%s" %s "%s"' %
                           (bundle_root, post_processor, work_dir))
     if exit_code:
       raise PostProcessorError(exit_code)
@@ -304,7 +304,7 @@ class Bundler(object):
         executed in the bundle to sign it.
     """
     exit_code = os.system(
-        'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
+        'unset RUNFILES_MANIFEST_FILE; WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
     )
     if exit_code:
       raise CodeSignError(exit_code)
