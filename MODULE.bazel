@@ -32,6 +32,13 @@ git_override(
     remote = "https://github.com/luispadron/rules_cc.git",
 )
 
+# TODO: REMOVE BEFORE MERGE
+git_override(
+    module_name = "bazel_features",
+    commit = "593cb934bd757cb469c4bd232e527479e590616b",
+    remote = "https://github.com/luispadron/bazel_features.git",
+)
+
 bazel_dep(name = "rules_python", version = "1.3.0")
 bazel_dep(name = "rules_shell", version = "0.3.0")
 
