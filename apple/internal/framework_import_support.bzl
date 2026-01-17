@@ -252,7 +252,22 @@ def _classify_framework_imports(config_vars, framework_imports):
         parent_dir_name = paths.basename(file.dirname)
         is_bundle_root_file = parent_dir_name.endswith(".framework")
         if is_bundle_root_file:
-            bundle_name, _ = paths.split_extension(parent_dir_name)
+            found_bundle_name, _ = paths.split_extension(parent_dir_name)
+            if bundle_name and bundle_name != found_bundle_name:
+                # Only check for unique basenames of these keys, since it's possible to have targets
+                # that glob files from different locations but with the same `.framework` name,
+                # causing them to be merged into the same framework during bundling.
+                #
+                # TODO(b/228459477): Make the check stricter to forbid multiple similarly-named
+                # framework bundles from different workspace paths once users stop relying on this
+                # behavior.
+                fail(
+                    """
+A framework import target may only include files for a single '.framework' bundle.
+""",
+                    attr = "framework_imports",
+                )
+            bundle_name = found_bundle_name
             if file.basename == bundle_name:
                 binary_imports.append(file)
                 continue

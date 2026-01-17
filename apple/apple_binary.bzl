@@ -15,6 +15,16 @@
 """Starlark implementation of `apple_binary` to transition from native Bazel."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -63,6 +73,7 @@ visionOS binaries require a visionOS SDK provided by Xcode 15.1 beta or later.
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
 
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
@@ -93,7 +104,9 @@ Resolved Xcode is version {xcode_version}.
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
+        bundle_name = ctx.label.name,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
@@ -101,6 +114,7 @@ Resolved Xcode is version {xcode_version}.
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     providers = [
         DefaultInfo(
@@ -116,7 +130,6 @@ Resolved Xcode is version {xcode_version}.
             ctx,
             dependency_attributes = ["bundle_loader", "deps"],
         ),
-        link_result.debug_outputs_provider,
     ]
 
     # If the binary was an executable, also propagate the appropriate provider
@@ -125,7 +138,9 @@ Resolved Xcode is version {xcode_version}.
         providers.append(
             new_appleexecutablebinaryinfo(
                 binary = binary_artifact,
-                cc_info = link_result.cc_info,
+                binary_linking_context = cc_common.merge_linking_contexts(
+                    linking_contexts = linking_contexts,
+                ),
             ),
         )
 
@@ -147,6 +162,8 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
     attrs = [
+        apple_support.platform_constraint_attrs(),
+        apple_toolchain_utils.shared_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,

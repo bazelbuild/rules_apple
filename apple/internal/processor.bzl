@@ -369,8 +369,19 @@ def _bundle_partial_outputs_files(
             input_files.extend(sources)
 
             for source in sources:
+                source_path = source.path
+                if not source_path.endswith(".zip") and not source_path.endswith(".ipa"):
+                    fail("""
+Internal Error: Found a file declared by the Apple rules as a "bundle zip" that is not a zip file: \
+{source_path}
+
+This indicates that there is a severe bug in how rules_apple handles the processing of these files.
+
+Please file a bug against the Apple BUILD rules with repro steps.
+""".format(source_path = source_path))
+
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
-                control_zips.append(struct(src = source.path, dest = target_path))
+                control_zips.append(struct(src = source_path, dest = target_path))
 
     post_processor = ipa_post_processor
     post_processor_path = ""

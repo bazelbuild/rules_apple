@@ -45,6 +45,27 @@ _supports_visionos = hasattr(apple_common.platform_type, "visionos")
 _CUSTOM_BUILD_SETTINGS = build_settings_labels.all_labels + [
 ]
 
+_CPU_TO_PLATFORM = {
+    "darwin_x86_64": "@build_bazel_apple_support//platforms:darwin_x86_64",
+    "darwin_arm64": "@build_bazel_apple_support//platforms:darwin_arm64",
+    "darwin_arm64e": "@build_bazel_apple_support//platforms:darwin_arm64e",
+    "ios_x86_64": "@build_bazel_apple_support//platforms:ios_x86_64",
+    "ios_arm64": "@build_bazel_apple_support//platforms:ios_arm64",
+    "ios_sim_arm64": "@build_bazel_apple_support//platforms:ios_sim_arm64",
+    "ios_arm64e": "@build_bazel_apple_support//platforms:ios_arm64e",
+    "tvos_sim_arm64": "@build_bazel_apple_support//platforms:tvos_sim_arm64",
+    "tvos_arm64": "@build_bazel_apple_support//platforms:tvos_arm64",
+    "tvos_x86_64": "@build_bazel_apple_support//platforms:tvos_x86_64",
+    "visionos_arm64": "@build_bazel_apple_support//platforms:visionos_arm64",
+    "visionos_sim_arm64": "@build_bazel_apple_support//platforms:visionos_sim_arm64",
+    "watchos_armv7k": "@build_bazel_apple_support//platforms:watchos_armv7k",
+    "watchos_arm64": "@build_bazel_apple_support//platforms:watchos_arm64",
+    "watchos_device_arm64": "@build_bazel_apple_support//platforms:watchos_device_arm64",
+    "watchos_device_arm64e": "@build_bazel_apple_support//platforms:watchos_device_arm64e",
+    "watchos_arm64_32": "@build_bazel_apple_support//platforms:watchos_arm64_32",
+    "watchos_x86_64": "@build_bazel_apple_support//platforms:watchos_x86_64",
+}
+
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
@@ -58,9 +79,10 @@ def _apple_verification_transition_impl(settings, attr):
 Internal Error: A verification test should only specify `apple_platforms` or `cpus`, but not both.
 """)
 
+    apple_cpu = getattr(attr, "apple_cpu", "darwin_x86_64")
     output_dictionary = {
         "//command_line_option:apple_platforms": [],
-        "//command_line_option:cpu": getattr(attr, "apple_cpu", "darwin_x86_64"),
+        "//command_line_option:platforms": _CPU_TO_PLATFORM[apple_cpu if apple_cpu else "darwin_x86_64"],
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
@@ -81,7 +103,7 @@ Internal Error: A verification test should only specify `apple_platforms` or `cp
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "arm64_32,armv7k",
+            "//command_line_option:watchos_cpus": "device_arm64,arm64_32,armv7k",
         })
 
         if _supports_visionos:
@@ -134,7 +156,7 @@ apple_verification_transition = transition(
         "//command_line_option:features",
     ] + _CUSTOM_BUILD_SETTINGS,
     outputs = [
-        "//command_line_option:cpu",
+        "//command_line_option:platforms",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:macos_cpus",
         "//command_line_option:tvos_cpus",
@@ -225,16 +247,9 @@ def _apple_verification_test_impl(ctx):
         is_executable = True,
     )
 
-    # Apply knowledge of the Xcode version to the test environnment
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    xcode_version_split = str(xcode_config.xcode_version()).split(".")
-    xcode_versions_separated = len(xcode_version_split)
-
     # Extra test environment to set during the test.
     test_env = {
         "BUILD_TYPE": ctx.attr.build_type,
-        "XCODE_VERSION_MAJOR": xcode_version_split[0] if xcode_versions_separated >= 1 else 0,
-        "XCODE_VERSION_MINOR": xcode_version_split[1] if xcode_versions_separated >= 2 else 0,
     }
 
     # Create APPLE_TEST_ENV_# environmental variables for each `env` attribute that are transformed
@@ -244,6 +259,8 @@ def _apple_verification_test_impl(ctx):
     for key in ctx.attr.env:
         for num, value in enumerate(ctx.attr.env[key]):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
+
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),
@@ -311,6 +328,12 @@ considered to be an error if this is set with `apple_platforms` as both opt into
 toolchain resolution.
 """,
         ),
+        "env": attr.string_list_dict(
+            doc = """
+The environmental variables to pass to the verifier script. The list of strings will be transformed
+into a bash array. These will be passed to the verifier script.
+""",
+        ),
         "objc_enable_binary_stripping": attr.bool(
             default = False,
             doc = """
@@ -359,12 +382,6 @@ variables to exist:
 * BUNDLE_ROOT: The directory where the bundle is located.
 * CONTENT_ROOT: The directory where the bundle contents are located.
 * RESOURCE_ROOT: The directory where the resource files are located.
-""",
-        ),
-        "env": attr.string_list_dict(
-            doc = """
-The environmental variables to pass to the verifier script. The list of strings will be transformed
-into a bash array.
 """,
         ),
         "_runner_script": attr.label(

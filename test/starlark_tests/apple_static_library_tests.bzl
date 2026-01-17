@@ -142,21 +142,6 @@ def apple_static_library_test_suite(name):
         tags = [name],
     )
 
-    # Test the output binary for minimum OS.0, using the old-style load commands that are no
-    # longer in binaries built for min OS iOS 14+ which don't explicitly distinguish the simulator.
-    binary_contents_test(
-        name = "{}_ios_binary_contents_intel_simulator_oldest_supported_platform_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
-        cpus = {
-            "ios_multi_cpus": ["x86_64"],
-        },
-        binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_VERSION_MIN_IPHONEOS", "version " + common.min_os_ios.oldest_supported],
-        tags = [name],
-    )
-
     # The LC_BUILD_VERSION is always present in binaries built with minimum version >= 2020 Apple
     # OSes, which will have fields of "minos {version number}" and "platform {platform enum}".
 
@@ -171,7 +156,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -186,7 +171,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -200,14 +185,31 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        tags = [name],
+    )
+
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) arm64e static library
+    # archive via the Mach-O load command LC_BUILD_VERSION for an Arm binary when specifying the
+    # outputs via the platforms command line option.
+    binary_contents_test(
+        name = "{}_ios_binary_contents_device_arm64e_apple_platforms_test".format(name),
+        cpus = {
+            "platforms": ["@build_bazel_apple_support//platforms:ios_arm64e"],
+            "ios_multi_cpus": [],
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
         tags = [name],
     )
 
     # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
     # command LC_BUILD_VERSION for an Arm binary.
     binary_contents_test(
-        name = "{}_ios_binary_contents_device_platform_test".format(name),
+        name = "{}_ios_binary_contents_device_arm64_platform_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         cpus = {
@@ -215,7 +217,37 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        tags = [name],
+    )
+
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
+    # command LC_BUILD_VERSION for an arm64 + arm64e binary on the arm64 slice.
+    binary_contents_test(
+        name = "{}_ios_binary_contents_device_multiarch_arm64_platform_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        tags = [name],
+    )
+
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
+    # command LC_BUILD_VERSION for an arm64 + arm64e binary on the arm64e slice.
+    binary_contents_test(
+        name = "{}_ios_binary_contents_device_multiarch_arm64e_platform_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
         tags = [name],
     )
 
@@ -232,7 +264,7 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 15.0", "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -247,7 +279,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -264,7 +296,7 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_oldest_supported_ios",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 14.0", "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 15.0", "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -279,7 +311,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -294,7 +326,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
@@ -309,7 +341,7 @@ def apple_static_library_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.arm_sim_support, "platform WATCHOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOS"],
         tags = [name],
     )
 

@@ -556,7 +556,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     # Create AppleDynamicFrameworkInfo provider
     apple_dynamic_framework_info = new_appledynamicframeworkinfo(
-        cc_info = cc_info,
+        framework_linking_context = cc_info.linking_context,
     )
     providers.append(apple_dynamic_framework_info)
 
@@ -753,6 +753,9 @@ objc_library(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "xcframework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -826,6 +829,9 @@ objc_library(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            # TODO: b/449684779 - Add an "expected_secure_features" attribute to declare what
+            # features are expected to be present in the precompiled framework, so the rules can
+            # validate against that and set required entitlements if necessary.
             "alwayslink": attr.bool(
                 default = False,
                 doc = """

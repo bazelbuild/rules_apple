@@ -23,6 +23,14 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -182,7 +190,7 @@ def apple_static_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_oldest_supported",
         binary_test_architecture = "arm64",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcframework_oldest_supported.framework/ios_static_xcframework_oldest_supported",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.arm_sim_support, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
         macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_IPHONEOS"],
         tags = [name],
     )
@@ -351,6 +359,23 @@ def apple_static_xcframework_test_suite(name):
                 "ios-x86_64-simulator/ios_static_framework_xcframework_with_deps_resource_bundle.framework/resource_bundle.bundle/Info.plist",
             ],
         },
+        tags = [name],
+    )
+
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_dossier_info_provider_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_static_xcframework",
+        expected_dossier = "multiplatform_static_xcframework_dossier.zip",
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dossier_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_static_xcframework",
+        output_group_name = "dossier",
+        expected_outputs = [
+            "multiplatform_static_xcframework_dossier.zip",
+        ],
         tags = [name],
     )
 

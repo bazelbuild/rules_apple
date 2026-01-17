@@ -168,6 +168,7 @@ def _tvos_application_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [struct(target = ext) for ext in ctx.attr.extensions]
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = ctx.attr.extensions + ctx.attr.frameworks + ctx.attr.deps
     executable_name = ctx.attr.executable_name
@@ -197,6 +198,7 @@ def _tvos_application_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -207,17 +209,24 @@ def _tvos_application_impl(ctx):
             "resources",
             "strings",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
     )
 
@@ -225,6 +234,8 @@ def _tvos_application_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -233,6 +244,7 @@ def _tvos_application_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     processor_partials = [
         partials.app_assets_validation_partial(
@@ -309,9 +321,8 @@ def _tvos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -375,7 +386,7 @@ def _tvos_application_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = embeddable_targets,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -469,10 +480,10 @@ def _tvos_application_impl(ctx):
         new_tvosapplicationbundleinfo(),
         new_appleexecutablebinaryinfo(
             binary = binary_artifact,
-            cc_info = link_result.cc_info,
+            binary_linking_context = cc_common.merge_linking_contexts(
+                linking_contexts = linking_contexts,
+            ),
         ),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_dynamic_framework_impl(ctx):
@@ -496,7 +507,6 @@ def _tvos_dynamic_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -538,6 +548,7 @@ def _tvos_dynamic_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -547,6 +558,7 @@ def _tvos_dynamic_framework_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     signed_frameworks = []
@@ -561,6 +573,8 @@ def _tvos_dynamic_framework_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -577,6 +591,7 @@ def _tvos_dynamic_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive = outputs.archive(
         actions = actions,
@@ -609,21 +624,6 @@ def _tvos_dynamic_framework_impl(ctx):
             executable_name = executable_name,
             label_name = label.name,
         ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = processor.location.framework,
-            bundle_name = bundle_name,
-            embed_target_dossiers = False,
-            embedded_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -647,9 +647,8 @@ def _tvos_dynamic_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -670,13 +669,13 @@ def _tvos_dynamic_framework_impl(ctx):
         ),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -783,7 +782,6 @@ def _tvos_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -798,13 +796,6 @@ def _tvos_framework_impl(ctx):
     )
     cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    cc_features = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        language = "objc",
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -838,16 +829,20 @@ def _tvos_framework_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -864,6 +859,7 @@ def _tvos_framework_impl(ctx):
     )
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     archive = outputs.archive(
         actions = actions,
@@ -916,29 +912,13 @@ def _tvos_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
         ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = processor.location.framework,
-            bundle_name = bundle_name,
-            embed_target_dossiers = False,
-            embedded_targets = ctx.attr.frameworks,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -960,13 +940,13 @@ def _tvos_framework_impl(ctx):
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
-            cc_info = link_result.cc_info,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+            cc_linking_contexts = linking_contexts,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -1000,7 +980,7 @@ def _tvos_framework_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1036,8 +1016,6 @@ def _tvos_framework_impl(ctx):
         ),
         new_appleframeworkbundleinfo(),
         new_tvosframeworkbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_extension_impl(ctx):
@@ -1067,6 +1045,7 @@ def _tvos_extension_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
+    cc_toolchain = find_cpp_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
@@ -1094,6 +1073,7 @@ def _tvos_extension_impl(ctx):
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],
+        rule_label = ctx.label,
     )
     top_level_resources = resources.collect(
         attr = ctx.attr,
@@ -1102,17 +1082,24 @@ def _tvos_extension_impl(ctx):
             "strings",
             "resources",
         ],
+        rule_label = ctx.label,
     )
 
     entitlements = entitlements_support.process_entitlements(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
+        cc_toolchain = cc_toolchain,
+        disabled_features = ctx.disabled_features,
+        enabled_features = ctx.features,
         entitlements_file = ctx.file.entitlements,
         platform_prerequisites = platform_prerequisites,
         product_type = rule_descriptor.product_type,
         provisioning_profile = provisioning_profile,
         rule_label = label,
+        secure_features = ctx.attr.secure_features,
         validation_mode = ctx.attr.entitlements_validation,
     )
 
@@ -1133,6 +1120,8 @@ def _tvos_extension_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        bundle_name = bundle_name,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
@@ -1222,9 +1211,8 @@ def _tvos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -1274,7 +1262,7 @@ def _tvos_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_binaries,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1326,8 +1314,6 @@ def _tvos_extension_impl(ctx):
             cc_info = link_result.cc_info,
         ),
         new_tvosextensionbundleinfo(),
-        # TODO(b/228856372): Remove when downstream users are migrated off this provider.
-        link_result.debug_outputs_provider,
     ] + processor_result.providers
 
 def _tvos_static_framework_impl(ctx):

@@ -35,6 +35,10 @@ load(
     "resource_actions",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -194,12 +198,18 @@ def _extract_signing_info(
 def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
+        cc_configured_features_init,
+        cc_toolchain,
+        disabled_features,
+        enabled_features,
         entitlements_file,
         platform_prerequisites,
         product_type,
         provisioning_profile,
         rule_label,
+        secure_features,
         validation_mode):
     """Processes the entitlements for a binary or bundle.
 
@@ -223,7 +233,14 @@ def _process_entitlements(
         actions: The object used to register actions.
         apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
+        apple_xplat_toolchain_info: The `struct` of tools from the shared Apple
+            cross platform toolchain.
         bundle_id: The bundle identifier.
+        cc_configured_features_init: The function to initialize the feature configuration for a
+            given cc_toolchain.
+        cc_toolchain: A cc_toolchain as found from the rule context's toolchains.
+        disabled_features: The features requested to be disabled for the target.
+        enabled_features: The features requested for the target.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
         platform_prerequisites: The platform prerequisites.
@@ -232,6 +249,8 @@ def _process_entitlements(
             from which entitlements will be extracted if `entitlements_file` is
             `None`. This argument may also be `None`.
         rule_label: The `Label` of the target being built.
+        secure_features: A list of strings representing Apple Enhanced Security crosstool features
+            that should be enabled for this target.
         validation_mode: A value from `entitlements_validation_mode` describing
             how the entitlements should be validated.
 
@@ -263,6 +282,26 @@ def _process_entitlements(
     if _include_app_clip_entitlements(product_type = product_type):
         app_clip = {"com.apple.developer.on-demand-install-capable": True}
         forced_plists.append(struct(**app_clip))
+    if secure_features:
+        if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
+            fail("secure_features are still a work in progress and not yet supported in the rules.")
+
+        # Calculate the effective set of Crosstool features for this target, as we do want to double
+        # check that the secure features are supported and enabled.
+        feature_configuration = cc_configured_features_init(
+            cc_toolchain = cc_toolchain,
+            requested_features = enabled_features,
+            unsupported_features = disabled_features,
+        )
+
+        # Retrieve the entitlements required by the requested secure features, if there are any.
+        secure_features_entitlements = secure_features_support.entitlements_from_secure_features(
+            feature_configuration = feature_configuration,
+            rule_label = rule_label,
+            secure_features = secure_features,
+            xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
+        )
+        forced_plists.append(struct(**secure_features_entitlements))
 
     inputs = list(plists)
 

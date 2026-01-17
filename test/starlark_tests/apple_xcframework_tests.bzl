@@ -24,7 +24,12 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -343,6 +348,16 @@ def apple_xcframework_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_xcframework_ios_device.framework.dSYM",
+            "ios_dynamic_xcframework_ios_simulator.framework.dSYM",
+        ],
+        tags = [name],
+    )
     analysis_output_group_info_files_test(
         name = "{}_fat_frameworks_dsyms_output_group_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
@@ -353,6 +368,35 @@ def apple_xcframework_test_suite(name):
             "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
             "ios_dynamic_lipoed_xcframework_dsyms/ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator",
         ],
+        tags = [name],
+    )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_fat_frameworks_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM",
+            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
+        expected_directories = {
+            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM": [
+                "Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_bin",
+                "Contents/Info.plist",
+            ],
+            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM": [
+                "Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_bin",
+                "Contents/Info.plist",
+            ],
+        },
         tags = [name],
     )
 
@@ -789,6 +833,23 @@ def apple_xcframework_test_suite(name):
                 "ios-x86_64-simulator/ios_dynamic_xcframework.framework/Modules/module.modulemap",
             ],
         },
+        tags = [name],
+    )
+
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_dossier_info_provider_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        expected_dossier = "multiplatform_dynamic_xcframework_dossier.zip",
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dossier_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        output_group_name = "dossier",
+        expected_outputs = [
+            "multiplatform_dynamic_xcframework_dossier.zip",
+        ],
         tags = [name],
     )
 

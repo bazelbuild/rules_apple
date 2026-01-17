@@ -193,6 +193,12 @@ UNEXPECTED_KEY_MSG = (
     'Unexpectedly found key "%s" in target "%s".'
 )
 
+EXTENSIONKIT_KEY_MSG = (
+    'Target "%s" unexpectedly defines %s, which is an ExtensionKit key. '
+    'Did you forget to set "extensionkit_extension = True" on the extension '
+    'rule to properly define an ExtensionKit extension?'
+)
+
 INVALID_VERSION_KEY_VALUE_MSG = (
     'Target "%s" has a %s that doesn\'t meet Apple\'s guidelines: "%s". See '
     'https://developer.apple.com/library/content/technotes/tn2420/_index.html'
@@ -768,6 +774,9 @@ class PlistIO(object):
       PlistToolError: if plutil return code is non-zero.
     """
     plist_contents = plist_file.read()
+    if not plist_contents:
+      # If the incoming file is empty, return an empty dictionary.
+      return {}
 
     # Binary plists are easy to identify because they start with 'bplist'. For
     # plain text plists, it may be possible to have leading whitespace, but
@@ -922,6 +931,14 @@ class InfoPlistTask(PlistToolTask):
       ):
         raise PlistToolError(
             MISSING_KEY_MSG % (self.target, 'EXExtensionPointIdentifier')
+        )
+    else:
+      # Check if the ExtensionKit EXAppExtensionAttributes dictionary has been
+      # set; if it is, then this extension should be built as an ExtensionKit
+      # extension instead of an NSExtension.
+      if 'EXAppExtensionAttributes' in plist:
+        raise PlistToolError(
+            EXTENSIONKIT_KEY_MSG % (self.target, 'EXAppExtensionAttributes')
         )
 
     # If the version keys are set, they must be valid (even if they were

@@ -20,11 +20,13 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_dsym_test",
+    "analysis_runfiles_dsymutil_bundle_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -32,6 +34,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -42,6 +45,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "apple_symbols_file_test",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -275,6 +282,15 @@ def macos_application_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
@@ -286,6 +302,17 @@ def macos_application_test_suite(name):
         ],
         tags = [name],
     )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_direct_dsyms = [
+            "app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app.app.dSYM",
+        ],
+        tags = [name],
+    )
 
     analysis_runfiles_dsym_test(
         name = "{}_runfiles_dsym_test".format(name),
@@ -294,6 +321,154 @@ def macos_application_test_suite(name):
             "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Resources/DWARF/app",
             "test/starlark_tests/targets_under_test/macos/app.app.dSYM/Contents/Info.plist",
         ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsymutil_bundle_test(
+        name = "{}_runfiles_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app with space.app.dSYM/Contents/Info.plist",
+            "app with space.app.dSYM/Contents/Resources/DWARF/app with space_x86_64",
+            "app with space.app.dSYM/Contents/Resources/DWARF/app with space_arm64",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_direct_dsyms = [
+            "dSYMs/app with space.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_files_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_direct_dsyms = [
+            "app with space.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsym_test(
+        name = "{}_runfiles_dsym_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM/Contents/Resources/DWARF/app with space_arm64",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsymutil_bundle_test(
+        name = "{}_runfiles_dsymutil_bundle_test_with_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_dsyms_output_group_files_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app with space.app.dSYM/Contents/Info.plist",
+            "app with space.app.dSYM/Contents/Resources/DWARF/app with space_x86_64",
+            "app with space.app.dSYM/Contents/Resources/DWARF/app with space_arm64",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_dsym_bundle_info_files_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_direct_dsyms = [
+            "dSYMs/app with space.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_files_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_direct_dsyms = [
+            "app with space.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsym_test(
+        name = "{}_runfiles_dsym_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM/Contents/Resources/DWARF/app with space_arm64",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    analysis_runfiles_dsymutil_bundle_test(
+        name = "{}_runfiles_dsymutil_bundle_test_with_bundle_name_spaces".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_space",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/app with space.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_directories = {
+            "app.app.dSYM": [
+                "Contents/Resources/DWARF/app_bin",
+                "Contents/Info.plist",
+            ],
+        },
         tags = [name],
     )
 
@@ -408,6 +583,17 @@ def macos_application_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example",
         },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_is_building_apple_bundle_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundled_app_to_test_building_apple_bundle",
+        binary_test_file = "$CONTENT_ROOT/MacOS/bundled_app_to_test_building_apple_bundle",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_IsBuildingAppleBundle"],
+        binary_not_contains_symbols = ["_IsNotBuildingAppleBundle"],
         tags = [name],
     )
 
