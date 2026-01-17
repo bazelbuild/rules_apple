@@ -225,6 +225,22 @@ def minimum_os_to_simctl_runtime_version(minimum_os: str) -> int:
   return result
 
 
+def runtime_identifier(
+    *,
+    platform_type: str,
+    version: str,
+) -> str:
+  """Returns the runtime identifier for the given platform type and version."""
+  runtime_version_name = version.replace(".", "-")
+  # capitalizes 'os' from Apple platform type string (e.g. watchos -> watchOS)
+  runtime_platform = platform_type[0:-2].lower() + platform_type[-2:].upper()
+  return "{prefix}.{runtime_platform}-{runtime_version_name}".format(
+      prefix="com.apple.CoreSimulator.SimRuntime",
+      runtime_platform=runtime_platform,
+      runtime_version_name=runtime_version_name,
+  )
+
+
 def discover_best_compatible_simulator(
     *,
     platform_type: str,
@@ -377,15 +393,24 @@ def persistent_simulator(
   if best_compatible_device_type:
     device_name = best_compatible_device_type["name"]
     device_id = best_compatible_device_type["identifier"]
-    logger.info("Creating new %s simulator", device_name)
+    runtime_id = runtime_identifier(
+      platform_type=platform_type,
+      version=sim_os_version,
+    )
+    logger.info(
+      "Creating persistent simulator (name=%s, device_id=%s, runtime_id=%s)",
+      device_name,
+      device_id,
+      runtime_id,
+    )
     create_result = subprocess.run(
-        [simctl_path, "create", device_name, device_id],
+        [simctl_path, "create", device_name, device_id, runtime_id],
         encoding="utf-8",
         stdout=subprocess.PIPE,
         check=True,
     )
     udid = create_result.stdout.rstrip()
-    logger.debug("Created new simulator: %s", udid)
+    logger.debug("Created persistent simulator: %s", udid)
     return udid
   raise Exception(
       f"Could not find or create a simulator for the {platform_type} platform "
@@ -462,27 +487,26 @@ def temporary_simulator(
   Yields:
     The UDID of the newly-created Apple simulator.
   """
-  runtime_version_name = version.replace(".", "-")
-  # capitalizes 'os' from Apple platform type string (e.g. watchos -> watchOS)
-  runtime_platform = platform_type[0:-2].lower() + platform_type[-2:].upper()
-  logger.info("Creating simulator, device=%s, version=%s", device, version)
+  runtime_id = runtime_identifier(platform_type=platform_type, version=version)
+  logger.info(
+    "Creating temporary simulator (device_id=%s, runtime_id=%s)",
+    device,
+    runtime_id,
+  )
   simctl_create_result = subprocess.run(
       [
           simctl_path,
           "create",
           "TestDevice",
           device,
-          "{prefix}.{runtime_platform}-{runtime_version_name}".format(
-              prefix="com.apple.CoreSimulator.SimRuntime",
-              runtime_platform=runtime_platform,
-              runtime_version_name=runtime_version_name,
-          ),
+          runtime_id,
       ],
       encoding="utf-8",
       check=True,
       stdout=subprocess.PIPE,
   )
   udid = simctl_create_result.stdout.rstrip()
+  logger.debug("Created temporary simulator: %s", udid)
   try:
     logger.info("Killing all running simulators...")
     subprocess.run(

@@ -73,6 +73,7 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "new_applebundleinfo",
+    "new_appleplatforminfo",
     "new_applestaticxcframeworkbundleinfo",
     "new_applexcframeworkbundleinfo",
 )
@@ -113,6 +114,8 @@ load(
     "files",
 )
 
+files_utils = files
+
 def _has_non_system_swift_modules(*, target):
     """Indicates if the given target references any non-system Swift modules.
 
@@ -138,6 +141,37 @@ def _has_non_system_swift_modules(*, target):
             return True
 
     return False
+
+_XCFRAMEWORK_PLATFORM_NAME = {
+    "ios": "ios",
+    "macos": "macos",
+    "tvos": "tvos",
+    "watchos": "watchos",
+    "visionos": "xros",
+}
+
+def _xcframework_platform_name(platform):
+    return _XCFRAMEWORK_PLATFORM_NAME.get(platform, platform)
+
+def _apple_platform_info_for_link_output(*, link_output):
+    """Creates an ApplePlatformInfo for a framework slice's target platform.
+
+    In XCFramework rules, each framework slice targets a specific platform (iOS, tvOS, etc.)
+    and environment (device, simulator). This function creates the appropriate ApplePlatformInfo
+    from the link output data, rather than using the host platform from the rule context.
+
+    Args:
+        link_output: A struct containing platform, environment, and architectures for a
+            framework slice, as returned by `_group_link_outputs_by_library_identifier`.
+
+    Returns:
+        An ApplePlatformInfo representing the target platform for this framework slice.
+    """
+    return new_appleplatforminfo(
+        target_arch = link_output.architectures[0],
+        target_environment = link_output.environment,
+        target_os = link_output.platform,
+    )
 
 def _group_link_outputs_by_library_identifier(
         *,
@@ -285,7 +319,7 @@ def _library_identifier(*, architectures, environment, platform):
         in the final XCFramework bundle. This mirrors the formatting for subfolders as given by the
         xcodebuild -create-xcframework tool.
     """
-    library_identifier = "{}-{}".format(platform, "_".join(architectures))
+    library_identifier = "{}-{}".format(_xcframework_platform_name(platform), "_".join(architectures))
     if environment != "device":
         library_identifier += "-{}".format(environment)
     return library_identifier
@@ -575,6 +609,7 @@ def _apple_xcframework_impl(ctx):
             # executables. Only macOS (which is not yet supported) is an outlier; this will require
             # changes to native Bazel linking logic for Apple binary targets.
             "-Wl,-rpath,@executable_path/Frameworks",
+            "-Wl,-rpath,@loader_path/Frameworks",
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
                 extension = nested_bundle_extension,
@@ -617,8 +652,11 @@ def _apple_xcframework_impl(ctx):
             product_type = apple_product_type.framework,
         )
 
+        apple_platform_info = _apple_platform_info_for_link_output(link_output = link_output)
+
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            apple_platform_info = apple_platform_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
@@ -632,7 +670,6 @@ def _apple_xcframework_impl(ctx):
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             features = features,
             objc_fragment = ctx.fragments.objc,
-            platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
@@ -663,7 +700,7 @@ def _apple_xcframework_impl(ctx):
             split_attr_keys = link_output.split_attr_keys,
         )
 
-        environment_plist = files.get_file_with_name(
+        environment_plist = files_utils.get_file_with_name(
             name = "environment_plist_{platform}".format(
                 platform = link_output.platform,
             ),
@@ -822,7 +859,7 @@ def _apple_xcframework_impl(ctx):
             headers_path = None,
             library_identifier = library_identifier,
             library_path = bundle_name + nested_bundle_extension,
-            platform = link_output.platform,
+            platform = _xcframework_platform_name(link_output.platform),
         ))
 
     root_info_plist = _create_xcframework_root_infoplist(
@@ -880,6 +917,7 @@ apple_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.xcframework_transition,
@@ -894,6 +932,7 @@ apple_xcframework = rule_factory.create_apple_rule(
                 default = [
                     "//apple/internal:environment_plist_ios",
                     "//apple/internal:environment_plist_tvos",
+                    "//apple/internal:environment_plist_visionos",
                 ],
             ),
             "bundle_id": attr.string(
@@ -964,6 +1003,13 @@ A dictionary of strings indicating which platform variants should be built for t
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
             ),
+            "visionos": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built for the visionOS platform
+(`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `arm64`) as their values.
+""",
+            ),
             "minimum_deployment_os_versions": attr.string_dict(
                 doc = """
 A dictionary of strings indicating the minimum deployment OS version supported by the target,
@@ -982,6 +1028,7 @@ or `tvos` as keys:
     minimum_os_versions = {
         "ios": "13.0",
         "tvos": "15.0",
+        "visionos": "1.0",
     }
 """,
                 mandatory = True,
@@ -1125,7 +1172,7 @@ def _apple_static_xcframework_impl(ctx):
                 headers_path = None,
                 library_identifier = library_identifier,
                 library_path = bundle_name + ".framework",
-                platform = link_output.platform,
+                platform = _xcframework_platform_name(link_output.platform),
             ),
         )
 
@@ -1134,8 +1181,12 @@ def _apple_static_xcframework_impl(ctx):
             platform_type = link_output.platform,
             product_type = apple_product_type.framework,
         )
+
+        apple_platform_info = _apple_platform_info_for_link_output(link_output = link_output)
+
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_fragment = ctx.fragments.apple,
+            apple_platform_info = apple_platform_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = ctx.var,
             cpp_fragment = ctx.fragments.cpp,
@@ -1149,7 +1200,6 @@ def _apple_static_xcframework_impl(ctx):
             explicit_minimum_os = ctx.attr.minimum_os_versions.get(link_output.platform),
             features = features,
             objc_fragment = ctx.fragments.objc,
-            platform_type_string = link_output.platform,
             uses_swift = link_output.uses_swift,
             xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
         )
@@ -1166,11 +1216,19 @@ def _apple_static_xcframework_impl(ctx):
 
         # Collect top_level_infoplists only if bundle_id is set
         top_level_infoplists = []
+        environment_plist = None
         if ctx.attr.bundle_id:
             top_level_infoplists = resources.collect(
                 attr = ctx.split_attr,
                 res_attrs = ["infoplists"],
                 split_attr_keys = link_output.split_attr_keys,
+            )
+
+            environment_plist = files_utils.get_file_with_name(
+                name = "environment_plist_{platform}".format(
+                    platform = link_output.platform,
+                ),
+                files = ctx.files._environment_plist_files,
             )
 
         partial_output = partial.call(partials.resources_partial(
@@ -1180,7 +1238,7 @@ def _apple_static_xcframework_impl(ctx):
             bundle_id = ctx.attr.bundle_id,
             bundle_name = bundle_name,
             # TODO(b/174858377): Select which environment_plist to use based on Apple platform.
-            environment_plist = ctx.file._environment_plist_ios,
+            environment_plist = environment_plist,
             executable_name = executable_name,
             launch_storyboard = None,
             output_discriminator = library_identifier,
@@ -1263,11 +1321,19 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.xcframework_transition,
         ),
         {
+            "_environment_plist_files": attr.label_list(
+                default = [
+                    "//apple/internal:environment_plist_ios",
+                    "//apple/internal:environment_plist_tvos",
+                    "//apple/internal:environment_plist_visionos",
+                ],
+            ),
             "bundle_id": attr.string(
                 mandatory = False,
                 doc = """
@@ -1283,10 +1349,6 @@ The desired name of the executable, if the bundle has an executable. If this att
 then the name of the `bundle_name` attribute will be used if it is set; if not, then the name of
 the target will be used instead.
 """,
-            ),
-            "_environment_plist_ios": attr.label(
-                allow_single_file = True,
-                default = "//apple/internal:environment_plist_ios",
             ),
             "avoid_deps": attr.label_list(
                 aspects = [apple_resource_aspect],
@@ -1344,6 +1406,20 @@ built for those platform variants (for example, `x86_64`, `arm64`) as their valu
 A list of strings indicating which architecture should be built for the macOS platform (for example, `x86_64`, `arm64`).
 """,
             ),
+            "tvos": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built for the tvOS platform (
+`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+            ),
+            "visionos": attr.string_list_dict(
+                doc = """
+A dictionary of strings indicating which platform variants should be built for the visionOS platform
+(`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `arm64`) as their values.
+""",
+            ),
             "minimum_deployment_os_versions": attr.string_dict(
                 doc = """
 A dictionary of strings indicating the minimum deployment OS version supported by the target,
@@ -1357,8 +1433,14 @@ at compile time. Ensure version specific APIs are guarded with `available` claus
                 mandatory = True,
                 doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
-dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`
-as keys.
+dotted version number (for example, "8.0") as values, with their respective platforms such as `ios`,
+`tvos`, or `visionos` as keys:
+
+    minimum_os_versions = {
+        "ios": "13.0",
+        "tvos": "15.0",
+        "visionos": "1.0",
+    }
 """,
             ),
             "public_hdrs": attr.label_list(

@@ -93,6 +93,8 @@ def tvos_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/fmwk",
         macho_load_commands_contain = [
             "name @rpath/fmwk.framework/fmwk (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
         ],
         tags = [name],
     )

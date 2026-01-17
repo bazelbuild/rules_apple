@@ -204,7 +204,6 @@ def _link_multi_arch_binary(
             stamp = stamp,
         )
 
-    split_build_configs = apple_common.get_split_build_configs(ctx)
     split_deps = ctx.split_attr.deps
 
     if split_deps and split_deps.keys() != cc_toolchains.keys():
@@ -272,7 +271,7 @@ def _link_multi_arch_binary(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
 
-        child_config = split_build_configs.get(split_transition_key)
+        child_config = child_toolchain[ApplePlatformInfo].target_build_config
 
         additional_outputs = []
         extensions = {}

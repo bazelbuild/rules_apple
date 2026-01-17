@@ -133,6 +133,7 @@ def macos_command_line_application(name, **kwargs):
         macos_command_line_launchdplist(
             name = merged_launchdplists_name,
             launchdplists = launchdplists,
+            minimum_os_version = binary_args.get("minimum_os_version"),
         )
         binary_deps.extend([":" + merged_launchdplists_name])
 

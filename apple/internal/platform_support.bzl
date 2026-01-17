@@ -14,6 +14,20 @@
 
 """Support functions for working with Apple platforms and device families."""
 
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
+    "//apple/internal:providers.bzl",
+    "new_appleplatforminfo",
+)
+
+visibility([
+    "//apple/...",
+    "//test/...",
+])
+
 # Maps the strings passed in to the "families" attribute to the numerical
 # representation in the UIDeviceFamily plist entry.
 # @unsorted-dict-items
@@ -59,9 +73,54 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
         return family_ids
     return None
 
+def _get_apple_common_platform(*, apple_platform_info):
+    """Returns an apple_common.platform given the contents of an ApplePlatformInfo provider"""
+    if apple_platform_info.target_os == "ios":
+        if apple_platform_info.target_environment == "device":
+            return apple_common.platform.ios_device
+        elif apple_platform_info.target_environment == "simulator":
+            return apple_common.platform.ios_simulator
+    elif apple_platform_info.target_os == "macos":
+        return apple_common.platform.macos
+    elif apple_platform_info.target_os == "tvos":
+        if apple_platform_info.target_environment == "device":
+            return apple_common.platform.tvos_device
+        elif apple_platform_info.target_environment == "simulator":
+            return apple_common.platform.tvos_simulator
+    elif apple_platform_info.target_os == "visionos":
+        if apple_platform_info.target_environment == "device":
+            return apple_common.platform.visionos_device
+        elif apple_platform_info.target_environment == "simulator":
+            return apple_common.platform.visionos_simulator
+    elif apple_platform_info.target_os == "watchos":
+        if apple_platform_info.target_environment == "device":
+            return apple_common.platform.watchos_device
+        elif apple_platform_info.target_environment == "simulator":
+            return apple_common.platform.watchos_simulator
+    else:
+        fail("Internal Error: Found unrecognized target os of " + apple_platform_info.target_os)
+    fail(
+        """
+Internal Error: Found unrecognized target environment of {target_environment} for os {target_os}
+""".format(
+            target_environment = apple_platform_info.target_environment,
+            target_os = apple_platform_info.target_os,
+        ),
+    )
+
+def _apple_platform_info_from_rule_ctx(ctx):
+    """Returns an ApplePlatformInfo provider from a rule context, needed to resolve constraints."""
+    return new_appleplatforminfo(
+        target_arch = apple_support.target_arch_from_rule_ctx(ctx),
+        target_build_config = ctx.configuration,
+        target_environment = apple_support.target_environment_from_rule_ctx(ctx),
+        target_os = apple_support.target_os_from_rule_ctx(ctx),
+    )
+
 def _platform_prerequisites(
         *,
         apple_fragment,
+        apple_platform_info,
         build_settings,
         config_vars,
         cpp_fragment = None,
@@ -69,14 +128,14 @@ def _platform_prerequisites(
         explicit_minimum_deployment_os,
         explicit_minimum_os,
         features,
-        objc_fragment,
-        platform_type_string,
+        objc_fragment = None,
         uses_swift,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
       apple_fragment: An Apple fragment (ctx.fragments.apple).
+      apple_platform_info: An ApplePlatformInfo provider to determine the platform.
       build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
@@ -84,16 +143,17 @@ def _platform_prerequisites(
       explicit_minimum_deployment_os: A dotted version string indicating minimum deployment OS desired.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
       features: The list of enabled features applied to the target.
-      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present.
-      platform_type_string: The platform type for the current target as a string.
+      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
 
     Returns:
       A struct representing the collected platform information.
     """
-    platform_type_attr = getattr(apple_common.platform_type, platform_type_string)
-    platform = apple_fragment.multi_arch_platform(platform_type_attr)
+
+    platform = _get_apple_common_platform(apple_platform_info = apple_platform_info)
+    platform_type_attr = getattr(apple_common.platform_type, apple_platform_info.target_os)
+    sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     if explicit_minimum_os:
         minimum_os = explicit_minimum_os
@@ -105,8 +165,6 @@ def _platform_prerequisites(
         minimum_deployment_os = explicit_minimum_deployment_os
     else:
         minimum_deployment_os = minimum_os
-
-    sdk_version = xcode_version_config.sdk_version_for_platform(platform)
 
     return struct(
         apple_fragment = apple_fragment,
@@ -127,6 +185,7 @@ def _platform_prerequisites(
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
+    apple_platform_info_from_rule_ctx = _apple_platform_info_from_rule_ctx,
     platform_prerequisites = _platform_prerequisites,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )

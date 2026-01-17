@@ -91,7 +91,7 @@ resides. For example, if this target's label is `//my/package:intent`, you can i
 <pre>
 load("@rules_apple//apple:resources.bzl", "apple_metal_library")
 
-apple_metal_library(<a href="#apple_metal_library-name">name</a>, <a href="#apple_metal_library-srcs">srcs</a>, <a href="#apple_metal_library-out">out</a>, <a href="#apple_metal_library-hdrs">hdrs</a>, <a href="#apple_metal_library-copts">copts</a>, <a href="#apple_metal_library-includes">includes</a>)
+apple_metal_library(<a href="#apple_metal_library-name">name</a>, <a href="#apple_metal_library-srcs">srcs</a>, <a href="#apple_metal_library-out">out</a>, <a href="#apple_metal_library-hdrs">hdrs</a>, <a href="#apple_metal_library-copts">copts</a>)
 </pre>
 
 Compiles Metal shader language sources into a Metal library.
@@ -106,7 +106,6 @@ Compiles Metal shader language sources into a Metal library.
 | <a id="apple_metal_library-out"></a>out |  An output `.metallib` filename. Defaults to `default.metallib` if unspecified.   | String | optional |  `"default.metallib"`  |
 | <a id="apple_metal_library-hdrs"></a>hdrs |  A list of headers to make importable when compiling the metal library.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="apple_metal_library-copts"></a>copts |  A list of compiler options passed to the `metal` compiler for each source.   | List of strings | optional |  `[]`  |
-| <a id="apple_metal_library-includes"></a>includes |  A list of header search paths.   | List of strings | optional |  `[]`  |
 
 
 <a id="apple_precompiled_resource_bundle"></a>

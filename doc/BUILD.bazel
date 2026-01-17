@@ -12,6 +12,7 @@ _RULES_DOC_SRCS = [
     "docc",
     "dtrace",
     "header_map",
+    "linker",
     "ios.doc",
     "macos.doc",
     "resources",

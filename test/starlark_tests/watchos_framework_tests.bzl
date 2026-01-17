@@ -54,6 +54,49 @@ def watchos_framework_test_suite(name):
         tags = [name],
     )
 
+    # Tests that the bundled .framework contains the expected files.
+    archive_contents_test(
+        name = "{}_contains_expected_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:fmwk",
+        contains = [
+            "$BUNDLE_ROOT/fmwk",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    # Tests that the correct rpath was added at link-time to the framework's binary.
+    # The rpath should match the framework bundle name.
+    archive_contents_test(
+        name = "{}_binary_has_correct_rpath".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:fmwk",
+        contains = [
+            "$BUNDLE_ROOT/fmwk",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/fmwk",
+        macho_load_commands_contain = [
+            "name @rpath/fmwk.framework/fmwk (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+
+    # Tests that a watchos_framework builds fine without any version info
+    # since it isn't required.
+    infoplist_contents_test(
+        name = "{}_plist_test_with_no_version".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:fmwk_with_no_version",
+        not_expected_keys = [
+            "CFBundleVersion",
+            "CFBundleShortVersionString",
+        ],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_exported_symbols_list_test".format(name),
         build_type = "simulator",

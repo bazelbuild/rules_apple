@@ -23,6 +23,10 @@ load(
     "partial",
 )
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple:providers.bzl",
     "AppleFrameworkBundleInfo",
     "AppleResourceInfo",
@@ -71,8 +75,10 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     owner = str(label)
     bucketize_args = {}
 
+    platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx)
+
     rule_descriptor = rule_support.rule_descriptor(
-        platform_type = str(ctx.fragments.apple.single_arch_platform.platform_type),
+        platform_type = platform_info.target_os,
         product_type = apple_product_type.application,
     )
 
@@ -87,6 +93,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
+        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
@@ -95,7 +102,6 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         explicit_minimum_os = None,
         features = features,
         objc_fragment = ctx.fragments.objc,
-        platform_type_string = str(ctx.fragments.apple.single_arch_platform.platform_type),
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
@@ -334,6 +340,7 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
                 default = "//apple/internal/resource_rules:Info.plist",
             ),
         },
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
     ),
     doc = """
