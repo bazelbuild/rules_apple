@@ -25,6 +25,13 @@ single_version_override(
     version = "3.0.2",
 )
 
+# TODO: REMOVE BEFORE MERGE
+git_override(
+    module_name = "rules_cc",
+    commit = "df1ad1dedc6f9db8dd527e1b5db02426f7585773",
+    remote = "https://github.com/luispadron/rules_cc.git",
+)
+
 bazel_dep(name = "rules_python", version = "1.3.0")
 bazel_dep(name = "rules_shell", version = "0.3.0")
 
