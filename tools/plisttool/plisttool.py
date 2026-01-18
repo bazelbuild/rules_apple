@@ -1115,15 +1115,6 @@ class EntitlementsTask(PlistToolTask):
         # via the *_substitutions keys in the control because it takes an
         # action running to extract them from the provisioning profile, so
         # the starlark for the rule doesn't have access to the values.
-        #
-        # Set up the subs using the info extracted from the provisioning
-        # profile:
-        # - "PREFIX.*" -> "PREFIX.BUNDLE_ID"
-        bundle_id = self.options.get('bundle_id')
-        if bundle_id:
-          self._extra_raw_subs['%s.*' % team_prefix] = '%s.%s' % (
-              team_prefix, bundle_id)
-        # - "$(AppIdentifierPrefix)" -> "PREFIX."
         self._extra_var_subs['AppIdentifierPrefix'] = '%s.' % team_prefix
 
     else:
@@ -1288,7 +1279,8 @@ class EntitlementsTask(PlistToolTask):
     self._check_entitlements_array(
         entitlements, profile_entitlements,
         'keychain-access-groups', self.target,
-        supports_wildcards=True)
+        supports_wildcards=True,
+        allow_wildcards_in_entitlements=True)
 
     # com.apple.security.application-groups
     # (This check does not apply to macOS-only provisioning profiles.)
