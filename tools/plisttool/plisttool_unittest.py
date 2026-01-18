@@ -1256,7 +1256,8 @@ class PlistToolTest(unittest.TestCase):
         },
     }, {'Foo': 'abc123.'})
 
-  def test_entitlements_options_raw_subs(self):
+  def test_entitlements_options_preserves_wildcards(self):
+    """Verify that wildcards in entitlements are preserved (matching Xcode behavior)."""
     plist1 = {'Bar': 'abc123.*'}
     self._assert_plisttool_result({
         'plists': [plist1],
@@ -1267,7 +1268,7 @@ class PlistToolTest(unittest.TestCase):
                 'Version': 1,
             },
         },
-    }, {'Bar': 'abc123.my.bundle.id'})
+    }, {'Bar': 'abc123.*'})
 
   def test_entitlements_no_profile_for_app_id_prefix(self):
     with self.assertRaisesRegex(
@@ -1622,23 +1623,20 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
-  def test_entitlements_keychain_entitlements_wildcard_not_allowed(self):
-    with self.assertRaisesRegex(
-        plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_VALUE_HAS_WILDCARD % (
-            _testing_target, 'keychain-access-groups', 'QWERTY.*'))):
-      _plisttool_result({
-          'plists': [{'keychain-access-groups': ['QWERTY.*']}],
-          'entitlements_options': {
-              'bundle_id': 'my.bundle.id',
-              'profile_metadata_file': {
-                  'Entitlements': {
-                      'keychain-access-groups': ['QWERTY.*'],
-                  },
-                  'Version': 1,
-              },
-          },
-      })
+  def test_entitlements_keychain_entitlements_wildcard_allowed(self):
+    """Verify that wildcards in keychain-access-groups are allowed (matching Xcode behavior)."""
+    self._assert_plisttool_result({
+        'plists': [{'keychain-access-groups': ['QWERTY.*']}],
+        'entitlements_options': {
+            'bundle_id': 'my.bundle.id',
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'keychain-access-groups': ['QWERTY.*'],
+                },
+                'Version': 1,
+            },
+        },
+    }, {'keychain-access-groups': ['QWERTY.*']})
 
   def test_entitlements_keychain_mismatch(self):
     with self.assertRaisesRegex(
