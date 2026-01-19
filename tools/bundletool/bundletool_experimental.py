@@ -52,6 +52,7 @@ import json
 import os
 import shlex
 import shutil
+import subprocess
 import sys
 import zipfile
 from ctypes import CDLL, c_char_p, c_int, get_errno
@@ -290,10 +291,10 @@ class Bundler(object):
     # Configure the TREE_ARTIFACT_OUTPUT environment variable to the path of the
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
-    exit_code = os.system('TREE_ARTIFACT_OUTPUT="%s" %s "%s"' %
-                          (bundle_root, post_processor, work_dir))
-    if exit_code:
-      raise PostProcessorError(exit_code)
+    try:
+      subprocess.check_call((post_processor, work_dir), env={"TREE_ARTIFACT_OUTPUT": bundle_root})
+    except subprocess.CalledProcessError as e:
+      raise PostProcessorError(e.returncode) from e
 
   def _sign_bundle(self, bundle_root, command_lines):
     """Executes the signing command lines on the bundle.
@@ -303,11 +304,12 @@ class Bundler(object):
       command_lines: A newline-separated list of command lines that should be
         executed in the bundle to sign it.
     """
-    exit_code = os.system(
-        'WORK_DIR=%s\n%s' % (shlex.quote(bundle_root), command_lines)
-    )
-    if exit_code:
-      raise CodeSignError(exit_code)
+    for command in command_lines.splitlines():
+      argv = [arg.replace('$WORK_DIR', bundle_root) for arg in shlex.split(command)]
+      try:
+        subprocess.check_call(argv, env={})
+      except subprocess.CalledProcessError as e:
+        raise PostProcessorError(e.returncode) from e
 
 
 def _main(control_path):
