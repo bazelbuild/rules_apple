@@ -309,7 +309,7 @@ class Bundler(object):
       try:
         subprocess.check_call(argv, env={})
       except subprocess.CalledProcessError as e:
-        raise PostProcessorError(e.returncode) from e
+        raise CodeSignError(e.returncode) from e
 
 
 def _main(control_path):
