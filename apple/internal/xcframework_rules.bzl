@@ -1198,6 +1198,7 @@ def _create_xcframework_bundle(
         bundletool_control = struct(
             bundle_merge_files = final_bundle_merge_files,
             bundle_merge_zips = final_bundle_merge_zips,
+            enable_zip64_support = True,
             output = output_archive.path,
         )
         actions.write(
