@@ -226,13 +226,13 @@ def _bundle_partial_outputs_files(
         embedding = False,
         extra_input_files = [],
         ipa_post_processor = None,
-        label_name,
         mac_exec_group,
         output_discriminator,
         output_file,
         partial_outputs,
         platform_prerequisites,
         rule_descriptor,
+        rule_label,
         xplat_exec_group):
     """Invokes bundletool to bundle the files specified by the partial outputs.
 
@@ -247,7 +247,6 @@ def _bundle_partial_outputs_files(
       embedding: Whether outputs are being bundled to be embedded.
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
-      label_name: The name of the target being built.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -256,8 +255,11 @@ def _bundle_partial_outputs_files(
         that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_label: The label of the rule.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
+
+    label_name = rule_label.name
 
     control_files = []
     control_zips = []
@@ -349,14 +351,6 @@ Please file a bug against the Apple BUILD rules with repro steps.
     if post_processor:
         post_processor_path = post_processor.path
 
-    control = struct(
-        bundle_merge_files = control_files,
-        bundle_merge_zips = control_zips,
-        output = output_file.path,
-        code_signing_commands = codesigning_command or "",
-        post_processor = post_processor_path,
-    )
-
     if embedding:
         control_file_name = "embedding_bundletool_control.json"
     else:
@@ -368,14 +362,22 @@ Please file a bug against the Apple BUILD rules with repro steps.
         output_discriminator = output_discriminator,
         file_name = control_file_name,
     )
-    actions.write(
-        output = control_file,
-        content = json.encode(control),
-    )
 
     bundletool_inputs = input_files + [control_file] + extra_input_files
 
     if tree_artifact_is_enabled:
+        control = struct(
+            bundle_merge_files = control_files,
+            bundle_merge_zips = control_zips,
+            output = output_file.path,
+            code_signing_commands = codesigning_command or "",
+            post_processor = post_processor_path,
+        )
+        actions.write(
+            output = control_file,
+            content = json.encode(control),
+        )
+
         # Required to satisfy an implicit dependency, when the codesigning commands are executed by
         # the mac-only bundle tool script.
         codesigningtool = apple_mac_toolchain_info.codesigningtool
@@ -398,6 +400,16 @@ Please file a bug against the Apple BUILD rules with repro steps.
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
+        control = struct(
+            bundle_merge_files = control_files,
+            bundle_merge_zips = control_zips,
+            enable_zip64_support = False,
+            output = output_file.path,
+        )
+        actions.write(
+            output = control_file,
+            content = json.encode(control),
+        )
         bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
             arguments = [control_file.path],
@@ -521,13 +533,13 @@ def _bundle_post_process_and_sign(
             codesigning_command = codesigning_command,
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
-            label_name = rule_label.name,
             mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = output_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
+            rule_label = rule_label,
             xplat_exec_group = xplat_exec_group,
         )
 
@@ -553,11 +565,11 @@ def _bundle_post_process_and_sign(
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
-            label_name = rule_label.name,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
             partial_outputs = partial_outputs,
             platform_prerequisites = platform_prerequisites,
+            rule_label = rule_label,
             rule_descriptor = rule_descriptor,
         )
 
@@ -628,13 +640,13 @@ def _bundle_post_process_and_sign(
                 bundle_name = bundle_name,
                 embedding = True,
                 ipa_post_processor = ipa_post_processor,
-                label_name = rule_label.name,
                 mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
                 platform_prerequisites = platform_prerequisites,
                 rule_descriptor = rule_descriptor,
+                rule_label = rule_label,
                 xplat_exec_group = xplat_exec_group,
             )
 

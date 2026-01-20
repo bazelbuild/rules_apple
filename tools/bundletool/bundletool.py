@@ -34,6 +34,10 @@ following keys:
       fields: "src", the path of the archive whose contents should be merged
       into the bundle; and "dest", the path inside the bundle where the ZIPs
       contents should be placed.
+  enable_zip64_support: A boolean value indicating whether or not to allow for
+      the zip file format to use ZIP64 extensions when writing the zip file.
+      Disabled by default to allow for IPAs that won't be denied by Apple's
+      App Store processing, and to push to keep test dependencies small.
   output: The path to the uncompressed ZIP archive that should be created with
       the merged bundle contents.
 """
@@ -93,17 +97,20 @@ class Bundler(object):
 
     bundle_merge_files = self._control.get('bundle_merge_files', [])
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
+    enable_zip64_support = self._control.get('enable_zip64_support', False)
 
-    with zipfile.ZipFile(output_path, 'w') as out_zip:
+    with zipfile.ZipFile(
+        output_path, mode='w', allowZip64=enable_zip64_support) as out_zip:
       for z in bundle_merge_zips:
         dest = os.path.normpath(z['dest'])
-        self._add_zip_contents(z['src'], dest, out_zip)
+        self._add_zip_contents(z['src'], dest, enable_zip64_support, out_zip)
 
       for f in bundle_merge_files:
         dest = f['dest']
         self._add_files(f['src'], dest, out_zip)
 
-    with zipfile.ZipFile(output_path, 'r') as test_zip:
+    with zipfile.ZipFile(
+        output_path, mode='r', allowZip64=enable_zip64_support) as test_zip:
       badfile = test_zip.testzip()
       if badfile:
         raise BadZipFileError('Bad CRC-32 for file %s' % (badfile))
@@ -136,17 +143,24 @@ class Bundler(object):
         self._write_entry(
             dest=dest, data=f.read(), is_executable=fexec, out_zip=out_zip)
 
-  def _add_zip_contents(self, src, dest, out_zip):
+  def _add_zip_contents(self, src, dest, enable_zip64_support, out_zip):
     """Adds the contents of another ZIP file to the output ZIP archive.
 
     Args:
       src: The path to the ZIP file whose contents should be added.
       dest: The path inside the output archive where the contents of `src`
-          should be expanded. The directory structure of `src` is preserved
-          underneath this path.
+        should be expanded. The directory structure of `src` is preserved
+        underneath this path.
+      enable_zip64_support: A boolean value indicating whether or not to allow
+        for the zip file format to use ZIP64 extensions when writing the zip
+        file. Disabled by default to allow for IPAs that won't be denied by
+        Apple's App Store processing, and to push to keep test dependencies
+        small.
       out_zip: The `ZipFile` into which the files should be added.
     """
-    with zipfile.ZipFile(src, 'r') as src_zip:
+    with zipfile.ZipFile(
+        src, mode='r', allowZip64=enable_zip64_support
+    ) as src_zip:
       for src_zipinfo in src_zip.infolist():
         # Normalize the destination path to remove any extraneous internal
         # slashes or "." segments, but retain the final slash for directory
