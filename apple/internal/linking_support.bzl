@@ -322,6 +322,8 @@ def _link_multi_arch_binary(
             additional_outputs = additional_outputs,
             extra_link_inputs = extra_link_inputs,
             attr_linkopts = attr_linkopts,
+            # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
+            split_transition_key = split_transition_key,
         )
 
         output = {
