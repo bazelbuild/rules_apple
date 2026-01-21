@@ -412,12 +412,29 @@ def _validate_asset_files_and_generate_args(
     ))
 
     launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
-    if launch_image_files:
+    if launch_image_files and platform_type == "tvos":
+        # Launch images are deprecated on iOS and tvOS, but tvOS apps are still allowed to ship with
+        # them. iOS apps will simply fail to show any launch images, at least as of iOS 26.
         bundling_support.ensure_single_xcassets_type(
             extension = "launchimage",
             files = launch_image_files,
         )
         args.extend(_args_for_launch_images(launch_image_files = launch_image_files))
+    elif launch_image_files:
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("""
+WARNING: Launch images are no longer functional on {platform_type}, but this target still contains \
+launch images.
+
+Found the following launch image files:
+{launch_image_files}
+
+Please consider removing them.
+""".format(
+            launch_image_files = launch_image_files,
+            platform_type = platform_type,
+        ))
 
     return args
 

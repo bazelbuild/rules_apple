@@ -218,7 +218,6 @@ def _ios_application_impl(ctx):
         attr = ctx.attr,
         res_attrs = [
             "app_icons",
-            "launch_images",
             "launch_storyboard",
             "strings",
             "resources",
@@ -297,7 +296,6 @@ def _ios_application_impl(ctx):
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
-            launch_images = ctx.files.launch_images,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),
@@ -2113,7 +2111,7 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
-        rule_attrs.launch_images_attrs(),
+        rule_attrs.launch_images_attrs(),  # TODO: b/476420367 - Remove when ready.
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,

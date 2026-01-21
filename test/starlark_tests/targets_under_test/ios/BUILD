@@ -407,26 +407,6 @@ ios_application(
 )
 
 ios_application(
-    name = "app_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    launch_images = ["//test/starlark_tests/resources:launch_images_ios"],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
     name = "app_with_library_scoped_localized_assets",
     bundle_id = "com.google.example",
     families = ["iphone"],
@@ -474,68 +454,6 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:ios_localized_assets_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_launch_images_from_library",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:launch_images_ios_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_with_duplicated_library_scoped_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:launch_images_ios_lib",
-        "//test/starlark_tests/resources:launch_images_ios_lib_duplicated_target",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_with_top_level_and_library_scoped_launch_images",
-    app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
-    bundle_id = "com.google.example",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    launch_images = ["//test/starlark_tests/resources:launch_images_ios"],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:launch_images_ios_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

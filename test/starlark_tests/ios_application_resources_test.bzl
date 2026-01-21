@@ -162,28 +162,6 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the app icons and launch images are bundled with the application
-    # and that the partial Info.plist produced by actool is merged into the final
-    # plist.
-    archive_contents_test(
-        name = "{}_app_icons_and_launch_images_plist_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_launch_images",
-        contains = [
-            "$BUNDLE_ROOT/app_icon60x60@2x.png",
-            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
-            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
-        ],
-        plist_test_file = "$CONTENT_ROOT/Info.plist",
-        plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon60x60",
-            "UILaunchImages:0:UILaunchImageName": "launch_image-700",
-            "UILaunchImages:0:UILaunchImageOrientation": "Portrait",
-            "UILaunchImages:0:UILaunchImageSize": "{320, 480}",
-        },
-        tags = [name],
-    )
-
     # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
         name = "{}_icon_composer_app_icons_plist_test".format(name),
@@ -603,45 +581,6 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
             "$BUNDLE_ROOT/it.lproj/localized.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_and_library_scoped_localized_assets",
-        tags = [name],
-    )
-
-    # Test that raw PNG library-defined resources have ths same outputs as if they were app-defined.
-    archive_contents_test(
-        name = "{}_with_library_defined_launch_images_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_launch_images_from_library",
-        contains = [
-            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
-            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
-        ],
-        tags = [name],
-    )
-
-    # Test that having the same raw PNG library-defined resources referenced from two different
-    # library targets will be deduplicated, and therefore will not cause issues with the build.
-    archive_contents_test(
-        name = "{}_with_two_libraries_referencing_same_launch_images_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_duplicated_library_scoped_launch_images",
-        contains = [
-            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
-            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
-        ],
-        tags = [name],
-    )
-
-    # Test that having the same library-defined raw PNG resources referenced from a library target
-    # and the top level target will be deduplicated, and therefore will not cause issues with the
-    # build.
-    archive_contents_test(
-        name = "{}_with_top_level_and_library_scoped_launch_images_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_and_library_scoped_launch_images",
-        contains = [
-            "$BUNDLE_ROOT/launch_image-700-568h@2x.png",
-            "$BUNDLE_ROOT/launch_image-700-Portrait@2x~ipad.png",
-        ],
         tags = [name],
     )
 

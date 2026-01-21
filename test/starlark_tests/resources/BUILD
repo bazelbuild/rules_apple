@@ -576,27 +576,6 @@ filegroup(
 )
 
 filegroup(
-    name = "launch_images_ios",
-    srcs = glob(["launch_images_ios.xcassets/**"]),
-)
-
-objc_library(
-    name = "launch_images_ios_lib",
-    data = [
-        ":launch_images_ios",
-    ],
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "launch_images_ios_lib_duplicated_target",
-    data = [
-        ":launch_images_ios",
-    ],
-    tags = common.fixture_tags,
-)
-
-filegroup(
     name = "basic_bundle_files",
     srcs = glob(["basic.bundle/**"]),
 )
