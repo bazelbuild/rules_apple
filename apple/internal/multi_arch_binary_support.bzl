@@ -15,6 +15,7 @@
 """Support utility for creating multi-arch Apple binaries."""
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("//apple/internal:compilation_support.bzl", "compilation_support")
 
 visibility([
     "//apple/...",
@@ -26,7 +27,7 @@ def _build_avoid_library_set(avoid_dep_linking_contexts):
     for linking_context in avoid_dep_linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
             for library_to_link in linker_input.libraries:
-                library_artifact = apple_common.compilation_support.get_static_library_for_linking(library_to_link)
+                library_artifact = compilation_support.get_static_library_for_linking(library_to_link)
                 if library_artifact:
                     avoid_library_set[library_artifact.short_path] = True
 
@@ -58,7 +59,7 @@ def subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_context
             linker_inputs_seen[linker_input] = True
 
             for library_to_link in linker_input.libraries:
-                library_artifact = apple_common.compilation_support.get_library_for_linking(library_to_link)
+                library_artifact = compilation_support.get_library_for_linking(library_to_link)
 
                 if library_artifact.short_path not in avoid_library_set:
                     libraries.append(library_to_link)
