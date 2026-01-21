@@ -22,6 +22,10 @@ load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
+    "@rules_cc//cc/private/rules_impl:objc_compilation_support.bzl",
+    objc_compilation_support = "compilation_support",
+)  # buildifier: disable=bzl-visibility
+load(
     "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
 )
@@ -78,12 +82,23 @@ def _archive_multi_arch_static_library(
 
     for split_transition_key, child_toolchain in cc_toolchains.items():
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
-        common_variables = apple_common.compilation_support.build_common_variables(
-            ctx = ctx,
-            toolchain = cc_toolchain,
-            use_pch = True,
-            deps = split_deps[split_transition_key],
-        )
+
+        # TODO: Remove when we drop Bazel 8
+        legacy_objc_compilation_support = getattr(apple_common, "compilation_support", None)
+        if legacy_objc_compilation_support:
+            common_variables = legacy_objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                use_pch = True,
+                deps = split_deps[split_transition_key],
+            )
+        else:
+            common_variables = objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                use_pch = True,
+                deps = split_deps[split_transition_key],
+            )
 
         avoid_objc_providers = []
         avoid_cc_providers = []
@@ -245,14 +260,26 @@ def _link_multi_arch_binary(
         deps = split_deps.get(split_transition_key, [])
         platform_info = child_toolchain[ApplePlatformInfo]
 
-        common_variables = apple_common.compilation_support.build_common_variables(
-            ctx = ctx,
-            toolchain = cc_toolchain,
-            deps = deps,
-            extra_disabled_features = extra_disabled_features,
-            extra_enabled_features = extra_requested_features,
-            attr_linkopts = attr_linkopts,
-        )
+        # TODO: remove when we drop Bazel 8
+        legacy_objc_compilation_support = getattr(apple_common, "compilation_support", None)
+        if legacy_objc_compilation_support:
+            common_variables = legacy_objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                deps = deps,
+                extra_disabled_features = extra_disabled_features,
+                extra_enabled_features = extra_requested_features,
+                attr_linkopts = attr_linkopts,
+            )
+        else:
+            common_variables = objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                deps = deps,
+                extra_disabled_features = extra_disabled_features,
+                extra_enabled_features = extra_requested_features,
+                attr_linkopts = attr_linkopts,
+            )
 
         cc_infos.append(CcInfo(
             compilation_context = cc_common.merge_compilation_contexts(
