@@ -431,6 +431,9 @@ Locales not in this list will be excluded from the bundle.
 `StringList`. List of [Unicode Locale Identifier](https://unicode.org/reports/tr35/#Identifiers)
 strings in `<language_id>[_<region_subtag>]` format (ex: `[en, pt_PT]`)
 """,
+        "default_locale": """
+`String`. The default locale to use for the bundle (usually "en").
+""",
     },
     init = make_banned_init(provider_name = "AppleResourceLocalesInfo"),
 )

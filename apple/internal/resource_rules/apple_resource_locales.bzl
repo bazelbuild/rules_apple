@@ -58,6 +58,7 @@ def _apple_resource_locales_impl(_ctx):
     locales_to_include = [apple_locale_from_unicode_locale(locale) for locale in ctx_locales]
     return new_appleresourcelocalesinfo(
         locales_to_include = locales_to_include,
+        default_locale = _ctx.attr.default_locale,
     )
 
 apple_resource_locales = rule(
