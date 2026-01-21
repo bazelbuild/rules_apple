@@ -249,12 +249,12 @@ def _visionos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             entitlements = entitlements,
-            label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
         partials.debug_symbols_partial(

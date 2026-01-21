@@ -138,29 +138,29 @@ def _embedded_codesign_dossiers_from_dossier_infos(
 def _create_combined_zip_artifact(
         *,
         actions,
+        bundletool,
         dossier_merge_zip,
         input_archive,
-        label_name,
         output_combined_zip,
         output_discriminator,
-        bundletool,
+        rule_label,
         xplat_exec_group):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
 
      Args:
       actions: The actions provider from `ctx.actions`.
+      bundletool: A bundle tool from xplat toolchain.
       dossier_merge_zip: A File referencing the generated code sign dossier zip.
       input_archive: A File referencing the rule's output archive (IPA or zipped app).
-      label_name: Name of the target being built.
       output_combined_zip: A File referencing where the combined dossier zip should be written to.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      bundletool: A bundle tool from xplat toolchain.
+      rule_label: Name of the target being built.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     bundletool_control_file = intermediates.file(
         actions = actions,
-        target_name = label_name,
+        target_name = rule_label.name,
         output_discriminator = output_discriminator,
         file_name = "combined_zip_bundletool_control.json",
     )
@@ -169,9 +169,11 @@ def _create_combined_zip_artifact(
         struct(src = input_archive.path, dest = "bundle"),
         struct(src = dossier_merge_zip.path, dest = "dossier"),
     ]
+    enable_zip64_support = False
 
     bundletool_control = struct(
         bundle_merge_zips = combined_zip_archive_zips,
+        enable_zip64_support = enable_zip64_support,
         output = output_combined_zip.path,
     )
 
@@ -183,7 +185,7 @@ def _create_combined_zip_artifact(
     common_combined_dossier_zip_args = {
         "mnemonic": "CreateCombinedDossierZip",
         "outputs": [output_combined_zip],
-        "progress_message": "Creating combined dossier zip for %s" % label_name,
+        "progress_message": "Creating combined dossier zip for %s" % rule_label.name,
     }
 
     actions.run(
@@ -212,12 +214,12 @@ def _codesigning_dossier_partial_impl(
         embed_target_dossiers = True,
         embedded_targets = [],
         entitlements = None,
-        label_name,
         output_discriminator,
         platform_prerequisites,
         predeclared_outputs,
         provisioning_profile = None,
-        rule_descriptor):
+        rule_descriptor,
+        rule_label):
     """Implementation of codesigning_dossier_partial"""
 
     if bundle_location and bundle_location not in _VALID_LOCATIONS:
@@ -235,7 +237,7 @@ def _codesigning_dossier_partial_impl(
         embedded_dossier_info_depsets = embedded_dossier_infos_depsets,
     ) if embed_target_dossiers else []
 
-    output_dossier = actions.declare_file("%s_dossier.zip" % label_name)
+    output_dossier = actions.declare_file("%s_dossier.zip" % rule_label.name)
 
     dossier_info = _codesigning_dossier_info(
         codesigning_dossier = output_dossier,
@@ -256,7 +258,7 @@ def _codesigning_dossier_partial_impl(
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = embedded_codesign_dossiers,
         entitlements = entitlements,
-        label_name = label_name,
+        label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
         output_dossier = output_dossier,
         provisioning_profile = provisioning_profile,
@@ -296,7 +298,7 @@ def _codesigning_dossier_partial_impl(
         # The combined zip is only created when the rule's output is a zip file; if it's a tree
         # artifact, we supply the bits necessary to create a combined zip in a downstream rule via
         # the contents of the AppleBundleArchiveSupportInfo provider.
-        output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % label_name)
+        output_combined_zip = actions.declare_file("%s_dossier_with_bundle.zip" % rule_label.name)
 
         output_archive = outputs.archive(
             actions = actions,
@@ -309,12 +311,12 @@ def _codesigning_dossier_partial_impl(
 
         _create_combined_zip_artifact(
             actions = actions,
+            bundletool = apple_xplat_toolchain_info.bundletool,
             dossier_merge_zip = output_dossier,
             input_archive = output_archive,
-            label_name = label_name,
             output_combined_zip = output_combined_zip,
             output_discriminator = output_discriminator,
-            bundletool = apple_xplat_toolchain_info.bundletool,
+            rule_label = rule_label,
             xplat_exec_group = xplat_exec_group,
         )
 
@@ -341,12 +343,12 @@ def codesigning_dossier_partial(
         embed_target_dossiers = True,
         embedded_targets = [],
         entitlements = None,
-        label_name,
+        rule_descriptor,
+        rule_label,
         output_discriminator = None,
         platform_prerequisites,
         predeclared_outputs,
-        provisioning_profile = None,
-        rule_descriptor):
+        provisioning_profile = None):
     """Creates a struct containing information for a codesigning dossier.
 
     Args:
@@ -365,13 +367,13 @@ def codesigning_dossier_partial(
       embedded_targets: The list of targets that propagate codesigning dossiers to bundle or
             propagate.
       entitlements: Optional entitlements for this bundle.
-      label_name: Name of the target being built
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: Optional File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      rule_label: The label of the rule being built.
 
     Returns:
       A partial that returns the codesigning dossier, if one was requested.
@@ -390,10 +392,10 @@ def codesigning_dossier_partial(
         embed_target_dossiers = embed_target_dossiers,
         embedded_targets = embedded_targets,
         entitlements = entitlements,
-        label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
+        rule_label = rule_label,
     )
