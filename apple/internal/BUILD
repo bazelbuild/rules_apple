@@ -335,6 +335,7 @@ bzl_library(
         ":rule_support",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:lipo",
+        "@rules_cc//cc/private/rules_impl:objc_common",
     ],
 )
 
