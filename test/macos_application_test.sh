@@ -34,6 +34,7 @@ load("@build_bazel_rules_apple//apple:macos.bzl",
      "macos_bundle")
 load("@build_bazel_rules_apple//apple:apple.bzl",
      "apple_dynamic_framework_import")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

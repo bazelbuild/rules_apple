@@ -31,6 +31,7 @@ function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

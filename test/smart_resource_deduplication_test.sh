@@ -63,6 +63,7 @@ EOF
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application", "ios_framework")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 genrule(
     name = "gen_file",
