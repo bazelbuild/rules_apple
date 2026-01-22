@@ -23,6 +23,10 @@ load(
     "analysis_target_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_xcframework_includes_test.bzl",
+    "analysis_xcframework_includes_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -245,6 +249,34 @@ def apple_xcframework_import_test_suite(name):
             "SwiftUI",
             "-lz",
             "-lc++",
+        ],
+        tags = [name],
+    )
+
+    # Test that includes attribute is correctly resolved for library-style static XCFrameworks.
+    # The expected include path should contain the xcframework's platform directory + "Headers".
+    analysis_xcframework_includes_test(
+        name = "{}_static_xcfw_library_style_includes_resolved".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_static_xcframework_old",
+        expected_includes = [
+            # The path should be: .../ios_static_xcframework/Headers
+            "ios_static_xcframework/Headers",
+        ],
+        tags = [name],
+    )
+
+    # Test that includes attribute is correctly resolved for framework-style static XCFrameworks.
+    # Includes are relative to the platform directory, not the .framework bundle.
+    analysis_xcframework_includes_test(
+        name = "{}_static_xcfw_framework_style_includes_resolved".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_bundling_static_fmwks_with_includes",
+        expected_includes = [
+            "ios_imported_xcframework_bundling_static_fmwks_with_includes-intermediates/Headers",
+        ],
+        # The include should NOT be inside the .framework bundle - this ensures the path
+        # was correctly computed to go up one level from the .framework directory.
+        not_expected_includes = [
+            ".framework/Headers",
         ],
         tags = [name],
     )

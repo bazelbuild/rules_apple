@@ -690,7 +690,16 @@ def _apple_static_xcframework_import_impl(ctx):
         linkopts = sdk_linkopts + linkopts,
         swiftinterface_imports = [xcframework_library.swift_module_interface] if xcframework_library.swift_module_interface else [],
         swiftmodule_imports = xcframework_library.swiftmodule,
-        includes = xcframework_library.includes + ctx.attr.includes,
+        # User-specified includes are relative to the platform directory inside the xcframework.
+        # For framework XCFrameworks, binary is inside .framework bundle, so go up one level.
+        # For library XCFrameworks, binary is directly in the platform directory.
+        includes = xcframework_library.includes + [
+            paths.join(
+                paths.dirname(xcframework_library.binary.dirname) if xcframework_library.framework_includes else xcframework_library.binary.dirname,
+                inc,
+            )
+            for inc in ctx.attr.includes
+        ],
     )
     providers.append(cc_info)
 
