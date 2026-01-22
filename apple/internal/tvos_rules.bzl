@@ -1184,7 +1184,6 @@ tvos_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
-        rule_attrs.launch_images_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "tvos",
@@ -1205,6 +1204,17 @@ that this target depends on.
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
                 doc = "A list of tvOS extensions to include in the final application bundle.",
+            ),
+            "launch_images": attr.label_list(
+                allow_files = True,
+                doc = """
+Files that comprise the launch images for the application. Each file must have a containing
+directory named `*.xcassets/*.launchimage` and there may be only one such `.launchimage` directory
+in the list.
+
+NOTE: Launch images have been _deprecated_ since tvOS 13.1. Users are strongly encouraged to use a
+launch storyboard instead.
+""",
             ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard"],

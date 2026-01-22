@@ -596,19 +596,6 @@ iOS/macOS/watchOS.
         }
     return app_icon_attrs
 
-def _launch_images_attrs():
-    """Returns the attribute required to support launch images for a given target."""
-    return {
-        "launch_images": attr.label_list(
-            allow_files = True,
-            doc = """
-Files that comprise the launch images for the application. Each file must have a containing
-directory named `*.xcassets/*.launchimage` and there may be only one such `.launchimage` directory
-in the list.
-""",
-        ),
-    }
-
 def _settings_bundle_attrs():
     """Returns the attribute required to support settings bundles for a given target."""
     return {
@@ -653,7 +640,6 @@ rule_attrs = struct(
     extensionkit_attrs = _extensionkit_attrs,
     infoplist_attrs = _infoplist_attrs,
     ipa_post_processor_attrs = _ipa_post_processor_attrs,
-    launch_images_attrs = _launch_images_attrs,
     platform_attrs = _platform_attrs,
     settings_bundle_attrs = _settings_bundle_attrs,
     signing_attrs = _signing_attrs,

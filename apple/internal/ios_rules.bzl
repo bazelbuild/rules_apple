@@ -1872,7 +1872,6 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.infoplist_attrs(),
         rule_attrs.ipa_post_processor_attrs(),
-        rule_attrs.launch_images_attrs(),  # TODO: b/476420367 - Remove when ready.
         rule_attrs.platform_attrs(
             platform_type = "ios",
             add_environment_plist = True,
