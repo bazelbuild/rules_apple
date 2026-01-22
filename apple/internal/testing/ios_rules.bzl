@@ -31,7 +31,6 @@ load(
     "AppleBundleInfo",
     "IosApplicationBundleInfo",
     "IosFrameworkBundleInfo",
-    "IosImessageApplicationBundleInfo",
     "new_iosxctestbundleinfo",
 )
 load(
@@ -142,7 +141,6 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
             is_mandatory = True,
             providers = [
                 [AppleBundleInfo, IosApplicationBundleInfo],
-                [AppleBundleInfo, IosImessageApplicationBundleInfo],
             ],
         ),
         {

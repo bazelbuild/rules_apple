@@ -293,7 +293,6 @@ bzl_library(
         ":rule_support",
         ":run_support",
         ":secure_features_support",
-        ":stub_support",
         ":swift_support",
         ":transition_support",
         "//apple/internal/aspects:framework_provider_aspect",

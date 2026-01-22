@@ -650,20 +650,6 @@ that requirement.
     init = make_banned_init(provider_name = "IosStaticFrameworkBundleInfo"),
 )
 
-IosImessageApplicationBundleInfo, new_iosimessageapplicationbundleinfo = provider(
-    doc = """
-Denotes that a target is an iOS iMessage application.
-
-This provider does not contain any fields of its own at this time but is used as
-a "marker" to indicate that a target is specifically an iOS iMessage application
-bundle (and not some other Apple bundle). Rule authors who wish to require that
-a dependency is an iOS iMessage application should use this provider to describe
-that requirement.
-""",
-    fields = {},
-    init = make_banned_init(provider_name = "IosImessageApplicationBundleInfo"),
-)
-
 IosImessageExtensionBundleInfo, new_iosimessageextensionbundleinfo = provider(
     doc = """
 Denotes that a target is an iOS iMessage extension.

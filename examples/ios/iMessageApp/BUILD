@@ -5,7 +5,7 @@ load(
 )
 load(
     "//apple:ios.bzl",
-    "ios_imessage_application",
+    "ios_application",
     "ios_imessage_extension",
 )
 load(
@@ -22,8 +22,8 @@ apple_bundle_version(
 
 swift_library(
     name = "iMessageExtensionLib",
-    srcs = ["MessagesViewController.swift"],
-    data = ["MainInterface.storyboard"],
+    srcs = ["Sources/Extension/MessagesViewController.swift"],
+    data = ["Sources/Extension/MainInterface.storyboard"],
 )
 
 ios_imessage_extension(
@@ -40,11 +40,19 @@ ios_imessage_extension(
     deps = [":iMessageExtensionLib"],
 )
 
-ios_imessage_application(
+swift_library(
+    name = "MessagesAppHost",
+    srcs = [
+        "Sources/AppHost/ContentView.swift",
+        "Sources/AppHost/MessagesAppHost.swift",
+    ],
+)
+
+ios_application(
     name = "iMessageApp",
     app_icons = glob(["iMessageAppAssets.xcassets/**"]),
     bundle_id = "com.google.iMessageApp",
-    extension = ":iMessageExtension",
+    extensions = [":iMessageExtension"],
     families = [
         "iphone",
         "ipad",
@@ -52,6 +60,7 @@ ios_imessage_application(
     infoplists = ["iMessageApp-Info.plist"],
     minimum_os_version = "15.0",
     version = ":iMessageAppVersion",
+    deps = [":MessagesAppHost"],
 )
 
 # Not normally needed, just done for rules_apple's examples so a

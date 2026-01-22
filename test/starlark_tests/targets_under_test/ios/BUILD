@@ -19,7 +19,6 @@ load(
     "ios_application",
     "ios_extension",
     "ios_framework",
-    "ios_imessage_application",
     "ios_imessage_extension",
     "ios_static_framework",
     "ios_ui_test",
@@ -2881,22 +2880,6 @@ objc_library(
 
 # ---------------------------------------------------------------------------------------
 
-ios_imessage_application(
-    name = "imessage_app",
-    bundle_id = "com.google.example",
-    extension = ":imessage_ext",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
 ios_imessage_extension(
     name = "imessage_ext",
     app_icons = ["//test/testdata/resources:message_ext_app_icon_ios"],
@@ -4471,26 +4454,6 @@ ios_framework(
         "//test/starlark_tests/resources:framework_resources_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
-)
-
-ios_imessage_application(
-    name = "imessage_app_with_capability_set_derived_bundle_id",
-    bundle_id_suffix = "",
-    bundle_name = "imessage-app-with-capability-set-derived-bundle-id",
-    extension = ":imessage_ext_with_capability_set_derived_bundle_id",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    tags = common.fixture_tags,
 )
 
 ios_imessage_extension(

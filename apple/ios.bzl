@@ -20,7 +20,6 @@ load(
     _ios_application = "ios_application",
     _ios_extension = "ios_extension",
     _ios_framework = "ios_framework",
-    _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
     _ios_static_framework = "ios_static_framework",
 )
@@ -46,7 +45,6 @@ ios_application = _ios_application
 ios_app_clip = _ios_app_clip
 ios_extension = _ios_extension
 ios_framework = _ios_framework
-ios_imessage_application = _ios_imessage_application
 ios_imessage_extension = _ios_imessage_extension
 ios_static_framework = _ios_static_framework
 

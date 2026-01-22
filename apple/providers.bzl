@@ -49,7 +49,6 @@ load(
     _IosApplicationBundleInfo = "IosApplicationBundleInfo",
     _IosExtensionBundleInfo = "IosExtensionBundleInfo",
     _IosFrameworkBundleInfo = "IosFrameworkBundleInfo",
-    _IosImessageApplicationBundleInfo = "IosImessageApplicationBundleInfo",
     _IosImessageExtensionBundleInfo = "IosImessageExtensionBundleInfo",
     _IosStaticFrameworkBundleInfo = "IosStaticFrameworkBundleInfo",
     _IosXcTestBundleInfo = "IosXcTestBundleInfo",
@@ -104,7 +103,6 @@ IosAppClipBundleInfo = _IosAppClipBundleInfo
 IosApplicationBundleInfo = _IosApplicationBundleInfo
 IosExtensionBundleInfo = _IosExtensionBundleInfo
 IosFrameworkBundleInfo = _IosFrameworkBundleInfo
-IosImessageApplicationBundleInfo = _IosImessageApplicationBundleInfo
 IosImessageExtensionBundleInfo = _IosImessageExtensionBundleInfo
 IosStaticFrameworkBundleInfo = _IosStaticFrameworkBundleInfo
 IosXcTestBundleInfo = _IosXcTestBundleInfo

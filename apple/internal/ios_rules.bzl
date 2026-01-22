@@ -72,7 +72,6 @@ load(
     "IosAppClipBundleInfo",
     "IosExtensionBundleInfo",
     "IosFrameworkBundleInfo",
-    "IosImessageExtensionBundleInfo",
     "WatchosApplicationBundleInfo",
     "new_appleexecutablebinaryinfo",
     "new_appleframeworkbundleinfo",
@@ -80,7 +79,6 @@ load(
     "new_iosapplicationbundleinfo",
     "new_iosextensionbundleinfo",
     "new_iosframeworkbundleinfo",
-    "new_iosimessageapplicationbundleinfo",
     "new_iosimessageextensionbundleinfo",
     "new_iosstaticframeworkbundleinfo",
 )
@@ -107,10 +105,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:secure_features_support.bzl",
     "secure_features_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
-    "stub_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
@@ -1579,239 +1573,6 @@ def _ios_static_framework_impl(ctx):
         OutputGroupInfo(**processor_result.output_groups),
     ] + processor_result.providers
 
-def _ios_imessage_application_impl(ctx):
-    """Implementation of ios_imessage_application."""
-
-    # Using "deps" to compute binary architectures, entitlements and features, but we're using a
-    # stub binary to handle the actual binary, just like a rule for a watchOS 2 app bundle.
-    if ctx.attr.deps:
-        fail("""
-ios_imessage_application does not support `deps`.
-
-This rule is merely a container for an iMessage extension with limited functionality. If this \
-iMessage extension requires a hosting binary, it should be assigned as one of the `extensions` \
-of an `ios_application` rather than an `ios_imessage_application`.
-
-If you mean to use this for packaging an iMessage extension and nothing more, please assign a \
-reference to an ios_imessage_extension target to the `extension` attribute instead, to give this \
-app an implementation.
-""")
-
-    rule_descriptor = rule_support.rule_descriptor(
-        platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.messages_application,
-    )
-
-    actions = ctx.actions
-    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
-    bundle_name, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = ctx.attr.bundle_name,
-        label_name = ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
-    bundle_id = bundling_support.bundle_full_id(
-        bundle_id = ctx.attr.bundle_id,
-        bundle_id_suffix = ctx.attr.bundle_id_suffix,
-        bundle_name = bundle_name,
-        suffix_default = ctx.attr._bundle_id_suffix_default,
-        shared_capabilities = ctx.attr.shared_capabilities,
-    )
-    bundle_verification_targets = [struct(target = ctx.attr.extension)]
-    cc_configured_features = features_support.cc_configured_features(
-        ctx = ctx,
-    )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = [ctx.attr.extension]
-    label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
-        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
-        config_vars = ctx.var,
-        cpp_fragment = ctx.fragments.cpp,
-        device_families = ctx.attr.families,
-        explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
-        uses_swift = False,  # No binary deps to check.
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
-    )
-    predeclared_outputs = ctx.outputs
-    provisioning_profile = ctx.file.provisioning_profile
-    resource_deps = ctx.attr.resources
-    top_level_infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists"],
-        rule_label = ctx.label,
-    )
-    top_level_resources = resources.collect(
-        attr = ctx.attr,
-        res_attrs = [
-            "app_icons",
-            "strings",
-            "resources",
-        ],
-        rule_label = ctx.label,
-    )
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        mac_exec_group = mac_exec_group,
-        bundle_id = bundle_id,
-        cc_configured_features = cc_configured_features,
-        cc_toolchains = cc_toolchain_forwarder,
-        entitlements_file = ctx.file.entitlements,
-        platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
-        provisioning_profile = provisioning_profile,
-        rule_label = label,
-        secure_features = ctx.attr.secure_features,
-        validation_mode = ctx.attr.entitlements_validation,
-        xplat_exec_group = xplat_exec_group,
-    )
-
-    binary_artifact = stub_support.create_stub_binary(
-        actions = actions,
-        platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        xcode_stub_path = rule_descriptor.stub_binary_path,
-    )
-
-    processor_partials = [
-        partials.app_assets_validation_partial(
-            app_icons = ctx.files.app_icons,
-            platform_prerequisites = platform_prerequisites,
-            product_type = rule_descriptor.product_type,
-        ),
-        partials.apple_bundle_info_partial(
-            actions = actions,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
-            entitlements = entitlements,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
-        ),
-        partials.binary_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
-            label_name = label.name,
-        ),
-        partials.codesigning_dossier_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
-            entitlements = entitlements,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        partials.embedded_bundles_partial(
-            bundle_embedded_bundles = True,
-            embeddable_targets = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
-        ),
-        partials.framework_import_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            cc_configured_features = cc_configured_features,
-            label_name = label.name,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            targets = [ctx.attr.extension],
-        ),
-        partials.messages_stub_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            extensions = [ctx.attr.extension],
-            label_name = label.name,
-            package_messages_support = True,
-        ),
-        partials.resources_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            bundle_verification_targets = bundle_verification_targets,
-            environment_plist = ctx.file._environment_plist,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
-            resource_locales = ctx.attr.resource_locales,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            top_level_infoplists = top_level_infoplists,
-            top_level_resources = top_level_resources,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        partials.swift_dylibs_partial(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            binary_artifact = None,
-            bundle_dylibs = True,
-            dependency_targets = [ctx.attr.extension],
-            label_name = label.name,
-            mac_exec_group = mac_exec_group,
-            package_swift_support_if_needed = True,
-            platform_prerequisites = platform_prerequisites,
-        ),
-    ]
-
-    if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
-                actions = actions,
-                profile_artifact = provisioning_profile,
-                rule_label = label,
-            ),
-        )
-
-    processor_result = processor.process(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        cc_configured_features = cc_configured_features,
-        entitlements = entitlements,
-        mac_exec_group = mac_exec_group,
-        partials = processor_partials,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        provisioning_profile = provisioning_profile,
-        rule_descriptor = rule_descriptor,
-        rule_label = label,
-        xplat_exec_group = xplat_exec_group,
-    )
-
-    return [
-        DefaultInfo(
-            files = processor_result.output_files,
-        ),
-        new_iosimessageapplicationbundleinfo(),
-        OutputGroupInfo(**processor_result.output_groups),
-    ] + processor_result.providers
-
 def _ios_imessage_extension_impl(ctx):
     """Implementation of ios_imessage_extension."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -2438,53 +2199,6 @@ be generated that imports all of the headers listed here.
                 doc = """
 A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
 this target.
-""",
-            ),
-        },
-    ],
-)
-
-ios_imessage_application = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_rule_transition,
-    doc = "Builds and bundles an iOS iMessage Application.",
-    implementation = _ios_imessage_application_impl,
-    predeclared_outputs = {"archive": "%{name}.ipa"},
-    attrs = [
-        apple_support.platform_constraint_attrs(),
-        rule_attrs.app_icon_attrs(
-            icon_extension = ".appiconset",
-            icon_parent_extension = ".xcassets",
-        ),
-        rule_attrs.binary_linking_attrs(
-            deps_cfg = transition_support.apple_platform_split_transition,
-            extra_deps_aspects = [
-                app_intents_aspect,
-                apple_resource_aspect,
-                framework_provider_aspect,
-            ],
-            is_test_supporting_rule = False,
-        ),
-        rule_attrs.common_bundle_attrs(),
-        rule_attrs.common_tool_attrs(),
-        rule_attrs.device_family_attrs(
-            allowed_families = rule_attrs.defaults.allowed_families.ios,
-            is_mandatory = True,
-        ),
-        rule_attrs.infoplist_attrs(),
-        rule_attrs.platform_attrs(
-            platform_type = "ios",
-            add_environment_plist = True,
-        ),
-        rule_attrs.signing_attrs(),
-        {
-            "extension": attr.label(
-                mandatory = True,
-                providers = [
-                    [AppleBundleInfo, IosImessageExtensionBundleInfo],
-                ],
-                doc = """
-Single label referencing an ios_imessage_extension target.
-Required.
 """,
             ),
         },

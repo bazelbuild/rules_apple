@@ -216,17 +216,6 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@loader_path/Frameworks",
             ],
         ),
-        # ios_imessage_application
-        apple_product_type.messages_application: _describe_rule_type(
-            additional_infoplist_values = {"LSApplicationLaunchProhibited": True},
-            allowed_device_families = ["iphone", "ipad"],
-            bundle_extension = ".app",
-            bundle_package_type = bundle_package_type.application,
-            bundle_locations = _describe_bundle_locations(archive_relative = "Payload"),
-            product_type = apple_product_type.messages_application,
-            stub_binary_path = "../../../Library/Application Support/" +
-                               "MessagesApplicationStub/MessagesApplicationStub",
-        ),
         # ios_imessage_extension
         apple_product_type.messages_extension: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
