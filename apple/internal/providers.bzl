@@ -150,6 +150,23 @@ set to true for the extension but false for the application.
     init = _make_banned_init(provider_name = "AppleBundleInfo"),
 )
 
+AppleBundleArchiveSupportInfo, new_applebundlearchivesupportinfo = provider(
+    doc = "Provides supporting files to be embedded within an xcarchive bundle.",
+    fields = {
+        "bundle_files": """
+Required. A List of tuples of the format (parent_dir, files) where `parent_dir` is a String
+indicating the parent directory structure from the root of the archive to the desired output
+directory and `files` is a `depset` of `File`s referencing the files to be placed there.
+""",
+        "bundle_zips": """
+Required. A List of tuples of the format (parent_dir, files) where `parent_dir` is a String
+indicating the parent directory structure from the root of the archive to the desired output
+directory and `files` is a `depset` of `File`s referencing the ZIP files to be extracted there.
+""",
+    },
+    init = _make_banned_init(provider_name = "AppleBundleArchiveSupportInfo"),
+)
+
 AppleBundleVersionInfo, new_applebundleversioninfo = provider(
     doc = "Provides versioning information for an Apple bundle.",
     fields = {
