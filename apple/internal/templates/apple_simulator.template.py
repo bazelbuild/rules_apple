@@ -809,6 +809,9 @@ def launch_app(
               },
               indent=2,
           ))
+        logger.info(
+          "Successfully written launch info to: %s", launch_info_path
+        )
       except Exception as e:
         logger.error("Failed to write launch info to file: %s", e)
     else:
