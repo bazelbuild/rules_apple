@@ -37,6 +37,7 @@ load("@build_bazel_rules_apple//apple:apple.bzl",
      "apple_dynamic_framework_import",
      "apple_static_framework_import",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -312,6 +313,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -382,6 +384,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -452,6 +455,7 @@ load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application",
      "ios_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -520,6 +524,7 @@ cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_extension",
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

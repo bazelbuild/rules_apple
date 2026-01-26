@@ -26,7 +26,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:linking_support",
         "//apple/internal:processor",
         "//apple/internal/providers:app_intents_info",
         "//apple/internal/resource_actions:app_intents",
