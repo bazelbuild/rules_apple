@@ -501,6 +501,9 @@ def launch_app(
               },
               indent=2,
           ))
+        logger.info(
+          "Successfully written launch info to: %s", launch_info_path
+        )
       else:
           logger.error("Failed to find PID in JSON output")
   except Exception as e:
