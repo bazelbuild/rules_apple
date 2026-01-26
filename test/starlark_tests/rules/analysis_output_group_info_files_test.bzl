@@ -15,6 +15,10 @@
 """Starlark test rule for OutputGroupInfo output group files."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
@@ -72,3 +76,35 @@ def make_analysis_output_group_info_files_test(config_settings = {}):
     )
 
 analysis_output_group_info_files_test = make_analysis_output_group_info_files_test()
+
+analysis_output_group_info_dsymutil_bundle_files_test = make_provider_test_rule(
+    provider = OutputGroupInfo,
+    provider_fn = _get_output_group_files,
+    assertion_fn = (
+        lambda ctx, env, output_group_files: assertions.contains_files(
+            env = env,
+            expected_files = ctx.attr.expected_outputs,
+            actual_files = output_group_files,
+        )
+    ),
+    attrs = {
+        "output_group_name": attr.string(
+            mandatory = True,
+            doc = "Name of the output group to source files from.",
+        ),
+        "expected_outputs": attr.string_list(
+            mandatory = True,
+            doc = "List of relative output file paths expected as outputs of the output group.",
+        ),
+    },
+    config_settings = {
+        build_settings_labels.tree_artifact_dsym_files: True,
+        "//command_line_option:objc_generate_linkmap": "true",  # output_group: linkmaps
+        "//command_line_option:apple_generate_dsym": "true",  # output_group: dsyms
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:visionos_cpus": "sim_arm64",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
+    },
+)

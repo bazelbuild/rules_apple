@@ -315,7 +315,7 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = embeddable_targets + ctx.attr.deps,
+            debug_dependencies = resource_deps,
             dsym_binaries = debug_outputs.dsym_binaries,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,

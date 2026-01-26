@@ -4574,6 +4574,25 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_fmwks_from_no_srcs_objc_libraries_using_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        ":objc_lib_no_srcs_with_ios_framework",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
     bundle_id = "com.google.example",
     families = ["iphone"],
@@ -4623,6 +4642,16 @@ int objc_lib_with_inner_lib_with_ios_framework_function() {
   return 0;
 }
 """],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_no_srcs_with_ios_framework",
+    data = [
+        ":fmwk_min_os_baseline_with_bundle",
+        ":fmwk_with_resources",
+        ":resource_group_with_framework",
+    ],
     tags = common.fixture_tags,
 )
 
