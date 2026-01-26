@@ -228,6 +228,7 @@ def _bundle_partial_outputs_files(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_name,
         codesign_inputs = [],
@@ -249,6 +250,7 @@ def _bundle_partial_outputs_files(
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
+      xplat_exec_group: A String. The exec_group for action using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -452,10 +454,11 @@ def _bundle_partial_outputs_files(
     else:
         bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
-            executable = bundletool,
-            inputs = bundletool_inputs,
+            executable = bundletool.files_to_run,
+            inputs = depset(bundletool_inputs),
             mnemonic = "BundleApp",
             progress_message = "Bundling %s" % label_name,
+            exec_group = xplat_exec_group,
             **action_args
         )
 
@@ -464,6 +467,7 @@ def _bundle_post_process_and_sign(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_name,
         codesign_inputs,
@@ -487,6 +491,7 @@ def _bundle_post_process_and_sign(
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
+        xplat_exec_group: A String. The exec_group for action using xplat toolchain.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         codesign_inputs: Extra inputs needed for the `codesign` tool.
@@ -547,6 +552,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,
@@ -579,6 +585,7 @@ def _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
@@ -654,6 +661,7 @@ def _bundle_post_process_and_sign(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                xplat_exec_group = xplat_exec_group,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 embedding = True,
@@ -695,6 +703,7 @@ def _process(
         actions,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
+        xplat_exec_group,
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
@@ -718,6 +727,7 @@ def _process(
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
+      xplat_exec_group: A String. The exec_group for action using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
@@ -762,6 +772,7 @@ def _process(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesign_inputs = codesign_inputs,

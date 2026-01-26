@@ -25,6 +25,10 @@ load(
     "AppleTestRunnerInfo",
 )
 load(
+    "//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
+load(
     "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -108,6 +112,9 @@ of the target will be used instead.
     ),
 }
 
+# The name of the execution group used to run j2objc linking actions.
+_J2OBJC_LINKING_EXEC_GROUP = "j2objc"
+
 def _create_apple_rule(
         *,
         cfg = transition_support.apple_rule_transition,
@@ -150,7 +157,14 @@ def _create_apple_rule(
             "@platforms//os:macos",
         ],
         executable = is_executable,
-        fragments = ["apple", "cpp", "objc", "j2objc"],
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        exec_groups = dicts.add(
+            {
+                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
+            },
+            apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        ),
+        fragments = ["apple", "cpp", "j2objc", "objc"],
         toolchains = toolchains,
         **extra_args
     )
@@ -180,14 +194,20 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             *ide_visible_attrs
         ),
         doc = doc,
-        exec_groups = {
-            "test": exec_group(
-                exec_compatible_with = [
-                    "@platforms//os:macos",
-                ],
-            ),
-        },
+        # TODO(b/292086564): Remove once j2objc dead code prunder action is removed.
+        exec_groups = dicts.add(
+            {
+                "test": exec_group(
+                    exec_compatible_with = [
+                        "@platforms//os:macos",
+                    ],
+                ),
+                _J2OBJC_LINKING_EXEC_GROUP: exec_group(),
+            },
+            apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        ),
         test = True,
+        toolchains = use_cpp_toolchain(),
     )
 
 rule_factory = struct(
