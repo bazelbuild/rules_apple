@@ -32,6 +32,7 @@ function tear_down() {
 # individual tests (so that they can exercise different dependency structures).
 function create_minimal_ios_application() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl",
      "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl",
@@ -45,6 +46,11 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -96,7 +102,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
   assert_ipa_contains_swift_dylibs_for_device
 }
 
@@ -113,7 +119,7 @@ swift_library(
 )
 EOF
 
-    do_build ios //app:app --define=apple.package_swift_support=no \
+    do_build ios //app:ipa_app --define=apple.package_swift_support=no \
       || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libswiftCore.dylib"
@@ -146,7 +152,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
   assert_ipa_contains_swift_dylibs_for_device
 }
 
@@ -162,7 +168,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app --features=asan || fail "Should build"
+  do_build ios //app:ipa_app --features=asan || fail "Should build"
 
   if is_device_build ios ; then
     assert_zip_contains "test-bin/app/app.ipa" \
@@ -187,7 +193,7 @@ swift_library(
 )
 EOF
 
-    do_build ios //app:app --features=tsan \
+    do_build ios //app:ipa_app --features=tsan \
         || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
@@ -206,7 +212,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app --features=asan || fail "Should build"
+  do_build ios //app:ipa_app --features=asan || fail "Should build"
 
   if is_device_build ios ; then
     assert_zip_contains "test-bin/app/app.ipa" \
@@ -232,7 +238,7 @@ EOF
   # The clang_rt resolution implemented in tools/clangrttool.py requires
   # the presence of a clang_rt*.dylib rpath.
 
-  do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=address \
+  do_build ios //app:ipa_app --features=include_clang_rt --linkopt=-fsanitize=address \
         || fail "Should build"
 
   if is_device_build ios ; then
@@ -261,7 +267,7 @@ EOF
     # The clang_rt resolution implemented in tools/clangrttool.py requires
     # the presence of a clang_rt*.dylib rpath.
 
-    do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=thread \
+    do_build ios //app:ipa_app --features=include_clang_rt --linkopt=-fsanitize=thread \
         || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libclang_rt.tsan_iossim_dynamic.dylib"
@@ -283,7 +289,7 @@ EOF
   # The clang_rt resolution implemented in tools/clangrttool.py requires
   # the presence of a clang_rt*.dylib rpath.
 
-  do_build ios //app:app --features=include_clang_rt --linkopt=-fsanitize=undefined \
+  do_build ios //app:ipa_app --features=include_clang_rt --linkopt=-fsanitize=undefined \
         || fail "Should build"
 
   if is_device_build ios ; then
@@ -307,7 +313,7 @@ swift_library(
 )
 EOF
 
-  do_build ios //app:app --features=apple.include_main_thread_checker \
+  do_build ios //app:ipa_app --features=apple.include_main_thread_checker \
         || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
