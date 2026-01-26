@@ -263,7 +263,7 @@ def _visionos_application_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.deps,
+            debug_dependencies = resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
