@@ -21,14 +21,14 @@ objc_library(
 ios_unit_test(
     name = "SquarerTests",
     env = {"TEST_ENV_VAR": "test_value"},
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     deps = [":SquarerTestsLib"],
 )
 
 ios_unit_test(
     name = "SquarerTestsOrdered",
     env = {"TEST_ENV_VAR": "test_value"},
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
     deps = [":SquarerTestsLib"],
 )
@@ -36,7 +36,7 @@ ios_unit_test(
 ios_unit_test(
     name = "SquarerTestsRandom",
     env = {"TEST_ENV_VAR": "test_value"},
-    minimum_os_version = "11.0",
+    minimum_os_version = "15.0",
     runner = "//apple/testing/default_runner:ios_xctestrun_random_runner",
     deps = [":SquarerTestsLib"],
 )

@@ -58,11 +58,30 @@ physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),
+    "dsym_variant_flag": struct(
+        doc = """
+Controls the output format for dSYM debug symbols. Valid values are:
+- "flat": Outputs individual dSYM files as additional outputs from the target.
+- "bundle": Outputs dSYM bundles as directories.
+""",
+        default = "flat",
+    ),
 }
 
 # List of all registered build settings without command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_settings = {
+    "building_apple_bundle": struct(
+        doc = """
+This is set to True if the target configuration is building a bundled Apple
+binary. For example, an `ios_application`, `watchos_extension`, or
+`macos_unit_test`, but *not* a `macos_command_line_application`.
+
+This can be tested by clients to provide conditional behavior depending on
+whether or not a library is being built as a dependency of a bundled executable.
+""",
+        default = False,
+    ),
     "enable_wip_features": struct(
         doc = """
 Enables functionality that is still a work in progress, with interfaces and output that can change
@@ -70,6 +89,14 @@ at any time, that is only ready for automated testing now.
 
 This could indicate functionality intended for a future release of the Apple BUILD rules, or
 functionality that is never intended to be production-ready but is required of automated testing.
+""",
+        default = False,
+    ),
+    "require_pointer_authentication_attribute": struct(
+        doc = """
+Enables functionality that requires pointer authentication, where any reference to arm64e will be
+dropped by top level Apple BUILD rules if the "pointer_authentication" is not requested via the
+"secure_features" attribute.
 """,
         default = False,
     ),

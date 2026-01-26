@@ -15,9 +15,21 @@
 """Rules for writing build tests for libraries that target Apple platforms."""
 
 load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:providers.bzl",
     "AppleBinaryInfo",
     "AppleDsymBundleInfo",
+)
+load(
+    "//apple/internal:rule_attrs.bzl",
+    "rule_attrs",
+)
+load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "//apple/internal:transition_support.bzl",
@@ -59,6 +71,19 @@ def _apple_build_test_rule_impl(ctx):
                     rule_kind = ctx.attr._platform_type + "_build_test",
                 ))
 
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = ctx.label,
+        secure_features = ctx.attr.secure_features,
+    )
+
     transitive_files = [target[DefaultInfo].files for target in targets]
 
     # The test's executable is a vacuously passing script. We pass all of the
@@ -96,13 +121,22 @@ def apple_build_test_rule(doc, platform_type):
     # compile successfully; right now we just verify that the code in the
     # libraries compiles.
     return rule(
-        attrs = {
+        attrs = rule_attrs.static_library_archive_attrs(
+            # Matching "targets" below.
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ) | {
             "minimum_os_version": attr.string(
                 mandatory = True,
                 doc = """\
 A required string indicating the minimum OS version that will be used as the
 deployment target when building the targets, represented as a dotted version
 number (for example, `"9.0"`).
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
             "targets": attr.label_list(

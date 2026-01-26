@@ -233,7 +233,7 @@ function test_pkginfo_contents() {
 # Helper to test different values if a build adds the debugger entitlement.
 # First arg is "y|n" if provisioning profile should contain debugger entitlement
 # Second arg is "y|n" if debugger entitlement should be contained on signed app
-# Third arg is "y|n" if `_include_debug_entitlements` is `True` (mainly `--define=apple.add_debugger_entitlement=yes`)
+# Third arg is "y|n" if `_force_debug_entitlements` is `True` (mainly `--define=apple.add_debugger_entitlement=yes`)
 # Any other args are passed to `do_build`.
 function verify_debugger_entitlements_with_params() {
   readonly INCLUDE_DEBUGGER=$1; shift

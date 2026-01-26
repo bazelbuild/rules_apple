@@ -20,6 +20,10 @@ load(
     "ApplePlatformInfo",
 )
 load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -36,11 +40,21 @@ load(
     "rule_factory",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal:transition_support.bzl",
     "transition_support",
 )
 
 def _apple_static_library_impl(ctx):
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    rule_label = ctx.label
+
     if ctx.attr.platform_type == "visionos":
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
         if xcode_version_config.xcode_version() < apple_common.dotted_version("15.1"):
@@ -54,9 +68,11 @@ Resolved Xcode is version {xcode_version}.
     # `transition_support.apple_platform_split_transition`, either implicitly through native
     # `dotted_version` or explicitly through `fail` on an unrecognized platform type value.
 
-    # Validate that the resolved platform matches the platform_type attr.
-    for toolchain_key, resolved_toolchain in ctx.split_attr._cc_toolchain_forwarder.items():
-        if resolved_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
+    secure_features = ctx.attr.secure_features
+
+    for toolchain_key, cc_toolchain in cc_toolchain_forwarder.items():
+        # Validate that the resolved platform matches the platform_type attr.
+        if cc_toolchain[ApplePlatformInfo].target_os != ctx.attr.platform_type:
             fail("""
 ERROR: Unexpected resolved platform:
 Expected Apple platform type of "{platform_type}", but that was not found in {toolchain_key}.
@@ -65,9 +81,17 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
                 toolchain_key = toolchain_key,
             ))
 
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
+
     archive_result = linking_support.register_static_library_archive_action(
         ctx = ctx,
+        cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
     )
 
@@ -81,6 +105,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
     providers = [
         DefaultInfo(files = depset(files_to_build), runfiles = runfiles),
         new_applebinaryinfo(
+            # Since the rule is deprecated, we only set what's needed for legacy users.
             binary = archive_result.library,
             infoplist = None,
         ),
@@ -93,7 +118,7 @@ Expected Apple platform type of "{platform_type}", but that was not found in {to
     return providers
 
 apple_static_library = rule_factory.create_apple_rule(
-    cfg = None,
+    cfg = transition_support.apple_rule_transition,
     doc = """
 This rule produces single- or multi-architecture ("fat") static libraries targeting
 Apple platforms.
@@ -174,6 +199,12 @@ binaries/libraries will be created combining all architectures specified by
 *   `tvos`: architectures gathered from `--tvos_cpus`.
 *   `visionos`: architectures gathered from `--visionos_cpus`.
 *   `watchos`: architectures gathered from `--watchos_cpus`.
+""",
+            ),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
 """,
             ),
             "sdk_frameworks": attr.string_list(

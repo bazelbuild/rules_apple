@@ -66,15 +66,26 @@ This provider propagates general information about an Apple binary that is not
 specific to any particular binary type.
 """,
     fields = {
+        "archs": """
+`List` of `String`s. The architectures that the binary supports (i.e. `arm64` for Apple Silicon
+simulators and device builds).
+""",
         "binary": """
 `File`. The binary (executable, dynamic library, etc.) file that the target represents.
 """,
         "infoplist": """
 `File`. The complete (binary-formatted) `Info.plist` embedded in the binary.
 """,
+        "platform_type": """
+`String`. The platform type for the binary (i.e. `ios` for iOS binaries).
+""",
         "product_type": """
 `String`. The dot-separated product type identifier associated with the binary (for example,
 `com.apple.product-type.tool`).
+""",
+        "target_environment": """
+`String`. The environment that the binary was built for, (i.e. `device` for iOS device builds,
+`simulator` for iOS simulator builds).
 """,
     },
     init = _make_banned_init(provider_name = "AppleBinaryInfo"),
@@ -199,21 +210,6 @@ target if one was generated.
     init = _make_banned_init(provider_name = "AppleCodesigningDossierInfo"),
 )
 
-AppleDebugOutputsInfo, new_appledebugoutputsinfo = provider(
-    """
-Holds debug outputs of an Apple binary rule.
-
-This provider is DEPRECATED. Preferably use `AppleDsymBundleInfo` instead.
-
-The only field is `output_map`, which is a dictionary of:
-  `{ arch: { "dsym_binary": File, "linkmap": File }`
-
-Where `arch` is any Apple architecture such as "arm64" or "armv7".
-""",
-    fields = ["outputs_map"],
-    init = _make_banned_init(provider_name = "AppleDebugOutputsInfo"),
-)
-
 AppleDsymBundleInfo, new_appledsymbundleinfo = provider(
     doc = "Provides information for an Apple dSYM bundle.",
     fields = {
@@ -232,18 +228,9 @@ dependencies of the given target if any were generated.
 _AppleDynamicFrameworkInfo = provider(
     doc = "Contains information about an Apple dynamic framework.",
     fields = {
-        "framework_dirs": """\
-The framework path names used as link inputs in order to link against the
-dynamic framework.
-""",
-        "framework_files": """\
-The full set of artifacts that should be included as inputs to link against the
-dynamic framework.
-""",
-        "binary": "The dylib binary artifact of the dynamic framework.",
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "framework_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the framework's binary.
 """,
     },
 )
@@ -269,8 +256,9 @@ def new_appledynamicframeworkinfo(**kwargs):
 
 _AppleExecutableBinaryInfo = provider(
     doc = """
-Contains the executable binary output that was built using
-`link_multi_arch_binary` with the `executable` binary type.
+Contains an executable binary output from `link_multi_arch_binary` for the sole purposes of
+indicating that the target supports "bundle loader" functionality for macos_bundle and test bundles
+across all Apple platform unit tests.
 """,
     fields = {
         # TODO: Remove when we drop 7.x
@@ -280,9 +268,9 @@ apple_common.Objc provider used for legacy linking behavior.
         "binary": """\
 The executable binary artifact output by `link_multi_arch_binary`.
 """,
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
+        "binary_linking_context": """\
+`CcLinkingContext`. A linking context which contains information about the direct and transitive
+dependencies linked into the binary.
 """,
     },
 )

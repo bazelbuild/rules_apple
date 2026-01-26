@@ -43,13 +43,6 @@ following keys:
       `bundle_path`.
   output: The path to the uncompressed ZIP archive that should be created with
       the merged bundle contents.
-  root_merge_zips: A list of dictionaries representing the ZIP archives whose
-      contents should be merged into the archive at the root. Each dictionary
-      contains two fields: "src", the path of the archive whose contents should
-      be merged into the archive; and "dest", the path inside the archive where
-      the ZIPs contents should be placed. This is used for support files, such
-      as Swift libraries and watchOS stub executables, that must be shipped to
-      Apple at the root of the archive as well as within the bundle itself.
 """
 
 import hashlib
@@ -108,7 +101,6 @@ class Bundler(object):
     bundle_path = self._control.get('bundle_path', '')
     bundle_merge_files = self._control.get('bundle_merge_files', [])
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
-    root_merge_zips = self._control.get('root_merge_zips', [])
     compress = self._control.get('compress', False)
 
     with zipfile.ZipFile(output_path, 'w', allowZip64 = True) as out_zip:
@@ -120,9 +112,6 @@ class Bundler(object):
         dest = os.path.join(bundle_path, f['dest'])
         self._add_files(f['src'], dest, f.get('executable', False),
                         f.get('contents_only', False), out_zip, compress)
-
-      for z in root_merge_zips:
-        self._add_zip_contents(z['src'], z['dest'], out_zip, compress)
 
     with zipfile.ZipFile(output_path, 'r') as test_zip:
       badfile = test_zip.testzip()

@@ -76,6 +76,8 @@ The info_plist_options dictionary can contain the following keys:
       `child_plists`), and the valures are a list of key/value pairs. The
       key/value pairs are encoded as a list of exactly two items, the key is
       actually an array of keys, so it can walk into the child plist.
+  entitlements_to_validate_with_profile: If present, a list of entitlements keys
+      that should be validated as being present in the provisioning profile.
 
 If info_plist_options is present, validation will be performed on the output
 file after merging is complete. If any of the following conditions are not
@@ -193,6 +195,12 @@ UNEXPECTED_KEY_MSG = (
     'Unexpectedly found key "%s" in target "%s".'
 )
 
+EXTENSIONKIT_KEY_MSG = (
+    'Target "%s" unexpectedly defines %s, which is an ExtensionKit key. '
+    'Did you forget to set "extensionkit_extension = True" on the extension '
+    'rule to properly define an ExtensionKit extension?'
+)
+
 INVALID_VERSION_KEY_VALUE_MSG = (
     'Target "%s" has a %s that doesn\'t meet Apple\'s guidelines: "%s". See '
     'https://developer.apple.com/library/content/technotes/tn2420/_index.html'
@@ -296,28 +304,6 @@ ENTITLEMENTS_VALUE_NOT_IN_LIST = (
     'is not in the provisioning profiles potential values ("%s").'
 )
 
-_ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE = (
-    'aps-environment',
-    'com.apple.developer.applesignin',
-    'com.apple.developer.carplay-audio',
-    'com.apple.developer.carplay-charging',
-    'com.apple.developer.carplay-maps',
-    'com.apple.developer.carplay-messaging',
-    'com.apple.developer.carplay-parking',
-    'com.apple.developer.carplay-quick-ordering',
-    'com.apple.developer.playable-content',
-    'com.apple.developer.networking.wifi-info',
-    'com.apple.developer.passkit.pass-presentation-suppression',
-    'com.apple.developer.payment-pass-provisioning',
-    'com.apple.developer.proximity-reader.payment.acceptance',
-    'com.apple.developer.siri',
-    'com.apple.developer.usernotifications.critical-alerts',
-    'com.apple.developer.usernotifications.time-sensitive',
-    # Keys which have a list of potential values in the profile, but only one in
-    # the entitlements that must be in the profile's list of values
-    'com.apple.developer.devicecheck.appattest-environment',
-)
-
 ENTITLEMENTS_BETA_REPORTS_ACTIVE_MISMATCH = (
     'In target "%s"; the entitlements "beta-reports-active" ("%s") did not '
     'match the value in the provisioning profile ("%s").'
@@ -353,7 +339,10 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
-    'bundle_id', 'profile_metadata_file', 'validation_mode',
+    'bundle_id',
+    'extra_keys_to_match_profile',
+    'profile_metadata_file', 
+    'validation_mode',
 ])
 
 # Two regexes for variable matching/validation.
@@ -768,6 +757,9 @@ class PlistIO(object):
       PlistToolError: if plutil return code is non-zero.
     """
     plist_contents = plist_file.read()
+    if not plist_contents:
+      # If the incoming file is empty, return an empty dictionary.
+      return {}
 
     # Binary plists are easy to identify because they start with 'bplist'. For
     # plain text plists, it may be possible to have leading whitespace, but
@@ -922,6 +914,14 @@ class InfoPlistTask(PlistToolTask):
       ):
         raise PlistToolError(
             MISSING_KEY_MSG % (self.target, 'EXExtensionPointIdentifier')
+        )
+    else:
+      # Check if the ExtensionKit EXAppExtensionAttributes dictionary has been
+      # set; if it is, then this extension should be built as an ExtensionKit
+      # extension instead of an NSExtension.
+      if 'EXAppExtensionAttributes' in plist:
+        raise PlistToolError(
+            EXTENSIONKIT_KEY_MSG % (self.target, 'EXAppExtensionAttributes')
         )
 
     # If the version keys are set, they must be valid (even if they were
@@ -1181,7 +1181,16 @@ class EntitlementsTask(PlistToolTask):
       self._sanity_check_profile()
 
       if self._validation_mode != 'skip':
-        self._validate_entitlements_against_profile(plist)
+        # TODO: b/474331541 - Remove the fallback once its values are always set
+        # at analysis time in entitlements_support.bzl.
+        extra_keys_to_match = self.options.get(
+            'extra_keys_to_match_profile',
+            [],
+        )
+        self._validate_entitlements_against_profile(
+            plist,
+            extra_keys_to_match,
+        )
 
   def _validate_bundle_id_covered(self, bundle_id, entitlements):
     """Checks that the bundle id is covered by the entitlements.
@@ -1232,11 +1241,16 @@ class EntitlementsTask(PlistToolTask):
     # for setting up substitutions. At the moment no validation between them
     # is being done.
 
-  def _validate_entitlements_against_profile(self, entitlements):
+  def _validate_entitlements_against_profile(
+      self, entitlements, extra_keys_to_match
+  ):
     """Checks that the given entitlements are valid for the current profile.
 
     Args:
       entitlements: The entitlements.
+      extra_keys_to_match: A list of additional entitlements keys to validate
+          that their values match those of the provisioning profile exactly if
+          the value is not a list, and a subset if the value is a list.
     Raises:
       PlistToolError: For any issues found.
     """
@@ -1266,7 +1280,7 @@ class EntitlementsTask(PlistToolTask):
             ENTITLEMENTS_APP_ID_PROFILE_MISMATCH % (
                 self.target, src_app_id, profile_app_id))
 
-    for entitlement in _ENTITLEMENTS_TO_VALIDATE_WITH_PROFILE:
+    for entitlement in extra_keys_to_match:
       self._check_entitlement_matches_profile_value(
           entitlement=entitlement,
           entitlements=entitlements,
@@ -1290,26 +1304,12 @@ class EntitlementsTask(PlistToolTask):
         'keychain-access-groups', self.target,
         supports_wildcards=True)
 
-    # com.apple.security.application-groups
-    # (This check does not apply to macOS-only provisioning profiles.)
-    if self._profile_metadata.get('Platform', []) != ['OSX']:
-      self._check_entitlements_array(
-          entitlements, profile_entitlements,
-          'com.apple.security.application-groups', self.target)
-
     # com.apple.developer.associated-domains
     self._check_entitlements_array(
         entitlements, profile_entitlements,
         'com.apple.developer.associated-domains', self.target,
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True)
-
-    # com.apple.developer.nfc.readersession.formats
-    self._check_entitlements_array(
-        entitlements,
-        profile_entitlements,
-        'com.apple.developer.nfc.readersession.formats',
-        self.target)
 
   def _check_entitlement_matches_profile_value(
       self,

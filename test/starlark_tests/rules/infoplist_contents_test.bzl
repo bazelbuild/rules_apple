@@ -121,6 +121,10 @@ def _infoplist_contents_test_impl(ctx):
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
     attrs = {
+        "build_settings": attr.string_dict(
+            mandatory = False,
+            doc = "Build settings for target under test.",
+        ),
         "build_type": attr.string(
             default = "simulator",
             doc = """

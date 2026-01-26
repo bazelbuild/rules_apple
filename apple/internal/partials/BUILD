@@ -31,6 +31,7 @@ bzl_library(
         "//apple/internal/providers:app_intents_info",
         "//apple/internal/resource_actions:app_intents",
         "@bazel_skylib//lib:partial",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -148,11 +149,13 @@ bzl_library(
     deps = [
         "//apple:providers",
         "//apple/internal:intermediates",
+        "//apple/internal:outputs",
         "//apple/internal:providers",
         "//apple/internal:resource_actions",
         "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -236,7 +239,7 @@ bzl_library(
         "//apple/internal:framework_import_support",
         "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
-        "@bazel_skylib//lib:paths",
+        "@rules_cc//cc/common",
     ],
 )
 

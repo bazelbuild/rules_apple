@@ -35,6 +35,10 @@ load(
     "resource_actions",
 )
 load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -77,19 +81,28 @@ def _new_entitlements_artifact(*, actions, extension, label_name):
         "entitlements/%s%s" % (label_name, extension),
     )
 
-def _include_debug_entitlements(*, platform_prerequisites):
-    """Returns a value indicating whether debug entitlements should be used.
+def _force_debug_entitlements(*, platform_prerequisites):
+    """Returns a value indicating whether the `get-task-allow` debug entitlements should be forced.
 
-    Debug entitlements are used if the --device_debug_entitlements command-line
-    option indicates that they should be included.
+    Debug entitlements are not forced on macOS at this level, regardless of the
+    apple.add_debugger_entitlement define.
 
-    Debug entitlements are also not used on macOS.
+    Debug entitlements are forced if the apple.add_debugger_entitlement define indicates that they
+    should be included, and if it is not present, they are not.
+
+    Note however that if `get-task-allow` is in the provisioning profile, `get-task-allow` will
+    still be included in the evaluated entitlements file for code signing even if this function
+    returns False, on account of plisttool's behavior.
+
+    Therefore, the ONLY practical effect of this function is to allow for debugging simulator
+    targets that don't have provisioning profiles assigned if apple.add_debugger_entitlement is set
+    to True.
 
     Args:
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
-      True if the debug entitlements should be included, otherwise False.
+      True if the `get-task-allow` debug entitlements should be forced, otherwise False.
     """
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         return False
@@ -100,9 +113,13 @@ def _include_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
-    if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
-        return False
-    return True
+
+    # TODO: b/473768498 - Consider if this should return True for the simulator with no provisioning
+    # profile case that needs to be handled here, and if we can entirely drop the
+    # apple.add_debugger_entitlement define support above in favor of that simplification. One means
+    # would be to have an explicit "if not device -> return True else False" as the entire
+    # implementation of this function.
+    return False
 
 def _include_app_clip_entitlements(*, product_type):
     """Returns a value indicating whether app clip entitlements should be used.
@@ -195,11 +212,14 @@ def _process_entitlements(
         actions,
         apple_mac_toolchain_info,
         bundle_id,
+        cc_configured_features,
+        cc_toolchains,
         entitlements_file,
         platform_prerequisites,
         product_type,
         provisioning_profile,
         rule_label,
+        secure_features,
         validation_mode):
     """Processes the entitlements for a binary or bundle.
 
@@ -224,6 +244,8 @@ def _process_entitlements(
         apple_mac_toolchain_info: The `struct` of tools from the shared Apple
             toolchain.
         bundle_id: The bundle identifier.
+        cc_configured_features: The cc_configured_features struct for the current target.
+        cc_toolchains: The cc_toolchain_forwarder target with its providers.
         entitlements_file: The `File` containing the unprocessed entitlements
             (or `None` if none were provided).
         platform_prerequisites: The platform prerequisites.
@@ -232,6 +254,8 @@ def _process_entitlements(
             from which entitlements will be extracted if `entitlements_file` is
             `None`. This argument may also be `None`.
         rule_label: The `Label` of the target being built.
+        secure_features: A list of strings representing Apple Enhanced Security crosstool features
+            that should be enabled for this target.
         validation_mode: A value from `entitlements_validation_mode` describing
             how the entitlements should be validated.
 
@@ -257,12 +281,31 @@ def _process_entitlements(
     forced_plists = []
     if signing_info.entitlements:
         plists.append(signing_info.entitlements)
-    if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
+    if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
         get_task_allow = {"get-task-allow": True}
         forced_plists.append(struct(**get_task_allow))
     if _include_app_clip_entitlements(product_type = product_type):
         app_clip = {"com.apple.developer.on-demand-install-capable": True}
         forced_plists.append(struct(**app_clip))
+    if secure_features:
+        # Check that the requested secure features are supported and enabled for the toolchain.
+        secure_features_support.validate_secure_features_support(
+            cc_configured_features = cc_configured_features,
+            cc_toolchain_forwarder = cc_toolchains,
+            rule_label = rule_label,
+            secure_features = secure_features,
+        )
+
+        # Retrieve the entitlements required by the requested secure features, if there are any.
+        secure_features_entitlements = (
+            secure_features_support.entitlements_from_secure_features(
+                rule_label = rule_label,
+                secure_features = secure_features,
+                xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
+            )
+        )
+        if secure_features_entitlements:
+            forced_plists.append(struct(**secure_features_entitlements))
 
     inputs = list(plists)
 
@@ -274,8 +317,37 @@ def _process_entitlements(
         "%s_entitlements.entitlements" % rule_label.name,
     )
 
+    extra_keys_to_match_profile = [
+        # Keys for values that are not lists, which must be in the profile if they are defined
+        # in the entitlements.
+        "aps-environment",
+        "com.apple.developer.applesignin",
+        "com.apple.developer.carplay-audio",
+        "com.apple.developer.carplay-charging",
+        "com.apple.developer.carplay-maps",
+        "com.apple.developer.carplay-messaging",
+        "com.apple.developer.carplay-parking",
+        "com.apple.developer.carplay-quick-ordering",
+        "com.apple.developer.declared-age-range",
+        "com.apple.developer.playable-content",
+        "com.apple.developer.networking.wifi-info",
+        "com.apple.developer.passkit.pass-presentation-suppression",
+        "com.apple.developer.payment-pass-provisioning",
+        "com.apple.developer.proximity-reader.payment.acceptance",
+        "com.apple.developer.siri",
+        "com.apple.developer.usernotifications.critical-alerts",
+        "com.apple.developer.usernotifications.time-sensitive",
+        # Keys which have a list of potential values in the profile, but only one in
+        # the entitlements that must be in the profile's list of values
+        "com.apple.developer.devicecheck.appattest-environment",
+        "com.apple.developer.nfc.readersession.formats",
+    ]
+    if platform_prerequisites.platform_type != "macos":
+        extra_keys_to_match_profile.append("com.apple.security.application-groups")
+
     entitlements_options = {
         "bundle_id": bundle_id,
+        "extra_keys_to_match_profile": extra_keys_to_match_profile,
     }
     if signing_info.profile_metadata:
         inputs.append(signing_info.profile_metadata)
@@ -321,7 +393,7 @@ def _process_entitlements(
         )
 
     simulator_entitlements = None
-    if _include_debug_entitlements(platform_prerequisites = platform_prerequisites):
+    if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
         simulator_entitlements = actions.declare_file(
             "%s_entitlements.simulator.entitlements" % rule_label.name,
         )
