@@ -29,7 +29,7 @@ build_flags = {
 Disables binary thinning for Swift stdlib binaries, matching the most recent Xcode handling for
 Swift support dylibs.
 """,
-        default = False,
+        default = True,
     ),
     "force_plisttool_on_mac": struct(
         doc = """
@@ -46,7 +46,6 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
-    # TODO(b/266604130): Migrate users from the tree artifact output --define flag to this flag.
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
