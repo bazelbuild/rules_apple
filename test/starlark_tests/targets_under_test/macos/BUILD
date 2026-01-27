@@ -49,6 +49,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:localization",
