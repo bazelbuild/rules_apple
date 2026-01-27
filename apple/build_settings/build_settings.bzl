@@ -31,7 +31,7 @@ parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframewo
 Disables binary thinning for Swift stdlib binaries, matching the most recent Xcode handling for
 Swift support dylibs.
 """,
-        default = False,
+        default = True,
     ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
