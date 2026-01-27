@@ -445,10 +445,13 @@ def _debug_symbols_partial_impl(
     )
 
     # Output the tree artifact dSYMs as the default outputs if requested.
-    tree_artifact_dsym_files = defines.bool_value(
-        config_vars = platform_prerequisites.config_vars,
-        define_name = "apple.tree_artifact_dsym_files",
-        default = False,
+    tree_artifact_dsym_files = (
+        getattr(platform_prerequisites.build_settings, "tree_artifact_dsym_files", False) or
+        defines.bool_value(
+            config_vars = platform_prerequisites.config_vars,
+            define_name = "apple.tree_artifact_dsym_files",
+            default = False,
+        )
     )
 
     dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)

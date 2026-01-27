@@ -45,25 +45,41 @@ def _assert_contains_expected_direct_and_transitive_dsyms(
         actual_files = apple_dsym_bundle_info.transitive_dsyms.to_list(),
     )
 
-apple_dsym_bundle_info_test = make_provider_test_rule(
-    provider = AppleDsymBundleInfo,
-    assertion_fn = _assert_contains_expected_direct_and_transitive_dsyms,
-    attrs = {
-        "expected_direct_dsyms": attr.string_list(
-            mandatory = True,
-            doc = """
+_SHARED_ATTRS = {
+    "expected_direct_dsyms": attr.string_list(
+        mandatory = True,
+        doc = """
 List of bundle names in the format <bundle_name>.<bundle_extension> to verify that dSYM bundles are
 created for them as direct dependencies of the given providers.
 """,
-        ),
-        "expected_transitive_dsyms": attr.string_list(
-            mandatory = True,
-            doc = """
+    ),
+    "expected_transitive_dsyms": attr.string_list(
+        mandatory = True,
+        doc = """
 List of bundle names in the format <bundle_name>.<bundle_extension> to verify that dSYM bundles are
 created for them as transitive dependencies of the given providers.
 """,
-        ),
+    ),
+}
+
+apple_dsym_bundle_info_test = make_provider_test_rule(
+    provider = AppleDsymBundleInfo,
+    assertion_fn = _assert_contains_expected_direct_and_transitive_dsyms,
+    attrs = _SHARED_ATTRS,
+    config_settings = {
+        "//command_line_option:apple_generate_dsym": "true",
+        "//command_line_option:macos_cpus": "arm64,x86_64",
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+        "//command_line_option:visionos_cpus": "sim_arm64",
+        "//command_line_option:watchos_cpus": "arm64,x86_64",
     },
+)
+
+apple_dsym_bundle_info_dsymutil_bundle_test = make_provider_test_rule(
+    provider = AppleDsymBundleInfo,
+    assertion_fn = _assert_contains_expected_direct_and_transitive_dsyms,
+    attrs = _SHARED_ATTRS,
     config_settings = {
         "//command_line_option:apple_generate_dsym": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",
