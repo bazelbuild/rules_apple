@@ -15,6 +15,10 @@
 """macos_application Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
@@ -192,6 +196,32 @@ def macos_application_test_suite(name):
         ],
         not_contains = [
             "$ARCHIVE_ROOT/app.app",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_additional_contents_bundling_app_with_bundles_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_bundling_app",
+        contains = [
+            "$ARCHIVE_ROOT/app_bundling_app.app/Contents/Helpers/app_basic_swift.app",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_additional_contents_bundling_app_with_zips_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_bundling_app",
+        contains = [
+            "$ARCHIVE_ROOT/app_bundling_app.app/Contents/Helpers/app_basic_swift.app",
         ],
         tags = [name],
     )

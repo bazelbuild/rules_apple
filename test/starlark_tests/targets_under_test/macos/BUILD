@@ -191,6 +191,23 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_bundling_app",
+    additional_contents = {
+        ":app_basic_swift": "Helpers",
+    },
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_application(

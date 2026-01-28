@@ -76,8 +76,7 @@ def _embedded_bundles_partial_impl(
                 transitive_depset = depset(transitive = transitive_bundles.get(bundle_type, []))
 
                 # With tree artifacts, we need to set the parent_dir of the file to be the basename
-                # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
-                # be too many embedded targets per top-level bundle.
+                # of the file, as that basename is the full name of the bundle (app.extension, etc).
                 if tree_artifact_enabled:
                     for bundle in transitive_depset.to_list():
                         bundles_to_embed.append(

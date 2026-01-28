@@ -61,10 +61,13 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
                 )
             else:
                 # Tree artifact archive case.
+                #
+                # With tree artifacts, we need to set the parent_dir of the file to be the basename
+                # of the file, as that basename is the full name of the bundle (app.framework, etc).
                 bundle_files.append(
                     (
                         processor.location.content,
-                        subdirectory,
+                        paths.join(subdirectory, target_archive.basename),
                         depset([target_archive]),
                     ),
                 )
