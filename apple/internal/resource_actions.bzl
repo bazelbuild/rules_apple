@@ -30,11 +30,6 @@ load(
     _link_storyboards = "link_storyboards",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:mlmodel.bzl",
-    _compile_mlmodel = "compile_mlmodel",
-    _generate_objc_mlmodel_sources = "generate_objc_mlmodel_sources",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:plist.bzl",
     _compile_plist = "compile_plist",
     _merge_resource_infoplists = "merge_resource_infoplists",
@@ -64,7 +59,6 @@ resource_actions = struct(
     compile_asset_catalog = _compile_asset_catalog,
     compile_datamodels = _compile_datamodels,
     compile_mappingmodel = _compile_mappingmodel,
-    compile_mlmodel = _compile_mlmodel,
     compile_plist = _compile_plist,
     compile_rkassets = _compile_rkassets,
     compile_storyboard = _compile_storyboard,
@@ -72,7 +66,6 @@ resource_actions = struct(
     compile_xib = _compile_xib,
     copy_png = _copy_png,
     create_schema_rkassets = _create_schema_rkassets,
-    generate_objc_mlmodel_sources = _generate_objc_mlmodel_sources,
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
     merge_root_infoplists = _merge_root_infoplists,

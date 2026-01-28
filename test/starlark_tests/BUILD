@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_capability_tests.bzl", "apple_capability_test_suite")
-load(":apple_core_ml_library_tests.bzl", "apple_core_ml_library_test_suite")
 load(":apple_dynamic_xcframework_import_tests.bzl", "apple_dynamic_xcframework_import_test_suite")
 load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
 load(":apple_static_xcframework_import_tests.bzl", "apple_static_xcframework_import_test_suite")
@@ -51,8 +50,6 @@ licenses(["notice"])
 apple_bundle_version_test_suite(name = "apple_bundle_version")
 
 apple_capability_test_suite(name = "apple_capability")
-
-apple_core_ml_library_test_suite(name = "apple_core_ml_library")
 
 apple_dynamic_xcframework_import_test_suite(name = "apple_dynamic_xcframework_import")
 

@@ -285,8 +285,6 @@ def _bucketize_data(
                 bucket_name = "pngs"
             elif resource_short_path.endswith(".plist"):
                 bucket_name = "plists"
-            elif resource_short_path.endswith(".mlmodel"):
-                bucket_name = "mlmodels"
             elif ".xcstickers/" in resource_short_path:
                 fail("""
 .xcstickers for sticker packs are not supported, but one was found from {target}

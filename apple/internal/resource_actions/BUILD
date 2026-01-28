@@ -62,18 +62,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "mlmodel",
-    srcs = ["mlmodel.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "//apple/internal/utils:xctoolrunner",
-        "@build_bazel_apple_support//lib:apple_support",
-    ],
-)
-
-bzl_library(
     name = "plist",
     srcs = ["plist.bzl"],
     visibility = [

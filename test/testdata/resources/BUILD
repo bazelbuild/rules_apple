@@ -17,7 +17,6 @@ exports_files(
         "nonlocalized.plist",
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
-        "sample.mlmodel",
         "sample.png",
         "storyboard_ios.storyboard",
         "view_ios.xib",

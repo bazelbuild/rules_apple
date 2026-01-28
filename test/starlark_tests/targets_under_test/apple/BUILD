@@ -1,4 +1,3 @@
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
     "swift_library",
@@ -14,16 +13,8 @@ load(
     "apple_xcframework",
 )
 load(
-    "//apple:ios.bzl",
-    "ios_application",
-)
-load(
     "//apple:macos.bzl",
     "macos_bundle",
-)
-load(
-    "//apple:resources.bzl",
-    "apple_core_ml_library",
 )
 load(
     "//apple:versioning.bzl",
@@ -2168,83 +2159,5 @@ generate_static_xcframework(
         ],
         "ios": ["arm64"],
     },
-    tags = common.fixture_tags,
-)
-
-# ---------------------------------------------------------------------------------------
-# Targets for Apple Core ML library tests.
-
-ios_application(
-    name = "app_with_core_ml_library",
-    bundle_id = "my.bundle.id",
-    families = ["iphone"],
-    infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_ios.baseline,
-    tags = common.fixture_tags,
-    deps = [":core_ml_library_depending_lib"],
-)
-
-objc_library(
-    name = "core_ml_library_depending_lib",
-    srcs = ["//test/starlark_tests/resources:main.m"],
-    tags = common.fixture_tags,
-    deps = [
-        ":core_ml_objc_lib",
-        ":core_ml_swift_lib",
-    ],
-)
-
-objc_library(
-    name = "core_ml_objc_lib",
-    srcs = [":core_ml_objc_lib_src"],
-    tags = common.fixture_tags,
-    deps = [":SampleCoreML"],
-)
-
-write_file(
-    name = "core_ml_objc_lib_src",
-    out = "core_ml_objc_lib.m",
-    content = ["""
-#import <Foundation/Foundation.h>
-#import "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/SampleCoreML.h"
-
-@interface ObjcLib: NSObject
-@end
-
-@implementation ObjcLib
-- (void)test:(sample *)sample {
-  NSLog(@"%@", sample);
-}
-@end
-"""],
-    tags = common.fixture_tags,
-)
-
-swift_library(
-    name = "core_ml_swift_lib",
-    srcs = [":core_ml_swift_lib_src"],
-    tags = common.fixture_tags,
-    deps = [
-        ":SampleCoreML",
-    ],
-)
-
-write_file(
-    name = "core_ml_swift_lib_src",
-    out = "swift_lib.swift",
-    content = ["""
-import Foundation
-import third_party_bazel_rules_rules_apple_test_starlark_tests_targets_under_test_apple_SampleCoreML
-
-public struct SwiftLib {
-  public var mySample = sample()
-}
-"""],
-    tags = common.fixture_tags,
-)
-
-apple_core_ml_library(
-    name = "SampleCoreML",
-    mlmodel = "//test/testdata/resources:sample.mlmodel",
     tags = common.fixture_tags,
 )

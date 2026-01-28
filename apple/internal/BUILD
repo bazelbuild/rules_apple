@@ -472,7 +472,6 @@ bzl_library(
         "//apple/internal/resource_actions:actool",
         "//apple/internal/resource_actions:datamodel",
         "//apple/internal/resource_actions:ibtool",
-        "//apple/internal/resource_actions:mlmodel",
         "//apple/internal/resource_actions:plist",
         "//apple/internal/resource_actions:png",
         "//apple/internal/resource_actions:realitytool",

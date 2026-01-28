@@ -379,7 +379,6 @@ def _resources_partial_impl(
         "datamodels": (resources_support.datamodels, True),
         "framework": (resources_support.apple_bundle(processor.location.framework), False),
         "infoplists": (resources_support.infoplists, False),
-        "mlmodels": (resources_support.mlmodels, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
         "processed": (resources_support.noop, False),
